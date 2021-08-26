@@ -1,7 +1,7 @@
 <template>
     <div>
         <div class="p-formgroup-inline">
-            <p class="p-ml-2">Paste SBML file contents below</p>
+            <p class="p-ml-2">Paste or type SBML contents below.</p>
             <div class="p-col-12">
                 <Textarea
                     type="text"
@@ -13,7 +13,7 @@
                     :autoResize="false"
                 />
                 <Button class="p-mt-2" type="button" @click="submitForm"
-                    ><i class="pi pi-upload p-mr-2"></i>Submit</Button
+                    ><i class="pi pi-upload p-mr-2"></i>Create Report</Button
                 >
             </div>
         </div>

@@ -235,6 +235,7 @@ def get_report_from_model_url(url: str) -> Response:
 
     return Response(content=json.dumps(content), media_type="application/json")
 
+
 @api.post("/sbml_content")
 async def get_report_from_file_contents(request: Request) -> Response:
     file_content = await request.body()

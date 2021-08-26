@@ -1,17 +1,17 @@
 <template>
-    <h1>Submit SBML</h1>
+    <h1>SBML Report</h1>
     <TabView class="p-mx-2 p-my-4">
         <TabPanel>
             <template #header>
                 <i class="pi pi-file p-mr-2"></i>
-                <span>Upload SBML File</span>
+                <span>Upload File</span>
             </template>
             <FileUploadForm />
         </TabPanel>
         <TabPanel>
             <template #header>
                 <i class="pi pi-link p-mr-2"></i>
-                <span>Submit Model URL</span>
+                <span>Submit URL</span>
             </template>
             <URLUpload />
         </TabPanel>

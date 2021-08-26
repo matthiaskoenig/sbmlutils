@@ -1,20 +1,24 @@
 <template>
     <div>
+        <p class="p-pb-3">Select an SBML file located on your computer. The file can be
+            uncompressed, or compressed using zip, gzip or bzip2.
+        </p>
         <FileUpload
             :customUpload="true"
             @uploader="submitForm"
             :multiple="false"
             :showCancelButton="false"
             chooseLabel="Browse"
-            uploadLabel="Submit"
+            uploadLabel="Create Report"
             :fileLimit="1"
+            :auto="true"
         >
             <template #empty>
-                <p>Drag and drop file to upload.</p>
+                <p>Drag and drop file.</p>
             </template>
         </FileUpload>
-
         <loading parent="file" />
+
     </div>
 </template>
 

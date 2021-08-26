@@ -1,5 +1,7 @@
 <template>
     <div>
+        <p>Type the URL of an SBML file. Example:
+        <code style="font-size: small">https://www.ebi.ac.uk/biomodels/model/download/BIOMD0000000001.2?filename=BIOMD0000000001_url.xml</code></p>
         <div class="card">
             <div class="p-formgroup-inline">
                 <div class="p-field p-col-12">
@@ -7,19 +9,23 @@
                     <InputText
                         ref="url"
                         type="text"
-                        class="p-col-10 p-mr-2"
+                        class="p-col-12 p-mr-2"
                         :value="modelValue"
                         @input="updateURL"
-                        placeholder="E.g. https://www.ebi.ac.uk/biomodels/model/download/BIOMD0000000001.2?filename=BIOMD0000000001_url.xml"
+                        placeholder=""
                     />
-                    <Button type="button" @click="submitForm"
-                        ><i class="pi pi-upload p-mr-2"></i>Submit</Button
+                    <Button class="p-mt-2" type="button" @click="submitForm"
+                        ><i class="pi pi-upload p-mr-2"></i>Create Report</Button
                     >
                 </div>
             </div>
         </div>
-
         <loading parent="file" />
+        <p>To embed the report use the <code style="font-size: small">https://sbml4humans/model_url?url=URL</code> endpoint. Example:
+        <a href="https://sbml4humans/model_url?url=https://www.ebi.ac.uk/biomodels/model/download/BIOMD0000000001.2?filename=BIOMD0000000001_url.xml" target="_blank">
+            <code style="font-size: small">https://sbml4humans/model_url?url=https://www.ebi.ac.uk/biomodels/model/download/BIOMD0000000001.2?filename=BIOMD0000000001_url.xml</code>
+        </a>
+        </p>
     </div>
 </template>
 
