@@ -211,8 +211,10 @@ class SBMLDocumentInfo:
                     "id": pk_symbol,
                     "sbmlType": self._sbml_type(initial_assignment),
                 }
-                math_str = symbol_to_latex(pk_symbol) + "(0) = " \
-                           f"{astnode_to_latex(initial_assignment.getMath(), model=model)}"
+                math_str = (
+                    symbol_to_latex(pk_symbol) + "(0) = "
+                    f"{astnode_to_latex(initial_assignment.getMath(), model=model)}"
+                )
                 assignments[pk_symbol]["math"] = math_str
 
         rule: libsbml.Rule
@@ -227,8 +229,10 @@ class SBMLDocumentInfo:
 
                 math_str = None
                 if assignments[pk_symbol]["sbmlType"] == "AssignmentRule":
-                    math_str = symbol_to_latex(pk_symbol) + " = " \
-                               f"{astnode_to_latex(rule.getMath(), model=model) if rule.isSetMath() else None}"
+                    math_str = (
+                        symbol_to_latex(pk_symbol) + " = "
+                        f"{astnode_to_latex(rule.getMath(), model=model) if rule.isSetMath() else None}"
+                    )
                 elif assignments[pk_symbol]["sbmlType"] == "RateRule":
                     derivative = "\frac{d" + symbol_to_latex(pk_symbol) + "}{{dt}}"
                     math_str = f"{derivative} = {astnode_to_latex(rule.getMath(), model=model) if rule.isSetMath() else None}"
@@ -539,8 +543,10 @@ class SBMLDocumentInfo:
             d["units"] = udef_to_latex(d["units_sid"], model=model)
             d["derivedUnits"] = udef_to_latex(c.getDerivedUnitDefinition(), model=model)
 
-            if c.pk.split(':')[-1] in assignments:  # currently all PKs are in the form <SBMLType>:<id/metaID/name/etc.>
-                d["assignment"] = assignments[c.pk.split(':')[-1]]
+            if (
+                c.pk.split(":")[-1] in assignments
+            ):  # currently all PKs are in the form <SBMLType>:<id/metaID/name/etc.>
+                d["assignment"] = assignments[c.pk.split(":")[-1]]
 
             compartments.append(d)
 
@@ -574,8 +580,10 @@ class SBMLDocumentInfo:
             d["units"] = udef_to_latex(d["units_sid"], model=model)
             d["derivedUnits"] = udef_to_latex(s.getDerivedUnitDefinition(), model=model)
 
-            if s.pk.split(':')[-1] in assignments:  # currently all PKs are in the form <SBMLType>:<id/metaID/name/etc.>
-                d["assignment"] = assignments[s.pk.split(':')[-1]]
+            if (
+                s.pk.split(":")[-1] in assignments
+            ):  # currently all PKs are in the form <SBMLType>:<id/metaID/name/etc.>
+                d["assignment"] = assignments[s.pk.split(":")[-1]]
 
             if s.isSetConversionFactor():
                 cf_sid = s.getConversionFactor()
@@ -636,8 +644,10 @@ class SBMLDocumentInfo:
             d["units"] = udef_to_latex(d["units_sid"], model=model)
             d["derivedUnits"] = udef_to_latex(p.getDerivedUnitDefinition(), model=model)
 
-            if p.pk.split(':')[-1] in assignments:  # currently all PKs are in the form <SBMLType>:<id/metaID/name/etc.>
-                d["assignment"] = assignments[p.pk.split(':')[-1]]
+            if (
+                p.pk.split(":")[-1] in assignments
+            ):  # currently all PKs are in the form <SBMLType>:<id/metaID/name/etc.>
+                d["assignment"] = assignments[p.pk.split(":")[-1]]
 
             parameters.append(d)
 

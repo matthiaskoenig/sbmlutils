@@ -6,17 +6,15 @@ import libsbml
 from sbmlutils.io import read_sbml
 from sbmlutils.test import (
     BIOMODELS_CURATED_PATH,
+    COMP_DEX_BODY,
+    COMP_DEX_BODY_FLAT,
+    COMP_DEX_CYP2D6,
+    COMP_DEX_INTESTINE,
+    COMP_DEX_KIDNEY,
+    COMP_DEX_LIVER,
     COMP_ICG_BODY,
     COMP_ICG_BODY_FLAT,
     COMP_ICG_LIVER,
-
-    COMP_DEX_BODY,
-    COMP_DEX_BODY_FLAT,
-    COMP_DEX_LIVER,
-    COMP_DEX_INTESTINE,
-    COMP_DEX_KIDNEY,
-    COMP_DEX_CYP2D6,
-
     COMP_MODEL_DEFINITIONS_SBML,
     DISTRIB_DISTRIBUTIONS_SBML,
     DISTRIB_UNCERTAINTIES_SBML,
@@ -140,15 +138,15 @@ examples: List[Dict] = [
         },
     },
     {
-            "file": COMP_DEX_KIDNEY,
-            "metadata": {
-                "id": "dex_kidney",
-                "name": "Dextormethorphan comp kidney submodel",
-                "description": "Example model for comp kidney submodel",
-                "packages": ["comp"],
-                "keywords": ["kinetic"],
-            },
+        "file": COMP_DEX_KIDNEY,
+        "metadata": {
+            "id": "dex_kidney",
+            "name": "Dextormethorphan comp kidney submodel",
+            "description": "Example model for comp kidney submodel",
+            "packages": ["comp"],
+            "keywords": ["kinetic"],
         },
+    },
     {
         "file": COMP_DEX_INTESTINE,
         "metadata": {

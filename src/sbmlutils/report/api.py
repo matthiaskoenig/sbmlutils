@@ -7,10 +7,10 @@ import json
 import logging
 import tempfile
 import time
-import requests
 from pathlib import Path
 from typing import Any, Dict
 
+import requests
 import uvicorn
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
@@ -33,7 +33,10 @@ api.add_middleware(
     allow_headers=["*"],
 )
 
-def _write_to_file_and_generate_report(filename: str, file_content: str, mode: str) -> Dict:
+
+def _write_to_file_and_generate_report(
+    filename: str, file_content: str, mode: str
+) -> Dict:
     content = {}
     with tempfile.TemporaryDirectory() as tmp_dir:
         path = Path(tmp_dir) / filename
@@ -41,6 +44,7 @@ def _write_to_file_and_generate_report(filename: str, file_content: str, mode: s
             sbml_file.write(file_content)
             content = _content_for_source(source=path)
     return content
+
 
 @api.get("/")
 def read_root() -> Dict:
@@ -229,9 +233,7 @@ def get_report_from_model_url(url: str) -> Response:
         file_content = data.text
         content = _write_to_file_and_generate_report(filename, file_content, "w")
     else:
-        content = {
-            "error": "File not found!"
-        }
+        content = {"error": "File not found!"}
 
     return Response(content=json.dumps(content), media_type="application/json")
 
@@ -246,9 +248,7 @@ async def get_report_from_file_contents(request: Request) -> Response:
         content = _write_to_file_and_generate_report(filename, file_content, "wb")
     except Exception as e:
         print(e)
-        content = {
-            "error": "Invalid SBML!"
-        }
+        content = {"error": "Invalid SBML!"}
 
     print(content)
     return Response(content=json.dumps(content), media_type="application/json")
