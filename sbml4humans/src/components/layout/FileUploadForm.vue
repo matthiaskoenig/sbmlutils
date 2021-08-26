@@ -14,7 +14,9 @@
             :auto="true"
         >
             <template #empty>
-                <p>Drag and drop file.</p>
+                <p>
+                    Drag and drop file.
+                </p>
             </template>
         </FileUpload>
         <loading parent="file" />
