@@ -44,8 +44,7 @@ docker-compose -f docker-compose-production.yml up --force-recreate --build --de
 ### Update
 Pull latest changes 
 ```
-./docker-purge.sh
-docker-compose -f docker-compose-production.yml up --force-recreate --always-recreate-deps --build --detach
+./deploy.sh
 ```
 
 
