@@ -11,7 +11,9 @@
                     />
                 </router-link>
                 <router-link to="/">
-                    <span class="sbml4humans p-mx-3" style="color: black">SBML4Humans</span>
+                    <span class="sbml4humans p-mx-3" style="color: black"
+                        >SBML4Humans</span
+                    >
                 </router-link>
                 <InputText
                     placeholder="Search"

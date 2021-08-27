@@ -1,10 +1,10 @@
 <template>
     <div class="p-grid p-pt-2">
-        <div class="p-col-fixed" style="width: 220px">
+        <div class="p-col-2 p-pl-2">
             <component-menu />
             <document-menu class="p-mt-5" />
         </div>
-        <div class="p-col">
+        <div class="p-col-10">
             <div class="grid">
                 <div class="p-col-12 p-md-8 column">
                     <tables-container />

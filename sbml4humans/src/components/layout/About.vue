@@ -88,10 +88,12 @@
                         <a href="https://sankha555.github.io/index" target="_blank"
                             >Sankha Das</a
                         >, BITS Pilani, Rajasthan, India. Sankha Das (currently pursuing
-                        B.E.(Hons.) Computer Science) works as a full-stack web developer
-                        in many of his university's student forums and is an active open-source
-                        contributor. He is a student member of IEEE, Gujarat section, India and his research interests lie in the fields of cyber
-                        security, cryptography and blockchain development.
+                        B.E.(Hons.) Computer Science) works as a full-stack web
+                        developer in many of his university's student forums and is an
+                        active open-source contributor. He is a student member of IEEE,
+                        Gujarat section, India and his research interests lie in the
+                        fields of cyber security, cryptography and blockchain
+                        development.
                     </p>
                 </div>
             </Panel>
