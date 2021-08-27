@@ -1,8 +1,7 @@
 <template>
     <div class="p-grid p-p-2">
-<!--        <div class="p-col-12 p-lg-2">-->
-        <div class="p-col-fixed" style="width: 200px">
-            <search class="p-ml-2" v-if="['Report', 'report'].includes($route.name)" />
+        <div class="p-col-fixed" style="width: 230px">
+            <search class="p-ml-2" />
             <component-menu class="p-mt-2" style="opacity: 1" />
             <document-menu class="p-mt-5" style="opacity: 1" />
         </div>
@@ -10,23 +9,10 @@
         <div class="p-col-12 p-md-3 p-lg-3 column">
             <detail-container />
         </div>
+
         <div class="p-col-12 p-md-7 p-lg-7 column">
             <tables-container />
         </div>
-
-        <!--
-        <div class="p-col-12 p-lg-10 column">
-        <Splitter>
-            <SplitterPanel :size="65" :minSize="50">
-                <tables-container />
-            </SplitterPanel>
-            <SplitterPanel :size="35" :minSize="10">
-                <detail-container />
-            </SplitterPanel>
-        </Splitter>
-        </div>
-        -->
-
     </div>
 </template>
 
