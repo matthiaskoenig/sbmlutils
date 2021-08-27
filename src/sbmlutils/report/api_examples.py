@@ -22,6 +22,7 @@ from sbmlutils.test import (
     FBC_RECON3D_SBML,
     GLUCOSE_SBML,
     REPRESSILATOR_SBML,
+    MODELS_DIR,
 )
 
 
@@ -84,6 +85,16 @@ examples: List[Dict] = [
             "name": "Distrib uncertainties",
             "description": "Example model for distrib uncertainties",
             "packages": ["distrib"],
+            "keywords": ["kinetic"],
+        },
+    },
+    {
+        "file": MODELS_DIR / "units_namespace.xml",
+        "metadata": {
+            "id": "units_namespace",
+            "name": "Units namespace",
+            "description": "Test model for clashing namespaces with units.",
+            "packages": [],
             "keywords": ["kinetic"],
         },
     },
