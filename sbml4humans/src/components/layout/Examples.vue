@@ -1,5 +1,6 @@
 <template>
-    <div class="p-mt-2">
+    <h1 class="p-pt-4">Examples</h1>
+    <div>
         <DataTable
             :value="examples"
             :paginator="true"
@@ -18,13 +19,12 @@
         >
             <template #header class="table-header">
                 <div class="p-d-flex p-jc-between p-ai-center">
-                    <h1 style="font-size: 2.7em">Examples</h1>
-                    <span class="p-input-icon-left p-ml-auto">
+                    <span class="p-input-icon-left">
                         <i class="pi pi-search" />
                         <InputText
                             v-model="filters['global'].value"
                             class="searchBar"
-                            placeholder="Search"
+                            placeholder="Example search"
                         />
                     </span>
                 </div>

@@ -1,5 +1,5 @@
 <template>
-    <h1>SBML Report</h1>
+    <h1>Report</h1>
     <TabView class="p-mx-2 p-my-4">
         <TabPanel>
             <template #header>
@@ -23,7 +23,7 @@
             <PasteSBML />
         </TabPanel>
     </TabView>
-    <p>By using any part of this service, you agree to the terms of the <a href="https://github.com/matthiaskoenig/sbmlutils/blob/sbml4humans/develop/privacy_notice.md" target="_blank">privacy notice</a>.</p>
+    <p style="font-size: smaller">By using any part of this service, you agree to the terms of the <a href="https://github.com/matthiaskoenig/sbmlutils/blob/sbml4humans/develop/privacy_notice.md" target="_blank">privacy notice</a>.</p>
 </template>
 
 <script lang="ts">

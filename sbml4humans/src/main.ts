@@ -5,6 +5,9 @@ import "./registerServiceWorker";
 import router from "./router";
 import store from "./store";
 
+// google analytics
+import VueGtag from "vue-gtag-next";
+
 // PrimeVue UI package
 import "primevue/resources/themes/bootstrap4-light-blue/theme.css";
 import "primevue/resources/primevue.min.css";
@@ -32,6 +35,7 @@ import DataView from "primevue/dataview";
 import TabView from "primevue/tabview";
 import TabPanel from "primevue/tabpanel";
 import Textarea from "primevue/textarea";
+import Panel from "primevue/panel";
 
 // fontawesome
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -99,7 +103,7 @@ library.add({
 });
 
 // app initialization
-createApp(App)
+const app = createApp(App)
     .use(store)
     .use(router)
     .use(PrimeVue)
@@ -125,4 +129,11 @@ createApp(App)
     .component("TabView", TabView)
     .component("TabPanel", TabPanel)
     .component("Textarea", Textarea)
-    .mount("#app");
+    .component("Panel", Panel)
+
+app.use(VueGtag, {
+    property: {
+        id: "G-TZ6E25RS0Q",
+    },
+});
+app.mount("#app");
