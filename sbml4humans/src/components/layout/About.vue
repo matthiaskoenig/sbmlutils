@@ -31,21 +31,18 @@
                     sbmlutils
                 </a>
                     project.<br />
-                    If you use SBML4Humans in your work cite
+                    If you use SBML4Humans in your work cite<br />
                     <a
                             href="https://zenodo.org/badge/latestdoi/55952847"
                             target="_blank"
                             rel="nofollow"
-                            ><img
+                            ><img class="p-pt-1"
                                 alt="Zenodo DOI"
                                 src="https://camo.githubusercontent.com/332b1f7dd91e445f074084a39ed733363fa353b257d9e526d489c88dab025172/68747470733a2f2f7a656e6f646f2e6f72672f62616467652f35353935323834372e737667"
                                 data-canonical-src="https://zenodo.org/badge/55952847.svg"
                                 style="max-width: 100%"
-                        /></a>.
+                        /></a>
                 </p>
-            </div>
-            <div class="p-d-flex content">
-
             </div>
         </Panel>
 

@@ -1,7 +1,7 @@
 <template>
     <div>
         <div class="p-grid">
-            <div class="p-col-12 p-lg-6">
+            <div class="p-col-12 p- p-lg-6">
                 <div class="p-mx-5">
                     <!-- <file-upload-form /> -->
                     <submit-options />
