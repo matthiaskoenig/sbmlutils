@@ -1,7 +1,8 @@
 <template>
     <div>
-        <p class="p-pb-3">Select an SBML file located on your computer. The file can be
-            uncompressed, or compressed using zip, gzip or bzip2.
+        <p class="p-pb-3">
+            Select an SBML file located on your computer. The file can be uncompressed,
+            or compressed using zip, gzip or bzip2.
         </p>
         <FileUpload
             :customUpload="true"
@@ -14,12 +15,17 @@
             :auto="true"
         >
             <template #empty>
-                <p>
-                    Drag and drop file.
-                </p>
+                <p>Drag and drop file.</p>
             </template>
         </FileUpload>
-        <p class="p-pt-3" style="font-size: smaller">By using any part of this service, you agree to the terms of the <a href="https://github.com/matthiaskoenig/sbmlutils/blob/develop/sbml4humans/privacy_notice.md" target="_blank">privacy notice</a>.</p>
+        <p class="p-pt-3" style="font-size: smaller">
+            By using any part of this service, you agree to the terms of the
+            <a
+                href="https://github.com/matthiaskoenig/sbmlutils/blob/develop/sbml4humans/privacy_notice.md"
+                target="_blank"
+                >privacy notice</a
+            >.
+        </p>
         <loading parent="file" />
     </div>
 </template>

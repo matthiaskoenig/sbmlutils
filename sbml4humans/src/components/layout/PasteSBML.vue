@@ -17,7 +17,7 @@
                 >
             </div>
         </div>
-        <loading parent="file"  />
+        <loading parent="file" />
     </div>
 </template>
 

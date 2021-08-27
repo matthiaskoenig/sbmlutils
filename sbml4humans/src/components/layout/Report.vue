@@ -1,6 +1,6 @@
 <template>
-    <div class="p-grid">
-        <div class="p-col-fixed" style="width: 230px">
+    <div class="p-grid p-pt-2">
+        <div class="p-col-fixed" style="width: 220px">
             <component-menu />
             <document-menu class="p-mt-5" />
         </div>

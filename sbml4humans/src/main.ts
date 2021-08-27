@@ -137,7 +137,7 @@ const app = createApp(App)
     .component("Splitter", Splitter)
     .component("SplitterPanel", SplitterPanel)
     .component("Dialog", Dialog)
-    .component("ProgressBar", ProgressBar)
+    .component("ProgressBar", ProgressBar);
 
 app.use(VueGtag, {
     property: {

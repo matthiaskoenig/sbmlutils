@@ -204,7 +204,6 @@ export default createStore({
         },
         // get list of all available examples from backend API
         async fetchExamples(context) {
-
             // no queries to the API if static is ON
             if (window.localStorage.getItem("static") === "true") {
                 alert(static_alert);
@@ -230,7 +229,6 @@ export default createStore({
         },
         // generate report for one particular example
         async fetchExampleReport(context, payload) {
-
             // no queries to the API if static is ON
             if (window.localStorage.getItem("static") === "true") {
                 alert(static_alert);
@@ -253,7 +251,6 @@ export default createStore({
         },
         // generate report for uploaded SBML file
         async fetchReport(context, payload) {
-
             // no queries to the API if static is ON
             if (window.localStorage.getItem("static") === "true") {
                 alert(static_alert);
@@ -279,7 +276,6 @@ export default createStore({
         },
         // generate report for uploaded SBML file using model URL
         async fetchReportUsingURL(context, payload) {
-
             // no queries to the API if static is ON
             if (window.localStorage.getItem("static") === "true") {
                 alert(static_alert);
@@ -303,7 +299,6 @@ export default createStore({
         },
         // generate report for pasted SBML content
         async fetchReportUsingSBMLContent(context, payload) {
-
             // no queries to the API if static is ON
             if (window.localStorage.getItem("static") === "true") {
                 alert(static_alert);

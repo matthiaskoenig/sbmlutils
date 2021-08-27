@@ -37,7 +37,7 @@ const tableMixin = (sbmlType: string): Record<string, unknown> => ({
 
         count(): number {
             return store.state.searchedSBasesCounts[sbmlType];
-        }
+        },
     },
 
     methods: {

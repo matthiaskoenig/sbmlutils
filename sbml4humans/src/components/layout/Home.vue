@@ -5,7 +5,7 @@
                 <div>
                     <!-- <file-upload-form /> -->
                     <div class="p-m-3">
-                        <submit-options/>
+                        <submit-options />
                     </div>
                     <div class="p-m-3">
                         <about />

@@ -1,81 +1,80 @@
 <template>
-<!--    <h1 class="p-pt-4">Examples</h1>-->
-    <TabView>
-        <TabPanel>
-            <template #header>
-                <i class="pi pi-list p-mr-2"></i>
-                <span>Examples</span>
-                <InputText
-                    v-model="filters['global'].value"
-                    class="searchBar p-ml-5"
-                    placeholder="Search examples"
-                />
-            </template>
-            <DataTable
-            :value="examples"
-            :paginator="true"
-            :rows="10"
-            :rowsPerPageOptions="[10, 25, 50]"
-            v-model:filters="filters"
-            filterDisplay="menu"
-            sortMode="multiple"
-            v-if="examples.length > 0"
-            style="font-size: 12px"
-            class="p-datatable-sbml"
-            :globalFilterFields="['global', 'searchUtilField']"
-            responsiveLayout="scroll"
-            :rowHover="true"
-            @row-click="getExample($event.data.id)"
-        >
-            <Column sortable style="width: fit-content" field="id" header="id">
-                <template #body="props">
-                    <strong>{{ props.data.id }}</strong>
+    <div class="p-p-2">
+        <TabView>
+            <TabPanel>
+                <template #header>
+                    <i class="pi pi-list p-mr-2"></i>
+                    <span>Examples</span>
+                    <InputText
+                        v-model="filters['global'].value"
+                        class="searchBar p-ml-5"
+                        placeholder="Search examples"
+                    />
                 </template>
-            </Column>
-            <Column
-                sortable
-                style="width: fit-content"
-                field="name"
-                header="name"
-            ></Column>
-            <Column
-                sortable
-                style="width: fit-content"
-                field="description"
-                header="description"
-            ></Column>
-            <Column
-                sortable
-                style="width: fit-content"
-                field="keywords"
-                header="keywords"
-            >
-                <template #body="props">
-                    {{ props.data.keywords.join(",") }}
-                </template>
-            </Column>
-            <Column
-                sortable
-                style="width: fit-content"
-                field="packages"
-                header="packages"
-            >
-                <template #body="props">
-                    <span
-                        v-for="pkg in props.data.packages"
-                        :key="pkg"
-                        :class="`package-badge p-mr-1`"
-                        :style="`background-color: ${badgeColor[pkg]}; color: ${badgeText[pkg]}`"
-                        >{{ pkg }}</span
+                <DataTable
+                    :value="examples"
+                    :paginator="true"
+                    :rows="10"
+                    :rowsPerPageOptions="[10, 25, 50]"
+                    v-model:filters="filters"
+                    filterDisplay="menu"
+                    sortMode="multiple"
+                    v-if="examples.length > 0"
+                    style="font-size: 12px"
+                    class="p-datatable-sbml"
+                    :globalFilterFields="['global', 'searchUtilField']"
+                    responsiveLayout="scroll"
+                    :rowHover="true"
+                    @row-click="getExample($event.data.id)"
+                >
+                    <Column sortable style="width: fit-content" field="id" header="id">
+                        <template #body="props">
+                            <strong>{{ props.data.id }}</strong>
+                        </template>
+                    </Column>
+                    <Column
+                        sortable
+                        style="width: fit-content"
+                        field="name"
+                        header="name"
+                    ></Column>
+                    <Column
+                        sortable
+                        style="width: fit-content"
+                        field="description"
+                        header="description"
+                    ></Column>
+                    <Column
+                        sortable
+                        style="width: fit-content"
+                        field="keywords"
+                        header="keywords"
                     >
-                </template>
-            </Column>
-        </DataTable>
-
-        <loading parent="example" message="Loading SBML examples"/>
-        </TabPanel>
-    </TabView>
-
+                        <template #body="props">
+                            {{ props.data.keywords.join(",") }}
+                        </template>
+                    </Column>
+                    <Column
+                        sortable
+                        style="width: fit-content"
+                        field="packages"
+                        header="packages"
+                    >
+                        <template #body="props">
+                            <span
+                                v-for="pkg in props.data.packages"
+                                :key="pkg"
+                                :class="`package-badge p-mr-1`"
+                                :style="`background-color: ${badgeColor[pkg]}; color: ${badgeText[pkg]}`"
+                                >{{ pkg }}</span
+                            >
+                        </template>
+                    </Column>
+                </DataTable>
+                <loading parent="example" message="Loading SBML examples" />
+            </TabPanel>
+        </TabView>
+    </div>
 </template>
 
 <script lang="ts">

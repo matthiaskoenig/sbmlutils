@@ -1,13 +1,26 @@
 <template>
     <menubar :model="items">
         <template #start>
-            <router-link to="/">
-                <img to="/" alt="logo" src="@/assets/images/sbml4humans-192x192.png" height="35" />
-            </router-link>
-            <router-link to="/">
-                <span class="sbml4humans p-mx-3" style="color: black">SBML4Humans</span>
-            </router-link>
-            <InputText placeholder="Search" type="text" @input="updateSearchQuery"/>
+            <div class="p-d-flex">
+                <router-link to="/">
+                    <img
+                        to="/"
+                        alt="logo"
+                        src="@/assets/images/sbml4humans-192x192.png"
+                        height="35"
+                    />
+                </router-link>
+                <router-link to="/">
+                    <span class="sbml4humans p-mx-3" style="color: black">SBML4Humans</span>
+                </router-link>
+                <InputText
+                    placeholder="Search"
+                    type="text"
+                    style="height: 35px; margin-top: 2px"
+                    v-if="['report', 'Report'].includes($route.name)"
+                    @input="updateSearchQuery"
+                />
+            </div>
         </template>
     </menubar>
 </template>
@@ -20,8 +33,6 @@ import store from "@/store";
  * Navbar component for providing main links in the application
  */
 export default defineComponent({
-    components: {
-    },
     data() {
         return {
             items: [
