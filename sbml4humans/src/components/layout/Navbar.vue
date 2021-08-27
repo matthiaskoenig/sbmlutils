@@ -1,29 +1,25 @@
 <template>
     <menubar :model="items">
         <template #start>
-            <router-link to="/" style="display: flex; color: black">
-                <!--
-                <img
-                    alt="logo"
-                    src="@/assets/images/sbmlutils-logo-60.png"
-                    height="35"
-                />
-                <img alt="logo" src="@/assets/images/people.png" height="35" />
-                -->
-                <img alt="logo" src="@/assets/images/sbml4humans-192x192.png" height="35" />
-                <span class="sbml4humans p-mx-3">SBML4Humans</span>
+            <router-link to="/">
+                <img to="/" alt="logo" src="@/assets/images/sbml4humans-192x192.png" height="35" />
             </router-link>
+                <span class="sbml4humans p-mx-3">SBML4Humans</span>
+            <InputText placeholder="Search" type="text" @input="updateSearchQuery"/>
         </template>
     </menubar>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import store from "@/store";
 
 /**
  * Navbar component for providing main links in the application
  */
 export default defineComponent({
+    components: {
+    },
     data() {
         return {
             items: [
@@ -44,6 +40,15 @@ export default defineComponent({
                 },
             ],
         };
+    },
+    methods: {
+        /**
+         * Updates the searchQuery in Vuex state/localStorage to the currently
+         * searched string in the search box.
+         */
+        updateSearchQuery(e: Event): void {
+            store.dispatch("updateSearchQuery", (e.target as HTMLInputElement).value);
+        },
     },
 });
 </script>
