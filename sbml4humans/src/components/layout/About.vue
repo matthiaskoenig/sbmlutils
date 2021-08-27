@@ -1,10 +1,8 @@
 <template>
-    <ScrollPanel style="width: 100%">
-        <h1>About</h1>
-
-        <Panel header="SBML4Humans" class="p-pb-2">
+    <ScrollPanel style="width: 100%" class="p-p-3">
+        <Panel header="SBML4Humans">
             <div class="p-d-flex content">
-                                <a href="http://sbml.org" class="image">
+                <a href="http://sbml.org" class="image">
                     <img src="@/assets/images/sbml-logo.png" height="50" />
                 </a>
                 <p>The Systems Biology Markup Language (<a
@@ -31,26 +29,23 @@
                     sbmlutils
                 </a>
                     project.<br />
-                    If you use SBML4Humans in your work cite
+                    If you use SBML4Humans in your work cite<br />
                     <a
                             href="https://zenodo.org/badge/latestdoi/55952847"
                             target="_blank"
                             rel="nofollow"
-                            ><img
+                            ><img class="p-pt-1"
                                 alt="Zenodo DOI"
                                 src="https://camo.githubusercontent.com/332b1f7dd91e445f074084a39ed733363fa353b257d9e526d489c88dab025172/68747470733a2f2f7a656e6f646f2e6f72672f62616467652f35353935323834372e737667"
                                 data-canonical-src="https://zenodo.org/badge/55952847.svg"
                                 style="max-width: 100%"
-                        /></a>.
+                        /></a>
                 </p>
-            </div>
-            <div class="p-d-flex content">
-
             </div>
         </Panel>
 
         <!-- Team -->
-           <Panel header="Team" class="p-pb-2">
+           <Panel header="Team">
             <div class="p-d-flex content">
                                 <a href="https://livermetabolism.com" class="image">
                     <img src="@/assets/images/people/koenig.png" height="50" />
@@ -74,7 +69,7 @@
            </Panel>
 
         <!-- Funding -->
-           <Panel header="Funding" class="p-pb-2">
+           <Panel header="Funding">
             <div class="p-d-flex content">
                 <a href="https://summerofcode.withgoogle.com/" class="image"
                     ><img src="@/assets/images/gsoc.png" width="50"
@@ -112,7 +107,6 @@
                 </p>
                </div>
            </Panel>
-
     </ScrollPanel>
 </template>
 

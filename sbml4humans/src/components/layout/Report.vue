@@ -1,15 +1,18 @@
 <template>
-    <div class="p-grid p-p-2">
-        <div class="p-col-12 p-lg-2">
-            <search class="p-ml-2" v-if="['Report', 'report'].includes($route.name)" />
-            <component-menu class="p-mt-2" style="opacity: 1" />
-            <document-menu class="p-mt-5" style="opacity: 1" />
+    <div class="p-grid">
+        <div class="p-col-fixed" style="width: 230px">
+            <component-menu />
+            <document-menu class="p-mt-5" />
         </div>
-        <div class="p-col-12 p-lg-7 column">
-            <tables-container />
-        </div>
-        <div class="p-col-12 p-lg-3 column">
-            <detail-container />
+        <div class="p-col">
+            <div class="grid">
+                <div class="p-col-12 p-md-8 column">
+                    <tables-container />
+                </div>
+                <div class="p-col-12 p-md-4 column">
+                    <detail-container />
+                </div>
+            </div>
         </div>
     </div>
 </template>
@@ -20,7 +23,6 @@ import { defineComponent } from "vue";
 
 import DetailContainer from "@/components/layout/DetailContainer.vue";
 import TablesContainer from "@/components/layout/TablesContainer.vue";
-import Search from "@/components/layout/Search.vue";
 import ComponentMenu from "@/components/layout/ComponentMenu.vue";
 import DocumentMenu from "@/components/layout/DocumentMenu.vue";
 
@@ -29,7 +31,6 @@ import DocumentMenu from "@/components/layout/DocumentMenu.vue";
  */
 export default defineComponent({
     components: {
-        Search,
         ComponentMenu,
         DocumentMenu,
         DetailContainer,
@@ -46,7 +47,7 @@ export default defineComponent({
 
 <style lang="scss">
 .column {
-    border-right: 1px solid #bfbfbf;
+    border-left: 1px solid #bfbfbf;
     height: 90vh;
     overflow-y: scroll;
 }

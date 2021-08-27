@@ -1,10 +1,20 @@
 <template>
-    <h1 class="p-pt-4">Examples</h1>
-    <div>
-        <DataTable
+<!--    <h1 class="p-pt-4">Examples</h1>-->
+    <TabView>
+        <TabPanel>
+            <template #header>
+                <i class="pi pi-list p-mr-2"></i>
+                <span>Examples</span>
+                <InputText
+                    v-model="filters['global'].value"
+                    class="searchBar p-ml-5"
+                    placeholder="Search"
+                />
+            </template>
+            <DataTable
             :value="examples"
             :paginator="true"
-            :rows="25"
+            :rows="10"
             :rowsPerPageOptions="[10, 25, 50]"
             v-model:filters="filters"
             filterDisplay="menu"
@@ -17,18 +27,6 @@
             :rowHover="true"
             @row-click="getExample($event.data.id)"
         >
-            <template #header class="table-header">
-                <div class="p-d-flex p-jc-between p-ai-center">
-                    <span class="p-input-icon-left">
-                        <i class="pi pi-search" />
-                        <InputText
-                            v-model="filters['global'].value"
-                            class="searchBar"
-                            placeholder="Example search"
-                        />
-                    </span>
-                </div>
-            </template>
             <Column sortable style="width: fit-content" field="id" header="id">
                 <template #body="props">
                     <strong>{{ props.data.id }}</strong>
@@ -74,8 +72,10 @@
             </Column>
         </DataTable>
 
-        <loading parent="example" />
-    </div>
+        <loading parent="example" message="Loading SBML examples"/>
+        </TabPanel>
+    </TabView>
+
 </template>
 
 <script lang="ts">
@@ -84,7 +84,6 @@ import { defineComponent } from "@vue/runtime-core";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 
 /* Components */
-import Example from "@/components/layout/Example.vue";
 import Loading from "@/components/layout/Loading.vue";
 
 /**
@@ -92,7 +91,6 @@ import Loading from "@/components/layout/Loading.vue";
  */
 export default defineComponent({
     components: {
-        //Example,
         Loading,
     },
     data() {

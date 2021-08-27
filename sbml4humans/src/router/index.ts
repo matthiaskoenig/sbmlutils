@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
 import Home from "../components/layout/Home.vue";
 import Report from "../components/layout/Report.vue";
+import About from "../components/layout/About.vue";
+import Examples from "../components/layout/Examples.vue";
 import store from "@/store/index";
 
 const routes: Array<RouteRecordRaw> = [
@@ -16,6 +18,17 @@ const routes: Array<RouteRecordRaw> = [
         name: "Report",
         component: Report,
     },
+    {
+        path: "/about",
+        name: "About",
+        component: About,
+    },
+    {
+        path: "/examples",
+        name: "Examples",
+        component: Examples,
+    },
+
     // getting report using model URL
     {
         path: "/model_url",
