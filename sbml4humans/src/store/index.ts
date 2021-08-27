@@ -63,7 +63,28 @@ export default createStore({
 
         searchQuery: "",
 
-        searchedSBasesPKs: new Set(),
+        searchedSBasesCounts: {
+            SBMLDocument: 0,
+            Submodel: 0,
+            Port: 0,
+            Model: 0,
+            ModelDefinition: 0,
+            ExternalModelDefinition: 0,
+            FunctionDefinition: 0,
+            UnitDefinition: 0,
+            Compartment: 0,
+            Species: 0,
+            Reaction: 0,
+            Parameter: 0,
+            InitialAssignment: 0,
+            AssignmentRule: 0,
+            RateRule: 0,
+            AlgebraicRule: 0,
+            Objective: 0,
+            Constraint: 0,
+            Event: 0,
+            GeneProduct: 0,
+        },
 
         /* For Intercomponent Navigation */
         allObjectsMap: {},
@@ -124,8 +145,8 @@ export default createStore({
         SET_COMPONENT_WISE_LISTS(state, payload) {
             state.componentWiseLists = payload;
         },
-        SET_SEARCHED_SBASES_PKS(state, payload) {
-            state.searchedSBasesPKs = payload;
+        SET_SEARCHED_SBASES_COUNTS(state, payload) {
+            state.searchedSBasesCounts = payload;
         },
         PUSH_TO_HISTORY_STACK(state, payload) {
             (state.historyStack as Array<string>).push(payload);
@@ -349,8 +370,8 @@ export default createStore({
         updateComponentWiseLists(context, payload) {
             context.commit("SET_COMPONENT_WISE_LISTS", payload);
         },
-        updateSearchedSBasesPKs(context, payload) {
-            context.commit("SET_SEARCHED_SBASES_PKS", payload);
+        updateSearchedSBasesCounts(context, payload) {
+            context.commit("SET_SEARCHED_SBASES_COUNTS", payload);
         },
         updateCurrentFocussedTable(context, payload) {
             context.commit("SET_CURRENT_FOCUSSED_TABLE", payload);

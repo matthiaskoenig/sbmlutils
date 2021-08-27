@@ -157,15 +157,6 @@ export default defineComponent({
             // THIS IS BAD CURRENTLY
             const allSBMLComponents = store.state.allObjectsMap;
 
-            /*
-            TODO: get subset of objects were any of the information matches
-
-            Try: search on the object string; i.e search in JSON.stringify(proxy)
-            Better: search on all stringified values()
-            -> some false positives due to field names;
-            TODO: Do this once globally (initialization); => state.state.allObjectsSearchMap; { pk: searchableObjectString }
-             */
-
             let searchedSBasePKs = [];
             searchedSBasePKs.push(
                 ...sBasePKs.filter((pk) => {
@@ -184,6 +175,7 @@ export default defineComponent({
             let tables = {};
 
             const componentPKsMap = store.getters.componentPKsMap;
+            const searchedSBasesCounts = store.state.searchedSBasesCounts;
 
             // THIS IS A GOOD STRATEGY FOR GLOBAL FILTERING
             for (let sbmlType in componentPKsMap) {
@@ -192,9 +184,10 @@ export default defineComponent({
                         componentPKsMap[sbmlType],
                         this.searchQuery
                     );
+                    searchedSBasesCounts[sbmlType] = tables[sbmlType].length;
                 }
             }
-
+            store.dispatch("updateSearchedSBasesCounts", searchedSBasesCounts);
             return tables;
         },
 

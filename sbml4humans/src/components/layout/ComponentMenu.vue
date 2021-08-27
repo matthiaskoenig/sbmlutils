@@ -1,11 +1,7 @@
 <template>
     <PanelMenu :model="items">
         <template #item="{ item }">
-            <div
-                class="clickable"
-                v-on:click="focusTable(item.sbmlType)"
-                v-if="item.count"
-            >
+            <div class="clickable" v-on:click="focusTable(item.sbmlType)">
                 <span :style="`color: ${item.color}`">
                     <font-awesome-icon
                         :icon="item.icon"
@@ -44,8 +40,8 @@ export default defineComponent({
         items(): Array<Record<string, unknown>> {
             let tables: Array<Record<string, unknown>> = [];
 
-            const componentPKsMap: Record<string, Array<string>> = store.getters
-                .componentPKsMap;
+            const componentPKsMap: Record<string, Array<string>> =
+                store.getters.componentPKsMap;
 
             for (let sbmlType in componentPKsMap) {
                 if (componentPKsMap[sbmlType].length > 0) {
@@ -54,7 +50,7 @@ export default defineComponent({
                         sbmlType: sbmlType,
                         color: colors.componentColor[sbmlType],
                         icon: icons.icons[sbmlType],
-                        count: componentPKsMap[sbmlType].length,
+                        count: store.state.searchedSBasesCounts[sbmlType],
                     });
                 }
             }
