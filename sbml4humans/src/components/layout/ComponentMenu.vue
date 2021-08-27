@@ -50,7 +50,13 @@ export default defineComponent({
                         sbmlType: sbmlType,
                         color: colors.componentColor[sbmlType],
                         icon: icons.icons[sbmlType],
-                        count: store.state.searchedSBasesCounts[sbmlType],
+                        count:
+                            store.state.searchedSBasesCounts[sbmlType] !=
+                            componentPKsMap[sbmlType].length
+                                ? store.state.searchedSBasesCounts[sbmlType] +
+                                  "/" +
+                                  componentPKsMap[sbmlType].length
+                                : componentPKsMap[sbmlType].length,
                     });
                 }
             }
