@@ -1,7 +1,5 @@
 <template>
-    <ScrollPanel style="width: 100%">
-        <h1>About</h1>
-
+    <ScrollPanel style="width: 100%" class="p-p-3">
         <Panel header="SBML4Humans">
             <div class="p-d-flex content">
                 <a href="http://sbml.org" class="image">
@@ -109,7 +107,6 @@
                 </p>
                </div>
            </Panel>
-
     </ScrollPanel>
 </template>
 

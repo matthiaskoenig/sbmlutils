@@ -8,7 +8,7 @@
                 <InputText
                     v-model="filters['global'].value"
                     class="searchBar p-ml-5"
-                    placeholder="Search examples"
+                    placeholder="Search"
                 />
             </template>
             <DataTable
