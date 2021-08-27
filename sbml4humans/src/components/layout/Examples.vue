@@ -4,15 +4,11 @@
         <TabPanel>
             <template #header>
                 <i class="pi pi-search p-mr-2"></i>
-
-
-
                         <InputText
                             v-model="filters['global'].value"
                             class="searchBar"
                             placeholder="Search examples"
                         />
-
             </template>
             <DataTable
             :value="examples"

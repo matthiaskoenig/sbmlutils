@@ -34,7 +34,7 @@ export default defineComponent({
     },
     computed: {
         loading(): boolean {
-            let key: string = this.parent + "Loading"; // key is either "exampleLoading" or "fileLoading"
+            let key: string = this.parent + "Loading";
             return store.state[key];
         },
     },
