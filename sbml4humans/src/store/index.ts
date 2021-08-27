@@ -27,9 +27,6 @@ export default createStore({
         // describe if the example report is still loading (REST endpoint)
         exampleLoading: false,
 
-        // message to show in loading container
-        loadingMessage: "",
-
         /* For core and comp functionality */
         currentModel: "",
 
@@ -114,9 +111,6 @@ export default createStore({
         },
         SET_EXAMPLE_LOADING(state, payload) {
             state.exampleLoading = payload;
-        },
-        SET_LOADING_MESSAGE(state, payload) {
-            state.loadingMessage = payload;
         },
         SET_DETAIL_VISIBILITY(state) {
             state.detailVisibility = !state.detailVisibility;

@@ -18,6 +18,7 @@ import { FilterMatchMode, FilterOperator } from "primevue/api";
 import PrimeVue from "primevue/config";
 import Badge from "primevue/badge";
 import ProgressSpinner from "primevue/progressspinner";
+import ProgressBar from "primevue/progressbar";
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
 import Dropdown from "primevue/dropdown";
@@ -38,6 +39,7 @@ import Textarea from "primevue/textarea";
 import Panel from "primevue/panel";
 import Splitter from "primevue/splitter";
 import SplitterPanel from "primevue/splitterpanel";
+import Dialog from "primevue/dialog";
 
 // fontawesome
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -134,6 +136,8 @@ const app = createApp(App)
     .component("Panel", Panel)
     .component("Splitter", Splitter)
     .component("SplitterPanel", SplitterPanel)
+    .component("Dialog", Dialog)
+    .component("ProgressBar", ProgressBar)
 
 app.use(VueGtag, {
     property: {

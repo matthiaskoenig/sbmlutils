@@ -30,21 +30,6 @@
             :rowHover="true"
             @row-click="getExample($event.data.id)"
         >
-            <!--
-            <template #header class="table-header">
-
-                <div class="p-d-flex p-jc-between p-ai-center">
-                    <span class="p-input-icon-left">
-                        <i class="pi pi-search" />
-                        <InputText
-                            v-model="filters['global'].value"
-                            class="searchBar"
-                            placeholder="Example search"
-                        />
-                    </span>
-                </div>
-            </template>
-            -->
             <Column sortable style="width: fit-content" field="id" header="id">
                 <template #body="props">
                     <strong>{{ props.data.id }}</strong>
@@ -90,7 +75,7 @@
             </Column>
         </DataTable>
 
-        <loading parent="example" />
+        <loading parent="example" message="Loading SBML examples"/>
         </TabPanel>
     </TabView>
 
@@ -102,7 +87,6 @@ import { defineComponent } from "@vue/runtime-core";
 import { FilterMatchMode, FilterOperator } from "primevue/api";
 
 /* Components */
-import Example from "@/components/layout/Example.vue";
 import Loading from "@/components/layout/Loading.vue";
 
 /**
@@ -110,7 +94,6 @@ import Loading from "@/components/layout/Loading.vue";
  */
 export default defineComponent({
     components: {
-        //Example,
         Loading,
     },
     data() {

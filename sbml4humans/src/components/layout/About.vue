@@ -4,7 +4,7 @@
 
         <Panel header="SBML4Humans">
             <div class="p-d-flex content">
-                                <a href="http://sbml.org" class="image">
+                <a href="http://sbml.org" class="image">
                     <img src="@/assets/images/sbml-logo.png" height="50" />
                 </a>
                 <p>The Systems Biology Markup Language (<a
