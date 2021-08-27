@@ -78,6 +78,7 @@ logger = logging.getLogger(__name__)
 SBML_LEVEL = 3  # default SBML level
 SBML_VERSION = 1  # default SBML version
 PORT_SUFFIX = "_port"
+PORT_UNIT_SUFFIX = "_unit_port"
 PREFIX_EXCHANGE_REACTION = "EX_"
 
 PACKAGE_COMP = "comp"
@@ -395,7 +396,10 @@ class Sbase:
                 # manually create port for the id
                 cmodel = model.getPlugin("comp")
                 p = cmodel.createPort()
-                port_sid = "{}{}".format(self.sid, PORT_SUFFIX)
+                if isinstance(self, Unit):
+                    port_sid = f"{self.sid}{PORT_UNIT_SUFFIX}"
+                else:
+                    port_sid = f"{self.sid}{PORT_SUFFIX}"
                 p.setId(port_sid)
                 p.setName(port_sid)
                 p.setMetaId(port_sid)
@@ -535,7 +539,10 @@ class ValueWithUnit(Value):
 
 
 class Unit(Sbase):
-    """Unit."""
+    """Unit.
+
+    Corresponds to the information in the libsbml.UnitDefinition.
+    """
 
     def __init__(
         self,
@@ -564,7 +571,7 @@ class Unit(Sbase):
         self.definition = definition
 
     def create_sbml(self, model: libsbml.Model) -> libsbml.UnitDefinition:
-        """Create libsbml.UnitDefintion.
+        """Create libsbml.UnitDefinition.
 
         (kind, exponent, scale, multiplier)
         """
