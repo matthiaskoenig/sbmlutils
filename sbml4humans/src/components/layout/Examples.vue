@@ -1,19 +1,20 @@
 <template>
-    <h1 class="p-pt-4">Examples</h1>
-    <TabView class="p-mx-2 p-my-4">
+<!--    <h1 class="p-pt-4">Examples</h1>-->
+    <TabView>
         <TabPanel>
             <template #header>
-                <i class="pi pi-search p-mr-2"></i>
-                        <InputText
-                            v-model="filters['global'].value"
-                            class="searchBar"
-                            placeholder="Search examples"
-                        />
+                <i class="pi pi-list p-mr-2"></i>
+                <span>Examples</span>
+                <InputText
+                    v-model="filters['global'].value"
+                    class="searchBar p-ml-5"
+                    placeholder="Search examples"
+                />
             </template>
             <DataTable
             :value="examples"
             :paginator="true"
-            :rows="25"
+            :rows="10"
             :rowsPerPageOptions="[10, 25, 50]"
             v-model:filters="filters"
             filterDisplay="menu"

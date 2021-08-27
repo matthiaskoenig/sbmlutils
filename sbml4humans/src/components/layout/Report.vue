@@ -1,5 +1,5 @@
 <template>
-    <div class="p-grid p-p-2">
+    <div class="p-grid">
         <div class="p-col-fixed" style="width: 230px">
             <component-menu />
             <document-menu class="p-mt-5" />

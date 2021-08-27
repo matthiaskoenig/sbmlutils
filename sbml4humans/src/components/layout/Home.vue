@@ -1,16 +1,20 @@
 <template>
     <div>
         <div class="p-grid">
-            <div class="p-col-12 p- p-lg-6">
-                <div class="p-mx-5">
+            <div class="p-col-12 p-lg-6">
+                <div>
                     <!-- <file-upload-form /> -->
-                    <submit-options />
-                    <examples />
+                    <div class="p-m-3">
+                        <submit-options/>
+                    </div>
+                    <div class="p-m-3">
+                        <about />
+                    </div>
                 </div>
             </div>
             <div class="p-col-12 p-lg-6">
-                <div class="p-mx-5">
-                    <about />
+                <div class="p-m-3">
+                    <examples />
                 </div>
             </div>
         </div>

@@ -1,5 +1,5 @@
 <template>
-    <h1>Report</h1>
+<!--    <h1>Report</h1>-->
     <TabView class="p-mx-2 p-my-4">
         <TabPanel>
             <template #header>

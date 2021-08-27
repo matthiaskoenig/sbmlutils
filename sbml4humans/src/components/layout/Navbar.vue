@@ -4,7 +4,9 @@
             <router-link to="/">
                 <img to="/" alt="logo" src="@/assets/images/sbml4humans-192x192.png" height="35" />
             </router-link>
-                <span class="sbml4humans p-mx-3">SBML4Humans</span>
+            <router-link to="/">
+                <span class="sbml4humans p-mx-3" style="color: black">SBML4Humans</span>
+            </router-link>
             <InputText placeholder="Search" type="text" @input="updateSearchQuery"/>
         </template>
     </menubar>
@@ -28,6 +30,17 @@ export default defineComponent({
                     icon: "pi pi-fw pi-home",
                     to: "/",
                 },
+                {
+                    label: "Examples",
+                    icon: "pi pi-fw pi-list",
+                    to: "/examples",
+                },
+                {
+                    label: "About",
+                    icon: "pi pi-fw pi-info-circle",
+                    to: "/about",
+                },
+
                 {
                     label: "Report issue",
                     icon: "pi pi-fw pi-pencil",
