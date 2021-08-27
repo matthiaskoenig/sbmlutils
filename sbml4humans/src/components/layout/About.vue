@@ -59,7 +59,7 @@
                             >Dr. Matthias König</a
                         >, Humboldt University, Berlin. Matthias König (PhD. in Biophysics) leads an
                     independent <a href="https://livermetabolism.com" target="_blank">junior research group</a> for Systems Biology and Systems Medicine of the liver with focus on metabolic research at the Humboldt University Berlin.
-                    He has been actively involved in the development of SBML, SED-ML and software supporting these standards
+                    He has been actively involved in the development of SBML, SED-ML and software supporting these standards.
                 </p>
             </div>
                <div class="p-d-flex content">
@@ -76,29 +76,33 @@
         <!-- Funding -->
            <Panel header="Funding" class="p-pb-2">
             <div class="p-d-flex content">
-
-
                 <a href="https://summerofcode.withgoogle.com/" class="image"
                     ><img src="@/assets/images/gsoc.png" width="50"
                 /></a>
                 <p>
+                    SBML4Humans was supported by
                     <a href="https://summerofcode.withgoogle.com/" target="_blank"
                         >Google Summer of Code 2021</a
-                    >
-                    A global program focused on bringing more student developers into
-                    open source software development. Students work with an open source
-                    organization on a 10 week programming project during their break
-                    from school.
+                    >, a global program focused on bringing more student developers into
+                    open source software development. Sankha worked within the open source
+                    organization <a href="https://nrnb.org/" target="_blank">National Resource for Network Biology (NRNB)</a> over 10 weeks on SBML4Humans.
                 </p>
-
             </div>
                <div class="p-d-flex content">
-                               <p>
+                <a href="https://lisym.org/" class="image"
+                    ><img src="@/assets/images/lisym.png" width="50"
+                /></a>
+                <p>
                     Matthias König is supported by the Federal Ministry of Education and
                     Research (BMBF, Germany) within the research network Systems
                     Medicine of the Liver (<a href="https://lisym.org/" target="_blank"
                         >LiSyM</a
-                    >, grant number 031L0054) and by the German Research Foundation
+                    >, grant number 031L0054).
+                </p>
+            </div>
+               <div class="p-d-flex content">
+                   <p>
+                   Matthias König is supported by the German Research Foundation
                     (DFG) within the Research Unit Programme FOR 5151 "<a
                         href="https://qualiperf.de"
                         >QuaLiPerF</a
@@ -115,13 +119,7 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 
-/**
- * Container to show About info about the project
- *      - team
- *      - licensing
- *      - funding
- *      - citation
- */
+
 export default defineComponent({
     name: "About",
 });
