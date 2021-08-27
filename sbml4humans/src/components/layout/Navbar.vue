@@ -2,12 +2,15 @@
     <menubar :model="items">
         <template #start>
             <router-link to="/" style="display: flex; color: black">
+                <!--
                 <img
                     alt="logo"
                     src="@/assets/images/sbmlutils-logo-60.png"
                     height="35"
                 />
                 <img alt="logo" src="@/assets/images/people.png" height="35" />
+                -->
+                <img alt="logo" src="@/assets/images/sbml4humans-192x192.png" height="35" />
                 <span class="sbml4humans p-mx-3">SBML4Humans</span>
             </router-link>
         </template>
