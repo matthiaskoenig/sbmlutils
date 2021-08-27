@@ -97,6 +97,12 @@ class SBMLDocumentInfo:
     ) -> Dict[str, Any]:
         """Create information for a given model."""
         assignments = self._create_assignment_map(model=model)
+        ports = self._create_port_map(model=model)
+
+        self.maps = {
+            'assignments': assignments,
+            'ports': ports,
+        }
 
         rules = self.rules(model=model)
         d = {
@@ -175,6 +181,8 @@ class SBMLDocumentInfo:
     def _sbaseref(sbaseref: libsbml.SBaseRef) -> Optional[Dict]:
         """Format the SBaseRef instance.
 
+        Used to figure out the type of the SBaseRef.
+
         :param sbaseref: SBaseRef instance
         :return: Dictionary containing formatted SBaseRef instance's data
         """
@@ -186,8 +194,41 @@ class SBMLDocumentInfo:
         elif sbaseref.isSetUnitRef():
             return {"type": "unit_ref", "value": sbaseref.getUnitRef()}
         elif sbaseref.isSetMetaIdRef():
-            return {"type": "meta_ID_ref", "value": sbaseref.getMetaIdRef()}
+            return {"type": "metaId_ref", "value": sbaseref.getMetaIdRef()}
         return None
+
+    def _create_port_map(self, model: libsbml.Model) -> Dict:
+        """Create dictionary of symbols:port for symbols in model.
+
+        This allows to lookup port for a given Sbase.
+
+        :return: port dictionary for model
+        """
+        ports: Dict[str, Dict] = {}
+        port: libsbml.Port
+        comp_model: libsbml.CompModelPlugin = model.getPlugin("comp")
+        if comp_model:
+            for port in comp_model.getListOfPorts():
+                port_info = self.sbaseref_dict(port)
+                if port.isSetIdRef():
+                    ports[port.getIdRef()] = port_info
+                elif port.isSetUnitRef():
+                    udef: libsbml.UnitDefinition = model.getUnitDefinition(
+                        port.getUnitRef()
+                    )
+                    # Be careful, this is a different namespace.
+                    # I.e. for UnitDefinitions you have to check ports in a different namespace
+                    ports[f"units:{udef.getId()}"] = port_info
+                elif port.isSetMetaIdRef():
+                    metaid = port.getMetaIdRef()
+                    sbase: libsbml.SBase = model.getElementByMetaId(metaid)
+                    if not sbase:
+                        sbase = model.getElementFromPluginsByMetaId(metaid)
+
+                    if sbase.isSetId():
+                        ports[sbase.getId()] = port_info
+
+        return ports
 
     def _create_assignment_map(self, model: libsbml.Model) -> Dict:
         """Create dictionary of symbols:assignment for symbols in model.
@@ -290,6 +331,8 @@ class SBMLDocumentInfo:
             "history": cls.model_history(sbase),
             "notes": sbase.getNotesString() if sbase.isSetNotes() else None,
         }
+
+        # TODO: add the ports information
 
         if sbase.getTypeCode() in {libsbml.SBML_DOCUMENT, libsbml.SBML_MODEL}:
             d["xml"] = None
@@ -578,10 +621,12 @@ class SBMLDocumentInfo:
             d["units"] = udef_to_latex(d["units_sid"], model=model)
             d["derivedUnits"] = udef_to_latex(s.getDerivedUnitDefinition(), model=model)
 
-            if (
-                s.pk.split(":")[-1] in assignments
-            ):  # currently all PKs are in the form <SBMLType>:<id/metaID/name/etc.>
-                d["assignment"] = assignments[s.pk.split(":")[-1]]
+            # lookup in maps (PKs are in the form <SBMLType>:<id/metaID/name/etc).
+            key = s.pk.split(":")[-1]
+            if key in self.maps["assignments"]:
+                d["assignment"] = self.maps["assignments"][key]
+            if key in self.maps["ports"]:
+                d["port"] = self.maps["ports"][key]
 
             if s.isSetConversionFactor():
                 cf_sid = s.getConversionFactor()
