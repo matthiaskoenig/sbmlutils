@@ -2,7 +2,7 @@
     <ScrollPanel style="width: 100%">
         <h1>About</h1>
 
-        <Panel header="SBML4Humans" class="p-pb-2">
+        <Panel header="SBML4Humans">
             <div class="p-d-flex content">
                                 <a href="http://sbml.org" class="image">
                     <img src="@/assets/images/sbml-logo.png" height="50" />
@@ -47,7 +47,7 @@
         </Panel>
 
         <!-- Team -->
-           <Panel header="Team" class="p-pb-2">
+           <Panel header="Team">
             <div class="p-d-flex content">
                                 <a href="https://livermetabolism.com" class="image">
                     <img src="@/assets/images/people/koenig.png" height="50" />
@@ -71,7 +71,7 @@
            </Panel>
 
         <!-- Funding -->
-           <Panel header="Funding" class="p-pb-2">
+           <Panel header="Funding">
             <div class="p-d-flex content">
                 <a href="https://summerofcode.withgoogle.com/" class="image"
                     ><img src="@/assets/images/gsoc.png" width="50"

@@ -1,7 +1,20 @@
 <template>
     <h1 class="p-pt-4">Examples</h1>
-    <div>
-        <DataTable
+    <TabView class="p-mx-2 p-my-4">
+        <TabPanel>
+            <template #header>
+                <i class="pi pi-search p-mr-2"></i>
+
+
+
+                        <InputText
+                            v-model="filters['global'].value"
+                            class="searchBar"
+                            placeholder="Search examples"
+                        />
+
+            </template>
+            <DataTable
             :value="examples"
             :paginator="true"
             :rows="25"
@@ -17,7 +30,9 @@
             :rowHover="true"
             @row-click="getExample($event.data.id)"
         >
+            <!--
             <template #header class="table-header">
+
                 <div class="p-d-flex p-jc-between p-ai-center">
                     <span class="p-input-icon-left">
                         <i class="pi pi-search" />
@@ -29,6 +44,7 @@
                     </span>
                 </div>
             </template>
+            -->
             <Column sortable style="width: fit-content" field="id" header="id">
                 <template #body="props">
                     <strong>{{ props.data.id }}</strong>
@@ -75,7 +91,9 @@
         </DataTable>
 
         <loading parent="example" />
-    </div>
+        </TabPanel>
+    </TabView>
+
 </template>
 
 <script lang="ts">

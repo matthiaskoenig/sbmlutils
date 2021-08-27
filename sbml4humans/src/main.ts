@@ -36,6 +36,8 @@ import TabView from "primevue/tabview";
 import TabPanel from "primevue/tabpanel";
 import Textarea from "primevue/textarea";
 import Panel from "primevue/panel";
+import Splitter from "primevue/splitter";
+import SplitterPanel from "primevue/splitterpanel";
 
 // fontawesome
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -130,6 +132,8 @@ const app = createApp(App)
     .component("TabPanel", TabPanel)
     .component("Textarea", Textarea)
     .component("Panel", Panel)
+    .component("Splitter", Splitter)
+    .component("SplitterPanel", SplitterPanel)
 
 app.use(VueGtag, {
     property: {
