@@ -24,7 +24,7 @@
                             :fixed-width="true"
                             class="p-mr-1"
                         />
-                        {{ sbmlType === "Species" ? sbmlType : sbmlType + "s" }}
+                        {{ sbmlType === "Species" ? sbmlType : sbmlType + "s" }} ({{ count }})
                     </span>
                     <span class="p-input-icon-left p-ml-auto">
                         <i class="pi pi-search" />

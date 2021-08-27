@@ -20,7 +20,7 @@
                 <div class="p-d-flex p-jc-between p-ai-center">
                     <strong class="sbmlType">
                         <font-awesome-icon :icon="`${icon}`" class="p-mr-1" />
-                        {{ sbmlType === "Species" ? sbmlType : sbmlType + "s" }}
+                        {{ sbmlType === "Species" ? sbmlType : sbmlType + "s" }} ({{ count }})
                     </strong>
                     <span class="p-input-icon-left p-ml-auto">
                         <i class="pi pi-search" />

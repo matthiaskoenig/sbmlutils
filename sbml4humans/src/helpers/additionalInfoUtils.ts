@@ -21,7 +21,6 @@ async function fetchAdditionalInfo(
 ): Promise<Record<string, unknown>> {
     //return { "bruh": "bruh" };
     const QUERY_URL = urls.API_BASE_URL + urls.RESOURCE_INFO_URL + resourceID;
-    console.log(QUERY_URL);
     let res = api({
         url: QUERY_URL,
         method: "get",

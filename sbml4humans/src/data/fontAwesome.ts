@@ -11,6 +11,8 @@ const icons = {
     GeneProduct: "dna",
     InitialAssignment: "long-arrow-alt-left",
     Model: "file-code",
+    ModelDefinition: "file-code",
+    ExternalModelDefinition: "file-code",
     Port: "plug",
     Submodel: "sitemap",
     Parameter: "stream",
