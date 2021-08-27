@@ -48,7 +48,7 @@ export default defineComponent({
 <style lang="scss">
 .column {
     border-left: 1px solid #bfbfbf;
-    height: 90vh;
+    height: 89vh;
     overflow-y: scroll;
 }
 </style>

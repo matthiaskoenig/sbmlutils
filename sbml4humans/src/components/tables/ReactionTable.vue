@@ -66,6 +66,16 @@
             <Column
                 sortable
                 style="width: fit-content"
+                field="port"
+                header="port"
+            >
+                <template #body="slotProps">
+                    <span v-if="slotProps.data.port != null">{{ slotProps.data.port.pk.split(':')[1] }}</span>
+                </template>
+            </Column>
+            <Column
+                sortable
+                style="width: fit-content"
                 field="equation"
                 header="equation"
             >

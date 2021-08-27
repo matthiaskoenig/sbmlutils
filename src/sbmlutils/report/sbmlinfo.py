@@ -561,6 +561,13 @@ class SBMLDocumentInfo:
             d = self.sbase_dict(ud)
             d["units"] = udef_to_latex(ud, model=model)
 
+            key = "units:" + ud.pk.split(":")[-1]
+            print(key)
+            if key in self.maps["assignments"]:
+                d["assignment"] = self.maps["assignments"][key]
+            if key in self.maps["ports"]:
+                d["port"] = self.maps["ports"][key]
+
             unit_defs.append(d)
 
         return unit_defs
@@ -584,10 +591,11 @@ class SBMLDocumentInfo:
             d["units"] = udef_to_latex(d["units_sid"], model=model)
             d["derivedUnits"] = udef_to_latex(c.getDerivedUnitDefinition(), model=model)
 
-            if (
-                c.pk.split(":")[-1] in assignments
-            ):  # currently all PKs are in the form <SBMLType>:<id/metaID/name/etc.>
-                d["assignment"] = assignments[c.pk.split(":")[-1]]
+            key = c.pk.split(":")[-1]
+            if key in self.maps["assignments"]:
+                d["assignment"] = self.maps["assignments"][key]
+            if key in self.maps["ports"]:
+                d["port"] = self.maps["ports"][key]
 
             compartments.append(d)
 
@@ -687,10 +695,11 @@ class SBMLDocumentInfo:
             d["units"] = udef_to_latex(d["units_sid"], model=model)
             d["derivedUnits"] = udef_to_latex(p.getDerivedUnitDefinition(), model=model)
 
-            if (
-                p.pk.split(":")[-1] in assignments
-            ):  # currently all PKs are in the form <SBMLType>:<id/metaID/name/etc.>
-                d["assignment"] = assignments[p.pk.split(":")[-1]]
+            key = p.pk.split(":")[-1]
+            if key in self.maps["assignments"]:
+                d["assignment"] = self.maps["assignments"][key]
+            if key in self.maps["ports"]:
+                d["port"] = self.maps["ports"][key]
 
             parameters.append(d)
 
@@ -845,6 +854,12 @@ class SBMLDocumentInfo:
                 if rfbc
                 else None
             )
+
+            key = r.pk.split(":")[-1]
+            if key in self.maps["assignments"]:
+                d["assignment"] = self.maps["assignments"][key]
+            if key in self.maps["ports"]:
+                d["port"] = self.maps["ports"][key]
 
             reactions.append(d)
 
