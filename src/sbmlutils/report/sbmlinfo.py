@@ -12,8 +12,9 @@ from typing import Any, Dict, List, Optional, Union
 import libsbml
 import numpy as np
 
+from pymetadata.identifiers import miriam
+
 from sbmlutils.io import read_sbml
-from sbmlutils.metadata import miriam
 from sbmlutils.report.mathml import astnode_to_latex, symbol_to_latex
 from sbmlutils.report.units import udef_to_latex
 
