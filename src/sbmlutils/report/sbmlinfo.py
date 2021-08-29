@@ -100,8 +100,8 @@ class SBMLDocumentInfo:
         ports = self._create_port_map(model=model)
 
         self.maps = {
-            "assignments": assignments,
-            "ports": ports,
+            'assignments': assignments,
+            'ports': ports,
         }
 
         rules = self.rules(model=model)
@@ -715,10 +715,6 @@ class SBMLDocumentInfo:
         assignment: libsbml.InitialAssignment
         for assignment in model.getListOfInitialAssignments():
             d = self.sbase_dict(assignment)
-            # correct handling of ids
-            d["id"] = (
-                assignment.getIdAttribute() if assignment.isSetIdAttribute() else None
-            )
             d["symbol"] = assignment.getSymbol() if assignment.isSetSymbol() else None
             d["math"] = astnode_to_latex(assignment.getMath())
             d["derivedUnits"] = udef_to_latex(
@@ -742,8 +738,6 @@ class SBMLDocumentInfo:
         rule: libsbml.Rule
         for rule in model.getListOfRules():
             d = self.sbase_dict(rule)
-            # correct handling of ids
-            d["id"] = rule.getIdAttribute() if rule.isSetIdAttribute() else None
             d["variable"] = self._rule_variable_to_string(rule)
             d["math"] = astnode_to_latex(rule.getMath()) if rule.isSetMath() else None
             d["derivedUnits"] = udef_to_latex(
