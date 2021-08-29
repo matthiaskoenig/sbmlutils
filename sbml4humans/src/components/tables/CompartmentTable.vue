@@ -24,7 +24,9 @@
                             :fixed-width="true"
                             class="p-mr-1"
                         />
-                        {{ sbmlType === "Species" ? sbmlType : sbmlType + "s" }} ({{ count }})
+                        {{ sbmlType === "Species" ? sbmlType : sbmlType + "s" }} ({{
+                            count
+                        }})
                     </span>
                     <span class="p-input-icon-left p-ml-auto">
                         <i class="pi pi-search" />
@@ -100,6 +102,13 @@
                     <span v-if="slotProps.data.assignment != null">
                         <katex :mathStr="slotProps.data.assignment.math" />
                     </span>
+                </template>
+            </Column>
+            <Column sortable style="width: fit-content" field="port" header="port">
+                <template #body="slotProps">
+                    <span v-if="slotProps.data.port != null">{{
+                        slotProps.data.port.pk.split(":")[1]
+                    }}</span>
                 </template>
             </Column>
         </DataTable>

@@ -20,7 +20,9 @@
                 <div class="p-d-flex p-jc-between p-ai-center">
                     <strong class="sbmlType">
                         <font-awesome-icon :icon="`${icon}`" class="p-mr-1" />
-                        {{ sbmlType === "Species" ? sbmlType : sbmlType + "s" }} ({{ count }})
+                        {{ sbmlType === "Species" ? sbmlType : sbmlType + "s" }} ({{
+                            count
+                        }})
                     </strong>
                     <span class="p-input-icon-left p-ml-auto">
                         <i class="pi pi-search" />
@@ -92,6 +94,13 @@
                             <katex :mathStr="slotProps.data.assignment.math" />
                         </span>
                     </span>
+                </template>
+            </Column>
+            <Column sortable style="width: fit-content" field="port" header="port">
+                <template #body="slotProps">
+                    <span v-if="slotProps.data.port != null">{{
+                        slotProps.data.port.pk.split(":")[1]
+                    }}</span>
                 </template>
             </Column>
         </DataTable>

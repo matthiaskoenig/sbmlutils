@@ -5,6 +5,15 @@
                 <td class="label-td"><div class="label">units</div></td>
                 <td><katex :mathStr="info.units" /></td>
             </tr>
+            <tr v-if="info.port != null">
+                <td class="label-td"><div class="label">port</div></td>
+                <td>
+                    <SBMLLink
+                        :pk="info.port.pk"
+                        :sbmlType="String(info.port.sbmlType)"
+                    />
+                </td>
+            </tr>
         </tbody>
     </table>
 </template>
@@ -14,6 +23,7 @@ import TYPES from "@/data/sbmlComponents";
 import { defineComponent } from "@vue/runtime-core";
 
 import Katex from "@/components/layout/Katex.vue";
+import SBMLLink from "@/components/layout/SBMLLink.vue";
 
 /**
  * Component to define display of UnitDefinition objects.
@@ -28,6 +38,7 @@ export default defineComponent({
 
     components: {
         Katex,
+        SBMLLink,
     },
 });
 </script>

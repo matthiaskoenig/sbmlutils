@@ -31,10 +31,15 @@
                 <td class="label-td"><div class="label">assignment</div></td>
                 <td>
                     <katex :mathStr="info.assignment.math" />
-                    <!--<SBMLLink
-                        :pk="info.assignment.pk"
-                        :sbmlType="String(info.assignment.sbmlType)"
-                    />-->
+                </td>
+            </tr>
+            <tr v-if="info.port != null">
+                <td class="label-td"><div class="label">port</div></td>
+                <td>
+                    <SBMLLink
+                        :pk="info.port.pk"
+                        :sbmlType="String(info.port.sbmlType)"
+                    />
                 </td>
             </tr>
             <tr v-if="info.species && info.species.length">

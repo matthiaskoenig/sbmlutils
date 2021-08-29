@@ -1,6 +1,6 @@
 <template>
     <div>
-        <h3>Document & Models</h3>
+        <h3 class="p-ml-2">Document & Models</h3>
 
         <PanelMenu :model="coreComponents">
             <template #item="{ item }">
