@@ -49,8 +49,8 @@
             <Column
                 sortable
                 style="width: fit-content"
-                field="variable"
-                header="variable"
+                field="symbol"
+                header="symbol"
             ></Column>
             <Column sortable style="width: fit-content" field="math" header="math">
                 <template #body="slotProps">

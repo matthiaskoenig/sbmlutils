@@ -1,9 +1,9 @@
 <template>
     <table class="table table-borderless table-sm table-condensed compact">
         <tbody>
-            <tr v-if="info.sid != null">
+            <tr v-if="info.variable != null">
                 <td class="label-td"><div class="label">variable</div></td>
-                <td>{{ info.sid }}</td>
+                <td>{{ info.variable }}</td>
             </tr>
             <tr v-if="info.math != null">
                 <td class="label-td"><div class="label">math</div></td>

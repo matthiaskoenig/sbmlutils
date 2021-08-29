@@ -48,8 +48,8 @@
             <Column
                 sortable
                 style="width: fit-content"
-                field="value"
-                header="value"
+                field="variable"
+                header="variable"
             ></Column>
             <Column sortable style="width: fit-content" field="math" header="math">
                 <template #body="slotProps">

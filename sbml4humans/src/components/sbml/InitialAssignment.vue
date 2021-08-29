@@ -15,21 +15,6 @@
             </tr>
         </tbody>
     </table>
-
-    <!-- <div class="data" v-if="info.symbol != null">
-        <div class="label"><strong>symbol:</strong> {{ info.symbol }}</div>
-    </div>
-
-    <div class="data" v-if="info.math != null">
-        <div class="label"><strong>math:</strong> {{ info.math }}</div>
-    </div>
-
-    <div class="data" v-if="info.derivedUnits != null">
-        <div class="label">
-            <strong>derivedUnits:</strong>
-            <katex :mathStr="info.derivedUnits" />
-        </div>
-    </div> -->
 </template>
 
 <script lang="ts">
