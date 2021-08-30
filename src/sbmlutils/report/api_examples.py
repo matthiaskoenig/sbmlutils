@@ -21,8 +21,8 @@ from sbmlutils.test import (
     FBC_ECOLI_CORE_SBML,
     FBC_RECON3D_SBML,
     GLUCOSE_SBML,
-    MODELS_DIR,
     REPRESSILATOR_SBML,
+    MODELS_DIR,
 )
 
 

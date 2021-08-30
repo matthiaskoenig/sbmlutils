@@ -21,8 +21,6 @@ notes = Notes(
     ]
 )
 creators = templates.creators
-sboTerm = SBO_
-
 
 model_units = ModelUnits(
     time=UNIT_s,
