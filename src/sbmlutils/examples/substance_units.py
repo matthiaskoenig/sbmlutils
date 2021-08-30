@@ -16,9 +16,6 @@ notes = Notes(
     <h1>Example model for substance units</h1>
     <p>Applying species conversion factors to have distinct subsets of species in a
     model. A common example are mixing metabolic species and proteins in a single model.
-
-
-
     </p>.
     """,
         templates.terms_of_use,
