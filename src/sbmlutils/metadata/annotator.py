@@ -29,7 +29,7 @@ from pymetadata.identifiers.miriam import (
     BQB,
     BQM,
 )
-from pymetadata.annotation import Annotation
+from pymetadata.core.annotation import RDFAnnotation as Annotation
 
 logger = logging.getLogger(__name__)
 
@@ -349,13 +349,20 @@ class ModelAnnotator:
                 )
 
     @staticmethod
-    def get_SBMLQualifier(qualifier_str: str) -> str:
-        """Lookup of SBMLQualifier for given qualifier string."""
+    def get_SBMLQualifier(qualifier_str: str, qualifier_type: str) -> str:
+        """Lookup of SBMLQualifier for given qualifier string.
+
+        :param qualifier_type: BQB or BQM
+        """
         if qualifier_str not in libsbml.__dict__:
-            raise ValueError("Qualifier not supported: {}".format(qualifier_str))
+            raise ValueError(f"Qualifier not supported: {qualifier_str}")
 
         qtype = libsbml.__dict__.get(qualifier_str)
-        return str(libsbml.ModelQualifierType_toString(qtype))
+
+        if qualifier_type == "BQB":
+            return str(libsbml.BiolQualifierType_toString(qtype))
+        elif qualifier_type == "BQM":
+            return str(libsbml.ModelQualifierType_toString(qtype))
 
     @staticmethod
     def annotate_sbase(sbase: libsbml.SBase, annotation: Annotation) -> None:
@@ -372,9 +379,10 @@ class ModelAnnotator:
         if isinstance(qualifier, str):
             if qualifier.startswith("BQB"):
                 cv.setQualifierType(libsbml.BIOLOGICAL_QUALIFIER)
-                sbml_qualifier = ModelAnnotator.get_SBMLQualifier(qualifier)
+
+                sbml_qualifier = ModelAnnotator.get_SBMLQualifier(qualifier, "BQB")
                 success = check(
-                    cv.setBiologicalQualifierType(str(sbml_qualifier)),
+                    cv.setBiologicalQualifierType(sbml_qualifier),
                     f"Set biological qualifier: '{sbml_qualifier}'",
                 )
                 if not success:
@@ -384,9 +392,9 @@ class ModelAnnotator:
                     )
             elif qualifier.startswith("BQM"):
                 cv.setQualifierType(libsbml.MODEL_QUALIFIER)
-                sbml_qualifier = ModelAnnotator.get_SBMLQualifier(qualifier)
+                sbml_qualifier = ModelAnnotator.get_SBMLQualifier(qualifier, "BQM")
                 success = check(
-                    cv.setModelQualifierType(str(sbml_qualifier)),
+                    cv.setModelQualifierType(sbml_qualifier),
                     f"Set model qualifier: '{sbml_qualifier}'",
                 )
                 if not success:
