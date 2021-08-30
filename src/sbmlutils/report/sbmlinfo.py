@@ -12,7 +12,10 @@ from typing import Any, Dict, List, Optional, Union
 import libsbml
 import numpy as np
 
-from pymetadata.identifiers import miriam
+from sbmlutils.metadata.miriam import (
+    BiologicalQualifierType,
+    ModelQualifierType,
+)
 
 from sbmlutils.io import read_sbml
 from sbmlutils.report.mathml import astnode_to_latex, symbol_to_latex
@@ -433,9 +436,9 @@ class SBMLDocumentInfo:
             # qualifier
             q_type = cv.getQualifierType()
             if q_type == libsbml.MODEL_QUALIFIER:
-                qualifier = miriam.ModelQualifierType[cv.getModelQualifierType()]
+                qualifier = ModelQualifierType[cv.getModelQualifierType()]
             elif q_type == libsbml.BIOLOGICAL_QUALIFIER:
-                qualifier = miriam.BiologicalQualifierType[
+                qualifier = BiologicalQualifierType[
                     cv.getBiologicalQualifierType()
                 ]
             else:
@@ -563,7 +566,6 @@ class SBMLDocumentInfo:
             d["units"] = udef_to_latex(ud, model=model)
 
             key = "units:" + ud.pk.split(":")[-1]
-            print(key)
             if key in self.maps["assignments"]:
                 d["assignment"] = self.maps["assignments"][key]
             if key in self.maps["ports"]:
