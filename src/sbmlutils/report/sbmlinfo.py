@@ -12,8 +12,12 @@ from typing import Any, Dict, List, Optional, Union
 import libsbml
 import numpy as np
 
+from sbmlutils.metadata.miriam import (
+    BiologicalQualifierType,
+    ModelQualifierType,
+)
+
 from sbmlutils.io import read_sbml
-from sbmlutils.metadata import miriam
 from sbmlutils.report.mathml import astnode_to_latex, symbol_to_latex
 from sbmlutils.report.units import udef_to_latex
 
@@ -100,8 +104,8 @@ class SBMLDocumentInfo:
         ports = self._create_port_map(model=model)
 
         self.maps = {
-            "assignments": assignments,
-            "ports": ports,
+            'assignments': assignments,
+            'ports': ports,
         }
 
         rules = self.rules(model=model)
@@ -432,9 +436,9 @@ class SBMLDocumentInfo:
             # qualifier
             q_type = cv.getQualifierType()
             if q_type == libsbml.MODEL_QUALIFIER:
-                qualifier = miriam.ModelQualifierType[cv.getModelQualifierType()]
+                qualifier = ModelQualifierType[cv.getModelQualifierType()]
             elif q_type == libsbml.BIOLOGICAL_QUALIFIER:
-                qualifier = miriam.BiologicalQualifierType[
+                qualifier = BiologicalQualifierType[
                     cv.getBiologicalQualifierType()
                 ]
             else:
@@ -562,7 +566,6 @@ class SBMLDocumentInfo:
             d["units"] = udef_to_latex(ud, model=model)
 
             key = "units:" + ud.pk.split(":")[-1]
-            print(key)
             if key in self.maps["assignments"]:
                 d["assignment"] = self.maps["assignments"][key]
             if key in self.maps["ports"]:
@@ -715,10 +718,6 @@ class SBMLDocumentInfo:
         assignment: libsbml.InitialAssignment
         for assignment in model.getListOfInitialAssignments():
             d = self.sbase_dict(assignment)
-            # correct handling of ids
-            d["id"] = (
-                assignment.getIdAttribute() if assignment.isSetIdAttribute() else None
-            )
             d["symbol"] = assignment.getSymbol() if assignment.isSetSymbol() else None
             d["math"] = astnode_to_latex(assignment.getMath())
             d["derivedUnits"] = udef_to_latex(
@@ -742,8 +741,6 @@ class SBMLDocumentInfo:
         rule: libsbml.Rule
         for rule in model.getListOfRules():
             d = self.sbase_dict(rule)
-            # correct handling of ids
-            d["id"] = rule.getIdAttribute() if rule.isSetIdAttribute() else None
             d["variable"] = self._rule_variable_to_string(rule)
             d["math"] = astnode_to_latex(rule.getMath()) if rule.isSetMath() else None
             d["derivedUnits"] = udef_to_latex(

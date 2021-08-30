@@ -32,7 +32,11 @@ units = [
 ]
 compartments: List[Compartment] = [
     Compartment(
-        sid="m3", value=1.0, unit=UNIT_m3, sboTerm=SBO_PHYSICAL_COMPARTMENT, port=True
+        sid="m3",
+        value=1.0,
+        unit=UNIT_m3,
+        sboTerm=SBO_PHYSICAL_COMPARTMENT,
+        port=True
     ),
 ]
 # ------------------------------------------------------------------------------
