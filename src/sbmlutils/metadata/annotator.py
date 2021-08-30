@@ -29,7 +29,7 @@ from pymetadata.identifiers.miriam import (
     BQB,
     BQM,
 )
-from pymetadata.annotation import Annotation
+from pymetadata.core.annotation import RDFAnnotation as Annotation
 
 logger = logging.getLogger(__name__)
 
