@@ -176,7 +176,7 @@ def get_resource_info(resource_id: str) -> Response:
         logger.error(e)
 
         res = {
-            "error": e,
+            "error": e.__str__()
         }
 
         return Response(content=json.dumps(res), media_type="application/json")
