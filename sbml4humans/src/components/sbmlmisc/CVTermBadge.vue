@@ -6,8 +6,10 @@
         </Tag>
     </div>
     <div class="p-mt-1 p-mb-2 p-ml-2" v-if="addInfo != null">
-        <strong>{{ addInfo.name }}:</strong> {{ addInfo.definition }} <br />
-        <span v-if="addInfo.synonyms != null"
+        <strong>{{ addInfo.term }}</strong
+        ><span v-if="addInfo.description != null">: {{ addInfo.description }}</span>
+        <br />
+        <span v-if="addInfo.synonyms != null && addInfo.synonyms.length > 0"
             >Synonyms: {{ addInfo.synonyms.join() }}</span
         >
     </div>
