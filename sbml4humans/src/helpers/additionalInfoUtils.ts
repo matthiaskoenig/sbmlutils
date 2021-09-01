@@ -7,7 +7,7 @@ const cache = setupCache({
 });
 
 const api = axios.create({
-    adapter: cache.adapter,
+    //adapter: cache.adapter,  // activate for caching
 });
 
 /**
@@ -19,8 +19,8 @@ const api = axios.create({
 async function fetchAdditionalInfo(
     resourceID: string
 ): Promise<Record<string, unknown>> {
-    //return { "bruh": "bruh" };
-    const QUERY_URL = urls.API_BASE_URL + urls.RESOURCE_INFO_URL + resourceID;
+    const QUERY_URL = urls.API_BASE_URL + urls.RESOURCE_INFO_URL + "?resource=" + encodeURIComponent(resourceID);
+    console.log(QUERY_URL)
     let res = api({
         url: QUERY_URL,
         method: "get",

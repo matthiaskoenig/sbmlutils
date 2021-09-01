@@ -144,23 +144,24 @@ def _render_json_content(content: Dict) -> Response:
     return Response(content=json_bytes, media_type="application/json")
 
 
-@api.get("/resource_info/{resource_id}")
-def get_resource_info(resource_id: str) -> Response:
+@api.get("/resource_info/")
+def get_resource_info(resource: str) -> Response:
+
     """Get information for given resource.
 
     Used to resolve annotation information.
 
-    :param resource_id: unique identifier of resource (url or miriam urn)
+    :param resource: unique identifier of resource (url or miriam urn)
     :return: Response
     """
     try:
-        print("-" * 80)
-        print(resource_id)
-        annotation = RDFAnnotation(qualifier=BQB.IS, resource=resource_id)
+        # print("-" * 80)
+        # print(resource)
+        annotation = RDFAnnotation(qualifier=BQB.IS, resource=resource)
         data = RDFAnnotationData(annotation=annotation)
         info = data.to_dict()
-        print(info)
-        print("-" * 80)
+        # print(info)
+        # print("-" * 80)
         return Response(
             content=json.dumps(info), media_type="application/json"
         )

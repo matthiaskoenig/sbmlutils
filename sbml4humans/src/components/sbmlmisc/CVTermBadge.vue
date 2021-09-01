@@ -41,6 +41,9 @@
                 <li v-if="xref.url">
                     <a :href="xref.url" target="_blank">{{ xref.database }}:{{ xref.id}}</a>
                 </li>
+                    <li v-else>
+                    {{ xref.database }}:{{ xref.id}}
+                    </li>
                 </span>
             </div>
         </div>
@@ -70,9 +73,7 @@ export default defineComponent({
     },
 
     created() {
-        const parts = this.resource.split("/");
-        const resourceID = parts[parts.length - 1];
-        additionalInfoUtils.fetchAdditionalInfo(resourceID).then((res) => {
+        additionalInfoUtils.fetchAdditionalInfo(this.resource).then((res) => {
             this.addInfo = res as Record<string, unknown>;
         });
     },

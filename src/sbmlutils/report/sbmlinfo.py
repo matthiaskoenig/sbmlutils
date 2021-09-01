@@ -452,6 +452,21 @@ class SBMLDocumentInfo:
                 }
             )
 
+        # add SBO term as CVTerm
+        if sbase.isSetSBOTerm():
+            sbo = sbase.getSBOTermID()
+            sbo_in_cvs: bool = False
+            for cv in cvterms:
+                for resource in cv["resources"]:
+                    if sbo in resource:
+                        sbo_in_cvs = True
+                        break
+            if not sbo_in_cvs:
+                cvterms = [{
+                    "qualifier": "BQB_IS",
+                    "resources": [f"https://identifiers.org/{sbo}"]
+                }] + cvterms
+
         return cvterms
 
     @classmethod
