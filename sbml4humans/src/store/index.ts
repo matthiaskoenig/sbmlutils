@@ -12,25 +12,25 @@ const static_alert =
 export default createStore({
     state: {
         // list of examples
-        examples: [],
+        examples: [], // global
 
         // raw report (complete backend response)
         // contains both SBML report and Debug information
-        rawData: {},
+        rawData: {}, // report
 
         // final report
-        jsonReport: {},
+        jsonReport: {}, // report
 
         // describe if the file report is still loading (REST endpoint)
-        fileLoading: false,
+        fileLoading: false, // report
 
         // describe if the example report is still loading (REST endpoint)
-        exampleLoading: false,
+        exampleLoading: false, // report
 
         /* For core and comp functionality */
-        currentModel: "",
+        currentModel: "", // report
 
-        detailVisibility: false,
+        detailVisibility: false, // report
 
         /* For Search and Filter feature */
         visibility: {

@@ -3,10 +3,12 @@
 This provides basic functionality of
 parsing the model and returning the JSON representation based on fastAPI.
 """
+
 import json
 import logging
 import tempfile
 import time
+import traceback
 from pathlib import Path
 from typing import Any, Dict
 
@@ -14,9 +16,11 @@ import requests
 import uvicorn
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from pymetadata.core.annotation import RDFAnnotation, RDFAnnotationData
 from pymetadata.identifiers.miriam import BQB
 
 from sbmlutils.report.api_examples import examples_info
+from sbmlutils.report.caching import cache_report, create_job_id, get_report_from_cache
 from sbmlutils.report.sbmlinfo import SBMLDocumentInfo, clean_empty
 
 
@@ -36,7 +40,7 @@ api.add_middleware(
 
 
 def _write_to_file_and_generate_report(
-    filename: str, file_content: str, mode: str
+    filename: str, file_content: str, mode: str, uuid: str = "UUID001"
 ) -> Dict:
     """Write file content to temporary file and generate reoirt."""
     content = {}
@@ -45,6 +49,7 @@ def _write_to_file_and_generate_report(
         with open(path, mode) as sbml_file:
             sbml_file.write(file_content)
             content = _content_for_source(source=path)
+    cache_report(uuid, content)
     return content
 
 
@@ -60,15 +65,18 @@ async def upload_sbml(request: Request) -> Response:
 
     FIXME: support COMBINE archives
     """
-    try:
-        file_data = await request.form()
-
-        filename = file_data["source"].filename
-        file_content = await file_data["source"].read()
-        content = _write_to_file_and_generate_report(filename, file_content, "wb")
-    except IOError as err:
-        logger.error(err)
-        content = {"error": "SBML Document could not be parsed."}
+    file_data = await request.form()
+    file_content = await file_data["source"].read()
+    content = get_report_using_uuid(file_content)
+    # try:
+    #     file_data = await request.form()
+    #
+    #     filename = file_data["source"].filename
+    #     file_content = await file_data["source"].read()
+    #     content = _write_to_file_and_generate_report(filename, file_content, "wb")
+    # except IOError as err:
+    #     logger.error(err)
+    #     content = {"error": "SBML Document could not be parsed."}
 
     return _render_json_content(content)
 
@@ -136,43 +144,34 @@ def _render_json_content(content: Dict) -> Response:
     return Response(content=json_bytes, media_type="application/json")
 
 
-@api.get("/resource_info/{resource_id}")
-def get_resource_info(resource_id: str) -> Response:
+@api.get("/resource_info/")
+def get_resource_info(resource: str) -> Response:
+
     """Get information for given resource.
 
     Used to resolve annotation information.
 
-    :param resource_id: unique identifier of resource (url or miriam urn)
+    :param resource: unique identifier of resource (url or miriam urn)
     :return: Response
     """
     try:
-        print("-" * 80)
-        print(resource_id)
-        from pymetadata.core.annotation import RDFAnnotationData, RDFAnnotation
-
-        annotation = RDFAnnotation(qualifier=BQB.IS, resource=resource_id)
+        # print("-" * 80)
+        # print(resource)
+        annotation = RDFAnnotation(qualifier=BQB.IS, resource=resource)
         data = RDFAnnotationData(annotation=annotation)
-
-        info = {
-            "collection": data.collection,
-            "term": data.term,
-            "resource": data.resource,
-            "label": data.label,
-            "description": data.description,
-            "synonyms": data.synonyms,
-            "xrefs": data.xrefs,
-        }
-
-        print(info)
-        print("-" * 80)
-        return Response(
-            content=json.dumps(info), media_type="application/json"
-        )
+        info = data.to_dict()
+        # print(info)
+        # print("-" * 80)
+        return Response(content=json.dumps(info), media_type="application/json")
     except Exception as e:
         logger.error(e)
 
         res = {
-            "error": e,
+            "errors": [
+                f"{e.__str__()}",
+                f"{''.join(traceback.format_exception(None, e, e.__traceback__))}",
+            ],
+            "warnings": [],
         }
 
         return Response(content=json.dumps(res), media_type="application/json")
@@ -186,7 +185,8 @@ def get_report_from_model_url(url: str) -> Response:
     if data.status_code == 200:
         filename = "temp_sbml.xml"
         file_content = data.text
-        content = _write_to_file_and_generate_report(filename, file_content, "w")
+        content = get_report_using_uuid(file_content)
+        # content = _write_to_file_and_generate_report(filename, file_content, "w")
     else:
         content = {"error": "File not found!"}
 
@@ -207,6 +207,19 @@ async def get_report_from_file_contents(request: Request) -> Response:
 
     print(content)
     return Response(content=json.dumps(content), media_type="application/json")
+
+
+def get_report_using_uuid(file_content: str):
+    uuid = create_job_id(file_content)
+    try:
+        report = get_report_from_cache(uuid)
+    except Exception as e:
+        logger.error(e)
+        report = _write_to_file_and_generate_report(
+            "temp_model.xml", file_content, "wb", uuid
+        )
+
+    return report
 
 
 if __name__ == "__main__":

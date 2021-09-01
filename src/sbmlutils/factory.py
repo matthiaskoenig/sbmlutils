@@ -43,6 +43,7 @@ __all__ = [
     "SBML_LEVEL",
     "SBML_VERSION",
     "PORT_SUFFIX",
+    "PORT_UNIT_SUFFIX",
     "Notes",
     "ModelUnits",
     "Creator",

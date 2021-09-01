@@ -2,6 +2,7 @@
 
 from pymetadata.identifiers.miriam import *
 
+
 __all__ = [
     "BQM",
     "BQB",

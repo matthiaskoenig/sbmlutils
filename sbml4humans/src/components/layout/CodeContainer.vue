@@ -98,7 +98,7 @@ pre {
     overflow-y: scroll;
 
     font-family: "Courier New", Courier, monospace;
-    font-size: small;
+    font-size: xx-small;
 }
 
 .fa-braces:before {
