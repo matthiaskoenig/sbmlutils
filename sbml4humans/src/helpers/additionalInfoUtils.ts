@@ -19,8 +19,12 @@ const api = axios.create({
 async function fetchAdditionalInfo(
     resourceID: string
 ): Promise<Record<string, unknown>> {
-    const QUERY_URL = urls.API_BASE_URL + urls.RESOURCE_INFO_URL + "?resource=" + encodeURIComponent(resourceID);
-    console.log(QUERY_URL)
+    const QUERY_URL =
+        urls.API_BASE_URL +
+        urls.RESOURCE_INFO_URL +
+        "?resource=" +
+        encodeURIComponent(resourceID);
+    console.log(QUERY_URL);
     let res = api({
         url: QUERY_URL,
         method: "get",
