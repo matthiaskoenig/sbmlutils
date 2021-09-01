@@ -18,6 +18,8 @@ from typing import Dict, Iterable, List, Optional, Tuple, Union
 
 import libsbml
 import pandas as pd
+from pymetadata.core.annotation import RDFAnnotation as Annotation
+from pymetadata.identifiers.miriam import BQB, BQM
 
 from sbmlutils import utils
 from sbmlutils.io.sbml import read_sbml, write_sbml
@@ -25,11 +27,6 @@ from sbmlutils.io.sbml import read_sbml, write_sbml
 from ..utils import bcolors
 from ..validation import check
 
-from pymetadata.identifiers.miriam import (
-    BQB,
-    BQM,
-)
-from pymetadata.core.annotation import RDFAnnotation as Annotation
 
 logger = logging.getLogger(__name__)
 

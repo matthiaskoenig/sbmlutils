@@ -12,12 +12,8 @@ from typing import Any, Dict, List, Optional, Union
 import libsbml
 import numpy as np
 
-from sbmlutils.metadata.miriam import (
-    BiologicalQualifierType,
-    ModelQualifierType,
-)
-
 from sbmlutils.io import read_sbml
+from sbmlutils.metadata.miriam import BiologicalQualifierType, ModelQualifierType
 from sbmlutils.report.mathml import astnode_to_latex, symbol_to_latex
 from sbmlutils.report.units import udef_to_latex
 
@@ -104,8 +100,8 @@ class SBMLDocumentInfo:
         ports = self._create_port_map(model=model)
 
         self.maps = {
-            'assignments': assignments,
-            'ports': ports,
+            "assignments": assignments,
+            "ports": ports,
         }
 
         rules = self.rules(model=model)
@@ -438,9 +434,7 @@ class SBMLDocumentInfo:
             if q_type == libsbml.MODEL_QUALIFIER:
                 qualifier = ModelQualifierType[cv.getModelQualifierType()]
             elif q_type == libsbml.BIOLOGICAL_QUALIFIER:
-                qualifier = BiologicalQualifierType[
-                    cv.getBiologicalQualifierType()
-                ]
+                qualifier = BiologicalQualifierType[cv.getBiologicalQualifierType()]
             else:
                 raise ValueError(f"Unsupported qualifier type: '{q_type}'")
 
@@ -462,10 +456,12 @@ class SBMLDocumentInfo:
                         sbo_in_cvs = True
                         break
             if not sbo_in_cvs:
-                cvterms = [{
-                    "qualifier": "BQB_IS",
-                    "resources": [f"https://identifiers.org/{sbo}"]
-                }] + cvterms
+                cvterms = [
+                    {
+                        "qualifier": "BQB_IS",
+                        "resources": [f"https://identifiers.org/{sbo}"],
+                    }
+                ] + cvterms
 
         return cvterms
 

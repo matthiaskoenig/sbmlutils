@@ -1,14 +1,13 @@
 """SBML report using https://sbml4humans.de."""
 
+import http.server
 import logging
+import socketserver
 import threading
 import time
+import webbrowser
 from pathlib import Path
 from typing import Dict
-
-import http.server
-import socketserver
-import webbrowser
 
 
 logger = logging.getLogger(__name__)
@@ -30,7 +29,6 @@ def create_report(
     server: str = "https://sbml4humans.de",
     fileserver_duration: int = 10,
     fileserver_port: int = 5115,
-
 ) -> Dict:
     """Create sbml4humans report.
 
@@ -59,9 +57,9 @@ def create_report(
     # serve files
 
     daemon = threading.Thread(
-        name='daemon_server',
+        name="daemon_server",
         target=start_server,
-        args=(sbml_path.parent, fileserver_port)
+        args=(sbml_path.parent, fileserver_port),
     )
     # Set as a daemon so it will be killed once the main thread is dead.
     daemon.setDaemon(True)
@@ -83,11 +81,9 @@ def create_report(
 
 if __name__ == "__main__":
     from sbmlutils.test import REPRESSILATOR_SBML
-    create_report(
-        sbml_path=REPRESSILATOR_SBML
-    )
+
+    create_report(sbml_path=REPRESSILATOR_SBML)
     # create_report(
     #     sbml_path=REPRESSILATOR_SBML,
     #     server="localhost:3456"
     # )
-

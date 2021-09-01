@@ -16,13 +16,13 @@ import requests
 import uvicorn
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from pymetadata.core.annotation import RDFAnnotation, RDFAnnotationData
 from pymetadata.identifiers.miriam import BQB
-from pymetadata.core.annotation import RDFAnnotationData, RDFAnnotation
-
 
 from sbmlutils.report.api_examples import examples_info
+from sbmlutils.report.caching import cache_report, create_job_id, get_report_from_cache
 from sbmlutils.report.sbmlinfo import SBMLDocumentInfo, clean_empty
-from sbmlutils.report.caching import create_job_id, get_report_from_cache, cache_report
+
 
 logger = logging.getLogger(__name__)
 api = FastAPI()
@@ -162,18 +162,16 @@ def get_resource_info(resource: str) -> Response:
         info = data.to_dict()
         # print(info)
         # print("-" * 80)
-        return Response(
-            content=json.dumps(info), media_type="application/json"
-        )
+        return Response(content=json.dumps(info), media_type="application/json")
     except Exception as e:
         logger.error(e)
 
         res = {
             "errors": [
                 f"{e.__str__()}",
-                f"{''.join(traceback.format_exception(None, e, e.__traceback__))}"
+                f"{''.join(traceback.format_exception(None, e, e.__traceback__))}",
             ],
-            "warnings": []
+            "warnings": [],
         }
 
         return Response(content=json.dumps(res), media_type="application/json")
@@ -188,7 +186,7 @@ def get_report_from_model_url(url: str) -> Response:
         filename = "temp_sbml.xml"
         file_content = data.text
         content = get_report_using_uuid(file_content)
-        #content = _write_to_file_and_generate_report(filename, file_content, "w")
+        # content = _write_to_file_and_generate_report(filename, file_content, "w")
     else:
         content = {"error": "File not found!"}
 
@@ -210,15 +208,19 @@ async def get_report_from_file_contents(request: Request) -> Response:
     print(content)
     return Response(content=json.dumps(content), media_type="application/json")
 
+
 def get_report_using_uuid(file_content: str):
     uuid = create_job_id(file_content)
     try:
         report = get_report_from_cache(uuid)
     except Exception as e:
         logger.error(e)
-        report = _write_to_file_and_generate_report("temp_model.xml", file_content, "wb", uuid)
+        report = _write_to_file_and_generate_report(
+            "temp_model.xml", file_content, "wb", uuid
+        )
 
     return report
+
 
 if __name__ == "__main__":
     # shell command: uvicorn sbmlutils.report.api:app --reload --port 1444
