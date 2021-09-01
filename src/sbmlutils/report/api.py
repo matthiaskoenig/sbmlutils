@@ -3,10 +3,12 @@
 This provides basic functionality of
 parsing the model and returning the JSON representation based on fastAPI.
 """
+
 import json
 import logging
 import tempfile
 import time
+import traceback
 from pathlib import Path
 from typing import Any, Dict
 
@@ -15,6 +17,8 @@ import uvicorn
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pymetadata.identifiers.miriam import BQB
+from pymetadata.core.annotation import RDFAnnotationData, RDFAnnotation
+
 
 from sbmlutils.report.api_examples import examples_info
 from sbmlutils.report.sbmlinfo import SBMLDocumentInfo, clean_empty
@@ -152,21 +156,9 @@ def get_resource_info(resource_id: str) -> Response:
     try:
         print("-" * 80)
         print(resource_id)
-        from pymetadata.core.annotation import RDFAnnotationData, RDFAnnotation
-
         annotation = RDFAnnotation(qualifier=BQB.IS, resource=resource_id)
         data = RDFAnnotationData(annotation=annotation)
-
-        info = {
-            "collection": data.collection,
-            "term": data.term,
-            "resource": data.resource,
-            "label": data.label,
-            "description": data.description,
-            "synonyms": data.synonyms,
-            "xrefs": data.xrefs,
-        }
-
+        info = data.to_dict()
         print(info)
         print("-" * 80)
         return Response(
@@ -176,7 +168,11 @@ def get_resource_info(resource_id: str) -> Response:
         logger.error(e)
 
         res = {
-            "error": e.__str__()
+            "errors": [
+                f"{e.__str__()}",
+                f"{''.join(traceback.format_exception(None, e, e.__traceback__))}"
+            ],
+            "warnings": []
         }
 
         return Response(content=json.dumps(res), media_type="application/json")
