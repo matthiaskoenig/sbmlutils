@@ -39,20 +39,6 @@ api.add_middleware(
 )
 
 
-def _write_to_file_and_generate_report(
-    filename: str, file_content: str, mode: str, uuid: str = "UUID001"
-) -> Dict:
-    """Write file content to temporary file and generate reoirt."""
-    content = {}
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        path = Path(tmp_dir) / filename
-        with open(path, mode) as sbml_file:
-            sbml_file.write(file_content)
-            content = _content_for_source(source=path)
-    cache_report(uuid, content)
-    return content
-
-
 @api.get("/")
 def read_root() -> Dict:
     """Information to be returned by root path of the API."""
@@ -68,15 +54,6 @@ async def upload_sbml(request: Request) -> Response:
     file_data = await request.form()
     file_content = await file_data["source"].read()
     content = get_report_using_uuid(file_content)
-    # try:
-    #     file_data = await request.form()
-    #
-    #     filename = file_data["source"].filename
-    #     file_content = await file_data["source"].read()
-    #     content = _write_to_file_and_generate_report(filename, file_content, "wb")
-    # except IOError as err:
-    #     logger.error(err)
-    #     content = {"error": "SBML Document could not be parsed."}
 
     return _render_json_content(content)
 
@@ -84,12 +61,15 @@ async def upload_sbml(request: Request) -> Response:
 @api.get("/examples")
 def examples() -> Response:
     """Get sbml4humans example SBML models."""
-    api_examples = []
-    for example in examples_info.values():
-        api_examples.append(example["metadata"])
+    try:
+        api_examples = []
+        for example in examples_info.values():
+            api_examples.append(example["metadata"])
 
-    content = {"examples": api_examples}
-    return _render_json_content(content)
+        content = {"examples": api_examples}
+        return _render_json_content(content)
+    except Exception as e:
+        return handle_error(e)
 
 
 @api.get("/examples/{example_id}")
@@ -102,32 +82,34 @@ def example(example_id: str) -> Response:
     :param example_id:
     :return:
     """
-    example = examples_info.get(example_id, None)
-    content: Dict
-    if example:
-        source: Path = example["file"]  # type: ignore
-        content = _content_for_source(source=source)
-    else:
-        content = {"error": f"example for id does not exist '{example_id}'"}
+    try:
+        example = examples_info.get(example_id, None)
+        content: Dict
+        if example:
+            source: Path = example["file"]  # type: ignore
+            content = _content_for_source(source=source)
+        else:
+            content = {"error": f"example for id does not exist '{example_id}'"}
 
-    return _render_json_content(content)
+        return _render_json_content(content)
+    except Exception as e:
+        return handle_error(e)
 
 
 def _content_for_source(source: Path) -> Dict:
     """Create content for given source."""
-    content: Dict[str, Any] = {}
     try:
+        content: Dict[str, Any] = {}
         time_start = time.time()
         info = SBMLDocumentInfo.from_sbml(source=source)
         content["report"] = info.info
         time_elapsed = round(time.time() - time_start, 3)
         logger.warning(f"JSON created for '{source}' in '{time_elapsed}'")
         content["debug"] = {"jsonReportTime": f"{time_elapsed} [s]"}
+        return content
 
-    except IOError as err:
-        logger.error(err)
-        content = {"error": f"Error creating JSON for '{source}'"}
-    return content
+    except Exception as e:
+        return handle_error(e)
 
 
 def _render_json_content(content: Dict) -> Response:
@@ -146,8 +128,7 @@ def _render_json_content(content: Dict) -> Response:
 
 @api.get("/resource_info/")
 def get_resource_info(resource: str) -> Response:
-
-    """Get information for given resource.
+    """Get information for annotation_resource.
 
     Used to resolve annotation information.
 
@@ -155,58 +136,45 @@ def get_resource_info(resource: str) -> Response:
     :return: Response
     """
     try:
-        # print("-" * 80)
-        # print(resource)
         annotation = RDFAnnotation(qualifier=BQB.IS, resource=resource)
         data = RDFAnnotationData(annotation=annotation)
         info = data.to_dict()
-        # print(info)
-        # print("-" * 80)
         return Response(content=json.dumps(info), media_type="application/json")
     except Exception as e:
-        logger.error(e)
-
-        res = {
-            "errors": [
-                f"{e.__str__()}",
-                f"{''.join(traceback.format_exception(None, e, e.__traceback__))}",
-            ],
-            "warnings": [],
-        }
-
-        return Response(content=json.dumps(res), media_type="application/json")
+        return handle_error(e)
 
 
 @api.get("/model_urls/")
 def get_report_from_model_url(url: str) -> Response:
     """Get report via URL."""
-    data = requests.get(url)
+    try:
+        data = requests.get(url)
 
-    if data.status_code == 200:
-        filename = "temp_sbml.xml"
-        file_content = data.text
-        content = get_report_using_uuid(file_content)
-        # content = _write_to_file_and_generate_report(filename, file_content, "w")
-    else:
-        content = {"error": "File not found!"}
+        if data.status_code == 200:
+            filename = "temp_sbml.xml"
+            file_content = data.text
+            content = get_report_using_uuid(file_content)
+            # content = _write_to_file_and_generate_report(filename, file_content, "w")
+        else:
+            content = {"error": "File not found!"}
 
-    return Response(content=json.dumps(content), media_type="application/json")
+        return Response(content=json.dumps(content), media_type="application/json")
+
+    except Exception as e:
+        return handle_error(e)
 
 
 @api.post("/sbml_content")
 async def get_report_from_file_contents(request: Request) -> Response:
     """Create JSON report from file contents."""
-    file_content = await request.body()
-    filename = "sbml_file.xml"
-
     try:
+        file_content = await request.body()
+        filename = "sbml_file.xml"
         content = _write_to_file_and_generate_report(filename, file_content, "wb")
-    except Exception as e:
-        print(e)
-        content = {"error": "Invalid SBML!"}
+        return Response(content=json.dumps(content), media_type="application/json")
 
-    print(content)
-    return Response(content=json.dumps(content), media_type="application/json")
+    except Exception as e:
+        return handle_error(e)
 
 
 def get_report_using_uuid(file_content: str):
@@ -220,6 +188,40 @@ def get_report_using_uuid(file_content: str):
         )
 
     return report
+
+
+def _write_to_file_and_generate_report(
+    filename: str, file_content: str, mode: str, uuid: str = "UUID001"
+) -> Dict:
+    """Write file content to temporary file and generate reoirt."""
+    content = {}
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        path = Path(tmp_dir) / filename
+        with open(path, mode) as sbml_file:
+            sbml_file.write(file_content)
+            content = _content_for_source(source=path)
+    cache_report(uuid, content)
+    return content
+
+
+def handle_error(e: Exception, info: Dict) -> Response:
+    """Handle exceptions in the backend.
+
+    FIXME: This should also log the error.
+    raise
+    """
+    logger.error(e)
+
+    res = {
+        "errors": [
+            f"{e.__str__()}",
+            f"{''.join(traceback.format_exception(None, e, e.__traceback__))}",
+        ],
+        "warnings": [],
+        "info": info,
+    }
+
+    return Response(content=json.dumps(res), media_type="application/json")
 
 
 if __name__ == "__main__":
