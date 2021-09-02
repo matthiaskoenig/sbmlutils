@@ -10,7 +10,7 @@ import tempfile
 import time
 import traceback
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import requests
 import uvicorn
@@ -20,8 +20,7 @@ from pymetadata.core.annotation import RDFAnnotation, RDFAnnotationData
 from pymetadata.identifiers.miriam import BQB
 
 from sbmlutils.report.api_examples import examples_info
-from sbmlutils.report.caching import cache_report, create_job_id, get_report_from_cache
-from sbmlutils.report.sbmlinfo import SBMLDocumentInfo, clean_empty
+from sbmlutils.report.sbmlinfo import SBMLDocumentInfo
 
 
 logger = logging.getLogger(__name__)
@@ -39,49 +38,60 @@ api.add_middleware(
 )
 
 
-@api.get("/")
-def read_root() -> Dict:
-    """Information to be returned by root path of the API."""
-    return {"sbmlutils": "sbml4humans"}
+def _handle_error(e: Exception, info: Optional[Dict] = None) -> Response:
+    """Handle exceptions in the backend.
 
+    All calls are wrapped in a try/except which will provide the errors to the frontend.
 
-@api.post("/sbml")
-async def upload_sbml(request: Request) -> Response:
-    """Upload SBML file and return JSON report.
-
-    FIXME: support COMBINE archives
+    :param info: optional dictionary with information.
     """
-    file_data = await request.form()
-    file_content = await file_data["source"].read()
-    content = get_report_using_uuid(file_content)
+    logger.error(e)
 
-    return _render_json_content(content)
+    res = {
+        "errors": [
+            f"{e.__str__()}",
+            f"{''.join(traceback.format_exception(None, e, e.__traceback__))}",
+        ],
+        "warnings": [],
+        "info": info,
+    }
+
+    return Response(content=json.dumps(res), media_type="application/json")
+
+
+def _render_json_content(content: Dict) -> Response:
+    """Render content to JSON."""
+    # use minimal dict
+    # content = clean_empty(content)
+    json_bytes = json.dumps(
+        content,
+        ensure_ascii=False,
+        allow_nan=True,
+        indent=0,
+        separators=(",", ":"),
+    ).encode("utf-8")
+
+    return Response(content=json_bytes, media_type="application/json")
 
 
 @api.get("/examples")
 def examples() -> Response:
-    """Get sbml4humans example SBML models."""
+    """Get examples for reports."""
     try:
-        api_examples = []
-        for example in examples_info.values():
-            api_examples.append(example["metadata"])
-
-        content = {"examples": api_examples}
+        content = {
+            "examples": [
+                example["metadata"] for example in examples_info.values()
+            ]
+        }
         return _render_json_content(content)
+
     except Exception as e:
-        return handle_error(e)
+        return _handle_error(e)
 
 
 @api.get("/examples/{example_id}")
 def example(example_id: str) -> Response:
-    """Endpoint to get specific example.
-
-    see `examples`
-
-    E.g. http://127.0.0.1:1444/examples/repressilator -> JSON for repressilator
-    :param example_id:
-    :return:
-    """
+    """Get specific example."""
     try:
         example = examples_info.get(example_id, None)
         content: Dict
@@ -93,7 +103,7 @@ def example(example_id: str) -> Response:
 
         return _render_json_content(content)
     except Exception as e:
-        return handle_error(e)
+        return _handle_error(e)
 
 
 def _content_for_source(source: Path) -> Dict:
@@ -109,25 +119,11 @@ def _content_for_source(source: Path) -> Dict:
         return content
 
     except Exception as e:
-        return handle_error(e)
+        return _handle_error(e)
 
 
-def _render_json_content(content: Dict) -> Response:
-    """Render content to JSON."""
-    # content = clean_empty(content)  # FIXME: use minimal dict
-    json_bytes = json.dumps(
-        content,
-        ensure_ascii=False,
-        allow_nan=True,
-        indent=0,
-        separators=(",", ":"),
-    ).encode("utf-8")
-
-    return Response(content=json_bytes, media_type="application/json")
-
-
-@api.get("/resource_info/")
-def get_resource_info(resource: str) -> Response:
+@api.get("/annotation_resource")
+def get_annotation_resource(resource: str) -> Response:
     """Get information for annotation_resource.
 
     Used to resolve annotation information.
@@ -139,34 +135,44 @@ def get_resource_info(resource: str) -> Response:
         annotation = RDFAnnotation(qualifier=BQB.IS, resource=resource)
         data = RDFAnnotationData(annotation=annotation)
         info = data.to_dict()
+
         return Response(content=json.dumps(info), media_type="application/json")
+
     except Exception as e:
-        return handle_error(e)
+        return _handle_error(e)
 
 
-@api.get("/model_urls/")
-def get_report_from_model_url(url: str) -> Response:
-    """Get report via URL."""
+@api.post("/file")
+async def report_from_file(request: Request) -> Response:
+    """Upload file and return JSON report."""
     try:
-        data = requests.get(url)
+        file_data = await request.form()
+        file_content = await file_data["source"].read()
+        content = _write_to_file_and_generate_report("temp_model.xml", file_content, "wb")
 
-        if data.status_code == 200:
-            filename = "temp_sbml.xml"
-            file_content = data.text
-            content = get_report_using_uuid(file_content)
-            # content = _write_to_file_and_generate_report(filename, file_content, "w")
-        else:
-            content = {"error": "File not found!"}
+        return _render_json_content(content)
 
+    except Exception as e:
+        return _handle_error(e)
+
+
+@api.get("/url")
+def report_from_url(url: str) -> Response:
+    """Get JSON report via URL."""
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        file_content = response.text
+        content = _write_to_file_and_generate_report("temp_sbml.xml", file_content, "w")
         return Response(content=json.dumps(content), media_type="application/json")
 
     except Exception as e:
-        return handle_error(e)
+        return _handle_error(e)
 
 
-@api.post("/sbml_content")
-async def get_report_from_file_contents(request: Request) -> Response:
-    """Create JSON report from file contents."""
+@api.post("/content")
+async def get_report_from_content(request: Request) -> Response:
+    """Get JSON report from file contents."""
     try:
         file_content = await request.body()
         filename = "sbml_file.xml"
@@ -174,54 +180,20 @@ async def get_report_from_file_contents(request: Request) -> Response:
         return Response(content=json.dumps(content), media_type="application/json")
 
     except Exception as e:
-        return handle_error(e)
-
-
-def get_report_using_uuid(file_content: str):
-    uuid = create_job_id(file_content)
-    try:
-        report = get_report_from_cache(uuid)
-    except Exception as e:
-        logger.error(e)
-        report = _write_to_file_and_generate_report(
-            "temp_model.xml", file_content, "wb", uuid
-        )
-
-    return report
+        return _handle_error(e)
 
 
 def _write_to_file_and_generate_report(
-    filename: str, file_content: str, mode: str, uuid: str = "UUID001"
+    filename: str, file_content: str, mode: str
 ) -> Dict:
-    """Write file content to temporary file and generate reoirt."""
-    content = {}
+    """Write file content to temporary file and generate report."""
     with tempfile.TemporaryDirectory() as tmp_dir:
         path = Path(tmp_dir) / filename
         with open(path, mode) as sbml_file:
             sbml_file.write(file_content)
             content = _content_for_source(source=path)
-    cache_report(uuid, content)
+
     return content
-
-
-def handle_error(e: Exception, info: Dict) -> Response:
-    """Handle exceptions in the backend.
-
-    FIXME: This should also log the error.
-    raise
-    """
-    logger.error(e)
-
-    res = {
-        "errors": [
-            f"{e.__str__()}",
-            f"{''.join(traceback.format_exception(None, e, e.__traceback__))}",
-        ],
-        "warnings": [],
-        "info": info,
-    }
-
-    return Response(content=json.dumps(res), media_type="application/json")
 
 
 if __name__ == "__main__":
