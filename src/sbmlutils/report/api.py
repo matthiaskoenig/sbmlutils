@@ -3,12 +3,12 @@
 This provides basic functionality of
 parsing the model and returning the JSON representation based on fastAPI.
 """
-import uuid
 import json
 import logging
 import tempfile
 import time
 import traceback
+import uuid
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -79,9 +79,7 @@ def examples() -> Response:
     """Get examples for reports."""
     try:
         content = {
-            "examples": [
-                example["metadata"] for example in examples_info.values()
-            ]
+            "examples": [example["metadata"] for example in examples_info.values()]
         }
         return _render_json_content(content)
 
@@ -149,12 +147,14 @@ async def report_from_file(request: Request) -> Response:
     try:
         file_data = await request.form()
         file_content = await file_data["source"].read()
-        content = _write_to_file_and_generate_report("temp_model.xml", file_content, "wb")
+        content = _write_to_file_and_generate_report(
+            "temp_model.xml", file_content, "wb"
+        )
 
         return _render_json_content(content)
 
     except Exception as e:
-        return _handle_error(e, info={'uid': uid})
+        return _handle_error(e, info={"uid": uid})
 
 
 @api.get("/url")
@@ -169,7 +169,7 @@ def report_from_url(url: str) -> Response:
         return Response(content=json.dumps(content), media_type="application/json")
 
     except Exception as e:
-        return _handle_error(e, info={'uid': uid, 'url': url})
+        return _handle_error(e, info={"uid": uid, "url": url})
 
 
 @api.post("/content")
@@ -183,7 +183,7 @@ async def get_report_from_content(request: Request) -> Response:
         return Response(content=json.dumps(content), media_type="application/json")
 
     except Exception as e:
-        return _handle_error(e, info={'uid': uid, 'content': file_content})
+        return _handle_error(e, info={"uid": uid, "content": file_content})
 
 
 def _write_to_file_and_generate_report(
