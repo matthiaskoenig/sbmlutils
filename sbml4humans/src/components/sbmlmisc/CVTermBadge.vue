@@ -67,7 +67,7 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import additionalInfoUtils from "@/helpers/additionalInfoUtils";
+import { fetchAdditionalInfo } from "@/helpers/additionalInfoUtils";
 
 export default defineComponent({
     props: {
@@ -88,7 +88,7 @@ export default defineComponent({
     },
 
     created() {
-        additionalInfoUtils.fetchAdditionalInfo(this.resource).then((res) => {
+        fetchAdditionalInfo(this.resource).then((res) => {
             this.addInfo = res as Record<string, unknown>;
         });
     },

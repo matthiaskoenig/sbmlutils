@@ -16,7 +16,7 @@ const api = axios.create({
  * @param additionalInfo
  * @param resourceID
  */
-async function fetchAdditionalInfo(
+export async function fetchAdditionalInfo(
     resourceID: string
 ): Promise<Record<string, unknown>> {
     const QUERY_URL =
@@ -34,20 +34,15 @@ async function fetchAdditionalInfo(
     return res;
 }
 
-function checkAPIResponse(response){
+
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export function checkAPIResponse(response: any): void {
     if (response.data["errors"]){
         alert(
             "An error occurred. Please report this on\n" +
-            "https://github.com/matthiaskoenig/sbmlutils/issues/new\n" +
-            "so we can improve the service.\n\n" +
+                "https://github.com/matthiaskoenig/sbmlutils/issues/new\n" +
+                "so we can improve the service.\n\n" +
             JSON.stringify(response.data, null, 1)
         );
     }
-    return null;
-};
-
-
-export default {
-    fetchAdditionalInfo: fetchAdditionalInfo,
-    checkAPIResponse: checkAPIResponse,
-};
+}

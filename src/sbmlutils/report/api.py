@@ -3,7 +3,7 @@
 This provides basic functionality of
 parsing the model and returning the JSON representation based on fastAPI.
 """
-
+import uuid
 import json
 import logging
 import tempfile
@@ -83,7 +83,6 @@ def examples() -> Response:
                 example["metadata"] for example in examples_info.values()
             ]
         }
-        raise ValueError("This is a test error")
         return _render_json_content(content)
 
     except Exception as e:
@@ -146,6 +145,7 @@ def get_annotation_resource(resource: str) -> Response:
 @api.post("/file")
 async def report_from_file(request: Request) -> Response:
     """Upload file and return JSON report."""
+    uid = uuid.uuid4()
     try:
         file_data = await request.form()
         file_content = await file_data["source"].read()
@@ -154,12 +154,13 @@ async def report_from_file(request: Request) -> Response:
         return _render_json_content(content)
 
     except Exception as e:
-        return _handle_error(e)
+        return _handle_error(e, info={'uid': uid})
 
 
 @api.get("/url")
 def report_from_url(url: str) -> Response:
     """Get JSON report via URL."""
+    uid = uuid.uuid4()
     try:
         response = requests.get(url)
         response.raise_for_status()
@@ -168,12 +169,13 @@ def report_from_url(url: str) -> Response:
         return Response(content=json.dumps(content), media_type="application/json")
 
     except Exception as e:
-        return _handle_error(e)
+        return _handle_error(e, info={'uid': uid, 'url': url})
 
 
 @api.post("/content")
 async def get_report_from_content(request: Request) -> Response:
     """Get JSON report from file contents."""
+    uid = uuid.uuid4()
     try:
         file_content = await request.body()
         filename = "sbml_file.xml"
@@ -181,7 +183,7 @@ async def get_report_from_content(request: Request) -> Response:
         return Response(content=json.dumps(content), media_type="application/json")
 
     except Exception as e:
-        return _handle_error(e)
+        return _handle_error(e, info={'uid': uid, 'content': file_content})
 
 
 def _write_to_file_and_generate_report(
