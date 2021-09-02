@@ -1,49 +1,64 @@
 <template>
     <!--{{ addInfo }} -->
     <div class="p-d-flex p-mt-2">
-        <Tag :value="qualifier" severity="success" class="qualifier"/>
-        <Tag v-if="addInfo.collection" :value="addInfo.collection" severity="info" class="collection"/>
+        <Tag :value="qualifier" severity="success" class="qualifier" />
+        <Tag
+            v-if="addInfo.collection"
+            :value="addInfo.collection"
+            severity="info"
+            class="collection"
+        />
         <span v-if="addInfo.term">
-        <Tag :value="qualifier" severity="warning" class="resource">
-            <a :href="addInfo.resource" target="_blank" class="resource">{{ addInfo.term }}</a>
-        </Tag>
+            <Tag :value="qualifier" severity="warning" class="resource">
+                <a :href="addInfo.resource" target="_blank" class="resource">{{
+                    addInfo.term
+                }}</a>
+            </Tag>
         </span>
         <span v-if="!addInfo.term">
-        <Tag :value="qualifier" severity="warning" class="resource">
-            <a :href="addInfo.resource" target="_blank" class="resource">{{ resource }}</a>
-        </Tag>
+            <Tag :value="qualifier" severity="warning" class="resource">
+                <a :href="addInfo.resource" target="_blank" class="resource">{{
+                    resource
+                }}</a>
+            </Tag>
         </span>
     </div>
     <div v-if="addInfo.errors && addInfo.errors.length">
-        <code v-for="error in addInfo.errors" :key="error" class="text-error">Error: {{error}}</code>
+        <code v-for="error in addInfo.errors" :key="error" class="text-error"
+            >Error: {{ error }}</code
+        >
     </div>
     <div v-if="addInfo.warnings && addInfo.warnings.length">
-        <code v-for="warning in addInfo.warnings" :key="warning" class="text-warning">Warning: {{warning}}</code>
+        <code v-for="warning in addInfo.warnings" :key="warning" class="text-warning"
+            >Warning: {{ warning }}</code
+        >
     </div>
 
     <div class="p-mt-1 p-mb-3 p-ml-2" v-if="addInfo != null">
         <strong v-if="addInfo.label">{{ addInfo.label }}</strong>
-        <span v-if="addInfo.description != null"><br />
-            {{ addInfo.description }}</span>
+        <span v-if="addInfo.description != null"
+            ><br />
+            {{ addInfo.description }}</span
+        >
 
         <div v-if="addInfo.synonyms != null && addInfo.synonyms.length > 0">
             <strong>Synonyms</strong>
             <div class="p-ml-3">
-            <li v-for="synonym in addInfo.synonyms" :key="synonym">
-                {{ synonym.name }}
-            </li>
+                <li v-for="synonym in addInfo.synonyms" :key="synonym">
+                    {{ synonym.name }}
+                </li>
             </div>
         </div>
         <div v-if="addInfo.xrefs && addInfo.xrefs.length > 0">
             <strong>Cross references</strong>
             <div class="p-ml-3">
                 <span v-for="xref in addInfo.xrefs" :key="xref">
-                <li v-if="xref.url">
-                    <a :href="xref.url" target="_blank">{{ xref.database }}:{{ xref.id}}</a>
-                </li>
-                    <li v-else>
-                    {{ xref.database }}:{{ xref.id}}
+                    <li v-if="xref.url">
+                        <a :href="xref.url" target="_blank"
+                            >{{ xref.database }}:{{ xref.id }}</a
+                        >
                     </li>
+                    <li v-else>{{ xref.database }}:{{ xref.id }}</li>
                 </span>
             </div>
         </div>
@@ -52,7 +67,7 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import additionalInfoUtils from "@/helpers/additionalInfoUtils";
+import { fetchAdditionalInfo } from "@/helpers/additionalInfoUtils";
 
 export default defineComponent({
     props: {
@@ -73,7 +88,7 @@ export default defineComponent({
     },
 
     created() {
-        additionalInfoUtils.fetchAdditionalInfo(this.resource).then((res) => {
+        fetchAdditionalInfo(this.resource).then((res) => {
             this.addInfo = res as Record<string, unknown>;
         });
     },

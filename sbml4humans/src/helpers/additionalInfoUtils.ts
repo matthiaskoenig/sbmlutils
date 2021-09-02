@@ -1,10 +1,10 @@
 import axios from "axios";
 import urls from "@/data/urls";
-import { setupCache } from "axios-cache-adapter";
+// import { setupCache } from "axios-cache-adapter";
 
-const cache = setupCache({
-    maxAge: 15 * 60 * 1000,
-});
+// const cache = setupCache({
+//     maxAge: 15 * 60 * 1000,
+// });
 
 const api = axios.create({
     //adapter: cache.adapter,  // activate for caching
@@ -16,11 +16,14 @@ const api = axios.create({
  * @param additionalInfo
  * @param resourceID
  */
-async function fetchAdditionalInfo(
+export async function fetchAdditionalInfo(
     resourceID: string
 ): Promise<Record<string, unknown>> {
-    const QUERY_URL = urls.API_BASE_URL + urls.RESOURCE_INFO_URL + "?resource=" + encodeURIComponent(resourceID);
-    console.log(QUERY_URL)
+    const QUERY_URL =
+        urls.API_BASE_URL +
+        "/annotation_resource?resource=" +
+        encodeURIComponent(resourceID);
+    console.log(QUERY_URL);
     let res = api({
         url: QUERY_URL,
         method: "get",
@@ -31,6 +34,15 @@ async function fetchAdditionalInfo(
     return res;
 }
 
-export default {
-    fetchAdditionalInfo: fetchAdditionalInfo,
-};
+
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export function checkAPIResponse(response: any): void {
+    if (response.data["errors"]){
+        alert(
+            "An error occurred. Please report this on\n" +
+                "https://github.com/matthiaskoenig/sbmlutils/issues/new\n" +
+                "so we can improve the service.\n\n" +
+            JSON.stringify(response.data, null, 1)
+        );
+    }
+}
