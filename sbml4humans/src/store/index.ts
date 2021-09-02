@@ -2,9 +2,11 @@ import { createStore } from "vuex";
 import axios from "axios";
 import router from "@/router";
 
+
 import BASE_URLS from "@/data/urls";
 import INITIALIZATION_HELPERS from "@/helpers/reportInitialization";
 import listOfSBMLTypes from "@/data/listOfSBMLTypes";
+import checkAPIResponse from "@/helpers/additionalInfoUtils";
 
 const static_alert =
     "Cannot connect to API in 'static' mode. Switch off 'static' and refresh.";
@@ -204,17 +206,12 @@ export default createStore({
         },
         // get list of all available examples from backend API
         async fetchExamples(context) {
-            // no queries to the API if static is ON
-            if (window.localStorage.getItem("static") === "true") {
-                alert(static_alert);
-                return;
-            }
-
             const url = BASE_URLS.API_BASE_URL + "/examples/";
-
             const res = await axios.get(url);
-
             if (res.status === 200) {
+                // FIXME: with better logging
+                checkAPIResponse(res);
+
                 res.data.examples.forEach((example) => {
                     example["searchUtilField"] =
                         example.id +
@@ -260,7 +257,7 @@ export default createStore({
             context.commit("SET_FILE_LOADING", true);
 
             // assembling the request parameters
-            const url = BASE_URLS.API_BASE_URL + "/sbml";
+            const url = BASE_URLS.API_BASE_URL + "/file";
             const formData = payload.formData;
             const headers = payload.headers;
 
@@ -285,7 +282,7 @@ export default createStore({
             context.commit("SET_FILE_LOADING", true);
 
             // assembling the request parameters
-            const url = BASE_URLS.API_BASE_URL + "/model_urls?url=" + payload;
+            const url = BASE_URLS.API_BASE_URL + "/url?url=" + payload;
 
             const res = await axios.get(url);
 
@@ -308,7 +305,7 @@ export default createStore({
             context.commit("SET_FILE_LOADING", true);
 
             // assembling the request parameters
-            const url = BASE_URLS.API_BASE_URL + "/sbml_content";
+            const url = BASE_URLS.API_BASE_URL + "/content";
 
             const res = await axios.post(url, payload);
 

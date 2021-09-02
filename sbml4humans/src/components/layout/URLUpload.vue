@@ -32,7 +32,7 @@
             >
             endpoint. Example:
             <a
-                href="https://sbml4humans.de/model_url?url=https://www.ebi.ac.uk/biomodels/model/download/BIOMD0000000001.2?filename=BIOMD0000000001_url.xml"
+                href="https://sbml4humans.de/url?url=https://www.ebi.ac.uk/biomodels/model/download/BIOMD0000000001.2?filename=BIOMD0000000001_url.xml"
                 target="_blank"
             >
                 <code style="font-size: small"

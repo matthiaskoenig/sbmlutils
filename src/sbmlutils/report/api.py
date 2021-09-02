@@ -83,6 +83,7 @@ def examples() -> Response:
                 example["metadata"] for example in examples_info.values()
             ]
         }
+        raise ValueError("This is a test error")
         return _render_json_content(content)
 
     except Exception as e:
