@@ -1,6 +1,6 @@
 """Helper module for working with MIRIAM metadata."""
 
-from pymetadata.identifiers.miriam import *
+from pymetadata.identifiers.miriam import BQB, BQM
 
 
 __all__ = [

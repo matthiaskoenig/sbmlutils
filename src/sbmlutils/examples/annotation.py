@@ -39,7 +39,7 @@ compartments = [
         unit="m3",
         constant=True,
         name="external",
-        sboTerm=SBO_PHYSICAL_COMPARTMENT,
+        sboTerm=SBO.PHYSICAL_COMPARTMENT,
         annotations=[
             (BQB.IS, "bto/BTO:0000089"),  # blood
         ],
@@ -50,7 +50,7 @@ compartments = [
         unit="m3",
         constant=False,
         name="cytosol",
-        sboTerm=SBO_PHYSICAL_COMPARTMENT,
+        sboTerm=SBO.PHYSICAL_COMPARTMENT,
         annotations=[
             (BQB.IS, "go/GO:0005829"),  # cytosol
             (BQB.IS, "https://en.wikipedia.org/wiki/Cytosol"),  # cytosol
@@ -63,7 +63,7 @@ compartments = [
         constant=True,
         spatialDimensions=2,
         name="membrane",
-        sboTerm=SBO_PHYSICAL_COMPARTMENT,
+        sboTerm=SBO.PHYSICAL_COMPARTMENT,
         annotations=[
             (BQB.IS, "go/GO:0005886"),  # plasma membrane
         ],
@@ -78,7 +78,7 @@ species = [
         substanceUnit=UNIT_KIND_MOLE,
         boundaryCondition=True,
         name="D-galactose",
-        sboTerm=SBO_SIMPLE_CHEMICAL,
+        sboTerm=SBO.SIMPLE_CHEMICAL,
         annotations=[
             (BQB.IS, "bigg.metabolite/gal"),  # galactose
             (BQB.IS, "chebi/CHEBI:28061"),  # alpha-D-galactose
@@ -92,7 +92,7 @@ species = [
         substanceUnit=UNIT_KIND_MOLE,
         boundaryCondition=False,
         name="D-galactose",
-        sboTerm=SBO_SIMPLE_CHEMICAL,
+        sboTerm=SBO.SIMPLE_CHEMICAL,
     ),
 ]
 

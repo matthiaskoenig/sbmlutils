@@ -29,7 +29,7 @@ from libsbml import DISTRIB_UNCERTTYPE_STANDARDDEVIATION as UNCERTTYPE_STANDARDD
 from sbmlutils.equation import Equation
 from sbmlutils.metadata import BQB, BQM
 from sbmlutils.metadata.annotator import Annotation, ModelAnnotator
-from sbmlutils.metadata.sbo import SBO_EXCHANGE_REACTION
+from sbmlutils.metadata.sbo import SBO
 from sbmlutils.utils import deprecated
 from sbmlutils.validation import check
 
@@ -1661,7 +1661,7 @@ class ExchangeReaction(Reaction):
         super(ExchangeReaction, self).__init__(
             sid=ExchangeReaction.PREFIX + species_id,
             equation="{} ->".format(species_id),
-            sboTerm=SBO_EXCHANGE_REACTION,
+            sboTerm=SBO.EXCHANGE_REACTION,
             name=name,
             compartment=compartment,
             fast=fast,

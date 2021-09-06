@@ -72,7 +72,7 @@ def get_submodel_frameworks(doc: libsbml.SBMLDocument) -> Dict[str, Any]:
     model = doc.getModel()
     mplugin = model.getPlugin("comp")
 
-    # model.setSBOTerm(comp.SBO_CONTINOUS_FRAMEWORK)
+    # model.setSBOTerm(comp.SBO.CONTINOUS_FRAMEWORK)
     submodel: libsbml.Submodel
     for submodel in mplugin.getListOfSubmodels():
         sid = submodel.getId()

@@ -30,13 +30,13 @@ species = [
     Species(
         sid="x",
         compartment="c",
-        sboTerm=SBO_SIMPLE_CHEMICAL,
+        sboTerm=SBO.SIMPLE_CHEMICAL,
         initialConcentration=np.NaN,
     ),
     Species(
         sid="y",
         compartment="c",
-        sboTerm=SBO_SIMPLE_CHEMICAL,
+        sboTerm=SBO.SIMPLE_CHEMICAL,
         initialConcentration=np.NaN,
     ),
 ]

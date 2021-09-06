@@ -11,9 +11,9 @@ from sbmlutils.creator import create_model
 from sbmlutils.examples import annotation as annotation_example
 from sbmlutils.factory import Compartment
 from sbmlutils.io.sbml import read_sbml
-from sbmlutils.metadata import SBO_PHYSICAL_COMPARTMENT, annotator
+from sbmlutils.metadata import SBO, annotator
 from sbmlutils.metadata.annotator import ExternalAnnotation, ModelAnnotator
-from sbmlutils.metadata.miriam import BQB
+from sbmlutils.metadata.miriam import *
 from sbmlutils.test import (
     DEMO_ANNOTATIONS,
     DEMO_SBML_NO_ANNOTATIONS,
@@ -65,7 +65,7 @@ def test_model_annotation(tmp_path: Path) -> None:
             Compartment(
                 sid="C",
                 value=1.0,
-                sboTerm=SBO_PHYSICAL_COMPARTMENT,
+                sboTerm=SBO.PHYSICAL_COMPARTMENT,
                 annotations=[
                     (BQB.IS, "chebi/CHEBI:28061"),  # alpha-D-galactose
                 ],

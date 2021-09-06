@@ -389,7 +389,7 @@ def test_sabiork_uncertainty() -> None:
                 name="Michelis-Menten constant glucose",
                 value=5.0,
                 unit=UNIT_mM,
-                sboTerm=SBO_MICHAELIS_CONSTANT,
+                sboTerm=SBO.MICHAELIS_CONSTANT,
                 uncertainties=[
                     Uncertainty(
                         sid="uncertainty1",

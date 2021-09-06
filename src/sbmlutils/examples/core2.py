@@ -58,20 +58,20 @@ species = [
         substanceUnit=UNIT_mmole,
         name="S1",
         hasOnlySubstanceUnits=False,
-        sboTerm=SBO_SIMPLE_CHEMICAL,
+        sboTerm=SBO.SIMPLE_CHEMICAL,
     )
 ]
 
 parameters = [
     Parameter(
-        "R1_Km", name="Km R1", value=0.1, unit=UNIT_mM, sboTerm=SBO_MICHAELIS_CONSTANT
+        "R1_Km", name="Km R1", value=0.1, unit=UNIT_mM, sboTerm=SBO.MICHAELIS_CONSTANT
     ),
     Parameter(
         "R1_Vmax",
         name="Vmax R1",
         value=10.0,
         unit=UNIT_mmole_per_min,
-        sboTerm=SBO_MAXIMAL_VELOCITY,
+        sboTerm=SBO.MAXIMAL_VELOCITY,
     ),
 ]
 assignments = [

@@ -350,16 +350,19 @@ class ModelAnnotator:
         """Lookup of SBMLQualifier for given qualifier string.
 
         :param qualifier_type: BQB or BQM
+        :return: SBML qualifier string
         """
         if qualifier_str not in libsbml.__dict__:
             raise ValueError(f"Qualifier not supported: {qualifier_str}")
 
         qtype = libsbml.__dict__.get(qualifier_str)
 
+        qualifier: str
         if qualifier_type == "BQB":
-            return str(libsbml.BiolQualifierType_toString(qtype))
+            qualifier = str(libsbml.BiolQualifierType_toString(qtype))
         elif qualifier_type == "BQM":
-            return str(libsbml.ModelQualifierType_toString(qtype))
+            qualifier = str(libsbml.ModelQualifierType_toString(qtype))
+        return qualifier
 
     @staticmethod
     def annotate_sbase(sbase: libsbml.SBase, annotation: Annotation) -> None:

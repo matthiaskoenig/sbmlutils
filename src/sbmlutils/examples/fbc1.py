@@ -140,7 +140,7 @@ parameters = [
         value=0.0,
         unit=UNIT_FLUX,
         constant=True,
-        sboTerm=SBO_FLUX_BOUND,
+        sboTerm=SBO.FLUX_BOUND,
     ),
     Parameter(
         sid=FLUX_BOUND_PLUS_INF,
@@ -148,7 +148,7 @@ parameters = [
         value=float("Inf"),
         unit=UNIT_FLUX,
         constant=True,
-        sboTerm=SBO_FLUX_BOUND,
+        sboTerm=SBO.FLUX_BOUND,
     ),
     Parameter(
         sid=FLUX_BOUND_MINUS_INF,
@@ -156,7 +156,7 @@ parameters = [
         value=-float("Inf"),
         unit=UNIT_FLUX,
         constant=True,
-        sboTerm=SBO_FLUX_BOUND,
+        sboTerm=SBO.FLUX_BOUND,
     ),
     Parameter(
         sid=FLUX_BOUND_GLC_IMPORT,
@@ -164,7 +164,7 @@ parameters = [
         value=-15,
         unit=UNIT_FLUX,
         constant=True,
-        sboTerm=SBO_FLUX_BOUND,
+        sboTerm=SBO.FLUX_BOUND,
     ),
     Parameter(
         sid=FLUX_BOUND_O2_IMPORT,
@@ -172,7 +172,7 @@ parameters = [
         value=-10,
         unit=UNIT_FLUX,
         constant=True,
-        sboTerm=SBO_FLUX_BOUND,
+        sboTerm=SBO.FLUX_BOUND,
     ),
 ]
 

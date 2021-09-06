@@ -15,5 +15,5 @@ if __name__ == "__main__":
         sbml_path = Path(__file__).parent / filename
         print(sbml_path)
         sbmlreport.create_report(
-            sbml_path=sbml_path, output_dir=Path(__file__).parent / "results"
+            sbml_path=sbml_path,
         )

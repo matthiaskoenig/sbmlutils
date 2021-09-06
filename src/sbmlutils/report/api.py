@@ -106,18 +106,14 @@ def example(example_id: str) -> Response:
 
 def _content_for_source(source: Path) -> Dict:
     """Create content for given source."""
-    try:
-        content: Dict[str, Any] = {}
-        time_start = time.time()
-        info = SBMLDocumentInfo.from_sbml(source=source)
-        content["report"] = info.info
-        time_elapsed = round(time.time() - time_start, 3)
-        logger.warning(f"JSON created for '{source}' in '{time_elapsed}'")
-        content["debug"] = {"jsonReportTime": f"{time_elapsed} [s]"}
-        return content
-
-    except Exception as e:
-        return _handle_error(e)
+    content: Dict[str, Any] = {}
+    time_start = time.time()
+    info = SBMLDocumentInfo.from_sbml(source=source)
+    content["report"] = info.info
+    time_elapsed = round(time.time() - time_start, 3)
+    logger.warning(f"JSON created for '{source}' in '{time_elapsed}'")
+    content["debug"] = {"jsonReportTime": f"{time_elapsed} [s]"}
+    return content
 
 
 @api.get("/annotation_resource")
@@ -146,7 +142,7 @@ async def report_from_file(request: Request) -> Response:
     uid = uuid.uuid4()
     try:
         file_data = await request.form()
-        file_content = await file_data["source"].read()
+        file_content = await file_data["source"].read()  # type: ignore
         content = _write_to_file_and_generate_report(
             "temp_model.xml", file_content, "wb"
         )
@@ -179,7 +175,7 @@ async def get_report_from_content(request: Request) -> Response:
     try:
         file_content = await request.body()
         filename = "sbml_file.xml"
-        content = _write_to_file_and_generate_report(filename, file_content, "wb")
+        content = _write_to_file_and_generate_report(filename, file_content, "wb")  # type: ignore
         return Response(content=json.dumps(content), media_type="application/json")
 
     except Exception as e:

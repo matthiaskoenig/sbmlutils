@@ -6,7 +6,7 @@ import libsbml
 from sbmlutils import comp
 from sbmlutils.factory import *
 from sbmlutils.factory import PORT_TYPE_PORT, create_objects
-from sbmlutils.metadata.sbo import SBO_CONTINOUS_FRAMEWORK
+from sbmlutils.metadata.sbo import SBO
 
 
 def create_port_doc() -> libsbml.SBMLDocument:
@@ -16,7 +16,7 @@ def create_port_doc() -> libsbml.SBMLDocument:
     model = doc.createModel()
     model.setId("toy_update")
     model.setName("toy (UPDATE submodel)")
-    model.setSBOTerm(SBO_CONTINOUS_FRAMEWORK)
+    model.setSBOTerm(SBO.CONTINUOUS_FRAMEWORK)
 
     objects = [
         Compartment(

@@ -17,8 +17,9 @@ def start_server(path: Path, port: int = 5115) -> None:
     """Start a simple webserver serving path on port."""
 
     class Handler(http.server.SimpleHTTPRequestHandler):
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, directory=path, **kwargs)
+        def __init__(self, *args, **kwargs):  # type: ignore
+            """Initialize handler for requests."""
+            super().__init__(*args, directory, **kwargs)
 
     with socketserver.TCPServer(("", port), Handler) as httpd:
         httpd.serve_forever()
@@ -26,6 +27,7 @@ def start_server(path: Path, port: int = 5115) -> None:
 
 def create_report(
     sbml_path: Path,
+    validate: bool = False,
     server: str = "https://sbml4humans.de",
     fileserver_duration: int = 10,
     fileserver_port: int = 5115,
