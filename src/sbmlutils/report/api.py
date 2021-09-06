@@ -24,7 +24,39 @@ from sbmlutils.report.sbmlinfo import SBMLDocumentInfo
 
 
 logger = logging.getLogger(__name__)
-api = FastAPI()
+
+api = FastAPI(
+    root_path="/api/v1",
+    title="sbml4humans",
+    description="sbml4humans backend api",
+    version="0.1.0",
+    terms_of_service="https://github.com/matthiaskoenig/sbmlutils/blob/develop/sbml4humans/privacy_notice.md",
+    contact={
+        "name": "Matthias König",
+        "url": "https://livermetabolism.com",
+        "email": "konigmatt@googlemail.com",
+    },
+    license_info={
+        "name": "LGPLv3",
+        "url": "http://opensource.org/licenses/LGPL-3.0",
+    },
+    openapi_tags=[
+        {
+            "name": "examples",
+            "description": "Manage and query examples.",
+        },
+        {
+            "name": "metadata",
+            "description": "Manage and query metadata.",
+        },
+        {
+            "name": "reports",
+            "description": "Create report data.",
+        },
+    ]
+)
+
+
 
 # API Permissions Data
 origins = ["127.0.0.1", "0.0.0.0", "*"]
@@ -74,7 +106,7 @@ def _render_json_content(content: Dict) -> Response:
     return Response(content=json_bytes, media_type="application/json")
 
 
-@api.get("/examples")
+@api.get("/examples", tags=["examples"])
 def examples() -> Response:
     """Get examples for reports."""
     try:
@@ -87,7 +119,7 @@ def examples() -> Response:
         return _handle_error(e)
 
 
-@api.get("/examples/{example_id}")
+@api.get("/examples/{example_id}", tags=["examples"])
 def example(example_id: str) -> Response:
     """Get specific example."""
     try:
@@ -116,27 +148,7 @@ def _content_for_source(source: Path) -> Dict:
     return content
 
 
-@api.get("/annotation_resource")
-def get_annotation_resource(resource: str) -> Response:
-    """Get information for annotation_resource.
-
-    Used to resolve annotation information.
-
-    :param resource: unique identifier of resource (url or miriam urn)
-    :return: Response
-    """
-    try:
-        annotation = RDFAnnotation(qualifier=BQB.IS, resource=resource)
-        data = RDFAnnotationData(annotation=annotation)
-        info = data.to_dict()
-
-        return Response(content=json.dumps(info), media_type="application/json")
-
-    except Exception as e:
-        return _handle_error(e)
-
-
-@api.post("/file")
+@api.post("/file", tags=["reports"])
 async def report_from_file(request: Request) -> Response:
     """Upload file and return JSON report."""
     uid = uuid.uuid4()
@@ -153,7 +165,7 @@ async def report_from_file(request: Request) -> Response:
         return _handle_error(e, info={"uid": uid})
 
 
-@api.get("/url")
+@api.get("/url", tags=["reports"])
 def report_from_url(url: str) -> Response:
     """Get JSON report via URL."""
     uid = uuid.uuid4()
@@ -168,7 +180,7 @@ def report_from_url(url: str) -> Response:
         return _handle_error(e, info={"uid": uid, "url": url})
 
 
-@api.post("/content")
+@api.post("/content", tags=["reports"])
 async def get_report_from_content(request: Request) -> Response:
     """Get JSON report from file contents."""
     uid = uuid.uuid4()
@@ -193,6 +205,26 @@ def _write_to_file_and_generate_report(
             content = _content_for_source(source=path)
 
     return content
+
+
+@api.get("/annotation_resource", tags=["metadata"])
+def get_annotation_resource(resource: str) -> Response:
+    """Get information for annotation_resource.
+
+    Used to resolve annotation information.
+
+    :param resource: unique identifier of resource (url or miriam urn)
+    :return: Response
+    """
+    try:
+        annotation = RDFAnnotation(qualifier=BQB.IS, resource=resource)
+        data = RDFAnnotationData(annotation=annotation)
+        info = data.to_dict()
+
+        return Response(content=json.dumps(info), media_type="application/json")
+
+    except Exception as e:
+        return _handle_error(e)
 
 
 if __name__ == "__main__":
