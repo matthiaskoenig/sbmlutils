@@ -89,7 +89,7 @@ def distrib_all() -> libsbml.SBMLDocument:
 
     # create parameters with distribution assignments
     for pid, formula in formulas_data:
-        print("{} = {}".format(pid, formula))
+        # print(f"{pid} = {formula}")
         _: libsbml.Parameter = _create_parameter(pid, model=model)
         assignment: libsbml.InitialAssignment = model.createInitialAssignment()
         assignment.setSymbol(pid)

@@ -442,7 +442,7 @@ def create_model(
         if create_report:
             # file is already validated, no validation on report needed
             sbmlreport.create_report(
-                sbml_path=sbml_path, output_dir=output_dir, validate=False  # type: ignore
+                sbml_path=sbml_path, validate=False  # type: ignore
             )
     finally:
         if tmp:

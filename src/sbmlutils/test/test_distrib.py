@@ -407,7 +407,7 @@ def test_sabiork_uncertainty() -> None:
                             (BQB.HAS_TAXON, "taxonomy/9606"),  # homo sapiens
                             (BQB.IS, "ec-code/2.7.1.2"),  # glucokinase
                             (BQB.IS, "uniprot/P35557"),  # Glucokinase homo sapiens
-                            (BQB.IS, "bto/BTO:000075"),  # liver
+                            (BQB.IS, "bto/BTO:0000075"),  # liver
                         ],
                     ),
                     Uncertainty(
@@ -427,7 +427,7 @@ def test_sabiork_uncertainty() -> None:
                             (BQB.HAS_TAXON, "taxonomy/9606"),  # homo sapiens
                             (BQB.IS, "ec-code/2.7.1.2"),  # glucokinase
                             (BQB.IS, "uniprot/P35557"),  # Glucokinase homo sapiens
-                            (BQB.IS, "bto/BTO:000075"),  # liver
+                            (BQB.IS, "bto/BTO:0000075"),  # liver
                         ],
                     ),
                 ],
