@@ -85,7 +85,7 @@ def create(tmp: bool = False) -> None:
 
     flatten_sbml(sbml_path, filepath=sbml_path_flat)
     # create model report
-    sbmlreport.create_report(sbml_path_flat, output_dir=output_dir)
+    sbmlreport.create_report(sbml_path_flat)
 
     if tmp:
         shutil.rmtree(tmp_dir)

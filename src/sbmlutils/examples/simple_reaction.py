@@ -49,7 +49,7 @@ species = [
         substanceUnit=UNIT_mmole,
         boundaryCondition=False,
         name="A",
-        sboTerm=SBO_SIMPLE_CHEMICAL,
+        sboTerm=SBO.SIMPLE_CHEMICAL,
     ),
     Species(
         sid="B",
@@ -58,7 +58,7 @@ species = [
         substanceUnit=UNIT_mmole,
         boundaryCondition=False,
         name="B",
-        sboTerm=SBO_SIMPLE_CHEMICAL,
+        sboTerm=SBO.SIMPLE_CHEMICAL,
     ),
 ]
 

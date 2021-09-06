@@ -107,7 +107,7 @@ def udef_to_string(udef: libsbml.UnitDefinition) -> Optional[str]:
         return nom_str
     if (len(nom_str) == 0) and (len(denom_str) > 0):
         return f"1/({denom_str})"
-    return None
+    return ""
 
 
 def units_dict(udef: libsbml.UnitDefinition) -> Optional[Dict]:

@@ -12,6 +12,4 @@ if __name__ == "__main__":
     for p in sbml_paths:
         sbmlreport.create_report(
             sbml_path=p,
-            output_dir=Path(__file__).parent.parent / "test",
-            validate=True,
         )

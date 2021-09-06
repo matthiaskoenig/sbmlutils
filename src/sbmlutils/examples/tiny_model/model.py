@@ -4,7 +4,7 @@ from math import inf
 import sbmlutils.layout as layout
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
-from sbmlutils.metadata.sbo import *
+from sbmlutils.metadata import *
 from sbmlutils.units import *
 
 
@@ -87,7 +87,7 @@ species = [
         boundaryCondition=False,
         hasOnlySubstanceUnits=False,
         name="glucose",
-        sboTerm=SBO_SIMPLE_CHEMICAL,
+        sboTerm=SBO.SIMPLE_CHEMICAL,
         port=True,
     ),
     Species(
@@ -99,7 +99,7 @@ species = [
         boundaryCondition=False,
         hasOnlySubstanceUnits=False,
         name="glucose-6-phosphate",
-        sboTerm=SBO_SIMPLE_CHEMICAL,
+        sboTerm=SBO.SIMPLE_CHEMICAL,
     ),
     Species(
         sid="atp",
@@ -110,7 +110,7 @@ species = [
         boundaryCondition=False,
         hasOnlySubstanceUnits=False,
         name="ATP",
-        sboTerm=SBO_SIMPLE_CHEMICAL,
+        sboTerm=SBO.SIMPLE_CHEMICAL,
         port=True,
     ),
     Species(
@@ -122,7 +122,7 @@ species = [
         boundaryCondition=False,
         hasOnlySubstanceUnits=False,
         name="ADP",
-        sboTerm=SBO_SIMPLE_CHEMICAL,
+        sboTerm=SBO.SIMPLE_CHEMICAL,
         port=True,
     ),
     Species(
@@ -134,7 +134,7 @@ species = [
         boundaryCondition=True,
         hasOnlySubstanceUnits=False,
         name="P",
-        sboTerm=SBO_SIMPLE_CHEMICAL,
+        sboTerm=SBO.SIMPLE_CHEMICAL,
         port=True,
     ),
     Species(
@@ -146,7 +146,7 @@ species = [
         boundaryCondition=True,
         hasOnlySubstanceUnits=False,
         name="H+",
-        sboTerm=SBO_SIMPLE_CHEMICAL,
+        sboTerm=SBO.SIMPLE_CHEMICAL,
     ),
     Species(
         sid="h2o",
@@ -157,7 +157,7 @@ species = [
         boundaryCondition=True,
         hasOnlySubstanceUnits=False,
         name="H2O",
-        sboTerm=SBO_SIMPLE_CHEMICAL,
+        sboTerm=SBO.SIMPLE_CHEMICAL,
     ),
 ]
 
@@ -170,7 +170,7 @@ parameters = [
         1.0e-6,
         unit="mmole_per_s",
         constant=True,
-        sboTerm=SBO_MAXIMAL_VELOCITY,
+        sboTerm=SBO.MAXIMAL_VELOCITY,
         name="Vmax Glucokinase",
     ),
     Parameter(
@@ -178,7 +178,7 @@ parameters = [
         0.5,
         unit="mM",
         constant=True,
-        sboTerm=SBO_MICHAELIS_CONSTANT,
+        sboTerm=SBO.MICHAELIS_CONSTANT,
         name="Km glucose",
     ),
     Parameter(
@@ -186,7 +186,7 @@ parameters = [
         0.1,
         unit="mM",
         constant=True,
-        sboTerm=SBO_MICHAELIS_CONSTANT,
+        sboTerm=SBO.MICHAELIS_CONSTANT,
         name="Km ATP",
     ),
     Parameter(
@@ -194,7 +194,7 @@ parameters = [
         0.1,
         unit="mM",
         constant=True,
-        sboTerm=SBO_MICHAELIS_CONSTANT,
+        sboTerm=SBO.MICHAELIS_CONSTANT,
         name="Km ADP",
     ),
     Parameter(
@@ -202,7 +202,7 @@ parameters = [
         1.0e-6,
         unit="mmole_per_s",
         constant=True,
-        sboTerm=SBO_MAXIMAL_VELOCITY,
+        sboTerm=SBO.MAXIMAL_VELOCITY,
         name="Vmax ATPase",
     ),
     Parameter(
@@ -211,7 +211,7 @@ parameters = [
         value=0,
         unit="mmole_per_s",
         constant=True,
-        sboTerm=SBO_FLUX_BOUND,
+        sboTerm=SBO.FLUX_BOUND,
     ),
     Parameter(
         sid="inf",
@@ -219,21 +219,21 @@ parameters = [
         value=inf,
         unit="mmole_per_s",
         constant=True,
-        sboTerm=SBO_FLUX_BOUND,
+        sboTerm=SBO.FLUX_BOUND,
     ),
     Parameter(
         sid="minus_1000",
         value=-1000,
         unit="mmole_per_s",
         constant=True,
-        sboTerm=SBO_FLUX_BOUND,
+        sboTerm=SBO.FLUX_BOUND,
     ),
     Parameter(
         sid="plus_1000",
         value=1000,
         unit="mmole_per_s",
         constant=True,
-        sboTerm=SBO_FLUX_BOUND,
+        sboTerm=SBO.FLUX_BOUND,
     ),
 ]
 
@@ -266,7 +266,7 @@ reactions = [
         formula=("Vmax_GK * (glc/(Km_glc+glc)) * (atp/(Km_atp+atp))", "mmole_per_s"),
         lowerFluxBound="zero",
         upperFluxBound="inf",
-        sboTerm=SBO_BIOCHEMICAL_REACTION,
+        sboTerm=SBO.BIOCHEMICAL_REACTION,
     ),
     Reaction(
         sid="ATPPROD",
@@ -281,7 +281,7 @@ reactions = [
         ),
         lowerFluxBound="zero",
         upperFluxBound="inf",
-        sboTerm=SBO_BIOCHEMICAL_REACTION,
+        sboTerm=SBO.BIOCHEMICAL_REACTION,
     ),
     Reaction(
         sid="EX_glc",
@@ -293,7 +293,7 @@ reactions = [
         lowerFluxBound="minus_1000",
         upperFluxBound="plus_1000",
         formula=("zero", "mmole_per_s"),
-        sboTerm=SBO_EXCHANGE_REACTION,
+        sboTerm=SBO.EXCHANGE_REACTION,
     ),
     Reaction(
         sid="EX_g6p",
@@ -305,7 +305,7 @@ reactions = [
         lowerFluxBound="minus_1000",
         upperFluxBound="plus_1000",
         formula=("zero", "mmole_per_s"),
-        sboTerm=SBO_EXCHANGE_REACTION,
+        sboTerm=SBO.EXCHANGE_REACTION,
     ),
 ]
 

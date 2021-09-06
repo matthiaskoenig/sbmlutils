@@ -13,12 +13,13 @@ from typing import Dict
 logger = logging.getLogger(__name__)
 
 
-def start_server(path, port=5115):
+def start_server(path: Path, port: int = 5115) -> None:
     """Start a simple webserver serving path on port."""
 
     class Handler(http.server.SimpleHTTPRequestHandler):
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, directory=path, **kwargs)
+        def __init__(self, *args, **kwargs):  # type: ignore
+            """Initialize handler for requests."""
+            super().__init__(*args, path, **kwargs)
 
     with socketserver.TCPServer(("", port), Handler) as httpd:
         httpd.serve_forever()
@@ -26,16 +27,32 @@ def start_server(path, port=5115):
 
 def create_report(
     sbml_path: Path,
+    validate: bool = False,
     server: str = "https://sbml4humans.de",
     fileserver_duration: int = 10,
     fileserver_port: int = 5115,
-) -> Dict:
+) -> None:
+    """Create sbml4humans report."""
+
+    # FIXME: implement static report
+    logger.error("`create_report` is currently not supported.")
+    pass
+
+
+def create_online_report(
+    sbml_path: Path,
+    validate: bool = False,
+    server: str = "https://sbml4humans.de",
+    fileserver_duration: int = 10,
+    fileserver_port: int = 5115,
+) -> None:
     """Create sbml4humans report.
 
     The SBML file can be validated during report generation.
     Local parameters can be promoted during report generation.
 
     :param sbml_path: path to SBML file
+    :param validate: FIXME: add validation option and information in frontend
     :param server: server to use for report, for local development use `localhost:3456`
     :param fileserver_duration: duration of file server in seconds
     :param fileserver_port: port of file server

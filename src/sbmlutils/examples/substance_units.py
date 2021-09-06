@@ -59,7 +59,7 @@ species: List[Species] = [
         initialConcentration=3.0,
         substanceUnit=UNIT_mmole,
         name="D-glucose",
-        sboTerm=SBO_SIMPLE_CHEMICAL,
+        sboTerm=SBO.SIMPLE_CHEMICAL,
     ),
     Species(
         sid="glc6p",
@@ -67,7 +67,7 @@ species: List[Species] = [
         initialConcentration=0.5,
         substanceUnit=UNIT_mmole,
         name="D-glucose 6-phosphate",
-        sboTerm=SBO_SIMPLE_CHEMICAL,
+        sboTerm=SBO.SIMPLE_CHEMICAL,
     ),
     # extent * conversionfactor = substanceUnit
     # mmole * 1/mmole = dimenionsless
@@ -77,7 +77,7 @@ species: List[Species] = [
         initialConcentration=1.0,
         substanceUnit=UNIT_KIND_DIMENSIONLESS,
         name="hexokinase protein",
-        sboTerm=SBO_MACROMOLECULE,
+        sboTerm=SBO.MACROMOLECULE,
         conversionFactor="cf_units_per_mmole",
         hasOnlySubstanceUnits=True,
     ),
@@ -89,13 +89,13 @@ reactions = [
         name="hexokinase synthesis",
         equation="-> hex1",
         compartment="cyto",
-        sboTerm=SBO_BIOCHEMICAL_REACTION,
+        sboTerm=SBO.BIOCHEMICAL_REACTION,
         pars=[
             Parameter(
                 sid="HEX1SYNTHESIS_k",
                 value=1.0,
                 unit=UNIT_mmole_per_min,
-                sboTerm=SBO_MAXIMAL_VELOCITY,
+                sboTerm=SBO.MAXIMAL_VELOCITY,
             ),
         ],
         formula=(
@@ -108,19 +108,19 @@ reactions = [
         name="hexokinase",
         equation="glc -> glc6p [hex1]",
         compartment="cyto",
-        sboTerm=SBO_BIOCHEMICAL_REACTION,
+        sboTerm=SBO.BIOCHEMICAL_REACTION,
         pars=[
             Parameter(
                 sid="HEX1_Vmax",
                 value=1.0,
                 unit=UNIT_mmole_per_min,
-                sboTerm=SBO_MAXIMAL_VELOCITY,
+                sboTerm=SBO.MAXIMAL_VELOCITY,
             ),
             Parameter(
                 sid="HEX1_Km_glc",
                 value=0.1,
                 unit=UNIT_mM,
-                sboTerm=SBO_MICHAELIS_CONSTANT,
+                sboTerm=SBO.MICHAELIS_CONSTANT,
             ),
         ],
         formula=(

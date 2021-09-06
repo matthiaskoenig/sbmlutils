@@ -5,8 +5,6 @@ This demonstrates just the very core SBML functionality.
 from pathlib import Path
 from typing import List
 
-import libsbml
-
 from sbmlutils.creator import FactoryResult, create_model
 from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
@@ -62,7 +60,7 @@ compartments: List[Compartment] = [
         spatialDimensions=3,
         constant=True,
         # annotation and sbo support
-        sboTerm=SBO_PHYSICAL_COMPARTMENT,
+        sboTerm=SBO.PHYSICAL_COMPARTMENT,
         annotations=[(BQB.IS, "ncit/C48694")],
         # provenance via notes
         notes="Overall cell compartment with volume set to an arbitrary "
@@ -97,7 +95,7 @@ species: List[Species] = [
         substanceUnit=UNIT_mmole,
         hasOnlySubstanceUnits=False,
         # additional information via FBC
-        sboTerm=SBO_SIMPLE_CHEMICAL,
+        sboTerm=SBO.SIMPLE_CHEMICAL,
         chemicalFormula="C6H12O6",
         charge=0,
         annotations=[
@@ -114,7 +112,7 @@ species: List[Species] = [
         compartment="cell",
         substanceUnit=UNIT_mmole,
         hasOnlySubstanceUnits=False,
-        sboTerm=SBO_SIMPLE_CHEMICAL,
+        sboTerm=SBO.SIMPLE_CHEMICAL,
         chemicalFormula="C6H11O9P",
         charge=0,
         annotations=[(BQB.IS, "chebi/CHEBI:58225")],
