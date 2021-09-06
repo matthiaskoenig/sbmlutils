@@ -1,10 +1,11 @@
 """Tiny model example."""
 from math import inf
 
+from pymetadata.metadata.sbo import *
+
 import sbmlutils.layout as layout
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
-from sbmlutils.metadata.sbo import *
 from sbmlutils.units import *
 
 

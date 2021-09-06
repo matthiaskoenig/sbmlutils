@@ -13,7 +13,7 @@ from typing import Dict
 logger = logging.getLogger(__name__)
 
 
-def start_server(path, port=5115):
+def start_server(path: Path, port: int = 5115) -> None:
     """Start a simple webserver serving path on port."""
 
     class Handler(http.server.SimpleHTTPRequestHandler):
@@ -29,7 +29,7 @@ def create_report(
     server: str = "https://sbml4humans.de",
     fileserver_duration: int = 10,
     fileserver_port: int = 5115,
-) -> Dict:
+) -> None:
     """Create sbml4humans report.
 
     The SBML file can be validated during report generation.
