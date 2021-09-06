@@ -2,16 +2,21 @@ import { createStore } from "vuex";
 import axios from "axios";
 import router from "@/router";
 
-
-import BASE_URLS from "@/data/urls";
 import INITIALIZATION_HELPERS from "@/helpers/reportInitialization";
 import listOfSBMLTypes from "@/data/listOfSBMLTypes";
 import {checkAPIResponse} from "@/helpers/additionalInfoUtils";
 
 
+// read from .env.template file
+export let API_BASE_URL = process.env.API_BASE_URL;
+if (!API_BASE_URL) {
+    // running in develop, no environment variable set
+    console.warn('No sbml4humans backend set via environment variable: `API_BASE_URL`');
+    API_BASE_URL = "http://0.0.0.0:1444"
+}
+console.log('sbml4humans backend: ' + API_BASE_URL + "'");
 
-const static_alert =
-    "Cannot connect to API in 'static' mode. Switch off 'static' and refresh.";
+
 
 export default createStore({
     state: {
@@ -208,7 +213,7 @@ export default createStore({
         },
         // get list of all available examples from backend API
         async fetchExamples(context) {
-            const url = BASE_URLS.API_BASE_URL + "/examples/";
+            const url = API_BASE_URL + "/examples/";
             const res = await axios.get(url);
             if (res.status === 200) {
                 checkAPIResponse(res);
@@ -228,7 +233,7 @@ export default createStore({
         async fetchExampleReport(context, payload) {
             context.commit("SET_EXAMPLE_LOADING", true);
 
-            const url = BASE_URLS.API_BASE_URL + "/examples/" + payload.exampleId;
+            const url = API_BASE_URL + "/examples/" + payload.exampleId;
 
             const res = await axios.get(url);
 
@@ -246,7 +251,7 @@ export default createStore({
             context.commit("SET_FILE_LOADING", true);
 
             // assembling the request parameters
-            const url = BASE_URLS.API_BASE_URL + "/file";
+            const url = API_BASE_URL + "/file";
             const formData = payload.formData;
             const headers = payload.headers;
 
@@ -266,7 +271,7 @@ export default createStore({
             context.commit("SET_FILE_LOADING", true);
 
             // assembling the request parameters
-            const url = BASE_URLS.API_BASE_URL + "/url?url=" + payload;
+            const url = API_BASE_URL + "/url?url=" + payload;
             const res = await axios.get(url);
 
             context.commit("SET_FILE_LOADING", false);
@@ -283,7 +288,7 @@ export default createStore({
             context.commit("SET_FILE_LOADING", true);
 
             // assembling the request parameters
-            const url = BASE_URLS.API_BASE_URL + "/content";
+            const url = API_BASE_URL + "/content";
             const res = await axios.post(url, payload);
 
             context.commit("SET_FILE_LOADING", false);

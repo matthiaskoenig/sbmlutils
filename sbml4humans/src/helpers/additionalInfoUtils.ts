@@ -1,5 +1,5 @@
 import axios from "axios";
-import urls from "@/data/urls";
+import API_BASE_URL from "@/store";
 // import { setupCache } from "axios-cache-adapter";
 
 // const cache = setupCache({
@@ -20,7 +20,7 @@ export async function fetchAdditionalInfo(
     resourceID: string
 ): Promise<Record<string, unknown>> {
     const QUERY_URL =
-        urls.API_BASE_URL +
+        API_BASE_URL +
         "/annotation_resource?resource=" +
         encodeURIComponent(resourceID);
     console.log(QUERY_URL);
