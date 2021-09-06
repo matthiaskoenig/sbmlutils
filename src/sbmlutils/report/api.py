@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 api = FastAPI()
 
 # API Permissions Data
-origins = ["127.0.0.1", "*"]
+origins = ["127.0.0.1", "0.0.0.0", "*"]
 
 api.add_middleware(
     CORSMiddleware,
