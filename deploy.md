@@ -36,11 +36,6 @@ git clone https://github.com/matthiaskoenig/sbmlutils.git
 git checkout sbml4humans
 ```
 
-Create environment files
-``` 
-
-```
-
 **start containers**
 ```
 docker-compose -f docker-compose-production.yml up --force-recreate --build --detach
