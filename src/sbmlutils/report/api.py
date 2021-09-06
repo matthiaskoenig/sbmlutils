@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 
 api = FastAPI(
     root_path="/api/v1",
+    openapi_prefix="/api/v1",
     title="sbml4humans",
     description="sbml4humans backend api",
     version="0.1.0",
