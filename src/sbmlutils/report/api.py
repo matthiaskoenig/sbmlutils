@@ -60,7 +60,12 @@ api = FastAPI(
 
 
 # API Permissions Data
-origins = ["127.0.0.1", "0.0.0.0", "*"]
+origins = [
+    # "localhost",
+    # "localhost:3456",
+    # "sbml4humans.de",
+    "*"
+]
 
 api.add_middleware(
     CORSMiddleware,
