@@ -54,9 +54,8 @@ api = FastAPI(
             "name": "reports",
             "description": "Create report data.",
         },
-    ]
+    ],
 )
-
 
 
 # API Permissions Data
