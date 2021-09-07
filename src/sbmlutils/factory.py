@@ -372,6 +372,12 @@ class Sbase:
             obj.setName(self.name)
         if self.sboTerm is not None:
             obj.setSBOTerm(self.sboTerm)
+            # FIXME: check for SBO term in annotation first
+            ModelAnnotator.annotate_sbase(
+                sbase=obj,
+                annotation=Annotation(qualifier=BQB.IS, resource=f"sbo/{self.sboTerm.replace('_', ':')}")
+            )
+
         if self.metaId is not None:
             obj.setMetaId(self.metaId)
 
