@@ -1,5 +1,5 @@
 import axios from "axios";
-import API_BASE_URL from "@/store";
+import {VUE_APP_APIURL} from "@/store";
 // import { setupCache } from "axios-cache-adapter";
 
 // const cache = setupCache({
@@ -20,7 +20,7 @@ export async function fetchAdditionalInfo(
     resourceID: string
 ): Promise<Record<string, unknown>> {
     const QUERY_URL =
-        API_BASE_URL +
+        VUE_APP_APIURL +
         "/annotation_resource?resource=" +
         encodeURIComponent(resourceID);
     console.log(QUERY_URL);

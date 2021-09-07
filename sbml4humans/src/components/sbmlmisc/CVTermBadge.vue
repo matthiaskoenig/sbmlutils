@@ -1,5 +1,5 @@
 <template>
-    <!--{{ addInfo }} -->
+<!--    {{ addInfo }}-->
     <div class="p-d-flex p-mt-2">
         <Tag :value="qualifier" severity="success" class="qualifier" />
         <Tag
