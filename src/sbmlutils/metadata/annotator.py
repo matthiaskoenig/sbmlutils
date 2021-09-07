@@ -372,7 +372,7 @@ class ModelAnnotator:
         :param annotation: Annotation
         :return:
         """
-        qualifier, resource = annotation.qualifier.value, annotation.resource
+        qualifier, resource = annotation.qualifier.value, annotation.resource_normalized
         cv: libsbml.CVTerm = libsbml.CVTerm()
 
         # set correct type of qualifier

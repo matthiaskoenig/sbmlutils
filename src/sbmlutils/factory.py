@@ -372,24 +372,36 @@ class Sbase:
             obj.setName(self.name)
         if self.sboTerm is not None:
             obj.setSBOTerm(self.sboTerm)
-            # FIXME: check for SBO term in annotation first
-            ModelAnnotator.annotate_sbase(
-                sbase=obj,
-                annotation=Annotation(
-                    qualifier=BQB.IS, resource=f"sbo/{self.sboTerm.replace('_', ':')}"
-                ),
-            )
-
         if self.metaId is not None:
             obj.setMetaId(self.metaId)
 
         if self.notes is not None:
             set_notes(obj, self.notes)
 
+        # annotation handling
+        processed_annotations: List[Annotation] = []
         if self.annotations:
-            # annotations could have been added after initial processing
-            for annotation in Sbase._process_annotations(self.annotations):  # type: ignore
-                ModelAnnotator.annotate_sbase(sbase=obj, annotation=annotation)
+            # annotations can have been added after initial processing
+            processed_annotations = Sbase._process_annotations(self.annotations)
+
+        if self.sboTerm is not None:
+            sbo_annotation = Annotation(
+                qualifier=BQB.IS, resource=f"sbo/{self.sboTerm.replace('_', ':')}"
+            )
+            # check if SBO annotation exists
+            sbo_exists = False
+            for annotation in processed_annotations:
+                if (
+                    annotation.qualifier == sbo_annotation.qualifier
+                    and annotation.term == sbo_annotation.term
+                ):
+                    sbo_exists = True
+                    continue
+            if not sbo_exists:
+                processed_annotations.append(sbo_annotation)
+
+        for annotation in processed_annotations:
+            ModelAnnotator.annotate_sbase(sbase=obj, annotation=annotation)
 
         self.create_uncertainties(obj, model)
         self.create_replaced_by(obj, model)
