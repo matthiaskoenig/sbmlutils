@@ -2,16 +2,24 @@ import { createStore } from "vuex";
 import axios from "axios";
 import router from "@/router";
 
-
-import BASE_URLS from "@/data/urls";
 import INITIALIZATION_HELPERS from "@/helpers/reportInitialization";
 import listOfSBMLTypes from "@/data/listOfSBMLTypes";
 import {checkAPIResponse} from "@/helpers/additionalInfoUtils";
 
 
+// read from .env.template file
+export let VUE_APP_BASEURL = process.env.VUE_APP_BASEURL;
+export let VUE_APP_APIURL = process.env.VUE_APP_APIURL;
+export let VUE_APP_FRONTENDURL = process.env.VUE_APP_FRONTENDURL;
 
-const static_alert =
-    "Cannot connect to API in 'static' mode. Switch off 'static' and refresh.";
+if (!VUE_APP_BASEURL) {
+    // running in develop, no environment variable set
+    VUE_APP_BASEURL = "http://0.0.0.0";
+    VUE_APP_APIURL = "http://0.0.0.0:1444";
+    VUE_APP_FRONTENDURL = "http://0.0.0.0:3456";
+}
+
+console.log("URLS: " + VUE_APP_APIURL + " | " + VUE_APP_FRONTENDURL);
 
 export default createStore({
     state: {
@@ -208,7 +216,7 @@ export default createStore({
         },
         // get list of all available examples from backend API
         async fetchExamples(context) {
-            const url = BASE_URLS.API_BASE_URL + "/examples/";
+            const url = VUE_APP_APIURL + "/examples/";
             const res = await axios.get(url);
             if (res.status === 200) {
                 checkAPIResponse(res);
@@ -228,7 +236,7 @@ export default createStore({
         async fetchExampleReport(context, payload) {
             context.commit("SET_EXAMPLE_LOADING", true);
 
-            const url = BASE_URLS.API_BASE_URL + "/examples/" + payload.exampleId;
+            const url = VUE_APP_APIURL + "/examples/" + payload.exampleId;
 
             const res = await axios.get(url);
 
@@ -246,7 +254,7 @@ export default createStore({
             context.commit("SET_FILE_LOADING", true);
 
             // assembling the request parameters
-            const url = BASE_URLS.API_BASE_URL + "/file";
+            const url = VUE_APP_APIURL + "/file";
             const formData = payload.formData;
             const headers = payload.headers;
 
@@ -266,7 +274,7 @@ export default createStore({
             context.commit("SET_FILE_LOADING", true);
 
             // assembling the request parameters
-            const url = BASE_URLS.API_BASE_URL + "/url?url=" + payload;
+            const url = VUE_APP_APIURL + "/url?url=" + payload;
             const res = await axios.get(url);
 
             context.commit("SET_FILE_LOADING", false);
@@ -283,7 +291,7 @@ export default createStore({
             context.commit("SET_FILE_LOADING", true);
 
             // assembling the request parameters
-            const url = BASE_URLS.API_BASE_URL + "/content";
+            const url = VUE_APP_APIURL + "/content";
             const res = await axios.post(url, payload);
 
             context.commit("SET_FILE_LOADING", false);

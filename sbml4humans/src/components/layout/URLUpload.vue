@@ -32,11 +32,11 @@
             >
             endpoint. Example:
             <a
-                href="https://sbml4humans.de/url?url=https://www.ebi.ac.uk/biomodels/model/download/BIOMD0000000001.2?filename=BIOMD0000000001_url.xml"
-                target="_blank"
+                :href="example_url"
+
             >
                 <code style="font-size: small"
-                    >https://sbml4humans.de/model_url?url=https://www.ebi.ac.uk/biomodels/model/download/BIOMD0000000001.2?filename=BIOMD0000000001_url.xml</code
+                    >{{ example_url }}</code
                 >
             </a>
         </p>
@@ -44,7 +44,7 @@
 </template>
 
 <script lang="ts">
-import store from "@/store/index";
+import store, { VUE_APP_FRONTENDURL } from "@/store/index";
 import { defineComponent } from "vue";
 
 import Loading from "@/components/layout/Loading.vue";
@@ -76,6 +76,9 @@ export default defineComponent({
         loading(): boolean {
             return store.state.fileLoading;
         },
+        example_url(): string{
+            return VUE_APP_FRONTENDURL + "/url?url=https://raw.githubusercontent.com/matthiaskoenig/sbmlutils/develop/src/sbmlutils/test/data/models/glucose/Hepatic_glucose_3.xml"
+        }
     },
 });
 </script>

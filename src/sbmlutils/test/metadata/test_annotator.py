@@ -80,12 +80,10 @@ def test_model_annotation(tmp_path: Path) -> None:
     assert compartment
 
     cvterms: libsbml.CVTermList = compartment.getCVTerms()
-    assert len(cvterms) == 1
+    assert compartment.getNumCVTerms() == 1
 
     cv: libsbml.CVTerm = cvterms[0]
-    assert cv.getNumResources() == 1
-    # FIXME: additional tests
-    # assert cv.getResources()
+    assert cv.getNumResources() == 2
 
 
 def test_demo_annotation(tmp_path: Path) -> None:
