@@ -3,45 +3,44 @@
 This demonstrates just the very core SBML functionality.
 """
 from pathlib import Path
-from typing import List
 
-from sbmlutils.creator import FactoryResult, create_model
 from sbmlutils.cytoscape import visualize_sbml
-from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
+from sbmlutils.examples import templates
 from sbmlutils.factory import *
 from sbmlutils.metadata import *
 from sbmlutils.units import *
 
 
-# -------------------------------------------------------------------------------------
-mid: str = "full_model"
-packages: List[str] = ["distrib", "fbc"]
-notes = Notes(
-    [
-        "<h1>full_model</h1>"
-        "<h2>Description</h2>"
-        "<p>Example demonstrating more complete information in SBML model.</p>",
-        templates.terms_of_use,
-    ]
-)
-creators = [
-    Creator(
-        familyName="Koenig",
-        givenName="Matthias",
-        email="koenigmx@hu-berlin.de",
-        organization="Humboldt-University Berlin, Institute for Theoretical Biology",
-        site="https://livermetabolism.com",
+model = Model(
+    sid="full_model",
+    packages=["distrib", "fbc"],
+    notes=Notes(
+        [
+            "<h1>full_model</h1>"
+            "<h2>Description</h2>"
+            "<p>Example demonstrating more complete information in SBML model.</p>",
+            templates.terms_of_use,
+        ]
+    ),
+    creators=[
+        Creator(
+            familyName="König",
+            givenName="Matthias",
+            email="koenigmx@hu-berlin.de",
+            organization="Humboldt-University Berlin, Institute for Theoretical Biology",
+            site="https://livermetabolism.com",
+        )
+    ],
+    model_units=ModelUnits(
+        time=UNIT_min,
+        extent=UNIT_mmole,
+        substance=UNIT_mmole,
+        length=UNIT_m,
+        area=UNIT_m2,
+        volume=UNIT_KIND_LITRE,
     )
-]
-model_units = ModelUnits(
-    time=UNIT_min,
-    extent=UNIT_mmole,
-    substance=UNIT_mmole,
-    length=UNIT_m,
-    area=UNIT_m2,
-    volume=UNIT_KIND_LITRE,
 )
-units = [
+model.units = [
     UNIT_m,
     UNIT_m2,
     UNIT_min,
@@ -50,7 +49,7 @@ units = [
     UNIT_mmole_per_min,
     UNIT_litre_per_min,
 ]
-compartments: List[Compartment] = [
+model.compartments = [
     Compartment(
         sid="cell",
         metaId="meta_cell",
@@ -84,7 +83,7 @@ compartments: List[Compartment] = [
         ],
     ),
 ]
-species: List[Species] = [
+model.species = [
     Species(
         sid="S1",
         metaId="meta_S1",
@@ -118,7 +117,7 @@ species: List[Species] = [
         annotations=[(BQB.IS, "chebi/CHEBI:58225")],
     ),
 ]
-parameters: List[Parameter] = [
+model.parameters = [
     Parameter(
         sid="k1",
         value=0.1,
@@ -126,7 +125,7 @@ parameters: List[Parameter] = [
         unit=UNIT_litre_per_min,
     ),
 ]
-reactions: List[Reaction] = [
+model.reactions = [
     Reaction(
         sid="J0",
         name="hexokinase",
@@ -158,17 +157,16 @@ reactions: List[Reaction] = [
         annotations=[(BQB.IS, "uniprot/P17710")],
     ),
 ]
-constraints: List[Constraint] = [
+model.constraints = [
     Constraint("J0_lb_constraint", math="J0 >= J0_lb"),
     Constraint("J0_ub_constraint", math="J0 >= J0_ub"),
 ]
-# -------------------------------------------------------------------------------------
 
 
 def create(tmp: bool = False) -> FactoryResult:
     """Create model."""
     return create_model(
-        modules=["sbmlutils.examples.minimal_example.full_model"],
+        models=model,
         output_dir=Path(__file__).parent,
         # now unit valid model
         units_consistency=True,

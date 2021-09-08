@@ -2,29 +2,27 @@
 from pathlib import Path
 from typing import List
 
-from sbmlutils.creator import FactoryResult, create_model
 from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.factory import *
+from sbmlutils.metadata import *
+from minimal_model import model_minimal
 
-
-# -------------------------------------------------------------------------------------
-mid: str = "model_composition"
-parameters: List[Parameter] = [
-    Parameter(sid="k2", value=0.1),
-]
-reactions: List[Reaction] = [
-    Reaction(sid="J1", equation="-> S1", formula="k2"),
-]
-# -------------------------------------------------------------------------------------
+model = Model(
+    sid="model_composition",
+    annotations=[(BQB.IS, "taxonomy/911")],
+    parameters=[
+        Parameter(sid="k2", value=0.1),
+    ],
+    reactions=[
+        Reaction(sid="J1", equation="-> S1", formula="k2"),
+    ]
+)
 
 
 def create(tmp: bool = False) -> FactoryResult:
     """Create model."""
     return create_model(
-        modules=[
-            "sbmlutils.examples.minimal_example.minimal_model",
-            "sbmlutils.examples.minimal_example.model_composition",
-        ],
+        models=[model_minimal, model],
         output_dir=Path(__file__).parent,
         units_consistency=False,
         tmp=tmp,

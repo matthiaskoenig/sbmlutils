@@ -2345,21 +2345,20 @@ class Model(Sbase):
             if k == 0:
                 continue
 
-            for key, value in m2.items():
+            for key, value in m2.__dict__.items():
                 # lists of higher modules are extended
                 if type(value) in [list, tuple]:
                     # create new list
                     if not hasattr(model, key) or getattr(model, key) is None:
-                        model.key = []
+                        setattr(model, key, [])
                     # now add elements by copy
-                    model.key.extend(deepcopy(value))
+                    getattr(model, key).extend(deepcopy(value))
 
                 # !everything else is overwritten
                 else:
                     model.key = value
 
         return model
-
 
     def __init__(
         self,
