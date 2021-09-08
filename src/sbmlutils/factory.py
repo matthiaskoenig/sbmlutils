@@ -20,16 +20,32 @@ import logging
 from collections import namedtuple
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-import libsbml
+from copy import deepcopy
 import numpy as np
 from libsbml import DISTRIB_UNCERTTYPE_MEAN as UNCERTTYPE_MEAN
 from libsbml import DISTRIB_UNCERTTYPE_RANGE as UNCERTTYPE_RANGE
 from libsbml import DISTRIB_UNCERTTYPE_STANDARDDEVIATION as UNCERTTYPE_STANDARDDEVIATION
 
+import json
+import logging
+import os
+import shutil
+import tempfile
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Dict, Iterable, List, NamedTuple, Optional, Union
+
+import libsbml
+import xmltodict  # type: ignore
+
+import sbmlutils.history as history
+from sbmlutils.io import write_sbml
+from sbmlutils.metadata import annotator
+from sbmlutils.report import sbmlreport
+from sbmlutils.utils import bcolors
 from sbmlutils.equation import Equation
-from sbmlutils.metadata import BQB, BQM
+from sbmlutils.metadata import BQB, BQM, SBO
 from sbmlutils.metadata.annotator import Annotation, ModelAnnotator
-from sbmlutils.metadata.sbo import SBO
 from sbmlutils.utils import deprecated
 from sbmlutils.validation import check
 
@@ -72,6 +88,10 @@ __all__ = [
     "ReplacedElement",
     "ReplacedBy",
     "Port",
+    "Model",
+    "Document",
+    "FactoryResult",
+    "create_model"
 ]
 
 logger = logging.getLogger(__name__)
@@ -156,6 +176,7 @@ Core information
 """
 UnitType = Optional[Union[str, libsbml.UnitDefinition, "Unit"]]
 AnnotationsType = Optional[List[Union[Annotation, Tuple[Union[BQB, BQM], str]]]]
+NotesType = Optional[Union[str, 'Notes']]
 PortType = Any  # Union[bool, Port]
 
 
@@ -314,7 +335,7 @@ class Sbase:
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: Optional[Union[str, Notes]] = None,
+        notes: NotesType = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
@@ -486,7 +507,7 @@ class Value(Sbase):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: Optional[Union[str, Notes]] = None,
+        notes: NotesType = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
@@ -528,7 +549,7 @@ class ValueWithUnit(Value):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: Optional[Union[str, Notes]] = None,
+        notes: NotesType = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
@@ -575,7 +596,7 @@ class Unit(Sbase):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: Optional[Union[str, Notes]] = None,
+        notes: NotesType = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
@@ -687,7 +708,7 @@ class Function(Sbase):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: Optional[Union[str, Notes]] = None,
+        notes: NotesType = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
@@ -734,7 +755,7 @@ class Parameter(ValueWithUnit):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: Optional[Union[str, Notes]] = None,
+        notes: NotesType = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
@@ -801,7 +822,7 @@ class Compartment(ValueWithUnit):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: Optional[Union[str, Notes]] = None,
+        notes: NotesType = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
@@ -875,7 +896,7 @@ class Species(Sbase):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: Optional[Union[str, Notes]] = None,
+        notes: NotesType = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
@@ -989,7 +1010,7 @@ class InitialAssignment(Value):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: Optional[Union[str, Notes]] = None,
+        notes: NotesType = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
@@ -1217,7 +1238,7 @@ class Reaction(Sbase):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: Optional[Union[str, Notes]] = None,
+        notes: NotesType = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
@@ -1360,7 +1381,7 @@ class Event(Sbase):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: Optional[Union[str, Notes]] = None,
+        notes: NotesType = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
@@ -1517,7 +1538,7 @@ class Uncertainty(Sbase):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: Optional[Union[str, Notes]] = None,
+        notes: NotesType = None,
         port: Any = None,
         replacedBy: Optional[Any] = None,
     ):
@@ -1675,7 +1696,7 @@ class ExchangeReaction(Reaction):
         name: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: Optional[Union[str, Notes]] = None,
+        notes: NotesType = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
@@ -1718,7 +1739,7 @@ class Constraint(Sbase):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: Optional[Union[str, Notes]] = None,
+        notes: NotesType = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
@@ -1779,7 +1800,7 @@ class Objective(Sbase):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: Optional[Union[str, Notes]] = None,
+        notes: NotesType = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
@@ -1869,13 +1890,16 @@ class ModelDefinition(Sbase):
         name: str = None,
         sboTerm: str = None,
         metaId: str = None,
+        annotations: AnnotationsType = None,
+        notes: NotesType = None,
         units: List[Unit] = None,
         compartments: List[Compartment] = None,
         species: List[Species] = None,
     ):
         """Create a ModelDefinition."""
         super(ModelDefinition, self).__init__(
-            sid=sid, name=name, sboTerm=sboTerm, metaId=metaId
+            sid=sid, name=name, sboTerm=sboTerm, metaId=metaId,
+            annotations=annotations, notes=notes
         )
         self.units = units
         self.compartments = compartments
@@ -1934,10 +1958,13 @@ class ExternalModelDefinition(Sbase):
         name: str = None,
         sboTerm: str = None,
         metaId: str = None,
+        annotations: AnnotationsType = None,
+        notes: NotesType = None,
     ):
         """Create an ExternalModelDefinition."""
         super(ExternalModelDefinition, self).__init__(
-            sid=sid, name=name, sboTerm=sboTerm, metaId=metaId
+            sid=sid, name=name, sboTerm=sboTerm, metaId=metaId,
+            annotations=annotations, notes=notes
         )
         self.source = source
         self.modelRef = modelRef
@@ -1974,10 +2001,13 @@ class Submodel(Sbase):
         name: str = None,
         sboTerm: str = None,
         metaId: str = None,
+        annotations: AnnotationsType = None,
+        notes: NotesType = None,
     ):
         """Create a Submodel."""
         super(Submodel, self).__init__(
-            sid=sid, name=name, sboTerm=sboTerm, metaId=metaId
+            sid=sid, name=name, sboTerm=sboTerm, metaId=metaId,
+            annotations=annotations, notes=notes,
         )
         self.modelRef = modelRef
         self.timeConversionFactor = timeConversionFactor
@@ -2014,10 +2044,13 @@ class SbaseRef(Sbase):
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
+        annotations: AnnotationsType = None,
+        notes: NotesType = None,
     ):
         """Create an SBaseRef."""
         super(SbaseRef, self).__init__(
-            sid=sid, name=name, sboTerm=sboTerm, metaId=metaId
+            sid=sid, name=name, sboTerm=sboTerm, metaId=metaId,
+            annotations=annotations, notes=notes
         )
         self.portRef = portRef
         self.idRef = idRef
@@ -2056,6 +2089,8 @@ class ReplacedElement(SbaseRef):
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
+        annotations: AnnotationsType = None,
+        notes: NotesType = None,
     ):
         """Create a ReplacedElement."""
         super(ReplacedElement, self).__init__(
@@ -2067,6 +2102,8 @@ class ReplacedElement(SbaseRef):
             name=name,
             sboTerm=sboTerm,
             metaId=metaId,
+            annotations=annotations,
+            notes=notes,
         )
         self.elementRef = elementRef
         self.submodelRef = submodelRef
@@ -2116,6 +2153,8 @@ class ReplacedBy(SbaseRef):
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
+        annotations: AnnotationsType = None,
+        notes: NotesType = None,
     ):
         """Create a ReplacedElement."""
         super(ReplacedBy, self).__init__(
@@ -2127,6 +2166,8 @@ class ReplacedBy(SbaseRef):
             name=name,
             sboTerm=sboTerm,
             metaId=metaId,
+            annotations=annotations,
+            notes=notes,
         )
         self.elementRef = elementRef
         self.submodelRef = submodelRef
@@ -2161,6 +2202,8 @@ class Deletion(SbaseRef):
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
+        annotations: AnnotationsType = None,
+        notes: NotesType = None,
     ):
         """Initialize Deletion."""
         super(Deletion, self).__init__(
@@ -2172,6 +2215,8 @@ class Deletion(SbaseRef):
             name=name,
             sboTerm=sboTerm,
             metaId=metaId,
+            annotations=annotations,
+            notes = notes,
         )
         self.submodelRef = submodelRef
 
@@ -2215,6 +2260,8 @@ class Port(SbaseRef):
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
+        annotations: AnnotationsType = None,
+        notes: NotesType = None,
     ):
         """Create a Port."""
         super(Port, self).__init__(
@@ -2226,6 +2273,8 @@ class Port(SbaseRef):
             name=name,
             sboTerm=sboTerm,
             metaId=metaId,
+            annotations=annotations,
+            notes=notes,
         )
         self.portType = portType
 
@@ -2237,14 +2286,11 @@ class Port(SbaseRef):
 
         if self.sboTerm is None:
             if self.portType == PORT_TYPE_PORT:
-                # SBO:0000599 - port
-                sbo = 599
+                sbo = SBO.PORT
             elif self.portType == PORT_TYPE_INPUT:
-                # SBO:0000600 - input port
-                sbo = 600
+                sbo = SBO.INPUT_PORT
             elif self.portType == PORT_TYPE_OUTPUT:
-                # SBO:0000601 - output port
-                sbo = 601
+                sbo = SBO.OUTPUT_PORT
             p.setSBOTerm(sbo)
 
         return p
@@ -2252,3 +2298,382 @@ class Port(SbaseRef):
     def _set_fields(self, obj: libsbml.Port, model: libsbml.Model) -> None:
         """Set fields on Port."""
         super(Port, self)._set_fields(obj, model)
+
+
+class Model(Sbase):
+    """Model."""
+
+    _keys = {
+        "packages": list,
+        "sid": None,
+        "metaId": None,
+        "annotations": None,
+        "notes": None,
+        "creators": list,
+
+        "model_units": None,
+        "external_model_definitions": list,
+        "model_definitions": list,
+        "submodels": list,
+        "units": list,
+        "functions": list,
+        "compartments": list,
+        "species": list,
+        "parameters": list,
+        "assignments": list,
+        "rules": list,
+        "rate_rules": list,
+        "reactions": list,
+        "events": list,
+        "constraints": list,
+        "ports": list,
+        "replaced_elements": list,
+        "deletions": list,
+        "objectives": list,
+        "layouts": list,
+    }
+
+    @staticmethod
+    def merge_models(models: List['Model']) -> 'Model':
+        """Merge information from multiple models."""
+        if isinstance(models, Model):
+            return models
+        if not models:
+            raise ValueError("No models are provided.")
+        model = models[0]
+        for k, m2 in enumerate(models):
+            if k == 0:
+                continue
+
+            for key, value in m2.items():
+                # lists of higher modules are extended
+                if type(value) in [list, tuple]:
+                    # create new list
+                    if not hasattr(model, key) or getattr(model, key) is None:
+                        model.key = []
+                    # now add elements by copy
+                    model.key.extend(deepcopy(value))
+
+                # !everything else is overwritten
+                else:
+                    model.key = value
+
+        return model
+
+
+    def __init__(
+        self,
+        sid: str,
+        name: Optional[str] = None,
+        sboTerm: Optional[str] = None,
+        metaId: Optional[str] = None,
+        annotations: AnnotationsType = None,
+        notes: NotesType = None,
+
+        packages: Optional[List[str]] = None,
+        creators: Optional[List[Creator]] = None,
+        model_units: Optional[ModelUnits] = None,
+        external_model_definitions: Optional[List[ExternalModelDefinition]] = None,
+        model_definitions: Optional[List[ModelDefinition]] = None,
+
+        submodels: Optional[List[Submodel]] = None,
+        units: Optional[List[ModelUnits]] = None,
+        functions: Optional[List[Function]] = None,
+        compartments: Optional[List[Compartment]] = None,
+        species: Optional[List[Species]] = None,
+        parameters: Optional[List[Parameter]] = None,
+        assignments: Optional[List[AssignmentRule]] = None,
+        rate_rules: Optional[List[RateRule]] = None,
+        reactions: Optional[List[Reaction]] = None,
+        events: Optional[List[Event]] = None,
+        constraints: Optional[List[Constraint]] = None,
+        ports: Optional[List[Port]] = None,
+        replaced_elements: Optional[List[ReplacedElement]] = None,
+        deletions: Optional[List[Deletion]] = None,
+        objectives: Optional[List[Objective]] = None,
+        layouts: Optional[List] = None,
+
+    ):
+        super(Model, self).__init__(
+            sid=sid,
+            name=name,
+            sboTerm=sboTerm,
+            metaId=metaId,
+            annotations=annotations,
+            notes=notes,
+        )
+
+        self.packages = packages
+        self.creators = creators
+        self.model_units = model_units
+        self.external_model_definitions = external_model_definitions
+        self.model_definitions = model_definitions
+
+        self.submodels = submodels
+        self.units = units
+        self.functions = functions
+        self.compartments = compartments
+        self.species = species
+        self.parameters = parameters
+        self.assignments = assignments
+        self.rate_rules = rate_rules
+        self.reactions = reactions
+        self.events = events
+        self.constraints = constraints
+        self.ports = ports
+        self.replaced_elements = replaced_elements
+        self.deletions = deletions
+        self.objectives = objectives
+        self.layouts = layouts
+
+    def create_sbml(self, doc: libsbml.SBMLDocument) -> libsbml.Model:
+        """Create Model."""
+        model: libsbml.Model = doc.createModel()
+        self._set_fields(model, model)
+
+        # history
+        if hasattr(self, "creators"):
+            history.set_model_history(model, self.creators)
+
+        # model units
+        if hasattr(self, "model_units"):
+            ModelUnits.set_model_units(model, self.model_units)  # type: ignore
+
+        # lists ofs
+        for attr in [
+            "externalModelDefinitions",
+            "modelDefinitions",
+            "submodels",
+            "units",
+            "functions",
+            "parameters",
+            "compartments",
+            "species",
+            "assignments",
+            "rules",
+            "rate_rules",
+            "reactions",
+            "events",
+            "constraints",
+            "ports",
+            "replacedElements",
+            "deletions",
+            "objectives",
+            "layouts",
+        ]:
+            # create the respective objects
+            if hasattr(self, attr):
+                objects = getattr(self, attr)
+                if objects:
+                    create_objects(model, obj_iter=objects, key=attr)
+                else:
+                    logger.debug(f"Not defined: <{attr}>")
+
+        return model
+
+
+class Document(Sbase):
+    """Document."""
+
+    def __init__(
+        self,
+        model: Model,
+        sid: Optional[str] = None,
+        name: Optional[str] = None,
+        sboTerm: Optional[str] = None,
+        metaId: Optional[str] = None,
+        annotations: AnnotationsType = None,
+        notes: NotesType = None,
+        sbml_level: int = SBML_LEVEL,
+        sbml_version: int = SBML_VERSION,
+    ):
+        self.model = model
+        self.sid = sid
+        self.name = name
+        self.sboTerm = sboTerm
+        self.metaId = metaId
+        self.notes = notes
+        self.annotations: AnnotationsType = annotations
+        self.sbml_level = sbml_level
+        self.sbml_version = sbml_version
+        self.doc: libsbml.SBMLDocument = None
+
+    def create_sbml(self) -> libsbml.SBMLDocument:
+        """Create SBML model."""
+
+        logger.info(f"create_sbml: '{self.model.sid}'")
+
+        # create core model
+        sbmlns = libsbml.SBMLNamespaces(self.sbml_level, self.sbml_version)
+
+        # add all the packages
+        # FIXME: only add packages which are required for the model
+        supported_packages = {"fbc", "comp", "distrib"}
+        sbmlns.addPackageNamespace("comp", 1)
+        for package in self.model.packages:
+            if package not in supported_packages:
+                raise ValueError(
+                    f"Supported packages are: '{supported_packages}', "
+                    f"but package '{package}' found."
+                )
+            if package == "fbc":
+                sbmlns.addPackageNamespace("fbc", 2)
+            if package == "distrib":
+                sbmlns.addPackageNamespace("distrib", 1)
+
+        self.doc = libsbml.SBMLDocument(sbmlns)
+
+        # create model
+        sbml_model: libsbml.Model = self.model.create_sbml(self.doc)
+
+        self.doc.setPackageRequired("comp", True)
+        if "fbc" in self.model.packages:
+            self.doc.setPackageRequired("fbc", False)
+            fbc_plugin = sbml_model.getPlugin("fbc")
+            fbc_plugin.setStrict(False)
+        if "distrib" in self.model.packages:
+            self.doc.setPackageRequired("distrib", True)
+
+        return self.doc
+
+    def get_sbml(self) -> str:
+        """Return SBML string of the model.
+
+        :return: SBML string
+        """
+        if self.doc is None:
+            self.create_sbml()
+        return libsbml.writeSBMLToString(self.doc)  # type: ignore
+
+    def get_json(self) -> str:
+        """Get JSON representation."""
+        o = xmltodict.parse(self.get_sbml())
+        return json.dumps(o, indent=2)
+
+
+@dataclass
+class FactoryResult:
+    """Results structure when creating SBML models with sbmlutils."""
+    sbml_path: Path
+    model: 'Model'
+
+
+def create_model(
+    models: Union['Model', List['Model']],
+    output_dir: Path = None,
+    tmp: bool = False,
+    filename: str = None,
+    mid: str = None,
+    suffix: str = None,
+    annotations: Path = None,
+    create_report: bool = True,
+    validate: bool = True,
+    log_errors: bool = True,
+    units_consistency: bool = True,
+    modeling_practice: bool = True,
+    internal_consistency: bool = True,
+    sbml_level: int = SBML_LEVEL,
+    sbml_version: int = SBML_VERSION,
+) -> FactoryResult:
+    """Create SBML model from module information.
+
+    This is the entry point for creating models.
+    The model information is provided as a list of importable python modules.
+    If no filename is provided the filename is created from the id and suffix.
+    Additional model annotations can be provided.
+
+    :param models: iterable of Model instances
+    :param output_dir: directory in which to create SBML file
+    :param tmp: boolean flag to create files in a temporary directory (for testing)
+    :param filename: filename to write to with suffix, if not provided mid and suffix are used
+    :param mid: model id to use for filename
+    :param suffix: suffix for SBML filename
+    :param annotations: Path to annotations file
+    :param create_report: boolean switch to create SBML report
+    :param validate: validates the SBML file
+    :param log_errors: boolean flag to log errors
+    :param units_consistency: boolean flag to check units consistency
+    :param modeling_practice: boolean flag to check modeling practise
+    :param internal_consistency: boolean flag to check internal consistency
+    :param sbml_level: set SBML level for model generation
+    :param sbml_version: set SBML version for model generation
+
+    :return: FactoryResult
+    """
+    if output_dir is None and tmp is False:
+        raise TypeError("create_model() missing 1 required argument: 'output_dir'")
+
+    # preprocess
+    logger.info(
+        bcolors.OKBLUE
+        + "\n\n"
+        + "-" * 120
+        + "\n"
+        + str(models)
+        + "\n"
+        + "-" * 120
+        + bcolors.ENDC
+    )
+
+    model = Model.merge_models(models)
+    doc: libsbml.SBMLDocument = Document(
+        model=model,
+        sbml_level=sbml_level,
+        sbml_version=sbml_version,
+    ).create_sbml()
+
+    if not filename:
+        # create filename
+        if mid is None:
+            mid = model.sid
+        if suffix is None:
+            suffix = ""
+        filename = f"{mid}{suffix}.xml"
+
+    if tmp:
+        output_dir = tempfile.mkdtemp()  # type: ignore
+        sbml_path = os.path.join(output_dir, filename)  # type: ignore
+    else:
+        if isinstance(output_dir, str):
+            output_dir = Path(output_dir)
+            logger.warning(f"'output_dir' should be a Path: {output_dir}")
+
+        if not output_dir.exists():  # type: ignore
+            logger.warning(f"'output_dir' does not exist and is created: {output_dir}")
+            output_dir.mkdir(parents=True)  # type: ignore
+        sbml_path = output_dir / filename  # type: ignore
+
+    # write sbml
+    try:
+        write_sbml(
+            doc=doc,
+            filepath=sbml_path,  # type: ignore
+            validate=validate,
+            log_errors=log_errors,
+            units_consistency=units_consistency,
+            modeling_practice=modeling_practice,
+            internal_consistency=internal_consistency,
+        )
+
+        # annotate
+        if annotations is not None:
+            # overwrite the normal file
+            annotator.annotate_sbml(
+                source=sbml_path, annotations_path=annotations, filepath=sbml_path
+                # type: ignore
+            )
+
+        # create report
+        if create_report:
+            # file is already validated, no validation on report needed
+            sbmlreport.create_report(
+                sbml_path=sbml_path, validate=False  # type: ignore
+            )
+    finally:
+        if tmp:
+            shutil.rmtree(str(output_dir))
+
+    return FactoryResult(
+        sbml_path=sbml_path,  # type: ignore
+        model=model
+    )
