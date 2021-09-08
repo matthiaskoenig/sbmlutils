@@ -9,6 +9,7 @@ from sbmlutils.creator import FactoryResult, create_model
 from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.factory import *
 
+
 # -------------------------------------------------------------------------------------
 # packages: List[str] = ['fbc']
 mid: str = "minimal_model"
