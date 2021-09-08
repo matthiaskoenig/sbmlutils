@@ -341,10 +341,12 @@ class Sbase:
         return f"<{class_name}[{self.sid}]{name}>"
 
     @staticmethod
-    def _process_annotations(
-        annotation_objects: Optional[List[Union[Annotation, Tuple[str, str]]]]
-    ) -> List[Annotation]:
-        """Process annotation variants."""
+    def _process_annotations(annotation_objects: AnnotationsType) -> List[Annotation]:
+        """Process annotation information.
+
+        Various annotation formats are supported which have to be unified at some
+        point. This function is performing the annotation normalization.
+        """
         annotations: List[Annotation] = []
         if annotation_objects is not None:
             for annotation_obj in annotation_objects:
@@ -398,7 +400,7 @@ class Sbase:
                     sbo_exists = True
                     continue
             if not sbo_exists:
-                processed_annotations.append(sbo_annotation)
+                processed_annotations = [sbo_annotation] + processed_annotations
 
         for annotation in processed_annotations:
             ModelAnnotator.annotate_sbase(sbase=obj, annotation=annotation)
