@@ -33,6 +33,7 @@ import xmltodict  # type: ignore
 from libsbml import DISTRIB_UNCERTTYPE_MEAN as UNCERTTYPE_MEAN
 from libsbml import DISTRIB_UNCERTTYPE_RANGE as UNCERTTYPE_RANGE
 from libsbml import DISTRIB_UNCERTTYPE_STANDARDDEVIATION as UNCERTTYPE_STANDARDDEVIATION
+from pydantic import BaseModel
 
 import sbmlutils.history as history
 from sbmlutils.equation import Equation
@@ -40,7 +41,7 @@ from sbmlutils.io import write_sbml
 from sbmlutils.metadata import BQB, BQM, SBO, annotator
 from sbmlutils.metadata.annotator import Annotation, ModelAnnotator
 from sbmlutils.report import sbmlreport
-from sbmlutils.utils import bcolors, deprecated
+from sbmlutils.utils import FrozenClass, bcolors, deprecated
 from sbmlutils.validation import check
 
 
@@ -2311,8 +2312,41 @@ class Port(SbaseRef):
         super(Port, self)._set_fields(obj, model)
 
 
-class Model(Sbase):
+class Model(Sbase, FrozenClass, BaseModel):
     """Model."""
+
+    sid: str
+    name: Optional[str]
+    sboTerm: Optional[str]
+    metaId: Optional[str]
+    annotations: AnnotationsType
+    notes: NotesType
+    packages: Optional[List[str]]
+    creators: Optional[List[Creator]]
+    model_units: Optional[ModelUnits]
+    external_model_definitions: Optional[List[ExternalModelDefinition]]
+    model_definitions: Optional[List[ModelDefinition]]
+    submodels: Optional[List[Submodel]]
+    units: Optional[List[ModelUnits]]
+    functions: Optional[List[Function]]
+    compartments: Optional[List[Compartment]]
+    species: Optional[List[Species]]
+    parameters: Optional[List[Parameter]]
+    assignments: Optional[List[InitialAssignment]]
+    rules: Optional[List[Rule]]
+    rate_rules: Optional[List[RateRule]]
+    reactions: Optional[List[Reaction]]
+    events: Optional[List[Event]]
+    constraints: Optional[List[Constraint]]
+    ports: Optional[List[Port]]
+    replaced_elements: Optional[List[ReplacedElement]]
+    deletions: Optional[List[Deletion]]
+    objectives: Optional[List[Objective]]
+    layouts: Optional[List]
+
+    class Config:
+        # pydantic configuration
+        arbitrary_types_allowed = True
 
     _keys = {
         "packages": list,
@@ -2366,7 +2400,7 @@ class Model(Sbase):
 
                 # !everything else is overwritten
                 else:
-                    model.key = value
+                    setattr(model, key, value)
 
         return model
 
@@ -2389,7 +2423,8 @@ class Model(Sbase):
         compartments: Optional[List[Compartment]] = None,
         species: Optional[List[Species]] = None,
         parameters: Optional[List[Parameter]] = None,
-        assignments: Optional[List[AssignmentRule]] = None,
+        assignments: Optional[List[InitialAssignment]] = None,
+        rules: Optional[List[Rule]] = None,
         rate_rules: Optional[List[RateRule]] = None,
         reactions: Optional[List[Reaction]] = None,
         events: Optional[List[Event]] = None,
@@ -2422,6 +2457,7 @@ class Model(Sbase):
         self.species = species
         self.parameters = parameters
         self.assignments = assignments
+        self.rules = rules
         self.rate_rules = rate_rules
         self.reactions = reactions
         self.events = events
@@ -2431,6 +2467,8 @@ class Model(Sbase):
         self.deletions = deletions
         self.objectives = objectives
         self.layouts = layouts
+
+        self._freeze()  # no new attributes after this point
 
     def create_sbml(self, doc: libsbml.SBMLDocument) -> libsbml.Model:
         """Create Model.
