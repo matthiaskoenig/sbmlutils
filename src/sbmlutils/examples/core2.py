@@ -1,15 +1,14 @@
 """Example model for creating an SBML ODE model."""
 from typing import List
 
-from sbmlutils.creator import create_model
 from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
 from sbmlutils.factory import *
 from sbmlutils.metadata.sbo import *
 from sbmlutils.units import *
 
 
-mid = "core_example2"
-notes = Notes(
+_m = Model("core_example2")
+_m.notes = Notes(
     [
         """
     <h1>sbmlutils {}</h1>
@@ -19,7 +18,7 @@ notes = Notes(
         templates.terms_of_use,
     ]
 )
-creators = [
+_m.creators = [
     Creator(
         familyName="Koenig",
         givenName="Matthias",
@@ -28,8 +27,7 @@ creators = [
         site="https://livermetabolism.com",
     )
 ]
-
-model_units = ModelUnits(
+_m.model_units = ModelUnits(
     time=UNIT_min,
     extent=UNIT_mmole,
     substance=UNIT_mmole,
@@ -37,7 +35,7 @@ model_units = ModelUnits(
     area=UNIT_m2,
     volume=UNIT_KIND_LITRE,
 )
-units = [
+_m.units = [
     UNIT_m,
     UNIT_m2,
     UNIT_min,
@@ -45,12 +43,8 @@ units = [
     UNIT_mM,
     UNIT_mmole_per_min,
 ]
-
-functions: List[Function] = []
-
-compartments = [Compartment("c", 1.0, unit=UNIT_KIND_LITRE)]
-
-species = [
+_m.compartments = [Compartment("c", 1.0, unit=UNIT_KIND_LITRE)]
+_m.species = [
     Species(
         "S1",
         initialConcentration=5.0,
@@ -62,7 +56,7 @@ species = [
     )
 ]
 
-parameters = [
+_m.parameters = [
     Parameter(
         "R1_Km", name="Km R1", value=0.1, unit=UNIT_mM, sboTerm=SBO.MICHAELIS_CONSTANT
     ),
@@ -74,7 +68,7 @@ parameters = [
         sboTerm=SBO.MAXIMAL_VELOCITY,
     ),
 ]
-assignments = [
+_m.assignments = [
     InitialAssignment("S1", "10.0 mM", UNIT_mM),
 ]
 
@@ -82,7 +76,7 @@ assignments = [
 def create(tmp: bool = False) -> None:
     """Create model."""
     create_model(
-        modules=["sbmlutils.examples.core2"],
+        models=_m,
         output_dir=EXAMPLE_RESULTS_DIR,
         tmp=tmp,
     )

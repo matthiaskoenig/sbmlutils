@@ -1,19 +1,18 @@
 """AssignmentRule and InitialAssignment example."""
-from sbmlutils.creator import create_model
 from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
 from sbmlutils.factory import *
 from sbmlutils.units import *
 
 
-mid = "assignment_example"
-creators = templates.creators
-notes = Notes(
+_m = Model("assignment_example")
+_m.creators = templates.creators
+_m.notes = Notes(
     [
         """<p>Example model for testing InitialAssignments in roadrunner.</p>""",
         templates.terms_of_use,
     ]
 )
-model_units = ModelUnits(
+_m.model_units = ModelUnits(
     time=UNIT_hr,
     extent=UNIT_mg,
     substance=UNIT_mg,
@@ -21,7 +20,7 @@ model_units = ModelUnits(
     area=UNIT_m2,
     volume=UNIT_KIND_LITRE,
 )
-units = [
+_m.units = [
     UNIT_kg,
     UNIT_hr,
     UNIT_mg,
@@ -67,7 +66,7 @@ units = [
     ),
 ]
 
-parameters = [
+_m.parameters = [
     # dosing
     Parameter("Ave", 0, "mg", constant=False),
     Parameter("D", 0, "mg", constant=False),
@@ -79,19 +78,19 @@ parameters = [
     Parameter("FVve", 0.0514, "litre_per_kg", True),
 ]
 
-assignments = [
+_m.assignments = [
     InitialAssignment("Ave", "IVDOSE", "mg"),
     InitialAssignment("D", "PODOSE", "mg"),
 ]
 
-rules = [
+_m.rules = [
     # concentrations
     AssignmentRule("Cve", "Ave/Vve", "mg_per_litre"),
     # volumes
     AssignmentRule("Vve", "BW*FVve", UNIT_KIND_LITRE),
 ]
 
-rate_rules = [
+_m.rate_rules = [
     RateRule("Ave", "- k1*Cve", "mg_per_h"),
 ]
 
@@ -99,7 +98,7 @@ rate_rules = [
 def create(tmp: bool = False) -> None:
     """Create model."""
     create_model(
-        modules=["sbmlutils.examples.assignment"],
+        models=_m,
         output_dir=EXAMPLE_RESULTS_DIR,
         tmp=tmp,
     )

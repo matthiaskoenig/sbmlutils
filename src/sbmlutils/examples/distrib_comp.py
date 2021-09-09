@@ -6,17 +6,16 @@ from pathlib import Path
 import libsbml
 
 from sbmlutils.comp import flatten_sbml
-from sbmlutils.creator import create_model
 from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
 from sbmlutils.factory import *
 from sbmlutils.report import sbmlreport
 from sbmlutils.units import *
 
 
-mid = "distrib_comp_example"
-packages = ["distrib", "comp"]
-creators = templates.creators
-notes = Notes(
+_m = Model("distrib_comp_example")
+_m.packages = ["distrib", "comp"]
+_m.creators = templates.creators
+_m.notes = Notes(
     [
         """
     <h1>sbmlutils {}</h1>
@@ -26,7 +25,7 @@ notes = Notes(
         templates.terms_of_use,
     ]
 )
-model_units = ModelUnits(
+_m.model_units = ModelUnits(
     time=UNIT_hr,
     extent=UNIT_KIND_MOLE,
     substance=UNIT_KIND_MOLE,
@@ -34,13 +33,13 @@ model_units = ModelUnits(
     area=UNIT_m2,
     volume=UNIT_KIND_LITRE,
 )
-units = [
+_m.units = [
     UNIT_hr,
     UNIT_m,
     UNIT_m2,
 ]
 
-parameters = [
+_m.parameters = [
     Parameter(
         sid="p1",
         value=1.0,
@@ -78,12 +77,12 @@ def create(tmp: bool = False) -> None:
         output_dir = EXAMPLE_RESULTS_DIR
     sbml_path_flat = output_dir / "distrib_comp_example_flat.xml"
 
-    [_, _, sbml_path] = create_model(
-        modules=["sbmlutils.examples.distrib_comp"],
+    result = create_model(
+        models=_m,
         output_dir=output_dir,
     )
 
-    flatten_sbml(sbml_path, filepath=sbml_path_flat)
+    flatten_sbml(result.sbml_path, filepath=sbml_path_flat)
     # create model report
     sbmlreport.create_report(sbml_path_flat)
 

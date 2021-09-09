@@ -6,9 +6,8 @@ from sbmlutils.metadata.miriam import *
 from sbmlutils.metadata.sbo import *
 from sbmlutils.units import *
 
-
-mid = "annotation_example"
-notes = Notes(
+_m = Model(sid="annotation_example")
+_m.notes = Notes(
     [
         """
     <h1>Model with inline annotations</h1>
@@ -19,9 +18,9 @@ notes = Notes(
         templates.terms_of_use,
     ]
 )
-creators = templates.creators
+_m.creators = templates.creators
 
-model_units = ModelUnits(
+_m.model_units = ModelUnits(
     time=UNIT_s,
     extent=UNIT_KIND_MOLE,
     substance=UNIT_KIND_MOLE,
@@ -29,9 +28,9 @@ model_units = ModelUnits(
     area=UNIT_m2,
     volume=UNIT_m3,
 )
-units = [UNIT_kg, UNIT_s, UNIT_m, UNIT_m2, UNIT_m3, UNIT_mM, UNIT_mole_per_s]
+_m.units = [UNIT_kg, UNIT_s, UNIT_m, UNIT_m2, UNIT_m3, UNIT_mM, UNIT_mole_per_s]
 
-compartments = [
+_m.compartments = [
     Compartment(
         sid="ext",
         value="Vol_e",
@@ -69,7 +68,7 @@ compartments = [
     ),
 ]
 
-species = [
+_m.species = [
     Species(
         sid="e__gal",
         compartment="ext",
@@ -95,7 +94,7 @@ species = [
     ),
 ]
 
-parameters = [
+_m.parameters = [
     Parameter(sid="x_cell", value=25e-6, unit="m", constant=True, name="cell diameter"),
     Parameter(
         sid="Vol_e", value=100e-14, unit="m3", constant=True, name="external volume"
@@ -103,11 +102,11 @@ parameters = [
     Parameter(sid="A_m", value=1.0, unit="m2", constant=True, name="membrane area"),
 ]
 
-assignments = [
+_m.assignments = [
     InitialAssignment(sid="Vol_c", value="x_cell*x_cell*x_cell", unit="m3"),
 ]
 
-reactions = [
+_m.reactions = [
     Reaction(
         sid="e__GLUT2_GAL",
         name="galactose transport [e__]",
@@ -134,7 +133,7 @@ reactions = [
 def create(tmp: bool = False) -> None:
     """Create model."""
     create_model(
-        modules=["sbmlutils.examples.annotation"],
+        models=_m,
         output_dir=EXAMPLE_RESULTS_DIR,
         tmp=tmp,
     )
