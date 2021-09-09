@@ -7,9 +7,10 @@ from pathlib import Path
 from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.factory import *
 
+
 model_minimal = Model(
     sid="minimal_model",
-    packages=['fbc'],
+    packages=["fbc"],
     compartments=[
         Compartment(sid="cell", value=1.0, port=True),
     ],
@@ -22,7 +23,7 @@ model_minimal = Model(
     ],
     reactions=[
         Reaction(sid="J0", equation="S1 -> S2", formula="k1 * S2"),
-    ]
+    ],
 )
 
 

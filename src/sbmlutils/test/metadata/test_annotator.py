@@ -72,7 +72,9 @@ def test_model_annotation(tmp_path: Path) -> None:
         ],
     }
 
-    results = create_model(model_dict, output_dir=tmp_path, filename="annotation1.xml")
+    results = create_model(
+        Model(**model_dict), output_dir=tmp_path, filename="annotation1.xml"
+    )
     # check annotations
     doc: libsbml.SBMLDocument = read_sbml(source=results.sbml_path)
     model: libsbml.Model = doc.getModel()

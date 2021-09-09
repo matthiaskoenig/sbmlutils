@@ -29,7 +29,7 @@ _m = Model(
         length=UNIT_m,
         area=UNIT_m2,
         volume=UNIT_m3,
-    )
+    ),
 )
 
 _m.units = [UNIT_kg, UNIT_s, UNIT_m, UNIT_m2, UNIT_m3, UNIT_mM, UNIT_mole_per_s]

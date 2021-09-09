@@ -6,8 +6,8 @@ import libsbml
 import numpy as np
 import pytest
 
-from sbmlutils.factory import *
 from sbmlutils import factory
+from sbmlutils.factory import *
 from sbmlutils.io import read_sbml
 
 
@@ -80,12 +80,12 @@ def test_compartment_value(
     value: Any, constant: bool, expected: Dict, tmp_path: Path
 ) -> None:
     m1 = {
-        "mid": "compartment_value",
+        "sid": "compartment_value",
         "compartments": [Compartment(sid="C", value=value, constant=constant)],
     }
 
     result = create_model(
-        modules=m1,
+        models=Model(**m1),
         output_dir=tmp_path,
         units_consistency=False,
     )
@@ -118,12 +118,12 @@ def test_parameter_value(
     value: Any, constant: bool, expected: Dict, tmp_path: Path
 ) -> None:
     m1 = {
-        "mid": "parameter_value",
+        "sid": "parameter_value",
         "parameters": [Parameter(sid="p", value=value, constant=constant)],
     }
 
     result = create_model(
-        modules=m1,
+        models=Model(**m1),
         output_dir=tmp_path,
         units_consistency=False,
     )

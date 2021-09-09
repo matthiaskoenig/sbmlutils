@@ -2,9 +2,10 @@
 from pathlib import Path
 
 from sbmlutils.cytoscape import visualize_sbml
+from sbmlutils.examples.minimal_example.minimal_model import model_minimal
 from sbmlutils.factory import *
 from sbmlutils.metadata import *
-from minimal_model import model_minimal
+
 
 model = Model(
     sid="model_composition",
@@ -14,7 +15,7 @@ model = Model(
     ],
     reactions=[
         Reaction(sid="J1", equation="-> S1", formula="k2"),
-    ]
+    ],
 )
 
 

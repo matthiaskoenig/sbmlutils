@@ -21,7 +21,6 @@ def check_model(model: Model) -> libsbml.SBMLDocument:
     """Check that no errors in given model."""
     # create model and print SBML
     doc: libsbml.SBMLDocument = Document(model=model).create_sbml()
-    model.create_sbml()
 
     assert doc
     vresults = validate_doc(doc, units_consistency=False)

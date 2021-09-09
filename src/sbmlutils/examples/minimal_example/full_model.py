@@ -38,7 +38,7 @@ model = Model(
         length=UNIT_m,
         area=UNIT_m2,
         volume=UNIT_KIND_LITRE,
-    )
+    ),
 )
 model.units = [
     UNIT_m,

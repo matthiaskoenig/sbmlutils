@@ -16,37 +16,31 @@ To create complete models one should use the modelcreator functionality,
 which takes care of the order of object creation.
 """
 
-import logging
-from collections import namedtuple
-from typing import Any, Dict, List, Optional, Tuple, Union
-
-from copy import deepcopy
-import numpy as np
-from libsbml import DISTRIB_UNCERTTYPE_MEAN as UNCERTTYPE_MEAN
-from libsbml import DISTRIB_UNCERTTYPE_RANGE as UNCERTTYPE_RANGE
-from libsbml import DISTRIB_UNCERTTYPE_STANDARDDEVIATION as UNCERTTYPE_STANDARDDEVIATION
-
 import json
 import logging
 import os
 import shutil
 import tempfile
+from collections import namedtuple
+from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, NamedTuple, Optional, Union
+from typing import Any, Dict, Iterable, List, NamedTuple, Optional, Tuple, Union
 
 import libsbml
+import numpy as np
 import xmltodict  # type: ignore
+from libsbml import DISTRIB_UNCERTTYPE_MEAN as UNCERTTYPE_MEAN
+from libsbml import DISTRIB_UNCERTTYPE_RANGE as UNCERTTYPE_RANGE
+from libsbml import DISTRIB_UNCERTTYPE_STANDARDDEVIATION as UNCERTTYPE_STANDARDDEVIATION
 
 import sbmlutils.history as history
-from sbmlutils.io import write_sbml
-from sbmlutils.metadata import annotator
-from sbmlutils.report import sbmlreport
-from sbmlutils.utils import bcolors
 from sbmlutils.equation import Equation
-from sbmlutils.metadata import BQB, BQM, SBO
+from sbmlutils.io import write_sbml
+from sbmlutils.metadata import BQB, BQM, SBO, annotator
 from sbmlutils.metadata.annotator import Annotation, ModelAnnotator
-from sbmlutils.utils import deprecated
+from sbmlutils.report import sbmlreport
+from sbmlutils.utils import bcolors, deprecated
 from sbmlutils.validation import check
 
 
@@ -177,7 +171,7 @@ Core information
 """
 UnitType = Optional[Union[str, libsbml.UnitDefinition, "Unit"]]
 AnnotationsType = Optional[List[Union[Annotation, Tuple[Union[BQB, BQM], str]]]]
-NotesType = Optional[Union[str, 'Notes']]
+NotesType = Optional[Union[str, "Notes"]]
 PortType = Any  # Union[bool, Port]
 
 
@@ -1899,8 +1893,12 @@ class ModelDefinition(Sbase):
     ):
         """Create a ModelDefinition."""
         super(ModelDefinition, self).__init__(
-            sid=sid, name=name, sboTerm=sboTerm, metaId=metaId,
-            annotations=annotations, notes=notes
+            sid=sid,
+            name=name,
+            sboTerm=sboTerm,
+            metaId=metaId,
+            annotations=annotations,
+            notes=notes,
         )
         self.units = units
         self.compartments = compartments
@@ -1964,8 +1962,12 @@ class ExternalModelDefinition(Sbase):
     ):
         """Create an ExternalModelDefinition."""
         super(ExternalModelDefinition, self).__init__(
-            sid=sid, name=name, sboTerm=sboTerm, metaId=metaId,
-            annotations=annotations, notes=notes
+            sid=sid,
+            name=name,
+            sboTerm=sboTerm,
+            metaId=metaId,
+            annotations=annotations,
+            notes=notes,
         )
         self.source = source
         self.modelRef = modelRef
@@ -2007,8 +2009,12 @@ class Submodel(Sbase):
     ):
         """Create a Submodel."""
         super(Submodel, self).__init__(
-            sid=sid, name=name, sboTerm=sboTerm, metaId=metaId,
-            annotations=annotations, notes=notes,
+            sid=sid,
+            name=name,
+            sboTerm=sboTerm,
+            metaId=metaId,
+            annotations=annotations,
+            notes=notes,
         )
         self.modelRef = modelRef
         self.timeConversionFactor = timeConversionFactor
@@ -2050,8 +2056,12 @@ class SbaseRef(Sbase):
     ):
         """Create an SBaseRef."""
         super(SbaseRef, self).__init__(
-            sid=sid, name=name, sboTerm=sboTerm, metaId=metaId,
-            annotations=annotations, notes=notes
+            sid=sid,
+            name=name,
+            sboTerm=sboTerm,
+            metaId=metaId,
+            annotations=annotations,
+            notes=notes,
         )
         self.portRef = portRef
         self.idRef = idRef
@@ -2217,7 +2227,7 @@ class Deletion(SbaseRef):
             sboTerm=sboTerm,
             metaId=metaId,
             annotations=annotations,
-            notes = notes,
+            notes=notes,
         )
         self.submodelRef = submodelRef
 
@@ -2311,7 +2321,6 @@ class Model(Sbase):
         "annotations": None,
         "notes": None,
         "creators": list,
-
         "model_units": None,
         "external_model_definitions": list,
         "model_definitions": list,
@@ -2335,7 +2344,7 @@ class Model(Sbase):
     }
 
     @staticmethod
-    def merge_models(models: List['Model']) -> 'Model':
+    def merge_models(models: List["Model"]) -> "Model":
         """Merge information from multiple models."""
         if isinstance(models, Model):
             return models
@@ -2369,13 +2378,11 @@ class Model(Sbase):
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
         notes: NotesType = None,
-
         packages: Optional[List[str]] = None,
         creators: Optional[List[Creator]] = None,
         model_units: Optional[ModelUnits] = None,
         external_model_definitions: Optional[List[ExternalModelDefinition]] = None,
         model_definitions: Optional[List[ModelDefinition]] = None,
-
         submodels: Optional[List[Submodel]] = None,
         units: Optional[List[ModelUnits]] = None,
         functions: Optional[List[Function]] = None,
@@ -2392,7 +2399,6 @@ class Model(Sbase):
         deletions: Optional[List[Deletion]] = None,
         objectives: Optional[List[Objective]] = None,
         layouts: Optional[List] = None,
-
     ):
         super(Model, self).__init__(
             sid=sid,
@@ -2561,12 +2567,13 @@ class Document(Sbase):
 @dataclass
 class FactoryResult:
     """Results structure when creating SBML models with sbmlutils."""
+
     sbml_path: Path
-    model: 'Model'
+    model: "Model"
 
 
 def create_model(
-    models: Union['Model', List['Model']],
+    models: Union["Model", List["Model"]],
     output_dir: Path = None,
     tmp: bool = False,
     filename: str = None,
@@ -2666,7 +2673,9 @@ def create_model(
         if annotations is not None:
             # overwrite the normal file
             annotator.annotate_sbml(
-                source=sbml_path, annotations_path=annotations, filepath=sbml_path
+                source=sbml_path,
+                annotations_path=annotations,
+                filepath=sbml_path
                 # type: ignore
             )
 
@@ -2680,7 +2689,4 @@ def create_model(
         if tmp:
             shutil.rmtree(str(output_dir))
 
-    return FactoryResult(
-        sbml_path=sbml_path,  # type: ignore
-        model=model
-    )
+    return FactoryResult(sbml_path=sbml_path, model=model)  # type: ignore

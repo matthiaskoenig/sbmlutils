@@ -4,6 +4,7 @@ from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
 from sbmlutils.factory import *
 from sbmlutils.units import *
 
+
 model = Model(
     sid="amount_species_example",
     notes=Notes(
@@ -20,7 +21,7 @@ model = Model(
         ]
     ),
     creators=templates.creators,
-    model_units = ModelUnits(
+    model_units=ModelUnits(
         time=UNIT_s,
         substance=UNIT_mmole,
         extent=UNIT_mmole,
@@ -65,7 +66,7 @@ model = Model(
             formula=("k1 * Aglc", UNIT_mmole_per_s),
         )
     ],
-    assignments=[AssignmentRule("Vc", "2.0 m3 * exp(time/1 s)")]
+    assignments=[AssignmentRule("Vc", "2.0 m3 * exp(time/1 s)")],
 )
 
 

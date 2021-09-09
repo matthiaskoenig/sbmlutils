@@ -4,7 +4,6 @@ from pathlib import Path
 import pytest
 from libsbml import UNIT_KIND_LITER, UNIT_KIND_LITRE, UNIT_KIND_METER, UNIT_KIND_METRE
 
-
 from sbmlutils.factory import *
 from sbmlutils.io import validate_sbml
 
@@ -14,7 +13,7 @@ def test_model_units_litre(unit: UnitType, tmp_path: Path) -> None:
     """Test that volume can be set with litre and liter."""
     model = Model(
         sid="example_model",
-        model_units= ModelUnits(
+        model_units=ModelUnits(
             volume=unit,
         ),
     )
@@ -34,13 +33,13 @@ def test_model_units_litre(unit: UnitType, tmp_path: Path) -> None:
 def test_model_units_metre(unit: UnitType, tmp_path: Path) -> None:
     """Test that length can be set with metre and meter."""
     md = {
-        "mid": "example_model",
+        "sid": "example_model",
         "model_units": ModelUnits(
             length=unit,
         ),
     }
     results = create_model(
-        modules=md,
+        Model(**md),
         output_dir=tmp_path,
         tmp=False,
         sbml_level=3,

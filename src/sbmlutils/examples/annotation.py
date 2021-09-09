@@ -6,6 +6,7 @@ from sbmlutils.metadata.miriam import *
 from sbmlutils.metadata.sbo import *
 from sbmlutils.units import *
 
+
 _m = Model(sid="annotation_example")
 _m.notes = Notes(
     [

@@ -7,6 +7,7 @@ from sbmlutils.factory import *
 from sbmlutils.metadata import *
 from sbmlutils.units import *
 
+
 model = Model(
     sid="tiny_example",
     packages=["fbc"],
@@ -241,7 +242,9 @@ model.parameters = [
 # -----------------------------------------------------------------------------
 # FunctionDefinitions
 # -----------------------------------------------------------------------------
-model.functions = [Function(sid="f_oscillation", value="lambda(x, cos(x/10 dimensionless))")]
+model.functions = [
+    Function(sid="f_oscillation", value="lambda(x, cos(x/10 dimensionless))")
+]
 
 # -----------------------------------------------------------------------------
 # Assignments
@@ -251,7 +254,9 @@ model.assignments = [InitialAssignment("glc", "4.5 mM")]
 # -----------------------------------------------------------------------------
 # Rules
 # -----------------------------------------------------------------------------
-model.rules = [AssignmentRule("a_sum", "atp + adp", unit="mM", name="ATP + ADP balance")]
+model.rules = [
+    AssignmentRule("a_sum", "atp + adp", unit="mM", name="ATP + ADP balance")
+]
 
 # -----------------------------------------------------------------------------
 # Reactions
