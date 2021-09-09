@@ -1,14 +1,13 @@
 """Distrib example demonstrating distributions."""
-from sbmlutils.creator import create_model
 from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
 from sbmlutils.factory import *
 from sbmlutils.units import *
 
 
-mid = "distributions_example"
-packages = ["distrib"]
-creators = templates.creators
-notes = Notes(
+_m = Model("distributions_example")
+_m.packages = ["distrib"]
+_m.creators = templates.creators
+_m.notes = Notes(
     [
         """
     <h1>sbmlutils {}</h1>
@@ -18,7 +17,7 @@ notes = Notes(
         templates.terms_of_use,
     ]
 )
-model_units = ModelUnits(
+_m.model_units = ModelUnits(
     time=UNIT_hr,
     extent=UNIT_KIND_MOLE,
     substance=UNIT_KIND_MOLE,
@@ -26,13 +25,13 @@ model_units = ModelUnits(
     area=UNIT_m2,
     volume=UNIT_KIND_LITRE,
 )
-units = [
+_m.units = [
     UNIT_hr,
     UNIT_m,
     UNIT_m2,
 ]
 
-assignments = [
+_m.assignments = [
     InitialAssignment("p_normal_1", "normal(0, 1)"),
     InitialAssignment("p_normal_2", "normal(0, 1, 0, 10)"),
     InitialAssignment("p_uniform", "uniform(5, 10)"),
@@ -61,7 +60,7 @@ assignments = [
 def create(tmp: bool = False) -> None:
     """Create model."""
     create_model(
-        modules=["sbmlutils.examples.distrib_distributions"],
+        models=_m,
         output_dir=EXAMPLE_RESULTS_DIR,
         tmp=tmp,
         units_consistency=False,

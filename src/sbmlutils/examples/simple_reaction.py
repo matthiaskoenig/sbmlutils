@@ -2,17 +2,14 @@
 
 Model with single irreversible reaction v1: A -> B.
 """
-from pathlib import Path
-
-from sbmlutils.creator import create_model
 from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
 from sbmlutils.factory import *
-from sbmlutils.metadata.sbo import *
+from sbmlutils.metadata import *
 from sbmlutils.units import *
 
 
-mid = "simple_reaction"
-notes = Notes(
+_m = Model("simple_reaction")
+_m.notes = Notes(
     [
         """
     <h1>Koenig example model: simple reaction</h1>
@@ -23,9 +20,9 @@ notes = Notes(
         templates.terms_of_use,
     ]
 )
-creators = templates.creators
+_m.creators = templates.creators
 
-model_units = ModelUnits(
+_m.model_units = ModelUnits(
     time=UNIT_s,
     extent=UNIT_mmole,
     substance=UNIT_mmole,
@@ -33,15 +30,15 @@ model_units = ModelUnits(
     area=UNIT_m2,
     volume=UNIT_KIND_LITRE,
 )
-units = [UNIT_s, UNIT_m, UNIT_m2, UNIT_mM, UNIT_mmole, UNIT_mmole_per_s]
+_m.units = [UNIT_s, UNIT_m, UNIT_m2, UNIT_mM, UNIT_mmole, UNIT_mmole_per_s]
 
-compartments = [
+_m.compartments = [
     Compartment(
         sid="cell", value="1.0", unit=UNIT_KIND_LITRE, constant=True, name="cell"
     ),
 ]
 
-species = [
+_m.species = [
     Species(
         sid="A",
         compartment="cell",
@@ -62,7 +59,7 @@ species = [
     ),
 ]
 
-reactions = [
+_m.reactions = [
     Reaction(
         sid="v1",
         name="v1: A -> B",
@@ -83,7 +80,7 @@ reactions = [
 def create(tmp: bool = False) -> None:
     """Create model."""
     create_model(
-        modules=["sbmlutils.examples.simple_reaction"],
+        models=_m,
         output_dir=EXAMPLE_RESULTS_DIR,
         tmp=tmp,
     )

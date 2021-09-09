@@ -4,10 +4,9 @@ from sbmlutils.factory import *
 from sbmlutils.units import *
 
 
-mid = "Koenig_demo"
-packages = ["fbc"]
-version = 14
-notes = Notes(
+_m = Model("Koenig_demo_v14")
+_m.packages = ["fbc"]
+_m.notes = Notes(
     [
         """
     <h1>Koenig Demo Metabolism</h1>
@@ -20,9 +19,9 @@ notes = Notes(
         templates.terms_of_use,
     ]
 )
-creators = templates.creators
+_m.creators = templates.creators
 
-model_units = ModelUnits(
+_m.model_units = ModelUnits(
     time=UNIT_KIND_SECOND,
     substance=UNIT_KIND_MOLE,
     extent=UNIT_KIND_MOLE,
@@ -30,7 +29,7 @@ model_units = ModelUnits(
     area=UNIT_m2,
     volume=UNIT_m3,
 )
-units = [
+_m.units = [
     Unit("s", [(UNIT_KIND_SECOND, 1.0)]),
     Unit("kg", [(UNIT_KIND_KILOGRAM, 1.0)]),
     Unit("m", [(UNIT_KIND_METRE, 1.0)]),
@@ -40,7 +39,7 @@ units = [
     Unit("mole_per_s", [(UNIT_KIND_MOLE, 1.0), (UNIT_KIND_SECOND, -1.0)]),
 ]
 
-compartments = [
+_m.compartments = [
     Compartment(
         sid="e", value=1e-06, unit="m3", constant=False, name="external compartment"
     ),
@@ -57,7 +56,7 @@ compartments = [
     ),
 ]
 
-species = [
+_m.species = [
     Species(
         sid="c__A",
         compartment="c",
@@ -114,7 +113,7 @@ species = [
     ),
 ]
 
-parameters = [
+_m.parameters = [
     Parameter(
         "scale_f", value=1e-6, unit="-", constant=True, name="metabolic scaling factor"
     ),
@@ -132,7 +131,7 @@ parameters = [
     Parameter("Keq_v4", 2.0, "-", True),
 ]
 
-reactions = [
+_m.reactions = [
     Reaction(
         sid="bA",
         name="bA (A import)",
@@ -204,3 +203,5 @@ reactions = [
         ),
     ),
 ]
+
+demo_model = _m

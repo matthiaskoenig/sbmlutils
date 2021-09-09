@@ -1,15 +1,14 @@
 """Create reaction example."""
 import numpy as np
 
-from sbmlutils.creator import create_model
 from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
 from sbmlutils.factory import *
-from sbmlutils.metadata.sbo import *
+from sbmlutils.metadata import *
 from sbmlutils.units import *
 
 
-mid = "reaction_example"
-notes = Notes(
+_m = Model("reaction_example")
+_m.notes = Notes(
     [
         """
     <h1>Koenig sbmlutils example</h1>
@@ -20,13 +19,13 @@ notes = Notes(
         templates.terms_of_use,
     ]
 )
-creators = templates.creators
+_m.creators = templates.creators
 
-compartments = [
+_m.compartments = [
     Compartment(sid="c", name="cytosol", value=np.NaN),
 ]
 
-species = [
+_m.species = [
     Species(
         sid="x",
         compartment="c",
@@ -41,7 +40,7 @@ species = [
     ),
 ]
 
-reactions = [
+_m.reactions = [
     Reaction(
         sid="v1",
         equation="x -> y",
@@ -53,7 +52,7 @@ reactions = [
 def create(tmp: bool = False) -> None:
     """Create model."""
     create_model(
-        modules=["sbmlutils.examples.reaction"],
+        models=_m,
         output_dir=EXAMPLE_RESULTS_DIR,
         tmp=tmp,
         units_consistency=False,

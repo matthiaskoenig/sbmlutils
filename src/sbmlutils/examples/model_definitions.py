@@ -1,22 +1,21 @@
 """Multiple model definitions."""
 from typing import List
 
-from sbmlutils.creator import create_model
 from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
 from sbmlutils.factory import *
 from sbmlutils.units import *
 
 
-mid = "model_definitions_example"
-creators = templates.creators
-notes = Notes(
+_m = Model("model_definitions_example")
+_m.creators = templates.creators
+_m.notes = Notes(
     [
         """<p>Example model with multiple ModelDefinitions.</p>""",
         templates.terms_of_use,
     ]
 )
 
-model_units = ModelUnits(
+_m.model_units = ModelUnits(
     time=UNIT_min,
     extent=UNIT_mmole,
     substance=UNIT_mmole,
@@ -24,17 +23,17 @@ model_units = ModelUnits(
     area=UNIT_m2,
     volume=UNIT_KIND_LITRE,
 )
-units = [
+_m.units = [
     UNIT_min,
     UNIT_mmole,
     UNIT_m,
     UNIT_m2,
 ]
-for unit in units:
+for unit in _m.units:
     unit.port = False
 
-compartments = [Compartment("c", value=2.0, unit=UNIT_KIND_LITRE)]
-species = [
+_m.compartments = [Compartment("c", value=2.0, unit=UNIT_KIND_LITRE)]
+_m.species = [
     Species(
         "A1",
         initialAmount=1.0,
@@ -49,7 +48,7 @@ modelDefinitions: List[ModelDefinition] = [
     ModelDefinition(
         sid="m1",
         name="Model Definition 1",
-        units=units,
+        units=_m.units,
         compartments=[Compartment("d", value=1.0, unit=UNIT_KIND_LITRE)],
         species=[
             Species(
@@ -68,7 +67,7 @@ modelDefinitions: List[ModelDefinition] = [
 def create(tmp: bool = False) -> None:
     """Create model."""
     create_model(
-        modules=["sbmlutils.examples.model_definitions"],
+        models=_m,
         output_dir=EXAMPLE_RESULTS_DIR,
         tmp=tmp,
     )

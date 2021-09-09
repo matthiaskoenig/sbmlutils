@@ -1,16 +1,15 @@
 """Distrib uncertainty example."""
 import libsbml
 
-from sbmlutils.creator import create_model
 from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
 from sbmlutils.factory import *
 from sbmlutils.units import *
 
 
-mid = "uncertainty_example"
-packages = ["distrib"]
-creators = templates.creators
-notes = Notes(
+_m = Model("uncertainty_example")
+_m.packages = ["distrib"]
+_m.creators = templates.creators
+_m.notes = Notes(
     [
         """
     <h1>sbmlutils {}</h1>
@@ -21,7 +20,7 @@ notes = Notes(
     ]
 )
 
-model_units = ModelUnits(
+_m.model_units = ModelUnits(
     time=UNIT_hr,
     extent=UNIT_KIND_MOLE,
     substance=UNIT_KIND_MOLE,
@@ -29,13 +28,13 @@ model_units = ModelUnits(
     area=UNIT_m2,
     volume=UNIT_KIND_LITRE,
 )
-units = [
+_m.units = [
     UNIT_hr,
     UNIT_m,
     UNIT_m2,
 ]
 
-parameters = [
+_m.parameters = [
     Parameter(
         sid="p1",
         value=1.0,
@@ -66,7 +65,7 @@ parameters = [
 def create(tmp: bool = False) -> None:
     """Create model."""
     create_model(
-        modules=["sbmlutils.examples.distrib_uncertainty"],
+        models=_m,
         output_dir=EXAMPLE_RESULTS_DIR,
         tmp=tmp,
     )

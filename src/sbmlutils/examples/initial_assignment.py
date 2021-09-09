@@ -1,19 +1,18 @@
 """Simple assignment test case."""
-from sbmlutils.creator import create_model
 from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
 from sbmlutils.factory import *
 from sbmlutils.units import *
 
 
-mid = "initial_assignment_example"
-creators = templates.creators
-notes = Notes(
+_m = Model("initial_assignment_example")
+_m.creators = templates.creators
+_m.notes = Notes(
     [
         """<p>Example model for testing InitialAssignments in roadrunner.</p>""",
         templates.terms_of_use,
     ]
 )
-model_units = ModelUnits(
+_m.model_units = ModelUnits(
     time=UNIT_min,
     extent=UNIT_mmole,
     substance=UNIT_mmole,
@@ -21,14 +20,14 @@ model_units = ModelUnits(
     area=UNIT_m2,
     volume=UNIT_KIND_LITRE,
 )
-units = [
+_m.units = [
     UNIT_min,
     UNIT_mmole,
     UNIT_m,
     UNIT_m2,
 ]
-compartments = [Compartment("c", value=2.0, unit=UNIT_KIND_LITRE)]
-species = [
+_m.compartments = [Compartment("c", value=2.0, unit=UNIT_KIND_LITRE)]
+_m.species = [
     Species(
         "A1",
         initialAmount=1.0,
@@ -38,10 +37,10 @@ species = [
         hasOnlySubstanceUnits=True,
     )
 ]
-parameters = [
+_m.parameters = [
     Parameter("D", 5.0, UNIT_mmole, constant=True),
 ]
-assignments = [
+_m.assignments = [
     InitialAssignment("A1", "D * 2 dimensionless", UNIT_mmole),
 ]
 
@@ -49,7 +48,7 @@ assignments = [
 def create(tmp: bool = False) -> None:
     """Create model."""
     create_model(
-        modules=["sbmlutils.examples.initial_assignment"],
+        models=_m,
         output_dir=EXAMPLE_RESULTS_DIR,
         tmp=tmp,
     )

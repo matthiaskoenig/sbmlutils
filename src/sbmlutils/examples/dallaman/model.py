@@ -8,9 +8,8 @@ from sbmlutils.units import *
 
 
 # ---------------------------------------------------------------------------------------------------------------------
-mid = "DallaMan2006"
-version = 3
-notes = Notes(
+_m = Model("DallaMan2006_v3")
+_m.notes = Notes(
     [
         """
     <h1>DallaMan2006 - Glucose Insulin System</h1>
@@ -45,12 +44,12 @@ glucose, insulin secretion.</p>
         templates.terms_of_use,
     ]
 )
-creators = templates.creators
+_m.creators = templates.creators
 
 # ---------------------------------------------------------------------------------------------------------------------
 # Units
 # ---------------------------------------------------------------------------------------------------------------------
-model_units = ModelUnits(
+_m.model_units = ModelUnits(
     time=UNIT_min,
     extent=UNIT_KIND_MOLE,
     substance=UNIT_KIND_MOLE,
@@ -58,7 +57,7 @@ model_units = ModelUnits(
     area=UNIT_m2,
     volume=UNIT_m3,
 )
-units = [
+_m.units = [
     Unit("kg", [(UNIT_KIND_KILOGRAM, 1.0)]),
     Unit("m", [(UNIT_KIND_METRE, 1.0)]),
     Unit("m2", [(UNIT_KIND_METRE, 2.0)]),
@@ -136,7 +135,7 @@ units = [
     ),
 ]
 
-parameters = [
+_m.parameters = [
     # state variables (initial values)
     Parameter("Gp", 178, "mg_per_kg", constant=False, name="glucose plasma"),
     Parameter("Gt", 135, "mg_per_kg", constant=False, name="glucose tissue"),
@@ -217,7 +216,7 @@ parameters = [
 # ---------------------------------------------------------------------------------------------------------------------
 # Rules
 # ---------------------------------------------------------------------------------------------------------------------
-rate_rules = [
+_m.rate_rules = [
     # rate rules d/dt
     RateRule("Gp", "EGP +Ra -U_ii -E -k_1*Gp +k_2*Gt", "mg_per_kgmin"),
     RateRule("Gt", "-U_id + k_1*Gp -k_2*Gt", "mg_per_kgmin"),
@@ -233,7 +232,7 @@ rate_rules = [
     RateRule("Y", "-alpha*(Y-beta*(G-G_b))", "?"),
 ]
 
-rules = [
+_m.rules = [
     AssignmentRule("aa", "5/2/(1-b)/D", "?"),
     AssignmentRule("cc", "5/2/d/D", "?"),
     AssignmentRule(
@@ -274,3 +273,5 @@ rules = [
     AssignmentRule("U", "U_ii+U_id", "mg_per_kgmin", name="U glucose uptake"),
     AssignmentRule("S_po", "Y+K*(EGP+Ra-E-U_ii-k_1*Gp+k_2*Gt)/V_G+S_b", "?"),
 ]
+
+dallaman_model = _m

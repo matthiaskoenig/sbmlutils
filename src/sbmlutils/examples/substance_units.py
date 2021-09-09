@@ -1,16 +1,14 @@
 """Example for substance units."""
-from pathlib import Path
 from typing import List
 
-from sbmlutils.creator import create_model
 from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
 from sbmlutils.factory import *
 from sbmlutils.metadata.sbo import *
 from sbmlutils.units import *
 
 
-mid = "substance_units"
-notes = Notes(
+_m = Model("substance_units")
+_m.notes = Notes(
     [
         """
     <h1>Example model for substance units</h1>
@@ -21,9 +19,9 @@ notes = Notes(
         templates.terms_of_use,
     ]
 )
-creators = templates.creators
+_m.creators = templates.creators
 
-model_units = ModelUnits(
+_m.model_units = ModelUnits(
     time=UNIT_min,
     extent=UNIT_mmole,
     substance=UNIT_mmole,
@@ -31,7 +29,7 @@ model_units = ModelUnits(
     area=UNIT_m2,
     volume=UNIT_KIND_LITRE,
 )
-units = [
+_m.units = [
     UNIT_kg,
     UNIT_min,
     UNIT_m,
@@ -44,15 +42,15 @@ units = [
     UNIT_per_min,
 ]
 
-compartments: List[Compartment] = [
+_m.compartments: List[Compartment] = [
     Compartment(sid="cyto", value=1.0, unit=UNIT_KIND_LITRE, name="cytosol"),
 ]
 
-parameters: List[Parameter] = [
+_m.parameters: List[Parameter] = [
     Parameter(sid="cf_units_per_mmole", value=1.0, unit=UNIT_per_mmole)
 ]
 
-species: List[Species] = [
+_m.species: List[Species] = [
     Species(
         sid="glc",
         compartment="cyto",
@@ -83,7 +81,7 @@ species: List[Species] = [
     ),
 ]
 
-reactions = [
+_m.reactions = [
     Reaction(
         sid="HEX1SYNTHESIS",
         name="hexokinase synthesis",
@@ -134,7 +132,7 @@ reactions = [
 def create(tmp: bool = False) -> None:
     """Create model."""
     create_model(
-        modules=["sbmlutils.examples.substance_units"],
+        models=_m,
         output_dir=EXAMPLE_RESULTS_DIR,
         tmp=tmp,
     )

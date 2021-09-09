@@ -1,15 +1,14 @@
 """FBA example with exchange reactions."""
-from sbmlutils.creator import create_model
 from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
 from sbmlutils.factory import *
 from sbmlutils.metadata.sbo import *
 from sbmlutils.units import *
 
 
-mid = "fbc_example1"
-packages = ["fbc"]
-creators = templates.creators
-notes = Notes(
+_m = Model("fbc_example1")
+_m.packages = ["fbc"]
+_m.creators = templates.creators
+_m.notes = Notes(
     [
         """
     <h1>sbmlutils {}</h1>
@@ -30,7 +29,7 @@ UNIT_TIME = "h"
 UNIT_CONCENTRATION = "mmol_per_l"
 UNIT_FLUX = "mmol_per_h"
 
-model_units = ModelUnits(
+_m.model_units = ModelUnits(
     time=UNIT_hr,
     extent=UNIT_KIND_MOLE,
     substance=UNIT_KIND_MOLE,
@@ -38,7 +37,7 @@ model_units = ModelUnits(
     area=UNIT_m2,
     volume=UNIT_m3,
 )
-units = [
+_m.units = [
     UNIT_hr,
     UNIT_m,
     UNIT_m2,
@@ -75,7 +74,7 @@ units = [
 # -----------------------------------------------------------------------------
 # Compartments
 # -----------------------------------------------------------------------------
-compartments = [
+_m.compartments = [
     Compartment(
         sid="bioreactor",
         value=1.0,
@@ -88,7 +87,7 @@ compartments = [
 # -----------------------------------------------------------------------------
 # Species
 # -----------------------------------------------------------------------------
-species = [
+_m.species = [
     Species(
         sid="Glcxt",
         name="glucose",
@@ -132,7 +131,7 @@ FLUX_BOUND_MINUS_INF = "lb_inf"
 FLUX_BOUND_GLC_IMPORT = "glc_import"
 FLUX_BOUND_O2_IMPORT = "o2_import"
 
-parameters = [
+_m.parameters = [
     # bounds
     Parameter(
         sid=FLUX_BOUND_ZERO,
@@ -180,7 +179,7 @@ parameters = [
 # Reactions
 # -----------------------------------------------------------------------------
 # metabolic reactions
-reactions = [
+_m.reactions = [
     Reaction(
         sid="v1",
         name="v1 (39.43 Ac + 35 O2 -> X)",
@@ -203,14 +202,14 @@ reactions = [
     ),
 ]
 
-for rt in reactions:
+for rt in _m.reactions:
     if rt.sid in ["v1", "v2", "v3", "v4"]:
         rt.compartment = "bioreactor"
         rt.lowerFluxBound = FLUX_BOUND_ZERO
         rt.upperFluxBound = FLUX_BOUND_PLUS_INF
 
 # exchange reactions
-reactions.extend(
+_m.reactions.extend(
     [
         ExchangeReaction(
             species_id="Ac",
@@ -239,7 +238,7 @@ reactions.extend(
 # -----------------------------------------------------------------------------
 # Objective function
 # -----------------------------------------------------------------------------
-objectives = [
+_m.objectives = [
     Objective(
         sid="biomass_max",
         objectiveType="maximize",
@@ -252,7 +251,7 @@ objectives = [
 def create(tmp: bool = False) -> None:
     """Create model."""
     create_model(
-        modules=["sbmlutils.examples.fbc1"],
+        models=_m,
         output_dir=EXAMPLE_RESULTS_DIR,
         tmp=tmp,
     )

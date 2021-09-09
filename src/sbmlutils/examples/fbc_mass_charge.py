@@ -1,6 +1,5 @@
 """FBC mass and charge example."""
 
-from sbmlutils.creator import create_model
 from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
 from sbmlutils.factory import *
 from sbmlutils.metadata.miriam import *
@@ -8,33 +7,34 @@ from sbmlutils.metadata.sbo import *
 from sbmlutils.units import *
 
 
-mid = "mass_charge_example"
-packages = ["fbc"]
-notes = Notes(
-    [
-        """
-    <h1>Model demonstrating mass and charge balance</h1>
-    <h2>Description</h2>
-    <p>Test model demonstrating inline annotations.
-    </p>
-    """,
-        templates.terms_of_use,
-    ]
+_m = Model(
+    sid="mass_charge_example",
+    packages=["fbc"],
+    notes=Notes(
+        [
+            """
+        <h1>Model demonstrating mass and charge balance</h1>
+        <h2>Description</h2>
+        <p>Test model demonstrating inline annotations.
+        </p>
+        """,
+            templates.terms_of_use,
+        ]
+    ),
+    creators=templates.creators,
+    model_units=ModelUnits(
+        time=UNIT_s,
+        extent=UNIT_KIND_MOLE,
+        substance=UNIT_KIND_MOLE,
+        length=UNIT_m,
+        area=UNIT_m2,
+        volume=UNIT_m3,
+    )
 )
-creators = templates.creators
 
+_m.units = [UNIT_kg, UNIT_s, UNIT_m, UNIT_m2, UNIT_m3, UNIT_mM, UNIT_mole_per_s]
 
-model_units = ModelUnits(
-    time=UNIT_s,
-    extent=UNIT_KIND_MOLE,
-    substance=UNIT_KIND_MOLE,
-    length=UNIT_m,
-    area=UNIT_m2,
-    volume=UNIT_m3,
-)
-units = [UNIT_kg, UNIT_s, UNIT_m, UNIT_m2, UNIT_m3, UNIT_mM, UNIT_mole_per_s]
-
-compartments = [
+_m.compartments = [
     Compartment(
         sid="cyto",
         value="1.0 m3",
@@ -48,7 +48,7 @@ compartments = [
         ],
     )
 ]
-species = [
+_m.species = [
     Species(
         sid="glc",
         compartment="cyto",
@@ -111,11 +111,11 @@ species = [
     ),
 ]
 
-parameters = [
+_m.parameters = [
     Parameter(sid="HEX1_v", value=1.0, unit="mole_per_s"),
 ]
 
-reactions = [
+_m.reactions = [
     Reaction(
         sid="HEX1",
         name="Hexokinase (D-Glucose:ATP)",
@@ -134,7 +134,7 @@ reactions = [
 ]
 
 # write custom annotations:
-for s in species:
+for s in _m.species:
     if s.sid == "glc":
         for item in [
             "bigg.metabolite/glc__D",
@@ -146,7 +146,7 @@ for s in species:
                 s.annotations = []
             s.annotations.append((BQB.IS, item))
 
-for r in reactions:
+for r in _m.reactions:
     if r.sid == "HEX1":
         for item in [
             "ec-code/2.7.1.1",
@@ -162,7 +162,7 @@ for r in reactions:
 def create(tmp: bool = False) -> None:
     """Create model."""
     create_model(
-        modules=["sbmlutils.examples.fbc_mass_charge"],
+        models=_m,
         output_dir=EXAMPLE_RESULTS_DIR,
         tmp=tmp,
     )

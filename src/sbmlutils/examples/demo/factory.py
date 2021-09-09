@@ -1,15 +1,15 @@
 """Create demo model."""
 from pathlib import Path
 
-from sbmlutils.creator import create_model
-from sbmlutils.examples.demo import model
+from sbmlutils.examples.demo.model import demo_model
+from sbmlutils.factory import create_model
 
 
 def create(tmp: bool = False) -> None:
     """Create model."""
     output_dir = Path(__file__).parent
     create_model(
-        modules=["sbmlutils.examples.demo.model"],
+        models=demo_model,
         output_dir=output_dir / "results",
         annotations=output_dir / "demo_annotations.xlsx",
         tmp=tmp,
@@ -17,9 +17,9 @@ def create(tmp: bool = False) -> None:
 
     # without annotations
     create_model(
-        modules=["sbmlutils.examples.demo.model"],
+        models=demo_model,
         output_dir=output_dir / "results",
-        mid="{}_{}_{}".format(model.mid, model.version, "no_annotations"),
+        mid=f"{demo_model.sid}_no_annotations",
         tmp=tmp,
     )
 
