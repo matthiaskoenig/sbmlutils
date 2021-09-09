@@ -3,7 +3,6 @@ from pathlib import Path
 
 import pytest
 
-from sbmlutils.creator import create_model
 from sbmlutils.factory import *
 from sbmlutils.io import read_sbml
 

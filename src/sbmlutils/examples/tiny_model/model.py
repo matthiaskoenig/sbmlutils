@@ -7,45 +7,46 @@ from sbmlutils.factory import *
 from sbmlutils.metadata import *
 from sbmlutils.units import *
 
-
-mid = "tiny_example"
-packages = ["fbc"]
-version = 12
-notes = Notes(
-    [
-        """
-    <h2>Description</h2>
-    <p>A minimal example in <a href="http://sbml.org" target="_blank">SBML</a> format.
-    </p>
-    <div class="dc:provenance">The content of this model has been carefully created in a manual research effort.</div>
-    <div class="dc:publisher">This file has been created by
-    <a href="http://sbml.org" title="SBML team" target="_blank">SBML team</a>.</div>
-
-    <h2>Terms of use</h2>
-    <div class="dc:rightsHolder">Copyright © 2019 SBML team.</div>
-    <div class="dc:license">
-        <p>Redistribution and use of any part of this model, with or without modification, are permitted provided
-        that the following conditions are met:
-        <ol>
-          <li>Redistributions of this SBML file must retain the above copyright notice, this list of conditions and
-          the following disclaimer.</li>
-          <li>Redistributions in a different form must reproduce the above copyright notice, this list of conditions
-          and the following disclaimer in the documentation and/or other materials provided
-          with the distribution.</li>
-        </ol>
-        This model is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
-        implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+model = Model(
+    sid="tiny_example",
+    packages=["fbc"],
+    notes=Notes(
+        [
+            """
+        <h2>Description</h2>
+        <p>A minimal example in <a href="http://sbml.org" target="_blank">SBML</a> format.
         </p>
-    </div>
-    """
-    ]
+        <div class="dc:provenance">The content of this model has been carefully created in a manual research effort.</div>
+        <div class="dc:publisher">This file has been created by
+        <a href="http://sbml.org" title="SBML team" target="_blank">SBML team</a>.</div>
+
+        <h2>Terms of use</h2>
+        <div class="dc:rightsHolder">Copyright © 2019 SBML team.</div>
+        <div class="dc:license">
+            <p>Redistribution and use of any part of this model, with or without modification, are permitted provided
+            that the following conditions are met:
+            <ol>
+              <li>Redistributions of this SBML file must retain the above copyright notice, this list of conditions and
+              the following disclaimer.</li>
+              <li>Redistributions in a different form must reproduce the above copyright notice, this list of conditions
+              and the following disclaimer in the documentation and/or other materials provided
+              with the distribution.</li>
+            </ol>
+            This model is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+            implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+            </p>
+        </div>
+        """
+        ]
+    ),
+    creators=templates.creators,
 )
-creators = templates.creators
+
 
 # -----------------------------------------------------------------------------
 # Units
 # -----------------------------------------------------------------------------
-model_units = ModelUnits(
+model.model_units = ModelUnits(
     time=UNIT_KIND_SECOND,
     extent="mmole",
     substance="mmole",
@@ -53,7 +54,7 @@ model_units = ModelUnits(
     area="m2",
     volume=UNIT_KIND_LITRE,
 )
-units = [
+model.units = [
     Unit("m2", [(UNIT_KIND_METRE, 2.0)]),
     Unit("mmole", [(UNIT_KIND_MOLE, 1, -3, 1.0)]),
     Unit("mM", [(UNIT_KIND_MOLE, 1, -3, 1.0), (UNIT_KIND_LITRE, -1.0)]),
@@ -63,7 +64,7 @@ units = [
 # -----------------------------------------------------------------------------
 # Compartments
 # -----------------------------------------------------------------------------
-compartments = [
+model.compartments = [
     Compartment(
         sid="c",
         value=1e-5,
@@ -77,7 +78,7 @@ compartments = [
 # -----------------------------------------------------------------------------
 # Species
 # -----------------------------------------------------------------------------
-species = [
+model.species = [
     Species(
         sid="glc",
         compartment="c",
@@ -164,7 +165,7 @@ species = [
 # -----------------------------------------------------------------------------
 # Parameters
 # -----------------------------------------------------------------------------
-parameters = [
+model.parameters = [
     Parameter(
         "Vmax_GK",
         1.0e-6,
@@ -240,22 +241,22 @@ parameters = [
 # -----------------------------------------------------------------------------
 # FunctionDefinitions
 # -----------------------------------------------------------------------------
-functions = [Function(sid="f_oscillation", value="lambda(x, cos(x/10 dimensionless))")]
+model.functions = [Function(sid="f_oscillation", value="lambda(x, cos(x/10 dimensionless))")]
 
 # -----------------------------------------------------------------------------
 # Assignments
 # -----------------------------------------------------------------------------
-assignments = [InitialAssignment("glc", "4.5 mM")]
+model.assignments = [InitialAssignment("glc", "4.5 mM")]
 
 # -----------------------------------------------------------------------------
 # Rules
 # -----------------------------------------------------------------------------
-rules = [AssignmentRule("a_sum", "atp + adp", unit="mM", name="ATP + ADP balance")]
+model.rules = [AssignmentRule("a_sum", "atp + adp", unit="mM", name="ATP + ADP balance")]
 
 # -----------------------------------------------------------------------------
 # Reactions
 # -----------------------------------------------------------------------------
-reactions = [
+model.reactions = [
     Reaction(
         sid="GK",
         name="Glucokinase",
@@ -312,7 +313,7 @@ reactions = [
 # -----------------------------------------------------------------------------
 # Objective function
 # -----------------------------------------------------------------------------
-objectives = [
+model.objectives = [
     Objective(
         sid="atp_consume_max",
         objectiveType="maximize",
@@ -324,7 +325,7 @@ objectives = [
 # -----------------------------------------------------------------------------
 # Events
 # -----------------------------------------------------------------------------
-events = [
+model.events = [
     Event(
         "event_1",
         trigger="time >= 200 second",
@@ -341,7 +342,7 @@ events = [
 # -----------------------------------------------------------------------------
 # Constraints
 # -----------------------------------------------------------------------------
-constraints = [
+model.constraints = [
     Constraint(
         "constraint_1",
         math="atp >= 0 mM",
@@ -353,7 +354,7 @@ constraints = [
 # -----------------------------------------------------------------------------
 # Layout
 # -----------------------------------------------------------------------------
-layouts = [
+model.layouts = [
     layout.Layout(
         sid="layout_1",
         name="Layout 1",

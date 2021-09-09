@@ -2,7 +2,6 @@ from typing import Dict
 
 import libsbml
 
-from sbmlutils.creator import CoreModel
 from sbmlutils.distrib import distrib_examples, distrib_packages
 from sbmlutils.factory import *
 from sbmlutils.metadata import *
@@ -18,27 +17,27 @@ def test_add_uncertainty_example() -> None:
     distrib_packages.add_uncertainty_example(tmp=True)
 
 
-def check_model_dict(d: Dict) -> libsbml.SBMLDocument:
-    """Check that no errors."""
+def check_model(model: Model) -> libsbml.SBMLDocument:
+    """Check that no errors in given model."""
     # create model and print SBML
-    core_model = CoreModel.from_dict(model_dict=d)
-    core_model.create_sbml()
-    assert core_model.doc is not None
-    vresults = validate_doc(core_model.doc, units_consistency=False)
+    doc: libsbml.SBMLDocument = Document(model=model).create_sbml()
+    model.create_sbml()
+
+    assert doc
+    vresults = validate_doc(doc, units_consistency=False)
 
     # debugging
     if vresults.error_count > 0:
-        doc: libsbml.SBMLDocument = core_model.doc
         error_log: libsbml.SBMLErrorLog = doc.getErrorLog()
         print(error_log.toString())
 
     assert vresults.is_valid()
-    return core_model.doc
+    return doc
 
 
 def test_assign_distribution() -> None:
     model_dict = {
-        "mid": "distrib_assignment",
+        "sid": "distrib_assignment",
         "packages": ["distrib"],
         "model_units": ModelUnits(
             time=UNIT_hr,
@@ -54,12 +53,13 @@ def test_assign_distribution() -> None:
             InitialAssignment("p1", "normal(0 mM, 1 mM)"),
         ],
     }
-    check_model_dict(model_dict)
+    model: Model = Model(**model_dict)
+    check_model(model)
 
 
 def test_normal_distribution() -> None:
     model_dict = {
-        "mid": "normal",
+        "sid": "normal",
         "packages": ["distrib"],
         "parameters": [
             Parameter("y", value=1.0),
@@ -69,12 +69,12 @@ def test_normal_distribution() -> None:
             InitialAssignment("y", "normal(z, 10)"),
         ],
     }
-    check_model_dict(model_dict)
+    check_model(Model(**model_dict))
 
 
 def test_trunctated_normal_distribution() -> None:
     model_dict = {
-        "mid": "truncated_normal",
+        "sid": "truncated_normal",
         "packages": ["distrib"],
         "parameters": [
             Parameter("y", value=1.0),
@@ -84,12 +84,12 @@ def test_trunctated_normal_distribution() -> None:
             InitialAssignment("y", "normal(z, 10, z-2, z+2)"),
         ],
     }
-    check_model_dict(model_dict)
+    check_model(Model(**model_dict))
 
 
 def test_conditional_event() -> None:
     model_dict = {
-        "mid": "conditional_events",
+        "sid": "conditional_events",
         "packages": ["distrib"],
         "parameters": [Parameter("x", value=1.0, constant=False)],
         "events": [
@@ -111,12 +111,12 @@ def test_conditional_event() -> None:
             ),
         ],
     }
-    check_model_dict(model_dict)
+    check_model(Model(**model_dict))
 
 
 def test_overview_distributions() -> None:
     model_dict = {
-        "mid": "all_distributions",
+        "sid": "all_distributions",
         "packages": ["distrib"],
         "assignments": [
             InitialAssignment("p_normal_1", "normal(0, 1)"),
@@ -143,14 +143,14 @@ def test_overview_distributions() -> None:
             InitialAssignment("p_raleigh_2", "rayleigh(0.5, 0, 10)"),
         ],
     }
-    check_model_dict(model_dict)
+    check_model(Model(**model_dict))
 
 
 def test_basic_uncertainty_example() -> None:
     import libsbml
 
     model_dict = {
-        "mid": "basic_example_1",
+        "sid": "basic_example_1",
         "packages": ["distrib"],
         "compartments": [Compartment("C", value=1.0)],
         "species": [
@@ -171,12 +171,12 @@ def test_basic_uncertainty_example() -> None:
             )
         ],
     }
-    check_model_dict(model_dict)
+    check_model(Model(**model_dict))
 
 
 def test_multiple_uncertainties() -> None:
     model_dict = {
-        "mid": "multiple_uncertainties",
+        "sid": "multiple_uncertainties",
         "packages": ["distrib"],
         "model_units": ModelUnits(
             time=UNIT_hr,
@@ -246,7 +246,7 @@ def test_multiple_uncertainties() -> None:
             InitialAssignment("p1", "normal(0 mM, 1 mM)"),
         ],
     }
-    doc: libsbml.SBMLDocument = check_model_dict(model_dict)
+    doc: libsbml.SBMLDocument = check_model(Model(**model_dict))
     assert doc
     model: libsbml.Model = doc.getModel()
     assert model
@@ -269,7 +269,7 @@ def test_define_random_variable() -> None:
     import libsbml
 
     model_dict = {
-        "mid": "random_variable",
+        "sid": "random_variable",
         "packages": ["distrib"],
         "parameters": [
             Parameter("shape_Z", value=10.0),
@@ -293,12 +293,12 @@ def test_define_random_variable() -> None:
             ),
         ],
     }
-    check_model_dict(model_dict)
+    check_model(Model(**model_dict))
 
 
 def test_parameters_and_spans() -> None:
     model_dict = {
-        "mid": "parameters_spans",
+        "sid": "parameters_spans",
         "packages": ["distrib"],
         "parameters": [
             Parameter(
@@ -367,12 +367,12 @@ def test_parameters_and_spans() -> None:
             )
         ],
     }
-    check_model_dict(model_dict)
+    check_model(Model(**model_dict))
 
 
 def test_sabiork_uncertainty() -> None:
     model_dict = {
-        "mid": "sabiork_parameter",
+        "sid": "sabiork_parameter",
         "packages": ["distrib"],
         "model_units": ModelUnits(
             time=UNIT_hr,
@@ -434,4 +434,4 @@ def test_sabiork_uncertainty() -> None:
             )
         ],
     }
-    check_model_dict(model_dict)
+    check_model(Model(**model_dict))

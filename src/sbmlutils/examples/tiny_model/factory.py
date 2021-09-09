@@ -7,14 +7,16 @@ The MEMOTE report can be created via
 
 from pathlib import Path
 
-from sbmlutils.creator import FactoryResult, create_model
+from sbmlutils.factory import FactoryResult, create_model
+from sbmlutils.examples.tiny_model.model import model
 
 
 def create(tmp: bool = False) -> FactoryResult:
     """Create model."""
     models_dir = Path(__file__).parent
+
     return create_model(
-        modules=["sbmlutils.examples.tiny_model.model"],
+        models=model,
         output_dir=models_dir / "results",
         annotations=models_dir / "annotations.xlsx",
         tmp=tmp,

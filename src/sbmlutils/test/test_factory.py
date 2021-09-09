@@ -6,9 +6,8 @@ import libsbml
 import numpy as np
 import pytest
 
-from sbmlutils import factory
-from sbmlutils.creator import create_model
 from sbmlutils.factory import *
+from sbmlutils import factory
 from sbmlutils.io import read_sbml
 
 

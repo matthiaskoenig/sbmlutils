@@ -7,9 +7,8 @@ from typing import Iterable
 
 import libsbml
 
-from sbmlutils.creator import create_model
 from sbmlutils.examples import annotation as annotation_example
-from sbmlutils.factory import Compartment
+from sbmlutils.factory import *
 from sbmlutils.io.sbml import read_sbml
 from sbmlutils.metadata import SBO, annotator
 from sbmlutils.metadata.annotator import ExternalAnnotation, ModelAnnotator
@@ -60,7 +59,7 @@ def test_model_annotator() -> None:
 def test_model_annotation(tmp_path: Path) -> None:
     """Create minimal model and check that annotation is written correctly."""
     model_dict = {
-        "mid": "example_annotation",
+        "sid": "example_annotation",
         "compartments": [
             Compartment(
                 sid="C",
@@ -72,6 +71,7 @@ def test_model_annotation(tmp_path: Path) -> None:
             )
         ],
     }
+
     results = create_model(model_dict, output_dir=tmp_path, filename="annotation1.xml")
     # check annotations
     doc: libsbml.SBMLDocument = read_sbml(source=results.sbml_path)

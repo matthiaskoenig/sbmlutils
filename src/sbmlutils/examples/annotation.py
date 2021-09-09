@@ -1,6 +1,5 @@
 """Example model with meta-data annotations."""
 
-from sbmlutils.creator import create_model
 from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
 from sbmlutils.factory import *
 from sbmlutils.metadata.miriam import *

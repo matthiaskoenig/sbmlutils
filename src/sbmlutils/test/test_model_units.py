@@ -4,22 +4,22 @@ from pathlib import Path
 import pytest
 from libsbml import UNIT_KIND_LITER, UNIT_KIND_LITRE, UNIT_KIND_METER, UNIT_KIND_METRE
 
-from sbmlutils.creator import create_model
-from sbmlutils.factory import ModelUnits, UnitType
+
+from sbmlutils.factory import *
 from sbmlutils.io import validate_sbml
 
 
 @pytest.mark.parametrize("unit", [UNIT_KIND_LITER, UNIT_KIND_LITRE])
 def test_model_units_litre(unit: UnitType, tmp_path: Path) -> None:
     """Test that volume can be set with litre and liter."""
-    md = {
-        "mid": "example_model",
-        "model_units": ModelUnits(
+    model = Model(
+        sid="example_model",
+        model_units= ModelUnits(
             volume=unit,
         ),
-    }
+    )
     results = create_model(
-        modules=md,
+        models=model,
         output_dir=tmp_path,
         tmp=False,
         sbml_level=3,

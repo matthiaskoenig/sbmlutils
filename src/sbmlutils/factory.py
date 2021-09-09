@@ -91,7 +91,8 @@ __all__ = [
     "Model",
     "Document",
     "FactoryResult",
-    "create_model"
+    "create_model",
+    "UnitType",
 ]
 
 logger = logging.getLogger(__name__)
@@ -2426,7 +2427,12 @@ class Model(Sbase):
         self.layouts = layouts
 
     def create_sbml(self, doc: libsbml.SBMLDocument) -> libsbml.Model:
-        """Create Model."""
+        """Create Model.
+
+        To create the complete SBMLDocument with the model use:
+
+          doc = Document(model=model).create_sbml()
+        """
         model: libsbml.Model = doc.createModel()
         self._set_fields(model, model)
 
@@ -2509,16 +2515,17 @@ class Document(Sbase):
         # FIXME: only add packages which are required for the model
         supported_packages = {"fbc", "comp", "distrib"}
         sbmlns.addPackageNamespace("comp", 1)
-        for package in self.model.packages:
-            if package not in supported_packages:
-                raise ValueError(
-                    f"Supported packages are: '{supported_packages}', "
-                    f"but package '{package}' found."
-                )
-            if package == "fbc":
-                sbmlns.addPackageNamespace("fbc", 2)
-            if package == "distrib":
-                sbmlns.addPackageNamespace("distrib", 1)
+        if self.model.packages:
+            for package in self.model.packages:
+                if package not in supported_packages:
+                    raise ValueError(
+                        f"Supported packages are: '{supported_packages}', "
+                        f"but package '{package}' found."
+                    )
+                if package == "fbc":
+                    sbmlns.addPackageNamespace("fbc", 2)
+                if package == "distrib":
+                    sbmlns.addPackageNamespace("distrib", 1)
 
         self.doc = libsbml.SBMLDocument(sbmlns)
 
@@ -2526,12 +2533,13 @@ class Document(Sbase):
         sbml_model: libsbml.Model = self.model.create_sbml(self.doc)
 
         self.doc.setPackageRequired("comp", True)
-        if "fbc" in self.model.packages:
-            self.doc.setPackageRequired("fbc", False)
-            fbc_plugin = sbml_model.getPlugin("fbc")
-            fbc_plugin.setStrict(False)
-        if "distrib" in self.model.packages:
-            self.doc.setPackageRequired("distrib", True)
+        if self.model.packages:
+            if "fbc" in self.model.packages:
+                self.doc.setPackageRequired("fbc", False)
+                fbc_plugin = sbml_model.getPlugin("fbc")
+                fbc_plugin.setStrict(False)
+            if "distrib" in self.model.packages:
+                self.doc.setPackageRequired("distrib", True)
 
         return self.doc
 

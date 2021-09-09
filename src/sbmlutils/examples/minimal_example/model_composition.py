@@ -1,6 +1,5 @@
 """Example for model compositon via multiple files."""
 from pathlib import Path
-from typing import List
 
 from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.factory import *
