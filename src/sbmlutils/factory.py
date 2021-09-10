@@ -16,6 +16,7 @@ To create complete models one should use the modelcreator functionality,
 which takes care of the order of object creation.
 """
 
+import datetime
 import json
 import logging
 import os
@@ -25,17 +26,7 @@ from collections import namedtuple
 from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
-from typing import (
-    Any,
-    Dict,
-    Iterable,
-    List,
-    NamedTuple,
-    Optional,
-    Tuple,
-    TypedDict,
-    Union,
-)
+from typing import Any, Dict, List, Optional, Tuple, TypedDict, Union
 
 import libsbml
 import numpy as np
@@ -45,13 +36,13 @@ from libsbml import DISTRIB_UNCERTTYPE_RANGE as UNCERTTYPE_RANGE
 from libsbml import DISTRIB_UNCERTTYPE_STANDARDDEVIATION as UNCERTTYPE_STANDARDDEVIATION
 from pydantic import BaseModel
 
-import sbmlutils.history as history
 from sbmlutils.equation import Equation
 from sbmlutils.io import write_sbml
-from sbmlutils.metadata import BQB, BQM, SBO, annotator
-from sbmlutils.metadata.annotator import Annotation, ModelAnnotator
+from sbmlutils.metadata import *
+from sbmlutils.metadata import annotator
+from sbmlutils.metadata.annotator import Annotation
 from sbmlutils.report import sbmlreport
-from sbmlutils.utils import FrozenClass, bcolors, deprecated
+from sbmlutils.utils import FrozenClass, bcolors, create_metaid, deprecated
 from sbmlutils.validation import check
 
 
@@ -176,11 +167,6 @@ def ast_node_from_formula(model: libsbml.Model, formula: str) -> libsbml.ASTNode
     return ast_node
 
 
-"""
----------------------------------------------------------------------------------------
-Core information
----------------------------------------------------------------------------------------
-"""
 UnitType = Optional[Union[str, libsbml.UnitDefinition, "Unit"]]
 AnnotationsType = Optional[List[Union[Annotation, Tuple[Union[BQB, BQM], str]]]]
 NotesType = Optional[Union[str, "Notes"]]
@@ -332,6 +318,70 @@ class Creator:
         self.site = site
 
 
+def date_now() -> libsbml.Date:
+    """Get current time stamp for history.
+
+    :return: current libsbml Date
+    """
+    time = datetime.datetime.now()
+    timestr = time.strftime("%Y-%m-%dT%H:%M:%S")
+    return libsbml.Date(timestr)
+
+
+def set_model_history(sbase: libsbml.SBase, creators: List[Creator]) -> None:
+    """Set the model history from given creators.
+
+    :param sbase: SBML model
+    :param creators: list of creators
+    :return:
+    """
+    if not sbase.isSetMetaId():
+        sbase.setMetaId(create_metaid(sbase=sbase))
+
+    # create and set model history
+    h = _create_history(creators)
+    check(sbase.setModelHistory(h), "set model history")
+
+
+def _create_history(
+    creators: List[Creator], set_timestamps: bool = False
+) -> libsbml.ModelHistory:
+    """Create the model history.
+
+    Sets the create and modified date to the current time.
+    Creators are a list or dictionary with values as
+
+    :param creators:
+    :param set_timestamps:
+    :return:
+    """
+    h = libsbml.ModelHistory()
+
+    for creator in creators:
+        c = libsbml.ModelCreator()
+        if creator.familyName:
+            c.setFamilyName(creator.familyName)
+        if creator.givenName:
+            c.setGivenName(creator.givenName)
+        if creator.email:
+            c.setEmail(creator.email)
+        if creator.organization:
+            c.setOrganization(creator.organization)
+        check(h.addCreator(c), "add creator")
+
+    # create time is now
+    if set_timestamps:
+        datetime = date_now()
+        check(h.setCreatedDate(datetime), "set creation date")
+        check(h.setModifiedDate(datetime), "set modified date")
+    # else:
+    #     datetime = libsbml.Date("1900-01-01T00:00:00")
+    #     check(h.setCreatedDate(datetime), "set creation date")
+    #     check(h.setModifiedDate(datetime), "set modified date")
+
+    return h
+
+
 class Sbase:
     """Base class of all SBML objects."""
 
@@ -431,7 +481,7 @@ class Sbase:
                 processed_annotations = [sbo_annotation] + processed_annotations
 
         for annotation in processed_annotations:
-            ModelAnnotator.annotate_sbase(sbase=obj, annotation=annotation)
+            annotator.ModelAnnotator.annotate_sbase(sbase=obj, annotation=annotation)
 
         self.create_uncertainties(obj, model)
         self.create_replaced_by(obj, model)
@@ -2535,8 +2585,8 @@ class Model(Sbase, FrozenClass, BaseModel):
         self._set_fields(model, model)
 
         # history
-        if hasattr(self, "creators"):
-            history.set_model_history(model, self.creators)
+        if self.creators:
+            set_model_history(model, self.creators)
 
         # model units
         if hasattr(self, "model_units"):
@@ -2666,7 +2716,7 @@ class FactoryResult:
 
 def create_model(
     models: Union["Model", List["Model"]],
-    output_dir: Path = None,
+    output_dir: Optional[Path] = None,
     tmp: bool = False,
     filename: str = None,
     mid: str = None,
@@ -2737,9 +2787,10 @@ def create_model(
         filename = f"{mid}{suffix}.xml"
 
     if tmp:
-        output_dir = tempfile.mkdtemp()
-        sbml_path = os.path.join(output_dir, filename)
+        output_dir = Path(tempfile.mkdtemp())
     else:
+        if not output_dir:
+            raise ValueError("'output_dir' must be provided")
         if isinstance(output_dir, str):
             output_dir = Path(output_dir)
             logger.warning(f"'output_dir' should be a Path: {output_dir}")
@@ -2747,13 +2798,14 @@ def create_model(
         if not output_dir.exists():
             logger.warning(f"'output_dir' does not exist and is created: {output_dir}")
             output_dir.mkdir(parents=True)
-        sbml_path = output_dir / filename
+
+    sbml_path = output_dir / filename
 
     # write sbml
     try:
         write_sbml(
             doc=doc,
-            filepath=sbml_path,  # type: ignore
+            filepath=sbml_path,
             validate=validate,
             log_errors=log_errors,
             units_consistency=units_consistency,

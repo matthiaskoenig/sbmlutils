@@ -3,17 +3,17 @@ Test annotation functions and annotating of SBML models.
 """
 import libsbml
 
-from sbmlutils import factory, history
+from sbmlutils.factory import Creator, date_now, set_model_history
 
 
 def test_date_now() -> None:
-    now = history.date_now()
+    now = date_now()
     assert now
 
 
 def test_set_model_history() -> None:
     creators = [
-        factory.Creator(
+        Creator(
             familyName="Koenig",
             givenName="Matthias",
             email="konigmatt@googlemail.com",
@@ -23,7 +23,7 @@ def test_set_model_history() -> None:
     sbmlns = libsbml.SBMLNamespaces(3, 1)
     doc = libsbml.SBMLDocument(sbmlns)
     model = doc.createModel()
-    history.set_model_history(model, creators)
+    set_model_history(model, creators)
 
     # check if history was written correctly
     h = model.getModelHistory()
