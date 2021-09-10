@@ -42,7 +42,7 @@ def test_sbml_level_version(level: int, version: int, tmp_path: Path) -> None:
     }
 
     results = create_model(
-        models=Model(**md),
+        models=Model(**md),  # type: ignore
         output_dir=tmp_path,
         tmp=False,
         units_consistency=False,

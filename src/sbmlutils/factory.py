@@ -25,7 +25,17 @@ from collections import namedtuple
 from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, NamedTuple, Optional, Tuple, Union
+from typing import (
+    Any,
+    Dict,
+    Iterable,
+    List,
+    NamedTuple,
+    Optional,
+    Tuple,
+    TypedDict,
+    Union,
+)
 
 import libsbml
 import numpy as np
@@ -83,6 +93,7 @@ __all__ = [
     "ReplacedElement",
     "ReplacedBy",
     "Port",
+    "ModelDict",
     "Model",
     "Document",
     "FactoryResult",
@@ -1888,9 +1899,9 @@ class ModelDefinition(Sbase):
         metaId: str = None,
         annotations: AnnotationsType = None,
         notes: NotesType = None,
-        units: List[Unit] = None,
-        compartments: List[Compartment] = None,
-        species: List[Species] = None,
+        units: Optional[List[UnitType]] = None,
+        compartments: Optional[List[Compartment]] = None,
+        species: Optional[List[Species]] = None,
     ):
         """Create a ModelDefinition."""
         super(ModelDefinition, self).__init__(
@@ -2312,6 +2323,48 @@ class Port(SbaseRef):
         super(Port, self)._set_fields(obj, model)
 
 
+class ModelDict(TypedDict, total=False):
+    """ModelDict.
+
+    The ModelDict allows to define the Model as dictionary and then
+    use:
+
+      md: ModelDict
+      Model(**md)
+
+    For model construction. If possible use the Model object directly.
+    """
+
+    sid: str
+    name: Optional[str]
+    sboTerm: Optional[str]
+    metaId: Optional[str]
+    annotations: AnnotationsType
+    notes: NotesType
+    packages: Optional[List[str]]
+    creators: Optional[List[Creator]]
+    model_units: Optional[ModelUnits]
+    external_model_definitions: Optional[List[ExternalModelDefinition]]
+    model_definitions: Optional[List[ModelDefinition]]
+    submodels: Optional[List[Submodel]]
+    units: Optional[List[UnitType]]
+    functions: Optional[List[Function]]
+    compartments: Optional[List[Compartment]]
+    species: Optional[List[Species]]
+    parameters: Optional[List[Parameter]]
+    assignments: Optional[List[InitialAssignment]]
+    rules: Optional[List[Rule]]
+    rate_rules: Optional[List[RateRule]]
+    reactions: Optional[List[Reaction]]
+    events: Optional[List[Event]]
+    constraints: Optional[List[Constraint]]
+    ports: Optional[List[Port]]
+    replaced_elements: Optional[List[ReplacedElement]]
+    deletions: Optional[List[Deletion]]
+    objectives: Optional[List[Objective]]
+    layouts: Optional[List]
+
+
 class Model(Sbase, FrozenClass, BaseModel):
     """Model."""
 
@@ -2327,7 +2380,7 @@ class Model(Sbase, FrozenClass, BaseModel):
     external_model_definitions: Optional[List[ExternalModelDefinition]]
     model_definitions: Optional[List[ModelDefinition]]
     submodels: Optional[List[Submodel]]
-    units: Optional[List[ModelUnits]]
+    units: Optional[List[UnitType]]
     functions: Optional[List[Function]]
     compartments: Optional[List[Compartment]]
     species: Optional[List[Species]]
@@ -2345,7 +2398,8 @@ class Model(Sbase, FrozenClass, BaseModel):
     layouts: Optional[List]
 
     class Config:
-        # pydantic configuration
+        """Pydantic configuration."""
+
         arbitrary_types_allowed = True
 
     _keys = {
@@ -2418,7 +2472,7 @@ class Model(Sbase, FrozenClass, BaseModel):
         external_model_definitions: Optional[List[ExternalModelDefinition]] = None,
         model_definitions: Optional[List[ModelDefinition]] = None,
         submodels: Optional[List[Submodel]] = None,
-        units: Optional[List[ModelUnits]] = None,
+        units: Optional[List[UnitType]] = None,
         functions: Optional[List[Function]] = None,
         compartments: Optional[List[Compartment]] = None,
         species: Optional[List[Species]] = None,
@@ -2683,17 +2737,17 @@ def create_model(
         filename = f"{mid}{suffix}.xml"
 
     if tmp:
-        output_dir = tempfile.mkdtemp()  # type: ignore
-        sbml_path = os.path.join(output_dir, filename)  # type: ignore
+        output_dir = tempfile.mkdtemp()
+        sbml_path = os.path.join(output_dir, filename)
     else:
         if isinstance(output_dir, str):
             output_dir = Path(output_dir)
             logger.warning(f"'output_dir' should be a Path: {output_dir}")
 
-        if not output_dir.exists():  # type: ignore
+        if not output_dir.exists():
             logger.warning(f"'output_dir' does not exist and is created: {output_dir}")
-            output_dir.mkdir(parents=True)  # type: ignore
-        sbml_path = output_dir / filename  # type: ignore
+            output_dir.mkdir(parents=True)
+        sbml_path = output_dir / filename
 
     # write sbml
     try:

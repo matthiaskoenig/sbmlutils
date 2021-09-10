@@ -58,7 +58,7 @@ def test_model_annotator() -> None:
 
 def test_model_annotation(tmp_path: Path) -> None:
     """Create minimal model and check that annotation is written correctly."""
-    model_dict = {
+    model_dict: ModelDict = {
         "sid": "example_annotation",
         "compartments": [
             Compartment(

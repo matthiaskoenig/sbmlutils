@@ -24,6 +24,8 @@ _m = Model(
     ],
     reactions=[],
 )
+
+_m.reactions = []
 for k in range(n_links):
     k_source = random.randint(0, n_species - 1)
     k_target = random.randint(0, n_species - 1)

@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Any, Dict
 
 import libsbml
 
@@ -52,7 +52,7 @@ def test_assign_distribution() -> None:
             InitialAssignment("p1", "normal(0 mM, 1 mM)"),
         ],
     }
-    model: Model = Model(**model_dict)
+    model: Model = Model(**model_dict)  # type: ignore
     check_model(model)
 
 
@@ -68,7 +68,7 @@ def test_normal_distribution() -> None:
             InitialAssignment("y", "normal(z, 10)"),
         ],
     }
-    check_model(Model(**model_dict))
+    check_model(Model(**model_dict))  # type: ignore
 
 
 def test_trunctated_normal_distribution() -> None:
@@ -83,7 +83,7 @@ def test_trunctated_normal_distribution() -> None:
             InitialAssignment("y", "normal(z, 10, z-2, z+2)"),
         ],
     }
-    check_model(Model(**model_dict))
+    check_model(Model(**model_dict))  # type: ignore
 
 
 def test_conditional_event() -> None:
@@ -110,7 +110,7 @@ def test_conditional_event() -> None:
             ),
         ],
     }
-    check_model(Model(**model_dict))
+    check_model(Model(**model_dict))  # type: ignore
 
 
 def test_overview_distributions() -> None:
@@ -142,7 +142,7 @@ def test_overview_distributions() -> None:
             InitialAssignment("p_raleigh_2", "rayleigh(0.5, 0, 10)"),
         ],
     }
-    check_model(Model(**model_dict))
+    check_model(Model(**model_dict))  # type: ignore
 
 
 def test_basic_uncertainty_example() -> None:
@@ -170,7 +170,7 @@ def test_basic_uncertainty_example() -> None:
             )
         ],
     }
-    check_model(Model(**model_dict))
+    check_model(Model(**model_dict))  # type: ignore
 
 
 def test_multiple_uncertainties() -> None:
@@ -245,7 +245,7 @@ def test_multiple_uncertainties() -> None:
             InitialAssignment("p1", "normal(0 mM, 1 mM)"),
         ],
     }
-    doc: libsbml.SBMLDocument = check_model(Model(**model_dict))
+    doc: libsbml.SBMLDocument = check_model(Model(**model_dict))  # type: ignore
     assert doc
     model: libsbml.Model = doc.getModel()
     assert model
@@ -292,7 +292,7 @@ def test_define_random_variable() -> None:
             ),
         ],
     }
-    check_model(Model(**model_dict))
+    check_model(Model(**model_dict))  # type: ignore
 
 
 def test_parameters_and_spans() -> None:
@@ -366,7 +366,7 @@ def test_parameters_and_spans() -> None:
             )
         ],
     }
-    check_model(Model(**model_dict))
+    check_model(Model(**model_dict))  # type: ignore
 
 
 def test_sabiork_uncertainty() -> None:
@@ -433,4 +433,4 @@ def test_sabiork_uncertainty() -> None:
             )
         ],
     }
-    check_model(Model(**model_dict))
+    check_model(Model(**model_dict))  # type: ignore

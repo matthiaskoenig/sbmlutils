@@ -10,9 +10,5 @@ def test_model_existing_attribute() -> None:
 
 def test_model_new_attribute() -> None:
     m = Model("test")
-    with pytest.raises(AttributeError) as e_info:
+    with pytest.raises(AttributeError) as _:
         m.reaction = []
-
-
-def test_model_pydantic() -> None:
-    m = Model(1)

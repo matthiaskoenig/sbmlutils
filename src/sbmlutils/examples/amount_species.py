@@ -66,7 +66,7 @@ model = Model(
             formula=("k1 * Aglc", UNIT_mmole_per_s),
         )
     ],
-    assignments=[AssignmentRule("Vc", "2.0 m3 * exp(time/1 s)")],
+    rules=[AssignmentRule("Vc", "2.0 m3 * exp(time/1 s)")],
 )
 
 

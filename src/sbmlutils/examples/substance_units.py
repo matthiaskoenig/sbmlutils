@@ -42,15 +42,13 @@ _m.units = [
     UNIT_per_min,
 ]
 
-_m.compartments: List[Compartment] = [
+_m.compartments = [
     Compartment(sid="cyto", value=1.0, unit=UNIT_KIND_LITRE, name="cytosol"),
 ]
 
-_m.parameters: List[Parameter] = [
-    Parameter(sid="cf_units_per_mmole", value=1.0, unit=UNIT_per_mmole)
-]
+_m.parameters = [Parameter(sid="cf_units_per_mmole", value=1.0, unit=UNIT_per_mmole)]
 
-_m.species: List[Species] = [
+_m.species = [
     Species(
         sid="glc",
         compartment="cyto",

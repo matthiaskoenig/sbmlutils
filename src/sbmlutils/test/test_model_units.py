@@ -32,7 +32,7 @@ def test_model_units_litre(unit: UnitType, tmp_path: Path) -> None:
 @pytest.mark.parametrize("unit", [UNIT_KIND_METER, UNIT_KIND_METRE])
 def test_model_units_metre(unit: UnitType, tmp_path: Path) -> None:
     """Test that length can be set with metre and meter."""
-    md = {
+    md: ModelDict = {
         "sid": "example_model",
         "model_units": ModelUnits(
             length=unit,

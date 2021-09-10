@@ -32,9 +32,15 @@ class bcolors:
 
 
 class FrozenClass(object):
-    __isfrozen = False
+    """FrozenClass.
 
-    def __setattr__(self, key, value):
+    After freezing no additional attributes can be added.
+    """
+
+    __isfrozen: bool = False
+
+    def __setattr__(self, key: str, value: Any) -> None:
+        """Attribute setter."""
         if self.__isfrozen and not hasattr(self, key):
             raise AttributeError(
                 f"{self} is a frozen class, no new attributes. But "
@@ -42,7 +48,7 @@ class FrozenClass(object):
             )
         object.__setattr__(self, key, value)
 
-    def _freeze(self):
+    def _freeze(self) -> None:
         self.__isfrozen = True
 
 

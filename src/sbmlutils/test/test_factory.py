@@ -79,7 +79,7 @@ compartment_value_data = [
 def test_compartment_value(
     value: Any, constant: bool, expected: Dict, tmp_path: Path
 ) -> None:
-    m1 = {
+    m1: ModelDict = {
         "sid": "compartment_value",
         "compartments": [Compartment(sid="C", value=value, constant=constant)],
     }
@@ -117,7 +117,7 @@ parameter_value_data = [
 def test_parameter_value(
     value: Any, constant: bool, expected: Dict, tmp_path: Path
 ) -> None:
-    m1 = {
+    m1: ModelDict = {
         "sid": "parameter_value",
         "parameters": [Parameter(sid="p", value=value, constant=constant)],
     }

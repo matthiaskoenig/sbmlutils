@@ -15,14 +15,14 @@ from sbmlutils.units import *
 n_chain = 20
 # -------------------------------------------------------------------------------------
 _m = Model("linear_chain")
-_m.compartments: List[Compartment] = [
+_m.compartments = [
     Compartment(sid="cell", value=1.0),
 ]
-_m.species: List[Species] = [
+_m.species = [
     Species(sid="S1", initialConcentration=10.0, compartment="cell"),
 ]
-_m.parameters: List[Parameter] = []
-_m.reactions: List[Reaction] = []
+_m.parameters = []
+_m.reactions = []
 for k in range(n_chain):
     _m.species.append(
         Species(sid=f"S{k + 2}", initialConcentration=0.0, compartment="cell"),

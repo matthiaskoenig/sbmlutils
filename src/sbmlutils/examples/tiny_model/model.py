@@ -8,7 +8,7 @@ from sbmlutils.metadata import *
 from sbmlutils.units import *
 
 
-model = Model(
+_m = Model(
     sid="tiny_example",
     packages=["fbc"],
     notes=Notes(
@@ -47,7 +47,7 @@ model = Model(
 # -----------------------------------------------------------------------------
 # Units
 # -----------------------------------------------------------------------------
-model.model_units = ModelUnits(
+_m.model_units = ModelUnits(
     time=UNIT_KIND_SECOND,
     extent="mmole",
     substance="mmole",
@@ -55,7 +55,7 @@ model.model_units = ModelUnits(
     area="m2",
     volume=UNIT_KIND_LITRE,
 )
-model.units = [
+_m.units = [
     Unit("m2", [(UNIT_KIND_METRE, 2.0)]),
     Unit("mmole", [(UNIT_KIND_MOLE, 1, -3, 1.0)]),
     Unit("mM", [(UNIT_KIND_MOLE, 1, -3, 1.0), (UNIT_KIND_LITRE, -1.0)]),
@@ -65,7 +65,7 @@ model.units = [
 # -----------------------------------------------------------------------------
 # Compartments
 # -----------------------------------------------------------------------------
-model.compartments = [
+_m.compartments = [
     Compartment(
         sid="c",
         value=1e-5,
@@ -79,7 +79,7 @@ model.compartments = [
 # -----------------------------------------------------------------------------
 # Species
 # -----------------------------------------------------------------------------
-model.species = [
+_m.species = [
     Species(
         sid="glc",
         compartment="c",
@@ -166,7 +166,7 @@ model.species = [
 # -----------------------------------------------------------------------------
 # Parameters
 # -----------------------------------------------------------------------------
-model.parameters = [
+_m.parameters = [
     Parameter(
         "Vmax_GK",
         1.0e-6,
@@ -242,26 +242,24 @@ model.parameters = [
 # -----------------------------------------------------------------------------
 # FunctionDefinitions
 # -----------------------------------------------------------------------------
-model.functions = [
+_m.functions = [
     Function(sid="f_oscillation", value="lambda(x, cos(x/10 dimensionless))")
 ]
 
 # -----------------------------------------------------------------------------
 # Assignments
 # -----------------------------------------------------------------------------
-model.assignments = [InitialAssignment("glc", "4.5 mM")]
+_m.assignments = [InitialAssignment("glc", "4.5 mM")]
 
 # -----------------------------------------------------------------------------
 # Rules
 # -----------------------------------------------------------------------------
-model.rules = [
-    AssignmentRule("a_sum", "atp + adp", unit="mM", name="ATP + ADP balance")
-]
+_m.rules = [AssignmentRule("a_sum", "atp + adp", unit="mM", name="ATP + ADP balance")]
 
 # -----------------------------------------------------------------------------
 # Reactions
 # -----------------------------------------------------------------------------
-model.reactions = [
+_m.reactions = [
     Reaction(
         sid="GK",
         name="Glucokinase",
@@ -318,7 +316,7 @@ model.reactions = [
 # -----------------------------------------------------------------------------
 # Objective function
 # -----------------------------------------------------------------------------
-model.objectives = [
+_m.objectives = [
     Objective(
         sid="atp_consume_max",
         objectiveType="maximize",
@@ -330,7 +328,7 @@ model.objectives = [
 # -----------------------------------------------------------------------------
 # Events
 # -----------------------------------------------------------------------------
-model.events = [
+_m.events = [
     Event(
         "event_1",
         trigger="time >= 200 second",
@@ -347,7 +345,7 @@ model.events = [
 # -----------------------------------------------------------------------------
 # Constraints
 # -----------------------------------------------------------------------------
-model.constraints = [
+_m.constraints = [
     Constraint(
         "constraint_1",
         math="atp >= 0 mM",
@@ -359,7 +357,7 @@ model.constraints = [
 # -----------------------------------------------------------------------------
 # Layout
 # -----------------------------------------------------------------------------
-model.layouts = [
+_m.layouts = [
     layout.Layout(
         sid="layout_1",
         name="Layout 1",
@@ -430,3 +428,5 @@ model.layouts = [
         ],
     )
 ]
+
+tiny_model = _m
