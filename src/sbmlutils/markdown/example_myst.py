@@ -1,4 +1,7 @@
 """MyST examples."""
+import markdown
+html = markdown.markdown("some *text*")
+print(html)
 
 from myst_parser.main import to_html
 from myst_parser.main import to_docutils

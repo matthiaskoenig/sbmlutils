@@ -174,7 +174,12 @@ PortType = Any  # Union[bool, Port]
 
 
 class Notes:
-    """SBML notes."""
+    """SBML notes.
+
+    FIXME: handle this as markdown.
+    FIXME: simple addition of comments.
+    FIXME: suport latex formulas (via frontend replacement in report).
+    """
 
     def __init__(self, notes: Union[Dict[str, str], List[str], str]):
         """Initialize notes object."""
