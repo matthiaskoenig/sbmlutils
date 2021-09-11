@@ -19,14 +19,13 @@ which takes care of the order of object creation.
 import datetime
 import json
 import logging
-import os
 import shutil
 import tempfile
 from collections import namedtuple
 from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, TypedDict, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import libsbml
 import numpy as np
@@ -44,6 +43,12 @@ from sbmlutils.metadata.annotator import Annotation
 from sbmlutils.report import sbmlreport
 from sbmlutils.utils import FrozenClass, bcolors, create_metaid, deprecated
 from sbmlutils.validation import check
+
+
+try:
+    from typing import TypedDict
+except ImportError:
+    from typing_extensions import TypedDict
 
 
 # FIXME: make complete import of all DISTRIB constants
@@ -374,10 +379,10 @@ def _create_history(
         datetime = date_now()
         check(h.setCreatedDate(datetime), "set creation date")
         check(h.setModifiedDate(datetime), "set modified date")
-    # else:
-    #     datetime = libsbml.Date("1900-01-01T00:00:00")
-    #     check(h.setCreatedDate(datetime), "set creation date")
-    #     check(h.setModifiedDate(datetime), "set modified date")
+    else:
+        datetime = libsbml.Date("1900-01-01T00:00:00")
+        check(h.setCreatedDate(datetime), "set creation date")
+        check(h.setModifiedDate(datetime), "set modified date")
 
     return h
 
