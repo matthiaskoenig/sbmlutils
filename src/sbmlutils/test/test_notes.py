@@ -1,9 +1,12 @@
 """Test notes which could be """
-from sbmlutils.factory import *
+import pytest
+import libsbml
+from sbmlutils.notes import Notes
+from sbmlutils.factory import Parameter
 
 
 def test_markdown_note():
-    c = Parameter(
+    p = Parameter(
         "p1", value=1.0,
         notes="""
         # Markdown note
@@ -17,45 +20,35 @@ def test_markdown_note():
         <img src="./test.png" />
         """
     )
+    doc = libsbml.SBMLDocument()
+    model: libsbml.Model = doc.createModel()
+    sbml_p: libsbml.Parameter = p.create_sbml(model)
+
     print("\n")
     print("-" * 80)
-    print(c.notes)
+    print(p.notes)
     print("-" * 80)
-    notes = Notes(c.notes)
+    notes = Notes(p.notes)
     print(notes)
     print("-" * 80)
+    sbml_notes = sbml_p.getNotesString()
+    print("-" * 80)
+
+    assert '<a href="https://example.com">https://example.com</a>' in sbml_notes
+    assert '<h2>Heading 2</h2>' in sbml_notes
+    assert '<img src="./test.png"/>' in sbml_notes
 
 
-# FIXME: make all this markdown tests
-# st.markdown("This **markdown** is awesome! :sunglasses:")
-#
-# st.markdown("This <b>HTML tag</b> is escaped!")
-#
-# st.markdown("This <b>HTML tag</b> is not escaped!", unsafe_allow_html=True)
-#
-# st.markdown("[text]")
-#
-# st.markdown("[link](href)")
-#
-# st.markdown("[][]")
-#
-# st.markdown("Inline math with $\KaTeX$")
-#
-# st.markdown(
-#     """
-# $$
-# ax^2 + bx + c = 0
-# $$
-# """
-# )
-#
-# st.markdown("# Some header 1")
-# st.markdown("## Some header 2")
-# st.markdown("### Some header 3")
-#
-# st.markdown(
-#     """
-# | Col1      | Col2        |
-# | --------- | ----------- |
-# | Some      | Data        |
-# """
+notes_data = [
+    ("# test", "<h1>test</h1>"),
+    ("## test", "<h2>test</h2"),
+    ('<p>test</p>', '<p>test</p>'),
+]
+
+
+@pytest.mark.parametrize("note,expected", notes_data)
+def test_note(note: str, expected: str):
+    note = Notes(note)
+    note_str = str(note)
+    assert expected in note_str
+

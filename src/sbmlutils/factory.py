@@ -26,7 +26,7 @@ from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
-import markdown
+from sbmlutils.notes import Notes
 
 
 import libsbml
@@ -63,7 +63,6 @@ __all__ = [
     "SBML_VERSION",
     "PORT_SUFFIX",
     "PORT_UNIT_SUFFIX",
-    "Notes",
     "ModelUnits",
     "Creator",
     "Compartment",
@@ -176,38 +175,11 @@ def ast_node_from_formula(model: libsbml.Model, formula: str) -> libsbml.ASTNode
 
 UnitType = Optional[Union[str, libsbml.UnitDefinition, "Unit"]]
 AnnotationsType = Optional[List[Union[Annotation, Tuple[Union[BQB, BQM], str]]]]
-NotesType = Optional[Union[str, "Notes"]]
+
 PortType = Any  # Union[bool, Port]
 
 
-class Notes:
-    """SBML notes."""
-
-    def __init__(self, notes: List[str]):
-        """Initialize notes object."""
-        tokens = ["<body xmlns='http://www.w3.org/1999/xhtml'>"]
-
-        for note in notes:
-            import textwrap
-            import inspect
-            md = inspect.cleandoc(note)
-            html = markdown.markdown(md)
-            tokens.append(html)
-            # tokens.append("<hr />")
-
-        tokens.append("</body>")
-        notes_str = "\n".join(tokens)
-
-        self.xml: libsbml.XMLNode = libsbml.XMLNode.convertStringToXMLNode(notes_str)
-        if self.xml is None:
-            raise ValueError(f"XMLNode could not be generated for:\n{notes}")
-
-    def __str__(self) -> str:
-        """Get string representation."""
-        return str(self.xml.toXMLString())
-
-
-def set_notes(sbase: libsbml.SBase, notes: NotesType) -> None:
+def set_notes(sbase: libsbml.SBase, notes: str) -> None:
     """Set notes information on SBase.
 
     :param sbase: SBase
@@ -215,8 +187,7 @@ def set_notes(sbase: libsbml.SBase, notes: NotesType) -> None:
     :return:
     """
     _notes = Notes(notes)
-    check(sbase.setNotes(notes.xml), message=f"Setting notes on '{sbase}'")
-
+    check(sbase.setNotes(_notes.xml), message=f"Setting notes on '{sbase}'")
 
 class ModelUnits:
     """Class for storing model units information.
@@ -402,7 +373,7 @@ class Sbase:
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: NotesType = None,
+        notes: Optional[str] = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
@@ -411,25 +382,12 @@ class Sbase:
         self.name = name
         self.sboTerm = sboTerm
         self.metaId = metaId
-        self._notes = []
+        self.notes = notes
         self.notes = notes
         self.port = port
         self.uncertainties = uncertainties
         self.replacedBy = replacedBy
         self.annotations: AnnotationsType = annotations
-
-    @property
-    def notes(self):
-        return self._notes
-
-    @notes.setter
-    def notes(self, value: NotesType):
-        if isinstance(value, str):
-            self._notes.append(value)
-        elif isinstance(value, list):
-            self._notes.extend(value)
-        else:
-            raise ValueError
 
     def __str__(self) -> str:
         """Get string representation."""
@@ -460,10 +418,12 @@ class Sbase:
                 annotations.append(annotation)
         return annotations
 
-    def get_notes_xml(self) -> str:
+    def get_notes_xml(self) -> Optional[str]:
         """Get notes xml string."""
-        _notes = Notes(self.notes)
-        return _notes.xml
+        if self.notes:
+            return Notes(self.notes).xml
+
+        return None
 
     def _set_fields(self, obj: libsbml.SBase, model: libsbml.Model) -> None:
         if self.sid is not None:
@@ -593,7 +553,7 @@ class Value(Sbase):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: NotesType = None,
+        notes: Optional[str] = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
@@ -635,7 +595,7 @@ class ValueWithUnit(Value):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: NotesType = None,
+        notes: Optional[str] = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
@@ -682,7 +642,7 @@ class Unit(Sbase):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: NotesType = None,
+        notes: Optional[str] = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
@@ -794,7 +754,7 @@ class Function(Sbase):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: NotesType = None,
+        notes: Optional[str] = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
@@ -841,7 +801,7 @@ class Parameter(ValueWithUnit):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: NotesType = None,
+        notes: Optional[str] = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
@@ -908,7 +868,7 @@ class Compartment(ValueWithUnit):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: NotesType = None,
+        notes: Optional[str] = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
@@ -982,7 +942,7 @@ class Species(Sbase):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: NotesType = None,
+        notes: Optional[str] = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
@@ -1096,7 +1056,7 @@ class InitialAssignment(Value):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: NotesType = None,
+        notes: Optional[str] = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
@@ -1324,7 +1284,7 @@ class Reaction(Sbase):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: NotesType = None,
+        notes: Optional[str] = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
@@ -1467,7 +1427,7 @@ class Event(Sbase):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: NotesType = None,
+        notes: Optional[str] = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
@@ -1624,7 +1584,7 @@ class Uncertainty(Sbase):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: NotesType = None,
+        notes: Optional[str] = None,
         port: Any = None,
         replacedBy: Optional[Any] = None,
     ):
@@ -1782,7 +1742,7 @@ class ExchangeReaction(Reaction):
         name: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: NotesType = None,
+        notes: Optional[str] = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
@@ -1825,7 +1785,7 @@ class Constraint(Sbase):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: NotesType = None,
+        notes: Optional[str] = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
@@ -1886,7 +1846,7 @@ class Objective(Sbase):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: NotesType = None,
+        notes: Optional[str] = None,
         port: Any = None,
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
@@ -1977,7 +1937,7 @@ class ModelDefinition(Sbase):
         sboTerm: str = None,
         metaId: str = None,
         annotations: AnnotationsType = None,
-        notes: NotesType = None,
+        notes: Optional[str] = None,
         units: Optional[List[UnitType]] = None,
         compartments: Optional[List[Compartment]] = None,
         species: Optional[List[Species]] = None,
@@ -2049,7 +2009,7 @@ class ExternalModelDefinition(Sbase):
         sboTerm: str = None,
         metaId: str = None,
         annotations: AnnotationsType = None,
-        notes: NotesType = None,
+        notes: Optional[str] = None,
     ):
         """Create an ExternalModelDefinition."""
         super(ExternalModelDefinition, self).__init__(
@@ -2096,7 +2056,7 @@ class Submodel(Sbase):
         sboTerm: str = None,
         metaId: str = None,
         annotations: AnnotationsType = None,
-        notes: NotesType = None,
+        notes: Optional[str] = None,
     ):
         """Create a Submodel."""
         super(Submodel, self).__init__(
@@ -2143,7 +2103,7 @@ class SbaseRef(Sbase):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: NotesType = None,
+        notes: Optional[str] = None,
     ):
         """Create an SBaseRef."""
         super(SbaseRef, self).__init__(
@@ -2192,7 +2152,7 @@ class ReplacedElement(SbaseRef):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: NotesType = None,
+        notes: Optional[str] = None,
     ):
         """Create a ReplacedElement."""
         super(ReplacedElement, self).__init__(
@@ -2256,7 +2216,7 @@ class ReplacedBy(SbaseRef):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: NotesType = None,
+        notes: Optional[str] = None,
     ):
         """Create a ReplacedElement."""
         super(ReplacedBy, self).__init__(
@@ -2305,7 +2265,7 @@ class Deletion(SbaseRef):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: NotesType = None,
+        notes: Optional[str] = None,
     ):
         """Initialize Deletion."""
         super(Deletion, self).__init__(
@@ -2363,7 +2323,7 @@ class Port(SbaseRef):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: NotesType = None,
+        notes: Optional[str] = None,
     ):
         """Create a Port."""
         super(Port, self).__init__(
@@ -2419,7 +2379,7 @@ class ModelDict(TypedDict, total=False):
     sboTerm: Optional[str]
     metaId: Optional[str]
     annotations: AnnotationsType
-    notes: NotesType
+    notes: Optional[str]
     packages: Optional[List[str]]
     creators: Optional[List[Creator]]
     model_units: Optional[ModelUnits]
@@ -2548,7 +2508,7 @@ class Model(Sbase, FrozenClass, BaseModel):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: NotesType = None,
+        notes: Optional[str] = None,
         packages: Optional[List[str]] = None,
         creators: Optional[List[Creator]] = None,
         model_units: Optional[ModelUnits] = None,
@@ -2706,7 +2666,7 @@ class Document(Sbase):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
-        notes: NotesType = None,
+        notes: Optional[str] = None,
         sbml_level: int = SBML_LEVEL,
         sbml_version: int = SBML_VERSION,
     ):

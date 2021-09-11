@@ -1,11 +1,10 @@
 """
 Test equations.
 """
+import pytest
 from sbmlutils.equation import IRREV_SEP, REV_SEP, Equation
 
-
-def test_equation_examples() -> None:
-    equations = [
+equations = [
         "1.0 S1 + 2 S2 => 2.0 P1 + 2 P2 [M1, M2]",
         "c__gal1p => c__gal + c__phos",
         "e__h2oM <-> c__h2oM",
@@ -15,9 +14,13 @@ def test_equation_examples() -> None:
         "=> cit",
         "acoa =>",
     ]
-    for eq_str in equations:
-        eq = Equation(eq_str)
-        assert eq
+
+
+@pytest.mark.parametrize("equation", equations)
+def test_equation_examples(equation: str) -> None:
+    eq = Equation(equation)
+    assert eq
+    assert isinstance(eq, Equation)
 
 
 def test_equation_1() -> None:
