@@ -62,8 +62,9 @@ model.compartments = [
         sboTerm=SBO.PHYSICAL_COMPARTMENT,
         annotations=[(BQB.IS, "ncit/C48694")],
         # provenance via notes
-        notes="Overall cell compartment with volume set to an arbitrary "
-        "value of 1.0.",
+        notes="""
+        Overall cell compartment with volume set to an arbitrary value of 1.0.
+        """,
         # uncertainties
         uncertainties=[
             Uncertainty(

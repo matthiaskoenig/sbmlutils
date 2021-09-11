@@ -16,7 +16,7 @@ _m = Model(
         </p>
         """,
         templates.terms_of_use
-    ])
+    ]),
     creators=templates.creators,
     model_units = ModelUnits(
         time=UNIT_s, 
@@ -96,3 +96,5 @@ _m = Model(
         )
     ]
 )
+
+model = _m

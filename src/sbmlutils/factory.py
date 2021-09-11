@@ -26,6 +26,8 @@ from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
+import markdown
+
 
 import libsbml
 import numpy as np
@@ -179,23 +181,23 @@ PortType = Any  # Union[bool, Port]
 
 
 class Notes:
-    """SBML notes.
+    """SBML notes."""
 
-    FIXME: handle this as markdown.
-    FIXME: simple addition of comments.
-    FIXME: suport latex formulas (via frontend replacement in report).
-    """
-
-    def __init__(self, notes: Union[Dict[str, str], List[str], str]):
+    def __init__(self, notes: List[str]):
         """Initialize notes object."""
         tokens = ["<body xmlns='http://www.w3.org/1999/xhtml'>"]
-        if isinstance(notes, (dict, list)):
-            tokens.extend(notes)
-        else:
-            tokens.append(notes)
+
+        for note in notes:
+            import textwrap
+            import inspect
+            md = inspect.cleandoc(note)
+            html = markdown.markdown(md)
+            tokens.append(html)
+            # tokens.append("<hr />")
 
         tokens.append("</body>")
         notes_str = "\n".join(tokens)
+
         self.xml: libsbml.XMLNode = libsbml.XMLNode.convertStringToXMLNode(notes_str)
         if self.xml is None:
             raise ValueError(f"XMLNode could not be generated for:\n{notes}")
@@ -205,16 +207,14 @@ class Notes:
         return str(self.xml.toXMLString())
 
 
-def set_notes(sbase: libsbml.SBase, notes: Union[Notes, str]) -> None:
+def set_notes(sbase: libsbml.SBase, notes: NotesType) -> None:
     """Set notes information on SBase.
 
     :param sbase: SBase
     :param notes: notes information (xml string)
     :return:
     """
-    if not isinstance(notes, Notes):
-        notes = Notes(notes)
-
+    _notes = Notes(notes)
     check(sbase.setNotes(notes.xml), message=f"Setting notes on '{sbase}'")
 
 
@@ -411,11 +411,25 @@ class Sbase:
         self.name = name
         self.sboTerm = sboTerm
         self.metaId = metaId
+        self._notes = []
         self.notes = notes
         self.port = port
         self.uncertainties = uncertainties
         self.replacedBy = replacedBy
         self.annotations: AnnotationsType = annotations
+
+    @property
+    def notes(self):
+        return self._notes
+
+    @notes.setter
+    def notes(self, value: NotesType):
+        if isinstance(value, str):
+            self._notes.append(value)
+        elif isinstance(value, list):
+            self._notes.extend(value)
+        else:
+            raise ValueError
 
     def __str__(self) -> str:
         """Get string representation."""
@@ -445,6 +459,11 @@ class Sbase:
                     annotation = Annotation.from_tuple(annotation_obj)  # type: ignore
                 annotations.append(annotation)
         return annotations
+
+    def get_notes_xml(self) -> str:
+        """Get notes xml string."""
+        _notes = Notes(self.notes)
+        return _notes.xml
 
     def _set_fields(self, obj: libsbml.SBase, model: libsbml.Model) -> None:
         if self.sid is not None:
@@ -2404,6 +2423,7 @@ class ModelDict(TypedDict, total=False):
     packages: Optional[List[str]]
     creators: Optional[List[Creator]]
     model_units: Optional[ModelUnits]
+    objects: Optional[List[Sbase]]
     external_model_definitions: Optional[List[ExternalModelDefinition]]
     model_definitions: Optional[List[ModelDefinition]]
     submodels: Optional[List[Submodel]]
@@ -2433,7 +2453,6 @@ class Model(Sbase, FrozenClass, BaseModel):
     sboTerm: Optional[str]
     metaId: Optional[str]
     annotations: AnnotationsType
-    notes: NotesType
     packages: Optional[List[str]]
     creators: Optional[List[Creator]]
     model_units: Optional[ModelUnits]
@@ -2491,6 +2510,10 @@ class Model(Sbase, FrozenClass, BaseModel):
         "layouts": list,
     }
 
+    def get_sbml(self) -> str:
+        """Create SBML model."""
+        return Document(model=self).get_sbml()
+
     @staticmethod
     def merge_models(models: List["Model"]) -> "Model":
         """Merge information from multiple models."""
@@ -2529,6 +2552,7 @@ class Model(Sbase, FrozenClass, BaseModel):
         packages: Optional[List[str]] = None,
         creators: Optional[List[Creator]] = None,
         model_units: Optional[ModelUnits] = None,
+        objects: Optional[List[Sbase]] = None,
         external_model_definitions: Optional[List[ExternalModelDefinition]] = None,
         model_definitions: Optional[List[ModelDefinition]] = None,
         submodels: Optional[List[Submodel]] = None,
@@ -2564,23 +2588,59 @@ class Model(Sbase, FrozenClass, BaseModel):
         self.external_model_definitions = external_model_definitions
         self.model_definitions = model_definitions
 
-        self.submodels = submodels
-        self.units = units
-        self.functions = functions
-        self.compartments = compartments
-        self.species = species
-        self.parameters = parameters
-        self.assignments = assignments
-        self.rules = rules
-        self.rate_rules = rate_rules
-        self.reactions = reactions
-        self.events = events
-        self.constraints = constraints
-        self.ports = ports
-        self.replaced_elements = replaced_elements
-        self.deletions = deletions
-        self.objectives = objectives
+        self.submodels = submodels if submodels else []
+        self.units = units if units else []
+        self.functions = functions if functions else []
+        self.compartments = compartments if compartments else []
+        self.species = species if species else []
+        self.parameters = parameters if parameters else []
+        self.assignments = assignments if assignments else []
+        self.rules = rules if rules else []
+        self.rate_rules = rate_rules if rate_rules else []
+        self.reactions = reactions if reactions else []
+        self.events = events if events else []
+        self.constraints = constraints if constraints else []
+        self.ports = ports if ports else []
+        self.replaced_elements = replaced_elements if replaced_elements else []
+        self.deletions = deletions if deletions else []
+        self.objectives = objectives if objectives else []
+
         self.layouts = layouts
+
+        if objects:
+            for sbase in objects:
+                if isinstance(sbase, Submodel):
+                    self.submodels.append(sbase)
+                elif isinstance(sbase, Unit):
+                    self.submodels.append(sbase)
+                elif isinstance(sbase, Function):
+                    self.functions.append(sbase)
+                elif isinstance(sbase, Compartment):
+                    self.compartments.append(sbase)
+                elif isinstance(sbase, Species):
+                    self.species.append(sbase)
+                elif isinstance(sbase, Parameter):
+                    self.parameters.append(sbase)
+                elif isinstance(sbase, InitialAssignment):
+                    self.assignments.append(sbase)
+                elif isinstance(sbase, AssignmentRule):
+                    self.rules.append(sbase)
+                elif isinstance(sbase, RateRule):
+                    self.rate_rules.append(sbase)
+                elif isinstance(sbase, Reaction):
+                    self.reactions.append(sbase)
+                elif isinstance(sbase, Event):
+                    self.events.append(sbase)
+                elif isinstance(sbase, Constraint):
+                    self.constraints.append(sbase)
+                elif isinstance(sbase, Port):
+                    self.ports.append(sbase)
+                elif isinstance(sbase, ReplacedElement):
+                    self.replaced_elements.append(sbase)
+                elif isinstance(sbase, Deletion):
+                    self.deletions.append(sbase)
+                elif isinstance(sbase, Objective):
+                    self.objectives.append(sbase)
 
         self._freeze()  # no new attributes after this point
 
@@ -2708,7 +2768,7 @@ class Document(Sbase):
         """
         if self.doc is None:
             self.create_sbml()
-        return libsbml.writeSBMLToString(self.doc)  # type: ignore
+        return str(libsbml.writeSBMLToString(self.doc))
 
     def get_json(self) -> str:
         """Get JSON representation."""

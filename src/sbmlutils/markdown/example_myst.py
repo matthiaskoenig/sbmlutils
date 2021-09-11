@@ -1,10 +1,13 @@
 """MyST examples."""
 import markdown
+
+
 html = markdown.markdown("some *text*")
 print(html)
 
-from myst_parser.main import to_html
-from myst_parser.main import to_docutils
+from myst_parser.main import to_docutils, to_html
+
+
 html = to_html("some *text*")
 
 print(html)
@@ -26,7 +29,8 @@ with open("wealth_dynamics_md.md", "r") as f_in:
     docutils.core.publish_file(
         source_path="wealth_dynamics_md.rst",
         destination_path="output.html",
-        writer_name="html")
+        writer_name="html",
+    )
     #
     #
     # from docutils.core import publish_string
@@ -35,7 +39,3 @@ with open("wealth_dynamics_md.md", "r") as f_in:
     #     rst = to_docutils(md)
     #     html = publish_string(rst, writer_name='html')
     #     f_html.write(html)
-
-
-
-
