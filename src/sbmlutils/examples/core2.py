@@ -8,16 +8,12 @@ from sbmlutils.units import *
 
 
 _m = Model("core_example2")
-_m.notes = Notes(
-    [
-        """
-    <h1>sbmlutils {}</h1>
-    <h2>Description</h2>
-    <p>Example model showing how to create compartments, species and reactions.</p>
-    """,
-        templates.terms_of_use,
-    ]
-)
+_m.notes = """
+# Example `core2`
+## Description
+Example model showing how to create compartments, species and reactions.
+""" + templates.terms_of_use,
+
 _m.creators = [
     Creator(
         familyName="Koenig",

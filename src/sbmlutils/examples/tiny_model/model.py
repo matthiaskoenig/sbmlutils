@@ -11,35 +11,31 @@ from sbmlutils.units import *
 _m = Model(
     sid="tiny_example",
     packages=["fbc"],
-    notes=Notes(
-        [
-            """
-        <h2>Description</h2>
-        <p>A minimal example in <a href="http://sbml.org" target="_blank">SBML</a> format.
-        </p>
-        <div class="dc:provenance">The content of this model has been carefully created in a manual research effort.</div>
-        <div class="dc:publisher">This file has been created by
-        <a href="http://sbml.org" title="SBML team" target="_blank">SBML team</a>.</div>
+    notes="""
+    <h2>Description</h2>
+    <p>A minimal example in <a href="http://sbml.org" target="_blank">SBML</a> format.
+    </p>
+    <div class="dc:provenance">The content of this model has been carefully created in a manual research effort.</div>
+    <div class="dc:publisher">This file has been created by
+    <a href="http://sbml.org" title="SBML team" target="_blank">SBML team</a>.</div>
 
-        <h2>Terms of use</h2>
-        <div class="dc:rightsHolder">Copyright © 2019 SBML team.</div>
-        <div class="dc:license">
-            <p>Redistribution and use of any part of this model, with or without modification, are permitted provided
-            that the following conditions are met:
-            <ol>
-              <li>Redistributions of this SBML file must retain the above copyright notice, this list of conditions and
-              the following disclaimer.</li>
-              <li>Redistributions in a different form must reproduce the above copyright notice, this list of conditions
-              and the following disclaimer in the documentation and/or other materials provided
-              with the distribution.</li>
-            </ol>
-            This model is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
-            implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-            </p>
-        </div>
-        """
-        ]
-    ),
+    <h2>Terms of use</h2>
+    <div class="dc:rightsHolder">Copyright © 2019 SBML team.</div>
+    <div class="dc:license">
+        <p>Redistribution and use of any part of this model, with or without modification, are permitted provided
+        that the following conditions are met:
+        <ol>
+          <li>Redistributions of this SBML file must retain the above copyright notice, this list of conditions and
+          the following disclaimer.</li>
+          <li>Redistributions in a different form must reproduce the above copyright notice, this list of conditions
+          and the following disclaimer in the documentation and/or other materials provided
+          with the distribution.</li>
+        </ol>
+        This model is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+        implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+        </p>
+    </div>
+    """,
     creators=templates.creators,
 )
 

@@ -6,12 +6,10 @@ from sbmlutils.units import *
 
 _m = Model("assignment_example")
 _m.creators = templates.creators
-_m.notes = Notes(
-    [
-        """<p>Example model for testing InitialAssignments in roadrunner.</p>""",
-        templates.terms_of_use,
-    ]
-)
+_m.notes = """
+Example model for testing InitialAssignments in roadrunner.
+""" + templates.terms_of_use,
+
 _m.model_units = ModelUnits(
     time=UNIT_hr,
     extent=UNIT_mg,
