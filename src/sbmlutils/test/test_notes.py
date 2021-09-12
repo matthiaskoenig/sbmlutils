@@ -1,6 +1,7 @@
 """Test notes which could be """
 import pytest
 import libsbml
+import re
 from sbmlutils.notes import Notes
 from sbmlutils.factory import Parameter
 
@@ -40,9 +41,35 @@ def test_markdown_note():
 
 
 notes_data = [
+    # headings
     ("# test", "<h1>test</h1>"),
-    ("## test", "<h2>test</h2"),
+    ("## test", "<h2>test</h2>"),
+    ("### test", "<h3>test</h3>"),
+    ("#### test", "<h4>test</h4>"),
+    ("##### test", "<h5>test</h5>"),
+    ("###### test", "<h6>test</h6>"),
+    # emphasize
+    ("*asterisks*", r"<p>[.\s]*<em>asterisks</em>[s\s]*</p>"),
+    ("_underscore_", r"<p>[\s]*<em>underscore</em>[\s]*</p>"),
+    ("**asterisks**", r"<p>[\s]*<strong>asterisks</strong>[\s]*</p>"),
+    ("__underscores__", r"<p>[\s]*<strong>underscores</strong>[\s]*</p>"),
     ('<p>test</p>', '<p>test</p>'),
+    # lists
+    ("""
+    1. First item
+    2. Second item
+    """, "<ol>[\s]*<li>First item</li>[\s]*<li>Second item</li>[\s]*</ol>"),
+    ("""
+    * First item
+    * Second item
+    """, "<ul>[\s]*<li>First item</li>[\s]*<li>Second item</li>[\s]*</ul>"),
+    ("""
+    - item
+    """, "<ul>[\s]*<li>item</li>[\s]*</ul>"),
+    ("""
+    + item
+    """, "<ul>[\s]*<li>item</li>[\s]*</ul>"),
+
 ]
 
 
@@ -50,5 +77,8 @@ notes_data = [
 def test_note(note: str, expected: str):
     note = Notes(note)
     note_str = str(note)
-    assert expected in note_str
+    print(expected)
+    print(note_str)
+    match = re.search(pattern=expected, string=note_str)
+    assert match
 

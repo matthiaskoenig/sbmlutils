@@ -4,6 +4,7 @@ from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
 from sbmlutils.factory import *
 from sbmlutils.metadata.miriam import *
 from sbmlutils.metadata.sbo import *
+from sbmlutils.report.sbmlreport import create_online_report
 from sbmlutils.units import *
 
 
@@ -21,6 +22,13 @@ _m = Model(
 
     ---
     ### Headings
+        # H1
+        ## H2
+        ### H3
+        #### H4
+        ##### H5
+        ###### H6
+
     # H1
     ## H2
     ### H3
@@ -28,24 +36,20 @@ _m = Model(
     ##### H5
     ###### H6
 
-    Alternatively, for H1 and H2, an underline-ish style:
-
-    Alt-H1
-    ======
-
-    Alt-H2
-    ------
-
     ---
     ### Emphasis
+
+        Emphasis, aka italics, with *asterisks* or _underscores_.
+
+        Strong emphasis, aka bold, with **asterisks** or __underscores__.
+
+        Combined emphasis with **asterisks and _underscores_**.
 
     Emphasis, aka italics, with *asterisks* or _underscores_.
 
     Strong emphasis, aka bold, with **asterisks** or __underscores__.
 
     Combined emphasis with **asterisks and _underscores_**.
-
-    Strikethrough uses two tildes. ~~Scratch this.~~
 
     ---
     ### Lists
@@ -114,9 +118,9 @@ _m = Model(
 )
 
 
-def create(tmp: bool = False) -> None:
+def create(tmp: bool = False) -> FactoryResult:
     """Create model."""
-    create_model(
+    return create_model(
         models=_m,
         output_dir=EXAMPLE_RESULTS_DIR,
         tmp=tmp,
@@ -124,4 +128,5 @@ def create(tmp: bool = False) -> None:
 
 
 if __name__ == "__main__":
-    create()
+    results = create()
+    create_online_report(sbml_path=results.sbml_path, server="http://localhost:3456")
