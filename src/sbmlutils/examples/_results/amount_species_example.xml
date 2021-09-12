@@ -3,30 +3,33 @@
   <model metaid="meta_amount_species_example" id="amount_species_example" substanceUnits="mmole" timeUnits="s" volumeUnits="m3" areaUnits="m2" lengthUnits="m" extentUnits="mmole">
     <notes>
       <body xmlns="http://www.w3.org/1999/xhtml">
-        <h1>Koenig Demo Metabolism</h1>
+        <h1 style="color:blue;">Example model with species in amounts and concentrations</h1>
         <h2>Description</h2>
-        <p>This is a demonstration model for species in amounts
-        <a href="http://sbmlutils.org" target="_blank" title="Access the definition of the SBML file format.">
-        SBML</a> format.
-        </p>
-        <div class="dc:provenance">The content of this model has been carefully created in a manual research effort.</div>
-        <div class="dc:publisher">This file has been created by
-    <a href="https://livermetabolism.com" title="Matthias Koenig" target="_blank">Matthias Koenig</a>.</div>
+        <p>This example model demonstrates how to define species in amounts and concentrations.
+The key is to set the <code>hasOnlySubstanceUnits</code> on the species.</p>
         <h2>Terms of use</h2>
-        <div class="dc:rightsHolder">Copyright © 2021 Matthias Koenig.</div>
+        <div>The content of this model has been carefully created in a manual research effort.</div>
+        <div>This file has been created by <a href="https://livermetabolism.com" target="_blank" title="Matthias König">Matthias König</a>
+using <a href="https://github.com/matthiaskoenig/sbmlutils">sbmlutils</a>. For questions contact koenigmx@hu-berlin.de.</div>
+        <div>
+          <a href="https://livermetabolism.com">
+            <img src="https://livermetabolism.com/img/people/koenig.png" width="80"/>
+          </a>
+        </div>
+        <div class="dc:rightsHolder">Copyright © 2021 Matthias König.</div>
         <div class="dc:license">
           <p>Redistribution and use of any part of this model, with or without modification, are permitted provided
-        that the following conditions are met:
-        <ol>
+    that the following conditions are met:</p>
+          <ol>
             <li>Redistributions of this SBML file must retain the above copyright notice, this list of conditions and
-          the following disclaimer.</li>
+      the following disclaimer.</li>
             <li>Redistributions in a different form must reproduce the above copyright notice, this list of conditions
-          and the following disclaimer in the documentation and/or other materials provided
-          with the distribution.</li>
+      and the following disclaimer in the documentation and/or other materials provided
+      with the distribution.</li>
           </ol>
-        This model is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
-        implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-        </p>
+          <p>This model is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+    implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>
+          <hr/>
         </div>
       </body>
     </notes>
@@ -37,7 +40,7 @@
             <rdf:Bag>
               <rdf:li rdf:parseType="Resource">
                 <vCard:N rdf:parseType="Resource">
-                  <vCard:Family>Koenig</vCard:Family>
+                  <vCard:Family>König</vCard:Family>
                   <vCard:Given>Matthias</vCard:Given>
                 </vCard:N>
                 <vCard:EMAIL>koenigmx@hu-berlin.de</vCard:EMAIL>
@@ -109,7 +112,23 @@
       <compartment id="Vc" name="cell compartment" spatialDimensions="3" size="1e-06" units="m3" constant="false"/>
     </listOfCompartments>
     <listOfSpecies>
-      <species id="Aglc" name="glucose" compartment="Vc" initialAmount="5" substanceUnits="mmole" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false"/>
+      <species id="Aglc" name="glucose" compartment="Vc" initialAmount="5" substanceUnits="mmole" hasOnlySubstanceUnits="true" boundaryCondition="false" constant="false">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <p>Species in amounts. The unit of the species is the <code>substanceUnit</code>,
+i.e. [mmole].</p>
+          </body>
+        </notes>
+      </species>
+      <species id="Cglc6p" name="glucose 6-phosphate" compartment="Vc" initialAmount="0" substanceUnits="mmole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false">
+        <notes>
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <p>Species in concentration via the <code>hasOnlySubstanceUnit=False</code>.
+The unit of the species is the
+<code>substanceUnit/compartmentUnit</code>, i.e. [mmole/litre].</p>
+          </body>
+        </notes>
+      </species>
     </listOfSpecies>
     <listOfParameters>
       <parameter id="k1" value="1" units="per_s" constant="true"/>
@@ -137,6 +156,9 @@
         <listOfReactants>
           <speciesReference species="Aglc" stoichiometry="1" constant="true"/>
         </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="Cglc6p" stoichiometry="1" constant="true"/>
+        </listOfProducts>
         <kineticLaw>
           <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>

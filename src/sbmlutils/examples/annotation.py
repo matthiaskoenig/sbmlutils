@@ -7,29 +7,25 @@ from sbmlutils.metadata.sbo import *
 from sbmlutils.units import *
 
 
-_m = Model(sid="annotation_example")
-_m.notes = Notes(
-    [
-        """
-    <h1>Model with inline annotations</h1>
-    <h2>Description</h2>
-    <p>Test model demonstrating inline annotations.
-    </p>
-    """,
-        templates.terms_of_use,
-    ]
-)
-_m.creators = templates.creators
+_m = Model(
+    sid="annotation_example",
+    notes="""
+    # Model with inline annotations
+    ## Description
+    Test model demonstrating inline annotations.
 
-_m.model_units = ModelUnits(
-    time=UNIT_s,
-    extent=UNIT_KIND_MOLE,
-    substance=UNIT_KIND_MOLE,
-    length=UNIT_m,
-    area=UNIT_m2,
-    volume=UNIT_m3,
+    """ + templates.terms_of_use,
+    creators=templates.creators,
+    model_units=ModelUnits(
+        time=UNIT_s,
+        extent=UNIT_KIND_MOLE,
+        substance=UNIT_KIND_MOLE,
+        length=UNIT_m,
+        area=UNIT_m2,
+        volume=UNIT_m3,
+    ),
+    units=[UNIT_kg, UNIT_s, UNIT_m, UNIT_m2, UNIT_m3, UNIT_mM, UNIT_mole_per_s],
 )
-_m.units = [UNIT_kg, UNIT_s, UNIT_m, UNIT_m2, UNIT_m3, UNIT_mM, UNIT_mole_per_s]
 
 _m.compartments = [
     Compartment(

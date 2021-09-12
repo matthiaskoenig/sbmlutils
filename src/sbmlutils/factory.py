@@ -383,7 +383,6 @@ class Sbase:
         self.sboTerm = sboTerm
         self.metaId = metaId
         self.notes = notes
-        self.notes = notes
         self.port = port
         self.uncertainties = uncertainties
         self.replacedBy = replacedBy

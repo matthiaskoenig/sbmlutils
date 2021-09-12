@@ -156,7 +156,7 @@ def _content_for_source(source: Path) -> Dict:
 @api.post("/api/file", tags=["reports"])
 async def report_from_file(request: Request) -> Response:
     """Upload file and return JSON report."""
-    uid = uuid.uuid4()
+    uid = uuid.uuid4().hex
     try:
         file_data = await request.form()
         file_content = await file_data["source"].read()  # type: ignore
@@ -173,7 +173,7 @@ async def report_from_file(request: Request) -> Response:
 @api.get("/api/url", tags=["reports"])
 def report_from_url(url: str) -> Response:
     """Get JSON report via URL."""
-    uid = uuid.uuid4()
+    uid = uuid.uuid4().hex
     try:
         response = requests.get(url)
         response.raise_for_status()
@@ -182,13 +182,13 @@ def report_from_url(url: str) -> Response:
         return Response(content=json.dumps(content), media_type="application/json")
 
     except Exception as e:
-        return _handle_error(e, info={"uid": uid, "url": url})
+        return _handle_error(e, info={"uid": str(uid), "url": url})
 
 
 @api.post("/api/content", tags=["reports"])
 async def get_report_from_content(request: Request) -> Response:
     """Get JSON report from file contents."""
-    uid = uuid.uuid4()
+    uid = uuid.uuid4().hex
     try:
         file_content = await request.body()
         filename = "sbml_file.xml"
