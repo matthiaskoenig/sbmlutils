@@ -1,14 +1,17 @@
 """Test notes which could be """
-import pytest
-import libsbml
 import re
-from sbmlutils.notes import Notes
+
+import libsbml
+import pytest
+
 from sbmlutils.factory import Parameter
+from sbmlutils.notes import Notes
 
 
 def test_markdown_note():
     p = Parameter(
-        "p1", value=1.0,
+        "p1",
+        value=1.0,
         notes="""
         # Markdown note
         Test this *text* in this `variable`.
@@ -19,7 +22,7 @@ def test_markdown_note():
         <https://example.com>
 
         <img src="./test.png" />
-        """
+        """,
     )
     doc = libsbml.SBMLDocument()
     model: libsbml.Model = doc.createModel()
@@ -36,7 +39,7 @@ def test_markdown_note():
     print("-" * 80)
 
     assert '<a href="https://example.com">https://example.com</a>' in sbml_notes
-    assert '<h2>Heading 2</h2>' in sbml_notes
+    assert "<h2>Heading 2</h2>" in sbml_notes
     assert '<img src="./test.png"/>' in sbml_notes
 
 
@@ -53,23 +56,34 @@ notes_data = [
     ("_underscore_", r"<p>[\s]*<em>underscore</em>[\s]*</p>"),
     ("**asterisks**", r"<p>[\s]*<strong>asterisks</strong>[\s]*</p>"),
     ("__underscores__", r"<p>[\s]*<strong>underscores</strong>[\s]*</p>"),
-    ('<p>test</p>', '<p>test</p>'),
+    ("<p>test</p>", "<p>test</p>"),
     # lists
-    ("""
+    (
+        """
     1. First item
     2. Second item
-    """, "<ol>[\s]*<li>First item</li>[\s]*<li>Second item</li>[\s]*</ol>"),
-    ("""
+    """,
+        "<ol>[\s]*<li>First item</li>[\s]*<li>Second item</li>[\s]*</ol>",
+    ),
+    (
+        """
     * First item
     * Second item
-    """, "<ul>[\s]*<li>First item</li>[\s]*<li>Second item</li>[\s]*</ul>"),
-    ("""
+    """,
+        "<ul>[\s]*<li>First item</li>[\s]*<li>Second item</li>[\s]*</ul>",
+    ),
+    (
+        """
     - item
-    """, "<ul>[\s]*<li>item</li>[\s]*</ul>"),
-    ("""
+    """,
+        "<ul>[\s]*<li>item</li>[\s]*</ul>",
+    ),
+    (
+        """
     + item
-    """, "<ul>[\s]*<li>item</li>[\s]*</ul>"),
-
+    """,
+        "<ul>[\s]*<li>item</li>[\s]*</ul>",
+    ),
 ]
 
 
@@ -81,4 +95,3 @@ def test_note(note: str, expected: str):
     print(note_str)
     match = re.search(pattern=expected, string=note_str)
     assert match
-

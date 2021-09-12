@@ -12,7 +12,8 @@ _m = Model(
     notes="""
     # Model with notes
     ## Description
-    """ + templates.terms_of_use
+    """
+    + templates.terms_of_use
     # notes=templates.terms_of_use
 )
 

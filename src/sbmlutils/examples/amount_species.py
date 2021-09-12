@@ -2,7 +2,7 @@
 
 from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
 from sbmlutils.factory import *
-from sbmlutils.report.sbmlreport import create_report, create_online_report
+from sbmlutils.report.sbmlreport import create_online_report, create_report
 from sbmlutils.units import *
 
 
@@ -13,7 +13,8 @@ model = Model(
     ## Description
     This example model demonstrates how to define species in amounts and concentrations.
     The key is to set the `hasOnlySubstanceUnits` on the species.
-    """ + templates.terms_of_use,
+    """
+    + templates.terms_of_use,
     creators=templates.creators,
     model_units=ModelUnits(
         time=UNIT_s,
@@ -73,7 +74,7 @@ model = Model(
             rules=[],
             formula=("k1 * Aglc", UNIT_mmole_per_s),
         ),
-        AssignmentRule("Vc", "2.0 m3 * exp(time/1 s)")
+        AssignmentRule("Vc", "2.0 m3 * exp(time/1 s)"),
     ],
 )
 

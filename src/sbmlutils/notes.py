@@ -7,16 +7,21 @@ Markdown -> HTML (Markdown parser)
 markdown-it-py
 
 """
-
-import markdown
-import inspect
+import re
 import textwrap
-import libsbml
-import css_inline
-from premailer import transform, Premailer
 
-css = "h1 { color:blue; }"
-css = ""
+import css_inline
+from lxml import etree
+from lxml import html as html_lxml
+from markdown_it import MarkdownIt
+
+from sbmlutils import RESOURCES_DIR
+
+
+# read stylesheet for inline styles
+with open(RESOURCES_DIR / "github.css", "r") as f_css:
+    css = f_css.read()
+
 
 class Notes:
     """SBML notes."""
@@ -24,93 +29,72 @@ class Notes:
     def __init__(self, notes: str):
         """Initialize notes object."""
 
-        # md = inspect.cleandoc(notes)
         md = textwrap.dedent(notes)
-        print("-" * 80)
-        print("--- markdown ---")
-        print(md)
-        print("-" * 80)
+        # print("-" * 80)
+        # print("--- markdown ---")
+        # print(md)
+        # print("-" * 80)
 
-        # markdown replacement
-        html = markdown.markdown(
-            md,
-            output_format="xhtml"
-        )
-
-        from pprint import pprint
-        from markdown_it import MarkdownIt
         mdit = MarkdownIt()
         html = mdit.render(md)
-        print("--- html ---")
-        print(html)
-        print("-" * 80)
+        # print("--- html ---")
+        # print(html)
+        # print("-" * 80)
 
         # css inline (removes single tags
-        # html_inline = css_inline.inline(html, extra_css=css)
-        # from lxml import html, etree
+        html_inline = css_inline.inline(html, extra_css=css)
 
         # closing single tags
-        # doc = html.fromstring(html_inline)
-        # doc_bytes: bytes = etree.tostring(doc)
-        # html_inline = doc_bytes.decode(encoding="utf-8")
+        doc = html_lxml.fromstring(html_inline)
+        doc_bytes: bytes = etree.tostring(doc)
+        html = doc_bytes.decode(encoding="utf-8")
 
         # remove the outer tags
-        # html_inline = html_inline.replace("<html><head/><body>", "")
-        # html_inline = html_inline.replace("</body></html>", "")
+        html = html.replace("<html><head/>", "")
+        html = html.replace("</body></html>", "")
 
-        # fix pre tags
-        # html = html.replace("<pre><code>", "<pre><code>\n")
-        # FIXME: handle code blocks with additional content (e.g classes
-
-        import re
-        def reverse_open_tags(match_obj):
+        # reorder pre and code tags to fix issues in XML nodes
+        def reverse_open_tags(match_obj) -> str:
             if match_obj.group() is not None:
-                # return f"<code{match_obj.group()}><pre>"
-                return f"<code{match_obj.group(2)}><pre>"
-                # return f"<code><pre>"
+                return f"<code{match_obj.group(4)}><pre{match_obj.group(2)}>"
 
-        html = re.sub("(<pre><code)(.*)(>)", reverse_open_tags, html)
-
-        # html = html.replace("<pre><code>", "<code><pre>")
+        html = re.sub("(<pre)(.*)(><code)(.*)(>)", reverse_open_tags, html)
         html = html.replace("</code></pre>", "</pre></code>")
+        html = html.replace("<body", '<body xmlns="http://www.w3.org/1999/xhtml"')
+        html = html + "\n</body>"
+
+        # print("--- html processed ---")
+        # print(html)
+        # print("-" * 80)
 
         # wrap in body tag
-        notes_str = "\n".join([
-            '<body xmlns="http://www.w3.org/1999/xhtml">',
-            html,
-            '</body>'
-        ])
+        # notes_str = "\n".join([
+        #     # '<body xmlns="http://www.w3.org/1999/xhtml">',
+        #     html,
+        #     '</body>'
+        # ])
 
         # print("-" * 80)
         # print(html)
         # print("-" * 80)
-        print("--- html processed ---")
-        print(html)
-        print("-" * 80)
 
+        notes_str = html
         self.xml: libsbml.XMLNode = libsbml.XMLNode.convertStringToXMLNode(notes_str)
-        xml_str = self.xml.toXMLString()
-        print("--- xml str ---")
-        print(xml_str)
-        print("*" * 80)
-
         if self.xml is None:
             raise ValueError(f"XMLNode could not be generated for:\n{notes_str}")
+
+        # xml_str = self.xml.toXMLString()
+        # print("--- xml str ---")
+        # print(xml_str)
+        # print("*" * 80)
 
     def __str__(self) -> str:
         """Get string representation."""
         return str(self.xml.toXMLString())
 
 
-
 if __name__ == "__main__":
     import libsbml
-    html = """
-    # Test
-
-        # H1
-        ## H2
-    """
 
     html = """
     ```python
@@ -121,3 +105,11 @@ if __name__ == "__main__":
     notes = Notes(html)
     print("-" * 80)
     print(str(notes))
+
+    notes_str = """
+    <body xmlns="http://www.w3.org/1999/xhtml" style="font-family: Helvetica, arial, sans-serif;line-height: 1.6;padding-top: 10px;color: #333;padding: 30px;font-size: 14px;padding-bottom: 10px;background-color: white;">
+    </body>
+    """
+    xml: libsbml.XMLNode = libsbml.XMLNode.convertStringToXMLNode(notes_str)
+    if xml is None:
+        raise ValueError(f"XMLNode could not be generated for:\n{notes_str}")

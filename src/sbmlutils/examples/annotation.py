@@ -14,7 +14,8 @@ _m = Model(
     ## Description
     Test model demonstrating inline annotations.
 
-    """ + templates.terms_of_use,
+    """
+    + templates.terms_of_use,
     creators=templates.creators,
     model_units=ModelUnits(
         time=UNIT_s,

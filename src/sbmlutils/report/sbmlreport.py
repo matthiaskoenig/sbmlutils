@@ -100,7 +100,4 @@ if __name__ == "__main__":
     from sbmlutils.test import REPRESSILATOR_SBML
 
     # create_online_report(sbml_path=REPRESSILATOR_SBML)
-    create_online_report(
-        sbml_path=REPRESSILATOR_SBML,
-        server="localhost:3456"
-    )
+    create_online_report(sbml_path=REPRESSILATOR_SBML, server="localhost:3456")

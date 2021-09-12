@@ -26,8 +26,6 @@ from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
-from sbmlutils.notes import Notes
-
 
 import libsbml
 import numpy as np
@@ -42,6 +40,7 @@ from sbmlutils.io import write_sbml
 from sbmlutils.metadata import *
 from sbmlutils.metadata import annotator
 from sbmlutils.metadata.annotator import Annotation
+from sbmlutils.notes import Notes
 from sbmlutils.report import sbmlreport
 from sbmlutils.utils import FrozenClass, bcolors, create_metaid, deprecated
 from sbmlutils.validation import check
@@ -188,6 +187,7 @@ def set_notes(sbase: libsbml.SBase, notes: str) -> None:
     """
     _notes = Notes(notes)
     check(sbase.setNotes(_notes.xml), message=f"Setting notes on '{sbase}'")
+
 
 class ModelUnits:
     """Class for storing model units information.
