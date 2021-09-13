@@ -30,7 +30,7 @@ _m.units = [
     UNIT_m2,
 ]
 for unit in _m.units:
-    if unit is not None and isinstance(unit, Unit):
+    if unit is not None and isinstance(unit, UnitDefinition):
         unit.port = False
 
 _m.compartments = [Compartment("c", value=2.0, unit=UNIT_KIND_LITRE)]

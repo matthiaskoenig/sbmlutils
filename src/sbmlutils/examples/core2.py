@@ -6,7 +6,17 @@ from sbmlutils.metadata.sbo import *
 from sbmlutils.units import *
 
 
-_m = Model(
+class U(Units):
+    min = "min"
+    liter = "liter"
+    m = "meter"
+    m2 = "meter^2"
+    mmole = "mmole"
+    mM = "mmole/liter"
+    mmole_per_min = "mmole/min"
+
+
+_M = Model(
     "core_example2",
     notes="""
     # Example `core_example2`
@@ -24,25 +34,18 @@ _m = Model(
             orcid="0000-0003-1725-179X"
         )
     ],
+    units=U,
     model_units=ModelUnits(
-        time=UNIT_min,
-        extent=UNIT_mmole,
-        substance=UNIT_mmole,
-        length=UNIT_m,
-        area=UNIT_m2,
-        volume=UNIT_KIND_LITRE,
+        time=U.min,
+        extent=U.mmole,
+        substance=U.mmole,
+        length=U.m,
+        area=U.m2,
+        volume=U.liter,
     ),
-    units=[
-        UNIT_m,
-        UNIT_m2,
-        UNIT_min,
-        UNIT_mmole,
-        UNIT_mM,
-        UNIT_mmole_per_min,
-    ],
     objects=[
         Compartment(
-            "c", 1.0, unit=UNIT_KIND_LITRE,
+            "c", 1.0, unit=U.liter,
             name="cytosol",
             sboTerm=SBO.PHYSICAL_COMPARTMENT,
             notes="""
@@ -57,7 +60,7 @@ _m = Model(
             "S1",
             initialConcentration=5.0,
             compartment="c",
-            substanceUnit=UNIT_mmole,
+            substanceUnit=U.mmole,
             name="S1",
             hasOnlySubstanceUnits=False,
             sboTerm=SBO.SIMPLE_CHEMICAL,
@@ -73,7 +76,7 @@ _m = Model(
             """
         ),
         Parameter(
-            "R1_Km", name="Km R1", value=0.1, unit=UNIT_mM,
+            "R1_Km", name="Km R1", value=0.1, unit=U.mmole,
             sboTerm=SBO.MICHAELIS_CONSTANT,
             notes="""
             **Parameter**
@@ -87,11 +90,11 @@ _m = Model(
             "R1_Vmax",
             name="Vmax R1",
             value=10.0,
-            unit=UNIT_mmole_per_min,
+            unit=U.mmole_per_min,
             sboTerm=SBO.MAXIMAL_VELOCITY,
         ),
         InitialAssignment(
-            "S1", "10.0 mM", unit=UNIT_mM,
+            "S1", "10.0 mM", unit=U.mM,
             notes="""
             **InitialAssignment**
 
@@ -108,7 +111,7 @@ _m = Model(
 def create(tmp: bool = False) -> None:
     """Create model."""
     create_model(
-        models=_m,
+        models=_M,
         output_dir=EXAMPLE_RESULTS_DIR,
         tmp=tmp,
     )

@@ -24,23 +24,23 @@ _m.units = [
     UNIT_mg,
     UNIT_m,
     UNIT_m2,
-    Unit("per_h", [(UNIT_KIND_SECOND, -1.0, 0, 3600)]),
-    Unit(
+    UnitDefinition("per_h", [(UNIT_KIND_SECOND, -1.0, 0, 3600)]),
+    UnitDefinition(
         "mg_per_litre",
         [(UNIT_KIND_GRAM, 1.0, -3, 1.0), (UNIT_KIND_LITRE, -1.0, 0, 1.0)],
     ),
-    Unit("mg_per_g", [(UNIT_KIND_GRAM, 1.0, -3, 1.0), (UNIT_KIND_GRAM, -1.0, 0, 1.0)]),
-    Unit(
+    UnitDefinition("mg_per_g", [(UNIT_KIND_GRAM, 1.0, -3, 1.0), (UNIT_KIND_GRAM, -1.0, 0, 1.0)]),
+    UnitDefinition(
         "mg_per_h", [(UNIT_KIND_GRAM, 1.0, -3, 1.0), (UNIT_KIND_SECOND, -1.0, 0, 3600)]
     ),
-    Unit(
+    UnitDefinition(
         "litre_per_h",
         [(UNIT_KIND_LITRE, 1.0, 0, 1.0), (UNIT_KIND_SECOND, -1.0, 0, 3600)],
     ),
-    Unit(
+    UnitDefinition(
         "litre_per_kg", [(UNIT_KIND_LITRE, 1.0, 0, 1.0), (UNIT_KIND_GRAM, -1.0, 3, 1.0)]
     ),
-    Unit(
+    UnitDefinition(
         "mulitre_per_min_mg",
         [
             (UNIT_KIND_LITRE, 1.0, -6, 1.0),
@@ -48,18 +48,18 @@ _m.units = [
             (UNIT_KIND_GRAM, -1.0, -3, 1.0),
         ],
     ),
-    Unit("ml_per_s", [(UNIT_KIND_LITRE, 1.0, -3, 1.0), (UNIT_KIND_SECOND, -1.0, 0, 1)]),
+    UnitDefinition("ml_per_s", [(UNIT_KIND_LITRE, 1.0, -3, 1.0), (UNIT_KIND_SECOND, -1.0, 0, 1)]),
     # conversion factors
-    Unit(
+    UnitDefinition(
         "s_per_h", [(UNIT_KIND_SECOND, 1.0, 0, 1.0), (UNIT_KIND_SECOND, -1.0, 0, 3600)]
     ),
-    Unit(
+    UnitDefinition(
         "min_per_h", [(UNIT_KIND_SECOND, 1.0, 0, 60), (UNIT_KIND_SECOND, -1.0, 0, 3600)]
     ),
-    Unit(
+    UnitDefinition(
         "ml_per_litre", [(UNIT_KIND_LITRE, 1.0, -3, 1.0), (UNIT_KIND_LITRE, -1.0, 0, 1)]
     ),
-    Unit(
+    UnitDefinition(
         "mulitre_per_g", [(UNIT_KIND_LITRE, 1.0, -6, 1.0), (UNIT_KIND_GRAM, -1.0, 0, 1)]
     ),
 ]

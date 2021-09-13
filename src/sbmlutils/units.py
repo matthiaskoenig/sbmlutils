@@ -1,171 +1,250 @@
-"""Module for unit information."""
+"""Module for unit information.
 
-from libsbml import (
-    UNIT_KIND_AMPERE,
-    UNIT_KIND_AVOGADRO,
-    UNIT_KIND_BECQUEREL,
-    UNIT_KIND_CANDELA,
-    UNIT_KIND_CELSIUS,
-    UNIT_KIND_COULOMB,
-    UNIT_KIND_DIMENSIONLESS,
-    UNIT_KIND_FARAD,
-    UNIT_KIND_GRAM,
-    UNIT_KIND_GRAY,
-    UNIT_KIND_HERTZ,
-    UNIT_KIND_ITEM,
-    UNIT_KIND_KELVIN,
-    UNIT_KIND_KILOGRAM,
-    UNIT_KIND_LITRE,
-    UNIT_KIND_METER,
-    UNIT_KIND_METRE,
-    UNIT_KIND_MOLE,
-    UNIT_KIND_NEWTON,
-    UNIT_KIND_OHM,
-    UNIT_KIND_SECOND,
-    UNIT_KIND_VOLT,
-)
+Definition of units via simple unit strings parsed by Pint.
+Within models subclasses of `Units`.
 
-from sbmlutils.factory import Unit
+"""
+from typing import Dict
 
-
-UNIT_kg = Unit("kg", [(UNIT_KIND_KILOGRAM, 1.0)], port=True)
-UNIT_m = Unit("m", [(UNIT_KIND_METRE, 1.0)], port=True)
-UNIT_m2 = Unit("m2", [(UNIT_KIND_METRE, 2.0)], port=True)
-UNIT_m3 = Unit("m3", [(UNIT_KIND_METRE, 3.0)], port=True)
-
-UNIT_mM = Unit("mM", [(UNIT_KIND_MOLE, 1, -3, 1.0), (UNIT_KIND_LITRE, -1.0)], port=True)
-UNIT_mmole = Unit("mmole", [(UNIT_KIND_MOLE, 1, -3, 1.0)], port=True)
-UNIT_g_per_mole = Unit(
-    "g_per_mole",
-    [(UNIT_KIND_GRAM, 1.0, 0, 1.0), (UNIT_KIND_MOLE, -1.0, 0, 1.0)],
-    port=True,
-)
-
-UNIT_mole_per_min = Unit(
-    "mole_per_min", [(UNIT_KIND_MOLE, 1.0), (UNIT_KIND_SECOND, -1.0, 0, 60)], port=True
-)
-UNIT_mmole_per_min = Unit(
-    "mmole_per_min",
-    [(UNIT_KIND_MOLE, 1.0, -3, 1.0), (UNIT_KIND_SECOND, -1.0, 0, 60)],
-    port=True,
-)
-UNIT_mmole_per_min_l = Unit(
-    "mmole_per_min_l",
-    [
-        (UNIT_KIND_MOLE, 1.0, -3, 1.0),
-        (UNIT_KIND_SECOND, -1.0, 0, 60),
-        (UNIT_KIND_LITRE, -1.0, 0, 1),
-    ],
-    port=True,
-)
-UNIT_mmole_per_min_kg = Unit(
-    "mmole_per_min_kg",
-    [
-        (UNIT_KIND_MOLE, 1.0, -3, 1.0),
-        (UNIT_KIND_SECOND, -1.0, 0, 60),
-        (UNIT_KIND_KILOGRAM, -1.0, 0, 1),
-    ],
-    port=True,
-)
-
-UNIT_mmole_per_s = Unit(
-    "mmole_per_s", [(UNIT_KIND_MOLE, 1, -3, 1.0), (UNIT_KIND_SECOND, -1.0)], port=True
-)
-UNIT_mole_per_s = Unit(
-    "mole_per_s", [(UNIT_KIND_MOLE, 1.0), (UNIT_KIND_SECOND, -1.0)], port=True
-)
-UNIT_s = Unit("s", [(UNIT_KIND_SECOND, 1.0)], port=True)
-UNIT_min = Unit("min", [(UNIT_KIND_SECOND, 1.0, 0, 60)], port=True)
-UNIT_hr = Unit("hr", [(UNIT_KIND_SECOND, 1.0, 0, 3600)], port=True)
-
-UNIT_per_s = Unit("per_s", [(UNIT_KIND_SECOND, -1.0)], port=True)
-UNIT_per_min = Unit("per_min", [(UNIT_KIND_SECOND, -1.0, 0, 60)], port=True)
-UNIT_per_hr = Unit("per_hr", [(UNIT_KIND_SECOND, -1.0, 0, 3600)], port=True)
-UNIT_per_kg = Unit("per_kg", [(UNIT_KIND_GRAM, -1.0, 0, 1000)], port=True)
-UNIT_per_l = Unit("per_l", [(UNIT_KIND_LITRE, -1.0)], port=True)
-
-UNIT_per_mmole = Unit(
-    "per_mmole",
-    [(UNIT_KIND_MOLE, -1, -3, 1)],
-    port=True,
-)
-
-UNIT_mg = Unit("mg", [(UNIT_KIND_GRAM, 1.0, -3, 1.0)], port=True)
-UNIT_mg_per_hr = Unit(
-    "mg_per_hr",
-    [(UNIT_KIND_GRAM, 1.0, -3, 1.0), (UNIT_KIND_SECOND, -1.0, 0, 3600)],
-    port=True,
-)
-UNIT_mg_per_day = Unit(
-    "mg_per_day",
-    [(UNIT_KIND_GRAM, 1.0, -3, 1.0), (UNIT_KIND_SECOND, -1.0, 0, 3600 * 24)],
-    port=True,
-)
-
-UNIT_ml = Unit("ml", [(UNIT_KIND_LITRE, 1.0, -3, 1.0)], metaId="meta_ml", port=True)
-
-UNIT_litre_per_min = Unit(
-    "litre_per_min",
-    [(UNIT_KIND_LITRE, 1.0, 0, 1), (UNIT_KIND_SECOND, -1.0, 0, 60)],
-    port=True,
-)
-UNIT_litre_per_mmole = Unit(
-    "litre_per_mmole",
-    [(UNIT_KIND_LITRE, 1.0, 0, 1), (UNIT_KIND_MOLE, -1, -3, 1)],
-    port=True,
-)
-
+import libsbml
+import inspect
+from pint import Quantity as Q_
 
 __all__ = [
-    "UNIT_KIND_AMPERE",
-    "UNIT_KIND_AVOGADRO",
-    "UNIT_KIND_BECQUEREL",
-    "UNIT_KIND_CANDELA",
-    "UNIT_KIND_CELSIUS",
-    "UNIT_KIND_COULOMB",
-    "UNIT_KIND_DIMENSIONLESS",
-    "UNIT_KIND_FARAD",
-    "UNIT_KIND_GRAM",
-    "UNIT_KIND_GRAY",
-    "UNIT_KIND_HERTZ",
-    "UNIT_KIND_METER",
-    "UNIT_KIND_ITEM",
-    "UNIT_KIND_KELVIN",
-    "UNIT_KIND_KILOGRAM",
-    "UNIT_KIND_MOLE",
-    "UNIT_KIND_NEWTON",
-    "UNIT_KIND_OHM",
-    "UNIT_KIND_VOLT",
-    "UNIT_KIND_SECOND",
-    "UNIT_KIND_METRE",
-    "UNIT_KIND_LITRE",
-    "UNIT_min",
-    "UNIT_m",
-    "UNIT_m2",
-    "UNIT_m3",
-    "UNIT_mM",
-    "UNIT_mmole",
-    "UNIT_g_per_mole",
-    "UNIT_mmole_per_min",
-    "UNIT_mmole_per_min_l",
-    "UNIT_mmole_per_min_kg",
-    "UNIT_mole_per_min",
-    "UNIT_mmole_per_s",
-    "UNIT_mole_per_s",
-    "UNIT_kg",
-    "UNIT_s",
-    "UNIT_min",
-    "UNIT_hr",
-    "UNIT_per_s",
-    "UNIT_per_min",
-    "UNIT_per_hr",
-    "UNIT_per_kg",
-    "UNIT_per_l",
-    "UNIT_per_mmole",
-    "UNIT_mg",
-    "UNIT_mg_per_hr",
-    "UNIT_mg_per_day",
-    "UNIT_ml",
-    "UNIT_litre_per_min",
-    "UNIT_litre_per_mmole",
+    "Units",
+    "CoreUnits"
 ]
+
+
+class Pint2SBML:
+    """Conversion of pint unit strings to libsbml UnitDefinitions."""
+
+    pint2sbml = {
+        "dimensionless": libsbml.UNIT_KIND_DIMENSIONLESS,
+        "ampere": libsbml.UNIT_KIND_AMPERE,
+        # None: libsbml.UNIT_KIND_BECQUEREL,
+        # "becquerel": libsbml.UNIT_KIND_BECQUEREL,
+        "candela": libsbml.UNIT_KIND_CANDELA,
+        "degree_Celsius": libsbml.UNIT_KIND_CELSIUS,
+        "coulomb": libsbml.UNIT_KIND_COULOMB,
+        "farad": libsbml.UNIT_KIND_FARAD,
+        "gram": libsbml.UNIT_KIND_GRAM,
+        "gray": libsbml.UNIT_KIND_GRAY,
+        "hertz": libsbml.UNIT_KIND_HERTZ,
+        "kelvin": libsbml.UNIT_KIND_KELVIN,
+        "kilogram": libsbml.UNIT_KIND_KILOGRAM,
+        "liter": libsbml.UNIT_KIND_LITRE,
+        "meter": libsbml.UNIT_KIND_METRE,
+        "mole": libsbml.UNIT_KIND_MOLE,
+        "newton": libsbml.UNIT_KIND_NEWTON,
+        "ohm": libsbml.UNIT_KIND_OHM,
+        "second": libsbml.UNIT_KIND_SECOND,
+        "volt": libsbml.UNIT_KIND_VOLT,
+    }
+
+    @staticmethod
+    def create_unit_definition(
+        model: libsbml.Model,
+        definition: str) -> libsbml.UnitDefinition:
+        """Parses string definition and returns SBML unit definition.
+
+        :param definition:
+        :return:
+        """
+        udef: libsbml.UnitDefinition = model.createUnitDefinition()
+
+        # parse the string into pint
+        quantity = Q_(definition).to_compact().to_reduced_units().to_base_units()
+
+        m, units = quantity.to_tuple()
+        for k, item in enumerate(units):
+            print(k, item)
+
+            if k == 0:
+                multiplier = quantity.magnitude
+            else:
+                multiplier = 1.0
+
+                # FIXME: get exponent from
+
+            base_unit = item[0]
+            kind = Pint2SBML.pint2sbml[base_unit]
+            exponent = item[1]
+            scale = 0
+
+            Pint2SBML._create_unit(udef, kind, exponent, scale, multiplier)
+
+        return udef
+
+    @staticmethod
+    def _create_unit(
+        udef: libsbml.UnitDefinition,
+        kind: str,
+        exponent: float,
+        scale: int = 0,
+        multiplier: float = 1.0,
+    ) -> libsbml.Unit:
+        """Create libsbml.Unit."""
+        unit: libsbml.Unit = udef.createUnit()
+        unit.setKind(kind)
+        unit.setExponent(exponent)
+        unit.setScale(scale)
+        unit.setMultiplier(multiplier)
+        return unit
+
+
+class Units:
+    """Base class for unit definitions."""
+
+    # @classmethod
+    # def attribute_dict(cls) -> Dict[str, str]:
+    #
+    #     attributes = inspect.getmembers(cls, lambda a: not (inspect.isroutine(a)))
+    #     return {a[1]: a[0] for a in attributes if not (a[0].startswith('__') and a[0].endswith('__'))}
+    #
+    # @classmethod
+    # def uid(cls, unit_str) -> str:
+    #     """Get unit id"""
+    #     d = cls.attribute_dict()
+    #     return d[unit_str]
+
+
+class CoreUnits(Units):
+    """Reusable core units."""
+
+    ampere = "ampere"
+    avogadro = "avogadro"
+    # bequerel = "bequerel"
+    candela = "candela"
+    celsius = "celsius"
+    coulomb = "coulomb"
+    dimensionless = "dimensionless"
+    farad = "farad"
+    gram = "gram"
+    g = "gram"
+    gray = "gray"
+    hertz = "hertz"
+    item = ""
+    kelvin = "kelvin"
+    kilogram = "kg"
+    kg = "kg"
+    litre = "liter"
+    liter = "liter"
+    l = "liter"
+    meter = "meter"
+    metre = "metre"
+    m = "meter"
+    mole = "mole"
+    min = "min"
+    hr = "hr"
+    newton = "newton"
+    ohm = "ohm"
+    second = "second"
+    s = "second"
+    volt = "volt"
+
+    m2 = "meter^2"
+    m3 = "meter^3"
+    mmole = "mmole"
+    mM = "mmole/liter"
+    g_per_mole = "g/mole"
+
+    # amount/time
+    mole_per_min = "mole/min"
+    mmole_per_min = "mmole/min"
+    mole_per_s = "mole/second"
+    mmole_per_s = "mmole/second"
+
+    mmole_per_min_l = "mmole/min/litre"
+    mmole_per_min_kg = "mmole/min/kg"
+
+    per_s = "1/second"
+    per_min = "1/min"
+    per_hr = "1/hr"
+    per_kg = "1/kg"
+    per_l = "1/liter"
+    per_mmole = "1/mmole"
+
+    mg_per_hr = "mg/hr"
+    mg_per_day = "mg/day"
+
+    ml = "ml"
+    l_per_min = "liter/min"
+    l_per_mmole = "liter/mmole"
+
+
+if __name__ == "__main__":
+    doc: libsbml.SBMLDocument = libsbml.SBMLDocument()
+    model: libsbml.Model = doc.createModel()
+
+    udef: libsbml.UnitDefinition = Pint2SBML.create_unit_definition(
+        model=model, definition="meter/second"
+    )
+    print(udef)
+    print(libsbml.UnitDefinition_printUnits(udef, compact=True))
+
+    definitions = [
+        "ampere",
+        # "avogadro",
+        # "becquerel",
+        "candela",
+        "celsius",
+        "coulomb",
+        "farad",
+        "gram",
+        "gray",
+        "hertz",
+        "dimensionless",
+        "kelvin",
+        "kg",
+        "kg",
+        "liter",
+        "litre",
+        "l",
+        "meter",
+        "metre",
+        "m",
+        "mole",
+        "min",
+        "hr",
+        "newton",
+        "ohm",
+        "second",
+        "second",
+        "volt",
+
+        "meter^2",
+        "meter^3",
+        "mmole",
+        "mmole/liter",
+        "g/mole",
+        "mole/min",
+        "mmole/min",
+        "mole/second",
+        "mmole/second",
+        "mmole/min/l",
+        "mmole/min/kg",
+
+        "1/second",
+        "1/min",
+        "1/hr",
+        "1/kg",
+        "1/liter",
+        "1/mmole",
+
+        "mg/hr",
+        "mg/day",
+
+        "ml",
+        "liter/min",
+        "liter/mmole",
+    ]
+
+    for definition in definitions:
+        print("---", definition, "---")
+        udef = Pint2SBML.create_unit_definition(
+            model=model, definition=definition,
+        )
+        print(libsbml.UnitDefinition_printUnits(udef, compact=True))
+
+    print(CoreUnits.uid("mg/hr"))

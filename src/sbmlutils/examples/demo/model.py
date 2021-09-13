@@ -30,13 +30,13 @@ _m.model_units = ModelUnits(
     volume=UNIT_m3,
 )
 _m.units = [
-    Unit("s", [(UNIT_KIND_SECOND, 1.0)]),
-    Unit("kg", [(UNIT_KIND_KILOGRAM, 1.0)]),
-    Unit("m", [(UNIT_KIND_METRE, 1.0)]),
-    Unit("m2", [(UNIT_KIND_METRE, 2.0)]),
-    Unit("m3", [(UNIT_KIND_METRE, 3.0)]),
-    Unit("mM", [(UNIT_KIND_MOLE, 1.0, 0), (UNIT_KIND_METRE, -3.0)]),
-    Unit("mole_per_s", [(UNIT_KIND_MOLE, 1.0), (UNIT_KIND_SECOND, -1.0)]),
+    UnitDefinition("s", [(UNIT_KIND_SECOND, 1.0)]),
+    UnitDefinition("kg", [(UNIT_KIND_KILOGRAM, 1.0)]),
+    UnitDefinition("m", [(UNIT_KIND_METRE, 1.0)]),
+    UnitDefinition("m2", [(UNIT_KIND_METRE, 2.0)]),
+    UnitDefinition("m3", [(UNIT_KIND_METRE, 3.0)]),
+    UnitDefinition("mM", [(UNIT_KIND_MOLE, 1.0, 0), (UNIT_KIND_METRE, -3.0)]),
+    UnitDefinition("mole_per_s", [(UNIT_KIND_MOLE, 1.0), (UNIT_KIND_SECOND, -1.0)]),
 ]
 
 _m.compartments = [

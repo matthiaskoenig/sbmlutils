@@ -1,6 +1,6 @@
 import libsbml
 
-from sbmlutils.factory import Unit
+from sbmlutils.factory import UnitDefinition
 from sbmlutils.report.units import udef_to_string
 from sbmlutils.units import *
 
@@ -10,18 +10,18 @@ model = doc.createModel()  # libsbml.model
 
 
 def test_unit_def1() -> None:
-    unit = Unit("mM", [(UNIT_KIND_MOLE, 1.0), (UNIT_KIND_METRE, -3.0)])
+    unit = UnitDefinition("mM", [(UNIT_KIND_MOLE, 1.0), (UNIT_KIND_METRE, -3.0)])
     unit_def = unit.create_sbml(model)
     assert udef_to_string(unit_def) == "(mole)/(m^3)"
 
 
 def test_unit_def2() -> None:
-    unit = Unit("dimensionless", [(UNIT_KIND_DIMENSIONLESS, 1.0)])
+    unit = UnitDefinition("dimensionless", [(UNIT_KIND_DIMENSIONLESS, 1.0)])
     unit_def = unit.create_sbml(model)
     assert udef_to_string(unit_def) == ""
 
 
 def test_unit_def3() -> None:
-    unit = Unit("pmol", [(UNIT_KIND_MOLE, 1.0, -12, 1.0)])
+    unit = UnitDefinition("pmol", [(UNIT_KIND_MOLE, 1.0, -12, 1.0)])
     unit_def = unit.create_sbml(model)
     assert udef_to_string(unit_def) == "(10^-12)*mole"

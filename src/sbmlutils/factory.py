@@ -42,6 +42,7 @@ from sbmlutils.metadata import annotator
 from sbmlutils.metadata.annotator import Annotation
 from sbmlutils.notes import Notes
 from sbmlutils.report import sbmlreport
+from sbmlutils.units import Pint2SBML, Units
 from sbmlutils.utils import FrozenClass, bcolors, create_metaid, deprecated
 from sbmlutils.validation import check
 
@@ -65,7 +66,7 @@ __all__ = [
     "ModelUnits",
     "Creator",
     "Compartment",
-    "Unit",
+    "UnitDefinition",
     "Function",
     "Species",
     "Parameter",
@@ -172,7 +173,7 @@ def ast_node_from_formula(model: libsbml.Model, formula: str) -> libsbml.ASTNode
     return ast_node
 
 
-UnitType = Optional[Union[str, libsbml.UnitDefinition, "Unit"]]
+UnitType = Optional[Union[str, "UnitDefinition"]]
 AnnotationsType = Optional[List[Union[Annotation, Tuple[Union[BQB, BQM], str]]]]
 
 PortType = Any  # Union[bool, Port]
@@ -265,7 +266,7 @@ class ModelUnits:
                     continue
 
                 unit = getattr(model_units, key)
-                unit = Unit.get_unit_string(unit)
+                unit = UnitDefinition.get_unit_string(unit)
                 # set the values
                 if key == "time":
                     model.setTimeUnits(unit)
@@ -487,7 +488,7 @@ class Sbase:
                 # manually create port for the id
                 cmodel = model.getPlugin("comp")
                 p = cmodel.createPort()
-                if isinstance(self, Unit):
+                if isinstance(self, UnitDefinition):
                     port_sid = f"{self.sid}{PORT_UNIT_SUFFIX}"
                 else:
                     port_sid = f"{self.sid}{PORT_SUFFIX}"
@@ -496,7 +497,7 @@ class Sbase:
                 p.setMetaId(port_sid)
                 p.setSBOTerm(599)  # port
 
-                if isinstance(self, Unit):
+                if isinstance(self, UnitDefinition):
                     p.setUnitRef(self.sid)
                 else:
                     p.setIdRef(self.sid)
@@ -625,11 +626,11 @@ class ValueWithUnit(Value):
                 # AssignmentRules and RateRules have no units
                 pass
             else:
-                unit_str = Unit.get_unit_string(self.unit)
+                unit_str = UnitDefinition.get_unit_string(self.unit)
                 check(obj.setUnits(unit_str), f"Set unit '{unit_str}' on {obj}")
 
 
-class Unit(Sbase):
+class UnitDefinition(Sbase):
     """Unit.
 
     Corresponds to the information in the libsbml.UnitDefinition.
@@ -638,7 +639,7 @@ class Unit(Sbase):
     def __init__(
         self,
         sid: str,
-        definition: Any,
+        definition: str,
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
@@ -648,9 +649,9 @@ class Unit(Sbase):
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
     ):
-        super(Unit, self).__init__(
+        super(UnitDefinition, self).__init__(
             sid=sid,
-            name=name,
+            name=name if name else definition,
             sboTerm=sboTerm,
             metaId=metaId,
             annotations=annotations,
@@ -662,81 +663,18 @@ class Unit(Sbase):
         self.definition = definition
 
     def create_sbml(self, model: libsbml.Model) -> libsbml.UnitDefinition:
-        """Create libsbml.UnitDefinition.
+        """Create libsbml.UnitDefinition."""
 
-        (kind, exponent, scale, multiplier)
-        """
-        obj: libsbml.UnitDefinition = model.createUnitDefinition()
-
-        for data in self.definition:
-            kind = data[0]
-            exponent = data[1]
-            scale = 0
-            multiplier = 1.0
-            if len(data) > 2:
-                scale = data[2]
-            if len(data) > 3:
-                multiplier = data[3]
-
-            Unit._create_unit(obj, kind, exponent, scale, multiplier)
-
+        obj: libsbml.UnitDefinition = Pint2SBML.create_unit_definition(
+            model=model, definition=self.definition
+        )
         self._set_fields(obj, model)
         self.create_port(model)
         return obj
 
     def _set_fields(self, obj: libsbml.UnitDefinition, model: libsbml.Model) -> None:
         """Set fields on libsbml.UnitDefinition."""
-        super(Unit, self)._set_fields(obj, model)
-
-    @staticmethod
-    def _create_unit(
-        udef: libsbml.UnitDefinition,
-        kind: str,
-        exponent: float,
-        scale: int = 0,
-        multiplier: float = 1.0,
-    ) -> libsbml.Unit:
-        """Create libsbml.Unit."""
-        unit: libsbml.Unit = udef.createUnit()
-        unit.setKind(kind)
-        unit.setExponent(exponent)
-        unit.setScale(scale)
-        unit.setMultiplier(multiplier)
-        return unit
-
-    @staticmethod
-    def get_unit_string(unit: UnitType) -> Optional[str]:
-        """Get string representation for unit.
-
-        Units can be either integer libsbml codes which are converted to the correct
-        strings or these strings:
-
-           ampere         farad  joule     lux     radian     volt
-           avogadro       gram   katal     metre   second     watt
-           becquerel      gray   kelvin    mole    siemens    weber
-           candela        henry  kilogram  newton  sievert
-           coulomb        hertz  litre     ohm     steradian
-           dimensionless  item   lumen     pascal  tesla
-
-        In addition custom units are possible.
-        """
-        if isinstance(unit, Unit):
-            return unit.sid
-        elif isinstance(unit, (int, str)):
-            if isinstance(unit, int):
-                # libsbml unit
-                unit_str = str(libsbml.UnitKind_toString(unit))
-            if isinstance(unit, str):
-                unit_str = unit
-            if unit_str == "meter":
-                return "metre"
-            elif unit_str == "liter":
-                return "litre"
-            elif unit_str == "-":
-                return "dimensionless"
-            return unit_str
-        else:
-            return None
+        super(UnitDefinition, self)._set_fields(obj, model)
 
 
 class Function(Sbase):
@@ -970,7 +908,6 @@ class Species(Sbase):
                 f"Either initialAmount or initialConcentration can be set on "
                 f"species, but not both: {sid}"
             )
-        self._substanceUnit = None  # type: ignore
         self.substanceUnit = substanceUnit
         self.initialAmount = initialAmount
         self.initialConcentration = initialConcentration
@@ -981,16 +918,6 @@ class Species(Sbase):
         self.charge = charge
         self.chemicalFormula = chemicalFormula
         self.conversionFactor = conversionFactor
-
-    @property
-    def substanceUnit(self) -> Optional[UnitType]:
-        """Get substanceUnit."""
-        return self._substanceUnit
-
-    @substanceUnit.setter
-    def substanceUnit(self, value: Optional[UnitType]) -> None:
-        """Set substanceUnit."""
-        self._substanceUnit = Unit.get_unit_string(value)
 
     def create_sbml(self, model: libsbml.Model) -> libsbml.Species:
         """Create Species SBML in model."""
@@ -1016,7 +943,7 @@ class Species(Sbase):
         obj.setBoundaryCondition(self.boundaryCondition)
         obj.setHasOnlySubstanceUnits(self.hasOnlySubstanceUnits)
         if self.substanceUnit is not None:
-            obj.setUnits(Unit.get_unit_string(self.substanceUnit))
+            obj.setUnits(UnitDefinition.get_unit_string(self.substanceUnit))
 
         if self.initialAmount is not None:
             obj.setInitialAmount(self.initialAmount)
@@ -1640,7 +1567,7 @@ class Uncertainty(Sbase):
                 if uncertSpan.varUpper is not None:
                     up_span.setValueLower(uncertSpan.varUpper)
                 if uncertSpan.unit:
-                    up_span.setUnits(Unit.get_unit_string(uncertSpan.unit))
+                    up_span.setUnits(UnitDefinition.get_unit_string(uncertSpan.unit))
             else:
                 logger.error(
                     f"Unsupported type for UncertSpan: '{uncertSpan.type}' "
@@ -1670,7 +1597,7 @@ class Uncertainty(Sbase):
                 if uncertParameter.var is not None:
                     up_p.setValue(uncertParameter.var)
                 if uncertParameter.unit:
-                    up_p.setUnits(Unit.get_unit_string(uncertParameter.unit))
+                    up_p.setUnits(UnitDefinition.get_unit_string(uncertParameter.unit))
             else:
                 logger.error(
                     f"Unsupported type for UncertParameter: "
@@ -2129,7 +2056,7 @@ class SbaseRef(Sbase):
         if self.idRef is not None:
             obj.setIdRef(self.idRef)
         if self.unitRef is not None:
-            unit_str = Unit.get_unit_string(self.unitRef)
+            unit_str = UnitDefinition.get_unit_string(self.unitRef)
             obj.setUnitRef(unit_str)
         if self.metaIdRef is not None:
             obj.setMetaIdRef(self.metaIdRef)
@@ -2517,7 +2444,7 @@ class Model(Sbase, FrozenClass, BaseModel):
         external_model_definitions: Optional[List[ExternalModelDefinition]] = None,
         model_definitions: Optional[List[ModelDefinition]] = None,
         submodels: Optional[List[Submodel]] = None,
-        units: Optional[List[UnitType]] = None,
+        units: Optional[Units] = None,
         functions: Optional[List[Function]] = None,
         compartments: Optional[List[Compartment]] = None,
         species: Optional[List[Species]] = None,
@@ -2572,7 +2499,7 @@ class Model(Sbase, FrozenClass, BaseModel):
             for sbase in objects:
                 if isinstance(sbase, Submodel):
                     self.submodels.append(sbase)
-                elif isinstance(sbase, Unit):
+                elif isinstance(sbase, UnitDefinition):
                     self.submodels.append(sbase)
                 elif isinstance(sbase, Function):
                     self.functions.append(sbase)

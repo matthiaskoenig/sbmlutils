@@ -25,31 +25,31 @@ from libsbml import (
     UNIT_KIND_VOLT,
 )
 
-from sbmlutils.factory import Unit
+from sbmlutils.factory import UnitDefinition
 
 
-UNIT_kg = Unit("kg", [(UNIT_KIND_KILOGRAM, 1.0)], port=True)
-UNIT_m = Unit("m", [(UNIT_KIND_METRE, 1.0)], port=True)
-UNIT_m2 = Unit("m2", [(UNIT_KIND_METRE, 2.0)], port=True)
-UNIT_m3 = Unit("m3", [(UNIT_KIND_METRE, 3.0)], port=True)
+UNIT_kg = UnitDefinition("kg", [(UNIT_KIND_KILOGRAM, 1.0)], port=True)
+UNIT_m = UnitDefinition("m", [(UNIT_KIND_METRE, 1.0)], port=True)
+UNIT_m2 = UnitDefinition("m2", [(UNIT_KIND_METRE, 2.0)], port=True)
+UNIT_m3 = UnitDefinition("m3", [(UNIT_KIND_METRE, 3.0)], port=True)
 
-UNIT_mM = Unit("mM", [(UNIT_KIND_MOLE, 1, -3, 1.0), (UNIT_KIND_LITRE, -1.0)], port=True)
-UNIT_mmole = Unit("mmole", [(UNIT_KIND_MOLE, 1, -3, 1.0)], port=True)
-UNIT_g_per_mole = Unit(
+UNIT_mM = UnitDefinition("mM", [(UNIT_KIND_MOLE, 1, -3, 1.0), (UNIT_KIND_LITRE, -1.0)], port=True)
+UNIT_mmole = UnitDefinition("mmole", [(UNIT_KIND_MOLE, 1, -3, 1.0)], port=True)
+UNIT_g_per_mole = UnitDefinition(
     "g_per_mole",
     [(UNIT_KIND_GRAM, 1.0, 0, 1.0), (UNIT_KIND_MOLE, -1.0, 0, 1.0)],
     port=True,
 )
 
-UNIT_mole_per_min = Unit(
+UNIT_mole_per_min = UnitDefinition(
     "mole_per_min", [(UNIT_KIND_MOLE, 1.0), (UNIT_KIND_SECOND, -1.0, 0, 60)], port=True
 )
-UNIT_mmole_per_min = Unit(
+UNIT_mmole_per_min = UnitDefinition(
     "mmole_per_min",
     [(UNIT_KIND_MOLE, 1.0, -3, 1.0), (UNIT_KIND_SECOND, -1.0, 0, 60)],
     port=True,
 )
-UNIT_mmole_per_min_l = Unit(
+UNIT_mmole_per_min_l = UnitDefinition(
     "mmole_per_min_l",
     [
         (UNIT_KIND_MOLE, 1.0, -3, 1.0),
@@ -58,7 +58,7 @@ UNIT_mmole_per_min_l = Unit(
     ],
     port=True,
 )
-UNIT_mmole_per_min_kg = Unit(
+UNIT_mmole_per_min_kg = UnitDefinition(
     "mmole_per_min_kg",
     [
         (UNIT_KIND_MOLE, 1.0, -3, 1.0),
@@ -68,48 +68,48 @@ UNIT_mmole_per_min_kg = Unit(
     port=True,
 )
 
-UNIT_mmole_per_s = Unit(
+UNIT_mmole_per_s = UnitDefinition(
     "mmole_per_s", [(UNIT_KIND_MOLE, 1, -3, 1.0), (UNIT_KIND_SECOND, -1.0)], port=True
 )
-UNIT_mole_per_s = Unit(
+UNIT_mole_per_s = UnitDefinition(
     "mole_per_s", [(UNIT_KIND_MOLE, 1.0), (UNIT_KIND_SECOND, -1.0)], port=True
 )
-UNIT_s = Unit("s", [(UNIT_KIND_SECOND, 1.0)], port=True)
-UNIT_min = Unit("min", [(UNIT_KIND_SECOND, 1.0, 0, 60)], port=True)
-UNIT_hr = Unit("hr", [(UNIT_KIND_SECOND, 1.0, 0, 3600)], port=True)
+UNIT_s = UnitDefinition("s", [(UNIT_KIND_SECOND, 1.0)], port=True)
+UNIT_min = UnitDefinition("min", [(UNIT_KIND_SECOND, 1.0, 0, 60)], port=True)
+UNIT_hr = UnitDefinition("hr", [(UNIT_KIND_SECOND, 1.0, 0, 3600)], port=True)
 
-UNIT_per_s = Unit("per_s", [(UNIT_KIND_SECOND, -1.0)], port=True)
-UNIT_per_min = Unit("per_min", [(UNIT_KIND_SECOND, -1.0, 0, 60)], port=True)
-UNIT_per_hr = Unit("per_hr", [(UNIT_KIND_SECOND, -1.0, 0, 3600)], port=True)
-UNIT_per_kg = Unit("per_kg", [(UNIT_KIND_GRAM, -1.0, 0, 1000)], port=True)
-UNIT_per_l = Unit("per_l", [(UNIT_KIND_LITRE, -1.0)], port=True)
+UNIT_per_s = UnitDefinition("per_s", [(UNIT_KIND_SECOND, -1.0)], port=True)
+UNIT_per_min = UnitDefinition("per_min", [(UNIT_KIND_SECOND, -1.0, 0, 60)], port=True)
+UNIT_per_hr = UnitDefinition("per_hr", [(UNIT_KIND_SECOND, -1.0, 0, 3600)], port=True)
+UNIT_per_kg = UnitDefinition("per_kg", [(UNIT_KIND_GRAM, -1.0, 0, 1000)], port=True)
+UNIT_per_l = UnitDefinition("per_l", [(UNIT_KIND_LITRE, -1.0)], port=True)
 
-UNIT_per_mmole = Unit(
+UNIT_per_mmole = UnitDefinition(
     "per_mmole",
     [(UNIT_KIND_MOLE, -1, -3, 1)],
     port=True,
 )
 
-UNIT_mg = Unit("mg", [(UNIT_KIND_GRAM, 1.0, -3, 1.0)], port=True)
-UNIT_mg_per_hr = Unit(
+UNIT_mg = UnitDefinition("mg", [(UNIT_KIND_GRAM, 1.0, -3, 1.0)], port=True)
+UNIT_mg_per_hr = UnitDefinition(
     "mg_per_hr",
     [(UNIT_KIND_GRAM, 1.0, -3, 1.0), (UNIT_KIND_SECOND, -1.0, 0, 3600)],
     port=True,
 )
-UNIT_mg_per_day = Unit(
+UNIT_mg_per_day = UnitDefinition(
     "mg_per_day",
     [(UNIT_KIND_GRAM, 1.0, -3, 1.0), (UNIT_KIND_SECOND, -1.0, 0, 3600 * 24)],
     port=True,
 )
 
-UNIT_ml = Unit("ml", [(UNIT_KIND_LITRE, 1.0, -3, 1.0)], metaId="meta_ml", port=True)
+UNIT_ml = UnitDefinition("ml", [(UNIT_KIND_LITRE, 1.0, -3, 1.0)], metaId="meta_ml", port=True)
 
-UNIT_litre_per_min = Unit(
+UNIT_litre_per_min = UnitDefinition(
     "litre_per_min",
     [(UNIT_KIND_LITRE, 1.0, 0, 1), (UNIT_KIND_SECOND, -1.0, 0, 60)],
     port=True,
 )
-UNIT_litre_per_mmole = Unit(
+UNIT_litre_per_mmole = UnitDefinition(
     "litre_per_mmole",
     [(UNIT_KIND_LITRE, 1.0, 0, 1), (UNIT_KIND_MOLE, -1, -3, 1)],
     port=True,
