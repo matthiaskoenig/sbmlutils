@@ -291,12 +291,14 @@ class Creator:
         email: str,
         organization: str,
         site: Optional[str] = None,
+        orcid: Optional[str] = None
     ):
         self.familyName = familyName
         self.givenName = givenName
         self.email = email
         self.organization = organization
         self.site = site
+        self.orcid = orcid
 
 
 def date_now() -> libsbml.Date:
