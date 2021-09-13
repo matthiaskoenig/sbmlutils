@@ -4,11 +4,15 @@ Definition of units via simple unit strings parsed by Pint.
 Within models subclasses of `Units`.
 
 """
-from typing import Dict
+import logging
+from dataclasses import dataclass
+from typing import Dict, Type, Tuple, List
 
 import libsbml
 import inspect
 from pint import Quantity as Q_
+
+logger = logging.getLogger(__file__)
 
 __all__ = [
     "Units",
@@ -51,6 +55,7 @@ class Pint2SBML:
         :param definition:
         :return:
         """
+        logger.warning(f"Create UnitDefinition for: '{definition}'")
         udef: libsbml.UnitDefinition = model.createUnitDefinition()
 
         # parse the string into pint
@@ -96,17 +101,36 @@ class Pint2SBML:
 class Units:
     """Base class for unit definitions."""
 
-    # @classmethod
-    # def attribute_dict(cls) -> Dict[str, str]:
-    #
-    #     attributes = inspect.getmembers(cls, lambda a: not (inspect.isroutine(a)))
-    #     return {a[1]: a[0] for a in attributes if not (a[0].startswith('__') and a[0].endswith('__'))}
-    #
-    # @classmethod
-    # def uid(cls, unit_str) -> str:
-    #     """Get unit id"""
-    #     d = cls.attribute_dict()
-    #     return d[unit_str]
+    @classmethod
+    def attributes(cls) -> List[Tuple[str]]:
+
+        attributes = inspect.getmembers(cls, lambda a: not (inspect.isroutine(a)))
+        return [a for a in attributes if not (a[0].startswith('__') and a[0].endswith('__'))]
+
+
+
+@dataclass
+class UnitsEntry:
+    uid: str
+    definition: str
+    unit_definition: libsbml.UnitDefinition
+
+
+class UnitsDict:
+
+    def __init__(self, units_class: Type[Units], model: libsbml.Model):
+        self.units: Dict[str, UnitsEntry] = {}
+        for definition, uid in units_class.attributes():
+
+            udef = Pint2SBML.create_unit_definition(model=model, definition=definition)
+
+            self.units[definition] = UnitsEntry(
+                uid=uid,
+                definition=definition,
+                unit_definition=udef
+            )
+
+
 
 
 class CoreUnits(Units):

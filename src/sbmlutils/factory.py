@@ -25,7 +25,7 @@ from collections import namedtuple
 from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union, Type
 
 import libsbml
 import numpy as np
@@ -42,7 +42,7 @@ from sbmlutils.metadata import annotator
 from sbmlutils.metadata.annotator import Annotation
 from sbmlutils.notes import Notes
 from sbmlutils.report import sbmlreport
-from sbmlutils.units import Pint2SBML, Units
+from sbmlutils.units import Pint2SBML, Units, UnitsDict
 from sbmlutils.utils import FrozenClass, bcolors, create_metaid, deprecated
 from sbmlutils.validation import check
 
@@ -266,7 +266,7 @@ class ModelUnits:
                     continue
 
                 unit = getattr(model_units, key)
-                unit = UnitDefinition.get_unit_string(unit)
+                unit = UnitDefinition.get_uid(model, definition=unit)
                 # set the values
                 if key == "time":
                     model.setTimeUnits(unit)
@@ -626,8 +626,8 @@ class ValueWithUnit(Value):
                 # AssignmentRules and RateRules have no units
                 pass
             else:
-                unit_str = UnitDefinition.get_unit_string(self.unit)
-                check(obj.setUnits(unit_str), f"Set unit '{unit_str}' on {obj}")
+                uid = UnitDefinition.get_uid(model, definition=self.unit)
+                check(obj.setUnits(uid), f"Set unit '{uid}' on {obj}")
 
 
 class UnitDefinition(Sbase):
@@ -675,6 +675,17 @@ class UnitDefinition(Sbase):
     def _set_fields(self, obj: libsbml.UnitDefinition, model: libsbml.Model) -> None:
         """Set fields on libsbml.UnitDefinition."""
         super(UnitDefinition, self)._set_fields(obj, model)
+
+    @staticmethod
+    def get_uid(model: libsbml.Model, definition: str) -> Optional[str]:
+        """Get unit id for given definition string.
+        Lookup in line with the Units.
+        """
+        # search via definition name
+        for udef in model.getListOfUnitDefinitions():  # type: libsbml.UnitDefinition
+            if udef.getName() == definition:
+                return udef.getId()
+        raise ValueError(f"uid not in moel for definition: '{definition}'")
 
 
 class Function(Sbase):
@@ -943,7 +954,7 @@ class Species(Sbase):
         obj.setBoundaryCondition(self.boundaryCondition)
         obj.setHasOnlySubstanceUnits(self.hasOnlySubstanceUnits)
         if self.substanceUnit is not None:
-            obj.setUnits(UnitDefinition.get_unit_string(self.substanceUnit))
+            obj.setUnits(UnitDefinition.get_uid(model, definition=self.substanceUnit))
 
         if self.initialAmount is not None:
             obj.setInitialAmount(self.initialAmount)
@@ -1567,7 +1578,7 @@ class Uncertainty(Sbase):
                 if uncertSpan.varUpper is not None:
                     up_span.setValueLower(uncertSpan.varUpper)
                 if uncertSpan.unit:
-                    up_span.setUnits(UnitDefinition.get_unit_string(uncertSpan.unit))
+                    up_span.setUnits(UnitDefinition.get_uid(model, definition=uncertSpan.unit))
             else:
                 logger.error(
                     f"Unsupported type for UncertSpan: '{uncertSpan.type}' "
@@ -1597,7 +1608,7 @@ class Uncertainty(Sbase):
                 if uncertParameter.var is not None:
                     up_p.setValue(uncertParameter.var)
                 if uncertParameter.unit:
-                    up_p.setUnits(UnitDefinition.get_unit_string(uncertParameter.unit))
+                    up_p.setUnits(UnitDefinition.get_uid(model, definition=uncertParameter.unit))
             else:
                 logger.error(
                     f"Unsupported type for UncertParameter: "
@@ -1857,6 +1868,7 @@ def create_objective(
 
 class ModelDefinition(Sbase):
     """ModelDefinition."""
+    # FIXME: handle as model
 
     def __init__(
         self,
@@ -1866,7 +1878,7 @@ class ModelDefinition(Sbase):
         metaId: str = None,
         annotations: AnnotationsType = None,
         notes: Optional[str] = None,
-        units: Optional[List[UnitType]] = None,
+        units: Optional[Units] = None,
         compartments: Optional[List[Compartment]] = None,
         species: Optional[List[Species]] = None,
     ):
@@ -2056,7 +2068,7 @@ class SbaseRef(Sbase):
         if self.idRef is not None:
             obj.setIdRef(self.idRef)
         if self.unitRef is not None:
-            unit_str = UnitDefinition.get_unit_string(self.unitRef)
+            unit_str = UnitDefinition.get_uid(model, definition=self.unitRef)
             obj.setUnitRef(unit_str)
         if self.metaIdRef is not None:
             obj.setMetaIdRef(self.metaIdRef)
@@ -2315,7 +2327,7 @@ class ModelDict(TypedDict, total=False):
     external_model_definitions: Optional[List[ExternalModelDefinition]]
     model_definitions: Optional[List[ModelDefinition]]
     submodels: Optional[List[Submodel]]
-    units: Optional[List[UnitType]]
+    units: Optional[Units]
     functions: Optional[List[Function]]
     compartments: Optional[List[Compartment]]
     species: Optional[List[Species]]
@@ -2347,7 +2359,7 @@ class Model(Sbase, FrozenClass, BaseModel):
     external_model_definitions: Optional[List[ExternalModelDefinition]]
     model_definitions: Optional[List[ModelDefinition]]
     submodels: Optional[List[Submodel]]
-    units: Optional[List[UnitType]]
+    units: Optional[Type[Units]]
     functions: Optional[List[Function]]
     compartments: Optional[List[Compartment]]
     species: Optional[List[Species]]
@@ -2380,7 +2392,7 @@ class Model(Sbase, FrozenClass, BaseModel):
         "external_model_definitions": list,
         "model_definitions": list,
         "submodels": list,
-        "units": list,
+        "units": None,
         "functions": list,
         "compartments": list,
         "species": list,
@@ -2405,6 +2417,7 @@ class Model(Sbase, FrozenClass, BaseModel):
     @staticmethod
     def merge_models(models: List["Model"]) -> "Model":
         """Merge information from multiple models."""
+        # FIXME: handle units correctly
         if isinstance(models, Model):
             return models
         if not models:
@@ -2440,11 +2453,11 @@ class Model(Sbase, FrozenClass, BaseModel):
         packages: Optional[List[str]] = None,
         creators: Optional[List[Creator]] = None,
         model_units: Optional[ModelUnits] = None,
+        units: Optional[Type[Units]] = None,
         objects: Optional[List[Sbase]] = None,
         external_model_definitions: Optional[List[ExternalModelDefinition]] = None,
         model_definitions: Optional[List[ModelDefinition]] = None,
         submodels: Optional[List[Submodel]] = None,
-        units: Optional[Units] = None,
         functions: Optional[List[Function]] = None,
         compartments: Optional[List[Compartment]] = None,
         species: Optional[List[Species]] = None,
@@ -2473,11 +2486,12 @@ class Model(Sbase, FrozenClass, BaseModel):
         self.packages = packages
         self.creators = creators
         self.model_units = model_units
+        self.units = units
+        self.units_dict = None
         self.external_model_definitions = external_model_definitions
         self.model_definitions = model_definitions
 
         self.submodels = submodels if submodels else []
-        self.units = units if units else []
         self.functions = functions if functions else []
         self.compartments = compartments if compartments else []
         self.species = species if species else []
@@ -2498,8 +2512,6 @@ class Model(Sbase, FrozenClass, BaseModel):
         if objects:
             for sbase in objects:
                 if isinstance(sbase, Submodel):
-                    self.submodels.append(sbase)
-                elif isinstance(sbase, UnitDefinition):
                     self.submodels.append(sbase)
                 elif isinstance(sbase, Function):
                     self.functions.append(sbase)
@@ -2546,16 +2558,19 @@ class Model(Sbase, FrozenClass, BaseModel):
         if self.creators:
             set_model_history(model, self.creators)
 
+        # units (creates units
+        self.units_dict = UnitsDict(units_class=self.units, model=model)
+
         # model units
         if hasattr(self, "model_units"):
-            ModelUnits.set_model_units(model, self.model_units)  # type: ignore
+            ModelUnits.set_model_units(model, self.model_units)
 
         # lists ofs
         for attr in [
             "externalModelDefinitions",
             "modelDefinitions",
             "submodels",
-            "units",
+            # "units",
             "functions",
             "parameters",
             "compartments",
