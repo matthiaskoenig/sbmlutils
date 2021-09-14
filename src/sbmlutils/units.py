@@ -129,11 +129,33 @@ if __name__ == "__main__":
         "liter/mmole",
     ]
 
-    for definition in definitions:
-        print("---", definition, "---")
-        udef = Pint2SBML.create_unit_definition(
-            model=model, definition=definition,
-        )
-        print(libsbml.UnitDefinition_printUnits(udef, compact=True))
+    # for definition in definitions:
+    #     print("---", definition, "---")
+    #     udef = Pint2SBML.create_unit_definition(
+    #         model=model, definition=definition,
+    #     )
+    #     print(libsbml.UnitDefinition_printUnits(udef, compact=True))
+    #
+    # print(CoreUnits.uid("mg/hr"))
 
-    print(CoreUnits.uid("mg/hr"))
+    # quantity = Q_(self.definition).to_compact().to_reduced_units().to_base_units()
+    from pint import Quantity as Q_
+
+    quantity = Q_(1.0, "mliter")
+    # quantity = Q_(1.0, "mliter").to_base_units()
+    # print(quantity)
+    # quantity = Q_(1.0, "mliter").to_root_units()
+    # print(quantity)
+    # quantity = Q_(1.0, "mliter").to_compact()
+    # print(quantity)
+    # quantity = Q_(1.0, "mliter").to_reduced_units()
+    # print(quantity)
+
+    from pint import UnitRegistry
+    ureg = UnitRegistry()
+
+    m, units = quantity.to_tuple()
+    for k, item in enumerate(units):
+        print(item)
+        print(ureg.parse_unit_name(item[0]))
+

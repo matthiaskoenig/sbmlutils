@@ -15,7 +15,7 @@ must be correct in the model definition files.
 To create complete models one should use the modelcreator functionality,
 which takes care of the order of object creation.
 """
-from pint import Quantity as Q_
+from pint import Quantity as Q_, UnitRegistry
 import inspect
 import datetime
 import json
@@ -687,6 +687,29 @@ class UnitDefinition(Sbase):
         "second": libsbml.UNIT_KIND_SECOND,
         "volt": libsbml.UNIT_KIND_VOLT,
     }
+    # see https://github.com/hgrecco/pint/blob/master/pint/default_en.txt
+    prefixes = {
+        "yocto": 1e-24,
+        "zepto": 1e-21,
+        "atto": 1e-18,
+        "femto": 1e-15,
+        "pico": 1e-12,
+        "nano": 1e-9,
+        "micro": 1e-6,
+        "milli": 1e-3,
+        "centi": 1e-2,
+        "deci": 1e-1,
+        "deca": 1e+1,
+        "hecto": 1e2,
+        "kilo": 1e3,
+        "mega": 1e6,
+        "giga": 1e9,
+        "tera": 1e12,
+        "peta": 1e15,
+        "exa": 1e18,
+        "zetta": 1e21,
+        "yotta": 1e24,
+    }
 
     def __init__(
         self,
@@ -721,18 +744,31 @@ class UnitDefinition(Sbase):
         obj: libsbml.UnitDefinition = model.createUnitDefinition()
 
         # parse the string into pint
-        quantity = Q_(self.definition).to_compact().to_reduced_units().to_base_units()
+        # quantity = Q_(self.definition).to_compact().to_reduced_units().to_base_units()
+        ureg = UnitRegistry()
+        quantity = Q_(self.definition)  #.to_base_units()
 
         m, units = quantity.to_tuple()
         for k, item in enumerate(units):
+            # print(item)
+            prefix, unit_name, suffix = ureg.parse_unit_name(item[0])[0]
+            exponent = item[1]
+            # first unit gets the multiplier
+            multiplier = 1.0
             if k == 0:
-                multiplier = quantity.magnitude
-            else:
-                multiplier = 1.0
+                if exponent >= 1:
+                    multiplier = quantity.magnitude
+                else:
+                    multiplier = 1/quantity.magnitude
+
+            if prefix:
+                multiplier = multiplier * self.__class__.prefixes[prefix]
+
+            multiplier = np.power(multiplier, 1/exponent)
 
             base_unit = item[0]
-            kind = self.__class__.pint2sbml[base_unit]
-            exponent = item[1]
+            kind = self.__class__.pint2sbml[unit_name]
+
             scale = 0
             self._create_unit(obj, kind, exponent, scale, multiplier)
 
@@ -758,6 +794,7 @@ class UnitDefinition(Sbase):
         unit.setExponent(exponent)
         unit.setScale(scale)
         unit.setMultiplier(multiplier)
+        print(f"({multiplier} * 10^{scale} {libsbml.UnitKind_toString(kind)})^exponent")
         return unit
 
     @staticmethod

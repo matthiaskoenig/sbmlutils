@@ -31,7 +31,7 @@ _m = Model(
         time=U.s,
         extent=U.mmole,
         substance=U.mmole,
-        # length=U.m,
+        length=U.m,
         area=U.m2,
         volume=U.liter,
     ),

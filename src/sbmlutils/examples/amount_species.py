@@ -1,9 +1,21 @@
 """Model with amount and concentration species."""
 
 from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
+from sbmlutils.report.sbmlreport import create_online_report
+
 from sbmlutils.factory import *
-from sbmlutils.report.sbmlreport import create_online_report, create_report
-from sbmlutils.units import *
+from sbmlutils.metadata import *
+
+
+class U(Units):
+    s = UnitDefinition("s", "s")
+    mmole = UnitDefinition("mmole", "mmole")
+    m = UnitDefinition("m", "meter")
+    m2 = UnitDefinition("m2", "meter^2")
+    m3 = UnitDefinition("m3", "meter^3")
+    kg = UnitDefinition("kg", "kg")
+    per_s = UnitDefinition("per_s", "1/s")
+    mmole_per_s = UnitDefinition("mmole_per_s", "mmole/s")
 
 
 model = Model(
@@ -17,27 +29,18 @@ model = Model(
     + templates.terms_of_use,
     creators=templates.creators,
     model_units=ModelUnits(
-        time=UNIT_s,
-        substance=UNIT_mmole,
-        extent=UNIT_mmole,
-        length=UNIT_m,
-        area=UNIT_m2,
-        volume=UNIT_m3,
+        time=U.s,
+        substance=U.mmole,
+        extent=U.mmole,
+        length=U.m,
+        area=U.m2,
+        volume=U.m3,
     ),
-    units=[
-        UNIT_s,
-        UNIT_kg,
-        UNIT_m,
-        UNIT_m2,
-        UNIT_m3,
-        UNIT_mM,
-        UNIT_mmole,
-        UNIT_per_s,
-        UNIT_mmole_per_s,
-    ],
+    units=U,
     objects=[
         Compartment(
-            sid="Vc", value=1e-06, unit=UNIT_m3, constant=False, name="cell compartment"
+            sid="Vc", value=1e-06, unit=U.m3, constant=False, name="cell compartment",
+            sboTerm=SBO.PHYSICAL_COMPARTMENT
         ),
         Species(
             sid="Aglc",
@@ -48,9 +51,10 @@ model = Model(
             name="glucose",
             compartment="Vc",
             initialAmount=5.0,
-            substanceUnit=UNIT_mmole,
+            substanceUnit=U.mmole,
             hasOnlySubstanceUnits=True,
             boundaryCondition=False,
+            sboTerm=SBO.SIMPLE_CHEMICAL,
         ),
         Species(
             sid="Cglc6p",
@@ -62,17 +66,19 @@ model = Model(
             name="glucose 6-phosphate",
             compartment="Vc",
             initialAmount=0.0,
-            substanceUnit=UNIT_mmole,
+            substanceUnit=U.mmole,
             hasOnlySubstanceUnits=False,
             boundaryCondition=False,
+            sboTerm=SBO.SIMPLE_CHEMICAL,
         ),
         Reaction(
             sid="R1",
             equation="Aglc => Cglc6p",
             compartment="Vc",
-            pars=[Parameter("k1", 1.0, UNIT_per_s)],
+            pars=[Parameter("k1", 1.0, U.per_s)],
             rules=[],
-            formula=("k1 * Aglc", UNIT_mmole_per_s),
+            formula=("k1 * Aglc", U.mmole_per_s),
+            sboTerm=SBO.BIOCHEMICAL_REACTION,
         ),
         AssignmentRule("Vc", "2.0 m3 * exp(time/1 s)"),
     ],
@@ -90,4 +96,3 @@ def create(tmp: bool = False) -> FactoryResult:
 
 if __name__ == "__main__":
     results = create()
-    create_online_report(sbml_path=results.sbml_path, server="http://localhost:3456")
