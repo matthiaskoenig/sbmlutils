@@ -7,6 +7,8 @@ from sbmlutils.report.sbmlreport import create_online_report
 
 
 class U(Units):
+    """ModelDefinitions."""
+
     s = UnitDefinition("s", "s")
     mmole = UnitDefinition("mmole", "mmole")
     m = UnitDefinition("m", "meter")

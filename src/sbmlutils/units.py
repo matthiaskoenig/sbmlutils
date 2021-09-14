@@ -27,7 +27,6 @@ class CoreUnits(Units):
     kg = "kg"
     litre = "liter"
     liter = "liter"
-    l = "liter"
     meter = "meter"
     metre = "metre"
     m = "meter"
@@ -146,12 +145,3 @@ if __name__ == "__main__":
     # print(quantity)
     # quantity = Q_(1.0, "mliter").to_reduced_units()
     # print(quantity)
-
-    from pint import UnitRegistry
-
-    ureg = UnitRegistry()
-
-    m, units = quantity.to_tuple()
-    for k, item in enumerate(units):
-        print(item)
-        print(ureg.parse_unit_name(item[0]))

@@ -95,8 +95,6 @@ class Notes:
 
 
 if __name__ == "__main__":
-    import libsbml
-
     html = """
     ```python
     var = 1

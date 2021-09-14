@@ -7,6 +7,8 @@ from sbmlutils.units import *
 
 
 class U(Units):
+    """UnitDefinitions."""
+
     min = UnitDefinition("min", "min")
     liter = UnitDefinition("liter", "liter")
     m = UnitDefinition("m", "meter")

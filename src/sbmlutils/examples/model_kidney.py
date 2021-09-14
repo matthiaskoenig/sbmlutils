@@ -1,4 +1,4 @@
-"""Dextormethorphan kidney model. """
+"""Dextormethorphan kidney model."""
 
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
@@ -27,6 +27,8 @@ annotations_compartments = {}
 
 
 class U(Units):
+    """UnitDefinitions."""
+
     min = "min"
     liter = UnitDefinition("liter", "liter", port=True)
     m = UnitDefinition("m", "meter")
@@ -39,11 +41,7 @@ class U(Units):
     g_per_mole = "g/mole"
 
 
-class MyModel(Model):
-    pass
-
-
-_m = MyModel(
+_m = Model(
     "dex_kidney",
     notes="""
     # dex_kidney

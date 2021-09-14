@@ -645,7 +645,7 @@ class Units:
 
     @classmethod
     def create_unit_definitions(cls, model: libsbml.Model):
-        """Creates the libsbml.UnitDefinitions in the model."""
+        """Create the libsbml.UnitDefinitions in the model."""
 
         unit_definition: UnitDefinition
         uid: str
@@ -770,10 +770,7 @@ class UnitDefinition(Sbase):
                 multiplier = multiplier * self.__class__.prefixes[prefix]
 
             multiplier = np.power(multiplier, 1 / exponent)
-
-            base_unit = item[0]
             kind = self.__class__.pint2sbml[unit_name]
-
             scale = 0
             self._create_unit(obj, kind, exponent, scale, multiplier)
 
@@ -804,9 +801,7 @@ class UnitDefinition(Sbase):
 
     @staticmethod
     def get_uid_for_unit(model: libsbml.Model, unit: "UnitDefinition") -> Optional[str]:
-        """Get unit id for given definition string.
-        Lookup in line with the Units.
-        """
+        """Get unit id for given definition string."""
         uid: Optional[str]
         if unit is None:
             uid = None
