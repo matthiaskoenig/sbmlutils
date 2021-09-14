@@ -1,10 +1,9 @@
 """Model with amount and concentration species."""
 
 from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
-from sbmlutils.report.sbmlreport import create_online_report
-
 from sbmlutils.factory import *
 from sbmlutils.metadata import *
+from sbmlutils.report.sbmlreport import create_online_report
 
 
 class U(Units):
@@ -39,8 +38,12 @@ model = Model(
     units=U,
     objects=[
         Compartment(
-            sid="Vc", value=1e-06, unit=U.m3, constant=False, name="cell compartment",
-            sboTerm=SBO.PHYSICAL_COMPARTMENT
+            sid="Vc",
+            value=1e-06,
+            unit=U.m3,
+            constant=False,
+            name="cell compartment",
+            sboTerm=SBO.PHYSICAL_COMPARTMENT,
         ),
         Species(
             sid="Aglc",

@@ -1,10 +1,10 @@
 """Dextormethorphan kidney model. """
 
-from sbmlutils.factory import *
-from sbmlutils.units import *
-from sbmlutils.metadata import *
-
 from sbmlutils.examples import templates
+from sbmlutils.factory import *
+from sbmlutils.metadata import *
+from sbmlutils.units import *
+
 
 annotations_species = {
     "dex": [
@@ -23,9 +23,7 @@ annotations_species = {
         (BQB.IS, "inchikey/LOUPRKONTZGTKE-LHHVKLHASA-N"),
     ],
 }
-annotations_compartments = {
-
-}
+annotations_compartments = {}
 
 
 class U(Units):
@@ -55,7 +53,8 @@ _m = MyModel(
     DEX and DOR can be excreted in the urine via the kidneys. The renal filtration
     and excretion processes are not modeled in detail, but first order irreversible
     mass-action kinetics are used.
-    """ + templates.terms_of_use,
+    """
+    + templates.terms_of_use,
     creators=templates.creators,
     model_units=ModelUnits(
         time=U.min,
@@ -63,60 +62,85 @@ _m = MyModel(
         substance=U.mmole,
         length=U.m,
         area=U.m2,
-        volume=U.liter
+        volume=U.liter,
     ),
     objects=[
         Compartment(
-            "Vext", 4, name="plasma", sboTerm=SBO.PHYSICAL_COMPARTMENT,
+            "Vext",
+            4,
+            name="plasma",
+            sboTerm=SBO.PHYSICAL_COMPARTMENT,
             unit=U.liter,
             annotations=annotations_compartments["plasma"],
             port=True,
         ),
         Compartment(
-            "Vki", 1.5, name="kidney", sboTerm=SBO.PHYSICAL_COMPARTMENT,
+            "Vki",
+            1.5,
+            name="kidney",
+            sboTerm=SBO.PHYSICAL_COMPARTMENT,
             unit=U.liter,
             annotations=annotations_compartments["ki"],
             port=True,
         ),
         Compartment(
-            "Vurine", 1.0, name="urine", sboTerm=SBO.PHYSICAL_COMPARTMENT,
+            "Vurine",
+            1.0,
+            name="urine",
+            sboTerm=SBO.PHYSICAL_COMPARTMENT,
             unit=u.liter,
             annotations=annotations_compartments["urine"],
             port=True,
         ),
         Species(
-            "dex_ext", initialConcentration=0.0, name="dextormethorphan (plasma)",
+            "dex_ext",
+            initialConcentration=0.0,
+            name="dextormethorphan (plasma)",
             sboTerm=SBO.SIMPLE_CHEMICAL,
-            compartment="Vext", substanceUnit=U.mmole, hasOnlySubstanceUnits=False,
+            compartment="Vext",
+            substanceUnit=U.mmole,
+            hasOnlySubstanceUnits=False,
             annotations=annotations_species["dex"],
             port=True,
         ),
         Species(
-            "dor_ext", initialConcentration=0.0, name="dextrorphan (plasma)",
+            "dor_ext",
+            initialConcentration=0.0,
+            name="dextrorphan (plasma)",
             sboTerm=SBO.SIMPLE_CHEMICAL,
-            compartment="Vext", substanceUnit=U.mmole, hasOnlySubstanceUnits=False,
+            compartment="Vext",
+            substanceUnit=U.mmole,
+            hasOnlySubstanceUnits=False,
             annotations=annotations_species["dor"],
             port=True,
         ),
         Species(
-            "dex_urine", initialConcentration=0.0, name="dextormethorphan (urine)",
+            "dex_urine",
+            initialConcentration=0.0,
+            name="dextormethorphan (urine)",
             sboTerm=SBO.SIMPLE_CHEMICAL,
-            compartment="Vurine", substanceUnit=U.mmole, hasOnlySubstanceUnits=True,
+            compartment="Vurine",
+            substanceUnit=U.mmole,
+            hasOnlySubstanceUnits=True,
             annotations=annotations_species["dex"],
             port=True,
             notes="""
             Urinary species are in amounts (mmole)!
-            """
+            """,
         ),
         Species(
-            "dor_urine", initialConcentration=0.0, name="dextrorphan (urine)",
+            "dor_urine",
+            initialConcentration=0.0,
+            name="dextrorphan (urine)",
             sboTerm=SBO.SIMPLE_CHEMICAL,
-            compartment="Vurine", substanceUnit=U.mmole, hasOnlySubstanceUnits=True,
+            compartment="Vurine",
+            substanceUnit=U.mmole,
+            hasOnlySubstanceUnits=True,
             annotations=annotations_species["dor"],
             port=True,
             notes="""
             Urinary species are in amounts (mmole)!
-            """
+            """,
         ),
         # reactions
         Reaction(
@@ -127,9 +151,11 @@ _m = MyModel(
             compartment="Vki",
             pars=[
                 Parameter(
-                    "DEXEX_k", 0.017, unit=U.per_min,  # [0.0001 - 1000.0]
-                     name="DEX urinary excretion rate",
-                     sboTerm=SBO.KINETIC_CONSTANT,
+                    "DEXEX_k",
+                    0.017,
+                    unit=U.per_min,  # [0.0001 - 1000.0]
+                    name="DEX urinary excretion rate",
+                    sboTerm=SBO.KINETIC_CONSTANT,
                 ),
             ],
             formula=("DEXEX_k * Vki * dex_ext", U.mmole_per_min),
@@ -142,17 +168,20 @@ _m = MyModel(
             compartment="Vki",
             pars=[
                 Parameter(
-                    "DOREX_k", 0.14, unit=U.per_min,  # [0.0001 - 1000.0]
+                    "DOREX_k",
+                    0.14,
+                    unit=U.per_min,  # [0.0001 - 1000.0]
                     name="DOR urinary excretion rate",
                     sboTerm=SBO.KINETIC_CONSTANT,
                 ),
             ],
             formula=("DOREX_k * Vki * dor_ext", U.mmole_per_min),
         ),
-    ]
+    ],
 )
 
 
 if __name__ == "__main__":
     from pkdb_models.models.dextromethorphan import MODEL_BASE_PATH
+
     create_model(output_dir=MODEL_BASE_PATH, modules="model_kidney")

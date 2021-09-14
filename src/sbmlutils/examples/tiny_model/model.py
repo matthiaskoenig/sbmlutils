@@ -55,7 +55,9 @@ _m.units = [
     UnitDefinition("m2", [(UNIT_KIND_METRE, 2.0)]),
     UnitDefinition("mmole", [(UNIT_KIND_MOLE, 1, -3, 1.0)]),
     UnitDefinition("mM", [(UNIT_KIND_MOLE, 1, -3, 1.0), (UNIT_KIND_LITRE, -1.0)]),
-    UnitDefinition("mmole_per_s", [(UNIT_KIND_MOLE, 1, -3, 1.0), (UNIT_KIND_SECOND, -1.0)]),
+    UnitDefinition(
+        "mmole_per_s", [(UNIT_KIND_MOLE, 1, -3, 1.0), (UNIT_KIND_SECOND, -1.0)]
+    ),
 ]
 
 # -----------------------------------------------------------------------------

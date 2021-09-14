@@ -6,9 +6,12 @@ from sbmlutils.units import *
 
 _m = Model("boundary_condition_example2")
 _m.creators = templates.creators
-_m.notes = """
+_m.notes = (
+    """
 Example model for testing boundary_condition.
-""" + templates.terms_of_use,
+"""
+    + templates.terms_of_use,
+)
 _m.model_units = ModelUnits(
     time=UNIT_min,
     extent=UNIT_mmole,

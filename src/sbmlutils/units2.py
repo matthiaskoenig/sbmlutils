@@ -33,7 +33,9 @@ UNIT_m = UnitDefinition("m", [(UNIT_KIND_METRE, 1.0)], port=True)
 UNIT_m2 = UnitDefinition("m2", [(UNIT_KIND_METRE, 2.0)], port=True)
 UNIT_m3 = UnitDefinition("m3", [(UNIT_KIND_METRE, 3.0)], port=True)
 
-UNIT_mM = UnitDefinition("mM", [(UNIT_KIND_MOLE, 1, -3, 1.0), (UNIT_KIND_LITRE, -1.0)], port=True)
+UNIT_mM = UnitDefinition(
+    "mM", [(UNIT_KIND_MOLE, 1, -3, 1.0), (UNIT_KIND_LITRE, -1.0)], port=True
+)
 UNIT_mmole = UnitDefinition("mmole", [(UNIT_KIND_MOLE, 1, -3, 1.0)], port=True)
 UNIT_g_per_mole = UnitDefinition(
     "g_per_mole",
@@ -102,7 +104,9 @@ UNIT_mg_per_day = UnitDefinition(
     port=True,
 )
 
-UNIT_ml = UnitDefinition("ml", [(UNIT_KIND_LITRE, 1.0, -3, 1.0)], metaId="meta_ml", port=True)
+UNIT_ml = UnitDefinition(
+    "ml", [(UNIT_KIND_LITRE, 1.0, -3, 1.0)], metaId="meta_ml", port=True
+)
 
 UNIT_litre_per_min = UnitDefinition(
     "litre_per_min",

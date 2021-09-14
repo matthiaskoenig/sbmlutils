@@ -101,7 +101,6 @@ if __name__ == "__main__":
         "second",
         "second",
         "volt",
-
         "meter^2",
         "meter^3",
         "mmole",
@@ -113,17 +112,14 @@ if __name__ == "__main__":
         "mmole/second",
         "mmole/min/l",
         "mmole/min/kg",
-
         "1/second",
         "1/min",
         "1/hr",
         "1/kg",
         "1/liter",
         "1/mmole",
-
         "mg/hr",
         "mg/day",
-
         "ml",
         "liter/min",
         "liter/mmole",
@@ -152,10 +148,10 @@ if __name__ == "__main__":
     # print(quantity)
 
     from pint import UnitRegistry
+
     ureg = UnitRegistry()
 
     m, units = quantity.to_tuple()
     for k, item in enumerate(units):
         print(item)
         print(ureg.parse_unit_name(item[0]))
-

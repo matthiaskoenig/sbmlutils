@@ -15,9 +15,8 @@ must be correct in the model definition files.
 To create complete models one should use the modelcreator functionality,
 which takes care of the order of object creation.
 """
-from pint import Quantity as Q_, UnitRegistry
-import inspect
 import datetime
+import inspect
 import json
 import logging
 import shutil
@@ -26,7 +25,7 @@ from collections import namedtuple
 from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union, Type
+from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
 import libsbml
 import numpy as np
@@ -34,6 +33,8 @@ import xmltodict  # type: ignore
 from libsbml import DISTRIB_UNCERTTYPE_MEAN as UNCERTTYPE_MEAN
 from libsbml import DISTRIB_UNCERTTYPE_RANGE as UNCERTTYPE_RANGE
 from libsbml import DISTRIB_UNCERTTYPE_STANDARDDEVIATION as UNCERTTYPE_STANDARDDEVIATION
+from pint import Quantity as Q_
+from pint import UnitRegistry
 from pydantic import BaseModel
 
 from sbmlutils.equation import Equation
@@ -293,7 +294,7 @@ class Creator:
         email: str,
         organization: str,
         site: Optional[str] = None,
-        orcid: Optional[str] = None
+        orcid: Optional[str] = None,
     ):
         self.familyName = familyName
         self.givenName = givenName
@@ -635,10 +636,12 @@ class Units:
     """Base class for unit definitions."""
 
     @classmethod
-    def attributes(cls) -> List[Tuple[str, Union[str, 'UnitDefinition']]]:
+    def attributes(cls) -> List[Tuple[str, Union[str, "UnitDefinition"]]]:
         """Get the attributes list."""
         attributes = inspect.getmembers(cls, lambda a: not (inspect.isroutine(a)))
-        return [a for a in attributes if not (a[0].startswith('__') and a[0].endswith('__'))]
+        return [
+            a for a in attributes if not (a[0].startswith("__") and a[0].endswith("__"))
+        ]
 
     @classmethod
     def create_unit_definitions(cls, model: libsbml.Model):
@@ -654,7 +657,8 @@ class Units:
             else:
                 raise ValueError(
                     f"Units attributes must be a unit string or UnitDefinition, "
-                    f"but '{type(definition)} for '{definition}'.")
+                    f"but '{type(definition)} for '{definition}'."
+                )
             # create and register libsbml.UnitDefinition in libsbml.Model
             print("Create:", uid)
             _: libsbml.UnitDefinition = unit_definition.create_sbml(model=model)
@@ -665,6 +669,7 @@ class UnitDefinition(Sbase):
 
     Corresponds to the information in the libsbml.UnitDefinition.
     """
+
     pint2sbml = {
         "dimensionless": libsbml.UNIT_KIND_DIMENSIONLESS,
         "ampere": libsbml.UNIT_KIND_AMPERE,
@@ -699,7 +704,7 @@ class UnitDefinition(Sbase):
         "milli": 1e-3,
         "centi": 1e-2,
         "deci": 1e-1,
-        "deca": 1e+1,
+        "deca": 1e1,
         "hecto": 1e2,
         "kilo": 1e3,
         "mega": 1e6,
@@ -746,7 +751,7 @@ class UnitDefinition(Sbase):
         # parse the string into pint
         # quantity = Q_(self.definition).to_compact().to_reduced_units().to_base_units()
         ureg = UnitRegistry()
-        quantity = Q_(self.definition)  #.to_base_units()
+        quantity = Q_(self.definition)  # .to_base_units()
 
         m, units = quantity.to_tuple()
         for k, item in enumerate(units):
@@ -759,12 +764,12 @@ class UnitDefinition(Sbase):
                 if exponent >= 1:
                     multiplier = quantity.magnitude
                 else:
-                    multiplier = 1/quantity.magnitude
+                    multiplier = 1 / quantity.magnitude
 
             if prefix:
                 multiplier = multiplier * self.__class__.prefixes[prefix]
 
-            multiplier = np.power(multiplier, 1/exponent)
+            multiplier = np.power(multiplier, 1 / exponent)
 
             base_unit = item[0]
             kind = self.__class__.pint2sbml[unit_name]
@@ -798,7 +803,7 @@ class UnitDefinition(Sbase):
         return unit
 
     @staticmethod
-    def get_uid_for_unit(model: libsbml.Model, unit: 'UnitDefinition') -> Optional[str]:
+    def get_uid_for_unit(model: libsbml.Model, unit: "UnitDefinition") -> Optional[str]:
         """Get unit id for given definition string.
         Lookup in line with the Units.
         """
@@ -811,7 +816,8 @@ class UnitDefinition(Sbase):
             raise ValueError(
                 f"unit must be a 'UnitDefinition', but '{unit}' is "
                 f"'{type(unit)}. Best practise is to use a `class U(Units)` for "
-                f"units definitions.")
+                f"units definitions."
+            )
         return uid
 
 
@@ -1705,7 +1711,9 @@ class Uncertainty(Sbase):
                 if uncertSpan.varUpper is not None:
                     up_span.setValueLower(uncertSpan.varUpper)
                 if uncertSpan.unit:
-                    up_span.setUnits(UnitDefinition.get_uid_for_unit(model, unit=uncertSpan.unit))
+                    up_span.setUnits(
+                        UnitDefinition.get_uid_for_unit(model, unit=uncertSpan.unit)
+                    )
             else:
                 logger.error(
                     f"Unsupported type for UncertSpan: '{uncertSpan.type}' "
@@ -1735,7 +1743,11 @@ class Uncertainty(Sbase):
                 if uncertParameter.var is not None:
                     up_p.setValue(uncertParameter.var)
                 if uncertParameter.unit:
-                    up_p.setUnits(UnitDefinition.get_uid_for_unit(model, unit=uncertParameter.unit))
+                    up_p.setUnits(
+                        UnitDefinition.get_uid_for_unit(
+                            model, unit=uncertParameter.unit
+                        )
+                    )
             else:
                 logger.error(
                     f"Unsupported type for UncertParameter: "
@@ -1995,6 +2007,7 @@ def create_objective(
 
 class ModelDefinition(Sbase):
     """ModelDefinition."""
+
     # FIXME: handle as model
 
     def __init__(

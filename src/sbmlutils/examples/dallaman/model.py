@@ -65,13 +65,21 @@ _m.units = [
     UnitDefinition("min", [(UNIT_KIND_SECOND, 1.0, 0, 60)]),
     UnitDefinition("per_min", [(UNIT_KIND_SECOND, -1.0, 0, 60)]),
     UnitDefinition("l_per_kg", [(UNIT_KIND_LITRE, 1.0), (UNIT_KIND_KILOGRAM, -1.0)]),
-    UnitDefinition("dl_per_kg", [(UNIT_KIND_LITRE, 1.0, -1, 1.0), (UNIT_KIND_KILOGRAM, -1.0)]),
-    UnitDefinition("mg_per_kg", [(UNIT_KIND_GRAM, 1.0, -3, 1.0), (UNIT_KIND_KILOGRAM, -1.0)]),
+    UnitDefinition(
+        "dl_per_kg", [(UNIT_KIND_LITRE, 1.0, -1, 1.0), (UNIT_KIND_KILOGRAM, -1.0)]
+    ),
+    UnitDefinition(
+        "mg_per_kg", [(UNIT_KIND_GRAM, 1.0, -3, 1.0), (UNIT_KIND_KILOGRAM, -1.0)]
+    ),
     UnitDefinition(
         "mg_per_dl", [(UNIT_KIND_GRAM, 1.0, -3, 1.0), (UNIT_KIND_LITRE, -1.0, -1, 1.0)]
     ),
-    UnitDefinition("pmol_per_kg", [(UNIT_KIND_MOLE, 1.0, -9, 1.0), (UNIT_KIND_KILOGRAM, -1.0)]),
-    UnitDefinition("pmol_per_l", [(UNIT_KIND_MOLE, 1.0, -9, 1.0), (UNIT_KIND_LITRE, -1.0)]),
+    UnitDefinition(
+        "pmol_per_kg", [(UNIT_KIND_MOLE, 1.0, -9, 1.0), (UNIT_KIND_KILOGRAM, -1.0)]
+    ),
+    UnitDefinition(
+        "pmol_per_l", [(UNIT_KIND_MOLE, 1.0, -9, 1.0), (UNIT_KIND_LITRE, -1.0)]
+    ),
     UnitDefinition(
         "pmol_per_kgmin",
         [

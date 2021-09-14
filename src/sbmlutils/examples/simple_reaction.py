@@ -24,7 +24,8 @@ _m = Model(
     ## Description
     This example demonstrates how to create a compartment, species and reaction.
     The model uses units.
-    """ + templates.terms_of_use,
+    """
+    + templates.terms_of_use,
     creators=templates.creators,
     units=U,
     model_units=ModelUnits(
@@ -37,7 +38,11 @@ _m = Model(
     ),
     objects=[
         Compartment(
-            sid="cell", value=1.0, unit=U.liter, constant=True, name="cell",
+            sid="cell",
+            value=1.0,
+            unit=U.liter,
+            constant=True,
+            name="cell",
             sboTerm=SBO.PHYSICAL_COMPARTMENT,
         ),
         Species(
@@ -71,9 +76,9 @@ _m = Model(
                 "v1_Vmax * v1_Km_A/(v1_Km_A + A)",
                 U.mmole_per_s,
             ),
-            sboTerm=SBO.BIOCHEMICAL_REACTION
-        )
-    ]
+            sboTerm=SBO.BIOCHEMICAL_REACTION,
+        ),
+    ],
 )
 
 

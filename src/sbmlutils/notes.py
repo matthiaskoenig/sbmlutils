@@ -10,8 +10,8 @@ markdown-it-py
 import re
 import textwrap
 
-import libsbml
 import css_inline
+import libsbml
 from lxml import etree
 from lxml import html as html_lxml
 from markdown_it import MarkdownIt

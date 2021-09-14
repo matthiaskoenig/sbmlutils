@@ -1,6 +1,6 @@
 """Example model for creating an SBML ODE model."""
 
-from sbmlutils.examples import templates, EXAMPLE_RESULTS_DIR
+from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
 from sbmlutils.factory import *
 from sbmlutils.metadata.sbo import *
 from sbmlutils.units import *
@@ -23,7 +23,8 @@ _M = Model(
     ## Description
     This example demonstrates how to create compartments, species and reactions.
     The `Model.objects` are used to store the different objects.
-    """ + templates.terms_of_use,
+    """
+    + templates.terms_of_use,
     creators=[
         Creator(
             familyName="König",
@@ -31,7 +32,7 @@ _M = Model(
             email="koenigmx@hu-berlin.de",
             organization="Humboldt-University Berlin, Institute for Theoretical Biology",
             site="https://livermetabolism.com",
-            orcid="0000-0003-1725-179X"
+            orcid="0000-0003-1725-179X",
         )
     ],
     units=U,
@@ -45,7 +46,9 @@ _M = Model(
     ),
     objects=[
         Compartment(
-            "c", 1.0, unit=U.liter,
+            "c",
+            1.0,
+            unit=U.liter,
             name="cytosol",
             sboTerm=SBO.PHYSICAL_COMPARTMENT,
             notes="""
@@ -54,7 +57,7 @@ _M = Model(
             Compartments can be generated via the `Compartment` object. It is best
             practise to set a `name`, `unit` and `sboTerm`. Use the `notes` field
             to describe the model component.
-            """
+            """,
         ),
         Species(
             "S1",
@@ -73,10 +76,13 @@ _M = Model(
             (`hasOnlySubstanceUnits=True`) or concentration
             [`substanceUnit/compartmentUnit`] (`hasOnlySubstanceUnits=True`).
             Use the `notes` field to describe the model component.
-            """
+            """,
         ),
         Parameter(
-            "R1_Km", name="Km R1", value=0.1, unit=U.mmole,
+            "R1_Km",
+            name="Km R1",
+            value=0.1,
+            unit=U.mmole,
             sboTerm=SBO.MICHAELIS_CONSTANT,
             notes="""
             **Parameter**
@@ -84,7 +90,7 @@ _M = Model(
             Parameters can be generated via the `Parameter` object. It is best
             practise to set a `name`, `unit` and `sboTerm`.
             Use the `notes` field to describe the model component.
-            """
+            """,
         ),
         Parameter(
             "R1_Vmax",
@@ -94,7 +100,9 @@ _M = Model(
             sboTerm=SBO.MAXIMAL_VELOCITY,
         ),
         InitialAssignment(
-            "S1", "10.0 mM", unit=U.mM,
+            "S1",
+            "10.0 mM",
+            unit=U.mM,
             notes="""
             **InitialAssignment**
 
@@ -102,9 +110,9 @@ _M = Model(
             These allow to calculate the values of parameters, species or compartments
             at the begin of the simulation. Here we set the initial concentration of
             `S1` to `10 mM`.
-            """
-        )
-    ]
+            """,
+        ),
+    ],
 )
 
 

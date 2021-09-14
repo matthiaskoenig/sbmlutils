@@ -12,7 +12,8 @@ _m = Model(
     # Example `core_example2`
     ## Description
     This example demonstrates the creation of a reaction.
-    """ + templates.terms_of_use,
+    """
+    + templates.terms_of_use,
     creators=templates.creators,
     compartments=[
         Compartment(sid="c", name="cytosol", value=np.NaN),
@@ -37,7 +38,7 @@ _m = Model(
             equation="x -> y",
             compartment="c",
         )
-    ]
+    ],
 )
 
 

@@ -6,9 +6,12 @@ from sbmlutils.units import *
 
 _m = Model("assignment_example")
 _m.creators = templates.creators
-_m.notes = """
+_m.notes = (
+    """
 Example model for testing InitialAssignments in roadrunner.
-""" + templates.terms_of_use,
+"""
+    + templates.terms_of_use,
+)
 
 _m.model_units = ModelUnits(
     time=UNIT_hr,
@@ -29,7 +32,9 @@ _m.units = [
         "mg_per_litre",
         [(UNIT_KIND_GRAM, 1.0, -3, 1.0), (UNIT_KIND_LITRE, -1.0, 0, 1.0)],
     ),
-    UnitDefinition("mg_per_g", [(UNIT_KIND_GRAM, 1.0, -3, 1.0), (UNIT_KIND_GRAM, -1.0, 0, 1.0)]),
+    UnitDefinition(
+        "mg_per_g", [(UNIT_KIND_GRAM, 1.0, -3, 1.0), (UNIT_KIND_GRAM, -1.0, 0, 1.0)]
+    ),
     UnitDefinition(
         "mg_per_h", [(UNIT_KIND_GRAM, 1.0, -3, 1.0), (UNIT_KIND_SECOND, -1.0, 0, 3600)]
     ),
@@ -48,7 +53,9 @@ _m.units = [
             (UNIT_KIND_GRAM, -1.0, -3, 1.0),
         ],
     ),
-    UnitDefinition("ml_per_s", [(UNIT_KIND_LITRE, 1.0, -3, 1.0), (UNIT_KIND_SECOND, -1.0, 0, 1)]),
+    UnitDefinition(
+        "ml_per_s", [(UNIT_KIND_LITRE, 1.0, -3, 1.0), (UNIT_KIND_SECOND, -1.0, 0, 1)]
+    ),
     # conversion factors
     UnitDefinition(
         "s_per_h", [(UNIT_KIND_SECOND, 1.0, 0, 1.0), (UNIT_KIND_SECOND, -1.0, 0, 3600)]

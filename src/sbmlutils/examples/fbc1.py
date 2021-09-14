@@ -58,7 +58,9 @@ _m.units = [
             (UNIT_KIND_GRAM, -1.0),
         ],
     ),
-    UnitDefinition("mmol_per_l", [(UNIT_KIND_MOLE, 1.0, -3, 1.0), (UNIT_KIND_LITRE, -1.0)]),
+    UnitDefinition(
+        "mmol_per_l", [(UNIT_KIND_MOLE, 1.0, -3, 1.0), (UNIT_KIND_LITRE, -1.0)]
+    ),
     UnitDefinition(
         "mmol_per_lg",
         [
@@ -67,9 +69,13 @@ _m.units = [
             (UNIT_KIND_GRAM, -1.0),
         ],
     ),
-    UnitDefinition("l_per_mmol", [(UNIT_KIND_LITRE, 1.0), (UNIT_KIND_MOLE, -1.0, -3, 1.0)]),
+    UnitDefinition(
+        "l_per_mmol", [(UNIT_KIND_LITRE, 1.0), (UNIT_KIND_MOLE, -1.0, -3, 1.0)]
+    ),
     UnitDefinition("g_per_l", [(UNIT_KIND_GRAM, 1.0), (UNIT_KIND_LITRE, -1.0)]),
-    UnitDefinition("g_per_mmol", [(UNIT_KIND_GRAM, 1.0), (UNIT_KIND_MOLE, -1.0, -3, 1.0)]),
+    UnitDefinition(
+        "g_per_mmol", [(UNIT_KIND_GRAM, 1.0), (UNIT_KIND_MOLE, -1.0, -3, 1.0)]
+    ),
 ]
 # -----------------------------------------------------------------------------
 # Compartments
