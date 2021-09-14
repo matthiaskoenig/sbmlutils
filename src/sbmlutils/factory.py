@@ -15,7 +15,8 @@ must be correct in the model definition files.
 To create complete models one should use the modelcreator functionality,
 which takes care of the order of object creation.
 """
-
+from pint import Quantity as Q_
+import inspect
 import datetime
 import json
 import logging
@@ -42,7 +43,6 @@ from sbmlutils.metadata import annotator
 from sbmlutils.metadata.annotator import Annotation
 from sbmlutils.notes import Notes
 from sbmlutils.report import sbmlreport
-from sbmlutils.units import Pint2SBML, Units, UnitsDict
 from sbmlutils.utils import FrozenClass, bcolors, create_metaid, deprecated
 from sbmlutils.validation import check
 
@@ -64,6 +64,7 @@ __all__ = [
     "PORT_SUFFIX",
     "PORT_UNIT_SUFFIX",
     "ModelUnits",
+    "Units",
     "Creator",
     "Compartment",
     "UnitDefinition",
@@ -265,21 +266,21 @@ class ModelUnits:
 
                     continue
 
-                unit = getattr(model_units, key)
-                unit = UnitDefinition.get_uid(model, definition=unit)
+                unit: Union[str, UnitDefinition] = getattr(model_units, key)
+                uid = UnitDefinition.get_uid_for_unit(model, unit=unit)
                 # set the values
                 if key == "time":
-                    model.setTimeUnits(unit)
+                    model.setTimeUnits(uid)
                 elif key == "extent":
-                    model.setExtentUnits(unit)
+                    model.setExtentUnits(uid)
                 elif key == "substance":
-                    model.setSubstanceUnits(unit)
+                    model.setSubstanceUnits(uid)
                 elif key == "length":
-                    model.setLengthUnits(unit)
+                    model.setLengthUnits(uid)
                 elif key == "area":
-                    model.setAreaUnits(unit)
+                    model.setAreaUnits(uid)
                 elif key == "volume":
-                    model.setVolumeUnits(unit)
+                    model.setVolumeUnits(uid)
 
 
 class Creator:
@@ -626,8 +627,37 @@ class ValueWithUnit(Value):
                 # AssignmentRules and RateRules have no units
                 pass
             else:
-                uid = UnitDefinition.get_uid(model, definition=self.unit)
+                uid = UnitDefinition.get_uid_for_unit(model, unit=self.unit)
                 check(obj.setUnits(uid), f"Set unit '{uid}' on {obj}")
+
+
+class Units:
+    """Base class for unit definitions."""
+
+    @classmethod
+    def attributes(cls) -> List[Tuple[str, Union[str, 'UnitDefinition']]]:
+        """Get the attributes list."""
+        attributes = inspect.getmembers(cls, lambda a: not (inspect.isroutine(a)))
+        return [a for a in attributes if not (a[0].startswith('__') and a[0].endswith('__'))]
+
+    @classmethod
+    def create_unit_definitions(cls, model: libsbml.Model):
+        """Creates the libsbml.UnitDefinitions in the model."""
+
+        unit_definition: UnitDefinition
+        uid: str
+        for uid, definition in cls.attributes():
+            if isinstance(definition, str):
+                unit_definition = UnitDefinition(sid=uid, definition=definition)
+            elif isinstance(definition, UnitDefinition):
+                unit_definition = definition
+            else:
+                raise ValueError(
+                    f"Units attributes must be a unit string or UnitDefinition, "
+                    f"but '{type(definition)} for '{definition}'.")
+            # create and register libsbml.UnitDefinition in libsbml.Model
+            print("Create:", uid)
+            _: libsbml.UnitDefinition = unit_definition.create_sbml(model=model)
 
 
 class UnitDefinition(Sbase):
@@ -635,6 +665,28 @@ class UnitDefinition(Sbase):
 
     Corresponds to the information in the libsbml.UnitDefinition.
     """
+    pint2sbml = {
+        "dimensionless": libsbml.UNIT_KIND_DIMENSIONLESS,
+        "ampere": libsbml.UNIT_KIND_AMPERE,
+        # None: libsbml.UNIT_KIND_BECQUEREL,
+        # "becquerel": libsbml.UNIT_KIND_BECQUEREL,
+        "candela": libsbml.UNIT_KIND_CANDELA,
+        "degree_Celsius": libsbml.UNIT_KIND_CELSIUS,
+        "coulomb": libsbml.UNIT_KIND_COULOMB,
+        "farad": libsbml.UNIT_KIND_FARAD,
+        "gram": libsbml.UNIT_KIND_GRAM,
+        "gray": libsbml.UNIT_KIND_GRAY,
+        "hertz": libsbml.UNIT_KIND_HERTZ,
+        "kelvin": libsbml.UNIT_KIND_KELVIN,
+        "kilogram": libsbml.UNIT_KIND_KILOGRAM,
+        "liter": libsbml.UNIT_KIND_LITRE,
+        "meter": libsbml.UNIT_KIND_METRE,
+        "mole": libsbml.UNIT_KIND_MOLE,
+        "newton": libsbml.UNIT_KIND_NEWTON,
+        "ohm": libsbml.UNIT_KIND_OHM,
+        "second": libsbml.UNIT_KIND_SECOND,
+        "volt": libsbml.UNIT_KIND_VOLT,
+    }
 
     def __init__(
         self,
@@ -665,9 +717,25 @@ class UnitDefinition(Sbase):
     def create_sbml(self, model: libsbml.Model) -> libsbml.UnitDefinition:
         """Create libsbml.UnitDefinition."""
 
-        obj: libsbml.UnitDefinition = Pint2SBML.create_unit_definition(
-            model=model, definition=self.definition
-        )
+        logger.debug(f"Create UnitDefinition for: '{self}'")
+        obj: libsbml.UnitDefinition = model.createUnitDefinition()
+
+        # parse the string into pint
+        quantity = Q_(self.definition).to_compact().to_reduced_units().to_base_units()
+
+        m, units = quantity.to_tuple()
+        for k, item in enumerate(units):
+            if k == 0:
+                multiplier = quantity.magnitude
+            else:
+                multiplier = 1.0
+
+            base_unit = item[0]
+            kind = self.__class__.pint2sbml[base_unit]
+            exponent = item[1]
+            scale = 0
+            self._create_unit(obj, kind, exponent, scale, multiplier)
+
         self._set_fields(obj, model)
         self.create_port(model)
         return obj
@@ -677,15 +745,37 @@ class UnitDefinition(Sbase):
         super(UnitDefinition, self)._set_fields(obj, model)
 
     @staticmethod
-    def get_uid(model: libsbml.Model, definition: str) -> Optional[str]:
+    def _create_unit(
+        udef: libsbml.UnitDefinition,
+        kind: str,
+        exponent: float,
+        scale: int = 0,
+        multiplier: float = 1.0,
+    ) -> libsbml.Unit:
+        """Create libsbml.Unit."""
+        unit: libsbml.Unit = udef.createUnit()
+        unit.setKind(kind)
+        unit.setExponent(exponent)
+        unit.setScale(scale)
+        unit.setMultiplier(multiplier)
+        return unit
+
+    @staticmethod
+    def get_uid_for_unit(model: libsbml.Model, unit: 'UnitDefinition') -> Optional[str]:
         """Get unit id for given definition string.
         Lookup in line with the Units.
         """
-        # search via definition name
-        for udef in model.getListOfUnitDefinitions():  # type: libsbml.UnitDefinition
-            if udef.getName() == definition:
-                return udef.getId()
-        raise ValueError(f"uid not in moel for definition: '{definition}'")
+        uid: Optional[str]
+        if unit is None:
+            uid = None
+        elif isinstance(unit, UnitDefinition):
+            uid = unit.sid
+        else:
+            raise ValueError(
+                f"unit must be a 'UnitDefinition', but '{unit}' is "
+                f"'{type(unit)}. Best practise is to use a `class U(Units)` for "
+                f"units definitions.")
+        return uid
 
 
 class Function(Sbase):
@@ -919,7 +1009,7 @@ class Species(Sbase):
                 f"Either initialAmount or initialConcentration can be set on "
                 f"species, but not both: {sid}"
             )
-        self.substanceUnit = substanceUnit
+        self.substanceUnits = substanceUnit
         self.initialAmount = initialAmount
         self.initialConcentration = initialConcentration
         self.compartment = compartment
@@ -934,13 +1024,6 @@ class Species(Sbase):
         """Create Species SBML in model."""
         s: libsbml.Species = model.createSpecies()
         self._set_fields(s, model)
-        # substance unit must be set on the given substance unit
-        s.setSubstanceUnits(model.getSubstanceUnits())
-        if self.substanceUnit is not None:
-            s.setSubstanceUnits(self.substanceUnit)
-        else:
-            s.setSubstanceUnits(model.getSubstanceUnits())
-
         self.create_port(model)
         return s
 
@@ -953,8 +1036,15 @@ class Species(Sbase):
         obj.setCompartment(self.compartment)
         obj.setBoundaryCondition(self.boundaryCondition)
         obj.setHasOnlySubstanceUnits(self.hasOnlySubstanceUnits)
-        if self.substanceUnit is not None:
-            obj.setUnits(UnitDefinition.get_uid(model, definition=self.substanceUnit))
+
+        obj.setSubstanceUnits(model.getSubstanceUnits())
+        if self.substanceUnits is not None:
+            obj.setSubstanceUnits(
+                UnitDefinition.get_uid_for_unit(model, unit=self.substanceUnits)
+            )
+        else:
+            # Fallback to model units
+            obj.setSubstanceUnits(model.getSubstanceUnits())
 
         if self.initialAmount is not None:
             obj.setInitialAmount(self.initialAmount)
@@ -1578,7 +1668,7 @@ class Uncertainty(Sbase):
                 if uncertSpan.varUpper is not None:
                     up_span.setValueLower(uncertSpan.varUpper)
                 if uncertSpan.unit:
-                    up_span.setUnits(UnitDefinition.get_uid(model, definition=uncertSpan.unit))
+                    up_span.setUnits(UnitDefinition.get_uid_for_unit(model, unit=uncertSpan.unit))
             else:
                 logger.error(
                     f"Unsupported type for UncertSpan: '{uncertSpan.type}' "
@@ -1608,7 +1698,7 @@ class Uncertainty(Sbase):
                 if uncertParameter.var is not None:
                     up_p.setValue(uncertParameter.var)
                 if uncertParameter.unit:
-                    up_p.setUnits(UnitDefinition.get_uid(model, definition=uncertParameter.unit))
+                    up_p.setUnits(UnitDefinition.get_uid_for_unit(model, unit=uncertParameter.unit))
             else:
                 logger.error(
                     f"Unsupported type for UncertParameter: "
@@ -2068,7 +2158,7 @@ class SbaseRef(Sbase):
         if self.idRef is not None:
             obj.setIdRef(self.idRef)
         if self.unitRef is not None:
-            unit_str = UnitDefinition.get_uid(model, definition=self.unitRef)
+            unit_str = UnitDefinition.get_uid_for_unit(model, unit=self.unitRef)
             obj.setUnitRef(unit_str)
         if self.metaIdRef is not None:
             obj.setMetaIdRef(self.metaIdRef)
@@ -2486,7 +2576,7 @@ class Model(Sbase, FrozenClass, BaseModel):
         self.packages = packages
         self.creators = creators
         self.model_units = model_units
-        self.units = units
+        self.units = units if units else Units
         self.units_dict = None
         self.external_model_definitions = external_model_definitions
         self.model_definitions = model_definitions
@@ -2558,8 +2648,8 @@ class Model(Sbase, FrozenClass, BaseModel):
         if self.creators:
             set_model_history(model, self.creators)
 
-        # units (creates units
-        self.units_dict = UnitsDict(units_class=self.units, model=model)
+        # units
+        self.units.create_unit_definitions(model=model)
 
         # model units
         if hasattr(self, "model_units"):

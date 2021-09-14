@@ -4,49 +4,41 @@ import numpy as np
 from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
 from sbmlutils.factory import *
 from sbmlutils.metadata import *
-from sbmlutils.units import *
 
 
-_m = Model("reaction_example")
-_m.notes = Notes(
-    [
-        """
-    <h1>Koenig sbmlutils example</h1>
-    <h2>Description</h2>
-    <p>Model creating a simple reaction.
-    </p>
-    """,
-        templates.terms_of_use,
+_m = Model(
+    "reaction_example",
+    notes="""
+    # Example `core_example2`
+    ## Description
+    This example demonstrates the creation of a reaction.
+    """ + templates.terms_of_use,
+    creators=templates.creators,
+    compartments=[
+        Compartment(sid="c", name="cytosol", value=np.NaN),
+    ],
+    species=[
+        Species(
+            sid="x",
+            compartment="c",
+            sboTerm=SBO.SIMPLE_CHEMICAL,
+            initialConcentration=np.NaN,
+        ),
+        Species(
+            sid="y",
+            compartment="c",
+            sboTerm=SBO.SIMPLE_CHEMICAL,
+            initialConcentration=np.NaN,
+        ),
+    ],
+    reactions=[
+        Reaction(
+            sid="v1",
+            equation="x -> y",
+            compartment="c",
+        )
     ]
 )
-_m.creators = templates.creators
-
-_m.compartments = [
-    Compartment(sid="c", name="cytosol", value=np.NaN),
-]
-
-_m.species = [
-    Species(
-        sid="x",
-        compartment="c",
-        sboTerm=SBO.SIMPLE_CHEMICAL,
-        initialConcentration=np.NaN,
-    ),
-    Species(
-        sid="y",
-        compartment="c",
-        sboTerm=SBO.SIMPLE_CHEMICAL,
-        initialConcentration=np.NaN,
-    ),
-]
-
-_m.reactions = [
-    Reaction(
-        sid="v1",
-        equation="x -> y",
-        compartment="c",
-    )
-]
 
 
 def create(tmp: bool = False) -> None:

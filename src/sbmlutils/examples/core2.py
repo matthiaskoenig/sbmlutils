@@ -7,13 +7,13 @@ from sbmlutils.units import *
 
 
 class U(Units):
-    min = "min"
-    liter = "liter"
-    m = "meter"
-    m2 = "meter^2"
-    mmole = "mmole"
-    mM = "mmole/liter"
-    mmole_per_min = "mmole/min"
+    min = UnitDefinition("min", "min")
+    liter = UnitDefinition("liter", "liter")
+    m = UnitDefinition("m", "meter")
+    m2 = UnitDefinition("m2", "meter^2")
+    mmole = UnitDefinition("mmole", "mmole")
+    mM = UnitDefinition("mM", "mmole/liter")
+    mmole_per_min = UnitDefinition("mmole_per_min", "mmole/min")
 
 
 _M = Model(

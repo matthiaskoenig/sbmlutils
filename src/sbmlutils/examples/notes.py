@@ -264,4 +264,4 @@ def create(tmp: bool = False) -> FactoryResult:
 
 if __name__ == "__main__":
     results = create()
-    create_online_report(sbml_path=results.sbml_path, server="http://localhost:3456")
+    # create_online_report(sbml_path=results.sbml_path, server="http://localhost:3456")

@@ -19,11 +19,11 @@ _m = Model(
     ]),
     creators=templates.creators,
     model_units = ModelUnits(
-        time=UNIT_s, 
-        extent=UNIT_KIND_MOLE, 
+        time=UNIT_s,
+        extent=UNIT_KIND_MOLE,
         substance=UNIT_KIND_MOLE,
-        length=UNIT_m, 
-        area=UNIT_m2, 
+        length=UNIT_m,
+        area=UNIT_m2,
         volume=UNIT_m3
     ),
     units = [
@@ -54,17 +54,17 @@ _m = Model(
     ],
     species = [
         Species(sid='e__gal', compartment='ext', initialConcentration=3.0,
-                    substanceUnit=UNIT_KIND_MOLE, boundaryCondition=True,
-                    name='D-galactose', sboTerm=SBO.SIMPLE_CHEMICAL,
-                    annotations=[
+                substanceUnit=UNIT_KIND_MOLE, boundaryCondition=True,
+                name='D-galactose', sboTerm=SBO.SIMPLE_CHEMICAL,
+                annotations=[
                         (BQB.IS, "bigg.metabolite/gal"),  # galactose
                         (BQB.IS, "chebi/CHEBI:28061"),  # alpha-D-galactose
                         (BQB.IS, "vmhmetabolite/gal"),
                     ]
                 ),
         Species(sid='c__gal', compartment='cyto', initialConcentration=0.00012,
-                    substanceUnit=UNIT_KIND_MOLE, boundaryCondition=False,
-                    name='D-galactose', sboTerm=SBO.SIMPLE_CHEMICAL),
+                substanceUnit=UNIT_KIND_MOLE, boundaryCondition=False,
+                name='D-galactose', sboTerm=SBO.SIMPLE_CHEMICAL),
     ],
     parameters = [
         Parameter(sid='x_cell', value=25E-6, unit='m', constant=True, name="cell diameter"),
