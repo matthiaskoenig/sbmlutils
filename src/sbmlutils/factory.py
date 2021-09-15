@@ -660,7 +660,7 @@ class Units:
                     f"but '{type(definition)} for '{definition}'."
                 )
             # create and register libsbml.UnitDefinition in libsbml.Model
-            print("Create:", uid)
+            # print("Create:", uid)
             _: libsbml.UnitDefinition = unit_definition.create_sbml(model=model)
 
 
@@ -749,9 +749,10 @@ class UnitDefinition(Sbase):
         obj: libsbml.UnitDefinition = model.createUnitDefinition()
 
         # parse the string into pint
-        # quantity = Q_(self.definition).to_compact().to_reduced_units().to_base_units()
+        quantity = Q_(self.definition).to_compact().to_reduced_units().to_base_units()
         ureg = UnitRegistry()
-        quantity = Q_(self.definition)  # .to_base_units()
+        # FIXME: handle the base units not in libsbml correctly (e.g. min)
+        # quantity = Q_(self.definition)  # .to_base_units()
 
         m, units = quantity.to_tuple()
         for k, item in enumerate(units):
@@ -796,7 +797,7 @@ class UnitDefinition(Sbase):
         unit.setExponent(exponent)
         unit.setScale(scale)
         unit.setMultiplier(multiplier)
-        print(f"({multiplier} * 10^{scale} {libsbml.UnitKind_toString(kind)})^exponent")
+        # print(f"({multiplier} * 10^{scale} {libsbml.UnitKind_toString(kind)})^exponent")
         return unit
 
     @staticmethod
@@ -2702,8 +2703,8 @@ class Model(Sbase, FrozenClass, BaseModel):
 
         # lists ofs
         for attr in [
-            "externalModelDefinitions",
-            "modelDefinitions",
+            "external_model_definitions",
+            "model_definitions",
             "submodels",
             # "units",
             "functions",
@@ -2717,7 +2718,7 @@ class Model(Sbase, FrozenClass, BaseModel):
             "events",
             "constraints",
             "ports",
-            "replacedElements",
+            "replaced_elements",
             "deletions",
             "objectives",
             "layouts",
