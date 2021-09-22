@@ -3,20 +3,11 @@
 from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
 from sbmlutils.factory import *
 from sbmlutils.metadata import *
-from sbmlutils.report.sbmlreport import create_online_report
 
 
 class U(Units):
     """ModelDefinitions."""
-
-    s = UnitDefinition("s", "s")
-    mmole = UnitDefinition("mmole", "mmole")
-    m = UnitDefinition("m", "meter")
-    m2 = UnitDefinition("m2", "meter^2")
-    m3 = UnitDefinition("m3", "meter^3")
-    kg = UnitDefinition("kg", "kg")
-    per_s = UnitDefinition("per_s", "1/s")
-    mmole_per_s = UnitDefinition("mmole_per_s", "mmole/s")
+    pass
 
 
 model = Model(
@@ -31,9 +22,9 @@ model = Model(
     creators=templates.creators,
     model_units=ModelUnits(
         time=U.s,
-        substance=U.mmole,
+        substance=U.mole,
         extent=U.mmole,
-        length=U.m,
+        length=U.meter,
         area=U.m2,
         volume=U.m3,
     ),

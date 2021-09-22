@@ -632,38 +632,6 @@ class ValueWithUnit(Value):
                 check(obj.setUnits(uid), f"Set unit '{uid}' on {obj}")
 
 
-class Units:
-    """Base class for unit definitions."""
-
-    @classmethod
-    def attributes(cls) -> List[Tuple[str, Union[str, "UnitDefinition"]]]:
-        """Get the attributes list."""
-        attributes = inspect.getmembers(cls, lambda a: not (inspect.isroutine(a)))
-        return [
-            a for a in attributes if not (a[0].startswith("__") and a[0].endswith("__"))
-        ]
-
-    @classmethod
-    def create_unit_definitions(cls, model: libsbml.Model):
-        """Create the libsbml.UnitDefinitions in the model."""
-
-        unit_definition: UnitDefinition
-        uid: str
-        for uid, definition in cls.attributes():
-            if isinstance(definition, str):
-                unit_definition = UnitDefinition(sid=uid, definition=definition)
-            elif isinstance(definition, UnitDefinition):
-                unit_definition = definition
-            else:
-                raise ValueError(
-                    f"Units attributes must be a unit string or UnitDefinition, "
-                    f"but '{type(definition)} for '{definition}'."
-                )
-            # create and register libsbml.UnitDefinition in libsbml.Model
-            # print("Create:", uid)
-            _: libsbml.UnitDefinition = unit_definition.create_sbml(model=model)
-
-
 class UnitDefinition(Sbase):
     """Unit.
 
@@ -742,10 +710,13 @@ class UnitDefinition(Sbase):
         )
         self.definition = definition
 
-    def create_sbml(self, model: libsbml.Model) -> libsbml.UnitDefinition:
+    def create_sbml(self, model: libsbml.Model) -> Optional[libsbml.UnitDefinition]:
         """Create libsbml.UnitDefinition."""
-
         logger.debug(f"Create UnitDefinition for: '{self}'")
+        if isinstance(self.definition, int):
+            # libsbml unit type
+            return None
+
         obj: libsbml.UnitDefinition = model.createUnitDefinition()
 
         # parse the string into pint
@@ -815,6 +786,78 @@ class UnitDefinition(Sbase):
                 f"units definitions."
             )
         return uid
+
+
+class Units:
+    """Base class for unit definitions."""
+    # libsbml units
+    dimensionless = UnitDefinition("dimensionless", libsbml.UNIT_KIND_DIMENSIONLESS, name="dimensionless")
+    ampere = UnitDefinition("ampere", libsbml.UNIT_KIND_AMPERE, name="ampere")
+    becquerel = UnitDefinition("becquerel", libsbml.UNIT_KIND_BECQUEREL, name="becquerel")
+    candela = UnitDefinition("candela", libsbml.UNIT_KIND_CANDELA, name="candela")
+    degree_Celsius = UnitDefinition("degree_Celsius", libsbml.UNIT_KIND_CELSIUS, name="degree_Celsius")
+    coulomb = UnitDefinition("coulomb", libsbml.UNIT_KIND_COULOMB, name="coulomb")
+    farad = UnitDefinition("farad", libsbml.UNIT_KIND_FARAD, name="farad")
+    gram = UnitDefinition("gram", libsbml.UNIT_KIND_GRAM, name="gram")
+    gray = UnitDefinition("gray", libsbml.UNIT_KIND_GRAY, name="gray")
+    hertz = UnitDefinition("hertz", libsbml.UNIT_KIND_HERTZ, name="hertz")
+    kelvin = UnitDefinition("kelvin", libsbml.UNIT_KIND_KELVIN, name="kelvin")
+    kilogram = UnitDefinition("kilogram", libsbml.UNIT_KIND_KILOGRAM, name="kilogram")
+    liter = UnitDefinition("litre", libsbml.UNIT_KIND_LITRE, name="liter")
+    litre = UnitDefinition("litre", libsbml.UNIT_KIND_LITRE, name="liter")
+    meter = UnitDefinition("metre", libsbml.UNIT_KIND_METRE, name="meter")
+    metre = UnitDefinition("metre", libsbml.UNIT_KIND_METRE, name="metre")
+    mole = UnitDefinition("mole", libsbml.UNIT_KIND_MOLE, name="mole")
+    newton = UnitDefinition("newton", libsbml.UNIT_KIND_NEWTON, name="newton")
+    ohm = UnitDefinition("ohm", libsbml.UNIT_KIND_OHM, name="ohm")
+    second = UnitDefinition("second", libsbml.UNIT_KIND_SECOND, name="second")
+    volt = UnitDefinition("volt", libsbml.UNIT_KIND_VOLT, name="volt")
+
+    # often used units
+    kg = UnitDefinition("kg", libsbml.UNIT_KIND_KILOGRAM, name="kilogram")
+
+    s = UnitDefinition("s", "second")
+    hr = UnitDefinition("hr", "hour")
+    min = UnitDefinition("min", "minute")
+
+    mmole = UnitDefinition("mmole", "mmole")
+    m = UnitDefinition("m", "meter")
+    m2 = UnitDefinition("m2", "meter^2")
+    m3 = UnitDefinition("m3", "meter^3")
+
+    per_s = UnitDefinition("per_s", "1/s")
+    per_min = UnitDefinition("per_min", "1/min")
+    per_hr = UnitDefinition("per_hr", "1/hr")
+    mmole_per_s = UnitDefinition("mmole_per_s", "mmole/s")
+
+    @classmethod
+    def attributes(cls) -> List[Tuple[str, Union[str, "UnitDefinition"]]]:
+        """Get the attributes list."""
+        attributes = inspect.getmembers(cls, lambda a: not (inspect.isroutine(a)))
+        return [
+            a for a in attributes if not (a[0].startswith("__") and a[0].endswith("__"))
+        ]
+
+    @classmethod
+    def create_unit_definitions(cls, model: libsbml.Model):
+        """Create the libsbml.UnitDefinitions in the model."""
+
+        unit_definition: UnitDefinition
+        uid: str
+        for uid, definition in cls.attributes():
+            if isinstance(definition, str):
+                unit_definition = UnitDefinition(sid=uid, definition=definition)
+            elif isinstance(definition, UnitDefinition):
+                unit_definition = definition
+            else:
+                raise ValueError(
+                    f"Units attributes must be a unit string or UnitDefinition, "
+                    f"but '{type(definition)} for '{definition}'."
+                )
+            # create and register libsbml.UnitDefinition in libsbml.Model
+            # print("Create:", uid)
+            _: libsbml.UnitDefinition = unit_definition.create_sbml(model=model)
+
 
 
 class Function(Sbase):
