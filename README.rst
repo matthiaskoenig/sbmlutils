@@ -100,6 +100,8 @@ and by the German Research Foundation (DFG) within the Research Unit Programme F
 "`QuaLiPerF <https://qualiperf.de>`__ (Quantifying Liver Perfusion-Function Relationship in Complex Resection - 
 A Systems Medicine Approach)" by grant number 436883643.
 SBML4Humans was funded as part of `Google Summer of Code 2021 <https://summerofcode.withgoogle.com/>`__.
+Matthias König has received funding from the EOSCsecretariat.eu which has received funding 
+from the European Union's Horizon Programme call H2020-INFRAEOSC-05-2018-2019, grant Agreement number 831644.
 
 Installation
 ============
