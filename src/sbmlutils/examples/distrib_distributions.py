@@ -4,7 +4,7 @@ from sbmlutils.factory import *
 
 
 class U(Units):
-    """UnitsDefinitions"""
+    """UnitsDefinitions."""
 
     hr = UnitDefinition("hr")
     m2 = UnitDefinition("m2", "meter^2")

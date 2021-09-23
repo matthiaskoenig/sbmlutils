@@ -6,7 +6,6 @@ from sbmlutils.metadata import *
 
 
 class U(Units):
-
     """UnitsDefinitions."""
 
     m2 = UnitDefinition("m2", "meter^2")
