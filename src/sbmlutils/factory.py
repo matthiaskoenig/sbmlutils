@@ -387,7 +387,7 @@ class Sbase:
         self.name = name
         self.sboTerm = sboTerm
         self.metaId = metaId
-        self.notes = notes if notes.strip() else None
+        self.notes = notes
         self.port = port
         self.uncertainties = uncertainties
         self.replacedBy = replacedBy
@@ -448,7 +448,7 @@ class Sbase:
         if self.metaId is not None:
             obj.setMetaId(self.metaId)
 
-        if self.notes is not None:
+        if self.notes is not None and self.notes.strip():
             set_notes(obj, self.notes)
 
         # annotation handling
@@ -2618,12 +2618,12 @@ class Model(Sbase, FrozenClass, BaseModel):
     @staticmethod
     def merge_models(models: List["Model"]) -> "Model":
         """Merge information from multiple models."""
-        # FIXME: handle units correctly
         if isinstance(models, Model):
             return models
         if not models:
             raise ValueError("No models are provided.")
         model = models[0]
+        units_base_classes = [model.units] if model.units else [Units]
         for k, m2 in enumerate(models):
             if k == 0:
                 continue
@@ -2638,8 +2638,21 @@ class Model(Sbase, FrozenClass, BaseModel):
                     getattr(model, key).extend(deepcopy(value))
 
                 # !everything else is overwritten
+                elif key == "units":
+                    if model.units:
+                        units_base_classes.append(m2.units)
                 else:
                     setattr(model, key, value)
+
+        # Handle merging of units
+        attr_dict = {}
+        for base_class in units_base_classes:
+            for a in base_class.attributes():
+                attr_dict[a[0]] = a[1]
+
+        if units_base_classes:
+            model.units = type("U", (Units,), attr_dict)
+            # print(model.units.attributes())
 
         return model
 
