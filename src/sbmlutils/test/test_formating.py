@@ -23,4 +23,4 @@ def test_unit_def2() -> None:
 def test_unit_def3() -> None:
     unit = UnitDefinition("pmol")
     unit_def = unit.create_sbml(model)
-    assert udef_to_string(unit_def) == "(10^-12)*mole"
+    assert udef_to_string(unit_def) == "1e-12*mole"

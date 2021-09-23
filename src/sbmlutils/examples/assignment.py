@@ -11,7 +11,9 @@ class U(Units):
     m2 = UnitDefinition("m2", "meter^2")
     kg = UnitDefinition("kg")
     l_per_hr = UnitDefinition("l_per_hr", "liter/hr")
-    l_per_kg = UnitDefinition("l_per_hr", "liter/kg")
+    l_per_kg = UnitDefinition("l_per_kg", "liter/kg")
+    mg_per_l = UnitDefinition("mg_per_l", "mg/liter")
+    mg_per_hr = UnitDefinition("mg_per_hr", "mg/hr")
 
 
 _m = Model("assignment_example")
@@ -38,10 +40,10 @@ _m.parameters = [
     Parameter("D", 0, U.mg, constant=False),
     Parameter("IVDOSE", 0, U.mg, constant=True),
     Parameter("PODOSE", 100, U.mg, constant=True),
-    Parameter("k1", 0.1, "litre_per_hr", constant=True),
+    Parameter("k1", 0.1, U.l_per_hr, constant=True),
     # whole body data
-    Parameter("BW", 70, "kg", True),
-    Parameter("FVve", 0.0514, "litre_per_kg", True),
+    Parameter("BW", 70, U.kg, True),
+    Parameter("FVve", 0.0514, U.l_per_kg, True),
 ]
 
 _m.assignments = [
@@ -51,13 +53,13 @@ _m.assignments = [
 
 _m.rules = [
     # concentrations
-    AssignmentRule("Cve", "Ave/Vve", "mg_per_litre"),
+    AssignmentRule("Cve", "Ave/Vve", U.mg_per_l),
     # volumes
     AssignmentRule("Vve", "BW*FVve", U.liter),
 ]
 
 _m.rate_rules = [
-    RateRule("Ave", "- k1*Cve", "mg_per_h"),
+    RateRule("Ave", "- k1*Cve", U.mg_per_hr),
 ]
 
 

@@ -45,19 +45,15 @@ _m = Model(
     </div>
     """,
     creators=templates.creators,
-)
-
-
-# -----------------------------------------------------------------------------
-# Units
-# -----------------------------------------------------------------------------
-_m.model_units = ModelUnits(
-    time=U.second,
-    extent=U.mmole,
-    substance=U.mmole,
-    length=U.meter,
-    area=U.m2,
-    volume=U.liter,
+    units=U,
+    model_units=ModelUnits(
+        time=U.second,
+        extent=U.mmole,
+        substance=U.mmole,
+        length=U.meter,
+        area=U.m2,
+        volume=U.liter,
+    ),
 )
 
 
@@ -169,7 +165,7 @@ _m.parameters = [
     Parameter(
         "Vmax_GK",
         1.0e-6,
-        unit="mmole_per_s",
+        unit=U.mmole_per_s,
         constant=True,
         sboTerm=SBO.MAXIMAL_VELOCITY,
         name="Vmax Glucokinase",
@@ -177,7 +173,7 @@ _m.parameters = [
     Parameter(
         "Km_glc",
         0.5,
-        unit="mM",
+        unit=U.mM,
         constant=True,
         sboTerm=SBO.MICHAELIS_CONSTANT,
         name="Km glucose",
@@ -185,7 +181,7 @@ _m.parameters = [
     Parameter(
         "Km_atp",
         0.1,
-        unit="mM",
+        unit=U.mM,
         constant=True,
         sboTerm=SBO.MICHAELIS_CONSTANT,
         name="Km ATP",
@@ -193,7 +189,7 @@ _m.parameters = [
     Parameter(
         "Km_adp",
         0.1,
-        unit="mM",
+        unit=U.mM,
         constant=True,
         sboTerm=SBO.MICHAELIS_CONSTANT,
         name="Km ADP",
@@ -201,7 +197,7 @@ _m.parameters = [
     Parameter(
         "Vmax_ATPASE",
         1.0e-6,
-        unit="mmole_per_s",
+        unit=U.mmole_per_s,
         constant=True,
         sboTerm=SBO.MAXIMAL_VELOCITY,
         name="Vmax ATPase",
@@ -210,7 +206,7 @@ _m.parameters = [
         sid="zero",
         name="zero bound",
         value=0,
-        unit="mmole_per_s",
+        unit=U.mmole_per_s,
         constant=True,
         sboTerm=SBO.FLUX_BOUND,
     ),
@@ -218,21 +214,21 @@ _m.parameters = [
         sid="inf",
         name="upper bound",
         value=inf,
-        unit="mmole_per_s",
+        unit=U.mmole_per_s,
         constant=True,
         sboTerm=SBO.FLUX_BOUND,
     ),
     Parameter(
         sid="minus_1000",
         value=-1000,
-        unit="mmole_per_s",
+        unit=U.mmole_per_s,
         constant=True,
         sboTerm=SBO.FLUX_BOUND,
     ),
     Parameter(
         sid="plus_1000",
         value=1000,
-        unit="mmole_per_s",
+        unit=U.mmole_per_s,
         constant=True,
         sboTerm=SBO.FLUX_BOUND,
     ),
@@ -253,7 +249,7 @@ _m.assignments = [InitialAssignment("glc", "4.5 mM")]
 # -----------------------------------------------------------------------------
 # Rules
 # -----------------------------------------------------------------------------
-_m.rules = [AssignmentRule("a_sum", "atp + adp", unit="mM", name="ATP + ADP balance")]
+_m.rules = [AssignmentRule("a_sum", "atp + adp", unit=U.mM, name="ATP + ADP balance")]
 
 # -----------------------------------------------------------------------------
 # Reactions
@@ -280,7 +276,7 @@ _m.reactions = [
         rules=[],
         formula=(
             "Vmax_ATPASE * (adp/(Km_adp+adp)) * f_oscillation(time/ 1 second)",
-            "mmole_per_s",
+            U.mmole_per_s,
         ),
         lowerFluxBound="zero",
         upperFluxBound="inf",
@@ -295,7 +291,7 @@ _m.reactions = [
         rules=[],
         lowerFluxBound="minus_1000",
         upperFluxBound="plus_1000",
-        formula=("zero", "mmole_per_s"),
+        formula=("zero", U.mmole_per_s),
         sboTerm=SBO.EXCHANGE_REACTION,
     ),
     Reaction(
@@ -307,7 +303,7 @@ _m.reactions = [
         rules=[],
         lowerFluxBound="minus_1000",
         upperFluxBound="plus_1000",
-        formula=("zero", "mmole_per_s"),
+        formula=("zero", U.mmole_per_s),
         sboTerm=SBO.EXCHANGE_REACTION,
     ),
 ]

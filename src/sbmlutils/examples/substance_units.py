@@ -12,9 +12,9 @@ class U(Units):
     min = UnitDefinition("min", "min")
     m2 = UnitDefinition("m2", "meter^2")
     m3 = UnitDefinition("m3", "meter^3")
-    mM = UnitDefinition("mM", "mmole/min")
+    mM = UnitDefinition("mM", "mmole/liter")
     mmole = UnitDefinition("mmole", "mmole")
-    per_mmole = UnitDefinition("per_mmole", "per/mmole")
+    per_mmole = UnitDefinition("per_mmole", "1/mmole")
     mmole_per_min = UnitDefinition("mmole_per_min", "mmole/min")
     per_min = UnitDefinition("per_min", "1/min")
 

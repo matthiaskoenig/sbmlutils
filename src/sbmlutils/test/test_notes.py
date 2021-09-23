@@ -8,7 +8,15 @@ from sbmlutils.factory import Parameter
 from sbmlutils.notes import Notes
 
 
-def test_markdown_note() -> None:
+@pytest.mark.parametrize(
+    "pattern",
+    [
+        '<a href="https://example.com" .*>https://example.com</a>',
+        "<h2.*>Heading 2</h2>",
+        '<img src="./test.png" .*/>',
+    ],
+)
+def test_markdown_note(pattern: str) -> None:
     """Test creating a markdown note."""
     p = Parameter(
         "p1",
@@ -29,52 +37,52 @@ def test_markdown_note() -> None:
     model: libsbml.Model = doc.createModel()
     sbml_p: libsbml.Parameter = p.create_sbml(model)
     sbml_notes = sbml_p.getNotesString()
+    print(sbml_notes)
 
-    assert '<a href="https://example.com">https://example.com</a>' in sbml_notes
-    assert "<h2>Heading 2</h2>" in sbml_notes
-    assert '<img src="./test.png"/>' in sbml_notes
+    match = re.search(pattern=pattern, string=sbml_notes)
+    assert match
 
 
 notes_data = [
     # headings
-    ("# test", "<h1>test</h1>"),
-    ("## test", "<h2>test</h2>"),
-    ("### test", "<h3>test</h3>"),
-    ("#### test", "<h4>test</h4>"),
-    ("##### test", "<h5>test</h5>"),
-    ("###### test", "<h6>test</h6>"),
+    ("# test", "<h1.*>test</h1>"),
+    ("## test", "<h2.*>test</h2>"),
+    ("### test", "<h3.*>test</h3>"),
+    ("#### test", "<h4.*>test</h4>"),
+    ("##### test", "<h5.*>test</h5>"),
+    ("###### test", "<h6.*>test</h6>"),
     # emphasize
-    ("*asterisks*", r"<p>[.\s]*<em>asterisks</em>[s\s]*</p>"),
-    ("_underscore_", r"<p>[\s]*<em>underscore</em>[\s]*</p>"),
-    ("**asterisks**", r"<p>[\s]*<strong>asterisks</strong>[\s]*</p>"),
-    ("__underscores__", r"<p>[\s]*<strong>underscores</strong>[\s]*</p>"),
-    ("<p>test</p>", "<p>test</p>"),
+    ("*asterisks*", r"<p.*>[.\s]*<em>asterisks</em>[s\s]*</p>"),
+    ("_underscore_", r"<p.*>[\s]*<em>underscore</em>[\s]*</p>"),
+    ("**asterisks**", r"<p.*>[\s]*<strong>asterisks</strong>[\s]*</p>"),
+    ("__underscores__", r"<p.*>[\s]*<strong>underscores</strong>[\s]*</p>"),
+    ("<p>test</p>", "<p.*>test</p>"),
     # lists
     (
         """
     1. First item
     2. Second item
     """,
-        "<ol>[\s]*<li>First item</li>[\s]*<li>Second item</li>[\s]*</ol>",
+        "<ol.*>[\s]*<li.*>First item</li>[\s]*<li.*>Second item</li>[\s]*</ol>",
     ),
     (
         """
     * First item
     * Second item
     """,
-        "<ul>[\s]*<li>First item</li>[\s]*<li>Second item</li>[\s]*</ul>",
+        "<ul.*>[\s]*<li.*>First item</li>[\s]*<li.*>Second item</li>[\s]*</ul>",
     ),
     (
         """
     - item
     """,
-        "<ul>[\s]*<li>item</li>[\s]*</ul>",
+        "<ul.*>[\s]*<li.*>item</li>[\s]*</ul>",
     ),
     (
         """
     + item
     """,
-        "<ul>[\s]*<li>item</li>[\s]*</ul>",
+        "<ul.*>[\s]*<li.*>item</li>[\s]*</ul>",
     ),
 ]
 

@@ -31,22 +31,17 @@ class Notes:
     def __init__(self, notes: str):
         """Initialize notes object."""
 
+        # remove indentation
         md = textwrap.dedent(notes)
-        # print("-" * 80)
-        # print("--- markdown ---")
-        # print(md)
-        # print("-" * 80)
 
+        # markdown to html
         mdit = MarkdownIt()
         html = mdit.render(md)
-        # print("--- html ---")
-        # print(html)
-        # print("-" * 80)
 
-        # css inline (removes single tags
+        # css inline (this replaces single tags such as <br />!)
         html_inline = css_inline.inline(html, extra_css=css)
 
-        # closing single tags
+        # close single tags
         doc = html_lxml.fromstring(html_inline)
         doc_bytes: bytes = etree.tostring(doc)
         html = doc_bytes.decode(encoding="utf-8")
@@ -66,51 +61,11 @@ class Notes:
         html = html.replace("<body", '<body xmlns="http://www.w3.org/1999/xhtml"')
         html = html + "\n</body>"
 
-        # print("--- html processed ---")
-        # print(html)
-        # print("-" * 80)
-
-        # wrap in body tag
-        # notes_str = "\n".join([
-        #     # '<body xmlns="http://www.w3.org/1999/xhtml">',
-        #     html,
-        #     '</body>'
-        # ])
-
-        # print("-" * 80)
-        # print(html)
-        # print("-" * 80)
-
         notes_str = html
         self.xml: libsbml.XMLNode = libsbml.XMLNode.convertStringToXMLNode(notes_str)
         if self.xml is None:
             raise ValueError(f"XMLNode could not be generated for:\n{notes_str}")
 
-        # xml_str = self.xml.toXMLString()
-        # print("--- xml str ---")
-        # print(xml_str)
-        # print("*" * 80)
-
     def __str__(self) -> str:
         """Get string representation."""
         return str(self.xml.toXMLString())
-
-
-if __name__ == "__main__":
-    html = """
-    ```python
-    var = 1
-    ```
-    """
-
-    notes = Notes(html)
-    print("-" * 80)
-    print(str(notes))
-
-    notes_str = """
-    <body xmlns="http://www.w3.org/1999/xhtml" style="font-family: Helvetica, arial, sans-serif;line-height: 1.6;padding-top: 10px;color: #333;padding: 30px;font-size: 14px;padding-bottom: 10px;background-color: white;">
-    </body>
-    """
-    xml: libsbml.XMLNode = libsbml.XMLNode.convertStringToXMLNode(notes_str)
-    if xml is None:
-        raise ValueError(f"XMLNode could not be generated for:\n{notes_str}")

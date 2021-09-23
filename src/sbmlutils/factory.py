@@ -580,59 +580,6 @@ class Value(Sbase):
         super(Value, self)._set_fields(obj, model)
 
 
-class ValueWithUnit(Value):
-    """Helper class.
-
-    The value field is a helper storage field which is used differently by different
-    subclasses.
-    """
-
-    def __repr__(self) -> str:
-        """Get string representation."""
-        return f"{self.sid} = {self.value} [{self.unit}]"
-
-    def __init__(
-        self,
-        sid: str,
-        value: Union[str, float],
-        unit: UnitType = "dimensionless",
-        name: Optional[str] = None,
-        sboTerm: Optional[str] = None,
-        metaId: Optional[str] = None,
-        annotations: AnnotationsType = None,
-        notes: Optional[str] = None,
-        port: Any = None,
-        uncertainties: Optional[List["Uncertainty"]] = None,
-        replacedBy: Optional[Any] = None,
-    ):
-        super(ValueWithUnit, self).__init__(
-            sid,
-            value,
-            name=name,
-            sboTerm=sboTerm,
-            metaId=metaId,
-            port=port,
-            annotations=annotations,
-            notes=notes,
-            uncertainties=uncertainties,
-            replacedBy=replacedBy,
-        )
-        self.unit = unit
-
-    def _set_fields(self, obj: libsbml.SBase, model: libsbml.Model) -> None:
-        super(ValueWithUnit, self)._set_fields(obj, model)
-        if self.unit is not None:
-            if obj.getTypeCode() in [
-                libsbml.SBML_ASSIGNMENT_RULE,
-                libsbml.SBML_RATE_RULE,
-            ]:
-                # AssignmentRules and RateRules have no units
-                pass
-            else:
-                uid = UnitDefinition.get_uid_for_unit(unit=self.unit)
-                check(obj.setUnits(uid), f"Set unit '{uid}' on {obj}")
-
-
 class UnitDefinition(Sbase):
     """Unit.
 
@@ -827,33 +774,6 @@ class Units:
     second = UnitDefinition("second", libsbml.UNIT_KIND_SECOND, name="second")
     volt = UnitDefinition("volt", libsbml.UNIT_KIND_VOLT, name="volt")
 
-    # often used units
-    # kg = UnitDefinition("kg", "kilogram")
-    # l = UnitDefinition("l", "liter")
-    #
-    # s = UnitDefinition("s", "second")
-    # hr = UnitDefinition("hr", "hour")
-    # min = UnitDefinition("min", "minute")
-    #
-    # mmole = UnitDefinition("mmole", "mmole")
-    # m = UnitDefinition("m", "meter")
-    # m2 = UnitDefinition("m2", "meter^2")
-    # m3 = UnitDefinition("m3", "meter^3")
-    #
-    # mg = UnitDefinition("mg", "mg")
-    # ml = UnitDefinition("ml", "ml")
-    # cm = UnitDefinition("cm", "cm")
-    #
-    # per_s = UnitDefinition("per_s", "1/s")
-    # per_min = UnitDefinition("per_min", "1/min")
-    # per_hr = UnitDefinition("per_hr", "1/hr")
-    #
-    # mmole_per_s = UnitDefinition("mmole_per_s", "mmole/s")
-    # mM = UnitDefinition("mM", "mmole/liter")
-    # mmole_per_min = UnitDefinition("mmole_per_min", "mmole/min")
-    # mmole_per_min_l = UnitDefinition("mmole_per_min_l", "mmole/min/l")
-    # l_per_min = UnitDefinition("l_per_min", "l/min")
-
     @classmethod
     def attributes(cls) -> List[Tuple[str, Union[str, "UnitDefinition"]]]:
         """Get the attributes list."""
@@ -881,6 +801,59 @@ class Units:
             # create and register libsbml.UnitDefinition in libsbml.Model
             # print("Create:", uid)
             _: libsbml.UnitDefinition = unit_definition.create_sbml(model=model)
+
+
+class ValueWithUnit(Value):
+    """Helper class.
+
+    The value field is a helper storage field which is used differently by different
+    subclasses.
+    """
+
+    def __repr__(self) -> str:
+        """Get string representation."""
+        return f"{self.sid} = {self.value} [{self.unit}]"
+
+    def __init__(
+        self,
+        sid: str,
+        value: Union[str, float],
+        unit: UnitType = Units.dimensionless,
+        name: Optional[str] = None,
+        sboTerm: Optional[str] = None,
+        metaId: Optional[str] = None,
+        annotations: AnnotationsType = None,
+        notes: Optional[str] = None,
+        port: Any = None,
+        uncertainties: Optional[List["Uncertainty"]] = None,
+        replacedBy: Optional[Any] = None,
+    ):
+        super(ValueWithUnit, self).__init__(
+            sid,
+            value,
+            name=name,
+            sboTerm=sboTerm,
+            metaId=metaId,
+            port=port,
+            annotations=annotations,
+            notes=notes,
+            uncertainties=uncertainties,
+            replacedBy=replacedBy,
+        )
+        self.unit = unit
+
+    def _set_fields(self, obj: libsbml.SBase, model: libsbml.Model) -> None:
+        super(ValueWithUnit, self)._set_fields(obj, model)
+        if self.unit is not None:
+            if obj.getTypeCode() in [
+                libsbml.SBML_ASSIGNMENT_RULE,
+                libsbml.SBML_RATE_RULE,
+            ]:
+                # AssignmentRules and RateRules have no units
+                pass
+            else:
+                uid = UnitDefinition.get_uid_for_unit(unit=self.unit)
+                check(obj.setUnits(uid), f"Set unit '{uid}' on {obj}")
 
 
 class Function(Sbase):
@@ -1185,7 +1158,7 @@ class InitialAssignment(Value):
         self,
         sid: str,
         value: Union[str, float],
-        unit: UnitType = "dimensionless",
+        unit: UnitType = Units.dimensionless,
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
