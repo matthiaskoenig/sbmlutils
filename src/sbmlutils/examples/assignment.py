@@ -16,9 +16,12 @@ class U(Units):
 
 _m = Model("assignment_example")
 _m.creators = templates.creators
-_m.notes = """
+_m.notes = (
+    """
 Example model for testing InitialAssignments in roadrunner.
-""" + templates.terms_of_use
+"""
+    + templates.terms_of_use
+)
 _m.units = U
 _m.model_units = ModelUnits(
     time=U.hr,

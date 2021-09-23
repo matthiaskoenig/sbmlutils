@@ -594,7 +594,7 @@ class ValueWithUnit(Value):
         self,
         sid: str,
         value: Union[str, float],
-        unit: UnitType = "-",
+        unit: UnitType = Units.dimensionless,
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
@@ -1184,7 +1184,7 @@ class InitialAssignment(Value):
         self,
         sid: str,
         value: Union[str, float],
-        unit: UnitType = "-",
+        unit: UnitType = Units.dimensionless,
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
@@ -1270,7 +1270,11 @@ class Rule(ValueWithUnit):
         ):
 
             Parameter(
-                sid, unit=rule.unit, name=rule.name, value=value, constant=False,
+                sid,
+                unit=rule.unit,
+                name=rule.name,
+                value=value,
+                constant=False,
                 # sboTerm=rule.sboTerm : FIXME not working due to duplicate meta ids
             ).create_sbml(model)
 
@@ -2625,7 +2629,7 @@ class Model(Sbase, FrozenClass, BaseModel):
             raise ValueError("No models are provided.")
         model = Model("template")
         units_base_classes = [model.units] if model.units else [Units]
-        for k, m2 in enumerate(models):
+        for m2 in models:
             for key, value in m2.__dict__.items():
                 # lists of higher modules are extended
                 if type(value) in [list, tuple]:
@@ -2635,10 +2639,11 @@ class Model(Sbase, FrozenClass, BaseModel):
                     # now add elements by copy
                     getattr(model, key).extend(deepcopy(value))
 
-                # !everything else is overwritten
+                # units are collected and class created dynamically at the end
                 elif key == "units":
                     if model.units:
                         units_base_classes.append(m2.units)
+                # !everything else is overwritten
                 else:
                     setattr(model, key, value)
 

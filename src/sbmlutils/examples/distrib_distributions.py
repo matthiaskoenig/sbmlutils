@@ -1,35 +1,35 @@
 """Distrib example demonstrating distributions."""
 from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
 from sbmlutils.factory import *
-from sbmlutils.units import *
+
+
+class U(Units):
+    """UnitsDefinitions"""
+
+    hr = UnitDefinition("hr")
+    m2 = UnitDefinition("m2", "meter^2")
 
 
 _m = Model("distributions_example")
 _m.packages = ["distrib"]
 _m.creators = templates.creators
-_m.notes = Notes(
-    [
-        """
-    <h1>sbmlutils {}</h1>
-    <h2>Description</h2>
-    <p>Example creating distrib model with distribution elements.</p>
-    """,
-        templates.terms_of_use,
-    ]
+_m.notes = (
+    """
+    # Distrib example
+    ## Description
+    Example creating distrib model with distribution elements.
+    """
+    + templates.terms_of_use
 )
+_m.units = U
 _m.model_units = ModelUnits(
-    time=UNIT_hr,
-    extent=UNIT_KIND_MOLE,
-    substance=UNIT_KIND_MOLE,
-    length=UNIT_m,
-    area=UNIT_m2,
-    volume=UNIT_KIND_LITRE,
+    time=U.hr,
+    extent=U.mole,
+    substance=U.mole,
+    length=U.meter,
+    area=U.m2,
+    volume=U.liter,
 )
-_m.units = [
-    UNIT_hr,
-    UNIT_m,
-    UNIT_m2,
-]
 
 _m.assignments = [
     InitialAssignment("p_normal_1", "normal(0, 1)"),

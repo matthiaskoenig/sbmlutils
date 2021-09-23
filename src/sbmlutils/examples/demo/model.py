@@ -3,40 +3,35 @@ from sbmlutils.examples import templates
 from sbmlutils.factory import *
 
 
-_m = Model("Koenig_demo_v14")
+class U(Units):
+    """UnitsDefinition"""
+
+    m2 = UnitDefinition("m2", "meter^2")
+    m3 = UnitDefinition("m3", "meter^3")
+
+
+_m = Model("Koenig_demo_v15")
 _m.packages = ["fbc"]
-_m.notes = Notes(
-    [
-        """
-    <h1>Koenig Demo Metabolism</h1>
-    <h2>Description</h2>
-    <p>This is a demonstration model in
-    <a href="http://sbmlutils.org" target="_blank" title="Access the definition of the SBML file format.">
-    SBML</a>&#160;format.
-    </p>
-    """,
-        templates.terms_of_use,
-    ]
+_m.notes = (
+    """
+# Koenig Demo Metabolism
+## Description
+This is a demonstration model in
+<a href="http://sbmlutils.org" target="_blank" title="Access the definition of the SBML file format.">
+SBML</a> format.
+"""
+    + templates.terms_of_use
 )
 _m.creators = templates.creators
 
 _m.model_units = ModelUnits(
-    time=UNIT_KIND_SECOND,
-    substance=UNIT_KIND_MOLE,
-    extent=UNIT_KIND_MOLE,
-    length=UNIT_KIND_METRE,
-    area=UNIT_m2,
-    volume=UNIT_m3,
+    time=U.second,
+    substance=U.mole,
+    extent=U.mole,
+    length=U.meter,
+    area=U.m2,
+    volume=U.m3,
 )
-_m.units = [
-    UnitDefinition("s", [(UNIT_KIND_SECOND, 1.0)]),
-    UnitDefinition("kg", [(UNIT_KIND_KILOGRAM, 1.0)]),
-    UnitDefinition("m", [(UNIT_KIND_METRE, 1.0)]),
-    UnitDefinition("m2", [(UNIT_KIND_METRE, 2.0)]),
-    UnitDefinition("m3", [(UNIT_KIND_METRE, 3.0)]),
-    UnitDefinition("mM", [(UNIT_KIND_MOLE, 1.0, 0), (UNIT_KIND_METRE, -3.0)]),
-    UnitDefinition("mole_per_s", [(UNIT_KIND_MOLE, 1.0), (UNIT_KIND_SECOND, -1.0)]),
-]
 
 _m.compartments = [
     Compartment(
@@ -60,7 +55,7 @@ _m.species = [
         sid="c__A",
         compartment="c",
         initialConcentration=0.0,
-        substanceUnit=UNIT_KIND_MOLE,
+        substanceUnit=U.mole,
         hasOnlySubstanceUnits=False,
         boundaryCondition=False,
         name="A",
@@ -69,7 +64,7 @@ _m.species = [
         sid="c__B",
         compartment="c",
         initialConcentration=0.0,
-        substanceUnit=UNIT_KIND_MOLE,
+        substanceUnit=U.mole,
         hasOnlySubstanceUnits=False,
         boundaryCondition=False,
         name="B",
@@ -78,7 +73,7 @@ _m.species = [
         sid="c__C",
         compartment="c",
         initialConcentration=0.0,
-        substanceUnit=UNIT_KIND_MOLE,
+        substanceUnit=U.mole,
         hasOnlySubstanceUnits=False,
         boundaryCondition=False,
         name="C",
@@ -87,7 +82,7 @@ _m.species = [
         sid="e__A",
         compartment="e",
         initialConcentration=0.0,
-        substanceUnit=UNIT_KIND_MOLE,
+        substanceUnit=U.mole,
         hasOnlySubstanceUnits=False,
         boundaryCondition=False,
         name="A",
@@ -96,7 +91,7 @@ _m.species = [
         sid="e__B",
         compartment="e",
         initialConcentration=0.0,
-        substanceUnit=UNIT_KIND_MOLE,
+        substanceUnit=U.mole,
         hasOnlySubstanceUnits=False,
         boundaryCondition=False,
         name="B",
@@ -105,7 +100,7 @@ _m.species = [
         sid="e__C",
         compartment="e",
         initialConcentration=0.0,
-        substanceUnit=UNIT_KIND_MOLE,
+        substanceUnit=U.mole,
         hasOnlySubstanceUnits=False,
         boundaryCondition=False,
         name="C",

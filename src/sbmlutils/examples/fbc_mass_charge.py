@@ -2,136 +2,134 @@
 
 from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
 from sbmlutils.factory import *
-from sbmlutils.metadata.miriam import *
-from sbmlutils.metadata.sbo import *
-from sbmlutils.units import *
+from sbmlutils.metadata import *
+
+
+class U(Units):
+
+    """UnitsDefinitions."""
+
+    m2 = UnitDefinition("m2", "meter^2")
+    m3 = UnitDefinition("m3", "meter^3")
+    mole_per_s = UnitDefinition("mole_per_s", "mole/s")
 
 
 _m = Model(
     sid="mass_charge_example",
     packages=["fbc"],
-    notes=Notes(
-        [
-            """
-        <h1>Model demonstrating mass and charge balance</h1>
-        <h2>Description</h2>
-        <p>Test model demonstrating inline annotations.
-        </p>
-        """,
-            templates.terms_of_use,
-        ]
-    ),
+    notes="""
+    # Model demonstrating mass and charge balance
+    ## Description
+    Test model demonstrating inline annotations.
+    """
+    + templates.terms_of_use,
     creators=templates.creators,
+    units=U,
     model_units=ModelUnits(
-        time=UNIT_s,
-        extent=UNIT_KIND_MOLE,
-        substance=UNIT_KIND_MOLE,
-        length=UNIT_m,
-        area=UNIT_m2,
-        volume=UNIT_m3,
+        time=U.second,
+        extent=U.mole,
+        substance=U.mole,
+        length=U.meter,
+        area=U.m2,
+        volume=U.m3,
     ),
+    compartments=[
+        Compartment(
+            sid="cyto",
+            value="1.0 m3",
+            unit=U.m3,
+            constant=False,
+            name="cytosol",
+            sboTerm=SBO.PHYSICAL_COMPARTMENT,
+            annotations=[
+                (BQB.IS, "go/GO:0005829"),  # cytosol
+                (BQB.IS, "https://en.wikipedia.org/wiki/Cytosol"),  # cytosol
+            ],
+        )
+    ],
+    species=[
+        Species(
+            sid="glc",
+            compartment="cyto",
+            initialConcentration=3.0,
+            substanceUnit=U.mole,
+            boundaryCondition=True,
+            name="D-glucose",
+            sboTerm=SBO.SIMPLE_CHEMICAL,
+            charge=0,
+            chemicalFormula="C6H12O6",
+            annotations=[(BQB.IS, "vmhmetabolite/glc_D")],
+        ),
+        Species(
+            sid="atp",
+            compartment="cyto",
+            initialConcentration=3.0,
+            substanceUnit=U.mole,
+            boundaryCondition=True,
+            name="ATP",
+            sboTerm=SBO.SIMPLE_CHEMICAL,
+            charge=-4,
+            chemicalFormula="C10H12N5O13P3",
+            annotations=[(BQB.IS, "vmhmetabolite/atp")],
+        ),
+        Species(
+            sid="glc6p",
+            compartment="cyto",
+            initialConcentration=3.0,
+            substanceUnit=U.mole,
+            boundaryCondition=True,
+            name="glucose-6 phosphate",
+            sboTerm=SBO.SIMPLE_CHEMICAL,
+            charge=-2,
+            chemicalFormula="C6H11O9P",
+            annotations=[(BQB.IS, "vmhmetabolite/g6p")],
+        ),
+        Species(
+            sid="adp",
+            compartment="cyto",
+            initialConcentration=3.0,
+            substanceUnit=U.mole,
+            boundaryCondition=True,
+            name="ADP",
+            sboTerm=SBO.SIMPLE_CHEMICAL,
+            charge=-3,
+            chemicalFormula="C10H12N5O10P2",
+            annotations=[(BQB.IS, "vmhmetabolite/adp")],
+        ),
+        Species(
+            sid="h",
+            compartment="cyto",
+            initialConcentration=3.0,
+            substanceUnit=U.mole,
+            boundaryCondition=True,
+            name="H+",
+            sboTerm=SBO.SIMPLE_CHEMICAL,
+            charge=1,
+            chemicalFormula="H",
+            annotations=[(BQB.IS, "vmhmetabolite/h")],
+        ),
+    ],
+    parameters=[
+        Parameter(sid="HEX1_v", value=1.0, unit=U.mole_per_s),
+    ],
+    reactions=[
+        Reaction(
+            sid="HEX1",
+            name="Hexokinase (D-Glucose:ATP)",
+            equation="glc + atp -> glc6p + adp + h",
+            sboTerm=SBO.BIOCHEMICAL_REACTION,
+            compartment="cyto",
+            pars=[],
+            formula=("HEX1_v", U.mole_per_s),
+            annotations=[
+                (
+                    BQB.IS,
+                    "vmhreaction/HEX1",
+                )
+            ],
+        )
+    ],
 )
-
-_m.units = [UNIT_kg, UNIT_s, UNIT_m, UNIT_m2, UNIT_m3, UNIT_mM, UNIT_mole_per_s]
-
-_m.compartments = [
-    Compartment(
-        sid="cyto",
-        value="1.0 m3",
-        unit="m3",
-        constant=False,
-        name="cytosol",
-        sboTerm=SBO.PHYSICAL_COMPARTMENT,
-        annotations=[
-            (BQB.IS, "go/GO:0005829"),  # cytosol
-            (BQB.IS, "https://en.wikipedia.org/wiki/Cytosol"),  # cytosol
-        ],
-    )
-]
-_m.species = [
-    Species(
-        sid="glc",
-        compartment="cyto",
-        initialConcentration=3.0,
-        substanceUnit=UNIT_KIND_MOLE,
-        boundaryCondition=True,
-        name="D-glucose",
-        sboTerm=SBO.SIMPLE_CHEMICAL,
-        charge=0,
-        chemicalFormula="C6H12O6",
-        annotations=[(BQB.IS, "vmhmetabolite/glc_D")],
-    ),
-    Species(
-        sid="atp",
-        compartment="cyto",
-        initialConcentration=3.0,
-        substanceUnit=UNIT_KIND_MOLE,
-        boundaryCondition=True,
-        name="ATP",
-        sboTerm=SBO.SIMPLE_CHEMICAL,
-        charge=-4,
-        chemicalFormula="C10H12N5O13P3",
-        annotations=[(BQB.IS, "vmhmetabolite/atp")],
-    ),
-    Species(
-        sid="glc6p",
-        compartment="cyto",
-        initialConcentration=3.0,
-        substanceUnit=UNIT_KIND_MOLE,
-        boundaryCondition=True,
-        name="glucose-6 phosphate",
-        sboTerm=SBO.SIMPLE_CHEMICAL,
-        charge=-2,
-        chemicalFormula="C6H11O9P",
-        annotations=[(BQB.IS, "vmhmetabolite/g6p")],
-    ),
-    Species(
-        sid="adp",
-        compartment="cyto",
-        initialConcentration=3.0,
-        substanceUnit=UNIT_KIND_MOLE,
-        boundaryCondition=True,
-        name="ADP",
-        sboTerm=SBO.SIMPLE_CHEMICAL,
-        charge=-3,
-        chemicalFormula="C10H12N5O10P2",
-        annotations=[(BQB.IS, "vmhmetabolite/adp")],
-    ),
-    Species(
-        sid="h",
-        compartment="cyto",
-        initialConcentration=3.0,
-        substanceUnit=UNIT_KIND_MOLE,
-        boundaryCondition=True,
-        name="H+",
-        sboTerm=SBO.SIMPLE_CHEMICAL,
-        charge=1,
-        chemicalFormula="H",
-        annotations=[(BQB.IS, "vmhmetabolite/h")],
-    ),
-]
-
-_m.parameters = [
-    Parameter(sid="HEX1_v", value=1.0, unit="mole_per_s"),
-]
-
-_m.reactions = [
-    Reaction(
-        sid="HEX1",
-        name="Hexokinase (D-Glucose:ATP)",
-        equation="glc + atp -> glc6p + adp + h",
-        sboTerm=SBO.BIOCHEMICAL_REACTION,
-        compartment="cyto",
-        pars=[],
-        formula=("HEX1_v", "mole_per_s"),
-        annotations=[
-            (
-                BQB.IS,
-                "vmhreaction/HEX1",
-            )
-        ],
-    )
-]
 
 # write custom annotations:
 for s in _m.species:
