@@ -5,7 +5,6 @@ import sbmlutils.layout as layout
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
 from sbmlutils.metadata import *
-from sbmlutils.units import *
 
 
 _m = Model(

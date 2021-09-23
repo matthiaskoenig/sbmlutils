@@ -5,7 +5,6 @@ from typing import List
 from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.factory import *
 from sbmlutils.metadata import *
-from sbmlutils.units import *
 
 
 n_cells = 10

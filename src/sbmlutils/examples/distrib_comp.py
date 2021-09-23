@@ -9,7 +9,6 @@ from sbmlutils.comp import flatten_sbml
 from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
 from sbmlutils.factory import *
 from sbmlutils.report import sbmlreport
-from sbmlutils.units import *
 
 
 _m = Model("distrib_comp_example")

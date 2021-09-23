@@ -1,7 +1,6 @@
 """Demo kinetic network."""
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
-from sbmlutils.units import *
 
 
 _m = Model("Koenig_demo_v14")

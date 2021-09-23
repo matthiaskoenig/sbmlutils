@@ -387,7 +387,7 @@ class Sbase:
         self.name = name
         self.sboTerm = sboTerm
         self.metaId = metaId
-        self.notes = notes
+        self.notes = notes if notes.strip() else None
         self.port = port
         self.uncertainties = uncertainties
         self.replacedBy = replacedBy
@@ -1269,7 +1269,8 @@ class Rule(ValueWithUnit):
         ):
 
             Parameter(
-                sid, unit=rule.unit, name=rule.name, value=value, constant=False
+                sid, unit=rule.unit, name=rule.name, value=value, constant=False,
+                # sboTerm=rule.sboTerm : FIXME not working due to duplicate meta ids
             ).create_sbml(model)
 
         # Make sure the parameter is const=False

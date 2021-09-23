@@ -4,7 +4,6 @@
 
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
-from sbmlutils.units import *
 
 
 # ---------------------------------------------------------------------------------------------------------------------
