@@ -2,81 +2,44 @@
 from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
 from sbmlutils.factory import *
 from sbmlutils.metadata.sbo import *
-from sbmlutils.units import *
 
 
 _m = Model("fbc_example1")
 _m.packages = ["fbc"]
 _m.creators = templates.creators
-_m.notes = Notes(
-    [
-        """
-    <h1>sbmlutils {}</h1>
-    <h2>Description</h2>
-    <p>Example creating fbc model.</p>
-    """,
-        templates.terms_of_use,
-    ]
+_m.notes = (
+    """
+# sbmlutils example
+## Description
+Example creating fbc model.
+"""
+    + templates.terms_of_use
 )
+
 
 # -----------------------------------------------------------------------------
 # Units
 # -----------------------------------------------------------------------------
-UNIT_AMOUNT = "mmol"
-UNIT_AREA = "m2"
-UNIT_VOLUME = "l"
-UNIT_TIME = "h"
-UNIT_CONCENTRATION = "mmol_per_l"
-UNIT_FLUX = "mmol_per_h"
+class U(Units):
+    """UnitsDefinition."""
 
+    mmole = UnitDefinition("mmole")
+    m2 = UnitDefinition("m2", "meter^2")
+    hr = UnitDefinition("hr")
+    mmole_per_l = UnitDefinition("mmole_per_l", "mmole/liter")
+    mmole_per_hr = UnitDefinition("mmole_per_hr", "mmole/hr")
+
+
+_m.units = U
 _m.model_units = ModelUnits(
-    time=UNIT_hr,
-    extent=UNIT_KIND_MOLE,
-    substance=UNIT_KIND_MOLE,
-    length=UNIT_m,
-    area=UNIT_m2,
-    volume=UNIT_m3,
+    time=U.hr,
+    extent=U.mmole,
+    substance=U.mmole,
+    length=U.meter,
+    area=U.m2,
+    volume=U.liter,
 )
-_m.units = [
-    UNIT_hr,
-    UNIT_m,
-    UNIT_m2,
-    UNIT_m3,
-    UnitDefinition("g", [(UNIT_KIND_GRAM, 1.0)], name="gram"),
-    UnitDefinition("l", [(UNIT_KIND_LITRE, 1.0)], name="liter"),
-    UnitDefinition("mmol", [(UNIT_KIND_MOLE, 1.0, -3, 1.0)]),
-    UnitDefinition("per_h", [(UNIT_KIND_SECOND, -1.0, 0, 3600)]),
-    UnitDefinition(
-        "mmol_per_h",
-        [(UNIT_KIND_MOLE, 1.0, -3, 1.0), (UNIT_KIND_SECOND, -1.0, 0, 3600)],
-    ),
-    UnitDefinition(
-        "mmol_per_hg",
-        [
-            (UNIT_KIND_MOLE, 1.0, -3, 1.0),
-            (UNIT_KIND_SECOND, -1.0, 0, 3600),
-            (UNIT_KIND_GRAM, -1.0),
-        ],
-    ),
-    UnitDefinition(
-        "mmol_per_l", [(UNIT_KIND_MOLE, 1.0, -3, 1.0), (UNIT_KIND_LITRE, -1.0)]
-    ),
-    UnitDefinition(
-        "mmol_per_lg",
-        [
-            (UNIT_KIND_MOLE, 1.0, -3, 1.0),
-            (UNIT_KIND_LITRE, -1.0),
-            (UNIT_KIND_GRAM, -1.0),
-        ],
-    ),
-    UnitDefinition(
-        "l_per_mmol", [(UNIT_KIND_LITRE, 1.0), (UNIT_KIND_MOLE, -1.0, -3, 1.0)]
-    ),
-    UnitDefinition("g_per_l", [(UNIT_KIND_GRAM, 1.0), (UNIT_KIND_LITRE, -1.0)]),
-    UnitDefinition(
-        "g_per_mmol", [(UNIT_KIND_GRAM, 1.0), (UNIT_KIND_MOLE, -1.0, -3, 1.0)]
-    ),
-]
+
 # -----------------------------------------------------------------------------
 # Compartments
 # -----------------------------------------------------------------------------
@@ -84,7 +47,7 @@ _m.compartments = [
     Compartment(
         sid="bioreactor",
         value=1.0,
-        unit=UNIT_VOLUME,
+        unit=U.liter,
         constant=True,
         name="bioreactor",
         spatialDimensions=3,
@@ -98,7 +61,7 @@ _m.species = [
         sid="Glcxt",
         name="glucose",
         initialConcentration=0.0,
-        substanceUnit=UNIT_AMOUNT,
+        substanceUnit=U.mmole,
         hasOnlySubstanceUnits=False,
         compartment="bioreactor",
     ),
@@ -106,7 +69,7 @@ _m.species = [
         sid="Ac",
         name="acetate",
         initialConcentration=0.0,
-        substanceUnit=UNIT_AMOUNT,
+        substanceUnit=U.mmole,
         hasOnlySubstanceUnits=False,
         compartment="bioreactor",
     ),
@@ -114,7 +77,7 @@ _m.species = [
         sid="O2",
         name="oxygen",
         initialConcentration=0.0,
-        substanceUnit=UNIT_AMOUNT,
+        substanceUnit=U.mmole,
         hasOnlySubstanceUnits=False,
         compartment="bioreactor",
     ),
@@ -122,7 +85,7 @@ _m.species = [
         sid="X",
         name="biomass",
         initialConcentration=0.0,
-        substanceUnit=UNIT_AMOUNT,
+        substanceUnit=U.mmole,
         hasOnlySubstanceUnits=False,
         compartment="bioreactor",
     ),
@@ -143,7 +106,7 @@ _m.parameters = [
         sid=FLUX_BOUND_ZERO,
         name="zero bound",
         value=0.0,
-        unit=UNIT_FLUX,
+        unit=U.mmole_per_hr,
         constant=True,
         sboTerm=SBO.FLUX_BOUND,
     ),
@@ -151,7 +114,7 @@ _m.parameters = [
         sid=FLUX_BOUND_PLUS_INF,
         name="default upper bound",
         value=float("Inf"),
-        unit=UNIT_FLUX,
+        unit=U.mmole_per_hr,
         constant=True,
         sboTerm=SBO.FLUX_BOUND,
     ),
@@ -159,7 +122,7 @@ _m.parameters = [
         sid=FLUX_BOUND_MINUS_INF,
         name="default lower bound",
         value=-float("Inf"),
-        unit=UNIT_FLUX,
+        unit=U.mmole_per_hr,
         constant=True,
         sboTerm=SBO.FLUX_BOUND,
     ),
@@ -167,7 +130,7 @@ _m.parameters = [
         sid=FLUX_BOUND_GLC_IMPORT,
         name="glc import bound",
         value=-15,
-        unit=UNIT_FLUX,
+        unit=U.mmole_per_hr,
         constant=True,
         sboTerm=SBO.FLUX_BOUND,
     ),
@@ -175,7 +138,7 @@ _m.parameters = [
         sid=FLUX_BOUND_O2_IMPORT,
         name="o2 import bound",
         value=-10,
-        unit=UNIT_FLUX,
+        unit=U.mmole_per_hr,
         constant=True,
         sboTerm=SBO.FLUX_BOUND,
     ),

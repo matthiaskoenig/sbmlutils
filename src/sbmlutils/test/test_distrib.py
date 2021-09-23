@@ -5,7 +5,6 @@ import libsbml
 from sbmlutils.distrib import distrib_examples, distrib_packages
 from sbmlutils.factory import *
 from sbmlutils.metadata import *
-from sbmlutils.units import *
 from sbmlutils.validation import validate_doc
 
 
