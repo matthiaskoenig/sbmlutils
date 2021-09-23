@@ -2622,12 +2622,9 @@ class Model(Sbase, FrozenClass, BaseModel):
             return models
         if not models:
             raise ValueError("No models are provided.")
-        model = models[0]
+        model = Model("template")
         units_base_classes = [model.units] if model.units else [Units]
         for k, m2 in enumerate(models):
-            if k == 0:
-                continue
-
             for key, value in m2.__dict__.items():
                 # lists of higher modules are extended
                 if type(value) in [list, tuple]:
