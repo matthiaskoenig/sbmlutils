@@ -739,6 +739,7 @@ class UnitDefinition(Sbase):
                 multiplier = 1.0
                 if k == 0:
                     multiplier = magnitude
+
                 if prefix:
                     multiplier = multiplier * self.__class__.prefixes[prefix]
 
