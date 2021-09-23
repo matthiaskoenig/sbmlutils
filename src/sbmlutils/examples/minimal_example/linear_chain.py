@@ -5,33 +5,31 @@ This demonstrates just the very core SBML functionality.
 from pathlib import Path
 from typing import List
 
-from sbmlutils.creator import FactoryResult, create_model
 from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
 from sbmlutils.factory import *
-from sbmlutils.metadata.sbo import *
-from sbmlutils.units import *
+from sbmlutils.metadata import *
 
 
 n_chain = 20
 # -------------------------------------------------------------------------------------
-mid: str = "linear_chain"
-compartments: List[Compartment] = [
+_m = Model("linear_chain")
+_m.compartments = [
     Compartment(sid="cell", value=1.0),
 ]
-species: List[Species] = [
+_m.species = [
     Species(sid="S1", initialConcentration=10.0, compartment="cell"),
 ]
-parameters: List[Parameter] = []
-reactions: List[Reaction] = []
+_m.parameters = []
+_m.reactions = []
 for k in range(n_chain):
-    species.append(
+    _m.species.append(
         Species(sid=f"S{k + 2}", initialConcentration=0.0, compartment="cell"),
     )
-    parameters.append(
+    _m.parameters.append(
         Parameter(sid=f"k{k+1}", value=0.1),
     )
-    reactions.append(
+    _m.reactions.append(
         Reaction(
             sid=f"J{k+1}", equation=f"S{k+1} -> S{k+2}", formula=f"k{k+1} * S{k+1}"
         ),
@@ -42,7 +40,7 @@ for k in range(n_chain):
 def create(tmp: bool = False) -> FactoryResult:
     """Create model."""
     return create_model(
-        modules=["sbmlutils.examples.minimal_example.linear_chain"],
+        models=_m,
         output_dir=Path(__file__).parent,
         units_consistency=False,
         tmp=tmp,

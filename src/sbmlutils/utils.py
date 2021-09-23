@@ -31,6 +31,27 @@ class bcolors:
     UNDERLINE = "\033[4m"
 
 
+class FrozenClass(object):
+    """FrozenClass.
+
+    After freezing no additional attributes can be added.
+    """
+
+    __isfrozen: bool = False
+
+    def __setattr__(self, key: str, value: Any) -> None:
+        """Attribute setter."""
+        if self.__isfrozen and not hasattr(self, key):
+            raise AttributeError(
+                f"{self} is a frozen class, no new attributes. But "
+                f"trying to set `{key} = {value}`."
+            )
+        object.__setattr__(self, key, value)
+
+    def _freeze(self) -> None:
+        self.__isfrozen = True
+
+
 def create_metaid(sbase: libsbml.SBase) -> str:
     """Create a globally unique meta id.
 

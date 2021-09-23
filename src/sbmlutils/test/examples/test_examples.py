@@ -21,6 +21,7 @@ from sbmlutils.examples import (
     reaction,
     simple_reaction,
     substance_units,
+    units_namespace,
 )
 from sbmlutils.examples.dallaman import factory as dallaman_factory
 from sbmlutils.examples.demo import factory as demo_factory
@@ -62,6 +63,7 @@ testdata = [
     substance_units,
     tiny_factory,
     model_definitions,
+    units_namespace,
 ]
 
 

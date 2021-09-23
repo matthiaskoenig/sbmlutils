@@ -3,7 +3,6 @@ from pathlib import Path
 
 import pytest
 
-from sbmlutils.creator import create_model
 from sbmlutils.factory import *
 from sbmlutils.io import read_sbml
 
@@ -25,7 +24,7 @@ level_version_testdata = [
 def test_sbml_level_version(level: int, version: int, tmp_path: Path) -> None:
     """Test that the various levels and versions of SBML can be generated."""
     md = {
-        "mid": "level_version",
+        "sid": "level_version",
         "compartments": [Compartment(sid="C", value=1.0)],
         "species": [
             Species(
@@ -43,7 +42,7 @@ def test_sbml_level_version(level: int, version: int, tmp_path: Path) -> None:
     }
 
     results = create_model(
-        modules=md,
+        models=Model(**md),  # type: ignore
         output_dir=tmp_path,
         tmp=False,
         units_consistency=False,

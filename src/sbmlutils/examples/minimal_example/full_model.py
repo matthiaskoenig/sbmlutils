@@ -3,68 +3,60 @@
 This demonstrates just the very core SBML functionality.
 """
 from pathlib import Path
-from typing import List
 
-from sbmlutils.creator import FactoryResult, create_model
 from sbmlutils.cytoscape import visualize_sbml
-from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
+from sbmlutils.examples import templates
 from sbmlutils.factory import *
 from sbmlutils.metadata import *
-from sbmlutils.units import *
 
 
-# -------------------------------------------------------------------------------------
-mid: str = "full_model"
-packages: List[str] = ["distrib", "fbc"]
-notes = Notes(
-    [
-        "<h1>full_model</h1>"
-        "<h2>Description</h2>"
-        "<p>Example demonstrating more complete information in SBML model.</p>",
-        templates.terms_of_use,
-    ]
+class U(Units):
+    """UnitDefinitions."""
+
+    min = UnitDefinition("min")
+    mmole = UnitDefinition("mmole")
+    m2 = UnitDefinition("m2", "meter^2")
+    mM = UnitDefinition("mM", "mmole/liter")
+    mmole_per_min = UnitDefinition("mmole_per_min", "mmole/min")
+    l_per_min = UnitDefinition("l_per_min", "l/min")
+
+
+_m = Model(
+    sid="full_model",
+    packages=["distrib", "fbc"],
+    notes="""
+    # full_model
+    ## Description"
+    Example demonstrating more complete information in SBML model.
+    """
+    + templates.terms_of_use,
+    creators=templates.creators,
+    units=U,
+    model_units=ModelUnits(
+        time=U.min,
+        extent=U.mmole,
+        substance=U.mmole,
+        length=U.meter,
+        area=U.m2,
+        volume=U.liter,
+    ),
 )
-creators = [
-    Creator(
-        familyName="Koenig",
-        givenName="Matthias",
-        email="koenigmx@hu-berlin.de",
-        organization="Humboldt-University Berlin, Institute for Theoretical Biology",
-        site="https://livermetabolism.com",
-    )
-]
-model_units = ModelUnits(
-    time=UNIT_min,
-    extent=UNIT_mmole,
-    substance=UNIT_mmole,
-    length=UNIT_m,
-    area=UNIT_m2,
-    volume=UNIT_KIND_LITRE,
-)
-units = [
-    UNIT_m,
-    UNIT_m2,
-    UNIT_min,
-    UNIT_mmole,
-    UNIT_mM,
-    UNIT_mmole_per_min,
-    UNIT_litre_per_min,
-]
-compartments: List[Compartment] = [
+_m.compartments = [
     Compartment(
         sid="cell",
         metaId="meta_cell",
         value=1.0,
         # unit support
-        unit=UNIT_KIND_LITRE,
+        unit=U.liter,
         spatialDimensions=3,
         constant=True,
         # annotation and sbo support
         sboTerm=SBO.PHYSICAL_COMPARTMENT,
         annotations=[(BQB.IS, "ncit/C48694")],
         # provenance via notes
-        notes="Overall cell compartment with volume set to an arbitrary "
-        "value of 1.0.",
+        notes="""
+        Overall cell compartment with volume set to an arbitrary value of 1.0.
+        """,
         # uncertainties
         uncertainties=[
             Uncertainty(
@@ -84,7 +76,7 @@ compartments: List[Compartment] = [
         ],
     ),
 ]
-species: List[Species] = [
+_m.species = [
     Species(
         sid="S1",
         metaId="meta_S1",
@@ -92,7 +84,7 @@ species: List[Species] = [
         compartment="cell",
         # clean handling of amounts vs. concentrations
         initialConcentration=10.0,
-        substanceUnit=UNIT_mmole,
+        substanceUnit=U.mmole,
         hasOnlySubstanceUnits=False,
         # additional information via FBC
         sboTerm=SBO.SIMPLE_CHEMICAL,
@@ -110,7 +102,7 @@ species: List[Species] = [
         name="glucose 6-phosphate",
         initialConcentration=10.0,
         compartment="cell",
-        substanceUnit=UNIT_mmole,
+        substanceUnit=U.mmole,
         hasOnlySubstanceUnits=False,
         sboTerm=SBO.SIMPLE_CHEMICAL,
         chemicalFormula="C6H11O9P",
@@ -118,35 +110,36 @@ species: List[Species] = [
         annotations=[(BQB.IS, "chebi/CHEBI:58225")],
     ),
 ]
-parameters: List[Parameter] = [
+_m.parameters = [
     Parameter(
         sid="k1",
         value=0.1,
         constant=True,
-        unit=UNIT_litre_per_min,
+        unit=U.l_per_min,
+        sboTerm=SBO.KINETIC_CONSTANT,
     ),
 ]
-reactions: List[Reaction] = [
+_m.reactions = [
     Reaction(
         sid="J0",
         name="hexokinase",
         equation="S1 -> S2",
         # reactions should have compartment set for layouts
         compartment="cell",
-        formula=("k1 * S1", UNIT_mmole_per_min),  # [liter/min]* [mmole/liter]
+        formula=("k1 * S1", U.mmole_per_min),  # [liter/min]* [mmole/liter]
         pars=[
             Parameter(
                 sid="J0_lb",
                 value=0.0,
                 constant=True,
-                unit=UNIT_mmole_per_min,
+                unit=U.mmole_per_min,
                 name="lower flux bound J0",
             ),
             Parameter(
                 sid="J0_ub",
                 value=1000.0,
                 constant=True,
-                unit=UNIT_mmole_per_min,
+                unit=U.mmole_per_min,
                 name="upper flux bound J0",
             ),
         ],
@@ -158,17 +151,16 @@ reactions: List[Reaction] = [
         annotations=[(BQB.IS, "uniprot/P17710")],
     ),
 ]
-constraints: List[Constraint] = [
+_m.constraints = [
     Constraint("J0_lb_constraint", math="J0 >= J0_lb"),
     Constraint("J0_ub_constraint", math="J0 >= J0_ub"),
 ]
-# -------------------------------------------------------------------------------------
 
 
 def create(tmp: bool = False) -> FactoryResult:
     """Create model."""
     return create_model(
-        modules=["sbmlutils.examples.minimal_example.full_model"],
+        models=_m,
         output_dir=Path(__file__).parent,
         # now unit valid model
         units_consistency=True,

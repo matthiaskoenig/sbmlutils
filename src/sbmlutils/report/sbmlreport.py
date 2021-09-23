@@ -19,7 +19,7 @@ def start_server(path: Path, port: int = 5115) -> None:
     class Handler(http.server.SimpleHTTPRequestHandler):
         def __init__(self, *args, **kwargs):  # type: ignore
             """Initialize handler for requests."""
-            super().__init__(*args, path, **kwargs)
+            super().__init__(directory=path, *args, **kwargs)
 
     with socketserver.TCPServer(("", port), Handler) as httpd:
         httpd.serve_forever()
@@ -99,8 +99,5 @@ def create_online_report(
 if __name__ == "__main__":
     from sbmlutils.test import REPRESSILATOR_SBML
 
-    create_report(sbml_path=REPRESSILATOR_SBML)
-    # create_report(
-    #     sbml_path=REPRESSILATOR_SBML,
-    #     server="localhost:3456"
-    # )
+    # create_online_report(sbml_path=REPRESSILATOR_SBML)
+    create_online_report(sbml_path=REPRESSILATOR_SBML, server="localhost:3456")

@@ -22,7 +22,6 @@ def create_port_doc() -> libsbml.SBMLDocument:
         Compartment(
             sid="extern",
             value=1.0,
-            unit="m3",
             constant=True,
             name="external compartment",
         ),

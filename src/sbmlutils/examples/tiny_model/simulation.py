@@ -14,7 +14,7 @@ import roadrunner
 from matplotlib import pylab as plt
 
 from sbmlutils.examples.tiny_model import factory as tiny_factory
-from sbmlutils.examples.tiny_model import model as model_definition
+from sbmlutils.examples.tiny_model.model import tiny_model
 from sbmlutils.fbc.cobra import read_cobra_model
 
 
@@ -72,9 +72,7 @@ def tiny_simulation() -> None:
 
     plt.show()
     f.savefig(
-        tiny_dir
-        / "results"
-        / f"{model_definition.mid}_{model_definition.version}_roadrunner.png",
+        tiny_dir / "results" / f"{tiny_model.sid}_roadrunner.png",
         bbox_inches="tight",
     )
 

@@ -2,25 +2,23 @@
 from pathlib import Path
 from typing import List
 
-from sbmlutils.creator import FactoryResult, create_model
 from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.factory import *
-from sbmlutils.metadata.sbo import *
-from sbmlutils.units import *
+from sbmlutils.metadata import *
 
 
 n_cells = 10
 # -------------------------------------------------------------------------------------
-mid: str = "comp_model"
+_m = Model("comp_model")
 
 # create grid of compartments with main species
-compartments: List[Compartment] = []
-species: List[Species] = []
+_mcompartments: List[Compartment] = []
+_mspecies: List[Species] = []
 for k in range(n_cells):
-    compartments.append(
+    _mcompartments.append(
         Compartment(sid=f"cell{k}", value=1.0),
     )
-    species.append(
+    _mspecies.append(
         Species(
             sid=f"S{k}",
             # metaId=f"meta_S{k}",
@@ -29,12 +27,12 @@ for k in range(n_cells):
         )
     )
 
-parameters: List[Parameter] = [Parameter("D", 0.01)]
+_mparameters: List[Parameter] = [Parameter("D", 0.01)]
 
 # transport reactions to couple cells
-reactions: List[Reaction] = []
+_mreactions: List[Reaction] = []
 for k in range(n_cells - 1):
-    reactions.append(
+    _mreactions.append(
         Reaction(
             sid=f"J{k}", equation=f"S{k} <-> S{k+1}", formula=f"D * (S{k}-S{k+1})"
         ),
@@ -82,7 +80,7 @@ for k in range(n_cells):
 def create(tmp: bool = False) -> FactoryResult:
     """Create model."""
     return create_model(
-        modules=["sbmlutils.examples.minimal_example.comp_model"],
+        models=_m,
         output_dir=Path(__file__).parent,
         units_consistency=False,
         tmp=tmp,

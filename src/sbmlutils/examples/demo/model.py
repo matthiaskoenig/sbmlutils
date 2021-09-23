@@ -1,68 +1,61 @@
 """Demo kinetic network."""
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
-from sbmlutils.units import *
 
 
-mid = "Koenig_demo"
-packages = ["fbc"]
-version = 14
-notes = Notes(
-    [
-        """
-    <h1>Koenig Demo Metabolism</h1>
-    <h2>Description</h2>
-    <p>This is a demonstration model in
+class U(Units):
+    """UnitsDefinition."""
+
+    m2 = UnitDefinition("m2", "meter^2")
+    m3 = UnitDefinition("m3", "meter^3")
+    mM = UnitDefinition("mM", "mmole/liter")
+    mole_per_s = UnitDefinition("mole_per_s", "mole/s")
+
+
+_m = Model(
+    "Koenig_demo_v15",
+    packages=["fbc"],
+    notes="""
+    # Koenig Demo Metabolism
+    ## Description
+    This is a demonstration model in
     <a href="http://sbmlutils.org" target="_blank" title="Access the definition of the SBML file format.">
-    SBML</a>&#160;format.
-    </p>
-    """,
-        templates.terms_of_use,
-    ]
+    SBML</a> format.
+    """
+    + templates.terms_of_use,
+    creators=templates.creators,
+    model_units=ModelUnits(
+        time=U.second,
+        substance=U.mole,
+        extent=U.mole,
+        length=U.meter,
+        area=U.m2,
+        volume=U.m3,
+    ),
 )
-creators = templates.creators
-
-model_units = ModelUnits(
-    time=UNIT_KIND_SECOND,
-    substance=UNIT_KIND_MOLE,
-    extent=UNIT_KIND_MOLE,
-    length=UNIT_KIND_METRE,
-    area=UNIT_m2,
-    volume=UNIT_m3,
-)
-units = [
-    Unit("s", [(UNIT_KIND_SECOND, 1.0)]),
-    Unit("kg", [(UNIT_KIND_KILOGRAM, 1.0)]),
-    Unit("m", [(UNIT_KIND_METRE, 1.0)]),
-    Unit("m2", [(UNIT_KIND_METRE, 2.0)]),
-    Unit("m3", [(UNIT_KIND_METRE, 3.0)]),
-    Unit("mM", [(UNIT_KIND_MOLE, 1.0, 0), (UNIT_KIND_METRE, -3.0)]),
-    Unit("mole_per_s", [(UNIT_KIND_MOLE, 1.0), (UNIT_KIND_SECOND, -1.0)]),
-]
-
-compartments = [
+_m.compartments = [
     Compartment(
-        sid="e", value=1e-06, unit="m3", constant=False, name="external compartment"
+        sid="e", value=1e-06, unit=U.m3, constant=False, name="external compartment"
     ),
     Compartment(
-        sid="c", value=1e-06, unit="m3", constant=False, name="cell compartment"
+        sid="c", value=1e-06, unit=U.m3, constant=False, name="cell compartment"
     ),
     Compartment(
         sid="m",
         value=1,
-        unit="m2",
+        unit=U.m2,
         constant=False,
         spatialDimensions=2,
         name="plasma membrane",
     ),
 ]
 
-species = [
+_m.species = [
     Species(
         sid="c__A",
         compartment="c",
         initialConcentration=0.0,
-        substanceUnit=UNIT_KIND_MOLE,
+        substanceUnit=U.mole,
         hasOnlySubstanceUnits=False,
         boundaryCondition=False,
         name="A",
@@ -71,7 +64,7 @@ species = [
         sid="c__B",
         compartment="c",
         initialConcentration=0.0,
-        substanceUnit=UNIT_KIND_MOLE,
+        substanceUnit=U.mole,
         hasOnlySubstanceUnits=False,
         boundaryCondition=False,
         name="B",
@@ -80,7 +73,7 @@ species = [
         sid="c__C",
         compartment="c",
         initialConcentration=0.0,
-        substanceUnit=UNIT_KIND_MOLE,
+        substanceUnit=U.mole,
         hasOnlySubstanceUnits=False,
         boundaryCondition=False,
         name="C",
@@ -89,7 +82,7 @@ species = [
         sid="e__A",
         compartment="e",
         initialConcentration=0.0,
-        substanceUnit=UNIT_KIND_MOLE,
+        substanceUnit=U.mole,
         hasOnlySubstanceUnits=False,
         boundaryCondition=False,
         name="A",
@@ -98,7 +91,7 @@ species = [
         sid="e__B",
         compartment="e",
         initialConcentration=0.0,
-        substanceUnit=UNIT_KIND_MOLE,
+        substanceUnit=U.mole,
         hasOnlySubstanceUnits=False,
         boundaryCondition=False,
         name="B",
@@ -107,32 +100,36 @@ species = [
         sid="e__C",
         compartment="e",
         initialConcentration=0.0,
-        substanceUnit=UNIT_KIND_MOLE,
+        substanceUnit=U.mole,
         hasOnlySubstanceUnits=False,
         boundaryCondition=False,
         name="C",
     ),
 ]
 
-parameters = [
+_m.parameters = [
     Parameter(
-        "scale_f", value=1e-6, unit="-", constant=True, name="metabolic scaling factor"
+        "scale_f",
+        value=1e-6,
+        unit=U.dimensionless,
+        constant=True,
+        name="metabolic scaling factor",
     ),
-    Parameter("Vmax_bA", 5.0, "mole_per_s", True),
-    Parameter("Km_A", 1.0, "mM", True),
-    Parameter("Vmax_bB", 2.0, "mole_per_s", True),
-    Parameter("Km_B", 0.5, "mM", True),
-    Parameter("Vmax_bC", 2.0, "mole_per_s", True),
-    Parameter("Km_C", 3.0, "mM", True),
-    Parameter("Vmax_v1", 1.0, "mole_per_s", True),
-    Parameter("Keq_v1", 10.0, "-", True),
-    Parameter("Vmax_v2", 0.5, "mole_per_s", True),
-    Parameter("Vmax_v3", 0.5, "mole_per_s", True),
-    Parameter("Vmax_v4", 0.5, "mole_per_s", True),
-    Parameter("Keq_v4", 2.0, "-", True),
+    Parameter("Vmax_bA", 5.0, U.mole_per_s, True),
+    Parameter("Km_A", 1.0, U.mM, True),
+    Parameter("Vmax_bB", 2.0, U.mole_per_s, True),
+    Parameter("Km_B", 0.5, U.mM, True),
+    Parameter("Vmax_bC", 2.0, U.mole_per_s, True),
+    Parameter("Km_C", 3.0, U.mM, True),
+    Parameter("Vmax_v1", 1.0, U.mole_per_s, True),
+    Parameter("Keq_v1", 10.0, U.dimensionless, True),
+    Parameter("Vmax_v2", 0.5, U.mole_per_s, True),
+    Parameter("Vmax_v3", 0.5, U.mole_per_s, True),
+    Parameter("Vmax_v4", 0.5, U.mole_per_s, True),
+    Parameter("Keq_v4", 2.0, U.dimensionless, True),
 ]
 
-reactions = [
+_m.reactions = [
     Reaction(
         sid="bA",
         name="bA (A import)",
@@ -142,7 +139,7 @@ reactions = [
         rules=[],
         formula=(
             "scale_f*(Vmax_bA/Km_A)*(e__A - c__A)/ (1 dimensionless + e__A/Km_A + c__A/Km_A)",
-            "mole_per_s",
+            U.mole_per_s,
         ),
     ),
     Reaction(
@@ -154,7 +151,7 @@ reactions = [
         rules=[],
         formula=(
             "(scale_f*(Vmax_bB/Km_B)*(c__B - e__B))/(1 dimensionless + e__B/Km_B + c__B/Km_B)",
-            "mole_per_s",
+            U.mole_per_s,
         ),
     ),
     Reaction(
@@ -166,7 +163,7 @@ reactions = [
         rules=[],
         formula=(
             "(scale_f*(Vmax_bC/Km_C)*(c__C - e__C))/(1 dimensionless + e__C/Km_C + c__C/Km_C)",
-            "mole_per_s",
+            U.mole_per_s,
         ),
     ),
     Reaction(
@@ -176,7 +173,7 @@ reactions = [
         compartment="c",
         formula=(
             "(scale_f*Vmax_v1)/Km_A*(c__A - 1 dimensionless/Keq_v1*c__B)",
-            "mole_per_s",
+            U.mole_per_s,
         ),
     ),
     Reaction(
@@ -184,14 +181,14 @@ reactions = [
         name="v2 (A -> C)",
         equation="c__A -> c__C []",
         compartment="c",
-        formula=("(scale_f*Vmax_v2)/Km_A*c__A", "mole_per_s"),
+        formula=("(scale_f*Vmax_v2)/Km_A*c__A", U.mole_per_s),
     ),
     Reaction(
         sid="v3",
         name="v3 (C -> A)",
         equation="c__C -> c__A []",
         compartment="c",
-        formula=("(scale_f*Vmax_v3)/Km_A*c__C", "mole_per_s"),
+        formula=("(scale_f*Vmax_v3)/Km_A*c__C", U.mole_per_s),
     ),
     Reaction(
         sid="v4",
@@ -200,7 +197,9 @@ reactions = [
         compartment="c",
         formula=(
             "(scale_f*Vmax_v4)/Km_A*(c__C - 1 dimensionless/Keq_v4*c__B)",
-            "mole_per_s",
+            U.mole_per_s,
         ),
     ),
 ]
+
+demo_model = _m

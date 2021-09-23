@@ -1,42 +1,50 @@
 """Example model with meta-data annotations."""
 
-from sbmlutils.creator import create_model
 from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
 from sbmlutils.factory import *
-from sbmlutils.metadata.miriam import *
-from sbmlutils.metadata.sbo import *
-from sbmlutils.units import *
+from sbmlutils.metadata import *
 
 
-mid = "annotation_example"
-notes = Notes(
-    [
-        """
-    <h1>Model with inline annotations</h1>
-    <h2>Description</h2>
-    <p>Test model demonstrating inline annotations.
-    </p>
-    """,
-        templates.terms_of_use,
-    ]
+class U(Units):
+    """ModelDefinitions."""
+
+    dimless = UnitDefinition("dimless", "dimensionless")
+    mM = UnitDefinition("mM", "mmole/l")
+    s = UnitDefinition("s", "s")
+    mole = UnitDefinition("mole", "mole")
+    m = UnitDefinition("m", "meter")
+    m2 = UnitDefinition("m2", "meter^2")
+    m3 = UnitDefinition("m3", "meter^3")
+    kg = UnitDefinition("kg", "kg")
+    per_s = UnitDefinition("per_s", "1/s")
+    mole_per_s = UnitDefinition("mole_per_s", "mole/s")
+
+
+_m = Model(
+    sid="annotation_example",
+    notes="""
+    # Model with inline annotations
+    ## Description
+    Test model demonstrating inline annotations.
+    """
+    + templates.terms_of_use,
+    creators=templates.creators,
+    units=U,
+    model_units=ModelUnits(
+        time=U.s,
+        extent=U.mole,
+        substance=U.mole,
+        length=U.m,
+        area=U.m2,
+        volume=U.m3,
+    ),
 )
-creators = templates.creators
 
-model_units = ModelUnits(
-    time=UNIT_s,
-    extent=UNIT_KIND_MOLE,
-    substance=UNIT_KIND_MOLE,
-    length=UNIT_m,
-    area=UNIT_m2,
-    volume=UNIT_m3,
-)
-units = [UNIT_kg, UNIT_s, UNIT_m, UNIT_m2, UNIT_m3, UNIT_mM, UNIT_mole_per_s]
-
-compartments = [
+_m.compartments = [
     Compartment(
         sid="ext",
         value="Vol_e",
-        unit="m3",
+        unit=U.m3,
         constant=True,
         name="external",
         sboTerm=SBO.PHYSICAL_COMPARTMENT,
@@ -47,7 +55,7 @@ compartments = [
     Compartment(
         sid="cyto",
         value="Vol_c",
-        unit="m3",
+        unit=U.m3,
         constant=False,
         name="cytosol",
         sboTerm=SBO.PHYSICAL_COMPARTMENT,
@@ -59,7 +67,7 @@ compartments = [
     Compartment(
         sid="pm",
         value="A_m",
-        unit="m2",
+        unit=U.m2,
         constant=True,
         spatialDimensions=2,
         name="membrane",
@@ -70,12 +78,12 @@ compartments = [
     ),
 ]
 
-species = [
+_m.species = [
     Species(
         sid="e__gal",
         compartment="ext",
         initialConcentration=3.0,
-        substanceUnit=UNIT_KIND_MOLE,
+        substanceUnit=U.mole,
         boundaryCondition=True,
         name="D-galactose",
         sboTerm=SBO.SIMPLE_CHEMICAL,
@@ -89,26 +97,26 @@ species = [
         sid="c__gal",
         compartment="cyto",
         initialConcentration=0.00012,
-        substanceUnit=UNIT_KIND_MOLE,
+        substanceUnit=U.mole,
         boundaryCondition=False,
         name="D-galactose",
         sboTerm=SBO.SIMPLE_CHEMICAL,
     ),
 ]
 
-parameters = [
-    Parameter(sid="x_cell", value=25e-6, unit="m", constant=True, name="cell diameter"),
+_m.parameters = [
+    Parameter(sid="x_cell", value=25e-6, unit=U.m, constant=True, name="cell diameter"),
     Parameter(
-        sid="Vol_e", value=100e-14, unit="m3", constant=True, name="external volume"
+        sid="Vol_e", value=100e-14, unit=U.m3, constant=True, name="external volume"
     ),
-    Parameter(sid="A_m", value=1.0, unit="m2", constant=True, name="membrane area"),
+    Parameter(sid="A_m", value=1.0, unit=U.m2, constant=True, name="membrane area"),
 ]
 
-assignments = [
-    InitialAssignment(sid="Vol_c", value="x_cell*x_cell*x_cell", unit="m3"),
+_m.assignments = [
+    InitialAssignment(sid="Vol_c", value="x_cell*x_cell*x_cell", unit=U.m3),
 ]
 
-reactions = [
+_m.reactions = [
     Reaction(
         sid="e__GLUT2_GAL",
         name="galactose transport [e__]",
@@ -116,9 +124,9 @@ reactions = [
         # C6H1206 (0) <-> C6H1206 (0)
         compartment="pm",
         pars=[
-            Parameter(sid="GLUT2_Vmax", value=1e-13, unit="mole_per_s"),
-            Parameter("GLUT2_k_gal", 1.0, "mM"),
-            Parameter("GLUT2_keq", 1.0, "-"),
+            Parameter(sid="GLUT2_Vmax", value=1e-13, unit=U.mole_per_s),
+            Parameter("GLUT2_k_gal", 1.0, U.mM),
+            Parameter("GLUT2_keq", 1.0, U.dimless),
         ],
         formula=(
             "GLUT2_Vmax/GLUT2_k_gal * (e__gal - c__gal/GLUT2_keq)/"
@@ -135,7 +143,7 @@ reactions = [
 def create(tmp: bool = False) -> None:
     """Create model."""
     create_model(
-        modules=["sbmlutils.examples.annotation"],
+        models=_m,
         output_dir=EXAMPLE_RESULTS_DIR,
         tmp=tmp,
     )
