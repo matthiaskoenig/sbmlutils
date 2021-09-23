@@ -7,6 +7,15 @@ from sbmlutils.factory import *
 from sbmlutils.metadata import *
 
 
+class U(Units):
+    """UnitsDefinitions."""
+
+    m2 = UnitDefinition("m2", "meter^2")
+    mmole = UnitDefinition("mmole")
+    mM = UnitDefinition("mM", "mmole/liter")
+    mmole_per_s = UnitDefinition("mmole_per_s", "mmole/s")
+
+
 _m = Model(
     sid="tiny_example",
     packages=["fbc"],
@@ -43,21 +52,14 @@ _m = Model(
 # Units
 # -----------------------------------------------------------------------------
 _m.model_units = ModelUnits(
-    time=UNIT_KIND_SECOND,
-    extent="mmole",
-    substance="mmole",
-    length=UNIT_KIND_METRE,
-    area="m2",
-    volume=UNIT_KIND_LITRE,
+    time=U.second,
+    extent=U.mmole,
+    substance=U.mmole,
+    length=U.meter,
+    area=U.m2,
+    volume=U.liter,
 )
-_m.units = [
-    UnitDefinition("m2", [(UNIT_KIND_METRE, 2.0)]),
-    UnitDefinition("mmole", [(UNIT_KIND_MOLE, 1, -3, 1.0)]),
-    UnitDefinition("mM", [(UNIT_KIND_MOLE, 1, -3, 1.0), (UNIT_KIND_LITRE, -1.0)]),
-    UnitDefinition(
-        "mmole_per_s", [(UNIT_KIND_MOLE, 1, -3, 1.0), (UNIT_KIND_SECOND, -1.0)]
-    ),
-]
+
 
 # -----------------------------------------------------------------------------
 # Compartments
@@ -66,7 +68,7 @@ _m.compartments = [
     Compartment(
         sid="c",
         value=1e-5,
-        unit=UNIT_KIND_LITRE,
+        unit=U.liter,
         constant=True,
         name="cell compartment",
         port=True,
@@ -81,7 +83,7 @@ _m.species = [
         sid="glc",
         compartment="c",
         initialConcentration=5.0,
-        substanceUnit="mmole",
+        substanceUnit=U.mmole,
         constant=False,
         boundaryCondition=False,
         hasOnlySubstanceUnits=False,
@@ -93,7 +95,7 @@ _m.species = [
         sid="g6p",
         compartment="c",
         initialConcentration=0.1,
-        substanceUnit="mmole",
+        substanceUnit=U.mmole,
         constant=False,
         boundaryCondition=False,
         hasOnlySubstanceUnits=False,
@@ -104,7 +106,7 @@ _m.species = [
         sid="atp",
         compartment="c",
         initialConcentration=3.0,
-        substanceUnit="mmole",
+        substanceUnit=U.mmole,
         constant=False,
         boundaryCondition=False,
         hasOnlySubstanceUnits=False,
@@ -116,7 +118,7 @@ _m.species = [
         sid="adp",
         compartment="c",
         initialConcentration=0.8,
-        substanceUnit="mmole",
+        substanceUnit=U.mmole,
         constant=False,
         boundaryCondition=False,
         hasOnlySubstanceUnits=False,
@@ -128,7 +130,7 @@ _m.species = [
         sid="phos",
         compartment="c",
         initialConcentration=0,
-        substanceUnit="mmole",
+        substanceUnit=U.mmole,
         constant=True,
         boundaryCondition=True,
         hasOnlySubstanceUnits=False,
@@ -140,7 +142,7 @@ _m.species = [
         sid="hydron",
         compartment="c",
         initialConcentration=0,
-        substanceUnit="mmole",
+        substanceUnit=U.mmole,
         constant=True,
         boundaryCondition=True,
         hasOnlySubstanceUnits=False,
@@ -151,7 +153,7 @@ _m.species = [
         sid="h2o",
         compartment="c",
         initialConcentration=0,
-        substanceUnit="mmole",
+        substanceUnit=U.mmole,
         constant=True,
         boundaryCondition=True,
         hasOnlySubstanceUnits=False,

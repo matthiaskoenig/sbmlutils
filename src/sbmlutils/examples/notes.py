@@ -2,10 +2,6 @@
 
 from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
 from sbmlutils.factory import *
-from sbmlutils.metadata.miriam import *
-from sbmlutils.metadata.sbo import *
-from sbmlutils.report.sbmlreport import create_online_report
-from sbmlutils.units import *
 
 
 _m = Model(
@@ -264,4 +260,3 @@ def create(tmp: bool = False) -> FactoryResult:
 
 if __name__ == "__main__":
     results = create()
-    # create_online_report(sbml_path=results.sbml_path, server="http://localhost:3456")

@@ -9,8 +9,9 @@ markdown-it-py
 """
 import re
 import textwrap
+from typing import Any, Optional
 
-import css_inline
+import css_inline  # type: ignore
 import libsbml
 from lxml import etree
 from lxml import html as html_lxml
@@ -54,10 +55,11 @@ class Notes:
         html = html.replace("<html><head/>", "")
         html = html.replace("</body></html>", "")
 
-        # reorder pre and code tags to fix issues in XML nodes
-        def reverse_open_tags(match_obj) -> str:
+        def reverse_open_tags(match_obj: Any) -> Optional[str]:
+            """Reorder pre and code tags to fix issues in XML nodes."""
             if match_obj.group() is not None:
                 return f"<code{match_obj.group(4)}><pre{match_obj.group(2)}>"
+            return None
 
         html = re.sub("(<pre)(.*)(><code)(.*)(>)", reverse_open_tags, html)
         html = html.replace("</code></pre>", "</pre></code>")

@@ -268,7 +268,7 @@ class ModelUnits:
                     continue
 
                 unit: Union[str, UnitDefinition] = getattr(model_units, key)
-                uid = UnitDefinition.get_uid_for_unit(model, unit=unit)
+                uid = UnitDefinition.get_uid_for_unit(unit=unit)
                 # set the values
                 if key == "time":
                     model.setTimeUnits(uid)
@@ -425,7 +425,8 @@ class Sbase:
     def get_notes_xml(self) -> Optional[str]:
         """Get notes xml string."""
         if self.notes:
-            return Notes(self.notes).xml
+            notes_str: Optional[str] = str(Notes(self.notes).xml)
+            return notes_str
 
         return None
 
@@ -594,7 +595,7 @@ class ValueWithUnit(Value):
         self,
         sid: str,
         value: Union[str, float],
-        unit: UnitType = Units.dimensionless,
+        unit: UnitType = "dimensionless",
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
@@ -628,7 +629,7 @@ class ValueWithUnit(Value):
                 # AssignmentRules and RateRules have no units
                 pass
             else:
-                uid = UnitDefinition.get_uid_for_unit(model, unit=self.unit)
+                uid = UnitDefinition.get_uid_for_unit(unit=self.unit)
                 check(obj.setUnits(uid), f"Set unit '{uid}' on {obj}")
 
 
@@ -778,7 +779,7 @@ class UnitDefinition(Sbase):
         return unit
 
     @staticmethod
-    def get_uid_for_unit(model: libsbml.Model, unit: "UnitDefinition") -> Optional[str]:
+    def get_uid_for_unit(unit: Union["UnitDefinition", str]) -> Optional[str]:
         """Get unit id for given definition string."""
         uid: Optional[str]
         if unit is None:
@@ -862,7 +863,7 @@ class Units:
         ]
 
     @classmethod
-    def create_unit_definitions(cls, model: libsbml.Model):
+    def create_unit_definitions(cls, model: libsbml.Model) -> None:
         """Create the libsbml.UnitDefinitions in the model."""
 
         unit_definition: UnitDefinition
@@ -1144,7 +1145,7 @@ class Species(Sbase):
         obj.setSubstanceUnits(model.getSubstanceUnits())
         if self.substanceUnits is not None:
             obj.setSubstanceUnits(
-                UnitDefinition.get_uid_for_unit(model, unit=self.substanceUnits)
+                UnitDefinition.get_uid_for_unit(unit=self.substanceUnits)
             )
         else:
             # Fallback to model units
@@ -1184,7 +1185,7 @@ class InitialAssignment(Value):
         self,
         sid: str,
         value: Union[str, float],
-        unit: UnitType = Units.dimensionless,
+        unit: UnitType = "dimensionless",
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
@@ -1778,7 +1779,7 @@ class Uncertainty(Sbase):
                     up_span.setValueLower(uncertSpan.varUpper)
                 if uncertSpan.unit:
                     up_span.setUnits(
-                        UnitDefinition.get_uid_for_unit(model, unit=uncertSpan.unit)
+                        UnitDefinition.get_uid_for_unit(unit=uncertSpan.unit)
                     )
             else:
                 logger.error(
@@ -1810,9 +1811,7 @@ class Uncertainty(Sbase):
                     up_p.setValue(uncertParameter.var)
                 if uncertParameter.unit:
                     up_p.setUnits(
-                        UnitDefinition.get_uid_for_unit(
-                            model, unit=uncertParameter.unit
-                        )
+                        UnitDefinition.get_uid_for_unit(unit=uncertParameter.unit)
                     )
             else:
                 logger.error(
@@ -2084,7 +2083,7 @@ class ModelDefinition(Sbase):
         metaId: str = None,
         annotations: AnnotationsType = None,
         notes: Optional[str] = None,
-        units: Optional[Units] = None,
+        units: Optional[Type[Units]] = None,
         compartments: Optional[List[Compartment]] = None,
         species: Optional[List[Species]] = None,
     ):
@@ -2274,7 +2273,7 @@ class SbaseRef(Sbase):
         if self.idRef is not None:
             obj.setIdRef(self.idRef)
         if self.unitRef is not None:
-            unit_str = UnitDefinition.get_uid_for_unit(model, unit=self.unitRef)
+            unit_str = UnitDefinition.get_uid_for_unit(unit=self.unitRef)
             obj.setUnitRef(unit_str)
         if self.metaIdRef is not None:
             obj.setMetaIdRef(self.metaIdRef)
@@ -2533,7 +2532,7 @@ class ModelDict(TypedDict, total=False):
     external_model_definitions: Optional[List[ExternalModelDefinition]]
     model_definitions: Optional[List[ModelDefinition]]
     submodels: Optional[List[Submodel]]
-    units: Optional[Units]
+    units: Optional[Type[Units]]
     functions: Optional[List[Function]]
     compartments: Optional[List[Compartment]]
     species: Optional[List[Species]]
@@ -2628,7 +2627,9 @@ class Model(Sbase, FrozenClass, BaseModel):
         if not models:
             raise ValueError("No models are provided.")
         model = Model("template")
-        units_base_classes = [model.units] if model.units else [Units]
+        units_base_classes: List[Type[Units]] = (
+            [model.units] if model.units else [Units]
+        )
         for m2 in models:
             for key, value in m2.__dict__.items():
                 # lists of higher modules are extended
@@ -2641,7 +2642,7 @@ class Model(Sbase, FrozenClass, BaseModel):
 
                 # units are collected and class created dynamically at the end
                 elif key == "units":
-                    if model.units:
+                    if m2.units:
                         units_base_classes.append(m2.units)
                 # !everything else is overwritten
                 else:
@@ -2776,10 +2777,11 @@ class Model(Sbase, FrozenClass, BaseModel):
             set_model_history(model, self.creators)
 
         # units
-        self.units.create_unit_definitions(model=model)
+        if self.units:
+            self.units.create_unit_definitions(model=model)
 
         # model units
-        if hasattr(self, "model_units"):
+        if self.model_units:
             ModelUnits.set_model_units(model, self.model_units)
 
         # lists ofs

@@ -132,29 +132,31 @@ _m = Model(
 )
 
 # write custom annotations:
-for s in _m.species:
-    if s.sid == "glc":
-        for item in [
-            "bigg.metabolite/glc__D",
-            "kegg.compound/C00031",
-            "hmdb/HMDB0000122",
-            "chebi/CHEBI:0004167",
-        ]:
-            if s.annotations is None:
-                s.annotations = []
-            s.annotations.append((BQB.IS, item))
+if _m.species:
+    for s in _m.species:
+        if s.sid == "glc":
+            for item in [
+                "bigg.metabolite/glc__D",
+                "kegg.compound/C00031",
+                "hmdb/HMDB0000122",
+                "chebi/CHEBI:0004167",
+            ]:
+                if s.annotations is None:
+                    s.annotations = []
+                s.annotations.append((BQB.IS, item))
 
-for r in _m.reactions:
-    if r.sid == "HEX1":
-        for item in [
-            "ec-code/2.7.1.1",
-            "ec-code/2.7.1.2",
-            "kegg.reaction/R00299",
-            "rhea/17828",
-        ]:
-            if r.annotations is None:
-                r.annotations = []
-            r.annotations.append((BQB.IS, item))
+if _m.reactions:
+    for r in _m.reactions:
+        if r.sid == "HEX1":
+            for item in [
+                "ec-code/2.7.1.1",
+                "ec-code/2.7.1.2",
+                "kegg.reaction/R00299",
+                "rhea/17828",
+            ]:
+                if r.annotations is None:
+                    r.annotations = []
+                r.annotations.append((BQB.IS, item))
 
 
 def create(tmp: bool = False) -> None:

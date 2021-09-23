@@ -1,11 +1,17 @@
-from typing import Any, Dict
-
 import libsbml
 
 from sbmlutils.distrib import distrib_examples, distrib_packages
 from sbmlutils.factory import *
 from sbmlutils.metadata import *
 from sbmlutils.validation import validate_doc
+
+
+class U(Units):
+    """UnitsDefinition."""
+
+    hr = UnitDefinition("hr")
+    m2 = UnitDefinition("m2", "meter^2")
+    mM = UnitDefinition("mM", "mmole/liter")
 
 
 def test_distrib_examples() -> None:
@@ -38,15 +44,15 @@ def test_assign_distribution() -> None:
         "sid": "distrib_assignment",
         "packages": ["distrib"],
         "model_units": ModelUnits(
-            time=UNIT_hr,
-            extent=UNIT_KIND_MOLE,
-            substance=UNIT_KIND_MOLE,
-            length=UNIT_m,
-            area=UNIT_m2,
-            volume=UNIT_KIND_LITRE,
+            time=U.hr,
+            extent=U.mole,
+            substance=U.mole,
+            length=U.meter,
+            area=U.m2,
+            volume=U.liter,
         ),
-        "units": [UNIT_hr, UNIT_m, UNIT_m2, UNIT_mM],
-        "parameters": [Parameter(sid="p1", value=0.0, unit=UNIT_mM)],
+        "units": U,
+        "parameters": [Parameter(sid="p1", value=0.0, unit=U.mM)],
         "assignments": [
             InitialAssignment("p1", "normal(0 mM, 1 mM)"),
         ],
@@ -177,19 +183,19 @@ def test_multiple_uncertainties() -> None:
         "sid": "multiple_uncertainties",
         "packages": ["distrib"],
         "model_units": ModelUnits(
-            time=UNIT_hr,
-            extent=UNIT_KIND_MOLE,
-            substance=UNIT_KIND_MOLE,
-            length=UNIT_m,
-            area=UNIT_m2,
-            volume=UNIT_KIND_LITRE,
+            time=U.hr,
+            extent=U.mole,
+            substance=U.mole,
+            length=U.meter,
+            area=U.m2,
+            volume=U.liter,
         ),
-        "units": [UNIT_hr, UNIT_m, UNIT_m2, UNIT_mM],
+        "units": U,
         "parameters": [
             Parameter(
                 sid="p1",
                 value=5.0,
-                unit=UNIT_mM,
+                unit=U.mM,
                 uncertainties=[
                     Uncertainty(
                         "p1_uncertainty_1",
@@ -197,12 +203,12 @@ def test_multiple_uncertainties() -> None:
                             UncertParameter(
                                 type=libsbml.DISTRIB_UNCERTTYPE_MEAN,
                                 value=5.0,
-                                unit=UNIT_mM,
+                                unit=U.mM,
                             ),
                             UncertParameter(
                                 type=libsbml.DISTRIB_UNCERTTYPE_STANDARDDEVIATION,
                                 value=0.3,
-                                unit=UNIT_mM,
+                                unit=U.mM,
                             ),
                         ],
                         uncertSpans=[
@@ -210,7 +216,7 @@ def test_multiple_uncertainties() -> None:
                                 type=libsbml.DISTRIB_UNCERTTYPE_RANGE,
                                 valueLower=2.0,
                                 valueUpper=8.0,
-                                unit=UNIT_mM,
+                                unit=U.mM,
                             ),
                         ],
                     ),
@@ -220,12 +226,12 @@ def test_multiple_uncertainties() -> None:
                             UncertParameter(
                                 type=libsbml.DISTRIB_UNCERTTYPE_MEAN,
                                 value=4.5,
-                                unit=UNIT_mM,
+                                unit=U.mM,
                             ),
                             UncertParameter(
                                 type=libsbml.DISTRIB_UNCERTTYPE_STANDARDDEVIATION,
                                 value=1.1,
-                                unit=UNIT_mM,
+                                unit=U.mM,
                             ),
                         ],
                         uncertSpans=[
@@ -233,7 +239,7 @@ def test_multiple_uncertainties() -> None:
                                 type=libsbml.DISTRIB_UNCERTTYPE_RANGE,
                                 valueLower=1.0,
                                 valueUpper=10.0,
-                                unit=UNIT_mM,
+                                unit=U.mM,
                             ),
                         ],
                     ),
@@ -373,20 +379,20 @@ def test_sabiork_uncertainty() -> None:
         "sid": "sabiork_parameter",
         "packages": ["distrib"],
         "model_units": ModelUnits(
-            time=UNIT_hr,
-            extent=UNIT_KIND_MOLE,
-            substance=UNIT_KIND_MOLE,
-            length=UNIT_m,
-            area=UNIT_m2,
-            volume=UNIT_KIND_LITRE,
+            time=U.hr,
+            extent=U.mole,
+            substance=U.mole,
+            length=U.meter,
+            area=U.m2,
+            volume=U.liter,
         ),
-        "units": [UNIT_hr, UNIT_m, UNIT_m2, UNIT_mM],
+        "units": U,
         "parameters": [
             Parameter(
                 sid="Km_glc",
                 name="Michelis-Menten constant glucose",
                 value=5.0,
-                unit=UNIT_mM,
+                unit=U.mM,
                 sboTerm=SBO.MICHAELIS_CONSTANT,
                 uncertainties=[
                     Uncertainty(

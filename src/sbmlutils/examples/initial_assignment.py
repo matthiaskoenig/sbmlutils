@@ -1,7 +1,6 @@
 """Simple assignment test case."""
 from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
 from sbmlutils.factory import *
-from sbmlutils.units import *
 
 
 class U(Units):

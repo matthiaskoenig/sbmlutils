@@ -3,35 +3,40 @@
 Model used for testing units namespacing.
 """
 from pathlib import Path
-from typing import List
 
 from sbmlutils.factory import *
 from sbmlutils.metadata import *
-from sbmlutils.units import *
+
+
+class U(Units):
+    """UnitDefinitions."""
+
+    min = UnitDefinition("min")
+    mmole = UnitDefinition("mmole")
+    m = UnitDefinition("m", "meter")
+    m2 = UnitDefinition("m2", "meter^2")
+    m3 = UnitDefinition("m3", "meter^3")
 
 
 _m = Model(
     "units_namespace",
+    notes="""
+    Testing units and sid namespace.
+    """,
+    units=U,
     model_units=ModelUnits(
-        time=UNIT_min,
-        extent=UNIT_mmole,
-        substance=UNIT_mmole,
-        length=UNIT_m,
-        area=UNIT_m2,
-        volume=UNIT_m3,
+        time=U.min,
+        extent=U.mmole,
+        substance=U.mmole,
+        length=U.m,
+        area=U.m2,
+        volume=U.m3,
     ),
-    units=[
-        UNIT_m,
-        UNIT_m2,
-        UNIT_m3,
-        UNIT_min,
-        UNIT_mmole,
-    ],
     compartments=[
         Compartment(
             sid="m3",
             value=1.0,
-            unit=UNIT_m3,
+            unit=U.m3,
             sboTerm=SBO.PHYSICAL_COMPARTMENT,
             port=True,
         ),

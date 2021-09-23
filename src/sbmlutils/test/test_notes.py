@@ -8,7 +8,8 @@ from sbmlutils.factory import Parameter
 from sbmlutils.notes import Notes
 
 
-def test_markdown_note():
+def test_markdown_note() -> None:
+    """Test creating a markdown note."""
     p = Parameter(
         "p1",
         value=1.0,
@@ -27,16 +28,7 @@ def test_markdown_note():
     doc = libsbml.SBMLDocument()
     model: libsbml.Model = doc.createModel()
     sbml_p: libsbml.Parameter = p.create_sbml(model)
-
-    print("\n")
-    print("-" * 80)
-    print(p.notes)
-    print("-" * 80)
-    notes = Notes(p.notes)
-    print(notes)
-    print("-" * 80)
     sbml_notes = sbml_p.getNotesString()
-    print("-" * 80)
 
     assert '<a href="https://example.com">https://example.com</a>' in sbml_notes
     assert "<h2>Heading 2</h2>" in sbml_notes
@@ -87,11 +79,10 @@ notes_data = [
 ]
 
 
-@pytest.mark.parametrize("note,expected", notes_data)
-def test_note(note: str, expected: str):
-    note = Notes(note)
-    note_str = str(note)
-    print(expected)
-    print(note_str)
-    match = re.search(pattern=expected, string=note_str)
+@pytest.mark.parametrize("note, expected", notes_data)
+def test_note(note: str, expected: str) -> None:
+    """Test note."""
+    notes = Notes(note)
+    notes_str = str(notes)
+    match = re.search(pattern=expected, string=notes_str)
     assert match
