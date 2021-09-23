@@ -4,45 +4,44 @@ from sbmlutils.factory import *
 from sbmlutils.units import *
 
 
-_m = Model("initial_assignment_example")
-_m.creators = templates.creators
-_m.notes = Notes(
-    [
-        """<p>Example model for testing InitialAssignments in roadrunner.</p>""",
-        templates.terms_of_use,
-    ]
+class U(Units):
+    """UnitDefinitions."""
+
+    min = UnitDefinition("min")
+    mmole = UnitDefinition("mmole")
+    m2 = UnitDefinition("m2", "meter^2")
+
+
+_m = Model(
+    "initial_assignment_example",
+    creators=templates.creators,
+    notes="""
+    Example model for testing InitialAssignments in roadrunner.
+    """
+    + templates.terms_of_use,
+    units=U,
+    model_units=ModelUnits(
+        time=U.min,
+        extent=U.mmole,
+        substance=U.mmole,
+        length=U.meter,
+        area=U.m2,
+        volume=U.liter,
+    ),
+    objects=[
+        Compartment("c", value=2.0, unit=U.liter),
+        Species(
+            "A1",
+            initialAmount=1.0,
+            constant=False,
+            substanceUnit=U.mmole,
+            compartment="c",
+            hasOnlySubstanceUnits=True,
+        ),
+        Parameter("D", 5.0, U.mmole, constant=True),
+        InitialAssignment("A1", "D * 2 dimensionless", U.mmole),
+    ],
 )
-_m.model_units = ModelUnits(
-    time=UNIT_min,
-    extent=UNIT_mmole,
-    substance=UNIT_mmole,
-    length=UNIT_m,
-    area=UNIT_m2,
-    volume=UNIT_KIND_LITRE,
-)
-_m.units = [
-    UNIT_min,
-    UNIT_mmole,
-    UNIT_m,
-    UNIT_m2,
-]
-_m.compartments = [Compartment("c", value=2.0, unit=UNIT_KIND_LITRE)]
-_m.species = [
-    Species(
-        "A1",
-        initialAmount=1.0,
-        constant=False,
-        substanceUnit=UNIT_mmole,
-        compartment="c",
-        hasOnlySubstanceUnits=True,
-    )
-]
-_m.parameters = [
-    Parameter("D", 5.0, UNIT_mmole, constant=True),
-]
-_m.assignments = [
-    InitialAssignment("A1", "D * 2 dimensionless", UNIT_mmole),
-]
 
 
 def create(tmp: bool = False) -> None:

@@ -5,13 +5,16 @@ from sbmlutils.metadata import *
 
 
 class U(Units):
+    """UnitDefinitions."""
+
+    min = UnitDefinition("min", "min")
+    m2 = UnitDefinition("m2", "meter^2")
     mmole = UnitDefinition("mmole", "mmole")
     mM = UnitDefinition("mM", "mmole/liter")
     mmole_per_min = UnitDefinition("mmole_per_min", "mmole/min")
     mmole_per_min_l = UnitDefinition("mmole_per_min_l", "mmole/min/l")
     l_per_min = UnitDefinition("l_per_min", "l/min")
     per_min = UnitDefinition("per_min", "1/min")
-    l = UnitDefinition("l", "liter")
 
 
 _m = Model(
@@ -30,7 +33,12 @@ _m = Model(
     """,
     units=U,
     model_units=ModelUnits(
-        time=U.min, extent=U.mmole, substance=U.mmole, length=U.m, area=U.m2, volume=U.l
+        time=U.min,
+        extent=U.mmole,
+        substance=U.mmole,
+        length=U.meter,
+        area=U.m2,
+        volume=U.liter,
     ),
 )
 _m.compartments = [
@@ -39,7 +47,7 @@ _m.compartments = [
         4,
         name="plasma",
         sboTerm=SBO.PHYSICAL_COMPARTMENT,
-        unit=U.l,
+        unit=U.liter,
         port=True,
     ),
     Compartment(
@@ -47,7 +55,7 @@ _m.compartments = [
         1.5,
         name="liver",
         sboTerm=SBO.PHYSICAL_COMPARTMENT,
-        unit=U.l,
+        unit=U.liter,
         port=True,
     ),
     Compartment(
@@ -55,7 +63,7 @@ _m.compartments = [
         1.0,
         name="bile",
         sboTerm=SBO.PHYSICAL_COMPARTMENT,
-        unit=U.l,
+        unit=U.liter,
         port=True,
     ),
     Compartment(
@@ -63,7 +71,7 @@ _m.compartments = [
         1.0,
         name="feces",
         sboTerm=SBO.PHYSICAL_COMPARTMENT,
-        unit=U.l,
+        unit=U.liter,
         port=True,
     ),
 ]

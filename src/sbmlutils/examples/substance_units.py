@@ -1,83 +1,80 @@
 """Example for substance units."""
-from typing import List
 
 from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
 from sbmlutils.factory import *
 from sbmlutils.metadata.sbo import *
-from sbmlutils.units import *
 
 
-_m = Model("substance_units")
-_m.notes = Notes(
-    [
-        """
-    <h1>Example model for substance units</h1>
-    <p>Applying species conversion factors to have distinct subsets of species in a
+class U(Units):
+    """UnitsDefinitions."""
+
+    kg = UnitDefinition("kg", "kg")
+    min = UnitDefinition("min", "min")
+    m2 = UnitDefinition("m2", "meter^2")
+    m3 = UnitDefinition("m3", "meter^3")
+    mM = UnitDefinition("mM", "mmole/min")
+    mmole = UnitDefinition("mmole", "mmole")
+    per_mmole = UnitDefinition("per_mmole", "per/mmole")
+    mmole_per_min = UnitDefinition("mmole_per_min", "mmole/min")
+    per_min = UnitDefinition("per_min", "1/min")
+
+
+_m = Model(
+    "substance_units",
+    notes="""
+    # Example model for substance units
+    Applying species conversion factors to have distinct subsets of species in a
     model. A common example are mixing metabolic species and proteins in a single model.
-    </p>.
-    """,
-        templates.terms_of_use,
-    ]
+    """
+    + templates.terms_of_use,
+    creators=templates.creators,
+    units=U,
+    model_units=ModelUnits(
+        time=U.min,
+        extent=U.mmole,
+        substance=U.mmole,
+        length=U.meter,
+        area=U.m2,
+        volume=U.liter,
+    ),
+    compartments=[
+        Compartment(sid="cyto", value=1.0, unit=U.liter, name="cytosol"),
+    ],
+    parameters=[Parameter(sid="cf_units_per_mmole", value=1.0, unit=U.per_mmole)],
+    species=[
+        Species(
+            sid="glc",
+            compartment="cyto",
+            initialConcentration=3.0,
+            substanceUnit=U.mmole,
+            name="D-glucose",
+            sboTerm=SBO.SIMPLE_CHEMICAL,
+        ),
+        Species(
+            sid="glc6p",
+            compartment="cyto",
+            initialConcentration=0.5,
+            substanceUnit=U.mmole,
+            name="D-glucose 6-phosphate",
+            sboTerm=SBO.SIMPLE_CHEMICAL,
+        ),
+        Species(
+            sid="hex1",
+            compartment="cyto",
+            initialConcentration=1.0,
+            substanceUnit=U.KIND_DIMENSIONLESS,
+            name="hexokinase protein",
+            sboTerm=SBO.MACROMOLECULE,
+            conversionFactor="cf_units_per_mmole",
+            hasOnlySubstanceUnits=True,
+            notes="""
+            extent * conversionfactor = substanceUnit
+
+            mmole * 1/mmole = dimensionless
+            """,
+        ),
+    ],
 )
-_m.creators = templates.creators
-
-_m.model_units = ModelUnits(
-    time=UNIT_min,
-    extent=UNIT_mmole,
-    substance=UNIT_mmole,
-    length=UNIT_m,
-    area=UNIT_m2,
-    volume=UNIT_KIND_LITRE,
-)
-_m.units = [
-    UNIT_kg,
-    UNIT_min,
-    UNIT_m,
-    UNIT_m2,
-    UNIT_m3,
-    UNIT_mM,
-    UNIT_mmole,
-    UNIT_per_mmole,
-    UNIT_mmole_per_min,
-    UNIT_per_min,
-]
-
-_m.compartments = [
-    Compartment(sid="cyto", value=1.0, unit=UNIT_KIND_LITRE, name="cytosol"),
-]
-
-_m.parameters = [Parameter(sid="cf_units_per_mmole", value=1.0, unit=UNIT_per_mmole)]
-
-_m.species = [
-    Species(
-        sid="glc",
-        compartment="cyto",
-        initialConcentration=3.0,
-        substanceUnit=UNIT_mmole,
-        name="D-glucose",
-        sboTerm=SBO.SIMPLE_CHEMICAL,
-    ),
-    Species(
-        sid="glc6p",
-        compartment="cyto",
-        initialConcentration=0.5,
-        substanceUnit=UNIT_mmole,
-        name="D-glucose 6-phosphate",
-        sboTerm=SBO.SIMPLE_CHEMICAL,
-    ),
-    # extent * conversionfactor = substanceUnit
-    # mmole * 1/mmole = dimenionsless
-    Species(
-        sid="hex1",
-        compartment="cyto",
-        initialConcentration=1.0,
-        substanceUnit=UNIT_KIND_DIMENSIONLESS,
-        name="hexokinase protein",
-        sboTerm=SBO.MACROMOLECULE,
-        conversionFactor="cf_units_per_mmole",
-        hasOnlySubstanceUnits=True,
-    ),
-]
 
 _m.reactions = [
     Reaction(
@@ -90,13 +87,13 @@ _m.reactions = [
             Parameter(
                 sid="HEX1SYNTHESIS_k",
                 value=1.0,
-                unit=UNIT_mmole_per_min,
+                unit=U.mmole_per_min,
                 sboTerm=SBO.MAXIMAL_VELOCITY,
             ),
         ],
         formula=(
             "HEX1SYNTHESIS_k",
-            UNIT_mmole_per_min,
+            U.mmole_per_min,
         ),
     ),
     Reaction(
@@ -109,19 +106,19 @@ _m.reactions = [
             Parameter(
                 sid="HEX1_Vmax",
                 value=1.0,
-                unit=UNIT_mmole_per_min,
+                unit=U.mmole_per_min,
                 sboTerm=SBO.MAXIMAL_VELOCITY,
             ),
             Parameter(
                 sid="HEX1_Km_glc",
                 value=0.1,
-                unit=UNIT_mM,
+                unit=U.mM,
                 sboTerm=SBO.MICHAELIS_CONSTANT,
             ),
         ],
         formula=(
             "HEX1_Vmax * hex1 * glc/(HEX1_Km_glc + glc)",
-            UNIT_mmole_per_min,
+            U.mmole_per_min,
         ),
     ),
 ]
