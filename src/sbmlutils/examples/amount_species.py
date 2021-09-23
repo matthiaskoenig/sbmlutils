@@ -7,7 +7,14 @@ from sbmlutils.metadata import *
 
 class U(Units):
     """ModelDefinitions."""
-    pass
+
+    mmole = UnitDefinition("mmole")
+    m2 = UnitDefinition("m2", "meter^2")
+    m3 = UnitDefinition("m3", "meter^3")
+    ml_per_l = UnitDefinition("ml_per_l", "ml/l")
+    l_per_ml = UnitDefinition("l_per_ml", "l/ml")
+    per_s = UnitDefinition("per_s", "1/s")
+    mmole_per_s = UnitDefinition("mmole_per_s", "mmole/s")
 
 
 model = Model(
@@ -21,7 +28,7 @@ model = Model(
     + templates.terms_of_use,
     creators=templates.creators,
     model_units=ModelUnits(
-        time=U.s,
+        time=U.second,
         substance=U.mole,
         extent=U.mmole,
         length=U.meter,
@@ -76,7 +83,21 @@ model = Model(
             formula=("k1 * Aglc", U.mmole_per_s),
             sboTerm=SBO.BIOCHEMICAL_REACTION,
         ),
-        AssignmentRule("Vc", "2.0 m3 * exp(time/1 s)"),
+        AssignmentRule("Vc", "2.0 m3 * exp(time/1 second)"),
+        Parameter(
+            "conversion_ml_per_l",
+            1000,
+            U.ml_per_l,
+            constant=True,
+            name="volume conversion factor",
+        ),
+        Parameter(
+            "conversion_l_per_ml",
+            0.001,
+            U.l_per_ml,
+            constant=True,
+            name="volume conversion factor",
+        ),
     ],
 )
 

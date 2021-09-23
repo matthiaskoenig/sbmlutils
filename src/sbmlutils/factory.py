@@ -687,7 +687,7 @@ class UnitDefinition(Sbase):
     def __init__(
         self,
         sid: str,
-        definition: str,
+        definition: str = None,
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
@@ -708,7 +708,7 @@ class UnitDefinition(Sbase):
             uncertainties=uncertainties,
             replacedBy=replacedBy,
         )
-        self.definition = definition
+        self.definition = definition if definition is not None else sid
 
     def create_sbml(self, model: libsbml.Model) -> Optional[libsbml.UnitDefinition]:
         """Create libsbml.UnitDefinition."""
@@ -720,31 +720,36 @@ class UnitDefinition(Sbase):
         obj: libsbml.UnitDefinition = model.createUnitDefinition()
 
         # parse the string into pint
-        quantity = Q_(self.definition).to_compact().to_reduced_units().to_base_units()
+        # quantity = Q_(self.definition).to_compact().to_reduced_units().to_base_units()
+        quantity = Q_(self.definition).to_base_units()
+        # quantity = Q_(self.definition)
+        # print(quantity, self.definition)
         ureg = UnitRegistry()
         # FIXME: handle the base units not in libsbml correctly (e.g. min)
         # quantity = Q_(self.definition)  # .to_base_units()
 
-        m, units = quantity.to_tuple()
-        for k, item in enumerate(units):
-            # print(item)
-            prefix, unit_name, suffix = ureg.parse_unit_name(item[0])[0]
-            exponent = item[1]
-            # first unit gets the multiplier
-            multiplier = 1.0
-            if k == 0:
-                if exponent >= 1:
-                    multiplier = quantity.magnitude
-                else:
-                    multiplier = 1 / quantity.magnitude
+        magnitude, units = quantity.to_tuple()
+        # print(magnitude, units)
+        if units:
+            for k, item in enumerate(units):
+                # print(item)
+                prefix, unit_name, suffix = ureg.parse_unit_name(item[0])[0]
+                exponent = item[1]
+                # first unit gets the multiplier
+                multiplier = 1.0
+                if k == 0:
+                    multiplier = magnitude
+                if prefix:
+                    multiplier = multiplier * self.__class__.prefixes[prefix]
 
-            if prefix:
-                multiplier = multiplier * self.__class__.prefixes[prefix]
-
-            multiplier = np.power(multiplier, 1 / exponent)
-            kind = self.__class__.pint2sbml[unit_name]
-            scale = 0
-            self._create_unit(obj, kind, exponent, scale, multiplier)
+                multiplier = np.power(multiplier, 1 / exponent)
+                kind = self.__class__.pint2sbml[unit_name]
+                scale = 0
+                self._create_unit(obj, kind, exponent, scale, multiplier)
+        else:
+            # only magnitude (units canceled)
+            kind = self.__class__.pint2sbml["dimensionless"]
+            self._create_unit(obj, kind, 1.0, 0, magnitude)
 
         self._set_fields(obj, model)
         self.create_port(model)
@@ -790,12 +795,19 @@ class UnitDefinition(Sbase):
 
 class Units:
     """Base class for unit definitions."""
+
     # libsbml units
-    dimensionless = UnitDefinition("dimensionless", libsbml.UNIT_KIND_DIMENSIONLESS, name="dimensionless")
+    dimensionless = UnitDefinition(
+        "dimensionless", libsbml.UNIT_KIND_DIMENSIONLESS, name="dimensionless"
+    )
     ampere = UnitDefinition("ampere", libsbml.UNIT_KIND_AMPERE, name="ampere")
-    becquerel = UnitDefinition("becquerel", libsbml.UNIT_KIND_BECQUEREL, name="becquerel")
+    becquerel = UnitDefinition(
+        "becquerel", libsbml.UNIT_KIND_BECQUEREL, name="becquerel"
+    )
     candela = UnitDefinition("candela", libsbml.UNIT_KIND_CANDELA, name="candela")
-    degree_Celsius = UnitDefinition("degree_Celsius", libsbml.UNIT_KIND_CELSIUS, name="degree_Celsius")
+    degree_Celsius = UnitDefinition(
+        "degree_Celsius", libsbml.UNIT_KIND_CELSIUS, name="degree_Celsius"
+    )
     coulomb = UnitDefinition("coulomb", libsbml.UNIT_KIND_COULOMB, name="coulomb")
     farad = UnitDefinition("farad", libsbml.UNIT_KIND_FARAD, name="farad")
     gram = UnitDefinition("gram", libsbml.UNIT_KIND_GRAM, name="gram")
@@ -814,21 +826,31 @@ class Units:
     volt = UnitDefinition("volt", libsbml.UNIT_KIND_VOLT, name="volt")
 
     # often used units
-    kg = UnitDefinition("kg", libsbml.UNIT_KIND_KILOGRAM, name="kilogram")
-
-    s = UnitDefinition("s", "second")
-    hr = UnitDefinition("hr", "hour")
-    min = UnitDefinition("min", "minute")
-
-    mmole = UnitDefinition("mmole", "mmole")
-    m = UnitDefinition("m", "meter")
-    m2 = UnitDefinition("m2", "meter^2")
-    m3 = UnitDefinition("m3", "meter^3")
-
-    per_s = UnitDefinition("per_s", "1/s")
-    per_min = UnitDefinition("per_min", "1/min")
-    per_hr = UnitDefinition("per_hr", "1/hr")
-    mmole_per_s = UnitDefinition("mmole_per_s", "mmole/s")
+    # kg = UnitDefinition("kg", "kilogram")
+    # l = UnitDefinition("l", "liter")
+    #
+    # s = UnitDefinition("s", "second")
+    # hr = UnitDefinition("hr", "hour")
+    # min = UnitDefinition("min", "minute")
+    #
+    # mmole = UnitDefinition("mmole", "mmole")
+    # m = UnitDefinition("m", "meter")
+    # m2 = UnitDefinition("m2", "meter^2")
+    # m3 = UnitDefinition("m3", "meter^3")
+    #
+    # mg = UnitDefinition("mg", "mg")
+    # ml = UnitDefinition("ml", "ml")
+    # cm = UnitDefinition("cm", "cm")
+    #
+    # per_s = UnitDefinition("per_s", "1/s")
+    # per_min = UnitDefinition("per_min", "1/min")
+    # per_hr = UnitDefinition("per_hr", "1/hr")
+    #
+    # mmole_per_s = UnitDefinition("mmole_per_s", "mmole/s")
+    # mM = UnitDefinition("mM", "mmole/liter")
+    # mmole_per_min = UnitDefinition("mmole_per_min", "mmole/min")
+    # mmole_per_min_l = UnitDefinition("mmole_per_min_l", "mmole/min/l")
+    # l_per_min = UnitDefinition("l_per_min", "l/min")
 
     @classmethod
     def attributes(cls) -> List[Tuple[str, Union[str, "UnitDefinition"]]]:
@@ -857,7 +879,6 @@ class Units:
             # create and register libsbml.UnitDefinition in libsbml.Model
             # print("Create:", uid)
             _: libsbml.UnitDefinition = unit_definition.create_sbml(model=model)
-
 
 
 class Function(Sbase):

@@ -7,6 +7,7 @@ from sbmlutils.metadata import *
 
 class U(Units):
     """ModelDefinitions."""
+
     dimless = UnitDefinition("dimless", "dimensionless")
     mM = UnitDefinition("mM", "mmole/l")
     s = UnitDefinition("s", "s")
