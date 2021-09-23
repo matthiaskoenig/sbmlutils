@@ -2088,7 +2088,7 @@ class ModelDefinition(Sbase):
             "externalModelDefinitions",
             "modelDefinitions",
             "submodels",
-            "units",
+            # "units",
             "functions",
             "parameters",
             "compartments",
@@ -2105,6 +2105,11 @@ class ModelDefinition(Sbase):
             "objectives",
             "layouts",
         ]:
+            # create units
+            # FIXME:
+            # if hasattr(self, "units"):
+            #     self.units.create_unit_definitions(obj)
+
             # create the respective objects
             if hasattr(self, attr):
                 objects = getattr(self, attr)
