@@ -2635,15 +2635,18 @@ class Model(Sbase, FrozenClass, BaseModel):
         )
         creators = set()
         for m2 in models:
-            for key in m2.__dict__:
-                value = Model._keys.get(key, None)
+            for key, value in m2.__dict__.items():
+                kind = Model._keys.get(key, None)
                 # lists of higher modules are extended
-                if type(value) in [list, tuple]:
+                if kind in [list, tuple]:
                     # create new list
                     if not hasattr(model, key) or getattr(model, key) is None:
                         setattr(model, key, [])
                     # now add elements by copy
-                    getattr(model, key).extend(deepcopy(value))
+                    if getattr(model, key):
+                        getattr(model, key).extend(deepcopy(value))
+                    else:
+                        setattr(model, key, deepcopy(value))
 
                 # units are collected and class created dynamically at the end
                 elif key == "units":
