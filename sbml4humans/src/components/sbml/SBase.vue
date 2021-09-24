@@ -27,32 +27,28 @@
                 <td>{{ info.sbo }}</td>
             </tr>
             <tr v-if="info.history != null">
-                <td class="label-td"><div class="label">history</div></td>
+                <td class="label-td"><div class="label">creators</div></td>
                 <td>
-                    createdDate:
-                    {{ info.history.createdDate }}
-                    <br />
-                    <div>creators:</div>
-                    <ul title="Creators">
-                        <li
-                            v-for="creator in info.history.creators"
-                            :key="creator.email"
-                        >
-                            {{ creator.givenName }} {{ creator.familyName }},
-                            {{ creator.organization }} (<a
-                                :href="`mailto:${creator.email}`"
-                                >{{ creator.email }}</a
-                            >)
-                        </li>
-                    </ul>
-                    <div>modifiedDates:</div>
-                    <ul title="Dates Modified">
-                        <li v-for="date in info.history.modifiedDates" :key="date">
-                            {{ date }}
-                        </li>
-                    </ul>
+                    <div
+                        v-for="creator in info.history.creators"
+                        :key="creator.email"
+                    >
+                        <a :href="`mailto:${creator.email}`">{{ creator.givenName }} {{ creator.familyName }}</a>,
+                        {{ creator.organization }}
+                    </div>
                 </td>
             </tr>
+            <tr v-if="info.history != null">
+                <td class="label-td"><div class="label">created</div></td>
+                <td>{{ info.history.createdDate }}</td>
+            </tr>
+            <tr v-if="info.history != null">
+                <td class="label-td"><div class="label">modified</div></td>
+                <td>
+                  <span v-for="date in info.history.modifiedDates" :key="date">{{ date }}</span><br />
+                </td>
+            </tr>
+
 
             <!-- COMP -->
             <tr v-if="info.replacedBy != null">

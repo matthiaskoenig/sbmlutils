@@ -17,12 +17,10 @@
             <a v-if="addInfo.term" :href="addInfo.resource" target="_blank" class="resource">{{
                 addInfo.term
             }}</a>
+            <a v-else :href="addInfo.resource" target="_blank" class="resource">{{
+                addInfo.resource
+            }}</a>
         </Tag>
-<!--        <Tag v-if="addInfo.resource" severity="warning" class="resource">-->
-<!--            <a :href="addInfo.resource" target="_blank" class="resource">{{-->
-<!--                resource-->
-<!--            }}</a>-->
-<!--        </Tag>-->
     </div>
     <div v-if="addInfo.errors && addInfo.errors.length">
         <code v-for="error in addInfo.errors" :key="error" class="text-error"
