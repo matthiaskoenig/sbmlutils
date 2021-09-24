@@ -303,6 +303,25 @@ class Creator:
         self.site = site
         self.orcid = orcid
 
+    def __str__(self) -> str:
+        """Get string representation."""
+        return f"{self.familyName} {self.givenName} ({self.email}, {self.organization}, {self.site}, {self.orcid})"
+
+    def __hash__(self) -> int:
+        """Get hash."""
+        return hash(str(self))
+
+    def __eq__(self, other: "Creator"):
+        """Check for equality."""
+        return (
+            self.familyName == other.familyName
+            and self.givenName == other.givenName
+            and self.email == other.email
+            and self.organization == other.organization
+            and self.site == other.site
+            and self.orcid == other.orcid
+        )
+
 
 def date_now() -> libsbml.Date:
     """Get current time stamp for history.
@@ -2537,6 +2556,8 @@ class Model(Sbase, FrozenClass, BaseModel):
     sboTerm: Optional[str]
     metaId: Optional[str]
     annotations: AnnotationsType
+    notes: Optional[str]
+    port: Optional[PortType]
     packages: Optional[List[str]]
     creators: Optional[List[Creator]]
     model_units: Optional[ModelUnits]
@@ -2566,12 +2587,15 @@ class Model(Sbase, FrozenClass, BaseModel):
         arbitrary_types_allowed = True
 
     _keys = {
-        "packages": list,
         "sid": None,
+        "name": None,
+        "sboTerm": None,
         "metaId": None,
-        "annotations": None,
+        "annotations": list,
         "notes": None,
-        "creators": list,
+        "port": None,
+        "packages": list,
+        "creators": None,
         "model_units": None,
         "external_model_definitions": list,
         "model_definitions": list,
@@ -2609,8 +2633,10 @@ class Model(Sbase, FrozenClass, BaseModel):
         units_base_classes: List[Type[Units]] = (
             [model.units] if model.units else [Units]
         )
+        creators = set()
         for m2 in models:
-            for key, value in m2.__dict__.items():
+            for key in m2.__dict__:
+                value = Model._keys.get(key, None)
                 # lists of higher modules are extended
                 if type(value) in [list, tuple]:
                     # create new list
@@ -2623,6 +2649,10 @@ class Model(Sbase, FrozenClass, BaseModel):
                 elif key == "units":
                     if m2.units:
                         units_base_classes.append(m2.units)
+                elif key == "creators":
+                    if m2.creators:
+                        for c in m2.creators:
+                            creators.add(c)
                 # !everything else is overwritten
                 else:
                     setattr(model, key, value)
@@ -2636,6 +2666,8 @@ class Model(Sbase, FrozenClass, BaseModel):
         if units_base_classes:
             model.units = type("U", (Units,), attr_dict)
             # print(model.units.attributes())
+
+        model.creators = list(creators)
 
         return model
 
