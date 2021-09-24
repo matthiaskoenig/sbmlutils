@@ -33,7 +33,6 @@ import xmltodict  # type: ignore
 from libsbml import DISTRIB_UNCERTTYPE_MEAN as UNCERTTYPE_MEAN
 from libsbml import DISTRIB_UNCERTTYPE_RANGE as UNCERTTYPE_RANGE
 from libsbml import DISTRIB_UNCERTTYPE_STANDARDDEVIATION as UNCERTTYPE_STANDARDDEVIATION
-from pint import Quantity as Q_
 from pint import UnitRegistry
 from pydantic import BaseModel
 
@@ -53,6 +52,9 @@ try:
 except ImportError:
     from typing_extensions import TypedDict
 
+ureg = UnitRegistry()
+Q_ = ureg.Quantity
+ureg.define("item = 1 dimensionless")
 
 # FIXME: make complete import of all DISTRIB constants
 
@@ -618,6 +620,7 @@ class UnitDefinition(Sbase):
         "gram": libsbml.UNIT_KIND_GRAM,
         "gray": libsbml.UNIT_KIND_GRAY,
         "hertz": libsbml.UNIT_KIND_HERTZ,
+        "item": libsbml.UNIT_KIND_ITEM,
         "kelvin": libsbml.UNIT_KIND_KELVIN,
         "kilogram": libsbml.UNIT_KIND_KILOGRAM,
         "liter": libsbml.UNIT_KIND_LITRE,
@@ -689,10 +692,10 @@ class UnitDefinition(Sbase):
 
         # parse the string into pint
         # quantity = Q_(self.definition).to_compact().to_reduced_units().to_base_units()
-        quantity = Q_(self.definition).to_base_units()
+        quantity = Q_(self.definition)  # .to_base_units()
         # quantity = Q_(self.definition)
         # print(quantity, self.definition)
-        ureg = UnitRegistry()
+
         # FIXME: handle the base units not in libsbml correctly (e.g. min)
         # quantity = Q_(self.definition)  # .to_base_units()
 
@@ -782,6 +785,7 @@ class Units:
     gram = UnitDefinition("gram", libsbml.UNIT_KIND_GRAM, name="gram")
     gray = UnitDefinition("gray", libsbml.UNIT_KIND_GRAY, name="gray")
     hertz = UnitDefinition("hertz", libsbml.UNIT_KIND_HERTZ, name="hertz")
+    item = UnitDefinition("item", libsbml.UNIT_KIND_ITEM, name="item")
     kelvin = UnitDefinition("kelvin", libsbml.UNIT_KIND_KELVIN, name="kelvin")
     kilogram = UnitDefinition("kilogram", libsbml.UNIT_KIND_KILOGRAM, name="kilogram")
     liter = UnitDefinition("litre", libsbml.UNIT_KIND_LITRE, name="liter")

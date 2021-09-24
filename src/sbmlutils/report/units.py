@@ -6,9 +6,14 @@ from typing import Dict, Optional
 
 import libsbml
 import numpy as np
+import pint
 
 from sbmlutils.report.mathml import astnode_to_latex
 
+
+ureg = pint.UnitRegistry()
+ureg.define("item = dimensionless")
+Q_ = ureg.Quantity
 
 UNIT_ABBREVIATIONS = {
     "kilogram": "kg",
@@ -28,8 +33,6 @@ def udef_to_latex(ud: libsbml.UnitDefinition, model: libsbml.Model) -> Optional[
 
     if isinstance(ud, str):
         ud = model.getUnitDefinition(ud)
-        # FIXME: handle internal units
-        # if libsbml.UnitKind_forName(ud):
 
     ud_str: Optional[str] = udef_to_string(ud)
     if not ud_str:
@@ -41,6 +44,41 @@ def udef_to_latex(ud: libsbml.UnitDefinition, model: libsbml.Model) -> Optional[
 
     latex = astnode_to_latex(astnode)
     return latex
+
+
+def udef_to_string2(udef: libsbml.UnitDefinition) -> Optional[str]:
+    """Render formatted string for units.
+
+    Units have the general format
+        (multiplier * 10^scale *ukind)^exponent
+        (m * 10^s *k)^e
+
+    Returns None if udef is None or no units in UnitDefinition.
+
+    :param udef: unit definition which is to be converted to string
+    """
+    # order units alphabetically
+    # libsbml.UnitDefinition_reorder(udef)
+
+    # FIXME: add item/avogadro
+
+    unit = Q_(1, "dimensionless")
+    if udef:
+        for u in udef.getListOfUnits():
+            m = u.getMultiplier()
+            s: int = u.getScale()
+            e = u.getExponent()
+            k = libsbml.UnitKind_toString(u.getKind())
+
+            # (m * 10^s *k)^e
+            term = Q_(float(m) * 10 ** s, k) ** float(e)
+            unit = unit * term
+
+    # parse with pint
+    unit = unit.to_compact()  # to_base_units().to_root_units()
+    # print(unit)
+
+    return str(unit)
 
 
 def udef_to_string(udef: libsbml.UnitDefinition) -> Optional[str]:
@@ -151,3 +189,19 @@ def units_dict(udef: libsbml.UnitDefinition) -> Optional[Dict]:
 
     res = {"nom_terms": nom_terms, "denom_terms": denom_terms}
     return res
+
+
+if __name__ == "__main__":
+    import libsbml
+
+    from sbmlutils.factory import *
+
+    doc: libsbml.SBMLDocument = libsbml.SBMLDocument()
+    model: libsbml.Model = doc.createModel()
+
+    # ud = UnitDefinition("mM", definition="mmole/min")
+    ud = UnitDefinition("item")
+    udef: libsbml.UnitDefinition = ud.create_sbml(model=model)
+    print(udef)
+    ustr = udef_to_string(udef)
+    print(ustr)
