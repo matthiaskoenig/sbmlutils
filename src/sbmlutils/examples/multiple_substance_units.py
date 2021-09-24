@@ -20,11 +20,17 @@ class U(Units):
 
 
 _m = Model(
-    "substance_units",
+    "multiple_substance_units",
     notes="""
-    # Example model for substance units
-    Applying species conversion factors to have distinct subsets of species in a
-    model. A common example are mixing metabolic species and proteins in a single model.
+    # Example model for multiple substance units
+    The substance units for species are restricted to a single substance unit so that
+    reaction rates are in [substance_units/time_units] in an SBML model.
+
+    Applying species conversion factors allows to have distinct subsets of species with
+    different units in a single model.
+
+    A typical example is the combination of metabolic compounds (simple chemicals) often
+    in mmole with proteins in a single model.
     """
     + templates.terms_of_use,
     creators=templates.creators,
