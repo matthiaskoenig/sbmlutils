@@ -1,4 +1,5 @@
 <template>
+    <h3 class="p-ml-2">Objects</h3>
     <PanelMenu :model="items">
         <template #item="{ item }">
             <div class="clickable" v-on:click="focusTable(item.sbmlType)">

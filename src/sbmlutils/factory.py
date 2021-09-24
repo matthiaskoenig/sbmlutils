@@ -430,7 +430,7 @@ class Sbase:
 
         return None
 
-    def _set_fields(self, obj: libsbml.SBase, model: libsbml.Model) -> None:
+    def _set_fields(self, obj: libsbml.SBase, model: Optional[libsbml.Model]) -> None:
         if self.sid is not None:
             if not libsbml.SyntaxChecker.isValidSBMLSId(self.sid):
                 logger.error(
@@ -477,8 +477,9 @@ class Sbase:
         for annotation in processed_annotations:
             annotator.ModelAnnotator.annotate_sbase(sbase=obj, annotation=annotation)
 
-        self.create_uncertainties(obj, model)
-        self.create_replaced_by(obj, model)
+        if model:
+            self.create_uncertainties(obj, model)
+            self.create_replaced_by(obj, model)
 
     def create_port(self, model: libsbml.Model) -> Optional[libsbml.Port]:
         """Create port if existing."""
@@ -2821,6 +2822,16 @@ class Document(Sbase):
         self.sbml_version = sbml_version
         self.doc: libsbml.SBMLDocument = None
 
+
+        sbmlutils_notes = """
+        Created with [https://github.com/matthiaskoenig/sbmlutils](https://github.com/matthiaskoenig/sbmlutils).
+        [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5525390.svg)](https://doi.org/10.5281/zenodo.5525390)
+        """
+        if self.notes is None:
+            self.notes = sbmlutils_notes
+        else:
+            self.notes += sbmlutils_notes
+
     def create_sbml(self) -> libsbml.SBMLDocument:
         """Create SBML model."""
 
@@ -2846,6 +2857,8 @@ class Document(Sbase):
                     sbmlns.addPackageNamespace("distrib", 1)
 
         self.doc = libsbml.SBMLDocument(sbmlns)
+        self._set_fields(self.doc, None)
+
 
         # create model
         sbml_model: libsbml.Model = self.model.create_sbml(self.doc)
