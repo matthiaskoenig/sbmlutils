@@ -46,12 +46,13 @@
                 field="name"
                 header="name"
             ></Column>
-            <Column
-                sortable
-                style="width: fit-content"
-                field="value"
-                header="value"
-            ></Column>
+            <Column sortable style="width: fit-content" field="port" header="port">
+                <template #body="slotProps">
+                    <span v-if="slotProps.data.port != null">
+                        <font-awesome-icon icon="plug" :title="slotProps.data.port.pk.split(':')[1]"/>
+                    </span>
+                </template>
+            </Column>
             <Column
                 sortable
                 style="width: fit-content"
@@ -63,6 +64,12 @@
                     <boolean-symbol :value="slotProps.data.constant" />
                 </template>
             </Column>
+            <Column
+                sortable
+                style="width: fit-content"
+                field="value"
+                header="value"
+            ></Column>
             <Column sortable style="width: fit-content" field="units" header="units">
                 <template #body="slotProps">
                     <span v-if="slotProps.data.units != null">
@@ -94,13 +101,6 @@
                             <katex :mathStr="slotProps.data.assignment.math" />
                         </span>
                     </span>
-                </template>
-            </Column>
-            <Column sortable style="width: fit-content" field="port" header="port">
-                <template #body="slotProps">
-                    <span v-if="slotProps.data.port != null">{{
-                        slotProps.data.port.pk.split(":")[1]
-                    }}</span>
                 </template>
             </Column>
         </DataTable>

@@ -50,18 +50,13 @@
                 field="name"
                 header="name"
             ></Column>
-            <Column
-                sortable
-                style="width: max-content"
-                field="spatialDimensions"
-                header="spatial Dimensions"
-            ></Column>
-            <Column
-                sortable
-                style="width: max-content"
-                field="size"
-                header="size"
-            ></Column>
+            <Column sortable style="width: fit-content" field="port" header="port">
+                <template #body="slotProps">
+                    <span v-if="slotProps.data.port != null">
+                        <font-awesome-icon icon="plug" :title="slotProps.data.port.pk.split(':')[1]"/>
+                    </span>
+                </template>
+            </Column>
             <Column
                 sortable
                 style="width: max-content"
@@ -73,6 +68,18 @@
                     <boolean-symbol :value="slotProps.data.constant" />
                 </template>
             </Column>
+            <Column
+                sortable
+                style="width: max-content"
+                field="spatialDimensions"
+                header="dimensions"
+            ></Column>
+            <Column
+                sortable
+                style="width: max-content"
+                field="size"
+                header="size"
+            ></Column>
             <Column sortable style="width: max-content" field="units" header="units">
                 <template #body="slotProps">
                     <span v-if="slotProps.data.units != null">
@@ -102,13 +109,6 @@
                     <span v-if="slotProps.data.assignment != null">
                         <katex :mathStr="slotProps.data.assignment.math" />
                     </span>
-                </template>
-            </Column>
-            <Column sortable style="width: fit-content" field="port" header="port">
-                <template #body="slotProps">
-                    <span v-if="slotProps.data.port != null">{{
-                        slotProps.data.port.pk.split(":")[1]
-                    }}</span>
                 </template>
             </Column>
         </DataTable>

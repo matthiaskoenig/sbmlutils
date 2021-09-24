@@ -33,8 +33,12 @@
                         v-for="creator in info.history.creators"
                         :key="creator.email"
                     >
-                        <a :href="`mailto:${creator.email}`">{{ creator.givenName }} {{ creator.familyName }}</a>,
-                        {{ creator.organization }}
+                      <span v-if="creator.email">
+                        <a :href="`mailto:${creator.email}`">{{ creator.givenName }} {{ creator.familyName }}</a>
+                      </span>
+                      <span v-else>
+                        {{ creator.givenName }} {{ creator.familyName }}
+                      </span>, {{ creator.organization }}
                     </div>
                 </td>
             </tr>
