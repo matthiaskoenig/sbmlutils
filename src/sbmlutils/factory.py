@@ -2822,7 +2822,6 @@ class Document(Sbase):
         self.sbml_version = sbml_version
         self.doc: libsbml.SBMLDocument = None
 
-
         sbmlutils_notes = """
         Created with [https://github.com/matthiaskoenig/sbmlutils](https://github.com/matthiaskoenig/sbmlutils).
         [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5525390.svg)](https://doi.org/10.5281/zenodo.5525390)
@@ -2858,7 +2857,6 @@ class Document(Sbase):
 
         self.doc = libsbml.SBMLDocument(sbmlns)
         self._set_fields(self.doc, None)
-
 
         # create model
         sbml_model: libsbml.Model = self.model.create_sbml(self.doc)
