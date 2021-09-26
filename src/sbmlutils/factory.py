@@ -465,8 +465,14 @@ class Sbase:
             obj.setId(self.sid)
         if self.name is not None:
             obj.setName(self.name)
+        else:
+            if not isinstance(self, (Document, Port)):
+                logger.warning(f"'name' should be set on '{self}'")
         if self.sboTerm is not None:
             obj.setSBOTerm(self.sboTerm)
+        else:
+            if not isinstance(self, (Document, Port, UnitDefinition)):
+                logger.warning(f"'sboTerm' should be set on '{self}'")
         if self.metaId is not None:
             obj.setMetaId(self.metaId)
 
@@ -670,7 +676,7 @@ class UnitDefinition(Sbase):
     ):
         super(UnitDefinition, self).__init__(
             sid=sid,
-            name=name if name else definition,
+            name=name,
             sboTerm=sboTerm,
             metaId=metaId,
             annotations=annotations,
@@ -679,7 +685,10 @@ class UnitDefinition(Sbase):
             uncertainties=uncertainties,
             replacedBy=replacedBy,
         )
+
         self.definition = definition if definition is not None else sid
+        if not self.name:
+            self.name = self.definition
 
     def create_sbml(self, model: libsbml.Model) -> Optional[libsbml.UnitDefinition]:
         """Create libsbml.UnitDefinition."""
@@ -1523,6 +1532,8 @@ class Reaction(Sbase):
 
         if self.compartment:
             obj.setCompartment(self.compartment)
+        # else:
+        #    logger.info(f"'compartment' should be set on '{self}'}")
         obj.setReversible(self.equation.reversible)
         obj.setFast(self.fast)
 

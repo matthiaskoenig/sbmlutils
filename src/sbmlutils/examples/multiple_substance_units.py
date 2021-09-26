@@ -45,14 +45,18 @@ _m = Model(
     ),
     compartments=[
         Compartment(
-            sid="cyto", value=1.0, unit=U.liter,
+            sid="cyto",
+            value=1.0,
+            unit=U.liter,
             name="cytosol",
             sboTerm=SBO.PHYSICAL_COMPARTMENT,
         ),
     ],
     parameters=[
         Parameter(
-            sid="cf_units_per_mmole", value=1.0, unit=U.per_mmole,
+            sid="cf_units_per_mmole",
+            value=1.0,
+            unit=U.per_mmole,
             name="dimensionless species conversion",
             sboTerm=SBO.CONVERSION,
         )
