@@ -314,8 +314,11 @@ class Creator:
         """Get hash."""
         return hash(str(self))
 
-    def __eq__(self, other: "Creator"):
+    def __eq__(self, other: object) -> bool:
         """Check for equality."""
+        if not isinstance(other, Creator):
+            return NotImplemented
+
         return (
             self.familyName == other.familyName
             and self.givenName == other.givenName
@@ -528,7 +531,7 @@ class Sbase:
             if self.port is True:
                 # manually create port for the id
                 cmodel = model.getPlugin("comp")
-                p: libsbml.Port = cmodel.createPort()
+                p = cmodel.createPort()
                 if isinstance(self, UnitDefinition):
                     port_sid = f"{self.sid}{PORT_UNIT_SUFFIX}"
                 else:
@@ -2659,7 +2662,7 @@ class Model(Sbase, FrozenClass, BaseModel):
         creators = set()
         for m2 in models:
             for key, value in m2.__dict__.items():
-                kind = Model._keys.get(key, None)
+                kind = m2._keys.get(key, None)
                 # lists of higher modules are extended
                 if kind in [list, tuple]:
                     # create new list

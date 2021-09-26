@@ -8,7 +8,8 @@ from rich.logging import RichHandler
 
 from sbmlutils.console import console
 
-def get_logger(name: str, level: str = logging.INFO):
+
+def get_logger(name: str, level: int = logging.INFO) -> logging.Logger:
     """Get new custom logger for name."""
     formatter = logging.Formatter(
         fmt="%(message)s",
@@ -17,10 +18,7 @@ def get_logger(name: str, level: str = logging.INFO):
 
     # handler = logging.StreamHandler()
     handler = RichHandler(
-        markup=True,
-        rich_tracebacks=True,
-        show_time=False,
-        console=console
+        markup=True, rich_tracebacks=True, show_time=False, console=console
     )
     handler.setFormatter(formatter)
 
