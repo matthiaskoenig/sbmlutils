@@ -131,7 +131,7 @@ def error_string(error: libsbml.SBMLError, index: int = None) -> tuple:
         )
         + "[/black on white]",
         f"[error][{error.getSeverityAsString()}] {error.getShortMessage()}[/error]",
-        f"[info]{error.getMessage()}[/info]",
+        f"{error.getMessage()}",
     ]
     error_str = "\n".join(lines)
     return error_str, severity
@@ -192,25 +192,25 @@ def validate_doc(
     ]
     info = "\n".join(lines)
 
-    if vresults.is_valid():
-        info = f"[success]{info}[/success]"
-    else:
-        info = f"[error]{info}[/error]"
+    # if vresults.is_valid():
+    #     info = f"[success]{info}[/success]"
+    # else:
+    #     info = f"[error]{info}[/error]"
 
     # overall validation report
     console.print()
     if vresults.is_perfect():
         console.rule(style="success")
-        console.print(info)
+        console.print("[success]" + info + "[/success]")
         console.rule(style="success")
     else:
         if vresults.is_valid():
             console.rule(style="warning")
-            logger.warning(info)
+            console.print("[warning]" + info + "[/warning]")
             console.rule(style="warning")
         else:
             console.rule(style="error")
-            logger.error(info)
+            console.print("[error]" + info + "[/error]")
             console.rule(style="error")
     console.print()
 

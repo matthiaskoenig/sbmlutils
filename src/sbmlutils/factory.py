@@ -473,7 +473,13 @@ class Sbase:
             if not isinstance(self, (Document, Port)):
                 logger.warning(f"'name' should be set on '{self}'")
         if self.sboTerm is not None:
-            obj.setSBOTerm(self.sboTerm)
+            if isinstance(self.sboTerm, SBO):
+                sbo = self.sboTerm.value.replace("_", ":")
+            elif isinstance(self.sboTerm, str):
+                sbo = self.sboTerm.replace("_", ":")
+            else:
+                sbo = self.sboTerm
+            obj.setSBOTerm(sbo)
         else:
             if not isinstance(self, (Document, Port, UnitDefinition)):
                 logger.warning(f"'sboTerm' should be set on '{self}'")
@@ -522,15 +528,16 @@ class Sbase:
             if self.port is True:
                 # manually create port for the id
                 cmodel = model.getPlugin("comp")
-                p = cmodel.createPort()
+                p: libsbml.Port = cmodel.createPort()
                 if isinstance(self, UnitDefinition):
                     port_sid = f"{self.sid}{PORT_UNIT_SUFFIX}"
                 else:
                     port_sid = f"{self.sid}{PORT_SUFFIX}"
                 p.setId(port_sid)
-                p.setName(port_sid)
+                p.setName(f"Port of {self.sid}")
                 p.setMetaId(port_sid)
-                p.setSBOTerm(599)  # port
+                sbo = SBO.PORT.value.replace("_", ":")
+                p.setSBOTerm(sbo)
 
                 if isinstance(self, UnitDefinition):
                     p.setUnitRef(self.sid)
@@ -2512,7 +2519,7 @@ class Port(SbaseRef):
                 sbo = SBO.INPUT_PORT
             elif self.portType == PORT_TYPE_OUTPUT:
                 sbo = SBO.OUTPUT_PORT
-            p.setSBOTerm(sbo)
+            p.setSBOTerm(sbo.value.replace("_", ":"))
 
         return p
 
@@ -2684,7 +2691,6 @@ class Model(Sbase, FrozenClass, BaseModel):
 
         if units_base_classes:
             model.units = type("U", (Units,), attr_dict)
-            # print(model.units.attributes())
 
         model.creators = list(creators)
 

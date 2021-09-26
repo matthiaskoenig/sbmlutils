@@ -6,6 +6,7 @@ import logging
 
 from rich.logging import RichHandler
 
+from sbmlutils.console import console
 
 def get_logger(name: str, level: str = logging.INFO):
     """Get new custom logger for name."""
@@ -15,7 +16,12 @@ def get_logger(name: str, level: str = logging.INFO):
     )
 
     # handler = logging.StreamHandler()
-    handler = RichHandler(markup=True, rich_tracebacks=True, show_time=False)
+    handler = RichHandler(
+        markup=True,
+        rich_tracebacks=True,
+        show_time=False,
+        console=console
+    )
     handler.setFormatter(formatter)
 
     logger = logging.getLogger(name)
