@@ -1,5 +1,4 @@
 """Exmpample demonstrating the interpolation of data."""
-import logging
 import os
 import shutil
 import tempfile
@@ -10,10 +9,11 @@ import roadrunner
 from matplotlib import pyplot as plt
 from matplotlib.pyplot import Axes, Figure
 
+from sbmlutils import log
 from sbmlutils.manipulation import interpolation as ip
 
 
-logger = logging.getLogger(__name__)
+logger = log.get_logger(__name__)
 
 
 def interpolation_example() -> None:

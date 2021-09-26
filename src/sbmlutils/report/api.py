@@ -4,7 +4,6 @@ This provides basic functionality of
 parsing the model and returning the JSON representation based on fastAPI.
 """
 import json
-import logging
 import tempfile
 import time
 import traceback
@@ -19,11 +18,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from pymetadata.core.annotation import RDFAnnotation, RDFAnnotationData
 from pymetadata.identifiers.miriam import BQB
 
+from sbmlutils import log
 from sbmlutils.report.api_examples import examples_info
 from sbmlutils.report.sbmlinfo import SBMLDocumentInfo
 
 
-logger = logging.getLogger(__name__)
+logger = log.get_logger(__name__)
 
 api = FastAPI(
     #     root_path="/api/v1",

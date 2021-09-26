@@ -1,14 +1,14 @@
 """Helpers for validation and checking of SBML and libsbml operations."""
-import logging
 import time
 from typing import Iterable, List, Optional
 
 import libsbml
 
-from sbmlutils.utils import bcolors
+from sbmlutils.console import console
+from sbmlutils.log import get_logger
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def check(value: int, message: str) -> bool:
@@ -125,17 +125,13 @@ def error_string(error: libsbml.SBMLError, index: int = None) -> tuple:
 
     severity = error.getSeverity()
     lines = [
-        bcolors.BGWHITE
-        + bcolors.BLACK
+        "[black on white]"
         + "E{}: {} ({}, L{}, {})".format(
             index, error.getCategoryAsString(), package, error.getLine(), "code"
         )
-        + bcolors.ENDC
-        + bcolors.ENDC,
-        bcolors.FAIL
-        + "[{}] {}".format(error.getSeverityAsString(), error.getShortMessage())
-        + bcolors.ENDC,
-        bcolors.OKBLUE + error.getMessage() + bcolors.ENDC,
+        + "[/black on white]",
+        f"[error][{error.getSeverityAsString()}] {error.getShortMessage()}[/error]",
+        f"[info]{error.getMessage()}[/info]",
     ]
     error_str = "\n".join(lines)
     return error_str, severity
@@ -183,8 +179,6 @@ def validate_doc(
     vresults = ValidationResult.from_results([results_internal, results_not_internal])
 
     lines = [
-        "",
-        "-" * 80,
         str(name),
         "{:<25}: {}".format("valid", str(vresults.is_valid()).upper()),
     ]
@@ -195,25 +189,30 @@ def validate_doc(
         ]
     lines += [
         "{:<25}: {:.3f}".format("check time (s)", time.perf_counter() - current),
-        "-" * 80,
-        "",
     ]
     info = "\n".join(lines)
 
     if vresults.is_valid():
-        info = bcolors.OKGREEN + info + bcolors.ENDC
+        info = f"[success]{info}[/success]"
     else:
-        info = bcolors.FAIL + info + bcolors.ENDC
-    info = bcolors.BOLD + info + bcolors.ENDC
+        info = f"[error]{info}[/error]"
 
     # overall validation report
+    console.print()
     if vresults.is_perfect():
-        print(info)
+        console.rule(style="success")
+        console.print(info)
+        console.rule(style="success")
     else:
         if vresults.is_valid():
-            logging.warning(info)
+            console.rule(style="warning")
+            logger.warning(info)
+            console.rule(style="warning")
         else:
-            logging.error(info)
+            console.rule(style="error")
+            logger.error(info)
+            console.rule(style="error")
+    console.print()
 
     # individual error and warning report
     if log_errors:

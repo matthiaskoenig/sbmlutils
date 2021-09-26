@@ -1,0 +1,24 @@
+"""Module for logging.
+
+Using rich for output formating.
+"""
+import logging
+
+from rich.logging import RichHandler
+
+
+def get_logger(name: str, level: str = logging.INFO):
+    """Get new custom logger for name."""
+    formatter = logging.Formatter(
+        fmt="%(message)s",
+        datefmt="[%X]",
+    )
+
+    # handler = logging.StreamHandler()
+    handler = RichHandler(markup=True, rich_tracebacks=True, show_time=False)
+    handler.setFormatter(formatter)
+
+    logger = logging.getLogger(name)
+    logger.setLevel(level)
+    logger.addHandler(handler)
+    return logger

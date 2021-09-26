@@ -10,7 +10,6 @@ model components.
 A standard workflow is looking up the components for instance in things like OLS
 ontology lookup service.
 """
-import logging
 import os
 import re
 from pathlib import Path
@@ -22,13 +21,14 @@ from pymetadata.core.annotation import RDFAnnotation as Annotation
 from pymetadata.identifiers.miriam import BQB, BQM
 
 from sbmlutils import utils
+from sbmlutils.console import console
 from sbmlutils.io.sbml import read_sbml, write_sbml
+from sbmlutils.log import get_logger
 
-from ..utils import bcolors
 from ..validation import check
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def annotate_sbml(
@@ -55,8 +55,7 @@ def annotate_sbml(
     # write annotated sbml
     write_sbml(doc, filepath=filepath)
 
-    info = bcolors.OKGREEN + f"Model annotated: file://{filepath}" + bcolors.ENDC
-    print(info)
+    console.print(f"Model annotated: file://{filepath}", style="success")
     return doc
 
 
@@ -296,7 +295,7 @@ class ModelAnnotator:
                 if sid == model.getId():
                     e = model
                 else:
-                    logging.warning(f"Element not found for sid: '{sid}'.")
+                    logger.warning(f"Element not found for sid: '{sid}'.")
                     continue
             elements.append(e)
         return elements
@@ -455,7 +454,7 @@ class ModelAnnotator:
             )
 
         if file_extension != ("." + file_format):
-            logging.warning(
+            logger.warning(
                 "format '{}' not matching file extension '{}' for file_path '{}'".format(
                     file_format, file_extension, file_path
                 )

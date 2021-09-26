@@ -18,7 +18,6 @@ which takes care of the order of object creation.
 import datetime
 import inspect
 import json
-import logging
 import shutil
 import tempfile
 from collections import namedtuple
@@ -36,14 +35,16 @@ from libsbml import DISTRIB_UNCERTTYPE_STANDARDDEVIATION as UNCERTTYPE_STANDARDD
 from pint import UnitRegistry
 from pydantic import BaseModel
 
+from sbmlutils.console import console
 from sbmlutils.equation import Equation
 from sbmlutils.io import write_sbml
+from sbmlutils.log import get_logger
 from sbmlutils.metadata import *
 from sbmlutils.metadata import annotator
 from sbmlutils.metadata.annotator import Annotation
 from sbmlutils.notes import Notes
 from sbmlutils.report import sbmlreport
-from sbmlutils.utils import FrozenClass, bcolors, create_metaid, deprecated
+from sbmlutils.utils import FrozenClass, create_metaid, deprecated
 from sbmlutils.validation import check
 
 
@@ -51,6 +52,9 @@ try:
     from typing import TypedDict
 except ImportError:
     from typing_extensions import TypedDict
+
+
+logger = get_logger(__name__)
 
 ureg = UnitRegistry()
 Q_ = ureg.Quantity
@@ -102,7 +106,6 @@ __all__ = [
     "UnitType",
 ]
 
-logger = logging.getLogger(__name__)
 
 SBML_LEVEL = 3  # default SBML level
 SBML_VERSION = 1  # default SBML version
@@ -124,7 +127,7 @@ ALLOWED_PACKAGES = {
 
 
 def create_objects(
-    model: libsbml.Model, obj_iter: List[Any], key: str = None, debug: bool = False
+    model: libsbml.Model, obj_iter: List[Any], key: str = None
 ) -> Dict[str, libsbml.SBase]:
     """Create the objects in the model.
 
@@ -146,8 +149,6 @@ def create_objects(
                     f"check for incorrect terminating ',' on objects: "
                     f"'{sbml_objects}'"
                 )
-            if debug:
-                print(obj)
             sbml_obj: libsbml.Sbase = obj.create_sbml(model)
             # FIXME: what happens for objects without id?
             sbml_objects[sbml_obj.getId()] = sbml_obj
@@ -414,16 +415,19 @@ class Sbase:
         self.replacedBy = replacedBy
         self.annotations: AnnotationsType = annotations
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         """Get string representation."""
         tokens = str(self.__class__).split(".")
         class_name = tokens[-1][:-2]
-        name = self.name
-        if name is None:
-            name = ""
-        else:
-            name = " " + name
-        return f"<{class_name}[{self.sid}]{name}>"
+        info: str = ""
+        if self.sid and not self.name:
+            info = f" {self.sid}"
+        elif self.sid and self.name:
+            info = f" {self.sid}|{self.name}"
+        elif not self.sid and self.name:
+            info = f" {self.name}"
+
+        return f"<{class_name}{info}>"
 
     @staticmethod
     def _process_annotations(annotation_objects: AnnotationsType) -> List[Annotation]:
@@ -692,7 +696,6 @@ class UnitDefinition(Sbase):
 
     def create_sbml(self, model: libsbml.Model) -> Optional[libsbml.UnitDefinition]:
         """Create libsbml.UnitDefinition."""
-        logger.debug(f"Create UnitDefinition for: '{self}'")
         if isinstance(self.definition, int):
             # libsbml unit type
             return None
@@ -2150,8 +2153,6 @@ class ModelDefinition(Sbase):
                 objects = getattr(self, attr)
                 if objects:
                     create_objects(obj, obj_iter=objects, key=attr)
-                else:
-                    logger.debug(f"Not defined: <{attr}>")
 
 
 class ExternalModelDefinition(Sbase):
@@ -2840,8 +2841,6 @@ class Model(Sbase, FrozenClass, BaseModel):
                 objects = getattr(self, attr)
                 if objects:
                     create_objects(model, obj_iter=objects, key=attr)
-                else:
-                    logger.debug(f"Not defined: <{attr}>")
 
         return model
 
@@ -2883,8 +2882,7 @@ class Document(Sbase):
 
     def create_sbml(self) -> libsbml.SBMLDocument:
         """Create SBML model."""
-
-        logger.info(f"create_sbml: '{self.model.sid}'")
+        logger.info(f"Create SBML for model '{self.model.sid}'")
 
         # create core model
         sbmlns = libsbml.SBMLNamespaces(self.sbml_level, self.sbml_version)
@@ -2987,21 +2985,11 @@ def create_model(
 
     :return: FactoryResult
     """
+    console.rule(title="Create SBML", style="white")
     if output_dir is None and tmp is False:
         raise TypeError("create_model() missing 1 required argument: 'output_dir'")
 
     # preprocess
-    logger.info(
-        bcolors.OKBLUE
-        + "\n\n"
-        + "-" * 120
-        + "\n"
-        + str(models)
-        + "\n"
-        + "-" * 120
-        + bcolors.ENDC
-    )
-
     model = Model.merge_models(models)
     doc: libsbml.SBMLDocument = Document(
         model=model,
@@ -3064,4 +3052,5 @@ def create_model(
         if tmp:
             shutil.rmtree(str(output_dir))
 
+    console.rule(style="white")
     return FactoryResult(sbml_path=sbml_path, model=model)  # type: ignore

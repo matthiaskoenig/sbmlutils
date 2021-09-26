@@ -8,18 +8,18 @@ TODO: support coupling with existing models via comp
 The functionality is very useful, but only if this can be applied to existing
 models in a simple manner.
 """
-import logging
 from pathlib import Path
 from typing import Any, List, Optional, Tuple, Union
 
 import libsbml
 import pandas as pd
 
+from sbmlutils import log
 from sbmlutils.io.sbml import write_sbml
 from sbmlutils.validation import validate_doc
 
 
-logger = logging.getLogger(__name__)
+logger = log.get_logger(__name__)
 
 
 notes = libsbml.XMLNode.convertStringToXMLNode(

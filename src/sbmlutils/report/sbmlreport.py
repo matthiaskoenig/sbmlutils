@@ -1,7 +1,6 @@
 """SBML report using https://sbml4humans.de."""
 
 import http.server
-import logging
 import socketserver
 import threading
 import time
@@ -9,8 +8,12 @@ import webbrowser
 from pathlib import Path
 from typing import Dict
 
+from sbmlutils import __version__
+from sbmlutils.console import console
+from sbmlutils.log import get_logger
 
-logger = logging.getLogger(__name__)
+
+logger = get_logger(__name__)
 
 
 def start_server(path: Path, port: int = 5115) -> None:
@@ -35,7 +38,7 @@ def create_report(
     """Create sbml4humans report."""
 
     # FIXME: implement static report
-    logger.error("`create_report` is currently not supported.")
+    logger.warning(f"No support for 'create_report' in sbmlutils-v{__version__}.")
     pass
 
 

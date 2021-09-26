@@ -8,7 +8,6 @@ MathML.
 see also: https://docs.sympy.org/dev/modules/printing.html#module-sympy.printing.mathml
 """
 
-import logging
 import re
 from functools import lru_cache
 from typing import Optional, Set
@@ -16,10 +15,10 @@ from typing import Optional, Set
 import libsbml
 import lxml.etree as ET
 
-from sbmlutils import RESOURCES_DIR
+from sbmlutils import RESOURCES_DIR, log
 
 
-logger = logging.getLogger(__name__)
+logger = log.get_logger(__name__)
 
 xslt_cmml2pmml = ET.parse(str(RESOURCES_DIR / "xslt" / "ctopff.xsl"))
 xslt_pmml2tex = ET.parse(str(RESOURCES_DIR / "xslt" / "xsltml" / "mmltex.xsl"))
@@ -39,8 +38,8 @@ def formula_to_astnode(
     else:
         astnode = libsbml.parseL3Formula(formula)
     if not astnode:
-        logging.error(f"Formula could not be parsed: '{formula}'")
-        logging.error(libsbml.getLastParseL3Error())
+        logger.error(f"Formula could not be parsed: '{formula}'")
+        logger.error(libsbml.getLastParseL3Error())
         raise ValueError(
             f"Formula could not be parsed: '{formula}'.\n"
             f"{libsbml.getLastParseL3Error()}"

@@ -1,10 +1,14 @@
 """Example testing uncertainty with libsbml packages."""
-import logging
 import os
 import tempfile
 from pathlib import Path
 
 import libsbml
+
+from sbmlutils.log import get_logger
+
+
+logger = get_logger(__name__)
 
 
 def add_uncertainty_example(tmp: bool = False) -> None:
@@ -36,7 +40,7 @@ def add_uncertainty_example(tmp: bool = False) -> None:
         up_mean.setType(libsbml.DISTRIB_UNCERTTYPE_MEAN)
         up_mean.setValue(2.5)
     else:
-        logging.error("DistribSBasePlugin not working for fbc:GeneProduct.")
+        logger.error("DistribSBasePlugin not working for fbc:GeneProduct.")
 
     # store model with gene expression data
     if tmp:
