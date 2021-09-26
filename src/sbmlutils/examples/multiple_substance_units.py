@@ -44,9 +44,19 @@ _m = Model(
         volume=U.liter,
     ),
     compartments=[
-        Compartment(sid="cyto", value=1.0, unit=U.liter, name="cytosol"),
+        Compartment(
+            sid="cyto", value=1.0, unit=U.liter,
+            name="cytosol",
+            sboTerm=SBO.PHYSICAL_COMPARTMENT,
+        ),
     ],
-    parameters=[Parameter(sid="cf_units_per_mmole", value=1.0, unit=U.per_mmole)],
+    parameters=[
+        Parameter(
+            sid="cf_units_per_mmole", value=1.0, unit=U.per_mmole,
+            name="dimensionless species conversion",
+            sboTerm=SBO.CONVERSION,
+        )
+    ],
     species=[
         Species(
             sid="glc",
@@ -70,7 +80,7 @@ _m = Model(
             initialConcentration=1.0,
             substanceUnit=U.dimensionless,
             name="hexokinase protein",
-            sboTerm=SBO.MACROMOLECULE,
+            sboTerm=SBO.ENZYME,
             conversionFactor="cf_units_per_mmole",
             hasOnlySubstanceUnits=True,
             notes="""

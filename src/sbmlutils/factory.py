@@ -692,7 +692,7 @@ class UnitDefinition(Sbase):
 
         # parse the string into pint
         # quantity = Q_(self.definition).to_compact().to_reduced_units().to_base_units()
-        quantity = Q_(self.definition)  # .to_base_units()
+        quantity = Q_(self.definition).to_base_units()
         # quantity = Q_(self.definition)
         # print(quantity, self.definition)
 

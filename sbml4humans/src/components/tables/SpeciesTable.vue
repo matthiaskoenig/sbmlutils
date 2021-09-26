@@ -36,7 +36,7 @@
             </template>
             <Column sortable style="width: fit-content" field="id" header="id">
                 <template #body="props">
-                    <strong>{{ props.data.id }}</strong>
+                    <strong><code>{{ props.data.id }}</code></strong>
                 </template>
             </Column>
             <Column

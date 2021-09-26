@@ -4,15 +4,13 @@
             <font-awesome-icon :icon="`${icon}`" class="p-mr-1" />{{ info.sbmlType }}
         </strong>
     </div>
-    <h2>{{ info.id }}</h2>
-    <h3>{{ info.name }}</h3>
-
+    <h2><strong><code>{{ info.id }}</code></strong><span v-if="info.name" class="p-pl-4">{{ info.name }}</span></h2>
     <table class="table table-borderless table-sm table-condensed compact">
         <tbody>
             <!-- CORE -->
             <tr v-if="info.id != null">
                 <td class="label-td"><div class="label">id</div></td>
-                <td>{{ info.id }}</td>
+                <td><strong><code>{{ info.id }}</code></strong></td>
             </tr>
             <tr v-if="info.metaId != null">
                 <td class="label-td"><div class="label">metaID</div></td>
