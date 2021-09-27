@@ -2670,9 +2670,11 @@ class Model(Sbase, FrozenClass, BaseModel):
                         setattr(model, key, [])
                     # now add elements by copy
                     if getattr(model, key):
-                        getattr(model, key).extend(deepcopy(value))
+                        if value:
+                            getattr(model, key).extend(deepcopy(value))
                     else:
-                        setattr(model, key, deepcopy(value))
+                        if value:
+                            setattr(model, key, deepcopy(value))
 
                 # units are collected and class created dynamically at the end
                 elif key == "units":
