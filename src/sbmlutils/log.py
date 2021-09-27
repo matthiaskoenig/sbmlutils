@@ -18,7 +18,7 @@ def get_logger(name: str, level: int = logging.INFO) -> logging.Logger:
 
     # handler = logging.StreamHandler()
     handler = RichHandler(
-        markup=True, rich_tracebacks=True, show_time=False, console=console
+        markup=False, rich_tracebacks=True, show_time=False, console=console
     )
     handler.setFormatter(formatter)
 

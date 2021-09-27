@@ -8,11 +8,7 @@ from sbmlutils.metadata import *
 class U(Units):
     """ModelDefinitions."""
 
-    dimless = UnitDefinition("dimless", "dimensionless")
     mM = UnitDefinition("mM", "mmole/l")
-    s = UnitDefinition("s", "s")
-    mole = UnitDefinition("mole", "mole")
-    m = UnitDefinition("m", "meter")
     m2 = UnitDefinition("m2", "meter^2")
     m3 = UnitDefinition("m3", "meter^3")
     kg = UnitDefinition("kg", "kg")
@@ -31,10 +27,10 @@ _m = Model(
     creators=templates.creators,
     units=U,
     model_units=ModelUnits(
-        time=U.s,
+        time=U.second,
         extent=U.mole,
         substance=U.mole,
-        length=U.m,
+        length=U.meter,
         area=U.m2,
         volume=U.m3,
     ),
@@ -105,7 +101,9 @@ _m.species = [
 ]
 
 _m.parameters = [
-    Parameter(sid="x_cell", value=25e-6, unit=U.m, constant=True, name="cell diameter"),
+    Parameter(
+        sid="x_cell", value=25e-6, unit=U.meter, constant=True, name="cell diameter"
+    ),
     Parameter(
         sid="Vol_e", value=100e-14, unit=U.m3, constant=True, name="external volume"
     ),
@@ -126,7 +124,7 @@ _m.reactions = [
         pars=[
             Parameter(sid="GLUT2_Vmax", value=1e-13, unit=U.mole_per_s),
             Parameter("GLUT2_k_gal", 1.0, U.mM),
-            Parameter("GLUT2_keq", 1.0, U.dimless),
+            Parameter("GLUT2_keq", 1.0, U.dimensionless),
         ],
         formula=(
             "GLUT2_Vmax/GLUT2_k_gal * (e__gal - c__gal/GLUT2_keq)/"

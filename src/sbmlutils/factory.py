@@ -418,7 +418,7 @@ class Sbase:
         self.replacedBy = replacedBy
         self.annotations: AnnotationsType = annotations
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         """Get string representation."""
         tokens = str(self.__class__).split(".")
         class_name = tokens[-1][:-2]

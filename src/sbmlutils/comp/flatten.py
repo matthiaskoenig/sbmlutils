@@ -82,17 +82,16 @@ def flatten_sbml_doc(
     flattened_status = result == libsbml.LIBSBML_OPERATION_SUCCESS
 
     lines = [
-        "",
-        "-" * 120,
         str(doc),
         "{:<25}: {}".format("flattened", str(flattened_status).upper()),
         "{:<25}: {:.3f}".format("flatten time (ms)", time.perf_counter() - current),
-        "-" * 120,
     ]
-    info = "[bold]" + "\n".join(lines) + "[/bold]"
+    info = "\n".join(lines)
 
     if flattened_status:
+        console.rule(style="success")
         console.print(info, style="success")
+        console.rule(style="success")
     else:
         console.print(info, style="error")
         raise ValueError(

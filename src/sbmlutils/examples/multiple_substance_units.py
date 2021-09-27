@@ -58,7 +58,7 @@ _m = Model(
             value=1.0,
             unit=U.per_mmole,
             name="dimensionless species conversion",
-            sboTerm=SBO.CONVERSION,
+            sboTerm=SBO.QUANTITATIVE_SYSTEMS_DESCRIPTION_PARAMETER,
         )
     ],
     species=[
@@ -84,7 +84,7 @@ _m = Model(
             initialConcentration=1.0,
             substanceUnit=U.dimensionless,
             name="hexokinase protein",
-            sboTerm=SBO.ENZYME,
+            sboTerm=SBO.MACROMOLECULE,
             conversionFactor="cf_units_per_mmole",
             hasOnlySubstanceUnits=True,
             notes="""

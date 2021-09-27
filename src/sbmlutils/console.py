@@ -7,10 +7,10 @@ from rich.theme import Theme
 pretty.install()
 custom_theme = Theme(
     {
-        "success": "bold green",
+        "success": "green",
         "info": "blue",
         "warning": "orange3",
-        "error": "bold red",
+        "error": "red",
     }
 )
 
