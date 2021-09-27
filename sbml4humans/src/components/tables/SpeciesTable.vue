@@ -36,7 +36,7 @@
             </template>
             <Column sortable style="width: fit-content" field="id" header="id">
                 <template #body="props">
-                    <strong>{{ props.data.id }}</strong>
+                    <strong><code>{{ props.data.id }}</code></strong>
                 </template>
             </Column>
             <Column
@@ -45,46 +45,22 @@
                 field="name"
                 header="name"
             ></Column>
-            <Column
-                sortable
-                style="width: fit-content"
-                field="compartment"
-                header="compartment"
-            ></Column>
             <Column sortable style="width: fit-content" field="port" header="port">
                 <template #body="slotProps">
-                    <span v-if="slotProps.data.port != null">{{
-                        slotProps.data.port.pk.split(":")[1]
-                    }}</span>
+                    <span v-if="slotProps.data.port != null">
+                        <font-awesome-icon icon="plug" :title="slotProps.data.port.pk.split(':')[1]"/>
+                    </span>
                 </template>
             </Column>
             <Column
                 sortable
                 style="width: fit-content"
-                field="initialAmount"
-                header="initial Amount"
-            ></Column>
-            <Column
-                sortable
-                style="width: fit-content"
-                field="initialConcentration"
-                header="initial Concentration"
-            ></Column>
-            <Column
-                sortable
-                style="width: fit-content"
-                field="substanceUnits"
-                header="substance Units"
-            ></Column>
-            <Column
-                sortable
-                style="width: fit-content"
-                field="hasOnlySubstanceUnits"
-                header="hasOnly SubstanceUnits"
+                field="constant"
+                header="constant"
                 bodyStyle="text-align: center"
             >
                 <template #body="slotProps">
-                    <boolean-symbol :value="slotProps.data.hasOnlySubstanceUnits" />
+                    <boolean-symbol :value="slotProps.data.constant" />
                 </template>
             </Column>
             <Column
@@ -101,12 +77,36 @@
             <Column
                 sortable
                 style="width: fit-content"
-                field="constant"
-                header="constant"
+                field="compartment"
+                header="compartment"
+            ></Column>
+            <Column
+                sortable
+                style="width: fit-content"
+                field="initialConcentration"
+                header="initial Concentration"
+            ></Column>
+            <Column
+                sortable
+                style="width: fit-content"
+                field="initialAmount"
+                header="initial Amount"
+            ></Column>
+<!--            <Column-->
+<!--                sortable-->
+<!--                style="width: fit-content"-->
+<!--                field="substanceUnits"-->
+<!--                header="substance Units"-->
+<!--            ></Column>-->
+            <Column
+                sortable
+                style="width: fit-content"
+                field="hasOnlySubstanceUnits"
+                header="hasOnly SubstanceUnits"
                 bodyStyle="text-align: center"
             >
                 <template #body="slotProps">
-                    <boolean-symbol :value="slotProps.data.constant" />
+                    <boolean-symbol :value="slotProps.data.hasOnlySubstanceUnits" />
                 </template>
             </Column>
             <Column sortable style="width: fit-content" field="units" header="units">

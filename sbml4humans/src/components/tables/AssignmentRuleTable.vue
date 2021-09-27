@@ -36,7 +36,7 @@
             </template>
             <Column sortable style="width: fit-content" field="id" header="id">
                 <template #body="props">
-                    <strong>{{ props.data.id }}</strong>
+                    <strong><code>{{ props.data.id }}</code></strong>
                 </template>
             </Column>
             <Column
@@ -45,6 +45,13 @@
                 field="name"
                 header="name"
             ></Column>
+            <Column sortable style="width: fit-content" field="port" header="port">
+                <template #body="slotProps">
+                    <span v-if="slotProps.data.port != null">
+                        <font-awesome-icon icon="plug" :title="slotProps.data.port.pk.split(':')[1]"/>
+                    </span>
+                </template>
+            </Column>
             <Column
                 sortable
                 style="width: fit-content"

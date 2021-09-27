@@ -3,20 +3,19 @@
 The following is a helper function for merging multiple SBML models into
 a single model.
 """
-import logging
 import os
 from pathlib import Path
 from typing import Dict, Iterable, List, Union
 
 import libsbml
 
-from sbmlutils import validation
+from sbmlutils import log, validation
 from sbmlutils.comp import comp, flatten_sbml
 from sbmlutils.io import read_sbml, validate_sbml, write_sbml
 from sbmlutils.test import DATA_DIR
 
 
-logger = logging.getLogger(__name__)
+logger = log.get_logger(__name__)
 
 
 def merge_models(

@@ -17,10 +17,8 @@
             <a v-if="addInfo.term" :href="addInfo.resource" target="_blank" class="resource">{{
                 addInfo.term
             }}</a>
-        </Tag>
-        <Tag v-if="addInfo.resource" severity="warning" class="resource">
-            <a :href="addInfo.resource" target="_blank" class="resource">{{
-                resource
+            <a v-else :href="addInfo.resource" target="_blank" class="resource">{{
+                addInfo.resource
             }}</a>
         </Tag>
     </div>

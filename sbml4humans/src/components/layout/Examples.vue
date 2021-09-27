@@ -61,13 +61,13 @@
                         header="packages"
                     >
                         <template #body="props">
-                            <span
+                            <Tag
                                 v-for="pkg in props.data.packages"
                                 :key="pkg"
-                                :class="`package-badge p-mr-1`"
+                                :value="pkg"
                                 :style="`background-color: ${badgeColor[pkg]}; color: ${badgeText[pkg]}`"
-                                >{{ pkg }}</span
-                            >
+                                ></Tag>
+
                         </template>
                     </Column>
                 </DataTable>
@@ -154,16 +154,4 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-.badge {
-    border-radius: 50%;
-    padding: 2px 5px;
-    text-align: center;
-}
-
-.package-badge {
-    border-radius: 10px;
-    padding: 2px 5px;
-    font-size: 11px;
-    font-weight: 600;
-}
 </style>

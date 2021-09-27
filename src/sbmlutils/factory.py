@@ -18,7 +18,6 @@ which takes care of the order of object creation.
 import datetime
 import inspect
 import json
-import logging
 import shutil
 import tempfile
 from collections import namedtuple
@@ -33,18 +32,19 @@ import xmltodict  # type: ignore
 from libsbml import DISTRIB_UNCERTTYPE_MEAN as UNCERTTYPE_MEAN
 from libsbml import DISTRIB_UNCERTTYPE_RANGE as UNCERTTYPE_RANGE
 from libsbml import DISTRIB_UNCERTTYPE_STANDARDDEVIATION as UNCERTTYPE_STANDARDDEVIATION
-from pint import Quantity as Q_
 from pint import UnitRegistry
 from pydantic import BaseModel
 
+from sbmlutils.console import console
 from sbmlutils.equation import Equation
 from sbmlutils.io import write_sbml
+from sbmlutils.log import get_logger
 from sbmlutils.metadata import *
 from sbmlutils.metadata import annotator
 from sbmlutils.metadata.annotator import Annotation
 from sbmlutils.notes import Notes
 from sbmlutils.report import sbmlreport
-from sbmlutils.utils import FrozenClass, bcolors, create_metaid, deprecated
+from sbmlutils.utils import FrozenClass, create_metaid, deprecated
 from sbmlutils.validation import check
 
 
@@ -53,6 +53,12 @@ try:
 except ImportError:
     from typing_extensions import TypedDict
 
+
+logger = get_logger(__name__)
+
+ureg = UnitRegistry()
+Q_ = ureg.Quantity
+ureg.define("item = 1 dimensionless")
 
 # FIXME: make complete import of all DISTRIB constants
 
@@ -100,7 +106,6 @@ __all__ = [
     "UnitType",
 ]
 
-logger = logging.getLogger(__name__)
 
 SBML_LEVEL = 3  # default SBML level
 SBML_VERSION = 1  # default SBML version
@@ -122,7 +127,7 @@ ALLOWED_PACKAGES = {
 
 
 def create_objects(
-    model: libsbml.Model, obj_iter: List[Any], key: str = None, debug: bool = False
+    model: libsbml.Model, obj_iter: List[Any], key: str = None
 ) -> Dict[str, libsbml.SBase]:
     """Create the objects in the model.
 
@@ -144,8 +149,6 @@ def create_objects(
                     f"check for incorrect terminating ',' on objects: "
                     f"'{sbml_objects}'"
                 )
-            if debug:
-                print(obj)
             sbml_obj: libsbml.Sbase = obj.create_sbml(model)
             # FIXME: what happens for objects without id?
             sbml_objects[sbml_obj.getId()] = sbml_obj
@@ -303,6 +306,28 @@ class Creator:
         self.site = site
         self.orcid = orcid
 
+    def __str__(self) -> str:
+        """Get string representation."""
+        return f"{self.familyName} {self.givenName} ({self.email}, {self.organization}, {self.site}, {self.orcid})"
+
+    def __hash__(self) -> int:
+        """Get hash."""
+        return hash(str(self))
+
+    def __eq__(self, other: object) -> bool:
+        """Check for equality."""
+        if not isinstance(other, Creator):
+            return NotImplemented
+
+        return (
+            self.familyName == other.familyName
+            and self.givenName == other.givenName
+            and self.email == other.email
+            and self.organization == other.organization
+            and self.site == other.site
+            and self.orcid == other.orcid
+        )
+
 
 def date_now() -> libsbml.Date:
     """Get current time stamp for history.
@@ -397,12 +422,15 @@ class Sbase:
         """Get string representation."""
         tokens = str(self.__class__).split(".")
         class_name = tokens[-1][:-2]
-        name = self.name
-        if name is None:
-            name = ""
-        else:
-            name = " " + name
-        return f"<{class_name}[{self.sid}]{name}>"
+        info: str = ""
+        if self.sid and not self.name:
+            info = f" {self.sid}"
+        elif self.sid and self.name:
+            info = f" {self.sid}|{self.name}"
+        elif not self.sid and self.name:
+            info = f" {self.name}"
+
+        return f"<{class_name}{info}>"
 
     @staticmethod
     def _process_annotations(annotation_objects: AnnotationsType) -> List[Annotation]:
@@ -430,7 +458,7 @@ class Sbase:
 
         return None
 
-    def _set_fields(self, obj: libsbml.SBase, model: libsbml.Model) -> None:
+    def _set_fields(self, obj: libsbml.SBase, model: Optional[libsbml.Model]) -> None:
         if self.sid is not None:
             if not libsbml.SyntaxChecker.isValidSBMLSId(self.sid):
                 logger.error(
@@ -444,8 +472,20 @@ class Sbase:
             obj.setId(self.sid)
         if self.name is not None:
             obj.setName(self.name)
+        else:
+            if not isinstance(self, (Document, Port)):
+                logger.warning(f"'name' should be set on '{self}'")
         if self.sboTerm is not None:
-            obj.setSBOTerm(self.sboTerm)
+            if isinstance(self.sboTerm, SBO):
+                sbo = self.sboTerm.value.replace("_", ":")
+            elif isinstance(self.sboTerm, str):
+                sbo = self.sboTerm.replace("_", ":")
+            else:
+                sbo = self.sboTerm
+            obj.setSBOTerm(sbo)
+        else:
+            if not isinstance(self, (Document, Port, UnitDefinition)):
+                logger.warning(f"'sboTerm' should be set on '{self}'")
         if self.metaId is not None:
             obj.setMetaId(self.metaId)
 
@@ -477,8 +517,9 @@ class Sbase:
         for annotation in processed_annotations:
             annotator.ModelAnnotator.annotate_sbase(sbase=obj, annotation=annotation)
 
-        self.create_uncertainties(obj, model)
-        self.create_replaced_by(obj, model)
+        if model:
+            self.create_uncertainties(obj, model)
+            self.create_replaced_by(obj, model)
 
     def create_port(self, model: libsbml.Model) -> Optional[libsbml.Port]:
         """Create port if existing."""
@@ -496,9 +537,10 @@ class Sbase:
                 else:
                     port_sid = f"{self.sid}{PORT_SUFFIX}"
                 p.setId(port_sid)
-                p.setName(port_sid)
+                p.setName(f"Port of {self.sid}")
                 p.setMetaId(port_sid)
-                p.setSBOTerm(599)  # port
+                sbo = SBO.PORT.value.replace("_", ":")
+                p.setSBOTerm(sbo)
 
                 if isinstance(self, UnitDefinition):
                     p.setUnitRef(self.sid)
@@ -598,6 +640,7 @@ class UnitDefinition(Sbase):
         "gram": libsbml.UNIT_KIND_GRAM,
         "gray": libsbml.UNIT_KIND_GRAY,
         "hertz": libsbml.UNIT_KIND_HERTZ,
+        "item": libsbml.UNIT_KIND_ITEM,
         "kelvin": libsbml.UNIT_KIND_KELVIN,
         "kilogram": libsbml.UNIT_KIND_KILOGRAM,
         "liter": libsbml.UNIT_KIND_LITRE,
@@ -647,7 +690,7 @@ class UnitDefinition(Sbase):
     ):
         super(UnitDefinition, self).__init__(
             sid=sid,
-            name=name if name else definition,
+            name=name,
             sboTerm=sboTerm,
             metaId=metaId,
             annotations=annotations,
@@ -656,11 +699,13 @@ class UnitDefinition(Sbase):
             uncertainties=uncertainties,
             replacedBy=replacedBy,
         )
+
         self.definition = definition if definition is not None else sid
+        if not self.name:
+            self.name = self.definition
 
     def create_sbml(self, model: libsbml.Model) -> Optional[libsbml.UnitDefinition]:
         """Create libsbml.UnitDefinition."""
-        logger.debug(f"Create UnitDefinition for: '{self}'")
         if isinstance(self.definition, int):
             # libsbml unit type
             return None
@@ -672,7 +717,7 @@ class UnitDefinition(Sbase):
         quantity = Q_(self.definition).to_base_units()
         # quantity = Q_(self.definition)
         # print(quantity, self.definition)
-        ureg = UnitRegistry()
+
         # FIXME: handle the base units not in libsbml correctly (e.g. min)
         # quantity = Q_(self.definition)  # .to_base_units()
 
@@ -762,6 +807,7 @@ class Units:
     gram = UnitDefinition("gram", libsbml.UNIT_KIND_GRAM, name="gram")
     gray = UnitDefinition("gray", libsbml.UNIT_KIND_GRAY, name="gray")
     hertz = UnitDefinition("hertz", libsbml.UNIT_KIND_HERTZ, name="hertz")
+    item = UnitDefinition("item", libsbml.UNIT_KIND_ITEM, name="item")
     kelvin = UnitDefinition("kelvin", libsbml.UNIT_KIND_KELVIN, name="kelvin")
     kilogram = UnitDefinition("kilogram", libsbml.UNIT_KIND_KILOGRAM, name="kilogram")
     liter = UnitDefinition("litre", libsbml.UNIT_KIND_LITRE, name="liter")
@@ -1499,6 +1545,8 @@ class Reaction(Sbase):
 
         if self.compartment:
             obj.setCompartment(self.compartment)
+        # else:
+        #    logger.info(f"'compartment' should be set on '{self}'}")
         obj.setReversible(self.equation.reversible)
         obj.setFast(self.fast)
 
@@ -2115,8 +2163,6 @@ class ModelDefinition(Sbase):
                 objects = getattr(self, attr)
                 if objects:
                     create_objects(obj, obj_iter=objects, key=attr)
-                else:
-                    logger.debug(f"Not defined: <{attr}>")
 
 
 class ExternalModelDefinition(Sbase):
@@ -2476,7 +2522,7 @@ class Port(SbaseRef):
                 sbo = SBO.INPUT_PORT
             elif self.portType == PORT_TYPE_OUTPUT:
                 sbo = SBO.OUTPUT_PORT
-            p.setSBOTerm(sbo)
+            p.setSBOTerm(sbo.value.replace("_", ":"))
 
         return p
 
@@ -2536,6 +2582,8 @@ class Model(Sbase, FrozenClass, BaseModel):
     sboTerm: Optional[str]
     metaId: Optional[str]
     annotations: AnnotationsType
+    notes: Optional[str]
+    port: Optional[PortType]
     packages: Optional[List[str]]
     creators: Optional[List[Creator]]
     model_units: Optional[ModelUnits]
@@ -2565,12 +2613,15 @@ class Model(Sbase, FrozenClass, BaseModel):
         arbitrary_types_allowed = True
 
     _keys = {
-        "packages": list,
         "sid": None,
+        "name": None,
+        "sboTerm": None,
         "metaId": None,
-        "annotations": None,
+        "annotations": list,
         "notes": None,
-        "creators": list,
+        "port": None,
+        "packages": list,
+        "creators": None,
         "model_units": None,
         "external_model_definitions": list,
         "model_definitions": list,
@@ -2608,20 +2659,31 @@ class Model(Sbase, FrozenClass, BaseModel):
         units_base_classes: List[Type[Units]] = (
             [model.units] if model.units else [Units]
         )
+        creators = set()
         for m2 in models:
             for key, value in m2.__dict__.items():
+                kind = m2._keys.get(key, None)
                 # lists of higher modules are extended
-                if type(value) in [list, tuple]:
+                if kind in [list, tuple]:
                     # create new list
                     if not hasattr(model, key) or getattr(model, key) is None:
                         setattr(model, key, [])
                     # now add elements by copy
-                    getattr(model, key).extend(deepcopy(value))
+                    if getattr(model, key):
+                        if value:
+                            getattr(model, key).extend(deepcopy(value))
+                    else:
+                        if value:
+                            setattr(model, key, deepcopy(value))
 
                 # units are collected and class created dynamically at the end
                 elif key == "units":
                     if m2.units:
                         units_base_classes.append(m2.units)
+                elif key == "creators":
+                    if m2.creators:
+                        for c in m2.creators:
+                            creators.add(c)
                 # !everything else is overwritten
                 else:
                     setattr(model, key, value)
@@ -2634,7 +2696,8 @@ class Model(Sbase, FrozenClass, BaseModel):
 
         if units_base_classes:
             model.units = type("U", (Units,), attr_dict)
-            # print(model.units.attributes())
+
+        model.creators = list(creators)
 
         return model
 
@@ -2789,8 +2852,6 @@ class Model(Sbase, FrozenClass, BaseModel):
                 objects = getattr(self, attr)
                 if objects:
                     create_objects(model, obj_iter=objects, key=attr)
-                else:
-                    logger.debug(f"Not defined: <{attr}>")
 
         return model
 
@@ -2821,10 +2882,18 @@ class Document(Sbase):
         self.sbml_version = sbml_version
         self.doc: libsbml.SBMLDocument = None
 
+        sbmlutils_notes = """
+        Created with [https://github.com/matthiaskoenig/sbmlutils](https://github.com/matthiaskoenig/sbmlutils).
+        [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5525390.svg)](https://doi.org/10.5281/zenodo.5525390)
+        """
+        if self.notes is None:
+            self.notes = sbmlutils_notes
+        else:
+            self.notes += sbmlutils_notes
+
     def create_sbml(self) -> libsbml.SBMLDocument:
         """Create SBML model."""
-
-        logger.info(f"create_sbml: '{self.model.sid}'")
+        logger.info(f"Create SBML for model '{self.model.sid}'")
 
         # create core model
         sbmlns = libsbml.SBMLNamespaces(self.sbml_level, self.sbml_version)
@@ -2846,6 +2915,7 @@ class Document(Sbase):
                     sbmlns.addPackageNamespace("distrib", 1)
 
         self.doc = libsbml.SBMLDocument(sbmlns)
+        self._set_fields(self.doc, None)
 
         # create model
         sbml_model: libsbml.Model = self.model.create_sbml(self.doc)
@@ -2926,21 +2996,11 @@ def create_model(
 
     :return: FactoryResult
     """
+    console.rule(title="Create SBML", style="white")
     if output_dir is None and tmp is False:
         raise TypeError("create_model() missing 1 required argument: 'output_dir'")
 
     # preprocess
-    logger.info(
-        bcolors.OKBLUE
-        + "\n\n"
-        + "-" * 120
-        + "\n"
-        + str(models)
-        + "\n"
-        + "-" * 120
-        + bcolors.ENDC
-    )
-
     model = Model.merge_models(models)
     doc: libsbml.SBMLDocument = Document(
         model=model,
@@ -3003,4 +3063,5 @@ def create_model(
         if tmp:
             shutil.rmtree(str(output_dir))
 
+    console.rule(style="white")
     return FactoryResult(sbml_path=sbml_path, model=model)  # type: ignore

@@ -1,17 +1,17 @@
 """Helpers for model flattening."""
-import logging
 import os
 import time
 from pathlib import Path
 
 import libsbml
 
+from sbmlutils.console import console
 from sbmlutils.io import read_sbml, write_sbml
-from sbmlutils.utils import bcolors
+from sbmlutils.log import get_logger
 from sbmlutils.validation import validate_doc
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def flatten_sbml(
@@ -82,19 +82,18 @@ def flatten_sbml_doc(
     flattened_status = result == libsbml.LIBSBML_OPERATION_SUCCESS
 
     lines = [
-        "",
-        "-" * 120,
         str(doc),
         "{:<25}: {}".format("flattened", str(flattened_status).upper()),
         "{:<25}: {:.3f}".format("flatten time (ms)", time.perf_counter() - current),
-        "-" * 120,
     ]
-    info = bcolors.BOLD + "\n".join(lines) + bcolors.ENDC
+    info = "\n".join(lines)
 
     if flattened_status:
-        logger.info(bcolors.OKGREEN + info + bcolors.ENDC)
+        console.rule(style="success")
+        console.print(info, style="success")
+        console.rule(style="success")
     else:
-        logger.error(bcolors.FAIL + info + bcolors.ENDC)
+        console.print(info, style="error")
         raise ValueError(
             "SBML could not be flattend due to errors in the SBMLDocument."
         )

@@ -542,11 +542,25 @@ class SBMLDocumentInfo:
             "areaUnits",
             "lengthUnits",
             "extentUnits",
-            "conversionFactor",
         ]:
             d[f"{key}_unit"] = _get_sbase_attribute(model, key)
             d[key] = udef_to_latex(d[f"{key}_unit"], model=model)
             # print(d[f"{key}_unit"], '-> ', d[key])
+
+        # FIXME: handle analoque to species
+        if model.isSetConversionFactor():
+            cf_sid = model.getConversionFactor()
+            cf_p: libsbml.Parameter = model.getParameter(cf_sid)
+            cf_value = cf_p.getValue()
+            cf_units = cf_p.getUnits()
+
+            d["conversionFactor"] = {
+                "sid": cf_sid,
+                "value": cf_value,
+                "units": cf_units,
+            }
+        else:
+            d["conversionFactor"] = {}
 
         return d
 

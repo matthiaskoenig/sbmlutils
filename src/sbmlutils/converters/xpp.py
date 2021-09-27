@@ -625,7 +625,7 @@ def xpp2sbml(
             events,
         )
     )
-    fac.create_objects(model, obj_iter=objects, debug=False)
+    fac.create_objects(model, obj_iter=objects)
 
     """
     Parameter values are optional; if not they are set to zero in xpp.

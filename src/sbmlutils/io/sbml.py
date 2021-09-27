@@ -1,15 +1,14 @@
 """Utility functions for reading, writing and validating SBML."""
-import logging
 from pathlib import Path
 from typing import List, Union
 
 import libsbml
 
-from sbmlutils import validation
+from sbmlutils import log, validation
 from sbmlutils.utils import deprecated
 
 
-logger = logging.getLogger(__name__)
+logger = log.get_logger(__name__)
 
 
 def read_sbml(
