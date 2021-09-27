@@ -484,7 +484,7 @@ class Sbase:
                 sbo = self.sboTerm
             obj.setSBOTerm(sbo)
         else:
-            if not isinstance(self, (Document, Port, UnitDefinition)):
+            if not isinstance(self, (Document, Port, UnitDefinition, Model)):
                 logger.warning(f"'sboTerm' should be set on '{self}'")
         if self.metaId is not None:
             obj.setMetaId(self.metaId)

@@ -27,7 +27,7 @@ def check(value: int, message: str) -> bool:
         valid = False
     elif isinstance(value, int):
         if value != libsbml.LIBSBML_OPERATION_SUCCESS:
-            logger.error(f"Error encountered trying to <{message}>.")
+            logger.error(f"Error encountered trying to '{message}'.")
             logger.error(
                 f"LibSBML returned error code {str(value)}: "
                 f"{libsbml.OperationReturnValue_toString(value).strip()}"
@@ -105,11 +105,11 @@ def log_sbml_error(error: libsbml.SBMLError, index: int = None) -> None:
     """Log SBMLError."""
     msg, severity = error_string(error=error, index=index)
     if severity == libsbml.LIBSBML_SEV_WARNING:
-        logger.warning(msg)
+        logger.warning(msg, extra={"markup": True})
     elif severity in [libsbml.LIBSBML_SEV_ERROR, libsbml.LIBSBML_SEV_FATAL]:
-        logger.error(msg)
+        logger.error(msg, extra={"markup": True})
     else:
-        logger.info(msg)
+        logger.info(msg, extra={"markup": True})
 
 
 def error_string(error: libsbml.SBMLError, index: int = None) -> tuple:
@@ -130,7 +130,7 @@ def error_string(error: libsbml.SBMLError, index: int = None) -> tuple:
             index, error.getCategoryAsString(), package, error.getLine(), "code"
         )
         + "[/black on white]",
-        f"[error][{error.getSeverityAsString()}] {error.getShortMessage()}[/error]",
+        f"[error][on black][{error.getSeverityAsString()}] {error.getShortMessage()}[/on black][/error]",
         f"{error.getMessage()}",
     ]
     error_str = "\n".join(lines)
