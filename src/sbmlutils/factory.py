@@ -262,7 +262,7 @@ class ModelUnits:
             for key in ("time", "extent", "substance", "length", "area", "volume"):
 
                 if getattr(model_units, key) is None:
-                    msg = f"The information for '{key}' is missing in model_units."
+                    msg = f"'{key}' should be set in 'model_units'."
                     if key in ["time", "extent", "substance", "volume"]:
                         # strongly recommended fields
                         logger.warning(msg)
@@ -729,18 +729,15 @@ class UnitDefinition(Sbase):
 
         # parse the string into pint
         # quantity = Q_(self.definition).to_compact().to_reduced_units().to_base_units()
-        quantity = Q_(self.definition).to_base_units()
-        # quantity = Q_(self.definition)
-        # print(quantity, self.definition)
-
-        # FIXME: handle the base units not in libsbml correctly (e.g. min)
-        # quantity = Q_(self.definition)  # .to_base_units()
-
+        # quantity = Q_(self.definition).to_base_units()
+        quantity = Q_(self.definition)
         magnitude, units = quantity.to_tuple()
-        # print(magnitude, units)
+        # console.log(magnitude, units)
+
         if units:
             for k, item in enumerate(units):
-                # print(item)
+                # console.rule()
+                # console.log(item)
                 prefix, unit_name, suffix = ureg.parse_unit_name(item[0])[0]
                 exponent = item[1]
                 # first unit gets the multiplier
@@ -751,9 +748,26 @@ class UnitDefinition(Sbase):
                 if prefix:
                     multiplier = multiplier * self.__class__.prefixes[prefix]
 
-                multiplier = np.power(multiplier, 1 / exponent)
-                kind = self.__class__.pint2sbml[unit_name]
+                multiplier = np.power(multiplier, 1 / abs(exponent))
+
                 scale = 0
+                # resolve the kind (this is already a unit known by libsbml)
+                kind = self.__class__.pint2sbml.get(unit_name, None)
+                if kind is None:
+                    # we have to bring the unit to base units
+                    uq = Q_(unit_name).to_base_units()
+                    # console.log("uq:", uq)
+                    multiplier = multiplier * uq.magnitude
+                    kind = self.__class__.pint2sbml.get(str(uq.units), None)
+                    if kind is None:
+                        msg = (
+                            f"Unit '{uq.units}' in definition "
+                            f"'{self.definition}' could not be converted to SBML."
+                        )
+                        logger.error(msg)
+                        raise ValueError(msg)
+
+                # console.log(f"({multiplier} * 10^{scale} {libsbml.UnitKind_toString(kind)})^{exponent}")
                 self._create_unit(obj, kind, exponent, scale, multiplier)
         else:
             # only magnitude (units canceled)
@@ -2910,14 +2924,14 @@ class Document(Sbase):
         self.sbml_version = sbml_version
         self.doc: libsbml.SBMLDocument = None
 
-        # sbmlutils_notes = """
-        # Created with [https://github.com/matthiaskoenig/sbmlutils](https://github.com/matthiaskoenig/sbmlutils).
-        # [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5525390.svg)](https://doi.org/10.5281/zenodo.5525390)
-        # """
-        # if self.notes is None:
-        #     self.notes = sbmlutils_notes
-        # else:
-        #     self.notes += sbmlutils_notes
+        sbmlutils_notes = """
+        Created with [https://github.com/matthiaskoenig/sbmlutils](https://github.com/matthiaskoenig/sbmlutils).
+        [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5525390.svg)](https://doi.org/10.5281/zenodo.5525390)
+        """
+        if self.notes is None:
+            self.notes = sbmlutils_notes
+        else:
+            self.notes += sbmlutils_notes
 
     def create_sbml(self) -> libsbml.SBMLDocument:
         """Create SBML model."""
