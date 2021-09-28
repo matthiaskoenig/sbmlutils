@@ -106,6 +106,10 @@ def udef_to_string(udef: libsbml.UnitDefinition) -> Optional[str]:
         s = u.getScale()
         e = u.getExponent()
         k = libsbml.UnitKind_toString(u.getKind())
+        if k == "metre":
+            k = "meter"
+        if k == "litre":
+            k = "liter"
 
         # get better name for unit
         k_str = UNIT_ABBREVIATIONS.get(k, k)
