@@ -178,7 +178,7 @@ def ast_node_from_formula(model: libsbml.Model, formula: str) -> libsbml.ASTNode
     return ast_node
 
 
-UnitType = Optional[Union[str, "UnitDefinition"]]
+UnitType = Optional["UnitDefinition"]
 AnnotationsType = Optional[List[Union[Annotation, Tuple[Union[BQB, BQM], str]]]]
 
 PortType = Any  # Union[bool, Port]
@@ -908,6 +908,9 @@ class ValueWithUnit(Value):
             replacedBy=replacedBy,
         )
         self.unit = unit
+        if not isinstance(self.unit, UnitDefinition):
+            logger.warning(f"'unit' must be of type UnitDefinition, but '{self.unit}' "
+                           f"in '{self}' is '{type(self.unit)}'.")
 
     def _set_fields(self, obj: libsbml.SBase, model: libsbml.Model) -> None:
         super(ValueWithUnit, self)._set_fields(obj, model)
