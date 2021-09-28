@@ -32,7 +32,7 @@ import xmltodict  # type: ignore
 from libsbml import DISTRIB_UNCERTTYPE_MEAN as UNCERTTYPE_MEAN
 from libsbml import DISTRIB_UNCERTTYPE_RANGE as UNCERTTYPE_RANGE
 from libsbml import DISTRIB_UNCERTTYPE_STANDARDDEVIATION as UNCERTTYPE_STANDARDDEVIATION
-from pint import UnitRegistry
+from pint import UnitRegistry, UndefinedUnitError
 from pydantic import BaseModel
 
 from sbmlutils.console import console
@@ -462,18 +462,18 @@ class Sbase:
         if self.sid is not None:
             if not libsbml.SyntaxChecker.isValidSBMLSId(self.sid):
                 logger.error(
-                    "The id `{self.sid}` is not a valid SBML SId on `{obj}`. "
-                    "The SId syntax is defined as:"
-                    "\tletter ::= 'a'..'z','A'..'Z'"
-                    "\tdigit  ::= '0'..'9'"
-                    "\tidChar ::= letter | digit | '_'"
-                    "\tSId    ::= ( letter | '_' ) idChar*"
+                    f"The id `{self.sid}` is not a valid SBML SId on `{obj}`. "
+                    f"The SId syntax is defined as:"
+                    f"\tletter ::= 'a'..'z','A'..'Z'"
+                    f"\tdigit  ::= '0'..'9'"
+                    f"\tidChar ::= letter | digit | '_'"
+                    f"\tSId    ::= ( letter | '_' ) idChar*"
                 )
             obj.setId(self.sid)
         if self.name is not None:
             obj.setName(self.name)
         else:
-            if not isinstance(self, (Document, Port)):
+            if not isinstance(self, (Document, Port, ReplacedBy, ReplacedElement, AssignmentRule)):
                 logger.warning(f"'name' should be set on '{self}'")
         if self.sboTerm is not None:
             if isinstance(self.sboTerm, SBO):
@@ -484,7 +484,7 @@ class Sbase:
                 sbo = self.sboTerm
             obj.setSBOTerm(sbo)
         else:
-            if not isinstance(self, (Document, Port, UnitDefinition, Model)):
+            if not isinstance(self, (Document, Port, UnitDefinition, Model, ReplacedBy, ReplacedElement, AssignmentRule)):
                 logger.warning(f"'sboTerm' should be set on '{self}'")
         if self.metaId is not None:
             obj.setMetaId(self.metaId)
@@ -846,7 +846,15 @@ class Units:
                 )
             # create and register libsbml.UnitDefinition in libsbml.Model
             # print("Create:", uid)
-            _: libsbml.UnitDefinition = unit_definition.create_sbml(model=model)
+            try:
+                _: libsbml.UnitDefinition = unit_definition.create_sbml(model=model)
+            except UndefinedUnitError as err:
+                console.print_exception(show_locals=False)
+                logger.error(
+                    f"Unit definition '{unit_definition.definition}' is not valid "
+                    f"pint syntax, {err}."
+                )
+                raise err
 
 
 class ValueWithUnit(Value):

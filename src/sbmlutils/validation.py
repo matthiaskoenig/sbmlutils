@@ -130,7 +130,7 @@ def error_string(error: libsbml.SBMLError, index: int = None) -> tuple:
             index, error.getCategoryAsString(), package, error.getLine(), "code"
         )
         + "[/black on white]",
-        f"[error][on black][{error.getSeverityAsString()}] {error.getShortMessage()}[/on black][/error]",
+        f"[{error.getSeverityAsString().lower()}][on black][{error.getSeverityAsString()}] {error.getShortMessage()}[/on black][/{error.getSeverityAsString().lower()}]",
         f"{error.getMessage()}",
     ]
     error_str = "\n".join(lines)
