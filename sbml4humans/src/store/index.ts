@@ -188,6 +188,8 @@ export default createStore({
             context.commit("SET_JSON_REPORT", payload.data.report);
 
             // set the current model to main model in the report by default
+            console.log(payload.data)
+            console.log(payload.data.report.model.pk)
             this.dispatch("updateCurrentModel", payload.data.report.model.pk);
             this.dispatch("updateCurrentFocussedTable", "");
 

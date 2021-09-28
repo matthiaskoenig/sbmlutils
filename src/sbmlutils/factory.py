@@ -32,6 +32,7 @@ import xmltodict  # type: ignore
 from libsbml import DISTRIB_UNCERTTYPE_MEAN as UNCERTTYPE_MEAN
 from libsbml import DISTRIB_UNCERTTYPE_RANGE as UNCERTTYPE_RANGE
 from libsbml import DISTRIB_UNCERTTYPE_STANDARDDEVIATION as UNCERTTYPE_STANDARDDEVIATION
+from numpy import NaN
 from pint import UndefinedUnitError, UnitRegistry
 from pydantic import BaseModel
 
@@ -104,6 +105,7 @@ __all__ = [
     "FactoryResult",
     "create_model",
     "UnitType",
+    "NaN",
 ]
 
 
@@ -908,7 +910,7 @@ class ValueWithUnit(Value):
             replacedBy=replacedBy,
         )
         self.unit = unit
-        if not isinstance(self.unit, UnitDefinition):
+        if self.unit and not isinstance(self.unit, UnitDefinition):
             logger.warning(
                 f"'unit' must be of type UnitDefinition, but '{self.unit}' "
                 f"in '{self}' is '{type(self.unit)}'."
@@ -2908,14 +2910,14 @@ class Document(Sbase):
         self.sbml_version = sbml_version
         self.doc: libsbml.SBMLDocument = None
 
-        sbmlutils_notes = """
-        Created with [https://github.com/matthiaskoenig/sbmlutils](https://github.com/matthiaskoenig/sbmlutils).
-        [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5525390.svg)](https://doi.org/10.5281/zenodo.5525390)
-        """
-        if self.notes is None:
-            self.notes = sbmlutils_notes
-        else:
-            self.notes += sbmlutils_notes
+        # sbmlutils_notes = """
+        # Created with [https://github.com/matthiaskoenig/sbmlutils](https://github.com/matthiaskoenig/sbmlutils).
+        # [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5525390.svg)](https://doi.org/10.5281/zenodo.5525390)
+        # """
+        # if self.notes is None:
+        #     self.notes = sbmlutils_notes
+        # else:
+        #     self.notes += sbmlutils_notes
 
     def create_sbml(self) -> libsbml.SBMLDocument:
         """Create SBML model."""

@@ -4,12 +4,11 @@ This provides basic functionality of
 parsing the model and returning the JSON representation based on fastAPI.
 """
 import json
-import tempfile
 import time
 import traceback
 import uuid
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
 
 import requests
 import uvicorn
@@ -75,6 +74,105 @@ api.add_middleware(
 )
 
 
+@api.get("/api/examples", tags=["examples"])
+def examples() -> Response:
+    """Get examples for reports."""
+    try:
+        content = {
+            "examples": [example["metadata"] for example in examples_info.values()]
+        }
+        return _render_json_content(content)
+
+    except Exception as e:
+        return _handle_error(e)
+
+
+@api.get("/api/examples/{example_id}", tags=["examples"])
+def example(example_id: str) -> Response:
+    """Get specific example."""
+    uid = uuid.uuid4().hex
+    try:
+        example = examples_info.get(example_id, None)
+        content: Dict
+        if example:
+            source: Path = example["file"]  # type: ignore
+            content = json_for_sbml(uid, source=source)
+        else:
+            content = {"error": f"example for id does not exist '{example_id}'"}
+
+        return _render_json_content(content)
+    except Exception as e:
+        return _handle_error(e)
+
+
+@api.post("/api/file", tags=["reports"])
+async def report_from_file(request: Request) -> Response:
+    """Upload file and return JSON report."""
+    uid = uuid.uuid4().hex
+    try:
+        file_data = await request.form()
+        file_content = await file_data["source"].read()  # type: ignore
+        json_content = json_for_sbml(uid, source=file_content)
+
+        return _render_json_content(json_content)
+
+    except Exception as e:
+        return _handle_error(e, info={"uid": uid})
+
+
+@api.get("/api/url", tags=["reports"])
+def report_from_url(url: str) -> Response:
+    """Get JSON report via URL."""
+    uid = uuid.uuid4().hex
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        json_content = json_for_sbml(uid, source=response.text)
+
+        return _render_json_content(json_content)
+
+    except Exception as e:
+        return _handle_error(e, info={"uid": str(uid), "url": url})
+
+
+@api.post("/api/content", tags=["reports"])
+async def get_report_from_content(request: Request) -> Response:
+    """Get JSON report from file contents."""
+    uid: str = uuid.uuid4().hex
+    file_content: Optional[str] = None
+    try:
+        file_content_bytes: bytes = await request.body()
+        file_content = file_content_bytes.decode("utf-8")
+        json_content = json_for_sbml(uid, source=file_content)
+
+        return _render_json_content(json_content)
+
+    except Exception as e:
+        return _handle_error(e, info={"uid": uid, "content": str(file_content)})
+
+
+def json_for_sbml(uid: str, source: Union[Path, str, bytes]) -> Dict:
+    """Create JSON content for given SBML source.
+
+    Source is either path to SBML file or SBML string.
+    """
+    if isinstance(source, bytes):
+        source = source.decode("utf-8")
+
+    time_start = time.time()
+    info = SBMLDocumentInfo.from_sbml(source=source)
+    time_elapsed = round(time.time() - time_start, 3)
+
+    logger.info(f"JSON created for '{uid}' in '{time_elapsed}'")
+
+    return {
+        "report": info.info,
+        "debug": {
+            "jsonReportTime": f"{time_elapsed} [s]",
+        },
+    }
+
+
 def _handle_error(e: Exception, info: Optional[Dict] = None) -> Response:
     """Handle exceptions in the backend.
 
@@ -82,8 +180,6 @@ def _handle_error(e: Exception, info: Optional[Dict] = None) -> Response:
 
     :param info: optional dictionary with information.
     """
-    logger.error(e)
-
     res = {
         "errors": [
             f"{e.__str__()}",
@@ -109,107 +205,6 @@ def _render_json_content(content: Dict) -> Response:
     ).encode("utf-8")
 
     return Response(content=json_bytes, media_type="application/json")
-
-
-@api.get("/api/examples", tags=["examples"])
-def examples() -> Response:
-    """Get examples for reports."""
-    try:
-        content = {
-            "examples": [example["metadata"] for example in examples_info.values()]
-        }
-        return _render_json_content(content)
-
-    except Exception as e:
-        return _handle_error(e)
-
-
-@api.get("/api/examples/{example_id}", tags=["examples"])
-def example(example_id: str) -> Response:
-    """Get specific example."""
-    try:
-        example = examples_info.get(example_id, None)
-        content: Dict
-        if example:
-            source: Path = example["file"]  # type: ignore
-            content = _content_for_source(source=source)
-        else:
-            content = {"error": f"example for id does not exist '{example_id}'"}
-
-        return _render_json_content(content)
-    except Exception as e:
-        return _handle_error(e)
-
-
-def _content_for_source(source: Path) -> Dict:
-    """Create content for given source."""
-    content: Dict[str, Any] = {}
-    time_start = time.time()
-    info = SBMLDocumentInfo.from_sbml(source=source)
-    content["report"] = info.info
-    time_elapsed = round(time.time() - time_start, 3)
-    logger.warning(f"JSON created for '{source}' in '{time_elapsed}'")
-    content["debug"] = {"jsonReportTime": f"{time_elapsed} [s]"}
-    return content
-
-
-@api.post("/api/file", tags=["reports"])
-async def report_from_file(request: Request) -> Response:
-    """Upload file and return JSON report."""
-    uid = uuid.uuid4().hex
-    try:
-        file_data = await request.form()
-        file_content = await file_data["source"].read()  # type: ignore
-        content = _write_to_file_and_generate_report(
-            "temp_model.xml", file_content, "wb"
-        )
-
-        return _render_json_content(content)
-
-    except Exception as e:
-        return _handle_error(e, info={"uid": uid})
-
-
-@api.get("/api/url", tags=["reports"])
-def report_from_url(url: str) -> Response:
-    """Get JSON report via URL."""
-    uid = uuid.uuid4().hex
-    try:
-        response = requests.get(url)
-        response.raise_for_status()
-        file_content = response.text
-        content = _write_to_file_and_generate_report("temp_sbml.xml", file_content, "w")
-        return Response(content=json.dumps(content), media_type="application/json")
-
-    except Exception as e:
-        return _handle_error(e, info={"uid": str(uid), "url": url})
-
-
-@api.post("/api/content", tags=["reports"])
-async def get_report_from_content(request: Request) -> Response:
-    """Get JSON report from file contents."""
-    uid = uuid.uuid4().hex
-    try:
-        file_content = await request.body()
-        filename = "sbml_file.xml"
-        content = _write_to_file_and_generate_report(filename, file_content, "wb")  # type: ignore
-        return Response(content=json.dumps(content), media_type="application/json")
-
-    except Exception as e:
-        return _handle_error(e, info={"uid": uid, "content": file_content})
-
-
-def _write_to_file_and_generate_report(
-    filename: str, file_content: str, mode: str
-) -> Dict:
-    """Write file content to temporary file and generate report."""
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        path = Path(tmp_dir) / filename
-        with open(path, mode) as sbml_file:
-            sbml_file.write(file_content)
-            content = _content_for_source(source=path)
-
-    return content
 
 
 @api.get("/api/annotation_resource", tags=["metadata"])
