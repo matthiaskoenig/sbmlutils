@@ -909,8 +909,10 @@ class ValueWithUnit(Value):
         )
         self.unit = unit
         if not isinstance(self.unit, UnitDefinition):
-            logger.warning(f"'unit' must be of type UnitDefinition, but '{self.unit}' "
-                           f"in '{self}' is '{type(self.unit)}'.")
+            logger.warning(
+                f"'unit' must be of type UnitDefinition, but '{self.unit}' "
+                f"in '{self}' is '{type(self.unit)}'."
+            )
 
     def _set_fields(self, obj: libsbml.SBase, model: libsbml.Model) -> None:
         super(ValueWithUnit, self)._set_fields(obj, model)

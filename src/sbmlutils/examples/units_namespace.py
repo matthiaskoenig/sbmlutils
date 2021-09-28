@@ -21,7 +21,12 @@ class U(Units):
 _m = Model(
     "units_namespace",
     notes="""
-    Testing units and sid namespace.
+    # Model testing units and sid namespace
+
+    The UnitDefinitions and other Objects in an SBMLDocument have different SId
+    namespaces. This examples tests clashes of this namespace by creating a unit
+    with `sid=m3` and a compartment `sid=m3`.
+
     """,
     units=U,
     model_units=ModelUnits(

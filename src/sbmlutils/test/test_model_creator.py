@@ -37,7 +37,11 @@ def test_sbml_level_version(level: int, version: int, tmp_path: Path) -> None:
         ],
         "parameters": [Parameter(sid="k1", value=1.0)],
         "reactions": [
-            Reaction(sid="R1", equation="S1 ->", formula=("k1 * S1 * sin(time)", "-"))
+            Reaction(
+                sid="R1",
+                equation="S1 ->",
+                formula=("k1 * S1 * sin(time)", Units.dimensionless),
+            )
         ],
     }
 
