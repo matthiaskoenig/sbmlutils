@@ -32,7 +32,7 @@ import xmltodict  # type: ignore
 from libsbml import DISTRIB_UNCERTTYPE_MEAN as UNCERTTYPE_MEAN
 from libsbml import DISTRIB_UNCERTTYPE_RANGE as UNCERTTYPE_RANGE
 from libsbml import DISTRIB_UNCERTTYPE_STANDARDDEVIATION as UNCERTTYPE_STANDARDDEVIATION
-from pint import UnitRegistry, UndefinedUnitError
+from pint import UndefinedUnitError, UnitRegistry
 from pydantic import BaseModel
 
 from sbmlutils.console import console
@@ -473,7 +473,9 @@ class Sbase:
         if self.name is not None:
             obj.setName(self.name)
         else:
-            if not isinstance(self, (Document, Port, ReplacedBy, ReplacedElement, AssignmentRule)):
+            if not isinstance(
+                self, (Document, Port, ReplacedBy, ReplacedElement, AssignmentRule)
+            ):
                 logger.warning(f"'name' should be set on '{self}'")
         if self.sboTerm is not None:
             if isinstance(self.sboTerm, SBO):
@@ -484,7 +486,18 @@ class Sbase:
                 sbo = self.sboTerm
             obj.setSBOTerm(sbo)
         else:
-            if not isinstance(self, (Document, Port, UnitDefinition, Model, ReplacedBy, ReplacedElement, AssignmentRule)):
+            if not isinstance(
+                self,
+                (
+                    Document,
+                    Port,
+                    UnitDefinition,
+                    Model,
+                    ReplacedBy,
+                    ReplacedElement,
+                    AssignmentRule,
+                ),
+            ):
                 logger.warning(f"'sboTerm' should be set on '{self}'")
         if self.metaId is not None:
             obj.setMetaId(self.metaId)
