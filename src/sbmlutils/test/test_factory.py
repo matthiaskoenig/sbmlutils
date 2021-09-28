@@ -139,6 +139,7 @@ def test_reaction_creation() -> None:
     """Test Equation.
     bA: A_ext => A; (scale_f*(Vmax_bA/Km_A)*(A_ext - A))/(1 dimensionless + A_ext/Km_A + A/Km_A);
     """
+    mmole_per_s = UnitDefinition("mmole_per_s", "mmole/s")
     rt = Reaction(
         sid="bA",
         name="bA (A import)",
@@ -148,7 +149,7 @@ def test_reaction_creation() -> None:
         rules=[],
         formula=(
             "scale_f*(Vmax_bA/Km_A)*(A_ext - A))/(1 dimensionless + A_ext/Km_A + A/Km_A",
-            "mole_per_s",
+            mmole_per_s,
         ),
     )
     assert rt

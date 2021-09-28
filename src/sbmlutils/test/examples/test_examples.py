@@ -19,8 +19,10 @@ from sbmlutils.examples import (
     initial_assignment,
     model_definitions,
     multiple_substance_units,
+    nan,
     reaction,
     simple_reaction,
+    unit_definitions,
     units_namespace,
 )
 from sbmlutils.examples.dallaman import factory as dallaman_factory
@@ -61,9 +63,11 @@ testdata = [
     reaction,
     simple_reaction,
     multiple_substance_units,
+    nan,
     tiny_factory,
     model_definitions,
     units_namespace,
+    unit_definitions,
 ]
 
 

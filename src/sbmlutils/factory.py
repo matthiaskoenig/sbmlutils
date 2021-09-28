@@ -32,6 +32,7 @@ import xmltodict  # type: ignore
 from libsbml import DISTRIB_UNCERTTYPE_MEAN as UNCERTTYPE_MEAN
 from libsbml import DISTRIB_UNCERTTYPE_RANGE as UNCERTTYPE_RANGE
 from libsbml import DISTRIB_UNCERTTYPE_STANDARDDEVIATION as UNCERTTYPE_STANDARDDEVIATION
+from numpy import NaN
 from pint import UndefinedUnitError, UnitRegistry
 from pydantic import BaseModel
 
@@ -104,6 +105,7 @@ __all__ = [
     "FactoryResult",
     "create_model",
     "UnitType",
+    "NaN",
 ]
 
 
@@ -178,7 +180,7 @@ def ast_node_from_formula(model: libsbml.Model, formula: str) -> libsbml.ASTNode
     return ast_node
 
 
-UnitType = Optional[Union[str, "UnitDefinition"]]
+UnitType = Optional["UnitDefinition"]
 AnnotationsType = Optional[List[Union[Annotation, Tuple[Union[BQB, BQM], str]]]]
 
 PortType = Any  # Union[bool, Port]
@@ -260,7 +262,7 @@ class ModelUnits:
             for key in ("time", "extent", "substance", "length", "area", "volume"):
 
                 if getattr(model_units, key) is None:
-                    msg = f"The information for '{key}' is missing in model_units."
+                    msg = f"'{key}' should be set in 'model_units'."
                     if key in ["time", "extent", "substance", "volume"]:
                         # strongly recommended fields
                         logger.warning(msg)
@@ -727,18 +729,15 @@ class UnitDefinition(Sbase):
 
         # parse the string into pint
         # quantity = Q_(self.definition).to_compact().to_reduced_units().to_base_units()
-        quantity = Q_(self.definition).to_base_units()
-        # quantity = Q_(self.definition)
-        # print(quantity, self.definition)
-
-        # FIXME: handle the base units not in libsbml correctly (e.g. min)
-        # quantity = Q_(self.definition)  # .to_base_units()
-
+        # quantity = Q_(self.definition).to_base_units()
+        quantity = Q_(self.definition)
         magnitude, units = quantity.to_tuple()
-        # print(magnitude, units)
+        # console.log(magnitude, units)
+
         if units:
             for k, item in enumerate(units):
-                # print(item)
+                # console.rule()
+                # console.log(item)
                 prefix, unit_name, suffix = ureg.parse_unit_name(item[0])[0]
                 exponent = item[1]
                 # first unit gets the multiplier
@@ -749,9 +748,26 @@ class UnitDefinition(Sbase):
                 if prefix:
                     multiplier = multiplier * self.__class__.prefixes[prefix]
 
-                multiplier = np.power(multiplier, 1 / exponent)
-                kind = self.__class__.pint2sbml[unit_name]
+                multiplier = np.power(multiplier, 1 / abs(exponent))
+
                 scale = 0
+                # resolve the kind (this is already a unit known by libsbml)
+                kind = self.__class__.pint2sbml.get(unit_name, None)
+                if kind is None:
+                    # we have to bring the unit to base units
+                    uq = Q_(unit_name).to_base_units()
+                    # console.log("uq:", uq)
+                    multiplier = multiplier * uq.magnitude
+                    kind = self.__class__.pint2sbml.get(str(uq.units), None)
+                    if kind is None:
+                        msg = (
+                            f"Unit '{uq.units}' in definition "
+                            f"'{self.definition}' could not be converted to SBML."
+                        )
+                        logger.error(msg)
+                        raise ValueError(msg)
+
+                # console.log(f"({multiplier} * 10^{scale} {libsbml.UnitKind_toString(kind)})^{exponent}")
                 self._create_unit(obj, kind, exponent, scale, multiplier)
         else:
             # only magnitude (units canceled)
@@ -908,6 +924,11 @@ class ValueWithUnit(Value):
             replacedBy=replacedBy,
         )
         self.unit = unit
+        if self.unit and not isinstance(self.unit, UnitDefinition):
+            logger.warning(
+                f"'unit' must be of type UnitDefinition, but '{self.unit}' "
+                f"in '{self}' is '{type(self.unit)}'."
+            )
 
     def _set_fields(self, obj: libsbml.SBase, model: libsbml.Model) -> None:
         super(ValueWithUnit, self)._set_fields(obj, model)
