@@ -498,6 +498,9 @@ class Sbase:
                     ReplacedBy,
                     ReplacedElement,
                     AssignmentRule,
+                    RateRule,
+                    ExternalModelDefinition,
+                    Submodel,
                 ),
             ):
                 logger.warning(f"'sboTerm' should be set on '{self}'")
