@@ -1,6 +1,6 @@
 """Model with amount and concentration species."""
-
-from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
+from sbmlutils import EXAMPLES_DIR
+from sbmlutils.examples import templates
 from sbmlutils.factory import *
 from sbmlutils.metadata import *
 
@@ -19,6 +19,7 @@ class U(Units):
 
 model = Model(
     sid="amount_species_example",
+    name="model with species in amounts and concentrations",
     notes="""
     # Example model with species in amounts and concentrations
     ## Description
@@ -106,7 +107,7 @@ def create(tmp: bool = False) -> FactoryResult:
     """Create model."""
     return create_model(
         models=model,
-        output_dir=EXAMPLE_RESULTS_DIR,
+        output_dir=EXAMPLES_DIR,
         tmp=tmp,
     )
 

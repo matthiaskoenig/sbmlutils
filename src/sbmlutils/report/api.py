@@ -19,7 +19,7 @@ from pymetadata.identifiers.miriam import BQB
 
 from sbmlutils import log
 from sbmlutils.console import console
-from sbmlutils.report.api_examples import examples_info
+from sbmlutils.report.api_examples import examples_info, ExampleMetaData
 from sbmlutils.report.sbmlinfo import SBMLDocumentInfo
 
 
@@ -80,7 +80,7 @@ def examples() -> Response:
     """Get examples for reports."""
     try:
         content = {
-            "examples": [example["metadata"] for example in examples_info.values()]
+            "examples": [example["metadata"].json() for example in examples_info.values()]
         }
         return _render_json_content(content)
 
@@ -93,7 +93,7 @@ def example(example_id: str) -> Response:
     """Get specific example."""
     uid = uuid.uuid4().hex
     try:
-        example = examples_info.get(example_id, None)
+        example: Optional[ExampleMetaData] = examples_info.get(example_id, None)
         content: Dict
         if example:
             source: Path = example["file"]  # type: ignore
