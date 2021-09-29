@@ -1,212 +1,100 @@
 """Example models for the sbml4humans API."""
-from typing import Dict, List
+from pathlib import Path
+from typing import Dict, List, Optional
 
 import libsbml
+from pydantic import BaseModel, FilePath
 
+from sbmlutils import EXAMPLES_DIR
+from sbmlutils.console import console
 from sbmlutils.io import read_sbml
-from sbmlutils.test import (
-    BIOMODELS_CURATED_PATH,
-    COMP_DEX_BODY,
-    COMP_DEX_BODY_FLAT,
-    COMP_DEX_CYP2D6,
-    COMP_DEX_INTESTINE,
-    COMP_DEX_KIDNEY,
-    COMP_DEX_LIVER,
-    COMP_ICG_BODY,
-    COMP_ICG_BODY_FLAT,
-    COMP_ICG_LIVER,
-    COMP_MODEL_DEFINITIONS_SBML,
-    DISTRIB_DISTRIBUTIONS_SBML,
-    DISTRIB_UNCERTAINTIES_SBML,
-    FBC_ECOLI_CORE_SBML,
-    FBC_RECON3D_SBML,
-    GLUCOSE_SBML,
-    MODELS_DIR,
-    REPRESSILATOR_SBML,
-)
+from sbmlutils.test import BIOMODELS_CURATED_PATH, EXAMPLE_MODELS
 
 
-# Data and Endpoints for Example Models
-examples: List[Dict] = [
-    {
-        "file": REPRESSILATOR_SBML,
-        "metadata": {
-            "id": "repressilator",
-            "name": "BIOMD0000000012 - Elowitz2000 - Repressilator (biomodels)",
-            "description": "Ellowitz 2000 repressilator example",
-            "packages": [],
-            "keywords": ["kinetic"],
-        },
-    },
-    {
-        "file": GLUCOSE_SBML,
-        "metadata": {
-            "id": "glucose",
-            "name": "Koenig2012 - Glucose",
-            "description": "Koenig 2021 model of Human liver glucose homeostasis.",
-            "packages": [],
-            "keywords": ["kinetic"],
-        },
-    },
-    {
-        "file": FBC_ECOLI_CORE_SBML,
-        "metadata": {
-            "id": "ecoli_core",
-            "name": "E.coli core metabolism (BiGG)",
-            "description": "Small-scale FBC example",
-            "packages": ["fbc", "groups"],
-            "keywords": ["fbc"],
-        },
-    },
-    {
-        "file": COMP_MODEL_DEFINITIONS_SBML,
-        "metadata": {
-            "id": "model_definitions",
-            "name": "Comp ModelDefinitions",
-            "description": "Example model for comp ModelDefinitions",
-            "packages": ["comp"],
-            "keywords": ["kinetic"],
-        },
-    },
-    {
-        "file": DISTRIB_DISTRIBUTIONS_SBML,
-        "metadata": {
-            "id": "distributions",
-            "name": "Distrib distributions",
-            "description": "Example model for distrib distributions",
-            "packages": ["distrib"],
-            "keywords": ["kinetic"],
-        },
-    },
-    {
-        "file": DISTRIB_UNCERTAINTIES_SBML,
-        "metadata": {
-            "id": "uncertainties",
-            "name": "Distrib uncertainties",
-            "description": "Example model for distrib uncertainties",
-            "packages": ["distrib"],
-            "keywords": ["kinetic"],
-        },
-    },
-    {
-        "file": MODELS_DIR / "units_namespace.xml",
-        "metadata": {
-            "id": "units_namespace",
-            "name": "Units namespace",
-            "description": "Test model for clashing namespaces with units.",
-            "packages": [],
-            "keywords": ["kinetic"],
-        },
-    },
-    {
-        "file": COMP_ICG_BODY_FLAT,
-        "metadata": {
-            "id": "icg_body_flat",
-            "name": "Flattened ICG comp model",
-            "description": "Example model for comp flattening",
-            "packages": [],
-            "keywords": ["kinetic"],
-        },
-    },
-    {
-        "file": COMP_ICG_BODY,
-        "metadata": {
-            "id": "icg_body",
-            "name": "ICG comp model",
-            "description": "Example model for comp",
-            "packages": ["comp"],
-            "keywords": ["kinetic"],
-        },
-    },
-    {
-        "file": COMP_ICG_LIVER,
-        "metadata": {
-            "id": "icg_liver",
-            "name": "ICG comp submodel",
-            "description": "Example model for comp submodel",
-            "packages": ["comp"],
-            "keywords": ["kinetic"],
-        },
-    },
-    {
-        "file": COMP_DEX_CYP2D6,
-        "metadata": {
-            "id": "dex_cyp2d6",
-            "name": "CYP2D6 submodel",
-            "description": "Example model for comp submodel",
-            "packages": ["comp"],
-            "keywords": ["kinetic"],
-        },
-    },
-    {
-        "file": COMP_DEX_LIVER,
-        "metadata": {
-            "id": "dex_liver",
-            "name": "Dextormethorphan comp liver submodel",
-            "description": "Example model for comp liver submodel",
-            "packages": ["comp"],
-            "keywords": ["kinetic"],
-        },
-    },
-    {
-        "file": COMP_DEX_KIDNEY,
-        "metadata": {
-            "id": "dex_kidney",
-            "name": "Dextormethorphan comp kidney submodel",
-            "description": "Example model for comp kidney submodel",
-            "packages": ["comp"],
-            "keywords": ["kinetic"],
-        },
-    },
-    {
-        "file": COMP_DEX_INTESTINE,
-        "metadata": {
-            "id": "dex_intestine",
-            "name": "Dextormethorphan comp intestine submodel",
-            "description": "Example model for comp intestine submodel",
-            "packages": ["comp"],
-            "keywords": ["kinetic"],
-        },
-    },
-    {
-        "file": FBC_RECON3D_SBML,
-        "metadata": {
-            "id": "recon3d",
-            "name": "RECON3D human metabolism (BiGG)",
-            "description": "Genome-scale FBC example",
-            "packages": ["fbc", "groups"],
-            "keywords": ["fbc"],
-        },
-    },
+class ExampleMetaData(BaseModel):
+    """Metadata for example model on sbml4humans."""
+
+    id: str
+    file: FilePath
+    name: Optional[str] = None
+    description: Optional[str] = None
+    packages: List[str] = []
+
+
+def read_example_metadata(sbml_path: Path) -> ExampleMetaData:
+    """Read metadata from SBML file."""
+
+    doc: libsbml.SBMLDocument = read_sbml(sbml_path, validate=False)
+    model: libsbml.Model = doc.getModel()
+
+    if not model:
+        raise ValueError(f"Model could not be read for '{sbml_path}'")
+
+    sid: str = model.getId() if model.isSetId() else None
+    if not sid:
+        sid = sbml_path.stem
+    name: str = model.getName() if model.isSetName() else None
+    description: str = model.getNotesString() if model.isSetNotes() else None
+    packages: List[str] = []
+    for k in range(doc.getNumPlugins()):
+        plugin: libsbml.SBMLDocumentPlugin = doc.getPlugin(k)
+        packages.append(plugin.getPrefix())
+
+    return ExampleMetaData(
+        file=sbml_path,
+        id=sid,
+        name=name,
+        description=description,
+        packages=packages,
+    )
+
+
+def biomodels_examples() -> List[ExampleMetaData]:
+    """Biomodel examples."""
+    examples: List[ExampleMetaData] = []
+    with console.status("Processing examples ...", spinner="aesthetic"):
+        for k in range(1, 50):
+            biomodel_id = f"BIOMD0000000{k:0>3}"
+            biomodel_path = BIOMODELS_CURATED_PATH / f"{biomodel_id}.xml.gz"
+
+            example = read_example_metadata(biomodel_path)
+            example.id = biomodel_id
+            examples.append(example)
+
+    return examples
+
+
+creator_example_ids = [
+    "amount_species",
+    "annotation",
+    "assignment",
+    "boundary_condition",
+    "compartment_species_reaction",
+    "complete_model",
+    "distrib_comp",
+    "distrib_distributions",
+    "distrib_uncertainties",
+    "fbc_example",
+    "fbc_mass_charge",
+    "linear_chain",
+    "minimal_model",
+    "minimal_model_comp",
+    "model_composition",
+    "model_definitions",
+    "multiple_substance_units",
+    "nan",
+    "notes",
+    "random_network",
+    "reaction",
+    "simple_reaction_with_units",
+    "unit_definitions",
+    "units_namespace",
 ]
 
-if False:
-    for k in range(1, 988):
-        if k in [649, 694, 923]:
-            continue
-        biomodel_id = f"BIOMD0000000{k:0>3}"
-        biomodel_path = BIOMODELS_CURATED_PATH / f"{biomodel_id}.xml.gz"
-        doc: libsbml.SBMLDocument = read_sbml(biomodel_path, validate=False)
-        model: libsbml.Model = doc.getModel()
+examples = [read_example_metadata(p) for p in EXAMPLE_MODELS]
+examples += [
+    read_example_metadata(EXAMPLES_DIR / f"{eid}.xml") for eid in creator_example_ids
+]
+examples += biomodels_examples()
 
-        name = model.getName() if model.isSetName() else None
-        packages = []
-        for k in range(doc.getNumPlugins()):
-            plugin: libsbml.SBMLDocumentPlugin = doc.getPlugin(k)
-            packages.append(plugin.getPrefix())
-
-        examples.append(
-            {
-                "file": biomodel_path,
-                "metadata": {
-                    "id": biomodel_id,
-                    "name": name,
-                    "description": "",
-                    "packages": packages,
-                    "keywords": [],
-                },
-            }
-        )
-
-
-examples_info = {example["metadata"]["id"]: example for example in examples}
+examples_info = {emd.id: emd for emd in examples}

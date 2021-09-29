@@ -1,6 +1,6 @@
 """Example for substance units."""
-
-from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
+from sbmlutils import EXAMPLES_DIR
+from sbmlutils.examples import templates
 from sbmlutils.factory import *
 from sbmlutils.metadata.sbo import *
 
@@ -21,6 +21,7 @@ class U(Units):
 
 _m = Model(
     "multiple_substance_units",
+    name="model with multiple substance units",
     notes="""
     # Example model for multiple substance units
     The substance units for species are restricted to a single substance unit so that
@@ -148,7 +149,7 @@ def create(tmp: bool = False) -> None:
     """Create model."""
     create_model(
         models=_m,
-        output_dir=EXAMPLE_RESULTS_DIR,
+        output_dir=EXAMPLES_DIR,
         tmp=tmp,
     )
 

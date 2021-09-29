@@ -192,26 +192,19 @@ def validate_doc(
     ]
     info = "\n".join(lines)
 
-    # if vresults.is_valid():
-    #     info = f"[success]{info}[/success]"
-    # else:
-    #     info = f"[error]{info}[/error]"
-
-    # overall validation report
-    console.print()
     if vresults.is_perfect():
-        console.rule(style="success")
-        console.print("[success]" + info + "[/success]")
-        console.rule(style="success")
+        style = "success"
     else:
         if vresults.is_valid():
-            console.rule(style="warning")
-            console.print("[warning]" + info + "[/warning]")
-            console.rule(style="warning")
+            style = "warning"
         else:
-            console.rule(style="error")
-            console.print("[error]" + info + "[/error]")
-            console.rule(style="error")
+            style = "error"
+
+    # validation report
+    console.print()
+    console.rule("Validate SBML", style=style)
+    console.print(info, style=style)
+    console.rule(style=style)
     console.print()
 
     # individual error and warning report

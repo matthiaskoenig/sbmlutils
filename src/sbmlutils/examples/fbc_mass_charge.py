@@ -1,6 +1,6 @@
 """FBC mass and charge example."""
-
-from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
+from sbmlutils import EXAMPLES_DIR
+from sbmlutils.examples import templates
 from sbmlutils.factory import *
 from sbmlutils.metadata import *
 
@@ -14,7 +14,8 @@ class U(Units):
 
 
 _m = Model(
-    sid="mass_charge_example",
+    sid="fbc_mass_charge",
+    name="fbc model with mass and charge balance",
     packages=["fbc"],
     notes="""
     # Model demonstrating mass and charge balance
@@ -162,7 +163,7 @@ def create(tmp: bool = False) -> None:
     """Create model."""
     create_model(
         models=_m,
-        output_dir=EXAMPLE_RESULTS_DIR,
+        output_dir=EXAMPLES_DIR,
         tmp=tmp,
     )
 

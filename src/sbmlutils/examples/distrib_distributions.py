@@ -1,5 +1,6 @@
 """Distrib example demonstrating distributions."""
-from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
+from sbmlutils import EXAMPLES_DIR
+from sbmlutils.examples import templates
 from sbmlutils.factory import *
 
 
@@ -10,13 +11,12 @@ class U(Units):
     m2 = UnitDefinition("m2", "meter^2")
 
 
-_m = Model("distributions_example")
+_m = Model("distrib_distributions", name="model with distrib distributions")
 _m.packages = ["distrib"]
 _m.creators = templates.creators
 _m.notes = (
     """
     # Distrib example
-    ## Description
     Example creating distrib model with distribution elements.
     """
     + templates.terms_of_use
@@ -61,7 +61,7 @@ def create(tmp: bool = False) -> None:
     """Create model."""
     create_model(
         models=_m,
-        output_dir=EXAMPLE_RESULTS_DIR,
+        output_dir=EXAMPLES_DIR,
         tmp=tmp,
         units_consistency=False,
     )

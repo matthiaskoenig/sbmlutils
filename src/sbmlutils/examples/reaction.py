@@ -1,16 +1,17 @@
 """Create reaction example."""
 import numpy as np
 
-from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
+from sbmlutils import EXAMPLES_DIR
+from sbmlutils.examples import templates
 from sbmlutils.factory import *
 from sbmlutils.metadata import *
 
 
 _m = Model(
-    "reaction_example",
+    "reaction",
+    name="model with reaction",
     notes="""
-    # Example `core_example2`
-    ## Description
+    # Reaction definition
     This example demonstrates the creation of a reaction.
     """
     + templates.terms_of_use,
@@ -46,7 +47,7 @@ def create(tmp: bool = False) -> None:
     """Create model."""
     create_model(
         models=_m,
-        output_dir=EXAMPLE_RESULTS_DIR,
+        output_dir=EXAMPLES_DIR,
         tmp=tmp,
         units_consistency=False,
     )

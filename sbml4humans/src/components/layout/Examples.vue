@@ -32,34 +32,12 @@
                             <strong>{{ props.data.id }}</strong>
                         </template>
                     </Column>
-                    <Column
-                        sortable
-                        style="width: fit-content"
-                        field="name"
-                        header="name"
-                    ></Column>
-                    <Column
-                        sortable
-                        style="width: fit-content"
-                        field="description"
-                        header="description"
-                    ></Column>
-                    <Column
-                        sortable
-                        style="width: fit-content"
-                        field="keywords"
-                        header="keywords"
-                    >
+                    <Column sortable style="width: fit-content" field="name" header="name">
                         <template #body="props">
-                            {{ props.data.keywords.join(",") }}
+                            {{ props.data.name }}
                         </template>
                     </Column>
-                    <Column
-                        sortable
-                        style="width: fit-content"
-                        field="packages"
-                        header="packages"
-                    >
+                    <Column sortable style="width: fit-content" field="packages" header="packages">
                         <template #body="props">
                             <Tag
                                 v-for="pkg in props.data.packages"
@@ -67,9 +45,21 @@
                                 :value="pkg"
                                 :style="`background-color: ${badgeColor[pkg]}; color: ${badgeText[pkg]}`"
                                 ></Tag>
-
                         </template>
                     </Column>
+
+<!--                    <Column-->
+<!--                        sortable-->
+<!--                        style="width: fit-content"-->
+<!--                        field="description"-->
+<!--                        header="description"-->
+<!--                    >-->
+<!--                    <template #body="props">-->
+<!--                        <ScrollPanel style="width: 100%; height: 50px">-->
+<!--                            <div style="font-size: xx-small" v-html="props.data.description"></div>-->
+<!--                        </ScrollPanel>-->
+<!--                        </template>-->
+<!--                    </Column>-->
                 </DataTable>
                 <loading parent="example" message="Loading SBML examples" />
             </TabPanel>

@@ -4,6 +4,8 @@ Model used for testing units namespacing.
 """
 from pathlib import Path
 
+from sbmlutils import EXAMPLES_DIR
+from sbmlutils.examples import templates
 from sbmlutils.factory import *
 from sbmlutils.metadata import *
 
@@ -20,6 +22,7 @@ class U(Units):
 
 _m = Model(
     "units_namespace",
+    name="model with unit and sid namespace clash",
     notes="""
     # Model testing units and sid namespace
 
@@ -27,7 +30,9 @@ _m = Model(
     namespaces. This examples tests clashes of this namespace by creating a unit
     with `sid=m3` and a compartment `sid=m3`.
 
-    """,
+    """
+    + templates.terms_of_use,
+    creators=templates.creators,
     units=U,
     model_units=ModelUnits(
         time=U.min,
@@ -53,7 +58,7 @@ def create(tmp: bool = False) -> FactoryResult:
     """Create model."""
     return create_model(
         models=_m,
-        output_dir=Path(__file__).parent / "_results",
+        output_dir=EXAMPLES_DIR,
         units_consistency=False,
         tmp=tmp,
     )

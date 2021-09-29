@@ -1,6 +1,6 @@
 """Example model with UnitDefinitions."""
-
-from sbmlutils.examples import EXAMPLE_RESULTS_DIR
+from sbmlutils import EXAMPLES_DIR
+from sbmlutils.examples import templates
 from sbmlutils.factory import *
 from sbmlutils.metadata import *
 
@@ -50,6 +50,13 @@ class U(Units):
 
 _m = Model(
     "unit_definitions",
+    name="model with UnitDefinitions",
+    notes="""
+    # Model with UnitDefinitions
+    This example demonstrates how to create UnitDefinitions.
+    """
+    + templates.terms_of_use,
+    creators=templates.creators,
     units=U,
     model_units=ModelUnits(
         time=U.second,
@@ -57,15 +64,14 @@ _m = Model(
         substance=U.mole,
         extent=U.mole,
         length=U.meter,
+        area=U.m2,
     ),
 )
 
 
 def create(tmp: bool = False) -> None:
     """Create model."""
-    create_model(
-        models=_m, output_dir=EXAMPLE_RESULTS_DIR, tmp=tmp, units_consistency=False
-    )
+    create_model(models=_m, output_dir=EXAMPLES_DIR, tmp=tmp, units_consistency=False)
 
 
 if __name__ == "__main__":

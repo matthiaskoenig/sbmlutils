@@ -1,6 +1,6 @@
 """Model with amount and concentration species."""
-
-from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
+from sbmlutils import EXAMPLES_DIR
+from sbmlutils.examples import templates
 from sbmlutils.factory import *
 from sbmlutils.metadata import *
 
@@ -18,10 +18,10 @@ class U(Units):
 
 
 model = Model(
-    sid="amount_species_example",
+    sid="amount_species",
+    name="model with species in amounts and concentrations",
     notes="""
     # Example model with species in amounts and concentrations
-    ## Description
     This example model demonstrates how to define species in amounts and concentrations.
     The key is to set the `hasOnlySubstanceUnits` on the species.
     """
@@ -102,14 +102,14 @@ model = Model(
 )
 
 
-def create(tmp: bool = False) -> FactoryResult:
+def create(tmp: bool = False) -> None:
     """Create model."""
-    return create_model(
+    create_model(
         models=model,
-        output_dir=EXAMPLE_RESULTS_DIR,
+        output_dir=EXAMPLES_DIR,
         tmp=tmp,
     )
 
 
 if __name__ == "__main__":
-    results = create()
+    create()

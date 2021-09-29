@@ -1,6 +1,6 @@
 """Example model with meta-data annotations."""
-
-from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
+from sbmlutils import EXAMPLES_DIR
+from sbmlutils.examples import templates
 from sbmlutils.factory import *
 from sbmlutils.metadata import *
 
@@ -17,10 +17,10 @@ class U(Units):
 
 
 _m = Model(
-    sid="annotation_example",
+    sid="annotation",
+    name="model with inline annotations",
     notes="""
     # Model with inline annotations
-    ## Description
     Test model demonstrating inline annotations.
     """
     + templates.terms_of_use,
@@ -137,12 +137,14 @@ _m.reactions = [
     )
 ]
 
+model = _m
+
 
 def create(tmp: bool = False) -> None:
     """Create model."""
     create_model(
-        models=_m,
-        output_dir=EXAMPLE_RESULTS_DIR,
+        models=model,
+        output_dir=EXAMPLES_DIR,
         tmp=tmp,
     )
 

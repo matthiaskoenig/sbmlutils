@@ -105,6 +105,26 @@ interpolation_paths = []
 for type in interpolation_types:
     interpolation_paths.append(TESTSUITE_PATH / "interpolation" / f"data1_{type}.xml")
 
+EXAMPLE_MODELS = [
+    REPRESSILATOR_SBML,
+    GLUCOSE_SBML,
+    COMP_ICG_BODY,
+    COMP_ICG_BODY_FLAT,
+    COMP_ICG_LIVER,
+    COMP_DEX_BODY,
+    COMP_DEX_BODY_FLAT,
+    COMP_DEX_CYP2D6,
+    COMP_DEX_INTESTINE,
+    COMP_DEX_KIDNEY,
+    COMP_DEX_LIVER,
+    COMP_MODEL_DEFINITIONS_SBML,
+    DISTRIB_DISTRIBUTIONS_SBML,
+    DISTRIB_UNCERTAINTIES_SBML,
+    FBC_ECOLI_CORE_SBML,
+    FBC_RECON3D_SBML,
+]
+
+
 # manipulation
 manipulation_paths = []
 for id in range(1, 5):

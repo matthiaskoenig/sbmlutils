@@ -1,5 +1,6 @@
 """AssignmentRule and InitialAssignment example."""
-from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
+from sbmlutils import EXAMPLES_DIR
+from sbmlutils.examples import templates
 from sbmlutils.factory import *
 
 
@@ -16,22 +17,23 @@ class U(Units):
     mg_per_hr = UnitDefinition("mg_per_hr", "mg/hr")
 
 
-_m = Model("assignment_example")
-_m.creators = templates.creators
-_m.notes = (
+_m = Model(
+    "assignment",
+    name="model with assignments",
+    creators=templates.creators,
+    notes="""
+    # Example model demonstrating `InitialAssignment` and `AssignmentRule`.
     """
-Example model for testing InitialAssignments in roadrunner.
-"""
-    + templates.terms_of_use
-)
-_m.units = U
-_m.model_units = ModelUnits(
-    time=U.hr,
-    extent=U.mg,
-    substance=U.mg,
-    length=U.meter,
-    area=U.m2,
-    volume=U.liter,
+    + templates.terms_of_use,
+    units=U,
+    model_units=ModelUnits(
+        time=U.hr,
+        extent=U.mg,
+        substance=U.mg,
+        length=U.meter,
+        area=U.m2,
+        volume=U.liter,
+    ),
 )
 
 _m.parameters = [
@@ -62,12 +64,14 @@ _m.rate_rules = [
     RateRule("Ave", "- k1*Cve", U.mg_per_hr),
 ]
 
+model = _m
+
 
 def create(tmp: bool = False) -> None:
     """Create model."""
     create_model(
-        models=_m,
-        output_dir=EXAMPLE_RESULTS_DIR,
+        models=model,
+        output_dir=EXAMPLES_DIR,
         tmp=tmp,
     )
 
