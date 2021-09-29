@@ -18,6 +18,7 @@ from pymetadata.core.annotation import RDFAnnotation, RDFAnnotationData
 from pymetadata.identifiers.miriam import BQB
 
 from sbmlutils import log
+from sbmlutils.console import console
 from sbmlutils.report.api_examples import examples_info
 from sbmlutils.report.sbmlinfo import SBMLDocumentInfo
 
@@ -29,7 +30,7 @@ api = FastAPI(
     #    openapi_prefix="/api/v1",
     title="sbml4humans",
     description="sbml4humans backend api",
-    version="0.1.0",
+    version="0.1.1",
     terms_of_service="https://github.com/matthiaskoenig/sbmlutils/blob/develop/sbml4humans/privacy_notice.md",
     contact={
         "name": "Matthias König",
@@ -156,12 +157,19 @@ def json_for_sbml(uid: str, source: Union[Path, str, bytes]) -> Dict:
 
     Source is either path to SBML file or SBML string.
     """
+
     if isinstance(source, bytes):
         source = source.decode("utf-8")
 
     time_start = time.time()
     info = SBMLDocumentInfo.from_sbml(source=source)
     time_elapsed = round(time.time() - time_start, 3)
+
+    debug = False
+    if debug:
+        console.rule("Creating JSON content")
+        console.print(info.info)
+        console.rule()
 
     logger.info(f"JSON created for '{uid}' in '{time_elapsed}'")
 
@@ -180,6 +188,9 @@ def _handle_error(e: Exception, info: Optional[Dict] = None) -> Response:
 
     :param info: optional dictionary with information.
     """
+    logger.error(str(e))
+    raise e
+
     res = {
         "errors": [
             f"{e.__str__()}",

@@ -614,6 +614,9 @@ class SBMLDocumentInfo:
             d = self.sbase_dict(c)
             for key in ["spatialDimensions", "size", "constant"]:
                 d[key] = _get_sbase_attribute(c, key)
+            if d["size"] is not None and np.isnan(d["size"]):
+                # NaN not JSON serializable
+                d["size"] = "NaN"
 
             d["units_sid"] = c.getUnits() if c.isSetUnits() else None
             d["units"] = udef_to_latex(d["units_sid"], model=model)
@@ -652,6 +655,11 @@ class SBMLDocumentInfo:
                 "constant",
             ]:
                 d[key] = _get_sbase_attribute(s, key)
+
+            for key in ["initialAmount", "initialConcentration"]:
+                if d[key] is not None and np.isnan(d[key]):
+                    # NaN not JSON serializable
+                    d[key] = "NaN"
 
             d["units_sid"] = s.getUnits() if s.isSetUnits() else None
             d["units"] = udef_to_latex(d["units_sid"], model=model)
@@ -718,6 +726,10 @@ class SBMLDocumentInfo:
                 value = None
 
             d["value"] = value
+            for key in ["value"]:
+                if d[key] is not None and np.isnan(d[key]):
+                    # NaN not JSON serializable
+                    d[key] = "NaN"
             d["constant"] = p.getConstant() if p.isSetConstant() else None
             d["units_sid"] = p.getUnits() if p.isSetUnits() else None
             d["units"] = udef_to_latex(d["units_sid"], model=model)

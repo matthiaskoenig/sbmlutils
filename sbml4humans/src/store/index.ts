@@ -189,6 +189,9 @@ export default createStore({
 
             // set the current model to main model in the report by default
             console.log(payload.data)
+            if (!payload.data.report.model){
+                alert("No model in file ! Check if file is a valid SBML file.")
+            }
             console.log(payload.data.report.model.pk)
             this.dispatch("updateCurrentModel", payload.data.report.model.pk);
             this.dispatch("updateCurrentFocussedTable", "");
