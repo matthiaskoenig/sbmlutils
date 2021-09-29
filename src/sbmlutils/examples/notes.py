@@ -1,11 +1,12 @@
 """Example model with notes."""
-
-from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
+from sbmlutils import EXAMPLES_DIR
+from sbmlutils.examples import templates
 from sbmlutils.factory import *
 
 
 _m = Model(
-    sid="notes_example",
+    sid="notes",
+    name="model with notes showcase",
     notes="""
     # Model with notes
     ## Description
@@ -253,7 +254,7 @@ def create(tmp: bool = False) -> FactoryResult:
     """Create model."""
     return create_model(
         models=_m,
-        output_dir=EXAMPLE_RESULTS_DIR,
+        output_dir=EXAMPLES_DIR,
         tmp=tmp,
     )
 

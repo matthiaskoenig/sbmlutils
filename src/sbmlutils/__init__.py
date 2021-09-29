@@ -11,4 +11,4 @@ from sbmlutils.utils import show_versions
 program_name = "sbmlutils"
 
 RESOURCES_DIR = Path(__file__).parent / "resources"
-EXAMPLES_DIR = RESOURCES_DIR / "examples"
+EXAMPLES_DIR: Path = RESOURCES_DIR / "examples"

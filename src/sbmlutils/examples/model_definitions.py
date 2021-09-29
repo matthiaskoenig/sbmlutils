@@ -1,7 +1,8 @@
 """Multiple model definitions."""
 from typing import List
 
-from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
+from sbmlutils import EXAMPLES_DIR
+from sbmlutils.examples import templates
 from sbmlutils.factory import *
 
 
@@ -14,7 +15,7 @@ class U(Units):
 
 
 _m = Model(
-    "model_definitions_example",
+    "model_definitions",
     creators=templates.creators,
     notes="""
     # Example model with multiple ModelDefinitions.
@@ -67,7 +68,7 @@ def create(tmp: bool = False) -> None:
     """Create model."""
     create_model(
         models=_m,
-        output_dir=EXAMPLE_RESULTS_DIR,
+        output_dir=EXAMPLES_DIR,
         tmp=tmp,
     )
 

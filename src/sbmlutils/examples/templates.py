@@ -1,7 +1,7 @@
 """Template information for the model creation."""
 from datetime import datetime
 
-from sbmlutils.factory import Model, Creator, FactoryResult, create_model
+from sbmlutils.factory import Creator
 
 
 creators = [

@@ -1,12 +1,19 @@
 """Testing model with NaN values."""
-
-from sbmlutils.examples import EXAMPLE_RESULTS_DIR
+from sbmlutils import EXAMPLES_DIR
+from sbmlutils.examples import templates
 from sbmlutils.factory import *
 from sbmlutils.metadata import *
 
 
 _m = Model(
-    "nan_test",
+    "nan",
+    name="model with NaN values",
+    notes="""
+    # Model with NaN values
+    Example model with NaN values.
+    """
+    + templates.terms_of_use,
+    creators=templates.creators,
     objects=[
         Compartment(
             "Vmem",
@@ -23,9 +30,7 @@ _m = Model(
 
 def create(tmp: bool = False) -> None:
     """Create model."""
-    create_model(
-        models=_m, output_dir=EXAMPLE_RESULTS_DIR, tmp=tmp, units_consistency=False
-    )
+    create_model(models=_m, output_dir=EXAMPLES_DIR, tmp=tmp, units_consistency=False)
 
 
 if __name__ == "__main__":

@@ -228,8 +228,8 @@ export default createStore({
                 res.data.examples.forEach((example) => {
                     example["searchUtilField"] =
                         example.id +
+                        example.name +
                         example.description +
-                        example.keywords.join(",") +
                         example.packages.join(",");
                 });
                 context.commit("SET_EXAMPLES", res.data.examples);

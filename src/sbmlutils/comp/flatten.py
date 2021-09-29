@@ -89,10 +89,11 @@ def flatten_sbml_doc(
     info = "\n".join(lines)
 
     if flattened_status:
-        console.rule(style="success")
+        console.rule("Flatten SBML", style="success")
         console.print(info, style="success")
         console.rule(style="success")
     else:
+        console.rule("Flatten SBML", style="error")
         console.print(info, style="error")
         raise ValueError(
             "SBML could not be flattend due to errors in the SBMLDocument."

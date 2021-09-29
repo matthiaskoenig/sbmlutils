@@ -5,8 +5,9 @@ from pathlib import Path
 
 import libsbml
 
+from sbmlutils import EXAMPLES_DIR
 from sbmlutils.comp import flatten_sbml
-from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
+from sbmlutils.examples import templates
 from sbmlutils.factory import *
 from sbmlutils.metadata import *
 
@@ -19,7 +20,8 @@ class U(Units):
 
 
 _m = Model(
-    "distrib_comp_example",
+    "distrib_comp",
+    name="model combining distrib and comp",
     packages=["distrib", "comp"],
     creators=templates.creators,
     notes="""
@@ -74,8 +76,8 @@ def create(tmp: bool = False) -> None:
         tmp_dir = tempfile.mkdtemp()
         output_dir = Path(tmp_dir)
     else:
-        output_dir = EXAMPLE_RESULTS_DIR
-    sbml_path_flat = output_dir / "distrib_comp_example_flat.xml"
+        output_dir = EXAMPLES_DIR
+    sbml_path_flat = output_dir / "distrib_comp_flat.xml"
 
     result = create_model(
         models=_m,
@@ -91,4 +93,4 @@ def create(tmp: bool = False) -> None:
 
 
 if __name__ == "__main__":
-    create(tmp=True)
+    create(tmp=False)

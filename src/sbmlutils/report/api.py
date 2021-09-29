@@ -19,7 +19,7 @@ from pymetadata.identifiers.miriam import BQB
 
 from sbmlutils import log
 from sbmlutils.console import console
-from sbmlutils.report.api_examples import examples_info, ExampleMetaData
+from sbmlutils.report.api_examples import ExampleMetaData, examples_info
 from sbmlutils.report.sbmlinfo import SBMLDocumentInfo
 
 
@@ -76,13 +76,11 @@ api.add_middleware(
 
 
 @api.get("/api/examples", tags=["examples"])
-def examples() -> Response:
+def examples() -> Dict:
     """Get examples for reports."""
     try:
-        content = {
-            "examples": [example["metadata"].json() for example in examples_info.values()]
-        }
-        return _render_json_content(content)
+        example: ExampleMetaData
+        return {"examples": [example.dict() for example in examples_info.values()]}
 
     except Exception as e:
         return _handle_error(e)
@@ -96,7 +94,7 @@ def example(example_id: str) -> Response:
         example: Optional[ExampleMetaData] = examples_info.get(example_id, None)
         content: Dict
         if example:
-            source: Path = example["file"]  # type: ignore
+            source: Path = example.file  # type: ignore
             content = json_for_sbml(uid, source=source)
         else:
             content = {"error": f"example for id does not exist '{example_id}'"}
@@ -181,15 +179,13 @@ def json_for_sbml(uid: str, source: Union[Path, str, bytes]) -> Dict:
     }
 
 
-def _handle_error(e: Exception, info: Optional[Dict] = None) -> Response:
+def _handle_error(e: Exception, info: Optional[Dict] = None) -> Dict[Any, Any]:
     """Handle exceptions in the backend.
 
     All calls are wrapped in a try/except which will provide the errors to the frontend.
 
     :param info: optional dictionary with information.
     """
-    logger.error(str(e))
-    raise e
 
     res = {
         "errors": [
@@ -200,7 +196,7 @@ def _handle_error(e: Exception, info: Optional[Dict] = None) -> Response:
         "info": info,
     }
 
-    return Response(content=json.dumps(res), media_type="application/json")
+    return res  # Response(content=json.dumps(res), media_type="application/json")
 
 
 def _render_json_content(content: Dict) -> Response:
