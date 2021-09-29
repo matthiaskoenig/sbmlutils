@@ -275,7 +275,7 @@ class SBMLDocumentInfo:
                         f"{astnode_to_latex(rule.getMath()) if rule.isSetMath() else None}"
                     )
                 elif assignments[pk_symbol]["sbmlType"] == "RateRule":
-                    derivative = "\frac{d" + symbol_to_latex(pk_symbol) + "}{{dt}}"
+                    derivative = "\\frac{d" + symbol_to_latex(pk_symbol) + "}{{dt}}"
                     math_str = f"{derivative} = {astnode_to_latex(rule.getMath()) if rule.isSetMath() else None}"
 
                 assignments[pk_symbol]["math"] = math_str
