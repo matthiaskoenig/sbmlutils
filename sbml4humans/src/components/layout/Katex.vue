@@ -40,6 +40,9 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .katex {
-    font-size: 1em;
+    font-size: 1.0em;
+}
+.katex_unit {
+    font-size: 0.8em;
 }
 </style>

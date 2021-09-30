@@ -74,7 +74,7 @@
             >
                 <template #body="slotProps">
                     <span v-if="slotProps.data.derivedUnits != null">
-                        <katex :mathStr="slotProps.data.derivedUnits" />
+                        <katex :mathStr="slotProps.data.derivedUnits" class="katex_unit" />
                     </span>
                 </template>
             </Column>

@@ -73,7 +73,7 @@
             <Column sortable style="width: fit-content" field="units" header="units">
                 <template #body="slotProps">
                     <span v-if="slotProps.data.units != null">
-                        <katex :mathStr="slotProps.data.units" />
+                        <katex :mathStr="slotProps.data.units" class="katex_unit"/>
                     </span>
                 </template>
             </Column>
@@ -85,7 +85,7 @@
             >
                 <template #body="slotProps">
                     <span v-if="slotProps.data.derivedUnits != null">
-                        <katex :mathStr="slotProps.data.derivedUnits" />
+                        <katex :mathStr="slotProps.data.derivedUnits" class="katex_unit" />
                     </span>
                 </template>
             </Column>

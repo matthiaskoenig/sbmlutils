@@ -15,7 +15,7 @@ import numpy as np
 from sbmlutils.io import read_sbml
 from sbmlutils.metadata.miriam import BiologicalQualifierType, ModelQualifierType
 from sbmlutils.report.mathml import astnode_to_latex, symbol_to_latex
-from sbmlutils.report.units import udef_to_latex
+from sbmlutils.report.units import udef_to_string
 
 
 def _get_sbase_attribute(sbase: libsbml.SBase, key: str) -> Optional[Any]:
@@ -544,7 +544,7 @@ class SBMLDocumentInfo:
             "extentUnits",
         ]:
             d[f"{key}_unit"] = _get_sbase_attribute(model, key)
-            d[key] = udef_to_latex(d[f"{key}_unit"], model=model)
+            d[key] = udef_to_string(model.getUnitDefinition(d[f"{key}_unit"]))
             # print(d[f"{key}_unit"], '-> ', d[key])
 
         # FIXME: handle analoque to species
@@ -588,7 +588,7 @@ class SBMLDocumentInfo:
         ud: libsbml.UnitDefinition
         for ud in model.getListOfUnitDefinitions():
             d = self.sbase_dict(ud)
-            d["units"] = udef_to_latex(ud, model=model)
+            d["units"] = udef_to_string(ud)
 
             key = "units:" + ud.pk.split(":")[-1]
             if key in self.maps["assignments"]:
@@ -619,8 +619,8 @@ class SBMLDocumentInfo:
                 d["size"] = "NaN"
 
             d["units_sid"] = c.getUnits() if c.isSetUnits() else None
-            d["units"] = udef_to_latex(d["units_sid"], model=model)
-            d["derivedUnits"] = udef_to_latex(c.getDerivedUnitDefinition(), model=model)
+            d["units"] = udef_to_string(model.getUnitDefinition(d["units_sid"]))
+            d["derivedUnits"] = udef_to_string(c.getDerivedUnitDefinition())
 
             key = c.pk.split(":")[-1]
             if key in self.maps["assignments"]:
@@ -662,8 +662,8 @@ class SBMLDocumentInfo:
                     d[key] = "NaN"
 
             d["units_sid"] = s.getUnits() if s.isSetUnits() else None
-            d["units"] = udef_to_latex(d["units_sid"], model=model)
-            d["derivedUnits"] = udef_to_latex(s.getDerivedUnitDefinition(), model=model)
+            d["units"] = udef_to_string(model.getUnitDefinition(d["units_sid"]))
+            d["derivedUnits"] = udef_to_string(s.getDerivedUnitDefinition())
 
             # lookup in maps (PKs are in the form <SBMLType>:<id/metaID/name/etc).
             key = s.pk.split(":")[-1]
@@ -732,8 +732,10 @@ class SBMLDocumentInfo:
                     d[key] = "NaN"
             d["constant"] = p.getConstant() if p.isSetConstant() else None
             d["units_sid"] = p.getUnits() if p.isSetUnits() else None
-            d["units"] = udef_to_latex(d["units_sid"], model=model)
-            d["derivedUnits"] = udef_to_latex(p.getDerivedUnitDefinition(), model=model)
+            d["units"] = udef_to_string(model.getUnitDefinition(d["units_sid"]))
+            d["derivedUnits"] = udef_to_string(p.getDerivedUnitDefinition())
+            print("Pararmeter", p.getId(), d["units_sid"], d["units"],
+                  d["derivedUnits"])
 
             key = p.pk.split(":")[-1]
             if key in self.maps["assignments"]:
@@ -757,9 +759,7 @@ class SBMLDocumentInfo:
             d = self.sbase_dict(assignment)
             d["symbol"] = assignment.getSymbol() if assignment.isSetSymbol() else None
             d["math"] = astnode_to_latex(assignment.getMath())
-            d["derivedUnits"] = udef_to_latex(
-                assignment.getDerivedUnitDefinition(), model=model
-            )
+            d["derivedUnits"] = udef_to_string(assignment.getDerivedUnitDefinition())
             assignments.append(d)
 
         return assignments
@@ -780,9 +780,7 @@ class SBMLDocumentInfo:
             d = self.sbase_dict(rule)
             d["variable"] = self._rule_variable_to_string(rule)
             d["math"] = astnode_to_latex(rule.getMath()) if rule.isSetMath() else None
-            d["derivedUnits"] = udef_to_latex(
-                rule.getDerivedUnitDefinition(), model=model
-            )
+            d["derivedUnits"] = udef_to_string(rule.getDerivedUnitDefinition())
 
             type = d["sbmlType"]
             key = f"{type[0].lower()}{type[1:]}s"
@@ -861,8 +859,8 @@ class SBMLDocumentInfo:
                 d_law["math"] = (
                     astnode_to_latex(klaw.getMath()) if klaw.isSetMath() else None
                 )
-                d_law["derivedUnits"] = udef_to_latex(
-                    klaw.getDerivedUnitDefinition(), model=model
+                d_law["derivedUnits"] = udef_to_string(
+                    klaw.getDerivedUnitDefinition()
                 )
 
                 d_law["localParameters"] = []
@@ -872,12 +870,12 @@ class SBMLDocumentInfo:
                         "id": lp.getId() if lp.isSetId() else None,
                         "value": lp.getValue() if lp.isSetValue() else None,
                         "units_sid": lp.getUnits() if lp.isSetUnits() else None,
-                        "derivedUnits": udef_to_latex(
-                            lp.getDerivedUnitDefinition(), model=model
+                        "derivedUnits": udef_to_string(
+                            lp.getDerivedUnitDefinition()
                         ),
                     }
-                    lpar_info["units"] = udef_to_latex(
-                        lpar_info["units_sid"], model=model
+                    lpar_info["units"] = udef_to_string(
+                        model.getUnitDefinition(lpar_info["units_sid"])
                     )
                     d_law["localParameters"].append(lpar_info)
                 d["kineticLaw"] = d_law

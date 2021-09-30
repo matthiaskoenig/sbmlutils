@@ -54,7 +54,7 @@
             >
                 <template #body="slotProps">
                     <span v-if="slotProps.data.substanceUnits != null">
-                        <katex :mathStr="slotProps.data.substanceUnits" />
+                        <katex :mathStr="slotProps.data.substanceUnits" class="katex_unit"  />
                     </span>
                 </template>
             </Column>
@@ -66,7 +66,7 @@
             >
                 <template #body="slotProps">
                     <span v-if="slotProps.data.timeUnits != null">
-                        <katex :mathStr="slotProps.data.timeUnits" />
+                        <katex :mathStr="slotProps.data.timeUnits" class="katex_unit" />
                     </span>
                 </template>
             </Column>
@@ -78,7 +78,7 @@
             >
                 <template #body="slotProps">
                     <span v-if="slotProps.data.lengthUnits != null">
-                        <katex :mathStr="slotProps.data.lengthUnits" />
+                        <katex :mathStr="slotProps.data.lengthUnits" class="katex_unit"  />
                     </span>
                 </template>
             </Column>
@@ -90,7 +90,7 @@
             >
                 <template #body="slotProps">
                     <span v-if="slotProps.data.areaUnits != null">
-                        <katex :mathStr="slotProps.data.areaUnits" />
+                        <katex :mathStr="slotProps.data.areaUnits" class="katex_unit"  />
                     </span>
                 </template>
             </Column>
@@ -102,7 +102,7 @@
             >
                 <template #body="slotProps">
                     <span v-if="slotProps.data.volumeUnits != null">
-                        <katex :mathStr="slotProps.data.volumeUnits" />
+                        <katex :mathStr="slotProps.data.volumeUnits" class="katex_unit"  />
                     </span>
                 </template>
             </Column>
@@ -114,7 +114,7 @@
             >
                 <template #body="slotProps">
                     <span v-if="slotProps.data.extentUnits != null">
-                        <katex :mathStr="slotProps.data.extentUnits" />
+                        <katex :mathStr="slotProps.data.extentUnits" class="katex_unit"  />
                     </span>
                 </template>
             </Column>

@@ -92,12 +92,18 @@
                 field="initialAmount"
                 header="initial Amount"
             ></Column>
-<!--            <Column-->
-<!--                sortable-->
-<!--                style="width: fit-content"-->
-<!--                field="substanceUnits"-->
-<!--                header="substance Units"-->
-<!--            ></Column>-->
+            <Column
+                sortable
+                style="width: fit-content"
+                field="derivedUnits"
+                header="derived Units"
+            >
+                <template #body="slotProps">
+                    <span v-if="slotProps.data.derivedUnits != null">
+                        <katex :mathStr="slotProps.data.derivedUnits" class="katex_unit" />
+                    </span>
+                </template>
+            </Column>
             <Column
                 sortable
                 style="width: fit-content"
@@ -112,19 +118,7 @@
             <Column sortable style="width: fit-content" field="units" header="units">
                 <template #body="slotProps">
                     <span v-if="slotProps.data.units != null">
-                        <katex :mathStr="slotProps.data.units" />
-                    </span>
-                </template>
-            </Column>
-            <Column
-                sortable
-                style="width: fit-content"
-                field="derivedUnits"
-                header="derived Units"
-            >
-                <template #body="slotProps">
-                    <span v-if="slotProps.data.derivedUnits != null">
-                        <katex :mathStr="slotProps.data.derivedUnits" />
+                        <katex :mathStr="slotProps.data.units" class="katex_unit"/>
                     </span>
                 </template>
             </Column>

@@ -121,7 +121,7 @@
                             slotProps.data.kineticLaw.derivedUnits != null
                         "
                     >
-                        <katex :mathStr="slotProps.data.kineticLaw.derivedUnits" />
+                        <katex :mathStr="slotProps.data.kineticLaw.derivedUnits" class="katex_unit"/>
                     </span>
                 </template>
             </Column>

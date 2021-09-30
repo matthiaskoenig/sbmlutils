@@ -186,7 +186,8 @@ def _handle_error(e: Exception, info: Optional[Dict] = None) -> Dict[Any, Any]:
 
     :param info: optional dictionary with information.
     """
-
+    console.log(e)
+    raise e
     res = {
         "errors": [
             f"{e.__str__()}",
