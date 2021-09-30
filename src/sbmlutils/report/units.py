@@ -18,6 +18,8 @@ def udef_to_latex(ud: libsbml.UnitDefinition, model: libsbml.Model) -> Optional[
     return udef_to_string(ud, format="latex")
 
 
+# FIXME: cache the results
+# FIXME: handle exponents
 def udef_to_string(udef: Optional[libsbml.UnitDefinition], format: str="str") -> Optional[str]:
     """Render formatted string for units.
 
@@ -77,6 +79,7 @@ def udef_to_string(udef: Optional[libsbml.UnitDefinition], format: str="str") ->
             ustr = nom
         elif not nom and denom:
             f"1/{denom}"
+        ustr = ustr.replace("**")
 
     elif format =="latex":
         nom = nom.replace("*", " \\cdot ")
