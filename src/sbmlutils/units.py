@@ -1,28 +1,20 @@
 """Helper functions for formating and rendering units."""
-from typing import Dict, Optional
-import numpy as np
+from typing import Optional, Union
 
 import libsbml
+import numpy as np
 import pint
+
 from sbmlutils.console import console
+
 
 ureg = pint.UnitRegistry()
 ureg.define("item = dimensionless")
 Q_ = ureg.Quantity
 
 
-def udef_to_latex(ud: libsbml.UnitDefinition, model: libsbml.Model) -> Optional[str]:
-    """Convert unit definition to latex."""
-
-    if isinstance(ud, str):
-        ud = model.getUnitDefinition(ud)
-
-    return udef_to_string(ud, format="latex")
-
-
-# FIXME: cache the results
 def udef_to_string(
-    udef: Optional[libsbml.UnitDefinition], format: str = "str"
+    udef: Optional[Union[libsbml.UnitDefinition, str]], format: str = "str", model: Optional[libsbml.Model] = None
 ) -> Optional[str]:
     """Render formatted string for units.
 
@@ -38,6 +30,17 @@ def udef_to_string(
     """
     if udef is None:
         return None
+
+    ud: libsbml.UnitDefinition
+    if isinstance(udef, str):
+        # check for internal unit
+        if libsbml.UnitKind_forName("dimensionless") != libsbml.UNIT_KIND_INVALID:
+            return udef
+        else:
+            # get defined unit definition
+            ud = model.getUnitDefinition(ud)
+    else:
+        ud = udef
 
     # collect nominators and denominators
     nom: str = ""
@@ -124,18 +127,16 @@ if __name__ == "__main__":
 
     from sbmlutils.factory import *
 
-
     doc: libsbml.SBMLDocument = libsbml.SBMLDocument()
     model: libsbml.Model = doc.createModel()
 
-    for (key, definition, format, reference) in [
+    for (key, definition, _, _) in [
         ("mmole_per_min", "mmole/min", "str", "mmol/min"),
         ("m3", "meter^3", "str", "m^3"),
         ("m3", "meter^3/second", "str", "m^3/s"),
         ("mM", "mmole/liter", "str", "mmol/l"),
         ("ml_per_s_kg", "ml/s/kg", "str", "ml/s/kg"),
         ("dimensionless", "dimensionless", "str", "dimensionless"),
-
         # ("mM", "mmole/min", "latex", "\\frac{mmol}/{min}"),
     ]:
 

@@ -15,7 +15,7 @@ import numpy as np
 from sbmlutils.io import read_sbml
 from sbmlutils.metadata.miriam import BiologicalQualifierType, ModelQualifierType
 from sbmlutils.report.mathml import astnode_to_latex, symbol_to_latex
-from sbmlutils.report.units import udef_to_string
+from sbmlutils.units import udef_to_string
 
 
 def _get_sbase_attribute(sbase: libsbml.SBase, key: str) -> Optional[Any]:
@@ -544,7 +544,7 @@ class SBMLDocumentInfo:
             "extentUnits",
         ]:
             d[f"{key}_unit"] = _get_sbase_attribute(model, key)
-            d[key] = udef_to_string(model.getUnitDefinition(d[f"{key}_unit"]))
+            d[key] = udef_to_string(d[f"{key}_unit"], model)
             # print(d[f"{key}_unit"], '-> ', d[key])
 
         # FIXME: handle analoque to species
@@ -619,7 +619,7 @@ class SBMLDocumentInfo:
                 d["size"] = "NaN"
 
             d["units_sid"] = c.getUnits() if c.isSetUnits() else None
-            d["units"] = udef_to_string(model.getUnitDefinition(d["units_sid"]))
+            d["units"] = udef_to_string(d["units_sid"], model)
             d["derivedUnits"] = udef_to_string(c.getDerivedUnitDefinition())
 
             key = c.pk.split(":")[-1]
@@ -662,7 +662,7 @@ class SBMLDocumentInfo:
                     d[key] = "NaN"
 
             d["units_sid"] = s.getUnits() if s.isSetUnits() else None
-            d["units"] = udef_to_string(model.getUnitDefinition(d["units_sid"]))
+            d["units"] = udef_to_string(d["units_sid"], model)
             d["derivedUnits"] = udef_to_string(s.getDerivedUnitDefinition())
 
             # lookup in maps (PKs are in the form <SBMLType>:<id/metaID/name/etc).
@@ -732,10 +732,8 @@ class SBMLDocumentInfo:
                     d[key] = "NaN"
             d["constant"] = p.getConstant() if p.isSetConstant() else None
             d["units_sid"] = p.getUnits() if p.isSetUnits() else None
-            d["units"] = udef_to_string(model.getUnitDefinition(d["units_sid"]))
+            d["units"] = udef_to_string(d["units_sid"], model)
             d["derivedUnits"] = udef_to_string(p.getDerivedUnitDefinition())
-            print("Pararmeter", p.getId(), d["units_sid"], d["units"],
-                  d["derivedUnits"])
 
             key = p.pk.split(":")[-1]
             if key in self.maps["assignments"]:
@@ -859,9 +857,7 @@ class SBMLDocumentInfo:
                 d_law["math"] = (
                     astnode_to_latex(klaw.getMath()) if klaw.isSetMath() else None
                 )
-                d_law["derivedUnits"] = udef_to_string(
-                    klaw.getDerivedUnitDefinition()
-                )
+                d_law["derivedUnits"] = udef_to_string(klaw.getDerivedUnitDefinition())
 
                 d_law["localParameters"] = []
                 for i in range(len(klaw.getListOfLocalParameters())):
@@ -870,9 +866,7 @@ class SBMLDocumentInfo:
                         "id": lp.getId() if lp.isSetId() else None,
                         "value": lp.getValue() if lp.isSetValue() else None,
                         "units_sid": lp.getUnits() if lp.isSetUnits() else None,
-                        "derivedUnits": udef_to_string(
-                            lp.getDerivedUnitDefinition()
-                        ),
+                        "derivedUnits": udef_to_string(lp.getDerivedUnitDefinition()),
                     }
                     lpar_info["units"] = udef_to_string(
                         model.getUnitDefinition(lpar_info["units_sid"])
@@ -1255,16 +1249,7 @@ if __name__ == "__main__":
 
     print("-" * 80)
     from sbmlutils.test import (
-        COMP_ICG_BODY,
-        COMP_ICG_BODY_FLAT,
-        COMP_ICG_LIVER,
-        COMP_MODEL_DEFINITIONS_SBML,
-        DISTRIB_DISTRIBUTIONS_SBML,
-        DISTRIB_UNCERTAINTIES_SBML,
-        FBC_ECOLI_CORE_SBML,
-        FBC_RECON3D_SBML,
         GLUCOSE_SBML,
-        REPRESSILATOR_SBML,
     )
 
     for source in [
@@ -1287,3 +1272,19 @@ if __name__ == "__main__":
 
     with open(output_dir / "test.json", "w") as fout:
         fout.write(json_str)
+
+
+if __name__ == "__main__":
+    doc = libsbml.SBMLDocument()
+    model: libsbml.Model = doc.createModel()
+    udef = model.getUnitDefinition("dimensionless")
+    print("udef", udef)
+
+    print(libsbml.UnitKind_toString(libsbml.UNIT_KIND_DIMENSIONLESS))
+    udef = model.getUnitDefinition("metre")
+    print("udef", udef)
+
+    print(libsbml.UnitKind_forName("dimensionless"))
+    print(libsbml.UnitKind_forName("abc"))
+    print(libsbml.UnitKind_toString(libsbml.UNIT_KIND_INVALID))
+    print(libsbml.UnitKind_toString(36))
