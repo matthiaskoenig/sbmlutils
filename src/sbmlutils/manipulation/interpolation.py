@@ -1,4 +1,4 @@
-"""Create SBML/antimony files for interpolation of datasets.
+"""Create files for interpolation of datasets.
 
 https://github.com/allyhume/SBMLDataTools
 https://github.com/allyhume/SBMLDataTools.git
