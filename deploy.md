@@ -38,6 +38,8 @@ git checkout sbml4humans
 
 **start containers**
 ```
+./docker-purge.sh
+set -a 
 docker-compose -f docker-compose-production.yml up --force-recreate --build --detach
 ```
 
