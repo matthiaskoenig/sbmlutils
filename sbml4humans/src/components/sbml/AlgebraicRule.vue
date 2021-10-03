@@ -11,7 +11,7 @@
             </tr>
             <tr v-if="info.derivedUnits != null">
                 <td class="label-td"><div class="label">derivedUnits</div></td>
-                <td><katex :mathStr="info.derivedUnits" /></td>
+                <td><katex :mathStr="info.derivedUnits" class="katex_unit" /></td>
             </tr>
         </tbody>
     </table>
@@ -30,7 +30,7 @@
     <div class="data" v-if="info.derivedUnits != null">
         <div class="label">
             <strong>derivedUnits:</strong>
-            <katex :mathStr="info.derivedUnits" />
+            <katex :mathStr="info.derivedUnits" class="katex_unit" />
         </div>
     </div> -->
 </template>

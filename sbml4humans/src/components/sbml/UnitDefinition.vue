@@ -3,7 +3,7 @@
         <tbody>
             <tr v-if="info.units != null">
                 <td class="label-td"><div class="label">units</div></td>
-                <td><katex :mathStr="info.units" /></td>
+                <td><katex :mathStr="info.units" class="katex_unit" /></td>
             </tr>
             <tr v-if="info.port != null">
                 <td class="label-td"><div class="label">port</div></td>

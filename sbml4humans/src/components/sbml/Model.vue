@@ -13,7 +13,7 @@
                 <td class="label-td"><div class="label">timeUnits</div></td>
                 <td>
                     <span v-if="info.timeUnits != null">
-                        <katex :mathStr="info.timeUnits" />
+                        <katex :mathStr="info.timeUnits" class="katex_unit" />
                     </span>
                 </td>
             </tr>
@@ -21,7 +21,7 @@
                 <td class="label-td"><div class="label">lengthUnits</div></td>
                 <td>
                     <span v-if="info.lengthUnits != null">
-                        <katex :mathStr="info.lengthUnits" />
+                        <katex :mathStr="info.lengthUnits" class="katex_unit" />
                     </span>
                 </td>
             </tr>
@@ -29,7 +29,7 @@
                 <td class="label-td"><div class="label">areaUnits</div></td>
                 <td>
                     <span v-if="info.areaUnits != null">
-                        <katex :mathStr="info.areaUnits" />
+                        <katex :mathStr="info.areaUnits" class="katex_unit" />
                     </span>
                 </td>
             </tr>
@@ -37,7 +37,7 @@
                 <td class="label-td"><div class="label">volumeUnits</div></td>
                 <td>
                     <span v-if="info.volumeUnits != null">
-                        <katex :mathStr="info.volumeUnits" />
+                        <katex :mathStr="info.volumeUnits" class="katex_unit" />
                     </span>
                 </td>
             </tr>
@@ -45,7 +45,7 @@
                 <td class="label-td"><div class="label">extentUnits</div></td>
                 <td>
                     <span v-if="info.extentUnits != null">
-                        <katex :mathStr="info.extentUnits" />
+                        <katex :mathStr="info.extentUnits" class="katex_unit" />
                     </span>
                 </td>
             </tr>

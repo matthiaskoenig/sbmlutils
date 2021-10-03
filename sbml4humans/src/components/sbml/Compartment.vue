@@ -21,11 +21,11 @@
             </tr>
             <tr v-if="info.units != null">
                 <td class="label-td"><div class="label">units</div></td>
-                <td><katex :mathStr="info.units" /></td>
+                <td><katex :mathStr="info.units" class="katex_unit" /></td>
             </tr>
             <tr v-if="info.derivedUnits != null">
                 <td class="label-td"><div class="label">derivedUnits</div></td>
-                <td><katex :mathStr="info.derivedUnits" /></td>
+                <td><katex :mathStr="info.derivedUnits" class="katex_unit" /></td>
             </tr>
             <tr v-if="info.assignment != null">
                 <td class="label-td"><div class="label">assignment</div></td>
