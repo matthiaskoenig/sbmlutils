@@ -70,10 +70,11 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .detail-container {
-    word-wrap: break-word;
+    //word-wrap: break-word;
     overflow-y: scroll;
     overflow-x: scroll;
-    font-size: small;
+    font-size: smaller;
     height: 100%;
+    width: 100%;
 }
 </style>

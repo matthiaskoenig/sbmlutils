@@ -1,26 +1,22 @@
 <template>
+     <div class="p-ml-2 p-mt-3" style="font-weight: bold; font-size: x-large;">MODELS</div>
     <div>
-        <h3 class="p-ml-2">Document & Models</h3>
-
-        <PanelMenu :model="coreComponents">
+        <PanelMenu :model="coreComponents" style="width: 100%">
             <template #item="{ item }">
-                <div class="clickable" @click="showDetail(item.sbmlType, item.pk)">
+                <div class="clickable" @click="showDetail(item.sbmlType, item.pk)" :style="`background-color: ${item.color}`">
                     <div>
-                        <span :style="`color: ${item.color}`">
+                        <span style="black">
                             <font-awesome-icon
                                 :icon="item.icon"
                                 :fixedWidth="true"
                                 :border="false"
                                 size="1x"
-                                class="p-mr-2"
+                                class="p-mr-1"
                             ></font-awesome-icon>
                         </span>
-                        <span class="p-mr-2">
-                            <strong>{{ item.sbmlType }}</strong>
+                        <span>
+                            <strong>{{ item.sbmlType }}</strong> <span v-if="item.id != null">{{ item.id }}</span>
                         </span>
-                    </div>
-                    <div class="p-ml-1">
-                        <span v-if="item.id != null"> id: {{ item.id }}</span>
                     </div>
                 </div>
             </template>
@@ -68,12 +64,18 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .clickable {
-    padding: 8px;
+    padding: 4px;
     cursor: pointer;
+    border-top: 1.0px;
+    border-top-style: solid;
+    border-bottom: 1.0px;
+    border-bottom-style: solid;
+
+    opacity: 100%;
 }
 
 .clickable:hover {
     cursor: pointer;
-    background-color: #dfdfdf;
+    opacity: 85%;
 }
 </style>

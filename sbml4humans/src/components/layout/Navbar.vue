@@ -15,13 +15,6 @@
                         >SBML4Humans</span
                     >
                 </router-link>
-                <InputText
-                    placeholder="Search"
-                    type="text"
-                    style="height: 35px; margin-top: 2px"
-                    v-if="['report', 'Report'].includes($route.name)"
-                    @input="updateSearchQuery"
-                />
             </div>
         </template>
     </menubar>
@@ -66,15 +59,6 @@ export default defineComponent({
                 },
             ],
         };
-    },
-    methods: {
-        /**
-         * Updates the searchQuery in Vuex state/localStorage to the currently
-         * searched string in the search box.
-         */
-        updateSearchQuery(e: Event): void {
-            store.dispatch("updateSearchQuery", (e.target as HTMLInputElement).value);
-        },
     },
 });
 </script>

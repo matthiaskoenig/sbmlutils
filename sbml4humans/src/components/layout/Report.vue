@@ -1,20 +1,24 @@
 <template>
-    <div class="p-grid p-pt-2">
-        <div class="p-col-2 p-pl-2">
+    <Splitter>
+        <SplitterPanel :size="15" :min-size="10" style="background-color: #f6f6f6;">
+            <InputText
+                    placeholder="Search"
+                    type="text"
+                    style="height: 35px; width:100%"
+                    v-if="['report', 'Report'].includes($route.name)"
+                    @input="updateSearchQuery"/>
+
             <document-menu />
             <component-menu />
-        </div>
-        <div class="p-col-10">
-            <div class="grid">
-                <div class="p-col-12 p-md-8 column">
-                    <tables-container />
-                </div>
-                <div class="p-col-12 p-md-4 column">
-                    <detail-container />
-                </div>
-            </div>
-        </div>
-    </div>
+
+        </SplitterPanel>
+        <SplitterPanel class="panel p-p-2" :size="65" :min-size="40" style="background-color: white;">
+            <tables-container />
+        </SplitterPanel>
+        <SplitterPanel class="panel p-py-2 p-pl-2" :size="20" :min-size="10" style="background-color: #f6f6f6;">
+            <detail-container />
+        </SplitterPanel>
+    </Splitter>
 </template>
 
 <script lang="ts">
@@ -42,13 +46,25 @@ export default defineComponent({
             return store.getters.reportBasics;
         },
     },
+    methods: {
+        /**
+         * Updates the searchQuery in Vuex state/localStorage to the currently
+         * searched string in the search box.
+         */
+        updateSearchQuery(e: Event): void {
+            store.dispatch("updateSearchQuery", (e.target as HTMLInputElement).value);
+        },
+    },
 });
 </script>
 
 <style lang="scss">
-.column {
-    border-left: 1px solid #bfbfbf;
-    height: 89vh;
+
+.panel {
     overflow-y: scroll;
+    //overflow-x: scroll;
+    //height: 100%;
+    width: 100%;
 }
+
 </style>

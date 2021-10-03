@@ -1,9 +1,9 @@
 <template>
-    <h3 class="p-ml-2">Objects</h3>
+    <div class="p-ml-2 p-mt-3" style="font-weight: bold; font-size: x-large;">COMPONENTS</div>
     <PanelMenu :model="items">
         <template #item="{ item }">
-            <div class="clickable" v-on:click="focusTable(item.sbmlType)">
-                <span :style="`color: ${item.color}`">
+            <div class="clickable" v-on:click="focusTable(item.sbmlType)" :style="`background-color: ${item.color}`">
+                <span style="color: black">
                     <font-awesome-icon
                         :icon="item.icon"
                         :fixedWidth="true"
@@ -70,11 +70,18 @@ export default defineComponent({
 
 <style lang="scss">
 .clickable {
-    padding: 8px;
+    padding: 4px;
     cursor: pointer;
+    border-top: 1.0px;
+    border-top-style: solid;
+    border-bottom: 1.0px;
+    border-bottom-style: solid;
+
+    opacity: 100%;
 }
+
 .clickable:hover {
     cursor: pointer;
-    background-color: #dfdfdf;
+    opacity: 85%;
 }
 </style>

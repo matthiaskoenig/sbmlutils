@@ -1,7 +1,8 @@
 <template>
     <div class="p-d-flex p-jc-between">
         <strong class="sbmlType">
-            <font-awesome-icon :icon="`${icon}`" class="p-mr-1" />{{ info.sbmlType }}
+            <font-awesome-icon :icon="`${icon}`" class="p-mr-1" />
+            {{ info.sbmlType }}
         </strong>
     </div>
     <h2><strong><code>{{ info.id }}</code></strong><span v-if="info.name" class="p-pl-4">{{ info.name }}</span></h2>

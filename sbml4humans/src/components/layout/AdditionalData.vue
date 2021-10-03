@@ -1,8 +1,8 @@
 <template>
     <div class="p-ml-1">
-        <div class="p-mb-3" v-if="info.cvterms != null">
-            <div class="label"><strong>cvterms</strong></div>
-            <div class="p-ml-4">
+        <div v-if="info.cvterms != null">
+            <div class="label">cvterms</div>
+            <div class="p-ml-1">
                 <div v-for="cvterm in info.cvterms" :key="cvterm.qualifier">
                     <CVTermBadge
                         v-for="resource in cvterm.resources"
@@ -15,8 +15,10 @@
         </div>
 
         <div v-if="info.notes != null">
-            <strong>notes</strong> <br />
-            <div class="p-ml-4" v-html="info.notes"></div>
+            <div class="label">notes</div>
+            <hr />
+            <div class="p-ml-1" v-html="info.notes"></div>
+            <hr />
         </div>
 
         <CodeContainer :info="info" />
@@ -42,3 +44,7 @@ export default defineComponent({
     },
 });
 </script>
+
+<style lang="scss" scoped>
+@import "@/assets/styles/scss/SBase.scss";
+</style>
