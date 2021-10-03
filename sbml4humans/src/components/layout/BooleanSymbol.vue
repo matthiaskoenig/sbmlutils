@@ -3,17 +3,17 @@
         <span v-if="value">
             <font-awesome-icon
                 icon="check-circle"
-                style="color: green; font-size: 14px"
+                style="color: darkgreen; font-size: 13px"
             />
         </span>
         <span v-else-if="!value">
             <font-awesome-icon
                 icon="times-circle"
-                style="color: red; font-size: 14px"
+                style="color: red; font-size: 13px"
             />
         </span>
         <span v-else>
-            <font-awesome-icon icon="ban black" style="color: red; font-size: 14px" />
+            <font-awesome-icon icon="ban black" style="color: black; font-size: 13px" />
         </span>
     </div>
 </template>
