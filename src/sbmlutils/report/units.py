@@ -126,6 +126,7 @@ def udef_to_string(
 
 if __name__ == "__main__":
     import libsbml
+
     from sbmlutils.factory import *
 
     doc: libsbml.SBMLDocument = libsbml.SBMLDocument()
