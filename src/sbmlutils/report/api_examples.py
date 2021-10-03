@@ -1,14 +1,13 @@
 """Example models for the sbml4humans API."""
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 import libsbml
 from pydantic import BaseModel, FilePath
 
-from sbmlutils import EXAMPLES_DIR
 from sbmlutils.console import console
 from sbmlutils.io import read_sbml
-from sbmlutils.test import BIOMODELS_CURATED_PATH, EXAMPLE_MODELS
+from sbmlutils.test import API_EXAMPLE_MODELS, BIOMODELS_CURATED_PATH
 
 
 class ExampleMetaData(BaseModel):
@@ -64,37 +63,6 @@ def biomodels_examples() -> List[ExampleMetaData]:
     return examples
 
 
-creator_example_ids = [
-    "amount_species",
-    "annotation",
-    "assignment",
-    "boundary_condition",
-    "compartment_species_reaction",
-    "complete_model",
-    "distrib_comp",
-    "distrib_distributions",
-    "distrib_uncertainties",
-    "fbc_example",
-    "fbc_mass_charge",
-    "linear_chain",
-    "minimal_model",
-    "minimal_model_comp",
-    "model_composition",
-    "model_definitions",
-    "multiple_substance_units",
-    "nan",
-    "notes",
-    "random_network",
-    "reaction",
-    "simple_reaction_with_units",
-    "unit_definitions",
-    "units_namespace",
-]
-
-examples = [read_example_metadata(p) for p in EXAMPLE_MODELS]
-examples += [
-    read_example_metadata(EXAMPLES_DIR / f"{eid}.xml") for eid in creator_example_ids
-]
+examples = [read_example_metadata(p) for p in API_EXAMPLE_MODELS]
 examples += biomodels_examples()
-
 examples_info = {emd.id: emd for emd in examples}

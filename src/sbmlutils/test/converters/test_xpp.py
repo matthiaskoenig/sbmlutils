@@ -5,7 +5,7 @@ import pytest
 
 from sbmlutils.converters import xpp, xpp_examples
 from sbmlutils.io.sbml import validate_sbml
-from sbmlutils.test import DATA_DIR
+from sbmlutils.test import TESTDATA_DIR
 
 
 model_ids = [
@@ -24,7 +24,7 @@ def xpp_check(
     tmp_path: Path, ode_id: str, Nall: int = 0, Nerr: int = 0, Nwarn: int = 0
 ) -> None:
     sbml_file = tmp_path / f"{ode_id}.xml"
-    xpp_file = DATA_DIR / "xpp" / f"{ode_id}.ode"
+    xpp_file = TESTDATA_DIR / "xpp" / f"{ode_id}.ode"
     xpp.xpp2sbml(xpp_file=xpp_file, sbml_file=sbml_file)
     vresults = validate_sbml(sbml_file, units_consistency=False)
     assert vresults.all_count == Nall

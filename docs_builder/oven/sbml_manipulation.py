@@ -17,7 +17,7 @@ from pprint import pprint
 from sbmlutils import comp
 from sbmlutils import validation
 from sbmlutils import manipulation
-from sbmlutils.test.data import data_dir
+from sbmlutils.test.testdata import data_dir
 
 merge_dir = os.path.join(data_dir, 'manipulation', 'merge')
 

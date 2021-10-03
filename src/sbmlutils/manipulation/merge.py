@@ -12,7 +12,7 @@ import libsbml
 from sbmlutils import log, validation
 from sbmlutils.comp import comp, flatten_sbml
 from sbmlutils.io import read_sbml, validate_sbml, write_sbml
-from sbmlutils.test import DATA_DIR
+from sbmlutils.test import TESTDATA_DIR
 
 
 logger = log.get_logger(__name__)

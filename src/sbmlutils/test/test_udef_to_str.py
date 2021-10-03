@@ -2,7 +2,7 @@ import libsbml
 import pytest
 
 from sbmlutils.factory import UnitDefinition
-from sbmlutils.units import udef_to_string
+from sbmlutils.report.units import udef_to_string
 
 
 doc = libsbml.SBMLDocument()

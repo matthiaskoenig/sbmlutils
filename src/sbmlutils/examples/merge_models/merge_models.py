@@ -4,13 +4,13 @@ from pathlib import Path
 from pprint import pprint
 
 from sbmlutils.manipulation import merge_models
-from sbmlutils.test import DATA_DIR
+from sbmlutils.test import TESTDATA_DIR
 
 
 def merge_models_example() -> None:
     """Demonstrate merging of models."""
 
-    input_dir = DATA_DIR / "manipulation" / "merge"
+    input_dir = TESTDATA_DIR / "manipulation" / "merge"
 
     # dictionary of ids & paths of models which should be combined
     # here we just bring together the first Biomodels

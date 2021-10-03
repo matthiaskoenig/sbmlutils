@@ -9,7 +9,7 @@ from sbmlutils import comp, validation
 from sbmlutils.examples.merge_models.merge_models import merge_models_example
 from sbmlutils.io import write_sbml
 from sbmlutils.manipulation import merge
-from sbmlutils.test import DATA_DIR
+from sbmlutils.test import TESTDATA_DIR
 
 
 def test_merge_models_example() -> None:
@@ -19,7 +19,7 @@ def test_merge_models_example() -> None:
 
 def test_biomodel_merge(tmp_path: Path) -> None:
     """Test model merging."""
-    merge_dir = DATA_DIR / "manipulation" / "merge"
+    merge_dir = TESTDATA_DIR / "manipulation" / "merge"
 
     # dictionary of ids & paths of models which should be combined
     # here we just bring together the first Biomodels

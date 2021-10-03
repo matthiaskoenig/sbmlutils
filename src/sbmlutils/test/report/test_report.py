@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 
 from sbmlutils.report import sbmlreport
-from sbmlutils.test import ALL_SBML_PATHS, GLUCOSE_SBML, GZ_SBML, sbml_paths_idfn
+from sbmlutils.test import ALL_SBML_PATHS, GZ_SBML, sbml_paths_idfn
 
 
 def check_report(sbml_path: Path, tmp_path: Path, validate: bool) -> None:

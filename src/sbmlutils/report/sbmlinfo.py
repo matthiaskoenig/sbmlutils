@@ -15,7 +15,7 @@ import numpy as np
 from sbmlutils.io import read_sbml
 from sbmlutils.metadata.miriam import BiologicalQualifierType, ModelQualifierType
 from sbmlutils.report.mathml import astnode_to_latex, symbol_to_latex
-from sbmlutils.units import udef_to_string
+from sbmlutils.report.units import udef_to_string
 
 
 def _get_sbase_attribute(sbase: libsbml.SBase, key: str) -> Optional[Any]:
@@ -545,7 +545,6 @@ class SBMLDocumentInfo:
         ]:
             d[f"{key}_unit"] = _get_sbase_attribute(model, key)
             d[key] = udef_to_string(d[f"{key}_unit"], model)
-            # print(d[f"{key}_unit"], '-> ', d[key])
 
         # FIXME: handle analoque to species
         if model.isSetConversionFactor():
@@ -1248,9 +1247,7 @@ if __name__ == "__main__":
         output_dir.mkdir(parents=True, exist_ok=True)
 
     print("-" * 80)
-    from sbmlutils.test import (
-        GLUCOSE_SBML,
-    )
+    from sbmlutils.test import GLUCOSE_SBML
 
     for source in [
         # COMP_ICG_BODY,
@@ -1273,8 +1270,6 @@ if __name__ == "__main__":
     with open(output_dir / "test.json", "w") as fout:
         fout.write(json_str)
 
-
-if __name__ == "__main__":
     doc = libsbml.SBMLDocument()
     model: libsbml.Model = doc.createModel()
     udef = model.getUnitDefinition("dimensionless")
