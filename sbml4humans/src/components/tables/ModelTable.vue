@@ -125,8 +125,8 @@
                 header="conversion Factor"
             >
                 <template #body="slotProps">
-                    <span v-if="slotProps.data.conversionFactor != null">
-                        <katex :mathStr="slotProps.data.conversionFactor" />
+                    <span v-if="slotProps.data.conversionFactor != null && slotProps.data.conversionFactor.sid">
+                    {{ slotProps.data.conversionFactor.sid }} = {{ slotProps.data.conversionFactor.value }} {{ slotProps.data.conversionFactor.units }}
                     </span>
                 </template>
             </Column>

@@ -52,8 +52,8 @@
             <tr v-if="info.conversionFactor != null">
                 <td class="label-td"><div class="label">conversionFactor</div></td>
                 <td>
-                    <span v-if="info.conversionFactor != null">
-                        <katex :mathStr="info.conversionFactor" />
+                    <span v-if="info.conversionFactor != null && info.conversionFactor.sid">
+                    {{ info.conversionFactor.sid }} = {{ info.conversionFactor.value }} {{ info.conversionFactor.units }}
                     </span>
                 </td>
             </tr>
