@@ -204,7 +204,7 @@ def get_annotation_resource(resource: str) -> Dict[Any, Any]:
     try:
         annotation = RDFAnnotation(qualifier=BQB.IS, resource=resource)
         data = RDFAnnotationData(annotation=annotation)
-        return data.to_dict()
+        return data.to_dict()  # type: ignore
 
     except Exception as e:
         return _handle_error(e)
