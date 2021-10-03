@@ -17,7 +17,7 @@
                     </p>
                 </div>
                 <div class="p-d-flex content">
-                    <a href="http://sbml4humans.de" class="image">
+                    <a href="https://sbml4humans.de" class="image">
                         <img
                             src="@/assets/images/sbml4humans-192x192.png"
                             height="50"
