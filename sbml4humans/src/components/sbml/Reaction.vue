@@ -1,6 +1,10 @@
 <template>
     <table class="table table-borderless table-sm table-condensed compact">
         <tbody>
+            <tr v-if="info.equation != null">
+                <td class="label-td"><div class="label">equation</div></td>
+                <td><span class="p-ml-2" v-html="info.equation"></span></td>
+            </tr>
             <tr v-if="info.reversible != null">
                 <td class="label-td"><div class="label">reversible</div></td>
                 <td>
@@ -10,10 +14,6 @@
                     />
                     <boolean-symbol v-else :value="Boolean(false)" />
                 </td>
-            </tr>
-            <tr v-if="info.equation != null">
-                <td class="label-td"><div class="label">equation</div></td>
-                <td><span class="p-ml-2" v-html="info.equation"></span></td>
             </tr>
             <tr v-if="info.fast != null">
                 <td class="label-td"><div class="label">fast</div></td>
@@ -64,27 +64,28 @@
             </tr>
 
             <tr v-if="info.fbc != null">
-                <td class="label-td"><div class="label">fbc</div></td>
+                <td class="label-td"><div class="label">gpa</div></td>
                 <td>
-                    <div v-if="info.fbc.bounds">
-                        <div v-if="info.fbc.bounds.lowerFluxBound">
-                            lowerFluxBound:
-                            <span>
-                                id: {{ info.fbc.bounds.lowerFluxBound.id }}, value:
-                                {{ info.fbc.bounds.lowerFluxBound.value }}</span
-                            >
-                        </div>
-                        <div v-if="info.fbc.bounds.upperFluxBound">
-                            upperFluxBound:
-                            <span>
-                                id: {{ info.fbc.bounds.upperFluxBound.id }}, value:
-                                {{ info.fbc.bounds.upperFluxBound.value }}</span
-                            >
-                        </div>
-                    </div>
                     <div v-if="info.fbc.gpa">{{ info.fbc.gpa }}</div>
                 </td>
             </tr>
+            <tr v-if="info.fbc != null">
+                <td class="label-td"><div class="label">lowerFluxBound</div></td>
+                <td>
+                    <div v-if="info.fbc.bounds && info.fbc.bounds.lowerFluxBound && info.fbc.bounds.lowerFluxBound.id">
+                        {{ info.fbc.bounds.lowerFluxBound.id }} = {{ info.fbc.bounds.lowerFluxBound.value }}
+                    </div>
+                </td>
+            </tr>
+            <tr v-if="info.fbc != null">
+                <td class="label-td"><div class="label">upperFluxBound</div></td>
+                <td>
+                    <div v-if="info.fbc.bounds && info.fbc.bounds.upperFluxBound && info.fbc.bounds.upperFluxBound.id">
+                        {{ info.fbc.bounds.upperFluxBound.id }} = {{ info.fbc.bounds.upperFluxBound.value }}
+                    </div>
+                </td>
+            </tr>
+
             <tr v-if="info.compartment != null">
                 <td class="label-td"><div class="label">compartment</div></td>
                 <td>
