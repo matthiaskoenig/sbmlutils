@@ -48,10 +48,7 @@ def udef_to_string(
         if libsbml.UnitKind_forName(udef) != libsbml.UNIT_KIND_INVALID:
             return short_names.get(udef, udef)
         else:
-            # get defined unit definition
-            console.print("defined unit definition")
-            ud = model.getUnitDefinition(udef)
-            console.print(ud)
+            ud = model.getUnitDefinition(udef)  # type: ignore
     else:
         ud = udef
 
@@ -129,8 +126,6 @@ def udef_to_string(
 
 if __name__ == "__main__":
     import libsbml
-    from rich import print
-
     from sbmlutils.factory import *
 
     doc: libsbml.SBMLDocument = libsbml.SBMLDocument()
@@ -155,10 +150,3 @@ if __name__ == "__main__":
         console.print(udef)
         console.print(udef_to_string(udef, format="str"))
         console.print(udef_to_string(udef, format="latex"))
-
-    # udef = model.getUnitDefinition("dimensionless")
-    # print(udef)
-    # udef = model.getUnitDefinition("item")
-    # print(udef)
-    # udef = model.getUnitDefinition("meter")
-    # print(udef)

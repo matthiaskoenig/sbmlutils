@@ -76,7 +76,7 @@ api.add_middleware(
 
 
 @api.get("/api/examples", tags=["examples"])
-def examples() -> Dict:
+def examples() -> Dict[Any, Any]:
     """Get examples for reports."""
     try:
         example: ExampleMetaData
@@ -87,7 +87,7 @@ def examples() -> Dict:
 
 
 @api.get("/api/examples/{example_id}", tags=["examples"])
-def example(example_id: str) -> Response:
+def example(example_id: str) -> Dict[Any, Any]:
     """Get specific example."""
     uid = uuid.uuid4().hex
     try:
@@ -99,52 +99,46 @@ def example(example_id: str) -> Response:
         else:
             content = {"error": f"example for id does not exist '{example_id}'"}
 
-        return _render_json_content(content)
+        return content
     except Exception as e:
         return _handle_error(e)
 
 
 @api.post("/api/file", tags=["reports"])
-async def report_from_file(request: Request) -> Response:
+async def report_from_file(request: Request) -> Dict[Any, Any]:
     """Upload file and return JSON report."""
     uid = uuid.uuid4().hex
     try:
         file_data = await request.form()
         file_content = await file_data["source"].read()  # type: ignore
-        json_content = json_for_sbml(uid, source=file_content)
-
-        return _render_json_content(json_content)
+        return json_for_sbml(uid, source=file_content)
 
     except Exception as e:
         return _handle_error(e, info={"uid": uid})
 
 
 @api.get("/api/url", tags=["reports"])
-def report_from_url(url: str) -> Response:
+def report_from_url(url: str) -> Dict[Any, Any]:
     """Get JSON report via URL."""
     uid = uuid.uuid4().hex
     try:
         response = requests.get(url)
         response.raise_for_status()
-        json_content = json_for_sbml(uid, source=response.text)
-
-        return _render_json_content(json_content)
+        return json_for_sbml(uid, source=response.text)
 
     except Exception as e:
         return _handle_error(e, info={"uid": str(uid), "url": url})
 
 
 @api.post("/api/content", tags=["reports"])
-async def get_report_from_content(request: Request) -> Response:
+async def get_report_from_content(request: Request) -> Dict[Any, Any]:
     """Get JSON report from file contents."""
     uid: str = uuid.uuid4().hex
     file_content: Optional[str] = None
     try:
         file_content_bytes: bytes = await request.body()
         file_content = file_content_bytes.decode("utf-8")
-        json_content = json_for_sbml(uid, source=file_content)
-
-        return _render_json_content(json_content)
+        return json_for_sbml(uid, source=file_content)
 
     except Exception as e:
         return _handle_error(e, info={"uid": uid, "content": str(file_content)})
@@ -186,8 +180,6 @@ def _handle_error(e: Exception, info: Optional[Dict] = None) -> Dict[Any, Any]:
 
     :param info: optional dictionary with information.
     """
-    console.log(e)
-    raise e
     res = {
         "errors": [
             f"{e.__str__()}",
@@ -197,26 +189,11 @@ def _handle_error(e: Exception, info: Optional[Dict] = None) -> Dict[Any, Any]:
         "info": info,
     }
 
-    return res  # Response(content=json.dumps(res), media_type="application/json")
-
-
-def _render_json_content(content: Dict) -> Response:
-    """Render content to JSON."""
-    # use minimal dict
-    # content = clean_empty(content)
-    json_bytes = json.dumps(
-        content,
-        ensure_ascii=False,
-        allow_nan=True,
-        indent=0,
-        separators=(",", ":"),
-    ).encode("utf-8")
-
-    return Response(content=json_bytes, media_type="application/json")
+    return res
 
 
 @api.get("/api/annotation_resource", tags=["metadata"])
-def get_annotation_resource(resource: str) -> Response:
+def get_annotation_resource(resource: str) -> Dict[Any, Any]:
     """Get information for annotation_resource.
 
     Used to resolve annotation information.
@@ -227,9 +204,7 @@ def get_annotation_resource(resource: str) -> Response:
     try:
         annotation = RDFAnnotation(qualifier=BQB.IS, resource=resource)
         data = RDFAnnotationData(annotation=annotation)
-        info = data.to_dict()
-
-        return Response(content=json.dumps(info), media_type="application/json")
+        return data.to_dict()
 
     except Exception as e:
         return _handle_error(e)

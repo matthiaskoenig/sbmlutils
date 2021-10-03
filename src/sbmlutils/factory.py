@@ -3046,6 +3046,9 @@ def create_model(
         raise TypeError("create_model() missing 1 required argument: 'output_dir'")
 
     # preprocess
+    if isinstance(models, Model):
+        models = [models]
+
     model = Model.merge_models(models)
     doc: libsbml.SBMLDocument = Document(
         model=model,
