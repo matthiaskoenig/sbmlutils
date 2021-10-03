@@ -1,10 +1,7 @@
 <template>
-    <div class="tablet p-d-flex p-mr-3" v-on:click="showDetail">
-        <div class="p-d-flex p-jc-between">
-            <font-awesome-icon :icon="`${icon}`" class="p-mt-1 p-mr-1" />
-            {{ id }}
-        </div>
-    </div>
+    <Tag class="tablet p-mr-1 p-mt-1" v-on:click="showDetail" rounded="True" style="background-color: lightgrey; color: black;">
+        <font-awesome-icon :icon="`${icon}`" /><span class="p-ml-1">{{ id }}</span>
+    </Tag>
 </template>
 
 <script lang="ts">
@@ -67,8 +64,8 @@ export default defineComponent({
 //@import "@/assets/styles/scss/Toaster.scss";
 
 .tablet {
-    padding: 1px 0px;
-    width: fit-content;
+    //padding: 1px 0px;
+    //width: fit-content;
     cursor: pointer;
 }
 </style>

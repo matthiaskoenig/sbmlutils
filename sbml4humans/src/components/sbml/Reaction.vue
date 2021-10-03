@@ -31,9 +31,6 @@
                     <div v-if="info.kineticLaw.math != null">
                         <Katex :mathStr="info.kineticLaw.math" />
                     </div>
-                    <div v-if="info.kineticLaw.derivedUnits != null">
-                        derivedUnits: <Katex :mathStr="info.kineticLaw.derivedUnits" />
-                    </div>
                     <div v-if="info.kineticLaw.listOfLocalParameters != null">
                         listOfLocalParameters:
                         <ul title="listOfLocalParameters">
@@ -57,6 +54,15 @@
                     </div>
                 </td>
             </tr>
+            <tr v-if="info.kineticLaw != null">
+                 <td class="label-td"><div class="label">derivedUnits</div></td>
+                <td>
+                    <div v-if="info.kineticLaw.derivedUnits != null">
+                        <katex :mathStr="info.kineticLaw.derivedUnits" class="katex_unit" />
+                    </div>
+                </td>
+            </tr>
+
             <tr v-if="info.fbc != null">
                 <td class="label-td"><div class="label">fbc</div></td>
                 <td>
@@ -100,7 +106,7 @@
             <tr v-if="info.listOfReactants != null && info.listOfReactants.length > 0">
                 <td class="label-td"><div class="label">reactants</div></td>
                 <td>
-                    <div
+                    <span
                         v-for="reactant in info.listOfReactants"
                         :key="reactant.species"
                     >
@@ -108,26 +114,18 @@
                             :pk="'Species:' + reactant.species"
                             :sbmlType="String('Species')"
                         />
-                        [<span v-if="reactant.stoichiometry != null"
-                            >stoichiometry: {{ reactant.stoichiometry }}</span
-                        >
-                        <span v-if="reactant.constant != null">, constant</span>]
-                    </div>
+                    </span>
                 </td>
             </tr>
             <tr v-if="info.listOfProducts != null && info.listOfProducts.length > 0">
                 <td class="label-td"><div class="label">products</div></td>
                 <td>
-                    <div v-for="product in info.listOfProducts" :key="product.species">
+                    <span v-for="product in info.listOfProducts" :key="product.species">
                         <SBMLLink
                             :pk="'Species:' + product.species"
                             :sbmlType="String('Species')"
                         />
-                        [<span v-if="product.stoichiometry != null"
-                            >stoichiometry: {{ product.stoichiometry }}</span
-                        >
-                        <span v-if="product.constant != null">, constant</span>]
-                    </div>
+                    </span>
                 </td>
             </tr>
             <tr v-if="info.listOfModifiers != null && info.listOfModifiers.length > 0">
