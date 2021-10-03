@@ -77,27 +77,10 @@
                     />
                 </td>
             </tr>
-            <tr
-                v-if="
-                    info.conversionFactor != null &&
-                    (info.conversionFactor.sid ||
-                        info.conversionFactor.value ||
-                        info.conversionFactor.units)
-                "
-            >
+            <tr v-if="info.conversionFactor != null && info.conversionFactor.sid">
                 <td class="label-td"><div class="label">conversionFactor</div></td>
                 <td>
-                    <ul title="Conversion Factor">
-                        <li v-if="info.conversionFactor.sid">
-                            sid: {{ info.conversionFactor.sid }}
-                        </li>
-                        <li v-if="info.conversionFactor.value">
-                            value: {{ info.conversionFactor.value }}
-                        </li>
-                        <li v-if="info.conversionFactor.units">
-                            units: {{ info.conversionFactor.units }}
-                        </li>
-                    </ul>
+                    {{ info.conversionFactor.sid }} = {{ info.conversionFactor.value }} {{ info.conversionFactor.units }}
                 </td>
             </tr>
             <tr v-if="info.fbc && (info.fbc.formula || info.fbc.charge)">
