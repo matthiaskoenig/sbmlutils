@@ -14,8 +14,8 @@
 FROM tiangolo/uvicorn-gunicorn-fastapi:python3.9
 
 # Caching of python requirements
-COPY ./requirements.txt /code/requirements.txt
-CMD pip install --requirement /code/requirements.txt
+# COPY ./requirements.txt /code/requirements.txt
+# CMD pip install --requirement /code/requirements.txt
 
 # Adds application code to the image
 # COPY . /code
