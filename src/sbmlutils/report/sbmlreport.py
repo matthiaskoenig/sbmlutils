@@ -38,7 +38,7 @@ def create_report(
     """Create sbml4humans report."""
 
     # FIXME: implement static report
-    logger.warning(f"No support for 'create_report' in sbmlutils-v{__version__}.")
+    logger.info(f"No support for 'create_report' in sbmlutils-v{__version__}.")
     pass
 
 

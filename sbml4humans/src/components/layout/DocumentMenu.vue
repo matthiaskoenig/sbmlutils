@@ -1,26 +1,31 @@
 <template>
-     <div class="p-ml-2 p-mt-3" style="font-weight: bold; font-size: x-large;">MODELS</div>
     <div>
-        <PanelMenu :model="coreComponents" style="width: 100%">
-            <template #item="{ item }">
-                <div class="clickable" @click="showDetail(item.sbmlType, item.pk)" :style="`background-color: ${item.color}`">
-                    <div>
-                        <span style="black">
+        <div class="p-ml-2 p-mt-3" style="font-weight: bold; font-size: x-large;">
+            MODELS
+        </div>
+        <div>
+            <PanelMenu :model="coreComponents" style="width: 100%">
+                <template #item="{ item }">
+                    <div class="clickable" @click="showDetail(item.sbmlType, item.pk)">
+                        <div>
+                        <span :style="`color: ${item.color}`">
                             <font-awesome-icon
                                 :icon="item.icon"
                                 :fixedWidth="true"
                                 :border="false"
-                                size="1x"
+                                    size="1x"
                                 class="p-mr-1"
                             ></font-awesome-icon>
                         </span>
-                        <span>
-                            <strong>{{ item.sbmlType }}</strong> <span v-if="item.id != null">{{ item.id }}</span>
+                            <span>
+                            <strong>{{ item.sbmlType }}</strong> <span
+                                v-if="item.id != null">{{ item.id }}</span>
                         </span>
+                        </div>
                     </div>
-                </div>
-            </template>
-        </PanelMenu>
+                </template>
+            </PanelMenu>
+        </div>
     </div>
 </template>
 
@@ -28,7 +33,7 @@
 import store from "@/store";
 import colors from "@/data/colorScheme";
 import icons from "@/data/fontAwesome";
-import { defineComponent } from "@vue/runtime-core";
+import {defineComponent} from "@vue/runtime-core";
 
 export default defineComponent({
     methods: {
@@ -71,11 +76,12 @@ export default defineComponent({
     border-bottom: 1.0px;
     border-bottom-style: solid;
 
-    opacity: 100%;
+    //opacity: 100%;
 }
 
 .clickable:hover {
     cursor: pointer;
-    opacity: 85%;
+    //opacity: 85%;
+    background-color: white;
 }
 </style>

@@ -1,4 +1,5 @@
 <template>
+    <div>
     <div class="p-ml-2 p-mt-3" style="font-weight: bold; font-size: x-large;">COMPONENTS</div>
     <PanelMenu :model="items">
         <template #item="{ item }">
@@ -18,6 +19,7 @@
             </div>
         </template>
     </PanelMenu>
+    </div>
 </template>
 
 <script lang="ts">
