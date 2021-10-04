@@ -28,12 +28,11 @@
         <p>
             To embed the report use the
             <code style="font-size: small"
-                >https://sbml4humans.de/model_url?url=URL</code
+                >{{ frontend_url }}/model_url?url=URL</code
             >
             endpoint. Example:
             <a
                 :href="example_url"
-
             >
                 <code style="font-size: small"
                     >{{ example_url }}</code
@@ -66,7 +65,6 @@ export default defineComponent({
         updateURL(event): void {
             this.modelValue = event.target.value;
         },
-
         async submitForm(): Promise<void> {
             store.dispatch("fetchReportUsingURL", this.modelValue);
         },
@@ -76,8 +74,11 @@ export default defineComponent({
         loading(): boolean {
             return store.state.fileLoading;
         },
-        example_url(): string{
-            return VUE_APP_FRONTENDURL + "/url?url=https://raw.githubusercontent.com/matthiaskoenig/sbmlutils/develop/src/sbmlutils/test/data/models/glucose/Hepatic_glucose_3.xml"
+        frontend_url(): string {
+            return VUE_APP_FRONTENDURL
+        },
+        example_url(): string {
+            return VUE_APP_FRONTENDURL + "/model_url?url=https://raw.githubusercontent.com/matthiaskoenig/sbmlutils/develop/src/sbmlutils/resources/models/glucose/Hepatic_glucose_3.xml"
         }
     },
 });

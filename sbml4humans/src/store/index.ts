@@ -19,7 +19,7 @@ if (!VUE_APP_BASEURL) {
     VUE_APP_FRONTENDURL = "http://0.0.0.0:3456";
 }
 
-console.log("URLS: " + VUE_APP_APIURL + " | " + VUE_APP_FRONTENDURL);
+console.log("URL: " + VUE_APP_FRONTENDURL + " | " + VUE_APP_APIURL);
 
 export default createStore({
     state: {
@@ -278,6 +278,7 @@ export default createStore({
 
             // assembling the request parameters
             const url = VUE_APP_APIURL + "/url?url=" + payload;
+            console.log("Create report for url: " + url)
             const res = await axios.get(url);
 
             context.commit("SET_FILE_LOADING", false);
