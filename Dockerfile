@@ -33,8 +33,10 @@ RUN pip install -e .
 
 ENV MODULE_NAME="sbmlutils.report.api"
 ENV VARIABLE_NAME="api"
+ENV PORT="1444"
 
-EXPOSE 80
+# EXPOSE 80
+EXPOSE 1444
 
 # Run the start script, it will check for an /app/prestart.sh script (e.g. for migrations)
 # And then will start Gunicorn with Uvicorn
