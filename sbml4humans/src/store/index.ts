@@ -221,7 +221,7 @@ export default createStore({
         },
         // get list of all available examples from backend API
         async fetchExamples(context) {
-            const url = VUE_APP_APIURL + "/examples/";
+            const url = VUE_APP_APIURL + "/examples";
             const res = await axios.get(url);
             if (res.status === 200) {
                 checkAPIResponse(res);
@@ -240,9 +240,7 @@ export default createStore({
         // generate report for one particular example
         async fetchExampleReport(context, payload) {
             context.commit("SET_EXAMPLE_LOADING", true);
-
             const url = VUE_APP_APIURL + "/examples/" + payload.exampleId;
-
             const res = await axios.get(url);
 
             context.commit("SET_EXAMPLE_LOADING", false);
