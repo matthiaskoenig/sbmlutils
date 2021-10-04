@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div style="opacity: 1">
     <div class="p-ml-2 p-mt-3" style="font-weight: bold; font-size: x-large;">COMPONENTS</div>
     <PanelMenu :model="items">
         <template #item="{ item }">
@@ -71,19 +71,5 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-.clickable {
-    padding: 4px;
-    cursor: pointer;
-    border-top: 1.0px;
-    border-top-style: solid;
-    border-bottom: 1.0px;
-    border-bottom-style: solid;
-
-    opacity: 100%;
-}
-
-.clickable:hover {
-    cursor: pointer;
-    opacity: 85%;
-}
+@import "@/assets/styles/scss/Menu.scss";
 </style>
