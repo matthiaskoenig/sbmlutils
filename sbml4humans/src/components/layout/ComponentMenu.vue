@@ -3,7 +3,7 @@
     <div class="p-ml-2 p-mt-3" style="font-weight: bold; font-size: x-large;">COMPONENTS</div>
     <PanelMenu :model="items">
         <template #item="{ item }">
-            <div class="clickable" v-on:click="focusTable(item.sbmlType)" :style="`background-color: ${item.color}`">
+            <div class="menuitem" v-on:click="focusTable(item.sbmlType)" :style="`background-color: ${item.color}`">
                 <span style="color: black">
                     <font-awesome-icon
                         :icon="item.icon"

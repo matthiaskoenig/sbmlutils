@@ -6,9 +6,9 @@
         <div>
             <PanelMenu :model="coreComponents" style="width: 100%">
                 <template #item="{ item }">
-                    <div class="clickable" @click="showDetail(item.sbmlType, item.pk)">
+                    <div class="menuitem" @click="showDetail(item.sbmlType, item.pk)" :style="`background-color: ${item.color}`">
                         <div>
-                        <span :style="`color: ${item.color}`">
+                        <span :style="`color: black`">
                             <font-awesome-icon
                                 :icon="item.icon"
                                 :fixedWidth="true"
