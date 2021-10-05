@@ -1,27 +1,23 @@
 <template>
     <div style="opacity: 1">
-        <div class="p-ml-2 p-mt-3" style="font-weight: bold; font-size: x-large;">
-            MODELS
-        </div>
+        <div class="p-ml-2 p-mt-3 menuheader">MODELS</div>
         <div>
             <PanelMenu :model="coreComponents" style="width: 100%">
                 <template #item="{ item }">
-                    <div class="menuitem" @click="showDetail(item.sbmlType, item.pk)" :style="`background-color: ${item.color}`">
-                        <div>
-                        <span :style="`color: black`">
+                    <div class="menuitem" @click="showDetail(item.sbmlType, item.pk)">
+                        <span class="button p-mr-2">
                             <font-awesome-icon
                                 :icon="item.icon"
                                 :fixedWidth="true"
                                 :border="false"
                                     size="1x"
-                                class="p-mr-1"
+                                color="white"
                             ></font-awesome-icon>
                         </span>
-                            <span>
+                        <span>
                             <strong>{{ item.sbmlType }}</strong> <span
-                                v-if="item.id != null">{{ item.id }}</span>
+                            v-if="item.id != null">{{ item.id }}</span>
                         </span>
-                        </div>
                     </div>
                 </template>
             </PanelMenu>

@@ -1,16 +1,16 @@
 <template>
     <div style="opacity: 1">
-    <div class="p-ml-2 p-mt-3" style="font-weight: bold; font-size: x-large;">COMPONENTS</div>
+    <div class="p-ml-2 p-mt-3 menuheader">COMPONENTS</div>
     <PanelMenu :model="items">
         <template #item="{ item }">
-            <div class="menuitem" v-on:click="focusTable(item.sbmlType)" :style="`background-color: ${item.color}`">
-                <span style="color: black">
+            <div class="menuitem" v-on:click="focusTable(item.sbmlType)">
+                <span class="button p-mr-2">
                     <font-awesome-icon
                         :icon="item.icon"
                         :fixedWidth="true"
                         :border="false"
                         size="1x"
-                        class="p-mr-2"
+                        color="white"
                     ></font-awesome-icon>
                 </span>
                 <span class="p-mr-2">
