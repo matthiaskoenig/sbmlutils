@@ -18,28 +18,16 @@
         >
             <template #header class="table-header">
                 <div class="p-d-flex p-jc-between p-ai-center sbmlType">
-                    <font-awesome-icon :icon="`${icon}`" class="p-mr-1" />
-                    {{ sbmlType === "Species" ? sbmlType : sbmlType + "s" }} ({{
-                        count
-                    }})
+                    <font-awesome-icon :icon="`${icon}`" :fixed-width="true" class="p-mr-1" />
+                    {{ header }}
                 </div>
             </template>
             <Column sortable class="column" field="id" header="id">
                 <template #body="props">
-                    <strong><code>{{ props.data.id }}</code></strong>
-                    <font-awesome-icon
-                        v-if="props.data.port != null"
-                        icon="plug"
-                        :title="props.data.port.pk.split(':')[1]"
-                    />
+                    <TemplateId :props="props" />
                 </template>
             </Column>
-            <Column
-                sortable
-                class="column"
-                field="name"
-                header="name"
-            ></Column>
+            <Column sortable class="column" field="name" header="name" />
             <Column
                 sortable
                 class="column"
@@ -47,9 +35,7 @@
                 header="substance Units"
             >
                 <template #body="props">
-                    <span v-if="props.data.substanceUnits != null">
-                        <katex :mathStr="props.data.substanceUnits" class="katex_unit"  />
-                    </span>
+                    <TemplateUnits :units="props.data.substanceUnits" />
                 </template>
             </Column>
             <Column
@@ -59,9 +45,7 @@
                 header="time Units"
             >
                 <template #body="props">
-                    <span v-if="props.data.timeUnits != null">
-                        <katex :mathStr="props.data.timeUnits" class="katex_unit" />
-                    </span>
+                    <TemplateUnits :units="props.data.timeUnits" />
                 </template>
             </Column>
             <Column
@@ -71,9 +55,7 @@
                 header="length Units"
             >
                 <template #body="props">
-                    <span v-if="props.data.lengthUnits != null">
-                        <katex :mathStr="props.data.lengthUnits" class="katex_unit"  />
-                    </span>
+                    <TemplateUnits :units="props.data.lengthUnits" />
                 </template>
             </Column>
             <Column
@@ -83,9 +65,7 @@
                 header="area Units"
             >
                 <template #body="props">
-                    <span v-if="props.data.areaUnits != null">
-                        <katex :mathStr="props.data.areaUnits" class="katex_unit"  />
-                    </span>
+                    <TemplateUnits :units="props.data.areaUnits" />
                 </template>
             </Column>
             <Column
@@ -95,9 +75,7 @@
                 header="volume Units"
             >
                 <template #body="props">
-                    <span v-if="props.data.volumeUnits != null">
-                        <katex :mathStr="props.data.volumeUnits" class="katex_unit"  />
-                    </span>
+                    <TemplateUnits :units="props.data.volumeUnits" />
                 </template>
             </Column>
             <Column
@@ -107,9 +85,7 @@
                 header="extent Units"
             >
                 <template #body="props">
-                    <span v-if="props.data.extentUnits != null">
-                        <katex :mathStr="props.data.extentUnits" class="katex_unit"  />
-                    </span>
+                    <TemplateUnits :units="props.data.extentUnits" />
                 </template>
             </Column>
             <Column
@@ -119,9 +95,7 @@
                 header="conversion Factor"
             >
                 <template #body="props">
-                    <span v-if="props.data.conversionFactor != null && props.data.conversionFactor.sid">
-                    {{ props.data.conversionFactor.sid }} = {{ props.data.conversionFactor.value }} {{ props.data.conversionFactor.units }}
-                    </span>
+                    <TemplateConversionFactor :conversionFactor="props.data.conversionFactor" />
                 </template>
             </Column>
         </DataTable>
@@ -132,8 +106,16 @@
 import store from "@/store/index";
 import tableMixin from "@/mixins/tableMixin";
 import { defineComponent } from "@vue/runtime-core";
+import TemplateId from "@/components/tables/TemplateId.vue";
+import TemplateUnits from "@/components/tables/TemplateUnits.vue";
+import TemplateConversionFactor from "@/components/tables/TemplateConversionFactor.vue";
 
 export default defineComponent({
+    components: {
+        TemplateId,
+        TemplateUnits,
+        TemplateConversionFactor,
+    },
     props: {
         listOfPKs: {
             type: Array,

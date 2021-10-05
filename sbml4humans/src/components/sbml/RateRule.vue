@@ -7,11 +7,11 @@
             </tr>
             <tr v-if="info.math != null">
                 <td class="label-td"><div class="label">math</div></td>
-                <td><katex :mathStr="info.math" /></td>
+                <td><Katex :mathStr="info.math" /></td>
             </tr>
             <tr v-if="info.derivedUnits != null">
                 <td class="label-td"><div class="label">derivedUnits</div></td>
-                <td><katex :mathStr="info.derivedUnits" class="katex_unit" /></td>
+                <td><Katex :mathStr="info.derivedUnits" class="katex_unit" /></td>
             </tr>
         </tbody>
     </table>
@@ -19,8 +19,12 @@
 
 <script>
 import TYPES from "@/data/sbmlComponents";
+import Katex from "@/components/layout/Katex";
 
 export default {
+    components: {
+        Katex,
+    },
     props: {
         info: TYPES.RateRule,
     },

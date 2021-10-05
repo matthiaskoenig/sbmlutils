@@ -17,41 +17,18 @@
             @row-click="openComponent($event.data.pk)"
         >
             <template #header class="table-header">
-                <div class="p-d-flex p-jc-between p-ai-center">
-                    <strong class="sbmlType">
-                        <font-awesome-icon :icon="`${icon}`" class="p-mr-1" />
-                        {{ sbmlType === "Species" ? sbmlType : sbmlType + "s" }} ({{
-                            count
-                        }})
-                    </strong>
-                    <span class="p-input-icon-left p-ml-auto">
-                        <i class="pi pi-search" />
-                        <InputText
-                            v-model="filters['global'].value"
-                            class="searchBar"
-                            placeholder="Search"
-                        />
-                    </span>
+                <div class="p-d-flex p-jc-between p-ai-center sbmlType">
+                    <font-awesome-icon :icon="`${icon}`" :fixed-width="true" class="p-mr-1" />
+                    {{ header }}
                 </div>
             </template>
-
             <Column sortable class="column" field="id" header="id">
                 <template #body="props">
-                    <strong><code>{{ props.data.id }}</code></strong>
+                    <TemplateId :props="props" />
                 </template>
             </Column>
-            <Column
-                sortable
-                class="column"
-                field="name"
-                header="name"
-            ></Column>
-            <Column
-                sortable
-                class="column"
-                field="type"
-                header="type"
-            ></Column>
+            <Column sortable class="column" field="name" header="name" />
+            <Column sortable class="column" field="type" header="type" />
         </DataTable>
     </div>
 </template>
@@ -60,8 +37,14 @@
 import store from "@/store/index";
 import tableMixin from "@/mixins/tableMixin";
 import { defineComponent } from "@vue/runtime-core";
+import TemplateId from "@/components/tables/TemplateId.vue";
+import TemplateUnits from "@/components/tables/TemplateUnits.vue";
+import TemplateConversionFactor from "@/components/tables/TemplateConversionFactor.vue";
 
 export default defineComponent({
+    components: {
+        TemplateId,
+    },
     props: {
         listOfPKs: {
             type: Array,

@@ -18,35 +18,25 @@
         >
             <template #header class="table-header">
                 <div class="p-d-flex p-jc-between p-ai-center sbmlType">
-                    <font-awesome-icon :icon="`${icon}`" class="p-mr-1" />
-                    {{ sbmlType === "Species" ? sbmlType : sbmlType + "s" }} ({{
-                        count
-                    }})
+                    <font-awesome-icon :icon="`${icon}`" :fixed-width="true" class="p-mr-1" />
+                    {{ header }}
                 </div>
             </template>
             <Column sortable class="column" field="id" header="id">
                 <template #body="props">
-                    <strong><code>{{ props.data.id }}</code></strong>
-                    <font-awesome-icon
-                        v-if="props.data.port != null"
-                        icon="plug"
-                        :title="props.data.port.pk.split(':')[1]"
-                    />
+                    <TemplateId :props="props" />
                 </template>
             </Column>
             <Column sortable class="column" field="name" header="name" />
             <Column sortable class="column" field="variable" header="variable" />
             <Column sortable class="column" field="math" header="math">
                 <template #body="props">
-                    <katex v-if="props.data.math != null" :mathStr="props.data.math" />
+                    <Katex v-if="props.data.math != null" :mathStr="props.data.math" />
                 </template>
             </Column>
             <Column sortable class="column" field="derivedUnits" header="derivedUnits">
                 <template #body="props">
-                    <katex v-if="props.data.derivedUnits != null"
-                           :mathStr="props.data.derivedUnits"
-                           class="katex_unit"
-                    />
+                    <TemplateUnits :units="props.data.derivedUnits" />
                 </template>
             </Column>
         </DataTable>
@@ -57,8 +47,14 @@
 import store from "@/store/index";
 import tableMixin from "@/mixins/tableMixin";
 import { defineComponent } from "@vue/runtime-core";
+import TemplateId from "@/components/tables/TemplateId.vue";
+import TemplateUnits from "@/components/tables/TemplateUnits.vue";
 
 export default defineComponent({
+    components: {
+        TemplateId,
+        TemplateUnits,
+    },
     props: {
         listOfPKs: {
             type: Array,

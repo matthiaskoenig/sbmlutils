@@ -17,52 +17,34 @@
             @row-click="openComponent($event.data.pk)"
         >
             <template #header class="table-header">
-                <div class="p-d-flex p-jc-between p-ai-center">
-                    <strong class="sbmlType">
-                        <font-awesome-icon :icon="`${icon}`" class="p-mr-1" />
-                        {{ sbmlType === "Species" ? sbmlType : sbmlType + "s" }} ({{
-                            count
-                        }})
-                    </strong>
-                    <span class="p-input-icon-left p-ml-auto">
-                        <i class="pi pi-search" />
-                        <InputText
-                            v-model="filters['global'].value"
-                            class="searchBar"
-                            placeholder="Search"
-                        />
-                    </span>
+                <div class="p-d-flex p-jc-between p-ai-center sbmlType">
+                    <font-awesome-icon
+                        :icon="`${icon}`"
+                        :fixed-width="true"
+                        class="p-mr-1"
+                    />
+                    {{ header }}
                 </div>
             </template>
-
             <Column sortable class="column" field="id" header="id">
                 <template #body="props">
-                    <strong><code>{{ props.data.id }}</code></strong>
+                    <TemplateId :props="props" />
                 </template>
             </Column>
-            <Column
-                sortable
-                class="column"
-                field="name"
-                header="name"
-            ></Column>
+            <Column sortable class="column" field="name" header="name" />
             <Column field="useValuesFromTriggerTime" header="useValuesFromTriggerTime">
                 <template #body="props">
                     <span v-if="props.data.useValuesFromTriggerTime != null">
-                        <boolean :value="props.data.useValuesFromTriggerTime" />
+                        <BooleanSymbol :value="props.data.useValuesFromTriggerTime" />
                     </span>
                 </template>
             </Column>
-            <Column
-                sortable
-                class="column"
-                field="trigger"
-                header="triggerMath"
-            >
+            <Column sortable class="column" field="trigger" header="triggerMath">
                 <template #body="props">
-                    <span v-if="props.data.trigger.math != null">
-                        <katex :mathStr="props.data.trigger.math" />
-                    </span>
+                    <Katex
+                        v-if="props.data.trigger.math != null"
+                        :mathStr="props.data.trigger.math"
+                    />
                 </template>
             </Column>
             <Column
@@ -72,28 +54,26 @@
                 header="triggerPersistent"
             >
                 <template #body="props">
-                    <span v-if="props.data.trigger.persistent != null">
-                        <boolean :value="props.data.trigger.persistent" />
-                    </span>
+                    <BooleanSymbol
+                        v-if="props.data.trigger.persistent != null"
+                        :value="props.data.trigger.persistent"
+                    />
                 </template>
             </Column>
-            <Column
-                sortable
-                class="column"
-                field="priority"
-                header="priority"
-            >
+            <Column sortable class="column" field="priority" header="priority">
                 <template #body="props">
-                    <span v-if="props.data.priority != null">
-                        <katex :mathStr="props.data.priority" />
-                    </span>
+                    <Katex
+                        v-if="props.data.priority != null"
+                        :mathStr="props.data.priority"
+                    />
                 </template>
             </Column>
             <Column sortable class="column" field="delay" header="delay">
                 <template #body="props">
-                    <span v-if="props.data.delay != null">
-                        <katex :mathStr="props.data.delay" />
-                    </span>
+                    <Katex
+                        v-if="props.data.delay != null"
+                        :mathStr="props.data.delay"
+                    />
                 </template>
             </Column>
         </DataTable>
@@ -105,11 +85,13 @@ import store from "@/store/index";
 import tableMixin from "@/mixins/tableMixin";
 import { defineComponent } from "@vue/runtime-core";
 
-import Boolean from "@/components/layout/BooleanSymbol.vue";
+import BooleanSymbol from "@/components/layout/BooleanSymbol.vue";
+import TemplateId from "@/components/tables/TemplateId.vue";
 
 export default defineComponent({
     components: {
-        Boolean,
+        TemplateId,
+        BooleanSymbol,
     },
 
     props: {

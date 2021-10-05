@@ -7,6 +7,8 @@
             :rowsPerPageOptions="[10, 25, 50]"
             v-model:filters="filters"
             filterDisplay="menu"
+            expander
+            :autoLayout="true"
             sortMode="multiple"
             v-if="objects.length > 0"
             style="font-size: 12px"
@@ -30,7 +32,7 @@
             <Column sortable class="column" field="name" header="name" />
             <Column sortable class="column" field="constant" header="constant">
                 <template #body="props">
-                    <boolean-symbol :value="props.data.constant" />
+                    <BooleanSymbol :value="props.data.constant" />
                 </template>
             </Column>
             <Column
@@ -45,16 +47,26 @@
                     <TemplateUnits :units="props.data.units" />
                 </template>
             </Column>
-            <Column sortable class="column" field="derivedUnits" header="derived Units">
+            <Column
+                sortable
+                class="column"
+                field="derivedUnits"
+                header="derived Units"
+            >
                 <template #body="props">
                     <TemplateUnits :units="props.data.derivedUnits" />
                 </template>
             </Column>
-            <Column sortable class="column" field="assignment" header="assignment">
+            <Column
+                sortable
+                class="column"
+                field="assignment"
+                header="assignment"
+            >
                 <template #body="props">
-                    <TemplateMath
+                    <Katex
                         v-if="props.data.assignment != null"
-                        :math="props.data.assignment.math"
+                        :mathStr="props.data.assignment.math"
                     />
                 </template>
             </Column>
@@ -68,13 +80,13 @@ import tableMixin from "@/mixins/tableMixin";
 import { defineComponent } from "@vue/runtime-core";
 import TemplateId from "@/components/tables/TemplateId.vue";
 import TemplateUnits from "@/components/tables/TemplateUnits.vue";
-import TemplateMath from "@/components/tables/TemplateMath.vue";
+import BooleanSymbol from "@/components/layout/BooleanSymbol.vue";
 
 export default defineComponent({
     components: {
+        BooleanSymbol,
         TemplateId,
         TemplateUnits,
-        TemplateMath,
     },
     props: {
         listOfPKs: {

@@ -24,29 +24,22 @@
             </template>
             <Column sortable class="column" field="id" header="id">
                 <template #body="props">
-                    <strong><code>{{ props.data.id }}</code></strong>
-                    <font-awesome-icon
-                        v-if="props.data.port != null"
-                        icon="plug"
-                        :title="props.data.port.pk.split(':')[1]"
-                    />
+                    <TemplateId :props="props" />
                 </template>
             </Column>
             <Column sortable class="column" field="name" header="name" />
             <Column sortable class="column" field="variable" header="variable" />
             <Column sortable class="column" field="math" header="math">
                 <template #body="props">
-                    <span v-if="props.data.math != null">
-                        <katex :mathStr="props.data.math" />
-                    </span>
+                    <Katex
+                        v-if="props.data.math != null"
+                        :mathStr="props.data.math"
+                    />
                 </template>
             </Column>
             <Column sortable class="column" field="derivedUnits" header="derivedUnits">
                 <template #body="props">
-                    <katex v-if="props.data.derivedUnits != null"
-                        :mathStr="props.data.derivedUnits"
-                        class="katex_unit"
-                    />
+                    <TemplateUnits :units="props.data.derivedUnits" />
                 </template>
             </Column>
         </DataTable>
@@ -57,8 +50,16 @@
 import store from "@/store/index";
 import tableMixin from "@/mixins/tableMixin";
 import { defineComponent } from "@vue/runtime-core";
+import TemplateId from "@/components/tables/TemplateId.vue";
+import TemplateUnits from "@/components/tables/TemplateUnits.vue";
+import Katex from "@/components/layout/Katex.vue";
 
 export default defineComponent({
+    components: {
+        Katex,
+        TemplateId,
+        TemplateUnits,
+    },
     props: {
         listOfPKs: {
             type: Array,

@@ -17,59 +17,33 @@
             @row-click="openComponent($event.data.pk)"
         >
             <template #header class="table-header">
-                <div class="p-d-flex p-jc-between p-ai-center">
-                    <strong class="sbmlType">
-                        <font-awesome-icon :icon="`${icon}`" class="p-mr-1" />
-                        {{ sbmlType === "Species" ? sbmlType : sbmlType + "s" }} ({{
-                            count
-                        }})
-                    </strong>
-                    <span class="p-input-icon-left p-ml-auto">
-                        <i class="pi pi-search" />
-                        <InputText
-                            v-model="filters['global'].value"
-                            class="searchBar"
-                            placeholder="Search"
-                        />
-                    </span>
+                <div class="p-d-flex p-jc-between p-ai-center sbmlType">
+                    <font-awesome-icon :icon="`${icon}`" :fixed-width="true" class="p-mr-1" />
+                    {{ header }}
                 </div>
             </template>
-
             <Column sortable class="column" field="id" header="id">
                 <template #body="props">
-                    <strong><code>{{ props.data.id }}</code></strong>
+                    <TemplateId :props="props" />
                 </template>
             </Column>
-            <Column
-                field="name"
-                header="name"
-                sortable
-                class="column"
-            ></Column>
-            <Column sortable class="column" field="port" header="port">
-                <template #body="props">
-                    <span v-if="props.data.port != null">
-                        <font-awesome-icon icon="plug" :title="props.data.port.pk.split(':')[1]"/>
-                    </span>
-                </template>
-            </Column>
+            <Column sortable class="column" field="name" header="name" />
             <Column
                 sortable
                 class="column"
                 field="reversible"
                 header="reversible"
-                bodyStyle="text-align: center"
             >
                 <template #body="props">
-                    <boolean-symbol :value="props.data.reversible" />
+                    <BooleanSymbol :value="props.data.reversible" />
                 </template>
             </Column>
             <Column
-                field="compartment"
-                header="compartment"
                 sortable
                 class="column"
-            ></Column>
+                field="compartment"
+                header="compartment"
+            />
             <Column
                 sortable
                 class="column"
@@ -85,27 +59,20 @@
                 class="column"
                 field="fast"
                 header="fast"
-                bodyStyle="text-align: center"
             >
                 <template #body="props">
-                    <boolean-symbol :value="props.data.fast" />
+                    <BooleanSymbol :value="props.data.fast" />
                 </template>
             </Column>
             <Column
-                field="kineticLaw"
-                header="math"
                 sortable
                 class="column"
+                field="kineticLaw"
+                header="math"
             >
                 <template #body="props">
-                    <span
-                        v-if="
-                            props.data.kineticLaw != null &&
-                            props.data.kineticLaw.math != null
-                        "
-                    >
-                        <katex :mathStr="props.data.kineticLaw.math" />
-                    </span>
+                    <Katex v-if="props.data.kineticLaw != null &&
+                            props.data.kineticLaw.math != null" :mathStr="props.data.kineticLaw.math" />
                 </template>
             </Column>
             <Column
@@ -115,14 +82,8 @@
                 class="column"
             >
                 <template #body="props">
-                    <span
-                        v-if="
-                            props.data.kineticLaw != null &&
-                            props.data.kineticLaw.derivedUnits != null
-                        "
-                    >
-                        <katex :mathStr="props.data.kineticLaw.derivedUnits" class="katex_unit"/>
-                    </span>
+                    <TemplateUnits v-if="props.data.kineticLaw != null"
+                                   :units="props.data.kineticLaw.derivedUnits" />
                 </template>
             </Column>
         </DataTable>
@@ -133,8 +94,16 @@
 import store from "@/store/index";
 import tableMixin from "@/mixins/tableMixin";
 import { defineComponent } from "@vue/runtime-core";
+import BooleanSymbol from "@/components/layout/BooleanSymbol.vue";
+import TemplateId from "@/components/tables/TemplateId.vue";
+import TemplateUnits from "@/components/tables/TemplateUnits.vue";
 
 export default defineComponent({
+    components: {
+        TemplateId,
+        TemplateUnits,
+        BooleanSymbol
+    },
     props: {
         listOfPKs: {
             type: Array,

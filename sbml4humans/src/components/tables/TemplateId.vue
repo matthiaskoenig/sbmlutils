@@ -6,6 +6,7 @@
         v-if="props.data.port != null"
         icon="plug"
         :title="props.data.port.pk.split(':')[1]"
+        class="p-ml-1"
     />
 </template>
 

@@ -18,42 +18,24 @@
         >
             <template #header class="table-header">
                 <div class="p-d-flex p-jc-between p-ai-center sbmlType">
-                    <font-awesome-icon :icon="`${icon}`" class="p-mr-1" />
-                    {{ sbmlType === "Species" ? sbmlType : sbmlType + "s" }} ({{
-                        count
-                    }})
+                    <font-awesome-icon :icon="`${icon}`" :fixed-width="true" class="p-mr-1" />
+                    {{ header }}
                 </div>
             </template>
-
             <Column sortable class="column" field="id" header="id">
                 <template #body="props">
-                    <strong><code>{{ props.data.id }}</code></strong>
-                    <font-awesome-icon
-                        v-if="props.data.port != null"
-                        icon="plug"
-                        :title="props.data.port.pk.split(':')[1]"
+                    <TemplateId :props="props" />
+                </template>
+            </Column>
+            <Column sortable class="column" field="name" header="name" />
+            <Column sortable class="column" field="math" header="math">
+                <template #body="props">
+                    <Katex v-if="props.data.math != null"
+                        :mathStr="props.data.math"
                     />
                 </template>
             </Column>
-            <Column
-                sortable
-                class="column"
-                field="name"
-                header="name"
-            ></Column>
-            <Column sortable class="column" field="math" header="math">
-                <template #body="props">
-                    <span v-if="props.data.math != null">
-                        <katex :mathStr="props.data.math" />
-                    </span>
-                </template>
-            </Column>
-            <Column
-                sortable
-                class="column"
-                field="message"
-                header="message"
-            ></Column>
+            <Column sortable class="column" field="message" header="message" />
         </DataTable>
     </div>
 </template>
@@ -62,8 +44,12 @@
 import store from "@/store/index";
 import tableMixin from "@/mixins/tableMixin";
 import { defineComponent } from "@vue/runtime-core";
+import TemplateId from "@/components/tables/TemplateId.vue";
 
 export default defineComponent({
+    components: {
+        TemplateId,
+    },
     props: {
         listOfPKs: {
             type: Array,
