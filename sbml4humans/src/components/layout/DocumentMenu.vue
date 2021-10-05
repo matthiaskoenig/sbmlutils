@@ -1,6 +1,6 @@
 <template>
     <div style="opacity: 1">
-        <div class="p-ml-2 p-mt-3 menuheader">MODELS</div>
+        <div class="p-ml-2 p-mt-4 menuheader">MODELS</div>
         <div>
             <PanelMenu :model="coreComponents" style="width: 100%">
                 <template #item="{ item }">
@@ -11,7 +11,7 @@
                                 :fixedWidth="true"
                                 :border="false"
                                     size="1x"
-                                color="white"
+                                :color="item.color"
                             ></font-awesome-icon>
                         </span>
                         <span>

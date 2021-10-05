@@ -1,6 +1,8 @@
 <template>
     <Splitter>
         <SplitterPanel :size="15" :min-size="10" style="background-color: #f6f6f6;">
+            <div class="p-ml-2 p-mt-1 menuheader">SEARCH</div>
+
             <InputText
                     placeholder="Search"
                     type="text"
@@ -59,12 +61,11 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-
+@import "@/assets/styles/scss/Menu.scss";
 .panel {
     overflow-y: scroll;
     //overflow-x: scroll;
     //height: 100%;
     width: 100%;
 }
-
 </style>

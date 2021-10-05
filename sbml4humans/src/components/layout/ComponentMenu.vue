@@ -1,6 +1,6 @@
 <template>
     <div style="opacity: 1">
-    <div class="p-ml-2 p-mt-3 menuheader">COMPONENTS</div>
+    <div class="p-ml-2 p-mt-4 menuheader">COMPONENTS</div>
     <PanelMenu :model="items">
         <template #item="{ item }">
             <div class="menuitem" v-on:click="focusTable(item.sbmlType)">
@@ -10,7 +10,7 @@
                         :fixedWidth="true"
                         :border="false"
                         size="1x"
-                        color="white"
+                        :color="item.color"
                     ></font-awesome-icon>
                 </span>
                 <span class="p-mr-2">
