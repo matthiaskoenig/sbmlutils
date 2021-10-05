@@ -35,64 +35,64 @@
                 </div>
             </template>
 
-            <Column sortable style="width: fit-content" field="id" header="id">
+            <Column sortable class="column" field="id" header="id">
                 <template #body="props">
                     <strong><code>{{ props.data.id }}</code></strong>
                 </template>
             </Column>
             <Column
                 sortable
-                style="width: fit-content"
+                class="column"
                 field="name"
                 header="name"
             ></Column>
             <Column field="useValuesFromTriggerTime" header="useValuesFromTriggerTime">
-                <template #body="slotProps">
-                    <span v-if="slotProps.data.useValuesFromTriggerTime != null">
-                        <boolean :value="slotProps.data.useValuesFromTriggerTime" />
+                <template #body="props">
+                    <span v-if="props.data.useValuesFromTriggerTime != null">
+                        <boolean :value="props.data.useValuesFromTriggerTime" />
                     </span>
                 </template>
             </Column>
             <Column
                 sortable
-                style="width: fit-content"
+                class="column"
                 field="trigger"
                 header="triggerMath"
             >
-                <template #body="slotProps">
-                    <span v-if="slotProps.data.trigger.math != null">
-                        <katex :mathStr="slotProps.data.trigger.math" />
+                <template #body="props">
+                    <span v-if="props.data.trigger.math != null">
+                        <katex :mathStr="props.data.trigger.math" />
                     </span>
                 </template>
             </Column>
             <Column
                 sortable
-                style="width: fit-content"
+                class="column"
                 field="trigger"
                 header="triggerPersistent"
             >
-                <template #body="slotProps">
-                    <span v-if="slotProps.data.trigger.persistent != null">
-                        <boolean :value="slotProps.data.trigger.persistent" />
+                <template #body="props">
+                    <span v-if="props.data.trigger.persistent != null">
+                        <boolean :value="props.data.trigger.persistent" />
                     </span>
                 </template>
             </Column>
             <Column
                 sortable
-                style="width: fit-content"
+                class="column"
                 field="priority"
                 header="priority"
             >
-                <template #body="slotProps">
-                    <span v-if="slotProps.data.priority != null">
-                        <katex :mathStr="slotProps.data.priority" />
+                <template #body="props">
+                    <span v-if="props.data.priority != null">
+                        <katex :mathStr="props.data.priority" />
                     </span>
                 </template>
             </Column>
-            <Column sortable style="width: fit-content" field="delay" header="delay">
-                <template #body="slotProps">
-                    <span v-if="slotProps.data.delay != null">
-                        <katex :mathStr="slotProps.data.delay" />
+            <Column sortable class="column" field="delay" header="delay">
+                <template #body="props">
+                    <span v-if="props.data.delay != null">
+                        <katex :mathStr="props.data.delay" />
                     </span>
                 </template>
             </Column>

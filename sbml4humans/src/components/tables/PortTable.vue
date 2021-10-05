@@ -35,50 +35,50 @@
                 </div>
             </template>
 
-            <Column sortable style="width: fit-content" field="id" header="id">
+            <Column sortable class="column" field="id" header="id">
                 <template #body="props">
                     <strong><code>{{ props.data.id }}</code></strong>
                 </template>
             </Column>
             <Column
                 sortable
-                style="width: fit-content"
+                class="column"
                 field="name"
                 header="name"
             ></Column>
             <Column
                 sortable
-                style="width: fit-content"
+                class="column"
                 field="portRef"
                 header="portRef"
             ></Column>
             <Column
                 sortable
-                style="width: fit-content"
+                class="column"
                 field="idRef"
                 header="idRef"
             ></Column>
             <Column
                 sortable
-                style="width: fit-content"
+                class="column"
                 field="unitRef"
                 header="unitRef"
             ></Column>
             <Column
                 sortable
-                style="width: fit-content"
+                class="column"
                 field="metaIdRef"
                 header="metaIdRef"
             ></Column>
             <Column
                 sortable
-                style="width: fit-content"
+                class="column"
                 field="referencedElement"
                 header="referencedElement"
             >
-                <template #body="slotProps">
-                    <span v-if="slotProps.data.referencedElement != null">
-                        {{ slotProps.data.referencedElement.id }}
+                <template #body="props">
+                    <span v-if="props.data.referencedElement != null">
+                        {{ props.data.referencedElement.id }}
                     </span>
                 </template>
             </Column>

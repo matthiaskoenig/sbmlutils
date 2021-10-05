@@ -23,7 +23,6 @@ export async function fetchAdditionalInfo(
         VUE_APP_APIURL +
         "/annotation_resource?resource=" +
         encodeURIComponent(resourceID);
-    console.log(QUERY_URL);
     let res = api({
         url: QUERY_URL,
         method: "get",

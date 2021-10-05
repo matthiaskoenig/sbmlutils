@@ -35,34 +35,34 @@
                 </div>
             </template>
 
-            <Column sortable style="width: fit-content" field="id" header="id">
+            <Column sortable class="column" field="id" header="id">
                 <template #body="props">
                     <strong><code>{{ props.data.id }}</code></strong>
                 </template>
             </Column>
-            <Column sortable style="width: fit-content" field="pk" header="pk"></Column>
+            <Column sortable class="column" field="pk" header="pk"></Column>
             <Column
                 sortable
-                style="width: fit-content"
+                class="column"
                 field="variable"
                 header="variable"
             ></Column>
-            <Column sortable style="width: fit-content" field="math" header="math">
-                <template #body="slotProps">
-                    <span v-if="slotProps.data.math != null">
-                        <katex :mathStr="slotProps.data.math" />
+            <Column sortable class="column" field="math" header="math">
+                <template #body="props">
+                    <span v-if="props.data.math != null">
+                        <katex :mathStr="props.data.math" />
                     </span>
                 </template>
             </Column>
             <Column
                 sortable
-                style="width: fit-content"
+                class="column"
                 field="derivedUnits"
                 header="derivedUnits"
             >
-                <template #body="slotProps">
-                    <span v-if="slotProps.data.derivedUnits != null">
-                        <katex :mathStr="slotProps.data.derivedUnits" class="katex_unit" />
+                <template #body="props">
+                    <span v-if="props.data.derivedUnits != null">
+                        <katex :mathStr="props.data.derivedUnits" class="katex_unit" />
                     </span>
                 </template>
             </Column>

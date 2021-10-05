@@ -35,7 +35,7 @@
                 </div>
             </template>
 
-            <Column sortable style="width: fit-content" field="id" header="id">
+            <Column sortable class="column" field="id" header="id">
                 <template #body="props">
                     <strong><code>{{ props.data.id }}</code></strong>
                 </template>
@@ -44,67 +44,67 @@
                 field="name"
                 header="name"
                 sortable
-                style="width: fit-content"
+                class="column"
             ></Column>
-            <Column sortable style="width: fit-content" field="port" header="port">
-                <template #body="slotProps">
-                    <span v-if="slotProps.data.port != null">
-                        <font-awesome-icon icon="plug" :title="slotProps.data.port.pk.split(':')[1]"/>
+            <Column sortable class="column" field="port" header="port">
+                <template #body="props">
+                    <span v-if="props.data.port != null">
+                        <font-awesome-icon icon="plug" :title="props.data.port.pk.split(':')[1]"/>
                     </span>
                 </template>
             </Column>
             <Column
                 sortable
-                style="width: fit-content"
+                class="column"
                 field="reversible"
                 header="reversible"
                 bodyStyle="text-align: center"
             >
-                <template #body="slotProps">
-                    <boolean-symbol :value="slotProps.data.reversible" />
+                <template #body="props">
+                    <boolean-symbol :value="props.data.reversible" />
                 </template>
             </Column>
             <Column
                 field="compartment"
                 header="compartment"
                 sortable
-                style="width: fit-content"
+                class="column"
             ></Column>
             <Column
                 sortable
-                style="width: fit-content"
+                class="column"
                 field="equation"
                 header="equation"
             >
-                <template #body="slotProps">
-                    <span v-html="slotProps.data.equation" />
+                <template #body="props">
+                    <span v-html="props.data.equation" />
                 </template>
             </Column>
             <Column
                 sortable
-                style="width: fit-content"
+                class="column"
                 field="fast"
                 header="fast"
                 bodyStyle="text-align: center"
             >
-                <template #body="slotProps">
-                    <boolean-symbol :value="slotProps.data.fast" />
+                <template #body="props">
+                    <boolean-symbol :value="props.data.fast" />
                 </template>
             </Column>
             <Column
                 field="kineticLaw"
                 header="math"
                 sortable
-                style="width: fit-content"
+                class="column"
             >
-                <template #body="slotProps">
+                <template #body="props">
                     <span
                         v-if="
-                            slotProps.data.kineticLaw != null &&
-                            slotProps.data.kineticLaw.math != null
+                            props.data.kineticLaw != null &&
+                            props.data.kineticLaw.math != null
                         "
                     >
-                        <katex :mathStr="slotProps.data.kineticLaw.math" />
+                        <katex :mathStr="props.data.kineticLaw.math" />
                     </span>
                 </template>
             </Column>
@@ -112,16 +112,16 @@
                 field="kineticLaw"
                 header="derivedUnits"
                 sortable
-                style="width: fit-content"
+                class="column"
             >
-                <template #body="slotProps">
+                <template #body="props">
                     <span
                         v-if="
-                            slotProps.data.kineticLaw != null &&
-                            slotProps.data.kineticLaw.derivedUnits != null
+                            props.data.kineticLaw != null &&
+                            props.data.kineticLaw.derivedUnits != null
                         "
                     >
-                        <katex :mathStr="slotProps.data.kineticLaw.derivedUnits" class="katex_unit"/>
+                        <katex :mathStr="props.data.kineticLaw.derivedUnits" class="katex_unit"/>
                     </span>
                 </template>
             </Column>

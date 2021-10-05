@@ -35,46 +35,46 @@
                 </div>
             </template>
 
-            <Column sortable style="width: fit-content" field="id" header="id">
+            <Column sortable class="column" field="id" header="id">
                 <template #body="props">
                     <strong><code>{{ props.data.id }}</code></strong>
                 </template>
             </Column>
             <Column
                 sortable
-                style="width: fit-content"
+                class="column"
                 field="name"
                 header="name"
             ></Column>
-            <Column sortable style="width: fit-content" field="port" header="port">
-                <template #body="slotProps">
-                    <span v-if="slotProps.data.port != null">
-                        <font-awesome-icon icon="plug" :title="slotProps.data.port.pk.split(':')[1]"/>
+            <Column sortable class="column" field="port" header="port">
+                <template #body="props">
+                    <span v-if="props.data.port != null">
+                        <font-awesome-icon icon="plug" :title="props.data.port.pk.split(':')[1]"/>
                     </span>
                 </template>
             </Column>
             <Column
                 sortable
-                style="width: fit-content"
+                class="column"
                 field="symbol"
                 header="symbol"
             ></Column>
-            <Column sortable style="width: fit-content" field="math" header="math">
-                <template #body="slotProps">
-                    <span v-if="slotProps.data.math != null">
-                        <katex :mathStr="slotProps.data.math" />
+            <Column sortable class="column" field="math" header="math">
+                <template #body="props">
+                    <span v-if="props.data.math != null">
+                        <katex :mathStr="props.data.math" />
                     </span>
                 </template>
             </Column>
             <Column
                 sortable
-                style="width: fit-content"
+                class="column"
                 field="derivedUnits"
                 header="derivedUnits"
             >
-                <template #body="slotProps">
-                    <span v-if="slotProps.data.derivedUnits != null">
-                        <katex :mathStr="slotProps.data.derivedUnits" class="katex_unit" />
+                <template #body="props">
+                    <span v-if="props.data.derivedUnits != null">
+                        <katex :mathStr="props.data.derivedUnits" class="katex_unit" />
                     </span>
                 </template>
             </Column>

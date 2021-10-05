@@ -35,20 +35,20 @@
                 </div>
             </template>
 
-            <Column sortable style="width: fit-content" field="id" header="id">
+            <Column sortable class="column" field="id" header="id">
                 <template #body="props">
                     <strong><code>{{ props.data.id }}</code></strong>
                 </template>
             </Column>
             <Column
                 sortable
-                style="width: fit-content"
+                class="column"
                 field="name"
                 header="name"
             ></Column>
             <Column
                 sortable
-                style="width: fit-content"
+                class="column"
                 field="type"
                 header="type"
             ></Column>

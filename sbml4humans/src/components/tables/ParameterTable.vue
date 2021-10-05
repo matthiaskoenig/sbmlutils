@@ -35,70 +35,70 @@
                 </div>
             </template>
 
-            <Column sortable style="width: fit-content" field="id" header="id">
+            <Column sortable class="column" field="id" header="id">
                 <template #body="props">
                     <strong><code>{{ props.data.id }}</code></strong>
                 </template>
             </Column>
             <Column
                 sortable
-                style="width: fit-content"
+                class="column"
                 field="name"
                 header="name"
             ></Column>
-            <Column sortable style="width: fit-content" field="port" header="port">
-                <template #body="slotProps">
-                    <span v-if="slotProps.data.port != null">
-                        <font-awesome-icon icon="plug" :title="slotProps.data.port.pk.split(':')[1]"/>
+            <Column sortable class="column" field="port" header="port">
+                <template #body="props">
+                    <span v-if="props.data.port != null">
+                        <font-awesome-icon icon="plug" :title="props.data.port.pk.split(':')[1]"/>
                     </span>
                 </template>
             </Column>
             <Column
                 sortable
-                style="width: fit-content"
+                class="column"
                 field="constant"
                 header="constant"
                 bodyStyle="text-align: center"
             >
-                <template #body="slotProps">
-                    <boolean-symbol :value="slotProps.data.constant" />
+                <template #body="props">
+                    <boolean-symbol :value="props.data.constant" />
                 </template>
             </Column>
             <Column
                 sortable
-                style="width: fit-content"
+                class="column"
                 field="value"
                 header="value"
             ></Column>
-            <Column sortable style="width: fit-content" field="units" header="units">
-                <template #body="slotProps">
-                    <span v-if="slotProps.data.units != null">
-                        <katex :mathStr="slotProps.data.units" class="katex_unit"/>
+            <Column sortable class="column" field="units" header="units">
+                <template #body="props">
+                    <span v-if="props.data.units != null">
+                        <katex :mathStr="props.data.units" class="katex_unit"/>
                     </span>
                 </template>
             </Column>
             <Column
                 sortable
-                style="width: fit-content"
+                class="column"
                 field="derivedUnits"
                 header="derivedUnits"
             >
-                <template #body="slotProps">
-                    <span v-if="slotProps.data.derivedUnits != null">
-                        <katex :mathStr="slotProps.data.derivedUnits" class="katex_unit" />
+                <template #body="props">
+                    <span v-if="props.data.derivedUnits != null">
+                        <katex :mathStr="props.data.derivedUnits" class="katex_unit" />
                     </span>
                 </template>
             </Column>
             <Column
                 sortable
-                style="width: fit-content"
+                class="column"
                 field="assignment"
                 header="assignment"
             >
-                <template #body="slotProps">
-                    <span v-if="slotProps.data.assignment != null">
-                        <span v-if="slotProps.data.assignment != null">
-                            <katex :mathStr="slotProps.data.assignment.math" />
+                <template #body="props">
+                    <span v-if="props.data.assignment != null">
+                        <span v-if="props.data.assignment != null">
+                            <katex :mathStr="props.data.assignment.math" />
                         </span>
                     </span>
                 </template>

@@ -17,64 +17,36 @@
             @row-click="openComponent($event.data.pk)"
         >
             <template #header class="table-header">
-                <div class="p-d-flex p-jc-between p-ai-center">
-                    <strong class="sbmlType">
-                        <font-awesome-icon :icon="`${icon}`" class="p-mr-1" />
-                        {{ sbmlType === "Species" ? sbmlType : sbmlType + "s" }} ({{
-                            count
-                        }})
-                    </strong>
-                    <span class="p-input-icon-left p-ml-auto">
-                        <i class="pi pi-search" />
-                        <InputText
-                            v-model="filters['global'].value"
-                            class="searchBar"
-                            placeholder="Search"
-                        />
-                    </span>
+                <div class="p-d-flex p-jc-between p-ai-center sbmlType">
+                    <font-awesome-icon :icon="`${icon}`" class="p-mr-1" />
+                    {{ sbmlType === "Species" ? sbmlType : sbmlType + "s" }} ({{
+                        count
+                    }})
                 </div>
             </template>
-            <Column sortable style="width: fit-content" field="id" header="id">
+            <Column sortable class="column" field="id" header="id">
                 <template #body="props">
                     <strong><code>{{ props.data.id }}</code></strong>
+                    <font-awesome-icon
+                        v-if="props.data.port != null"
+                        icon="plug"
+                        :title="props.data.port.pk.split(':')[1]"
+                    />
                 </template>
             </Column>
-            <Column
-                sortable
-                style="width: fit-content"
-                field="name"
-                header="name"
-            ></Column>
-            <Column sortable style="width: fit-content" field="port" header="port">
-                <template #body="slotProps">
-                    <span v-if="slotProps.data.port != null">
-                        <font-awesome-icon icon="plug" :title="slotProps.data.port.pk.split(':')[1]"/>
-                    </span>
+            <Column sortable class="column" field="name" header="name" />
+            <Column sortable class="column" field="variable" header="variable" />
+            <Column sortable class="column" field="math" header="math">
+                <template #body="props">
+                    <katex v-if="props.data.math != null" :mathStr="props.data.math" />
                 </template>
             </Column>
-            <Column
-                sortable
-                style="width: fit-content"
-                field="variable"
-                header="variable"
-            ></Column>
-            <Column sortable style="width: fit-content" field="math" header="math">
-                <template #body="slotProps">
-                    <span v-if="slotProps.data.math != null">
-                        <katex :mathStr="slotProps.data.math" />
-                    </span>
-                </template>
-            </Column>
-            <Column
-                sortable
-                style="width: fit-content"
-                field="derivedUnits"
-                header="derivedUnits"
-            >
-                <template #body="slotProps">
-                    <span v-if="slotProps.data.derivedUnits != null">
-                        <katex :mathStr="slotProps.data.derivedUnits" class="katex_unit" />
-                    </span>
+            <Column sortable class="column" field="derivedUnits" header="derivedUnits">
+                <template #body="props">
+                    <katex v-if="props.data.derivedUnits != null"
+                           :mathStr="props.data.derivedUnits"
+                           class="katex_unit"
+                    />
                 </template>
             </Column>
         </DataTable>

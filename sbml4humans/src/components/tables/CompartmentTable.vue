@@ -17,98 +17,45 @@
             @row-click="openComponent($event.data.pk)"
         >
             <template #header class="table-header">
-                <div class="p-d-flex p-jc-between p-ai-center">
-                    <span class="sbmlType">
-                        <font-awesome-icon
-                            :icon="`${icon}`"
-                            :fixed-width="true"
-                            class="p-mr-1"
-                        />
-                        {{ sbmlType === "Species" ? sbmlType : sbmlType + "s" }} ({{
-                            count
-                        }})
-                    </span>
-                    <span class="p-input-icon-left p-ml-auto">
-                        <i class="pi pi-search" />
-                        <InputText
-                            v-model="filters['global'].value"
-                            class="searchBar"
-                            placeholder="Search"
-                        />
-                    </span>
+                <div class="p-d-flex p-jc-between p-ai-center sbmlType">
+                    <font-awesome-icon :icon="`${icon}`" :fixed-width="true" class="p-mr-1" />
+                    {{ header }}
                 </div>
             </template>
-
-            <Column sortable style="width: max-content" field="id" header="id">
+            <Column sortable class="column" field="id" header="id">
                 <template #body="props">
-                    <strong><code>{{ props.data.id }}</code></strong>
+                    <TemplateId :props="props" />
+                </template>
+            </Column>
+            <Column sortable class="column" field="name" header="name" />
+            <Column sortable class="column" field="constant" header="constant">
+                <template #body="props">
+                    <boolean-symbol :value="props.data.constant" />
                 </template>
             </Column>
             <Column
                 sortable
-                style="width: max-content"
-                field="name"
-                header="name"
-            ></Column>
-            <Column sortable style="width: fit-content" field="port" header="port">
-                <template #body="slotProps">
-                    <span v-if="slotProps.data.port != null">
-                        <font-awesome-icon icon="plug" :title="slotProps.data.port.pk.split(':')[1]"/>
-                    </span>
-                </template>
-            </Column>
-            <Column
-                sortable
-                style="width: max-content"
-                field="constant"
-                header="constant"
-                bodyStyle="text-align: center"
-            >
-                <template #body="slotProps">
-                    <boolean-symbol :value="slotProps.data.constant" />
-                </template>
-            </Column>
-            <Column
-                sortable
-                style="width: max-content"
+                class="column"
                 field="spatialDimensions"
                 header="dimensions"
-            ></Column>
-            <Column
-                sortable
-                style="width: max-content"
-                field="size"
-                header="size"
-            ></Column>
-            <Column sortable style="width: max-content" field="units" header="units">
-                <template #body="slotProps">
-                    <span v-if="slotProps.data.units != null">
-                        <katex :mathStr="slotProps.data.units" class="katex_unit"/>
-                    </span>
+            />
+            <Column sortable class="column" field="size" header="size" />
+            <Column sortable class="column" field="units" header="units">
+                <template #body="props">
+                    <TemplateUnits :units="props.data.units" />
                 </template>
             </Column>
-            <Column
-                sortable
-                style="width: max-content"
-                field="derivedUnits"
-                header="derived Units"
-            >
-                <template #body="slotProps">
-                    <span v-if="slotProps.data.derivedUnits != null">
-                        <katex :mathStr="slotProps.data.derivedUnits" class="katex_unit" />
-                    </span>
+            <Column sortable class="column" field="derivedUnits" header="derived Units">
+                <template #body="props">
+                    <TemplateUnits :units="props.data.derivedUnits" />
                 </template>
             </Column>
-            <Column
-                sortable
-                style="width: max-content"
-                field="assignment"
-                header="assignment"
-            >
-                <template #body="slotProps">
-                    <span v-if="slotProps.data.assignment != null">
-                        <katex :mathStr="slotProps.data.assignment.math" />
-                    </span>
+            <Column sortable class="column" field="assignment" header="assignment">
+                <template #body="props">
+                    <TemplateMath
+                        v-if="props.data.assignment != null"
+                        :math="props.data.assignment.math"
+                    />
                 </template>
             </Column>
         </DataTable>
@@ -119,8 +66,16 @@
 import store from "@/store/index";
 import tableMixin from "@/mixins/tableMixin";
 import { defineComponent } from "@vue/runtime-core";
+import TemplateId from "@/components/tables/TemplateId.vue";
+import TemplateUnits from "@/components/tables/TemplateUnits.vue";
+import TemplateMath from "@/components/tables/TemplateMath.vue";
 
 export default defineComponent({
+    components: {
+        TemplateId,
+        TemplateUnits,
+        TemplateMath,
+    },
     props: {
         listOfPKs: {
             type: Array,

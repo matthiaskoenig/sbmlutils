@@ -17,116 +17,110 @@
             @row-click="openComponent($event.data.pk)"
         >
             <template #header class="table-header">
-                <div class="p-d-flex p-jc-between p-ai-center">
-                    <strong class="sbmlType">
-                        <font-awesome-icon :icon="`${icon}`" class="p-mr-1" />
-                        {{ sbmlType === "Species" ? sbmlType : sbmlType + "s" }} ({{
-                            count
-                        }})
-                    </strong>
-                    <span class="p-input-icon-left p-ml-auto">
-                        <i class="pi pi-search" />
-                        <InputText
-                            v-model="filters['global'].value"
-                            class="searchBar"
-                            placeholder="Search"
-                        />
-                    </span>
+                <div class="p-d-flex p-jc-between p-ai-center sbmlType">
+                    <font-awesome-icon :icon="`${icon}`" class="p-mr-1" />
+                    {{ sbmlType === "Species" ? sbmlType : sbmlType + "s" }} ({{
+                        count
+                    }})
                 </div>
             </template>
-
-            <Column sortable style="width: fit-content" field="id" header="id">
+            <Column sortable class="column" field="id" header="id">
                 <template #body="props">
                     <strong><code>{{ props.data.id }}</code></strong>
+                    <font-awesome-icon
+                        v-if="props.data.port != null"
+                        icon="plug"
+                        :title="props.data.port.pk.split(':')[1]"
+                    />
                 </template>
             </Column>
             <Column
                 sortable
-                style="width: fit-content"
+                class="column"
                 field="name"
                 header="name"
             ></Column>
             <Column
                 sortable
-                style="width: fit-content"
+                class="column"
                 field="substanceUnits"
                 header="substance Units"
             >
-                <template #body="slotProps">
-                    <span v-if="slotProps.data.substanceUnits != null">
-                        <katex :mathStr="slotProps.data.substanceUnits" class="katex_unit"  />
+                <template #body="props">
+                    <span v-if="props.data.substanceUnits != null">
+                        <katex :mathStr="props.data.substanceUnits" class="katex_unit"  />
                     </span>
                 </template>
             </Column>
             <Column
                 sortable
-                style="width: fit-content"
+                class="column"
                 field="timeUnits"
                 header="time Units"
             >
-                <template #body="slotProps">
-                    <span v-if="slotProps.data.timeUnits != null">
-                        <katex :mathStr="slotProps.data.timeUnits" class="katex_unit" />
+                <template #body="props">
+                    <span v-if="props.data.timeUnits != null">
+                        <katex :mathStr="props.data.timeUnits" class="katex_unit" />
                     </span>
                 </template>
             </Column>
             <Column
                 sortable
-                style="width: fit-content"
+                class="column"
                 field="lengthUnits"
                 header="length Units"
             >
-                <template #body="slotProps">
-                    <span v-if="slotProps.data.lengthUnits != null">
-                        <katex :mathStr="slotProps.data.lengthUnits" class="katex_unit"  />
+                <template #body="props">
+                    <span v-if="props.data.lengthUnits != null">
+                        <katex :mathStr="props.data.lengthUnits" class="katex_unit"  />
                     </span>
                 </template>
             </Column>
             <Column
                 sortable
-                style="width: fit-content"
+                class="column"
                 field="areaUnits"
                 header="area Units"
             >
-                <template #body="slotProps">
-                    <span v-if="slotProps.data.areaUnits != null">
-                        <katex :mathStr="slotProps.data.areaUnits" class="katex_unit"  />
+                <template #body="props">
+                    <span v-if="props.data.areaUnits != null">
+                        <katex :mathStr="props.data.areaUnits" class="katex_unit"  />
                     </span>
                 </template>
             </Column>
             <Column
                 sortable
-                style="width: fit-content"
+                class="column"
                 field="volumeUnits"
                 header="volume Units"
             >
-                <template #body="slotProps">
-                    <span v-if="slotProps.data.volumeUnits != null">
-                        <katex :mathStr="slotProps.data.volumeUnits" class="katex_unit"  />
+                <template #body="props">
+                    <span v-if="props.data.volumeUnits != null">
+                        <katex :mathStr="props.data.volumeUnits" class="katex_unit"  />
                     </span>
                 </template>
             </Column>
             <Column
                 sortable
-                style="width: fit-content"
+                class="column"
                 field="extentUnits"
                 header="extent Units"
             >
-                <template #body="slotProps">
-                    <span v-if="slotProps.data.extentUnits != null">
-                        <katex :mathStr="slotProps.data.extentUnits" class="katex_unit"  />
+                <template #body="props">
+                    <span v-if="props.data.extentUnits != null">
+                        <katex :mathStr="props.data.extentUnits" class="katex_unit"  />
                     </span>
                 </template>
             </Column>
             <Column
                 sortable
-                style="width: fit-content"
+                class="column"
                 field="conversionFactor"
                 header="conversion Factor"
             >
-                <template #body="slotProps">
-                    <span v-if="slotProps.data.conversionFactor != null && slotProps.data.conversionFactor.sid">
-                    {{ slotProps.data.conversionFactor.sid }} = {{ slotProps.data.conversionFactor.value }} {{ slotProps.data.conversionFactor.units }}
+                <template #body="props">
+                    <span v-if="props.data.conversionFactor != null && props.data.conversionFactor.sid">
+                    {{ props.data.conversionFactor.sid }} = {{ props.data.conversionFactor.value }} {{ props.data.conversionFactor.units }}
                     </span>
                 </template>
             </Column>

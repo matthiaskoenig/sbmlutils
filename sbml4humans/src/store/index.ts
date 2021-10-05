@@ -188,7 +188,7 @@ export default createStore({
             context.commit("SET_JSON_REPORT", payload.data.report);
 
             // set the current model to main model in the report by default
-            console.log(payload.data)
+            //console.log(payload.data)
             if (!payload.data.report.model){
                 alert("No model in file ! Check if file is a valid SBML file.")
             }

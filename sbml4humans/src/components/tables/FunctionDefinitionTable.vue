@@ -35,21 +35,21 @@
                 </div>
             </template>
 
-            <Column sortable style="width: fit-content" field="id" header="id">
+            <Column sortable class="column" field="id" header="id">
                 <template #body="props">
                     <strong><code>{{ props.data.id }}</code></strong>
                 </template>
             </Column>
             <Column
                 sortable
-                style="width: fit-content"
+                class="column"
                 field="name"
                 header="name"
             ></Column>
-            <Column sortable style="width: fit-content" field="math" header="math">
-                <template #body="slotProps">
-                    <span v-if="slotProps.data.math != null">
-                        <katex :mathStr="slotProps.data.math" />
+            <Column sortable class="column" field="math" header="math">
+                <template #body="props">
+                    <span v-if="props.data.math != null">
+                        <katex :mathStr="props.data.math" />
                     </span>
                 </template>
             </Column>
