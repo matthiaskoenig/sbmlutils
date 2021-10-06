@@ -41,7 +41,7 @@ from sbmlutils.log import get_logger
 from sbmlutils.metadata import *
 from sbmlutils.metadata import annotator
 from sbmlutils.metadata.annotator import Annotation
-from sbmlutils.notes import Notes
+from sbmlutils.notes import Notes, NotesFormat
 from sbmlutils.report import sbmlreport
 from sbmlutils.utils import FrozenClass, create_metaid, deprecated
 from sbmlutils.validation import check
@@ -181,14 +181,16 @@ AnnotationsType = Optional[List[Union[Annotation, Tuple[Union[BQB, BQM], str]]]]
 PortType = Any  # Union[bool, Port]
 
 
-def set_notes(sbase: libsbml.SBase, notes: str) -> None:
+def set_notes(
+    sbase: libsbml.SBase, notes: str, format: NotesFormat = NotesFormat.MARKDOWN
+) -> None:
     """Set notes information on SBase.
 
     :param sbase: SBase
     :param notes: notes information (xml string)
     :return:
     """
-    _notes = Notes(notes)
+    _notes = Notes(notes, format=format)
     check(sbase.setNotes(_notes.xml), message=f"Setting notes on '{sbase}'")
 
 

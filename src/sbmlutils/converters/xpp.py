@@ -53,6 +53,7 @@ from sbmlutils import factory as fac
 from sbmlutils.converters import xpp_helpers
 from sbmlutils.factory import Event, Function
 from sbmlutils.io import sbml
+from sbmlutils.notes import NotesFormat
 
 
 XPP_ODE = "ode"
@@ -288,7 +289,7 @@ def xpp2sbml(
 
         # add info to sbml
         text = escape_string("".join(lines))
-        fac.set_notes(model, NOTES.format(text))
+        fac.set_notes(model, NOTES.format(text), format=NotesFormat.HTML)
 
         old_line = None
         for line in lines:

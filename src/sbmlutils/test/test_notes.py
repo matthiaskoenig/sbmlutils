@@ -11,9 +11,9 @@ from sbmlutils.notes import Notes
 @pytest.mark.parametrize(
     "pattern",
     [
-        '<a href="https://example.com" .*>https://example.com</a>',
+        '<a href="https://example.com">https://example.com</a>',
         "<h2.*>Heading 2</h2>",
-        '<img src="./test.png" .*/>',
+        '<img src="./test.png"/>',
     ],
 )
 def test_markdown_note(pattern: str) -> None:
@@ -39,6 +39,7 @@ def test_markdown_note(pattern: str) -> None:
     sbml_notes = sbml_p.getNotesString()
 
     match = re.search(pattern=pattern, string=sbml_notes)
+    print(sbml_notes)
     assert match
 
 

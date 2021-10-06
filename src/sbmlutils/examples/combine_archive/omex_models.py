@@ -109,7 +109,7 @@ results: Dict[str, Path] = {}
 
 
 def create_omex(tmp: bool = False) -> FactoryResult:
-    """Create omex with models"""
+    """Create omex with models."""
 
     results_minimal_model = create_model(
         models=model_minimal,

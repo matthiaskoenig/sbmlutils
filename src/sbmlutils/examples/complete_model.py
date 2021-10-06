@@ -4,6 +4,8 @@ This demonstrates just the very core SBML functionality.
 """
 from pathlib import Path
 
+import libsbml
+
 from sbmlutils import EXAMPLES_DIR
 from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.examples import templates
@@ -63,12 +65,14 @@ _m.compartments = [
             Uncertainty(
                 formula="normal(1.0, 0.1)",
                 uncertParameters=[
-                    UncertParameter(type=UNCERTTYPE_MEAN, value=1.0),
-                    UncertParameter(type=UNCERTTYPE_STANDARDDEVIATION, value=0.1),
+                    UncertParameter(type=libsbml.DISTRIB_UNCERTTYPE_MEAN, value=1.0),
+                    UncertParameter(
+                        type=libsbml.DISTRIB_UNCERTTYPE_STANDARDDEVIATION, value=0.1
+                    ),
                 ],
                 uncertSpans=[
                     UncertSpan(
-                        type=UNCERTTYPE_RANGE,
+                        type=libsbml.DISTRIB_UNCERTTYPE_RANGE,
                         valueLower=0.2,
                         valueUpper=3.0,
                     ),
