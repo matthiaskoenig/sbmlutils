@@ -41,7 +41,7 @@ def read_example_metadata(sbml_path: Path) -> ExampleMetaData:
 
     return ExampleMetaData(
         file=sbml_path,
-        id=sid,
+        id=f"{sid} ({sbml_path.name})",
         name=name,
         description=description,
         packages=packages,
