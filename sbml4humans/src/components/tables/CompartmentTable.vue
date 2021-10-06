@@ -20,7 +20,11 @@
         >
             <template #header class="table-header">
                 <div class="p-d-flex p-jc-between p-ai-center sbmlType">
-                    <font-awesome-icon :icon="`${icon}`" :fixed-width="true" class="p-mr-1" />
+                    <font-awesome-icon
+                        :icon="`${icon}`"
+                        :fixed-width="true"
+                        class="p-mr-1"
+                    />
                     {{ header }}
                 </div>
             </template>
@@ -47,22 +51,12 @@
                     <TemplateUnits :units="props.data.units" />
                 </template>
             </Column>
-            <Column
-                sortable
-                class="column"
-                field="derivedUnits"
-                header="derived Units"
-            >
+            <Column sortable class="column" field="derivedUnits" header="derived Units">
                 <template #body="props">
                     <TemplateUnits :units="props.data.derivedUnits" />
                 </template>
             </Column>
-            <Column
-                sortable
-                class="column"
-                field="assignment"
-                header="assignment"
-            >
+            <Column sortable class="column" field="assignment" header="assignment">
                 <template #body="props">
                     <Katex
                         v-if="props.data.assignment != null"

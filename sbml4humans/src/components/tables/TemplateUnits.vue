@@ -1,9 +1,5 @@
 <template>
-    <katex
-        v-if="units != null"
-        :mathStr="units"
-        class="katex_unit"
-    />
+    <katex v-if="units != null" :mathStr="units" class="katex_unit" />
 </template>
 
 <script lang="ts">

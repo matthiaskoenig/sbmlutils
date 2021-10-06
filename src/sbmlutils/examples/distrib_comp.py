@@ -84,7 +84,7 @@ def create(tmp: bool = False) -> None:
         output_dir=output_dir,
     )
 
-    flatten_sbml(result.sbml_path, filepath=sbml_path_flat)
+    flatten_sbml(result.sbml_path, sbml_flat_path=sbml_path_flat)
     # create model report
     # sbmlreport.create_report(sbml_path_flat)
 

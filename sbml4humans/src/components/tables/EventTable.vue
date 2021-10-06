@@ -47,12 +47,7 @@
                     />
                 </template>
             </Column>
-            <Column
-                sortable
-                class="column"
-                field="trigger"
-                header="triggerPersistent"
-            >
+            <Column sortable class="column" field="trigger" header="triggerPersistent">
                 <template #body="props">
                     <BooleanSymbol
                         v-if="props.data.trigger.persistent != null"

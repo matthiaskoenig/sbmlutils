@@ -1,5 +1,10 @@
 <template>
-    <Tag class="tablet p-mr-1 p-mt-1" v-on:click="showDetail" :rounded="true" style="background-color: lightgrey; color: black;">
+    <Tag
+        class="tablet p-mr-1 p-mt-1"
+        v-on:click="showDetail"
+        :rounded="true"
+        style="background-color: lightgrey; color: black"
+    >
         <font-awesome-icon :icon="`${icon}`" /><span class="p-ml-1">{{ id }}</span>
     </Tag>
 </template>

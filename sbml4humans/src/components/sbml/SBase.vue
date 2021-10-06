@@ -5,13 +5,21 @@
             {{ info.sbmlType }}
         </strong>
     </div>
-    <h2><strong><code>{{ info.id }}</code></strong><span v-if="info.name" class="p-pl-4">{{ info.name }}</span></h2>
+    <h2>
+        <strong
+            ><code>{{ info.id }}</code></strong
+        ><span v-if="info.name" class="p-pl-4">{{ info.name }}</span>
+    </h2>
     <table class="table table-borderless table-sm table-condensed compact">
         <tbody>
             <!-- CORE -->
             <tr v-if="info.id != null">
                 <td class="label-td"><div class="label">id</div></td>
-                <td><strong><code>{{ info.id }}</code></strong></td>
+                <td>
+                    <strong
+                        ><code>{{ info.id }}</code></strong
+                    >
+                </td>
             </tr>
             <tr v-if="info.metaId != null">
                 <td class="label-td"><div class="label">metaID</div></td>
@@ -28,16 +36,15 @@
             <tr v-if="info.history != null">
                 <td class="label-td"><div class="label">creators</div></td>
                 <td>
-                    <div
-                        v-for="creator in info.history.creators"
-                        :key="creator.email"
-                    >
-                      <span v-if="creator.email">
-                        <a :href="`mailto:${creator.email}`">{{ creator.givenName }} {{ creator.familyName }}</a>
-                      </span>
-                      <span v-else>
-                        {{ creator.givenName }} {{ creator.familyName }}
-                      </span>, {{ creator.organization }}
+                    <div v-for="creator in info.history.creators" :key="creator.email">
+                        <span v-if="creator.email">
+                            <a :href="`mailto:${creator.email}`"
+                                >{{ creator.givenName }} {{ creator.familyName }}</a
+                            >
+                        </span>
+                        <span v-else>
+                            {{ creator.givenName }} {{ creator.familyName }} </span
+                        >, {{ creator.organization }}
                     </div>
                 </td>
             </tr>
@@ -48,10 +55,12 @@
             <tr v-if="info.history != null">
                 <td class="label-td"><div class="label">modified</div></td>
                 <td>
-                  <span v-for="date in info.history.modifiedDates" :key="date">{{ date }}</span><br />
+                    <span v-for="date in info.history.modifiedDates" :key="date">{{
+                        date
+                    }}</span
+                    ><br />
                 </td>
             </tr>
-
 
             <!-- COMP -->
             <tr v-if="info.replacedBy != null">

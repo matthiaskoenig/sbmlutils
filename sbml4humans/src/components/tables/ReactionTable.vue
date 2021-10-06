@@ -18,7 +18,11 @@
         >
             <template #header class="table-header">
                 <div class="p-d-flex p-jc-between p-ai-center sbmlType">
-                    <font-awesome-icon :icon="`${icon}`" :fixed-width="true" class="p-mr-1" />
+                    <font-awesome-icon
+                        :icon="`${icon}`"
+                        :fixed-width="true"
+                        class="p-mr-1"
+                    />
                     {{ header }}
                 </div>
             </template>
@@ -28,62 +32,39 @@
                 </template>
             </Column>
             <Column sortable class="column" field="name" header="name" />
-            <Column
-                sortable
-                class="column"
-                field="reversible"
-                header="reversible"
-            >
+            <Column sortable class="column" field="reversible" header="reversible">
                 <template #body="props">
                     <BooleanSymbol :value="props.data.reversible" />
                 </template>
             </Column>
-            <Column
-                sortable
-                class="column"
-                field="compartment"
-                header="compartment"
-            />
-            <Column
-                sortable
-                class="column"
-                field="equation"
-                header="equation"
-            >
+            <Column sortable class="column" field="compartment" header="compartment" />
+            <Column sortable class="column" field="equation" header="equation">
                 <template #body="props">
                     <span v-html="props.data.equation" />
                 </template>
             </Column>
-            <Column
-                sortable
-                class="column"
-                field="fast"
-                header="fast"
-            >
+            <Column sortable class="column" field="fast" header="fast">
                 <template #body="props">
                     <BooleanSymbol :value="props.data.fast" />
                 </template>
             </Column>
-            <Column
-                sortable
-                class="column"
-                field="kineticLaw"
-                header="math"
-            >
+            <Column sortable class="column" field="kineticLaw" header="math">
                 <template #body="props">
-                    <Katex v-if="props.data.kineticLaw != null &&
-                            props.data.kineticLaw.math != null" :mathStr="props.data.kineticLaw.math" />
+                    <Katex
+                        v-if="
+                            props.data.kineticLaw != null &&
+                            props.data.kineticLaw.math != null
+                        "
+                        :mathStr="props.data.kineticLaw.math"
+                    />
                 </template>
             </Column>
-            <Column
-                field="kineticLaw"
-                header="derivedUnits"
-                sortable
-                class="column"
-            >
+            <Column field="kineticLaw" header="derivedUnits" sortable class="column">
                 <template #body="props">
-                    <TemplateUnits v-if="props.data.kineticLaw != null"
-                                   :units="props.data.kineticLaw.derivedUnits" />
+                    <TemplateUnits
+                        v-if="props.data.kineticLaw != null"
+                        :units="props.data.kineticLaw.derivedUnits"
+                    />
                 </template>
             </Column>
         </DataTable>
@@ -102,7 +83,7 @@ export default defineComponent({
     components: {
         TemplateId,
         TemplateUnits,
-        BooleanSymbol
+        BooleanSymbol,
     },
     props: {
         listOfPKs: {

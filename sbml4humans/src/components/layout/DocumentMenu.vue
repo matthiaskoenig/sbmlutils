@@ -10,13 +10,13 @@
                                 :icon="item.icon"
                                 :fixedWidth="true"
                                 :border="false"
-                                    size="1x"
+                                size="1x"
                                 :color="item.color"
                             ></font-awesome-icon>
                         </span>
                         <span>
-                            <strong>{{ item.sbmlType }}</strong> <span
-                            v-if="item.id != null">{{ item.id }}</span>
+                            <strong>{{ item.sbmlType }}</strong>
+                            <span v-if="item.id != null">{{ item.id }}</span>
                         </span>
                     </div>
                 </template>
@@ -29,7 +29,7 @@
 import store from "@/store";
 import colors from "@/data/colorScheme";
 import icons from "@/data/fontAwesome";
-import {defineComponent} from "@vue/runtime-core";
+import { defineComponent } from "@vue/runtime-core";
 
 export default defineComponent({
     methods: {

@@ -18,7 +18,11 @@
         >
             <template #header class="table-header">
                 <div class="p-d-flex p-jc-between p-ai-center sbmlType">
-                    <font-awesome-icon :icon="`${icon}`" :fixed-width="true" class="p-mr-1" />
+                    <font-awesome-icon
+                        :icon="`${icon}`"
+                        :fixed-width="true"
+                        class="p-mr-1"
+                    />
                     {{ header }}
                 </div>
             </template>
@@ -28,12 +32,7 @@
                 </template>
             </Column>
             <Column sortable class="column" field="name" header="name" />
-            <Column
-                sortable
-                class="column"
-                field="constant"
-                header="constant"
-            >
+            <Column sortable class="column" field="constant" header="constant">
                 <template #body="props">
                     <BooleanSymbol :value="props.data.constant" />
                 </template>
@@ -41,27 +40,24 @@
             <Column sortable class="column" field="value" header="value" />
             <Column sortable class="column" field="units" header="units">
                 <template #body="props">
-                    <Katex v-if="props.data.units != null" :mathStr="props.data.units" class="katex_unit"/>
+                    <Katex
+                        v-if="props.data.units != null"
+                        :mathStr="props.data.units"
+                        class="katex_unit"
+                    />
                 </template>
             </Column>
-            <Column
-                sortable
-                class="column"
-                field="derivedUnits"
-                header="derivedUnits"
-            >
+            <Column sortable class="column" field="derivedUnits" header="derivedUnits">
                 <template #body="props">
                     <TemplateUnits :units="props.data.derivedUnits" />
                 </template>
             </Column>
-            <Column
-                sortable
-                class="column"
-                field="assignment"
-                header="assignment"
-            >
+            <Column sortable class="column" field="assignment" header="assignment">
                 <template #body="props">
-                    <Katex v-if="props.data.assignment != null" :mathStr="props.data.assignment.math" />
+                    <Katex
+                        v-if="props.data.assignment != null"
+                        :mathStr="props.data.assignment.math"
+                    />
                 </template>
             </Column>
         </DataTable>

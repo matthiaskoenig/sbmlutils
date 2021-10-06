@@ -18,7 +18,11 @@
         >
             <template #header class="table-header">
                 <div class="p-d-flex p-jc-between p-ai-center sbmlType">
-                    <font-awesome-icon :icon="`${icon}`" :fixed-width="true" class="p-mr-1" />
+                    <font-awesome-icon
+                        :icon="`${icon}`"
+                        :fixed-width="true"
+                        class="p-mr-1"
+                    />
                     {{ header }}
                 </div>
             </template>
@@ -28,12 +32,7 @@
                 </template>
             </Column>
             <Column sortable class="column" field="name" header="name" />
-            <Column
-                sortable
-                class="column"
-                field="modelRef"
-                header="modelRef"
-            />
+            <Column sortable class="column" field="modelRef" header="modelRef" />
             <Column
                 sortable
                 class="column"

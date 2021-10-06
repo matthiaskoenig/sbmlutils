@@ -80,7 +80,8 @@
             <tr v-if="info.conversionFactor != null && info.conversionFactor.sid">
                 <td class="label-td"><div class="label">conversionFactor</div></td>
                 <td>
-                    {{ info.conversionFactor.sid }} = {{ info.conversionFactor.value }} {{ info.conversionFactor.units }}
+                    {{ info.conversionFactor.sid }} = {{ info.conversionFactor.value }}
+                    {{ info.conversionFactor.units }}
                 </td>
             </tr>
             <tr v-if="info.fbc && (info.fbc.formula || info.fbc.charge)">

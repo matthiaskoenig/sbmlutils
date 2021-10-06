@@ -14,21 +14,33 @@
             severity="warning"
             class="resource"
         >
-            <a v-if="addInfo.term" :href="addInfo.resource" target="_blank" class="resource">{{
-                addInfo.term
-            }}</a>
+            <a
+                v-if="addInfo.term"
+                :href="addInfo.resource"
+                target="_blank"
+                class="resource"
+                >{{ addInfo.term }}</a
+            >
             <a v-else :href="addInfo.resource" target="_blank" class="resource">{{
                 addInfo.resource
             }}</a>
         </Tag>
     </div>
     <div v-if="addInfo.errors && addInfo.errors.length">
-        <code v-for="error in addInfo.errors" :key="error" class="text-error"  style="font-size: smaller;"
+        <code
+            v-for="error in addInfo.errors"
+            :key="error"
+            class="text-error"
+            style="font-size: smaller"
             >Error: {{ error }}</code
         >
     </div>
     <div v-if="addInfo.warnings && addInfo.warnings.length">
-        <code v-for="warning in addInfo.warnings" :key="warning" class="text-warning" style="font-size: smaller;"
+        <code
+            v-for="warning in addInfo.warnings"
+            :key="warning"
+            class="text-warning"
+            style="font-size: smaller"
             >{{ warning }}</code
         >
     </div>

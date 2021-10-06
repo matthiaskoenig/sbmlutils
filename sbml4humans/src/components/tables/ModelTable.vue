@@ -18,7 +18,11 @@
         >
             <template #header class="table-header">
                 <div class="p-d-flex p-jc-between p-ai-center sbmlType">
-                    <font-awesome-icon :icon="`${icon}`" :fixed-width="true" class="p-mr-1" />
+                    <font-awesome-icon
+                        :icon="`${icon}`"
+                        :fixed-width="true"
+                        class="p-mr-1"
+                    />
                     {{ header }}
                 </div>
             </template>
@@ -38,52 +42,27 @@
                     <TemplateUnits :units="props.data.substanceUnits" />
                 </template>
             </Column>
-            <Column
-                sortable
-                class="column"
-                field="timeUnits"
-                header="time Units"
-            >
+            <Column sortable class="column" field="timeUnits" header="time Units">
                 <template #body="props">
                     <TemplateUnits :units="props.data.timeUnits" />
                 </template>
             </Column>
-            <Column
-                sortable
-                class="column"
-                field="lengthUnits"
-                header="length Units"
-            >
+            <Column sortable class="column" field="lengthUnits" header="length Units">
                 <template #body="props">
                     <TemplateUnits :units="props.data.lengthUnits" />
                 </template>
             </Column>
-            <Column
-                sortable
-                class="column"
-                field="areaUnits"
-                header="area Units"
-            >
+            <Column sortable class="column" field="areaUnits" header="area Units">
                 <template #body="props">
                     <TemplateUnits :units="props.data.areaUnits" />
                 </template>
             </Column>
-            <Column
-                sortable
-                class="column"
-                field="volumeUnits"
-                header="volume Units"
-            >
+            <Column sortable class="column" field="volumeUnits" header="volume Units">
                 <template #body="props">
                     <TemplateUnits :units="props.data.volumeUnits" />
                 </template>
             </Column>
-            <Column
-                sortable
-                class="column"
-                field="extentUnits"
-                header="extent Units"
-            >
+            <Column sortable class="column" field="extentUnits" header="extent Units">
                 <template #body="props">
                     <TemplateUnits :units="props.data.extentUnits" />
                 </template>
@@ -95,7 +74,9 @@
                 header="conversion Factor"
             >
                 <template #body="props">
-                    <TemplateConversionFactor :conversionFactor="props.data.conversionFactor" />
+                    <TemplateConversionFactor
+                        :conversionFactor="props.data.conversionFactor"
+                    />
                 </template>
             </Column>
         </DataTable>

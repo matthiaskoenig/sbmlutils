@@ -27,16 +27,10 @@
         <loading parent="file" />
         <p>
             To embed the report use the
-            <code style="font-size: small"
-                >{{ frontend_url }}/model_url?url=URL</code
-            >
+            <code style="font-size: small">{{ frontend_url }}/model_url?url=URL</code>
             endpoint. Example:
-            <a
-                :href="example_url"
-            >
-                <code style="font-size: small"
-                    >{{ example_url }}</code
-                >
+            <a :href="example_url">
+                <code style="font-size: small">{{ example_url }}</code>
             </a>
         </p>
     </div>
@@ -75,11 +69,14 @@ export default defineComponent({
             return store.state.fileLoading;
         },
         frontend_url(): string {
-            return VUE_APP_FRONTENDURL
+            return VUE_APP_FRONTENDURL;
         },
         example_url(): string {
-            return VUE_APP_FRONTENDURL + "/model_url?url=https://raw.githubusercontent.com/matthiaskoenig/sbmlutils/develop/src/sbmlutils/resources/models/glucose/Hepatic_glucose_3.xml"
-        }
+            return (
+                VUE_APP_FRONTENDURL +
+                "/model_url?url=https://raw.githubusercontent.com/matthiaskoenig/sbmlutils/develop/src/sbmlutils/resources/models/glucose/Hepatic_glucose_3.xml"
+            );
+        },
     },
 });
 </script>

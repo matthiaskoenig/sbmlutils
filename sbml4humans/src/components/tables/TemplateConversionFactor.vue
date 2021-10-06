@@ -1,6 +1,7 @@
 <template>
     <span v-if="conversionFactor != null && conversionFactor.sid">
-    {{ conversionFactor.sid }} = {{ conversionFactor.value }} {{ conversionFactor.units }}
+        {{ conversionFactor.sid }} = {{ conversionFactor.value }}
+        {{ conversionFactor.units }}
     </span>
 </template>
 

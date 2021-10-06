@@ -41,7 +41,9 @@ const tableMixin = (sbmlType: string): Record<string, unknown> => ({
             if (sbmlType === "Species") {
                 return "Species (" + store.state.searchedSBasesCounts[sbmlType] + ")";
             } else {
-                return sbmlType + " (" + store.state.searchedSBasesCounts[sbmlType] + ")";
+                return (
+                    sbmlType + " (" + store.state.searchedSBasesCounts[sbmlType] + ")"
+                );
             }
         },
     },

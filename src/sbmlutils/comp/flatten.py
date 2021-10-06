@@ -15,13 +15,13 @@ logger = get_logger(__name__)
 
 
 def flatten_sbml(
-    sbml_path: Path, filepath: Path = None, leave_ports: bool = True
+    sbml_path: Path, sbml_flat_path: Path = None, leave_ports: bool = True
 ) -> libsbml.SBMLDocument:
     """Flatten given SBML file.
 
-    :param sbml_path: Comp SBML Path
-    :param filepath: SBML file to write to
-    :param leave_ports: flat to leave ports in flattened model.
+    :param sbml_path: input path to SBML file to flatten (should be a comp model)
+    :param sbml_flat_path: output path for flat SBML
+    :param leave_ports: boolean flag to leave ports in flattened model.
 
     :return: flattened SBMLDocument
     """
@@ -35,7 +35,9 @@ def flatten_sbml(
     os.chdir(str(sbml_path.parent))
 
     doc = read_sbml(source=sbml_path)
-    flat_doc = flatten_sbml_doc(doc, leave_ports=leave_ports, output_path=filepath)
+    flat_doc = flatten_sbml_doc(
+        doc, leave_ports=leave_ports, output_path=sbml_flat_path
+    )
 
     # change back the working dir
     os.chdir(working_dir)

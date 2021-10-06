@@ -4,8 +4,7 @@ import router from "@/router";
 
 import INITIALIZATION_HELPERS from "@/helpers/reportInitialization";
 import listOfSBMLTypes from "@/data/listOfSBMLTypes";
-import {checkAPIResponse} from "@/helpers/additionalInfoUtils";
-
+import { checkAPIResponse } from "@/helpers/additionalInfoUtils";
 
 // read from .env.template file
 export let VUE_APP_BASEURL = process.env.VUE_APP_BASEURL;
@@ -189,10 +188,10 @@ export default createStore({
 
             // set the current model to main model in the report by default
             //console.log(payload.data)
-            if (!payload.data.report.model){
-                alert("No model in file ! Check if file is a valid SBML file.")
+            if (!payload.data.report.model) {
+                alert("No model in file ! Check if file is a valid SBML file.");
             }
-            console.log(payload.data.report.model.pk)
+            console.log(payload.data.report.model.pk);
             this.dispatch("updateCurrentModel", payload.data.report.model.pk);
             this.dispatch("updateCurrentFocussedTable", "");
 
@@ -278,7 +277,7 @@ export default createStore({
 
             // assembling the request parameters
             const url = VUE_APP_APIURL + "/url?url=" + payload;
-            console.log("Create report for url: " + url)
+            console.log("Create report for url: " + url);
             const res = await axios.get(url);
 
             context.commit("SET_FILE_LOADING", false);

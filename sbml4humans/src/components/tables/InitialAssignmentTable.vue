@@ -38,12 +38,7 @@
                     <Katex v-if="props.data.math != null" :mathStr="props.data.math" />
                 </template>
             </Column>
-            <Column
-                sortable
-                class="column"
-                field="derivedUnits"
-                header="derivedUnits"
-            >
+            <Column sortable class="column" field="derivedUnits" header="derivedUnits">
                 <template #body="props">
                     <TemplateUnits :units="props.data.derivedUnits" />
                 </template>

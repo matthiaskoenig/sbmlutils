@@ -1,24 +1,24 @@
 <template>
     <div style="opacity: 1">
-    <div class="p-ml-2 p-mt-4 menuheader">COMPONENTS</div>
-    <PanelMenu :model="items">
-        <template #item="{ item }">
-            <div class="menuitem" v-on:click="focusTable(item.sbmlType)">
-                <span class="button p-mr-2">
-                    <font-awesome-icon
-                        :icon="item.icon"
-                        :fixedWidth="true"
-                        :border="false"
-                        size="1x"
-                        :color="item.color"
-                    ></font-awesome-icon>
-                </span>
-                <span class="p-mr-2">
-                    <strong>{{ item.sbmlType }}</strong> ({{ item.count }})
-                </span>
-            </div>
-        </template>
-    </PanelMenu>
+        <div class="p-ml-2 p-mt-4 menuheader">COMPONENTS</div>
+        <PanelMenu :model="items">
+            <template #item="{ item }">
+                <div class="menuitem" v-on:click="focusTable(item.sbmlType)">
+                    <span class="button p-mr-2">
+                        <font-awesome-icon
+                            :icon="item.icon"
+                            :fixedWidth="true"
+                            :border="false"
+                            size="1x"
+                            :color="item.color"
+                        ></font-awesome-icon>
+                    </span>
+                    <span class="p-mr-2">
+                        <strong>{{ item.sbmlType }}</strong> ({{ item.count }})
+                    </span>
+                </div>
+            </template>
+        </PanelMenu>
     </div>
 </template>
 

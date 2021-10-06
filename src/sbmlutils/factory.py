@@ -29,12 +29,10 @@ from typing import Any, Dict, List, Optional, Tuple, Type, Union
 import libsbml
 import numpy as np
 import xmltodict  # type: ignore
-from libsbml import DISTRIB_UNCERTTYPE_MEAN as UNCERTTYPE_MEAN
-from libsbml import DISTRIB_UNCERTTYPE_RANGE as UNCERTTYPE_RANGE
-from libsbml import DISTRIB_UNCERTTYPE_STANDARDDEVIATION as UNCERTTYPE_STANDARDDEVIATION
 from numpy import NaN
 from pint import UndefinedUnitError, UnitRegistry
 from pydantic import BaseModel
+from pymetadata.core.creator import Creator
 
 from sbmlutils.console import console
 from sbmlutils.equation import Equation
@@ -64,9 +62,6 @@ ureg.define("item = 1 dimensionless")
 # FIXME: make complete import of all DISTRIB constants
 
 __all__ = [
-    "UNCERTTYPE_MEAN",
-    "UNCERTTYPE_STANDARDDEVIATION",
-    "UNCERTTYPE_RANGE",
     "SBML_LEVEL",
     "SBML_VERSION",
     "PORT_SUFFIX",
@@ -287,48 +282,6 @@ class ModelUnits:
                     model.setAreaUnits(uid)
                 elif key == "volume":
                     model.setVolumeUnits(uid)
-
-
-class Creator:
-    """Creator in ModelHistory."""
-
-    def __init__(
-        self,
-        familyName: str,
-        givenName: str,
-        email: str,
-        organization: str,
-        site: Optional[str] = None,
-        orcid: Optional[str] = None,
-    ):
-        self.familyName = familyName
-        self.givenName = givenName
-        self.email = email
-        self.organization = organization
-        self.site = site
-        self.orcid = orcid
-
-    def __str__(self) -> str:
-        """Get string representation."""
-        return f"{self.familyName} {self.givenName} ({self.email}, {self.organization}, {self.site}, {self.orcid})"
-
-    def __hash__(self) -> int:
-        """Get hash."""
-        return hash(str(self))
-
-    def __eq__(self, other: object) -> bool:
-        """Check for equality."""
-        if not isinstance(other, Creator):
-            return NotImplemented
-
-        return (
-            self.familyName == other.familyName
-            and self.givenName == other.givenName
-            and self.email == other.email
-            and self.organization == other.organization
-            and self.site == other.site
-            and self.orcid == other.orcid
-        )
 
 
 def date_now() -> libsbml.Date:
@@ -3002,7 +2955,6 @@ class FactoryResult:
 def create_model(
     models: Union["Model", List["Model"]],
     output_dir: Optional[Path] = None,
-    tmp: bool = False,
     filename: str = None,
     mid: str = None,
     suffix: str = None,
@@ -3015,6 +2967,7 @@ def create_model(
     internal_consistency: bool = True,
     sbml_level: int = SBML_LEVEL,
     sbml_version: int = SBML_VERSION,
+    tmp: bool = False,
 ) -> FactoryResult:
     """Create SBML model from module information.
 

@@ -18,7 +18,11 @@
         >
             <template #header class="table-header">
                 <div class="p-d-flex p-jc-between p-ai-center sbmlType">
-                    <font-awesome-icon :icon="`${icon}`" :fixed-width="true" class="p-mr-1" />
+                    <font-awesome-icon
+                        :icon="`${icon}`"
+                        :fixed-width="true"
+                        class="p-mr-1"
+                    />
                     {{ header }}
                 </div>
             </template>
@@ -28,12 +32,7 @@
                 </template>
             </Column>
             <Column sortable class="column" field="name" header="name" />
-            <Column
-                sortable
-                class="column"
-                field="constant"
-                header="constant"
-            >
+            <Column sortable class="column" field="constant" header="constant">
                 <template #body="props">
                     <BooleanSymbol :value="props.data.constant" />
                 </template>
@@ -61,12 +60,7 @@
                 field="initialAmount"
                 header="initial Amount"
             />
-            <Column
-                sortable
-                class="column"
-                field="derivedUnits"
-                header="derived Units"
-            >
+            <Column sortable class="column" field="derivedUnits" header="derived Units">
                 <template #body="props">
                     <TemplateUnits :units="props.data.derivedUnits" />
                 </template>
@@ -86,14 +80,12 @@
                     <TemplateUnits :units="props.data.units" />
                 </template>
             </Column>
-            <Column
-                sortable
-                class="column"
-                field="assignment"
-                header="assignment"
-            >
+            <Column sortable class="column" field="assignment" header="assignment">
                 <template #body="props">
-                    <Katex v-if="props.data.assignment != null" :mathStr="props.data.assignment.math" />
+                    <Katex
+                        v-if="props.data.assignment != null"
+                        :mathStr="props.data.assignment.math"
+                    />
                 </template>
             </Column>
         </DataTable>
@@ -112,7 +104,7 @@ export default defineComponent({
     components: {
         TemplateId,
         TemplateUnits,
-        BooleanSymbol
+        BooleanSymbol,
     },
     props: {
         listOfPKs: {

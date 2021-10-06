@@ -18,7 +18,11 @@
         >
             <template #header class="table-header">
                 <div class="p-d-flex p-jc-between p-ai-center sbmlType">
-                    <font-awesome-icon :icon="`${icon}`" :fixed-width="true" class="p-mr-1" />
+                    <font-awesome-icon
+                        :icon="`${icon}`"
+                        :fixed-width="true"
+                        class="p-mr-1"
+                    />
                     {{ header }}
                 </div>
             </template>
@@ -33,12 +37,7 @@
                     <Katex v-if="props.data.math != null" :mathStr="props.data.math" />
                 </template>
             </Column>
-            <Column
-                sortable
-                class="column"
-                field="derivedUnits"
-                header="derivedUnits"
-            >
+            <Column sortable class="column" field="derivedUnits" header="derivedUnits">
                 <template #body="props">
                     <TemplateUnits :units="props.data.derivedUnits" />
                 </template>

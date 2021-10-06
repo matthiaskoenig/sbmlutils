@@ -5,21 +5,28 @@
                 <td class="label-td"><div class="label">packages</div></td>
                 <td>
                     <div v-if="info.packages.document != null">
-                        <Tag :value="'SBML Level ' + info.packages.document.level + ' Version ' + info.packages.document.version"
+                        <Tag
+                            :value="
+                                'SBML Level ' +
+                                info.packages.document.level +
+                                ' Version ' +
+                                info.packages.document.version
+                            "
                             :style="`background-color: black; color: white`"
-                            ></Tag>
+                        ></Tag>
                     </div>
                     <div v-if="info.packages.plugins != null">
                         <div
                             v-for="plugin in info.packages.plugins"
                             :key="plugin.prefix + plugin.version"
                         >
-                            <Tag :value="plugin.prefix + '-v' + plugin.version"
-                            :style="`background-color: ${badgeColor[plugin.prefix]}; color: ${badgeText[plugin.prefix]}`"
+                            <Tag
+                                :value="plugin.prefix + '-v' + plugin.version"
+                                :style="`background-color: ${
+                                    badgeColor[plugin.prefix]
+                                }; color: ${badgeText[plugin.prefix]}`"
                             ></Tag>
-
                         </div>
-
                     </div>
                 </td>
             </tr>
@@ -45,7 +52,7 @@ import TYPES from "@/data/sbmlComponents";
 import { defineComponent } from "@vue/runtime-core";
 
 import SBMLLink from "@/components/layout/SBMLLink.vue";
-import {FilterMatchMode, FilterOperator} from "primevue/api";
+import { FilterMatchMode, FilterOperator } from "primevue/api";
 
 /**
  * Component to define display of SBMLDocument objects.

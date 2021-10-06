@@ -104,7 +104,7 @@ def merge_models(
 
     if flatten:
         flat_path = output_dir / f"{merged_id}_flat.xml"
-        flatten_sbml(sbml_path=merged_path, filepath=flat_path)
+        flatten_sbml(sbml_path=merged_path, sbml_flat_path=flat_path)
         if validate:
             validate_sbml(flat_path, name=str(flat_path), **validate_kwargs)
 

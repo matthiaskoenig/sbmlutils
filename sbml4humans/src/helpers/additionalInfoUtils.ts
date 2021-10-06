@@ -1,5 +1,5 @@
 import axios from "axios";
-import {VUE_APP_APIURL} from "@/store";
+import { VUE_APP_APIURL } from "@/store";
 // import { setupCache } from "axios-cache-adapter";
 
 // const cache = setupCache({
@@ -33,15 +33,14 @@ export async function fetchAdditionalInfo(
     return res;
 }
 
-
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function checkAPIResponse(response: any): void {
-    if (response.data["errors"]){
+    if (response.data["errors"]) {
         alert(
             "An error occurred. Please report this on\n" +
                 "https://github.com/matthiaskoenig/sbmlutils/issues/new\n" +
                 "so we can improve the service.\n\n" +
-            JSON.stringify(response.data, null, 1)
+                JSON.stringify(response.data, null, 1)
         );
     }
 }

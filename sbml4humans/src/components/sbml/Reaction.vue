@@ -55,10 +55,13 @@
                 </td>
             </tr>
             <tr v-if="info.kineticLaw != null">
-                 <td class="label-td"><div class="label">derivedUnits</div></td>
+                <td class="label-td"><div class="label">derivedUnits</div></td>
                 <td>
                     <div v-if="info.kineticLaw.derivedUnits != null">
-                        <katex :mathStr="info.kineticLaw.derivedUnits" class="katex_unit" />
+                        <katex
+                            :mathStr="info.kineticLaw.derivedUnits"
+                            class="katex_unit"
+                        />
                     </div>
                 </td>
             </tr>
@@ -72,16 +75,30 @@
             <tr v-if="info.fbc != null">
                 <td class="label-td"><div class="label">lowerFluxBound</div></td>
                 <td>
-                    <div v-if="info.fbc.bounds && info.fbc.bounds.lowerFluxBound && info.fbc.bounds.lowerFluxBound.id">
-                        {{ info.fbc.bounds.lowerFluxBound.id }} = {{ info.fbc.bounds.lowerFluxBound.value }}
+                    <div
+                        v-if="
+                            info.fbc.bounds &&
+                            info.fbc.bounds.lowerFluxBound &&
+                            info.fbc.bounds.lowerFluxBound.id
+                        "
+                    >
+                        {{ info.fbc.bounds.lowerFluxBound.id }} =
+                        {{ info.fbc.bounds.lowerFluxBound.value }}
                     </div>
                 </td>
             </tr>
             <tr v-if="info.fbc != null">
                 <td class="label-td"><div class="label">upperFluxBound</div></td>
                 <td>
-                    <div v-if="info.fbc.bounds && info.fbc.bounds.upperFluxBound && info.fbc.bounds.upperFluxBound.id">
-                        {{ info.fbc.bounds.upperFluxBound.id }} = {{ info.fbc.bounds.upperFluxBound.value }}
+                    <div
+                        v-if="
+                            info.fbc.bounds &&
+                            info.fbc.bounds.upperFluxBound &&
+                            info.fbc.bounds.upperFluxBound.id
+                        "
+                    >
+                        {{ info.fbc.bounds.upperFluxBound.id }} =
+                        {{ info.fbc.bounds.upperFluxBound.value }}
                     </div>
                 </td>
             </tr>

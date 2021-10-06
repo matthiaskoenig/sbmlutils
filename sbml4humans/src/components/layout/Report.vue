@@ -1,23 +1,33 @@
 <template>
     <Splitter>
-        <SplitterPanel :size="15" :min-size="10" style="background-color: #f6f6f6;">
+        <SplitterPanel :size="15" :min-size="10" style="background-color: #f6f6f6">
             <div class="p-ml-2 p-mt-1 menuheader">SEARCH</div>
 
             <InputText
-                    placeholder="Search"
-                    type="text"
-                    style="height: 35px; width:100%"
-                    v-if="['report', 'Report'].includes($route.name)"
-                    @input="updateSearchQuery"/>
+                placeholder="Search"
+                type="text"
+                style="height: 35px; width: 100%"
+                v-if="['report', 'Report'].includes($route.name)"
+                @input="updateSearchQuery"
+            />
 
             <document-menu />
             <component-menu />
-
         </SplitterPanel>
-        <SplitterPanel class="panel p-p-2" :size="65" :min-size="40" style="background-color: white;">
+        <SplitterPanel
+            class="panel p-p-2"
+            :size="65"
+            :min-size="40"
+            style="background-color: white"
+        >
             <tables-container />
         </SplitterPanel>
-        <SplitterPanel class="panel p-py-2 p-pl-2" :size="20" :min-size="10" style="background-color: #f6f6f6;">
+        <SplitterPanel
+            class="panel p-py-2 p-pl-2"
+            :size="20"
+            :min-size="10"
+            style="background-color: #f6f6f6"
+        >
             <detail-container />
         </SplitterPanel>
     </Splitter>

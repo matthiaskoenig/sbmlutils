@@ -96,7 +96,7 @@ if __name__ == "__main__":
     sbml_path_flat = Path(__file__).parent / "comp_model_flat.xml"
 
     # flatten SBML model
-    flatten_sbml(fac_result.sbml_path, filepath=sbml_path_flat)
+    flatten_sbml(fac_result.sbml_path, sbml_flat_path=sbml_path_flat)
 
     # visualize_sbml(sbml_path=fac_result.sbml_path)
     visualize_sbml(sbml_path=sbml_path_flat)

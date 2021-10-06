@@ -18,7 +18,11 @@
         >
             <template #header class="table-header">
                 <div class="p-d-flex p-jc-between p-ai-center sbmlType">
-                    <font-awesome-icon :icon="`${icon}`" :fixed-width="true" class="p-mr-1" />
+                    <font-awesome-icon
+                        :icon="`${icon}`"
+                        :fixed-width="true"
+                        class="p-mr-1"
+                    />
                     {{ header }}
                 </div>
             </template>
@@ -29,7 +33,12 @@
             </Column>
             <Column sortable class="column" field="name" header="name" />
             <Column sortable class="column" field="label" header="label" />
-            <Column sortable class="column" field="associatedSpecies" header="associatedSpecies" />
+            <Column
+                sortable
+                class="column"
+                field="associatedSpecies"
+                header="associatedSpecies"
+            />
         </DataTable>
     </div>
 </template>
