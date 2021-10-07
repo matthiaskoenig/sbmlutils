@@ -77,6 +77,7 @@ def udef_to_string(
             us = us.replace("3600.0 s", "1 hr")
             us = us.replace("3.6 ks", "1 hr")
             us = us.replace("86.4 ks", "1 day")
+            us = us.replace("10.0 mm", "1 cm")
 
             # remove 1.0 prefixes
             us = us.replace("1 ", "")
