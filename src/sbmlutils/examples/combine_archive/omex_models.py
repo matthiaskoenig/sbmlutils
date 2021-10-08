@@ -2,8 +2,11 @@
 
 This demonstrates just the very core SBML functionality.
 """
+import tempfile
 from pathlib import Path
 from typing import Dict
+
+from pymetadata.omex import *
 
 from sbmlutils import EXAMPLES_DIR
 from sbmlutils.comp import flatten_sbml
@@ -52,10 +55,10 @@ _m = Model(
 
 # create grid of compartments with main species
 for k in range(n_cells):
-    _m.compartments.append(
+    _m.compartments.append(  # type: ignore
         Compartment(sid=f"cell{k}", value=1.0),
     )
-    _m.species.append(
+    _m.species.append(  # type: ignore
         Species(
             sid=f"S{k}",
             # metaId=f"meta_S{k}",
@@ -66,7 +69,7 @@ for k in range(n_cells):
 
 # transport reactions to couple cells
 for k in range(n_cells - 1):
-    _m.reactions.append(
+    _m.reactions.append(  # type: ignore
         Reaction(
             sid=f"J{k}", equation=f"S{k} <-> S{k+1}", formula=f"D * (S{k}-S{k+1})"
         ),
@@ -74,15 +77,15 @@ for k in range(n_cells - 1):
 
 # model coupling
 for k in range(n_cells):
-    _m.external_model_definitions.append(
+    _m.external_model_definitions.append(  # type: ignore
         ExternalModelDefinition(
             sid=f"emd{k}",
             source=f"{model_minimal.sid}.xml",
             modelRef=f"{model_minimal.sid}",
         ),
     )
-    _m.submodels.append(Submodel(sid=f"submodel{k}", modelRef=f"emd{k}"))
-    _m.replaced_elements.extend(
+    _m.submodels.append(Submodel(sid=f"submodel{k}", modelRef=f"emd{k}"))  # type: ignore
+    _m.replaced_elements.extend(  # type: ignore
         [
             # replace compartments
             ReplacedElement(
@@ -108,30 +111,52 @@ comp_model = _m
 results: Dict[str, Path] = {}
 
 
-def create_omex(tmp: bool = False) -> FactoryResult:
+def create_omex(tmp: bool = False) -> None:
     """Create omex with models."""
 
-    results_minimal_model = create_model(
-        models=model_minimal,
-        output_dir=EXAMPLES_DIR,
-        units_consistency=False,
-    )
-    results_comp_model = create_model(
-        models=comp_model,
-        output_dir=EXAMPLES_DIR,
-        units_consistency=False,
-    )
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        if tmp:
+            output_dir = Path(tmp_dir)
+        else:
+            output_dir = EXAMPLES_DIR
 
-    sbml_flat_path = results_comp_model.sbml_path.parent / f"{comp_model.sid}_flat.xml"
-    flatten_sbml(sbml_path=results_comp_model.sbml_path, sbml_flat_path=sbml_flat_path)
+        results_minimal_model = create_model(
+            models=model_minimal,
+            output_dir=output_dir,
+            units_consistency=False,
+        )
+        results_comp_model = create_model(
+            models=comp_model,
+            output_dir=output_dir,
+            units_consistency=False,
+        )
+        sbml_flat_path = (
+            results_comp_model.sbml_path.parent / f"{comp_model.sid}_flat.xml"
+        )
+        flatten_sbml(
+            sbml_path=results_comp_model.sbml_path, sbml_flat_path=sbml_flat_path
+        )
 
-    paths = [
-        results_minimal_model.sbml_path,
-        results_comp_model.sbml_path,
-        sbml_flat_path,
-    ]
-    console.print(paths)
+        sbml_paths = [
+            results_minimal_model.sbml_path,
+            results_comp_model.sbml_path,
+            sbml_flat_path,
+        ]
+
+        # Create COMBINE archive
+        omex = Omex()
+        for path in sbml_paths:
+            omex.add_entry(
+                entry_path=path,
+                entry=ManifestEntry(
+                    format=EntryFormat.SBML_L3V1, location=f"./models/{path.name}"
+                ),
+            )
+        omex_path = output_dir / f"{comp_model.sid}.omex"
+        omex.to_omex(omex_path)
+        console.print(f"OMEX created: {omex_path}")
+        console.print(omex.manifest.dict())
 
 
 if __name__ == "__main__":
-    fac_result = create_omex()
+    create_omex()

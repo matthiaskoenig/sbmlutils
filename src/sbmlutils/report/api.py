@@ -3,7 +3,7 @@
 This provides basic functionality of
 parsing the model and returning the JSON representation based on fastAPI.
 """
-import json
+import tempfile
 import time
 import traceback
 import uuid
@@ -16,6 +16,7 @@ from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pymetadata.core.annotation import RDFAnnotation, RDFAnnotationData
 from pymetadata.identifiers.miriam import BQB
+from pymetadata.omex import EntryFormat, Manifest, ManifestEntry, Omex
 
 from sbmlutils import log
 from sbmlutils.console import console
@@ -26,11 +27,9 @@ from sbmlutils.report.sbmlinfo import SBMLDocumentInfo
 logger = log.get_logger(__name__)
 
 api = FastAPI(
-    #     root_path="/api/v1",
-    #    openapi_prefix="/api/v1",
     title="sbml4humans",
     description="sbml4humans backend api",
-    version="0.1.1",
+    version="0.1.2",
     terms_of_service="https://github.com/matthiaskoenig/sbmlutils/blob/develop/sbml4humans/privacy_notice.md",
     contact={
         "name": "Matthias König",
@@ -89,13 +88,12 @@ def examples() -> Dict[Any, Any]:
 @api.get("/api/examples/{example_id}", tags=["examples"])
 def example(example_id: str) -> Dict[Any, Any]:
     """Get specific example."""
-    uid = uuid.uuid4().hex
     try:
         example: Optional[ExampleMetaData] = examples_info.get(example_id, None)
         content: Dict
         if example:
             source: Path = example.file  # type: ignore
-            content = json_for_sbml(uid, source=source)
+            content = json_for_omex(omex_path=source)
         else:
             content = {"error": f"example for id does not exist '{example_id}'"}
 
@@ -104,126 +102,95 @@ def example(example_id: str) -> Dict[Any, Any]:
         return _handle_error(e)
 
 
-@api.get("/api/omex/{omex_id}", tags=["examples"])
-def omex(omex_id: str) -> Dict[Any, Any]:
-    """Get OMEX archive."""
-    uid = uuid.uuid4().hex
-    try:
-
-        content_1 = {
-            "manifest": [
-                {
-                    "location": ".",
-                    "format": "http://identifiers.org/combine.specifications/omex",
-                    "format_key": "omex",
-                },
-                {
-                    "location": "./manifest.xml",
-                    "format": "http://identifiers.org/combine.specifications/omex-manifest",
-                    "format_key": "omex-manifest",
-                },
-                {
-                    "location": "./README.md",
-                    "format": "http://purl.org/NET/mediatypes/text/x-markdown",
-                    "format_key": "x-markdown",
-                },
-                {
-                    "location": "./models/omex_comp.xml",
-                    "format": "http://identifiers.org/combine.specifications/sbml.level-3.version-1",
-                    "format_key": "sbml",
-                },
-                {
-                    "location": "./models/omex_comp_flat.xml",
-                    "format": "http://identifiers.org/combine.specifications/sbml.level-3.version-1",
-                    "format_key": "sbml",
-                },
-                {
-                    "location": "./models/omex_minimal.xml",
-                    "format": "http://identifiers.org/combine.specifications/sbml.level-3.version-1",
-                    "format_key": "sbml",
-                },
-            ],
-            "reports": {
-                "./models/omex_comp.xml": {"THIS IS THE REPORT JSON"},
-                "./models/omex_comp_flat.xml": {"THIS IS THE REPORT JSON"},
-                "./models/omex_minimal.xml": {"THIS IS THE REPORT JSON"},
-            },
-        }
-        content_2 = {
-            "manifest": [
-                {
-                    "location": ".",
-                    "format": "http://identifiers.org/combine.specifications/omex",
-                    "format_key": "omex",
-                },
-                {
-                    "location": "./manifest.xml",
-                    "format": "http://identifiers.org/combine.specifications/omex-manifest",
-                    "format_key": "omex-manifest",
-                },
-                {
-                    "location": "./README.md",
-                    "format": "http://purl.org/NET/mediatypes/text/x-markdown",
-                    "format_key": "x-markdown",
-                },
-                {
-                    "location": "./model.xml",
-                    "format": "http://identifiers.org/combine.specifications/sbml.level-3.version-1",
-                    "format_key": "sbml",
-                },
-            ],
-            "reports": {
-                "./model.xml": {"THIS IS THE REPORT JSON"},
-            },
-        }
-
-        if omex_id == "1":
-            return content_1
-        if omex_id == "2":
-            return content_2
-
-    except Exception as e:
-        return _handle_error(e)
-
-
 @api.post("/api/file", tags=["reports"])
 async def report_from_file(request: Request) -> Dict[Any, Any]:
     """Upload file and return JSON report."""
-    uid = uuid.uuid4().hex
     try:
         file_data = await request.form()
         file_content = await file_data["source"].read()  # type: ignore
-        return json_for_sbml(uid, source=file_content)
+
+        # write in file; check if SBML; gzip SBML or OMEX,
+        # TODO: implement `is_omex` function
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            path = Path(tmp_dir) / "file"
+            with open(path) as f:
+                f.write(file_content)
+
+            return json_for_omex(path)
 
     except Exception as e:
-        return _handle_error(e, info={"uid": uid})
+        return _handle_error(e, info={})
 
 
 @api.get("/api/url", tags=["reports"])
 def report_from_url(url: str) -> Dict[Any, Any]:
     """Get JSON report via URL."""
-    uid = uuid.uuid4().hex
     try:
         response = requests.get(url)
         response.raise_for_status()
-        return json_for_sbml(uid, source=response.text)
+
+        with tempfile.TemporaryDirectory() as f_tmp:
+            path = Path(f_tmp) / "file"
+            with open(path, "w") as f:
+                f.write(response.text)
+
+            return json_for_omex(path)
 
     except Exception as e:
-        return _handle_error(e, info={"uid": str(uid), "url": url})
+        return _handle_error(e, info={"url": url})
 
 
 @api.post("/api/content", tags=["reports"])
 async def get_report_from_content(request: Request) -> Dict[Any, Any]:
     """Get JSON report from file contents."""
-    uid: str = uuid.uuid4().hex
+
     file_content: Optional[str] = None
     try:
         file_content_bytes: bytes = await request.body()
         file_content = file_content_bytes.decode("utf-8")
-        return json_for_sbml(uid, source=file_content)
+
+        with tempfile.TemporaryDirectory() as f_tmp:
+            path = Path(f_tmp) / "file"
+            with open(path, "w") as f:
+                f.write(file_content)
+
+            return json_for_omex(path)
 
     except Exception as e:
-        return _handle_error(e, info={"uid": uid, "content": str(file_content)})
+        return _handle_error(e, info={})
+
+
+def json_for_omex(omex_path: Path) -> Dict[str, Any]:
+    """Create json for omex path.
+
+    Path can be either Omex or an SBML file.
+    """
+    uid: str = uuid.uuid4().hex
+
+    if Omex.is_omex(omex_path):
+        omex = Omex().from_omex(omex_path)
+    else:
+        # Path is SBML we create a new archive
+        omex = Omex()
+        omex.add_entry(
+            entry_path=omex_path,
+            entry=ManifestEntry(
+                location="./model.xml", format=EntryFormat.SBML, master=True
+            ),
+        )
+
+    content = {"uid": uid, "manifest": omex.manifest.dict(), "reports": {}}
+
+    # Add report JSON for all SBML files
+    entry: ManifestEntry
+    for entry in omex.manifest.entries:
+        if entry.is_sbml():
+            sbml_path: Path = omex.get_path(entry.location)
+            content["reports"][entry.location] = json_for_sbml(  # type: ignore
+                uid=uid, source=sbml_path
+            )
+
+    return content
 
 
 def json_for_sbml(uid: str, source: Union[Path, str, bytes]) -> Dict:

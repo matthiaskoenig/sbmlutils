@@ -4,12 +4,12 @@ from typing import List, Optional
 
 import libsbml
 from pydantic import BaseModel, FilePath
+from pymetadata.omex import *
 
 from sbmlutils.console import console
 from sbmlutils.io import read_sbml
-from sbmlutils.test import API_EXAMPLES_MODEL, BIOMODELS_CURATED_PATH, API_EXAMPLES_OMEX
+from sbmlutils.test import API_EXAMPLES_MODEL, API_EXAMPLES_OMEX, BIOMODELS_CURATED_PATH
 
-from pymetadata.omex import *
 
 class ExampleMetaData(BaseModel):
     """Metadata for example model on sbml4humans."""
@@ -59,7 +59,7 @@ def create_omex_metadata(omex_path: Path) -> ExampleMetaData:
         id=omex_path.stem,
         name=omex_path.stem,
         description=str(omex.manifest),
-        packages=['OMEX'],
+        packages=["OMEX"],
     )
 
 
