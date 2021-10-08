@@ -111,78 +111,70 @@ def omex(omex_id: str) -> Dict[Any, Any]:
     try:
 
         content_1 = {
-            'manifest': [
+            "manifest": [
                 {
-                    'location': ".",
-                    'format': "http://identifiers.org/combine.specifications/omex",
-                    'format_key': "omex"
+                    "location": ".",
+                    "format": "http://identifiers.org/combine.specifications/omex",
+                    "format_key": "omex",
                 },
                 {
-                    'location': "./manifest.xml",
-                    'format': "http://identifiers.org/combine.specifications/omex-manifest",
-                    'format_key': "omex-manifest"
+                    "location": "./manifest.xml",
+                    "format": "http://identifiers.org/combine.specifications/omex-manifest",
+                    "format_key": "omex-manifest",
                 },
                 {
-                    'location': "./README.md",
-                    'format': "http://purl.org/NET/mediatypes/text/x-markdown",
-                    'format_key': "x-markdown"
+                    "location": "./README.md",
+                    "format": "http://purl.org/NET/mediatypes/text/x-markdown",
+                    "format_key": "x-markdown",
                 },
                 {
-                    'location': "./models/omex_comp.xml",
-                    'format': "http://identifiers.org/combine.specifications/sbml.level-3.version-1",
-                    'format_key': "sbml"
+                    "location": "./models/omex_comp.xml",
+                    "format": "http://identifiers.org/combine.specifications/sbml.level-3.version-1",
+                    "format_key": "sbml",
                 },
                 {
-                    'location': "./models/omex_comp_flat.xml",
-                    'format': "http://identifiers.org/combine.specifications/sbml.level-3.version-1",
-                    'format_key': "sbml"
+                    "location": "./models/omex_comp_flat.xml",
+                    "format": "http://identifiers.org/combine.specifications/sbml.level-3.version-1",
+                    "format_key": "sbml",
                 },
                 {
-                    'location': "./models/omex_minimal.xml",
-                    'format': "http://identifiers.org/combine.specifications/sbml.level-3.version-1",
-                    'format_key': "sbml"
+                    "location": "./models/omex_minimal.xml",
+                    "format": "http://identifiers.org/combine.specifications/sbml.level-3.version-1",
+                    "format_key": "sbml",
                 },
             ],
-            'reports': {
-                "./models/omex_comp.xml": {
-                    "THIS IS THE REPORT JSON"
-                },
-                "./models/omex_comp_flat.xml": {
-                    "THIS IS THE REPORT JSON"
-                },
-                "./models/omex_minimal.xml": {
-                    "THIS IS THE REPORT JSON"
-                }
-            }
+            "reports": {
+                "./models/omex_comp.xml": {"THIS IS THE REPORT JSON"},
+                "./models/omex_comp_flat.xml": {"THIS IS THE REPORT JSON"},
+                "./models/omex_minimal.xml": {"THIS IS THE REPORT JSON"},
+            },
         }
         content_2 = {
-            'manifest': [
+            "manifest": [
                 {
-                    'location': ".",
-                    'format': "http://identifiers.org/combine.specifications/omex",
-                    'format_key': "omex"
+                    "location": ".",
+                    "format": "http://identifiers.org/combine.specifications/omex",
+                    "format_key": "omex",
                 },
                 {
-                    'location': "./manifest.xml",
-                    'format': "http://identifiers.org/combine.specifications/omex-manifest",
-                    'format_key': "omex-manifest"
+                    "location": "./manifest.xml",
+                    "format": "http://identifiers.org/combine.specifications/omex-manifest",
+                    "format_key": "omex-manifest",
                 },
                 {
-                    'location': "./README.md",
-                    'format': "http://purl.org/NET/mediatypes/text/x-markdown",
-                    'format_key': "x-markdown"
+                    "location": "./README.md",
+                    "format": "http://purl.org/NET/mediatypes/text/x-markdown",
+                    "format_key": "x-markdown",
                 },
                 {
-                    'location': "./model.xml",
-                    'format': "http://identifiers.org/combine.specifications/sbml.level-3.version-1",
-                    'format_key': "sbml"
+                    "location": "./model.xml",
+                    "format": "http://identifiers.org/combine.specifications/sbml.level-3.version-1",
+                    "format_key": "sbml",
                 },
             ],
-            'reports': {
-                "./model.xml": {
-                    "THIS IS THE REPORT JSON"
-                },
-            }
+            "reports": {
+                "./model.xml": {"THIS IS THE REPORT JSON"},
+            },
         }
 
         if omex_id == "1":

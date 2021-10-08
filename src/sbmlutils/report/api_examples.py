@@ -7,8 +7,9 @@ from pydantic import BaseModel, FilePath
 
 from sbmlutils.console import console
 from sbmlutils.io import read_sbml
-from sbmlutils.test import API_EXAMPLE_MODELS, BIOMODELS_CURATED_PATH
+from sbmlutils.test import API_EXAMPLES_MODEL, BIOMODELS_CURATED_PATH, API_EXAMPLES_OMEX
 
+from pymetadata.omex import *
 
 class ExampleMetaData(BaseModel):
     """Metadata for example model on sbml4humans."""
@@ -20,7 +21,7 @@ class ExampleMetaData(BaseModel):
     packages: List[str] = []
 
 
-def read_example_metadata(sbml_path: Path) -> ExampleMetaData:
+def create_models_metadata(sbml_path: Path) -> ExampleMetaData:
     """Read metadata from SBML file."""
 
     doc: libsbml.SBMLDocument = read_sbml(sbml_path, validate=False)
@@ -48,6 +49,20 @@ def read_example_metadata(sbml_path: Path) -> ExampleMetaData:
     )
 
 
+def create_omex_metadata(omex_path: Path) -> ExampleMetaData:
+    """Create metadata from OMEX file."""
+
+    omex = Omex.from_omex(omex_path)
+
+    return ExampleMetaData(
+        file=omex_path,
+        id=omex_path.stem,
+        name=omex_path.stem,
+        description=str(omex.manifest),
+        packages=['OMEX'],
+    )
+
+
 def biomodels_examples() -> List[ExampleMetaData]:
     """Biomodel examples."""
     examples: List[ExampleMetaData] = []
@@ -56,13 +71,14 @@ def biomodels_examples() -> List[ExampleMetaData]:
             biomodel_id = f"BIOMD0000000{k:0>3}"
             biomodel_path = BIOMODELS_CURATED_PATH / f"{biomodel_id}.xml.gz"
 
-            example = read_example_metadata(biomodel_path)
+            example = create_models_metadata(biomodel_path)
             example.id = biomodel_id
             examples.append(example)
 
     return examples
 
 
-examples = [read_example_metadata(p) for p in API_EXAMPLE_MODELS]
+examples = [create_omex_metadata(p) for p in API_EXAMPLES_OMEX]
+examples += [create_models_metadata(p) for p in API_EXAMPLES_MODEL]
 examples += biomodels_examples()
 examples_info = {emd.id: emd for emd in examples}
