@@ -21,6 +21,30 @@ function initializeComponentWiseLists(): Record<string, Array<string>> {
     return map;
 }
 
+function organizeLocationwiseContexts(
+    OMEXRes: Record<string, unknown>
+): Record<string, unknown> {
+    const contexts = {};
+    let initializeReportLocation = "";
+
+    const reports = OMEXRes["reports"] as Record<string, unknown>;
+    let i = 0;
+    for (const location in reports) {
+        if (i++ == 0) {
+            initializeReportLocation = location;
+        }
+        contexts[location] = assembleSBasesInReport(
+            (reports[location] as Record<string, unknown>)["report"] as Record<string, unknown>
+        );
+        contexts[location]["report"] = (reports[location] as Record<string, unknown>)["report"];
+    }
+
+    return {
+        contexts: contexts,
+        initialReportLocation: initializeReportLocation,
+    };
+}
+
 /**
  * Collects the SBML Document and all model definitions from the backend API
  * response. It then collects other SBML objects in these definitions. Also
@@ -29,9 +53,9 @@ function initializeComponentWiseLists(): Record<string, Array<string>> {
  */
 function assembleSBasesInReport(
     report: Record<string, unknown>
-): Array<Record<string, unknown>> {
+): Record<string, unknown> {
     if (report === null) {
-        return [];
+        return {};
     }
 
     const sbases: Array<Record<string, unknown>> = [];
@@ -122,7 +146,14 @@ function assembleSBasesInReport(
     store.dispatch("updateComponentPKsMap", componentPKsMap);
     store.dispatch("updateComponentWiseLists", componentWiseLists);
 
-    return sbases;
+    const contextForReport = {
+        counts: counts,
+        allObjectsMap: allObjectsMap,
+        componentPKsMap: componentPKsMap,
+        componentWiseLists: componentWiseLists,
+    };
+
+    return contextForReport;
 }
 
 /**
@@ -175,5 +206,6 @@ function collectSBasesInModel(
 }
 
 export default {
+    organizeLocationwiseContexts: organizeLocationwiseContexts,
     assembleSBasesInReport: assembleSBasesInReport,
 };
