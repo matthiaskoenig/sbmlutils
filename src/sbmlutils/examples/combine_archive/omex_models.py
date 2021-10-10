@@ -6,7 +6,7 @@ import tempfile
 from pathlib import Path
 from typing import Dict
 
-from pymetadata.omex import *
+from pymetadata.omex import EntryFormat, ManifestEntry, Omex
 
 from sbmlutils import EXAMPLES_DIR
 from sbmlutils.comp import flatten_sbml
