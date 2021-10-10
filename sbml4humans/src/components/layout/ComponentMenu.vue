@@ -42,6 +42,7 @@
                 </div>
             </template>
         </PanelMenu>
+        <br />
     </div>
 </template>
 

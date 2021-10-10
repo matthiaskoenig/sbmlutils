@@ -20,7 +20,7 @@ function generateOMEXTree(OMEXRes: Record<string, unknown>): unknown {
         path.split("/").reduce((r, label, i, a) => {
             if (!r[label]) {
                 r[label] = { result: [] };
-                if (models.includes(label)) {
+                if (r.result != null && models.includes(label)) {
                     r.result.push({
                         key: label,
                         label,
@@ -28,7 +28,8 @@ function generateOMEXTree(OMEXRes: Record<string, unknown>): unknown {
                         type: "sbml",
                         data: path,
                     });
-                } else if (label.includes(".")) {
+                } else if (r.result != null && label.includes(".")) {
+                    // console.log(label);
                     r.result.push({
                         key: label,
                         label,
@@ -37,7 +38,7 @@ function generateOMEXTree(OMEXRes: Record<string, unknown>): unknown {
                         type: "otherFiles",
                         data: path,
                     });
-                } else {
+                } else if (r.result != null) {
                     r.result.push({
                         key: label,
                         label,
