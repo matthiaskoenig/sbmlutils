@@ -4,7 +4,7 @@ from typing import List, Optional
 
 import libsbml
 from pydantic import BaseModel, FilePath
-from pymetadata.omex import *
+from pymetadata.omex import Omex
 
 from sbmlutils.console import console
 from sbmlutils.io import read_sbml

@@ -2,25 +2,25 @@
 <sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" level="3" version="1">
   <model>
     <notes>
-      <body xmlns="http://www.w3.org/1999/xhtml" style="padding: 30px;font-family: Helvetica, arial, sans-serif;font-size: 14px;padding-top: 10px;color: #333;padding-bottom: 10px;line-height: 1.6;background-color: white;">
-        <code style="white-space: pre;background-color: transparent;border-radius: 3px;margin: 0;background: transparent;padding: 0;border: none;">
-          <pre style="border: 1px solid #cccccc;border-radius: 3px;overflow: auto;line-height: 19px;margin-top: 0 !important;font-size: 13px;padding: 6px 10px;background-color: #f8f8f8;margin: 15px 0;">&lt;body xmlns=&apos;http://www.w3.org/1999/xhtml&apos;&gt;
-&lt;h1&gt;XPP model&lt;/h1&gt;
-&lt;p&gt;This model was converted from XPP ode format to SBML using &lt;code&gt;sbmlutils&lt;/code&gt;.&lt;/p&gt;
-&lt;pre&gt;% SkM_AP_KCa.ode 
-</pre>
-        </code>
-        <p style="margin: 15px 0;">% Simulations for skeletal muscle fiber
-%
+      <body xmlns="http://www.w3.org/1999/xhtml">
+        <body xmlns="http://www.w3.org/1999/xhtml">
+          <h1>XPP model</h1>
+          <p>This model was converted from XPP ode format to SBML using <code>sbmlutils</code>.</p>
+          <pre>% SkM_AP_KCa.ode 
+% Simulations for skeletal muscle fiber
+% 
 % ICa(S) and IK(Ca) were  incorporated to simulate AP for human skeletal muscle cells.
-%
-% &quot;Wang YJ, Lin MW, Lin AA, Wu SN. Riluzole-induced block of voltage-gated Na(+)
+% 
+% &quot;Wang YJ, Lin MW, Lin AA, Wu SN. Riluzole-induced block of voltage-gated Na(+) 
 % current and activation of BK(Ca) channels in cultured differentiated human
-% skeletal muscle cell. Life Sci 2007;82:11-20.&quot;</p>
-        <p style="margin: 15px 0;">% UNITS: millivolts, milliseconds, nanosiemens,  microfarads</p>
-        <p style="margin: 15px 0;">% INITIAL VALUES
-Initial Vm=-75, m=0.0, h=1.0, n=0.0, Vt=-70, c=0.15, o=0.15, cer=200</p>
-        <p style="margin: 15px 0;">% VALUES OF THE MODEL PARAMETERS
+% skeletal muscle cell. Life Sci 2007;82:11-20.&quot;
+
+% UNITS: millivolts, milliseconds, nanosiemens,  microfarads
+
+% INITIAL VALUES
+Initial Vm=-75, m=0.0, h=1.0, n=0.0, Vt=-70, c=0.15, o=0.15, cer=200
+
+% VALUES OF THE MODEL PARAMETERS
 Parm gNa_max=0.9, gcabar=0.05, gK_max=0.415, gL_max=0.0024, gkca=0.5
 Parm ENa=50.0, EK=-70.0, EL=-75.0, ECa=50
 Parm En=-40.0, Em=-42.0, Eh=-41.0
@@ -29,84 +29,89 @@ Parm alpha_n_max=0.0229, beta_n_max=0.09616
 Parm v_alpha_m=10.0, v_alpha_n=7.0, v_alpha_h=14.7
 Parm alpha_m_max=0.208, beta_m_max=2.081
 Parm v_beta_n=40.0, v_beta_m=18.0, v_beta_h=7.6
-Parm alpha_h_max=0.0156, beta_h_max=3.382</p>
-        <p style="margin: 15px 0;">Parm kd=0.18, alpha=4.5e-6, kpmca=0.2, pleak=0.0005,  kserca=0.4
+Parm alpha_h_max=0.0156, beta_h_max=3.382
+
+Parm kd=0.18, alpha=4.5e-6, kpmca=0.2, pleak=0.0005,  kserca=0.4
 Parm d1=0.84, d2=1.0, k1=0.18, k2=0.011, bbar=0.28, abar=0.48
-Parm fer=0.01, vcytver=5, fcyt=0.01</p>
-        <p style="margin: 15px 0;">% STIMULUS
+Parm fer=0.01, vcytver=5, fcyt=0.01
+
+% STIMULUS
 Parm period=50, iStim_mag=2, iStim_beg=5, iStim_dur=1
-iStim=  iStim_mag * heav(mod(t,period)-iStim_beg) * heav(iStim_beg+iStim_dur-mod(t,period))</p>
-        <p style="margin: 15px 0;">beta_n= (beta_n_max * exp(((En - Vm) / v_beta_n)))
+iStim=  iStim_mag * heav(mod(t,period)-iStim_beg) * heav(iStim_beg+iStim_dur-mod(t,period))
+
+beta_n= (beta_n_max * exp(((En - Vm) / v_beta_n)))
 beta_m= (beta_m_max * exp(((Em - Vm) / v_beta_m)))
 beta_h= (beta_h_max / (1.0 + exp(((Eh - Vm) / v_beta_h))))
 alpha_n= (alpha_n_max * (Vm - En) / (1.0 - exp(((En - Vm) / v_alpha_n))))
 alpha_m= (alpha_m_max * (Vm - Em) / (1.0 - exp(((Em - Vm) / v_alpha_m))))
-alpha_h= (alpha_h_max * exp(((Eh - Vm) / v_alpha_h)))</p>
-        <p style="margin: 15px 0;">% IK(Ca) PARAMETERS
-alp(Vm) = abar/(1+k1<em>exp(-2</em>d1<em>96.485</em>Vm/8.313424/(310))/c)
-beta(Vm) = bbar/(1+c/(k2<em>exp(-2</em>d2<em>96.485</em>Vm/8.313424/310)))
+alpha_h= (alpha_h_max * exp(((Eh - Vm) / v_alpha_h)))
+
+% IK(Ca) PARAMETERS
+alp(Vm) = abar/(1+k1*exp(-2*d1*96.485*Vm/8.313424/(310))/c)
+beta(Vm) = bbar/(1+c/(k2*exp(-2*d2*96.485*Vm/8.313424/310)))
 tau(Vm) = 1/(alp(Vm)+beta(Vm))
-ooinf(Vm) = alp(Vm)<em>tau(Vm)
+ooinf(Vm) = alp(Vm)*tau(Vm)
 dinf = 1/(1 + exp((-24.6-Vm)/11.3))
-taud = 80</em>(1/(cosh(-0.031*(Vm+37.1))))
+taud = 80*(1/(cosh(-0.031*(Vm+37.1))))
 alphad = dinf/taud
 betad = (1-dinf)/taud
-gca = -gcabar<em>Vm/(exp(0.117</em>Vm)-1)</p>
-        <p style="margin: 15px 0;">% CA HANDLING MECHANISMS
+gca = -gcabar*Vm/(exp(0.117*Vm)-1)
+
+% CA HANDLING MECHANISMS
 w=c^5/(c^5+kd^5)
-jmem=-(alpha<em>ICa+kpmca</em>c)
+jmem=-(alpha*ICa+kpmca*c)
 jleak=pleak*(cer-c)
 jserca=kserca*c
-jer=jleak-jserca</p>
-        <p style="margin: 15px 0;">% IONIC CURRENTS
+jer=jleak-jserca
+
+% IONIC CURRENTS
 INa= (gNa_max * m**3 * h * (Vm - ENa))
 IT= ((Vm - Vt) / Rs)
-IKCa=gkca<em>o</em>w*(Vm-EK)
+IKCa=gkca*o*w*(Vm-EK)
 ICa= gca*d^2
 IL= (gL_max * (Vm - EL))
-IK= (gK_max * n * n * n * n * (Vm - EK))</p>
-        <p style="margin: 15px 0;">% DIFFERENTIAL EQUATIONS
+IK= (gK_max * n * n * n * n * (Vm - EK))
+
+% DIFFERENTIAL EQUATIONS 
 dVm/dt = ((iStim - (INa + ICa + IK + IL + IT + IKCa)) / Cm)
 dm/dt = ((alpha_m * (1.0 - m)) - (beta_m * m))
 dh/dt = ((alpha_h * (1.0 - h)) - (beta_h * h))
 dn/dt = ((alpha_n * (1.0 - n)) - (beta_n * n))
 dVt/dt = ((Vm - Vt) / (Rs * Ct))
-dd/dt = (1-d)<em>alphad - d</em>betad
+dd/dt = (1-d)*alphad - d*betad
 do/dt = (ooinf(Vm)-o)/tau(Vm)
 dc/dt = fcyt*(jmem+jer)
-dcer/dt =-fer*(vcytver)*jer</p>
-        <p style="margin: 15px 0;">% AUXILLARY FUNCTIONS
-aux i_na=INa
-aux  i_kca=IKCa</p>
-        <p style="margin: 15px 0;">% NUMERICAL AND PLOTTING PARAMETERS FOR XPP
-@ METH=Euler, DT=0.01, TOTAL=150, MAXSTOR=50000
-@ YP=vm, YHI=50, YLO=-90, XLO=0, XHI=150, BOUND=5000</p>
-        <p style="margin: 15px 0;">done
+dcer/dt =-fer*(vcytver)*jer
 
-</p>
-        <div class="dc:publisher">This file has been produced by
-<a href="https://github.com/matthiaskoenig/sbmlutils/" style="color: #4183C4;text-decoration: none;" target="_blank" title="sbmlutils">sbmlutils</a>.
-</div>
-        <p style="margin: 15px 0;"/>
-        <code style="white-space: pre;background-color: transparent;border-radius: 3px;margin: 0;border: none;padding: 0;background: transparent;">
-          <pre style="margin: 15px 0;line-height: 19px;background-color: #f8f8f8;border-radius: 3px;font-size: 13px;padding: 6px 10px;border: 1px solid #cccccc;overflow: auto;margin-bottom: 0 !important;">&lt;h2&gt;Terms of use&lt;/h2&gt;
-  &lt;div class=&quot;dc:rightsHolder&quot;&gt;Copyright © 2017 Matthias Koenig&lt;/div&gt;
-  &lt;div class=&quot;dc:license&quot;&gt;
-  &lt;p&gt;Redistribution and use of any part of this model, with or without modification, are permitted provided that
-  the following conditions are met:
-    &lt;ol&gt;
-      &lt;li&gt;Redistributions of this SBML file must retain the above copyright notice, this list of conditions
-          and the following disclaimer.&lt;/li&gt;
-      &lt;li&gt;Redistributions in a different form must reproduce the above copyright notice, this list of
-          conditions and the following disclaimer in the documentation and/or other materials provided
-      with the distribution.&lt;/li&gt;
-    &lt;/ol&gt;
-    This model is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
-         the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.&lt;/p&gt;
-  &lt;/div&gt;
-&lt;/body&gt;
+% AUXILLARY FUNCTIONS
+aux i_na=INa
+aux  i_kca=IKCa
+
+% NUMERICAL AND PLOTTING PARAMETERS FOR XPP
+@ METH=Euler, DT=0.01, TOTAL=150, MAXSTOR=50000
+@ YP=vm, YHI=50, YLO=-90, XLO=0, XHI=150, BOUND=5000
+
+done
 </pre>
-        </code>
+          <div class="dc:publisher">This file has been produced by
+      <a href="https://github.com/matthiaskoenig/sbmlutils/" title="sbmlutils" target="_blank">sbmlutils</a>.
+    </div>
+          <h2>Terms of use</h2>
+          <div class="dc:rightsHolder">Copyright © 2017 Matthias Koenig</div>
+          <div class="dc:license">
+            <p>Redistribution and use of any part of this model, with or without modification, are permitted provided that
+      the following conditions are met:
+        <ol>
+              <li>Redistributions of this SBML file must retain the above copyright notice, this list of conditions
+              and the following disclaimer.</li>
+              <li>Redistributions in a different form must reproduce the above copyright notice, this list of
+              conditions and the following disclaimer in the documentation and/or other materials provided
+          with the distribution.</li>
+            </ol>
+        This model is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+             the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>
+          </div>
+        </body>
       </body>
     </notes>
     <listOfFunctionDefinitions>
@@ -412,18 +417,18 @@ aux  i_kca=IKCa</p>
                 <apply>
                   <ci> alp </ci>
                   <ci> Vm </ci>
-                  <ci> d1 </ci>
                   <ci> c </ci>
+                  <ci> d1 </ci>
                   <ci> abar </ci>
                   <ci> k1 </ci>
                 </apply>
                 <apply>
                   <ci> beta </ci>
                   <ci> Vm </ci>
-                  <ci> k2 </ci>
-                  <ci> bbar </ci>
-                  <ci> d2 </ci>
                   <ci> c </ci>
+                  <ci> bbar </ci>
+                  <ci> k2 </ci>
+                  <ci> d2 </ci>
                 </apply>
               </apply>
             </apply>
@@ -462,8 +467,8 @@ aux  i_kca=IKCa</p>
               <apply>
                 <ci> alp </ci>
                 <ci> Vm </ci>
-                <ci> d1 </ci>
                 <ci> c </ci>
+                <ci> d1 </ci>
                 <ci> abar </ci>
                 <ci> k1 </ci>
               </apply>
