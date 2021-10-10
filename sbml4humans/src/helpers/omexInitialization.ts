@@ -1,28 +1,61 @@
-function generateOMEXTree(OMEXRes: Record<string, unknown>): Record<string, unknown> {
+function generateOMEXTree(OMEXRes: Record<string, unknown>): unknown {
     const manifest: Array<Record<string, string>> = (
         OMEXRes["manifest"] as Record<string, unknown>
     )["entries"] as Array<Record<string, string>>;
 
     const paths: Array<string> = [];
+    const models: Array<string> = [];
     manifest.forEach((item) => {
         paths.push(item["location"]);
+
+        if (item["format"].includes("sbml")) {
+            const tokens = item["location"].split("/");
+            models.push(tokens[tokens.length - 1]);
+        }
     });
 
     const result: Array<Record<string, unknown>> = [];
     const level = { result };
     paths.forEach((path) => {
-        path.split("/").reduce((r, name, i, a) => {
-            if (!r[name]) {
-                r[name] = { result: [] };
-                r.result.push({ name, children: r[name].result });
+        path.split("/").reduce((r, label, i, a) => {
+            if (!r[label]) {
+                r[label] = { result: [] };
+                if (models.includes(label)) {
+                    r.result.push({
+                        label,
+                        children: r[label].result,
+                        icon: "pi pi-file",
+                        type: "sbml",
+                        data: path,
+                    });
+                } else if (label.includes(".")) {
+                    r.result.push({
+                        label,
+                        children: r[label].result,
+                        icon: "pi pi-map",
+                        type: "otherFiles",
+                        data: path,
+                    });
+                } else {
+                    r.result.push({
+                        label,
+                        children: r[label].result,
+                        icon: "pi pi-folder",
+                        type: "folder",
+                        data: path,
+                    });
+                }
             }
 
-            return r[name];
+            return r[label];
         }, level);
     });
 
-    const tree = result[0];
-    console.log(tree);
+    const root = result[0];
+    const tree = {
+        root: root["children"],
+    };
+    //console.log(tree);
 
     return tree;
 }

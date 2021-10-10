@@ -1,6 +1,26 @@
 <template>
-    <div style="opacity: 1">
+    <div style="opacity: 1; height: 100vh">
         <div class="p-ml-2 p-mt-4 menuheader">COMPONENTS</div>
+        <PanelMenu :model="coreComponents" style="width: 100%">
+            <template #item="{ item }">
+                <div class="menuitem" @click="showDetail(item.sbmlType, item.pk)">
+                    <span class="button p-mr-2">
+                        <font-awesome-icon
+                            :icon="item.icon"
+                            :fixedWidth="true"
+                            :border="false"
+                            size="1x"
+                            :color="item.color"
+                        ></font-awesome-icon>
+                    </span>
+                    <span>
+                        <strong>{{ item.sbmlType }}</strong>
+                        <span v-if="item.id != null">{{ item.id }}</span>
+                    </span>
+                </div>
+            </template>
+        </PanelMenu>
+        <br />
         <PanelMenu :model="items">
             <template #item="{ item }">
                 <div class="menuitem" v-on:click="focusTable(item.sbmlType)">
@@ -32,6 +52,16 @@ export default defineComponent({
     methods: {
         focusTable(sbmlType: string) {
             store.dispatch("updateCurrentFocussedTable", sbmlType);
+        },
+
+        /**
+         * Updates the detailInfo in Vuex state/localStorage to this SBML component's info.
+         */
+        showDetail(sbmlType: string, pk: string): void {
+            if (sbmlType != "SBMLDocument") {
+                store.dispatch("updateCurrentModel", pk);
+            }
+            store.dispatch("initializeHistoryStack", pk);
         },
     },
 
@@ -66,7 +96,23 @@ export default defineComponent({
 
             return tables;
         },
+
+        coreComponents(): Array<Record<string, unknown>> {
+            const components: Array<Record<string, unknown>> = [];
+            store.getters.reportBasics.forEach((component) => {
+                components.push({
+                    sbmlType: component.sbmlType,
+                    color: colors.componentColor[component.sbmlType],
+                    icon: icons.icons[component.sbmlType],
+                    id: component.id,
+                    pk: component.pk,
+                    name: component.name,
+                });
+            });
+            return components;
+        },
     },
+
 });
 </script>
 

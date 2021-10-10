@@ -1,6 +1,6 @@
 <template>
     <Splitter>
-        <SplitterPanel :size="15" :min-size="10" style="background-color: #f6f6f6">
+        <SplitterPanel :size="15" :min-size="10" style="background-color: #f6f6f6; overflow-y: scroll">
             <div class="p-ml-2 p-mt-1 menuheader">SEARCH</div>
 
             <InputText
@@ -11,7 +11,8 @@
                 @input="updateSearchQuery"
             />
 
-            <document-menu />
+            <OMEXTree />
+            <!--<document-menu />-->
             <component-menu />
         </SplitterPanel>
         <SplitterPanel
@@ -40,7 +41,8 @@ import { defineComponent } from "vue";
 import DetailContainer from "@/components/layout/DetailContainer.vue";
 import TablesContainer from "@/components/layout/TablesContainer.vue";
 import ComponentMenu from "@/components/layout/ComponentMenu.vue";
-import DocumentMenu from "@/components/layout/DocumentMenu.vue";
+//import DocumentMenu from "@/components/layout/DocumentMenu.vue";
+import OMEXTree from "@/components/layout/OMEXTree.vue";
 
 /**
  * Component to hold all components to show the generated report.
@@ -48,9 +50,10 @@ import DocumentMenu from "@/components/layout/DocumentMenu.vue";
 export default defineComponent({
     components: {
         ComponentMenu,
-        DocumentMenu,
+        //DocumentMenu,
         DetailContainer,
         TablesContainer,
+        OMEXTree,
     },
 
     computed: {

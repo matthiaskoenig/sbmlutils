@@ -182,6 +182,9 @@ export default createStore({
         SET_CONTEXTS(state, payload) {
             state.contexts = payload;
         },
+        SET_OMEX_TREE(state, payload) {
+            state.OMEXTree = payload;
+        },
     },
     actions: {
         updateCurrentModel(context, payload) {
@@ -192,7 +195,8 @@ export default createStore({
             const OMEXRes = payload.data;
             context.commit("SET_RAW_DATA", OMEXRes);
 
-            OMEX_HELPERS.generateOMEXTree(OMEXRes);
+            const OMEXTree = OMEX_HELPERS.generateOMEXTree(OMEXRes);
+            context.commit("SET_OMEX_TREE", OMEXTree);
 
             const initializationData =
                 INITIALIZATION_HELPERS.organizeLocationwiseContexts(OMEXRes) as Record<
@@ -423,6 +427,9 @@ export default createStore({
                 }
             });
             return componentPKsList;
+        },
+        OMEXTree(state) {
+            return state.OMEXTree;
         },
     },
 });
