@@ -2,6 +2,8 @@ const listOfSBMLTypes = [
     "SBMLDocument",
     "Submodel",
     "Model",
+    "ExternalModelDefinition",
+    "ModelDefinition",
     "FunctionDefinition",
     "Compartment",
     "Species",

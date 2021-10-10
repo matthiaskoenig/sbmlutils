@@ -5,6 +5,26 @@
         </div>
 
         <div
+            ref="ExternalModelDefinition"
+            v-if="
+                sbmlType === 'ExternalModelDefinition' &&
+                visibility['ExternalModelDefinition']
+            "
+        >
+            <external-model-definition-table
+                ref="#externalModeDefinition-table"
+                :listOfPKs="pks"
+            />
+        </div>
+
+        <div
+            ref="ModelDefinition"
+            v-if="sbmlType === 'ModelDefinition' && visibility['ModelDefinition']"
+        >
+            <model-definition-table ref="#modeDefinition-table" :listOfPKs="pks" />
+        </div>
+
+        <div
             ref="FunctionDefinition"
             v-if="sbmlType === 'FunctionDefinition' && visibility['FunctionDefinition']"
         >
@@ -99,6 +119,8 @@ import store from "@/store/index";
 import { defineComponent } from "@vue/runtime-core";
 
 import ModelTable from "@/components/tables/ModelTable.vue";
+import ExternalModelDefinitionTable from "@/components/tables/ExternalModelDefinitionTable.vue";
+import ModelDefinitionTable from "@/components/tables/ModelDefinitionTable.vue";
 import CompartmentTable from "@/components/tables/CompartmentTable.vue";
 import SpeciesTable from "@/components/tables/SpeciesTable.vue";
 import SubmodelTable from "@/components/tables/SubmodelTable.vue";
@@ -119,6 +141,8 @@ import FunctionDefinitionTable from "@/components/tables/FunctionDefinitionTable
 export default defineComponent({
     components: {
         ModelTable,
+        ExternalModelDefinitionTable,
+        ModelDefinitionTable,
         CompartmentTable,
         SpeciesTable,
         SubmodelTable,

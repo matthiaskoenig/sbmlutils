@@ -106,7 +106,7 @@ export default createStore({
 
         currentFocussedTable: "",
 
-        currentDocumentPath: "",
+        currentDocumentLocation: "",
 
         contexts: {},
 
@@ -185,6 +185,9 @@ export default createStore({
         SET_OMEX_TREE(state, payload) {
             state.OMEXTree = payload;
         },
+        SET_CURRENT_DOCUMENT_LOCATION(state, payload) {
+            state.currentDocumentLocation = payload;
+        },
     },
     actions: {
         updateCurrentModel(context, payload) {
@@ -213,6 +216,11 @@ export default createStore({
                 contexts[initializationData["initialReportLocation"] as string]
             );
 
+            this.dispatch(
+                "updateCurrentDocumentLocation",
+                initializationData["initialReportLocation"] as string
+            );
+
             // redirect to report view
             router.push("/report");
         },
@@ -235,6 +243,9 @@ export default createStore({
             // set the history stack to contain Doc pk by default
             this.dispatch("initializeHistoryStack", currentReport.doc.pk);
             this.dispatch("toggleDetailVisibility");
+        },
+        updateCurrentDocumentLocation(context, payload) {
+            context.commit("SET_CURRENT_DOCUMENT_LOCATION", payload);
         },
         pushToHistoryStack(context, payload) {
             context.commit("PUSH_TO_HISTORY_STACK", payload);

@@ -1,9 +1,13 @@
 <template>
-    <div style="opacity: 1; height: 100vh">
+    <div style="opacity: 1">
         <div class="p-ml-2 p-mt-4 menuheader">COMPONENTS</div>
         <PanelMenu :model="coreComponents" style="width: 100%">
             <template #item="{ item }">
-                <div class="menuitem" @click="showDetail(item.sbmlType, item.pk)">
+                <div
+                    class="menuitem"
+                    @click="showDetail(item.sbmlType, item.pk)"
+                    v-if="item.sbmlType === 'SBMLDocument'"
+                >
                     <span class="button p-mr-2">
                         <font-awesome-icon
                             :icon="item.icon"
@@ -20,7 +24,6 @@
                 </div>
             </template>
         </PanelMenu>
-        <br />
         <PanelMenu :model="items">
             <template #item="{ item }">
                 <div class="menuitem" v-on:click="focusTable(item.sbmlType)">
@@ -77,7 +80,10 @@ export default defineComponent({
                 .componentPKsMap;
 
             for (let sbmlType in componentPKsMap) {
-                if (componentPKsMap[sbmlType].length > 0) {
+                if (
+                    !sbmlType.includes("ModelDefinition") &&
+                    componentPKsMap[sbmlType].length > 0
+                ) {
                     tables.push({
                         label: sbmlType,
                         sbmlType: sbmlType,
@@ -112,7 +118,6 @@ export default defineComponent({
             return components;
         },
     },
-
 });
 </script>
 

@@ -1,8 +1,9 @@
 <template>
     <Splitter>
         <SplitterPanel :size="15" :min-size="10" style="background-color: #f6f6f6; overflow-y: scroll">
-            <div class="p-ml-2 p-mt-1 menuheader">SEARCH</div>
+            <OMEXTree />
 
+            <div class="p-ml-2 p-mt-4 menuheader">SEARCH</div>
             <InputText
                 placeholder="Search"
                 type="text"
@@ -11,8 +12,6 @@
                 @input="updateSearchQuery"
             />
 
-            <OMEXTree />
-            <!--<document-menu />-->
             <component-menu />
         </SplitterPanel>
         <SplitterPanel

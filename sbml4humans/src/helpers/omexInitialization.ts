@@ -22,14 +22,15 @@ function generateOMEXTree(OMEXRes: Record<string, unknown>): unknown {
                 r[label] = { result: [] };
                 if (models.includes(label)) {
                     r.result.push({
+                        key: label,
                         label,
                         children: r[label].result,
-                        icon: "pi pi-file",
                         type: "sbml",
                         data: path,
                     });
                 } else if (label.includes(".")) {
                     r.result.push({
+                        key: label,
                         label,
                         children: r[label].result,
                         icon: "pi pi-map",
@@ -38,6 +39,7 @@ function generateOMEXTree(OMEXRes: Record<string, unknown>): unknown {
                     });
                 } else {
                     r.result.push({
+                        key: label,
                         label,
                         children: r[label].result,
                         icon: "pi pi-folder",
@@ -55,7 +57,6 @@ function generateOMEXTree(OMEXRes: Record<string, unknown>): unknown {
     const tree = {
         root: root["children"],
     };
-    //console.log(tree);
 
     return tree;
 }

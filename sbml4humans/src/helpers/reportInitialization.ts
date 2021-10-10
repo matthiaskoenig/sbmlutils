@@ -25,23 +25,28 @@ function organizeLocationwiseContexts(
     OMEXRes: Record<string, unknown>
 ): Record<string, unknown> {
     const contexts = {};
-    let initializeReportLocation = "";
+    let initialReportLocation = "";
 
     const reports = OMEXRes["reports"] as Record<string, unknown>;
     let i = 0;
     for (const location in reports) {
         if (i++ == 0) {
-            initializeReportLocation = location;
+            initialReportLocation = location;
         }
         contexts[location] = assembleSBasesInReport(
-            (reports[location] as Record<string, unknown>)["report"] as Record<string, unknown>
+            (reports[location] as Record<string, unknown>)["report"] as Record<
+                string,
+                unknown
+            >
         );
-        contexts[location]["report"] = (reports[location] as Record<string, unknown>)["report"];
+        contexts[location]["report"] = (reports[location] as Record<string, unknown>)[
+            "report"
+        ];
     }
 
     return {
         contexts: contexts,
-        initialReportLocation: initializeReportLocation,
+        initialReportLocation: initialReportLocation,
     };
 }
 
@@ -79,21 +84,22 @@ function assembleSBasesInReport(
     }
 
     const model: Record<string, unknown> = report.model as Record<string, unknown>;
+    const modelPK = model.pk as string;
+
     if (model) {
         addSearchUtilityField(model);
-        const pk = model.pk as string;
-        componentWiseLists["Model"].push(pk);
+        componentWiseLists["Model"].push(modelPK);
 
-        counts[pk] = allSBML.counts;
+        counts[modelPK] = allSBML.counts;
 
-        counts[pk]["Model"] = 1;
+        counts[modelPK]["Model"] = 1;
 
         sbases.push(model);
 
-        allObjectsMap[pk] = model;
-        componentPKsMap[pk] = {};
+        allObjectsMap[modelPK] = model;
+        componentPKsMap[modelPK] = {};
 
-        componentPKsMap[pk]["Model"] = [pk];
+        componentPKsMap[modelPK]["Model"] = [modelPK];
 
         // collecting all other components
         sbases.push(
@@ -108,6 +114,9 @@ function assembleSBasesInReport(
     }
 
     const modelTypes = ["modelDefinitions", "externalModelDefinitions"];
+    componentPKsMap[modelPK]["ExternalModelDefinition"] = [];
+    componentPKsMap[modelPK]["ModelDefinition"] = [];
+
     modelTypes.forEach((modelType) => {
         if (report[modelType]) {
             const modelDefinitions = report[modelType] as Array<
@@ -118,6 +127,12 @@ function assembleSBasesInReport(
                 addSearchUtilityField(md);
                 const pk = md.pk as string;
 
+                const sbmlType =
+                    modelType.charAt(0).toUpperCase() +
+                    modelType.slice(1, modelType.length - 1);
+                componentPKsMap[modelPK][sbmlType].push(pk);
+                counts[modelPK][sbmlType]++;
+
                 counts[pk] = {};
                 componentPKsMap[pk] = {};
 
@@ -125,7 +140,7 @@ function assembleSBasesInReport(
 
                 allObjectsMap[pk] = md;
                 componentPKsMap[pk]["Model"] = [pk];
-                componentWiseLists["Model"].push(pk);
+                componentWiseLists[sbmlType].push(pk); // look here next time to add modeldefs to models table
 
                 // collecting all other components
                 sbases.push(
