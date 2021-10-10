@@ -40,6 +40,7 @@ import Panel from "primevue/panel";
 import Splitter from "primevue/splitter";
 import SplitterPanel from "primevue/splitterpanel";
 import Dialog from "primevue/dialog";
+import Tree from "primevue/tree";
 
 // fontawesome
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -137,7 +138,8 @@ const app = createApp(App)
     .component("Splitter", Splitter)
     .component("SplitterPanel", SplitterPanel)
     .component("Dialog", Dialog)
-    .component("ProgressBar", ProgressBar);
+    .component("ProgressBar", ProgressBar)
+    .component("Tree", Tree);
 
 app.use(VueGtag, {
     property: {

@@ -5,6 +5,8 @@ import router from "@/router";
 import INITIALIZATION_HELPERS from "@/helpers/reportInitialization";
 import listOfSBMLTypes from "@/data/listOfSBMLTypes";
 import { checkAPIResponse } from "@/helpers/additionalInfoUtils";
+import sbmlComponents from "@/data/sbmlComponents";
+import OMEX_HELPERS from "@/helpers/omexInitialization";
 
 // read from .env.template file
 export let VUE_APP_BASEURL = process.env.VUE_APP_BASEURL;
@@ -30,7 +32,7 @@ export default createStore({
         rawData: {}, // report
 
         // final report
-        jsonReport: {}, // report
+        currentReport: sbmlComponents.Report, // report
 
         // describe if the file report is still loading (REST endpoint)
         fileLoading: false, // report
@@ -67,8 +69,6 @@ export default createStore({
             GeneProduct: true,
         },
 
-        counts: {},
-
         searchQuery: "",
 
         searchedSBasesCounts: {
@@ -94,11 +94,10 @@ export default createStore({
             GeneProduct: 0,
         },
 
-        /* For Intercomponent Navigation */
+        /* Report States */
+        counts: {},
         allObjectsMap: {},
-
         componentPKsMap: {},
-
         componentWiseLists: {},
 
         historyStack: [],
@@ -106,6 +105,12 @@ export default createStore({
         stackPointer: 0,
 
         currentFocussedTable: "",
+
+        currentDocumentLocation: "",
+
+        contexts: {},
+
+        OMEXTree: {},
     },
     mutations: {
         SET_EXAMPLES(state, payload) {
@@ -114,8 +119,8 @@ export default createStore({
         SET_RAW_DATA(state, payload) {
             state.rawData = payload;
         },
-        SET_JSON_REPORT(state, payload) {
-            state.jsonReport = payload;
+        SET_CURRENT_REPORT(state, payload) {
+            state.currentReport = payload;
         },
         SET_FILE_LOADING(state, payload) {
             state.fileLoading = payload;
@@ -174,6 +179,15 @@ export default createStore({
         SET_CURRENT_FOCUSSED_TABLE(state, payload) {
             state.currentFocussedTable = payload;
         },
+        SET_CONTEXTS(state, payload) {
+            state.contexts = payload;
+        },
+        SET_OMEX_TREE(state, payload) {
+            state.OMEXTree = payload;
+        },
+        SET_CURRENT_DOCUMENT_LOCATION(state, payload) {
+            state.currentDocumentLocation = payload;
+        },
     },
     actions: {
         updateCurrentModel(context, payload) {
@@ -181,28 +195,57 @@ export default createStore({
         },
         initializeReport(context, payload) {
             // dump the raw data fetched from the backend
-            context.commit("SET_RAW_DATA", payload.data);
+            const OMEXRes = payload.data;
+            context.commit("SET_RAW_DATA", OMEXRes);
 
-            // update the SBML report to be rendered in the frontend
-            context.commit("SET_JSON_REPORT", payload.data.report);
+            const OMEXTree = OMEX_HELPERS.generateOMEXTree(OMEXRes);
+            context.commit("SET_OMEX_TREE", OMEXTree);
 
-            // set the current model to main model in the report by default
-            //console.log(payload.data)
-            if (!payload.data.report.model) {
-                alert("No model in file ! Check if file is a valid SBML file.");
-            }
-            console.log(payload.data.report.model.pk);
-            this.dispatch("updateCurrentModel", payload.data.report.model.pk);
-            this.dispatch("updateCurrentFocussedTable", "");
+            const initializationData =
+                INITIALIZATION_HELPERS.organizeLocationwiseContexts(OMEXRes) as Record<
+                    string,
+                    unknown
+                >;
 
-            INITIALIZATION_HELPERS.assembleSBasesInReport(payload.data.report);
+            const contexts = initializationData["contexts"] as Record<string, unknown>;
+            context.commit("SET_CONTEXTS", contexts);
 
-            // set the history stack to contain Doc pk by default
-            this.dispatch("initializeHistoryStack", payload.data.report.doc.pk);
-            this.dispatch("toggleDetailVisibility");
+            // update the SBML report and other states to be rendered in the frontend
+            this.dispatch(
+                "updateReportStatesAndFollowUp",
+                contexts[initializationData["initialReportLocation"] as string]
+            );
+
+            this.dispatch(
+                "updateCurrentDocumentLocation",
+                initializationData["initialReportLocation"] as string
+            );
 
             // redirect to report view
             router.push("/report");
+        },
+        updateReportStatesAndFollowUp(context, payload) {
+            context.commit("SET_CURRENT_REPORT", payload["report"]);
+            this.dispatch("updateCounts", payload["counts"]);
+            this.dispatch("updateAllObjectsMap", payload["allObjectsMap"]);
+            this.dispatch("updateComponentPKsMap", payload["componentPKsMap"]);
+            this.dispatch("updateComponentWiseLists", payload["componentWiseLists"]);
+
+            // set the current model to main model in the report by default
+            const currentReport = context.state.currentReport;
+            if (!currentReport.model) {
+                alert("No model in file ! Check if file is a valid SBML file.");
+            }
+
+            this.dispatch("updateCurrentModel", currentReport.model.pk);
+            this.dispatch("updateCurrentFocussedTable", "");
+
+            // set the history stack to contain Doc pk by default
+            this.dispatch("initializeHistoryStack", currentReport.doc.pk);
+            this.dispatch("toggleDetailVisibility");
+        },
+        updateCurrentDocumentLocation(context, payload) {
+            context.commit("SET_CURRENT_DOCUMENT_LOCATION", payload);
         },
         pushToHistoryStack(context, payload) {
             context.commit("PUSH_TO_HISTORY_STACK", payload);
@@ -245,6 +288,7 @@ export default createStore({
             context.commit("SET_EXAMPLE_LOADING", false);
 
             if (res.status === 200) {
+                console.log(res);
                 checkAPIResponse(res);
                 this.dispatch("initializeReport", res);
             } else {
@@ -343,7 +387,7 @@ export default createStore({
             context.commit("SET_CURRENT_FOCUSSED_TABLE", payload);
         },
     },
-    modules: {},
+
     getters: {
         componentPKsMap(state) {
             return state.componentPKsMap[state.currentModel];
@@ -394,6 +438,9 @@ export default createStore({
                 }
             });
             return componentPKsList;
+        },
+        OMEXTree(state) {
+            return state.OMEXTree;
         },
     },
 });

@@ -12,7 +12,16 @@ TESTDATA_DIR = RESOURCES_DIR / "testdata"
 # COMBINE ARCHIVES
 # -------------------------------------------------------------------------------------
 OMEX_SHOWCASE = TESTDATA_DIR / "omex" / "CombineArchiveShowCase.omex"
+OMEX_COMPMODELS = TESTDATA_DIR / "omex" / "CompModels.omex"
+OMEX_ICGMODEL = TESTDATA_DIR / "omex" / "icg_model.omex"
+OMEX_OMEPRAZOLEMODEL = TESTDATA_DIR / "omex" / "omeprazole_model.omex"
 
+API_EXAMPLES_OMEX = [
+    OMEX_COMPMODELS,
+    OMEX_ICGMODEL,
+    OMEX_OMEPRAZOLEMODEL,
+    OMEX_SHOWCASE,
+]
 
 # -------------------------------------------------------------------------------------
 # Models
@@ -131,9 +140,8 @@ example_ids = [
     "units_namespace",
 ]
 
-API_EXAMPLE_MODELS = [
+API_EXAMPLES_MODEL = [
     REPRESSILATOR_SBML,
-
     COMP_ICG_BODY_FLAT,
     COMP_ICG_BODY,
     COMP_ICG_LIVER,
