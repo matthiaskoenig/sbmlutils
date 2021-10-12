@@ -1,3 +1,23 @@
+function comparator(a: Record<string, unknown>, b: Record<string, unknown>) {
+    return (a["key"] as string).toLowerCase() < (b["key"] as string).toLowerCase()
+        ? -1
+        : (a["key"] as string).toLowerCase() > (b["key"] as string).toLowerCase()
+        ? 1
+        : 0;
+}
+
+function recursiveSort(tree: Record<string, unknown>): void {
+    for (const i in tree["children"] as Array<Record<string, unknown>>) {
+        const child = (tree["children"] as Array<Record<string, unknown>>)[i];
+        recursiveSort(child);
+    }
+    if ((tree["children"] as Array<Record<string, unknown>>) === undefined) {
+        return;
+    } else {
+        (tree["children"] as Array<Record<string, unknown>>).sort(comparator);
+    }
+}
+
 function generateOMEXTree(OMEXRes: Record<string, unknown>): unknown {
     const manifest: Array<Record<string, string>> = (
         OMEXRes["manifest"] as Record<string, unknown>
@@ -55,6 +75,8 @@ function generateOMEXTree(OMEXRes: Record<string, unknown>): unknown {
     });
 
     const root = result[0];
+    recursiveSort(root);
+
     const tree = {
         root: root["children"],
     };
