@@ -10,7 +10,9 @@
                 v-if="slotProps.node.type === 'sbml'"
                 @click="changeReport(slotProps.node.data)"
                 class="sbml-object"
-                :style="`color: ${activePath.includes(slotProps.node.key) ? '#66c2a5' : '#000000'}`"
+                :style="`color: ${
+                    activePath.includes(slotProps.node.key) ? '#66c2a5' : '#000000'
+                }`"
             >
                 <!--<font-awesome-icon
                     icon="file-code"
@@ -19,12 +21,19 @@
                     size="1x"
                     style="color: #66c2a5"
                 ></font-awesome-icon>-->
-                <img src="@/assets/images/sbml-icon.png" width="15" height="15" class="p-mr-2">
+                <img
+                    src="@/assets/images/sbml-icon.png"
+                    width="15"
+                    height="15"
+                    class="p-mr-2"
+                />
                 <b>{{ slotProps.node.label }}</b>
             </div>
             <div
                 v-else
-                :style="`color: ${activePath.includes(slotProps.node.key) ? '#66c2a5' : '#000000'}`"
+                :style="`color: ${
+                    activePath.includes(slotProps.node.key) ? '#66c2a5' : '#000000'
+                }`"
             >
                 <b>{{ slotProps.node.label }}</b>
             </div>
@@ -45,7 +54,7 @@ export default defineComponent({
     },
 
     mounted() {
-        console.log(JSON.parse(JSON.stringify(store.state.OMEXTree)));
+        //console.log(JSON.parse(JSON.stringify(store.state.OMEXTree)));
         this.highlightPath();
     },
 
@@ -75,7 +84,6 @@ export default defineComponent({
             for (let i in tokens) {
                 this.expandedKeys[tokens[i]] = true;
             }
-            console.log(this.expandedKeys);
         },
     },
 });

@@ -1,10 +1,16 @@
 <template>
     <Splitter>
-        <SplitterPanel :size="15" :min-size="10" style="background-color: #f6f6f6; overflow-y: scroll">
+        <SplitterPanel
+            :size="15"
+            :min-size="10"
+            style="background-color: #f6f6f6; overflow-y: scroll"
+        >
             <OMEXTree />
 
             <div class="p-ml-2 p-mt-4 menuheader">SEARCH</div>
             <InputText
+                :modelValue="searchQuery"
+                ref="search-bar"
                 placeholder="Search"
                 type="text"
                 style="height: 35px; width: 100%"
@@ -47,6 +53,12 @@ import OMEXTree from "@/components/layout/OMEXTree.vue";
  * Component to hold all components to show the generated report.
  */
 export default defineComponent({
+    data() {
+        return {
+            searchQuery: "",
+        };
+    },
+
     components: {
         ComponentMenu,
         //DocumentMenu,
@@ -59,6 +71,10 @@ export default defineComponent({
         coreComponents(): Array<Record<string, unknown>> {
             return store.getters.reportBasics;
         },
+
+        currentDocumentLocation() {
+            return store.state.currentDocumentLocation;
+        },
     },
     methods: {
         /**
@@ -66,7 +82,28 @@ export default defineComponent({
          * searched string in the search box.
          */
         updateSearchQuery(e: Event): void {
+            this.searchQuery = (e.target as HTMLInputElement).value;
             store.dispatch("updateSearchQuery", (e.target as HTMLInputElement).value);
+        },
+
+        resetSearchBar(): void {
+            //const el = JSON.parse(JSON.stringify(this.$refs["search-bar"]));
+            // const el = this.$refs["search-bar"] as HTMLInputElement;
+            // console.log(el);
+            // el.value = "";
+            this.searchQuery = "";
+        },
+    },
+
+    watch: {
+        currentDocumentLocation: {
+            handler(current, old) {
+                if (current != old) {
+                    this.resetSearchBar();
+                }
+            },
+            deep: true,
+            immediate: true,
         },
     },
 });
