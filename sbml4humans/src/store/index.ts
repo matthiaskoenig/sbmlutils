@@ -239,6 +239,7 @@ export default createStore({
 
             this.dispatch("updateCurrentModel", currentReport.model.pk);
             this.dispatch("updateCurrentFocussedTable", "");
+            this.dispatch("updateSearchQuery", "");
 
             // set the history stack to contain Doc pk by default
             this.dispatch("initializeHistoryStack", currentReport.doc.pk);
@@ -288,7 +289,7 @@ export default createStore({
             context.commit("SET_EXAMPLE_LOADING", false);
 
             if (res.status === 200) {
-                console.log(res);
+                // console.log(res);
                 checkAPIResponse(res);
                 this.dispatch("initializeReport", res);
             } else {
