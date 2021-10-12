@@ -30,7 +30,7 @@
             </template>
             <Column sortable class="column" field="id" header="id">
                 <template #body="props">
-                    <TemplateId :props="props" />
+                    <TemplateId :data="props.data" />
                 </template>
             </Column>
             <Column sortable class="column" field="name" header="name" />
