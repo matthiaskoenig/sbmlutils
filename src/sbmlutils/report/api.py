@@ -113,7 +113,10 @@ async def report_from_file(request: Request) -> Dict[Any, Any]:
         # TODO: implement `is_omex` function
         with tempfile.TemporaryDirectory() as tmp_dir:
             path = Path(tmp_dir) / "file"
-            with open(path) as f:
+            with open(path, "w") as f:
+                if isinstance(file_content, bytes):
+                    file_content = file_content.decode("utf-8")
+
                 f.write(file_content)
 
             return json_for_omex(path)

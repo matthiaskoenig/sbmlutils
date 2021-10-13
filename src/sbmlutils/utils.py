@@ -67,7 +67,6 @@ def timeit(f: Callable) -> Callable:
         ts = time.time()
         result = f(*args, **kwargs)
         te = time.time()
-
         print(
             "func:%r args:[%r, %r] took: %2.4f sec"
             % (f.__name__, args, kwargs, te - ts)
