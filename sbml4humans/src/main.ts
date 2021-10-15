@@ -73,8 +73,11 @@ import {
     faTablets,
     faArrowLeft,
     faArrowRight,
+    faSquare,
+    faCheckSquare
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import Checkbox from "primevue/checkbox";
 
 library.add({
     faPhone,
@@ -105,6 +108,8 @@ library.add({
     faTablets,
     faArrowLeft,
     faArrowRight,
+    faSquare,
+    faCheckSquare
 });
 
 // app initialization
@@ -139,7 +144,9 @@ const app = createApp(App)
     .component("SplitterPanel", SplitterPanel)
     .component("Dialog", Dialog)
     .component("ProgressBar", ProgressBar)
+    .component("Checkbox", Checkbox)
     .component("Tree", Tree);
+
 
 app.use(VueGtag, {
     property: {
