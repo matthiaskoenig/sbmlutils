@@ -65,8 +65,10 @@ def udef_to_string(
             # (m * 10^s *k)^e
             # parse with pint
             term = Q_(float(m) * 10 ** s, k) ** float(abs(e))
-            if term.units != "item":
+            try:
                 term = term.to_compact()
+            except KeyError:
+                pass
 
             if np.isclose(term.magnitude, 1.0):
                 term = Q_(1, term.units)

@@ -4,7 +4,7 @@ from typing import List, Optional
 
 import libsbml
 from pydantic import BaseModel, FilePath
-from pymetadata.omex import Omex
+from pymetadata.omex import Omex, FormatKey
 
 from sbmlutils.console import console
 from sbmlutils.io import read_sbml
@@ -69,8 +69,10 @@ def biomodels_examples() -> List[ExampleMetaData]:
     with console.status("Processing examples ...", spinner="aesthetic"):
         for k in range(1, 50):
             biomodel_id = f"BIOMD0000000{k:0>3}"
-            biomodel_path = BIOMODELS_CURATED_PATH / f"{biomodel_id}.xml.gz"
-
+            omex_path = BIOMODELS_CURATED_PATH / f"{biomodel_id}.omex"
+            omex = Omex.from_omex(omex_path)
+            sbml_entries = omex.entries_by_format(FormatKey.SBML)
+            biomodel_path = omex.get_path(sbml_entries[0].location)
             example = create_models_metadata(biomodel_path)
             example.id = biomodel_id
             examples.append(example)
