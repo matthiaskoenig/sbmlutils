@@ -1,9 +1,12 @@
+"""Example for binomial distribution."""
+
 from pathlib import Path
-import roadrunner
+
 import numpy as np
+import roadrunner
 
 
-def simulate_distrib_roadrunner(sbml_path: Path, n_samples: int):
+def simulate_distrib_roadrunner(sbml_path: Path, n_samples: int) -> np.ndarray:
     """Sample the initial values."""
     r: roadrunner.RoadRunner = roadrunner.RoadRunner(str(sbml_path))
     model: roadrunner.ExecutableModel = r.model
@@ -19,8 +22,13 @@ def simulate_distrib_roadrunner(sbml_path: Path, n_samples: int):
 
     return data
 
+
 n_samples = 20
 # fast
-data_distrib_roadrunner = simulate_distrib_roadrunner("model_distrib.xml", n_samples=n_samples)
+data_distrib_roadrunner = simulate_distrib_roadrunner(
+    Path("model_distrib.xml"), n_samples=n_samples
+)
 # unusable slow
-data_distrib_roadrunner = simulate_distrib_roadrunner("model_binomial.xml",n_samples=n_samples)
+data_distrib_roadrunner = simulate_distrib_roadrunner(
+    Path("model_binomial.xml"), n_samples=n_samples
+)
