@@ -1,15 +1,16 @@
 """Test SBML report."""
 from pathlib import Path
-from rich import print
+
 import pytest
+from rich import print
 
 from sbmlutils import RESOURCES_DIR
-from sbmlutils.test import BIOMODELS_CURATED_PATH, sbml_paths_idfn
 from sbmlutils.report import api
+from sbmlutils.test import BIOMODELS_CURATED_PATH, sbml_paths_idfn
 
 
 sbml_paths = []
-for k in range(1400):
+for k in range(100):
     path = BIOMODELS_CURATED_PATH / f"BIOMD0000000{k:0>3}.omex"
     if path.exists():
         sbml_paths.append(path)

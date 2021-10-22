@@ -867,9 +867,7 @@ class SBMLDocumentInfo:
                         "units_sid": lp.getUnits() if lp.isSetUnits() else None,
                         "derivedUnits": udef_to_string(lp.getDerivedUnitDefinition()),
                     }
-                    lpar_info["units"] = udef_to_string(
-                        model.getUnitDefinition(lpar_info["units_sid"])
-                    )
+                    lpar_info["units"] = udef_to_string(lpar_info["units_sid"], model)
                     d_law["localParameters"].append(lpar_info)
                 d["kineticLaw"] = d_law
             else:

@@ -2,15 +2,16 @@
 import shutil
 import tempfile
 from pathlib import Path
-from requests.exceptions import HTTPError
 from typing import List, Optional
 
 import requests
+from pymetadata.omex import EntryFormat, FormatKey, ManifestEntry, Omex
+from requests.exceptions import HTTPError
 
-from pymetadata.omex import Omex, FormatKey, ManifestEntry, EntryFormat
 from sbmlutils import log
 from sbmlutils.console import console
 from sbmlutils.test import BIOMODELS_CURATED_PATH
+
 
 logger = log.get_logger(__name__)
 
@@ -32,9 +33,7 @@ def download_file(url: str, path: Path):
     return path
 
 
-def download_biomodel_omex(
-    biomodel_id: str, output_dir: Path
-) -> Path:
+def download_biomodel_omex(biomodel_id: str, output_dir: Path) -> Path:
     """Downloads omex for given biomodel id.
 
     Raises :class:`HTTPError`, if one occurred.
@@ -58,8 +57,7 @@ def download_biomodel_sbml(
 
         try:
             omex_path = download_biomodel_omex(
-                biomodel_id=biomodel_id,
-                output_dir=tmp_path
+                biomodel_id=biomodel_id, output_dir=tmp_path
             )
         except HTTPError as err:
             logger.error(err)
@@ -75,8 +73,7 @@ def download_biomodel_sbml(
                 break
         else:
             logger.warning(
-                f"No '*_url.xml' in archive: "
-                f"{[e.location for e in sbml_entries]}"
+                f"No '*_url.xml' in archive: " f"{[e.location for e in sbml_entries]}"
             )
             sbml_entry = sbml_entries[0]
 
@@ -84,10 +81,7 @@ def download_biomodel_sbml(
             entry_path = omex.get_path(sbml_entry.location)
             if format == "sbml":
                 sbml_path = Path(output_dir) / sbml_entry.location
-                shutil.copyfile(
-                    src=entry_path,
-                    dst=sbml_path
-                )
+                shutil.copyfile(src=entry_path, dst=sbml_path)
                 logger.info(sbml_path)
                 return sbml_path
             elif format == "omex":
@@ -98,7 +92,7 @@ def download_biomodel_sbml(
                     entry=ManifestEntry(
                         location=f"./entry_path.name",
                         format=EntryFormat.SBML,
-                    )
+                    ),
                 )
                 omex_out.to_omex(omex_path)
                 return omex_path
@@ -150,6 +144,4 @@ if __name__ == "__main__":
     # download_biomodel_sbml(
     #     biomodel_id="BIOMD0000000507", output_dir=Path("./tmp")
     # )
-    create_biomodels_testfiles(
-        output_dir=BIOMODELS_CURATED_PATH
-    )
+    create_biomodels_testfiles(output_dir=BIOMODELS_CURATED_PATH)

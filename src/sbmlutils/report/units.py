@@ -10,6 +10,7 @@ from sbmlutils.console import console
 
 ureg = pint.UnitRegistry()
 ureg.define("item = dimensionless")
+ureg.define("avogadro = 6.02214179E23 dimensionless")
 Q_ = ureg.Quantity
 
 short_names = {
