@@ -15,6 +15,9 @@ sudo ln -s /etc/nginx/sites-available/sbml4humans.de /etc/nginx/sites-enabled/
 ```
 sudo service nginx stop
 sudo certbot certonly
+
+-> sbml4humans.de www.sbml4humans.de
+
 sudo service nginx start
 sudo service nginx status
 ```

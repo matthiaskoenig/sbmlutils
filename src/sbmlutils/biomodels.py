@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import List, Optional
 
 import requests
-from pymetadata.omex import EntryFormat, FormatKey, ManifestEntry, Omex
+from pymetadata.omex import EntryFormat, ManifestEntry, Omex
 from requests.exceptions import HTTPError
 
 from sbmlutils import log
@@ -16,7 +16,7 @@ from sbmlutils.test import BIOMODELS_CURATED_PATH
 logger = log.get_logger(__name__)
 
 
-def download_file(url: str, path: Path):
+def download_file(url: str, path: Path) -> Path:
     """Download file from url to path.
 
     Raises :class:`HTTPError`, if one occurred.
@@ -34,7 +34,7 @@ def download_file(url: str, path: Path):
 
 
 def download_biomodel_omex(biomodel_id: str, output_dir: Path) -> Path:
-    """Downloads omex for given biomodel id.
+    """Download omex for given biomodel id.
 
     Raises :class:`HTTPError`, if one occurred.
     """
@@ -46,7 +46,7 @@ def download_biomodel_omex(biomodel_id: str, output_dir: Path) -> Path:
 
 
 def download_biomodel_sbml(
-    biomodel_id: str, output_dir: Path, format="sbml"
+    biomodel_id: str, output_dir: Path, format: str = "sbml"
 ) -> Optional[Path]:
     """Download SBML file for biomodel.
 
@@ -65,7 +65,7 @@ def download_biomodel_sbml(
 
         omex = Omex.from_omex(omex_path)
         # console.log(omex)
-        sbml_entries = omex.entries_by_format(FormatKey.SBML)
+        sbml_entries = omex.entries_by_format(format_key="sbml")
         sbml_entry: Optional[ManifestEntry] = None
         for entry in sbml_entries:
             if entry.location.endswith("_url.xml"):
@@ -90,7 +90,7 @@ def download_biomodel_sbml(
                 omex_out.add_entry(
                     entry_path=entry_path,
                     entry=ManifestEntry(
-                        location=f"./entry_path.name",
+                        location=f"./{entry_path.name}",
                         format=EntryFormat.SBML,
                     ),
                 )
@@ -129,7 +129,7 @@ def query_curated_biomodels() -> List[str]:
     return sorted(biomodel_ids)
 
 
-def create_biomodels_testfiles(output_dir: Path):
+def create_biomodels_testfiles(output_dir: Path) -> None:
     """Download all curated biomodels and create omex files."""
     # query the
     biomodel_ids = query_curated_biomodels()
