@@ -83,7 +83,7 @@ def download_biomodel_sbml(
                 sbml_path = Path(output_dir) / sbml_entry.location
                 shutil.copyfile(src=entry_path, dst=sbml_path)
                 logger.info(sbml_path)
-                return sbml_path
+                return Path(sbml_path)
             elif format == "omex":
                 omex_path = output_dir / f"{biomodel_id}.omex"
                 omex_out = Omex()
