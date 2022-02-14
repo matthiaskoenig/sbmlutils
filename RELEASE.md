@@ -1,7 +1,7 @@
 # Release information
 
 ## update documentation
-* build documentation `cd docs_builder`, `pip install -r requirements.txt` and `make html`
+* build documentation `cd docs_builder`, `pip install -r requirements-docs.txt` and `make html`
 
 ## make release
 * update release notes in `release-notes` with commit
