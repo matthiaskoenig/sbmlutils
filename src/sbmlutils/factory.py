@@ -543,7 +543,6 @@ class Sbase:
         objects = []
 
         # FIXME: check that distrib package is activated
-
         for uncertainty in self.uncertainties:  # type: Uncertainty
             objects.append(uncertainty.create_sbml(obj, model))
         return objects

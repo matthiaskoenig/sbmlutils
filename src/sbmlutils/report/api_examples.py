@@ -72,6 +72,9 @@ def biomodels_examples() -> List[ExampleMetaData]:
             omex_path = BIOMODELS_CURATED_PATH / f"{biomodel_id}.omex"
             omex = Omex.from_omex(omex_path)
             sbml_entries = omex.entries_by_format(format_key="sbml")
+            print(biomodel_id)
+            print(omex)
+            print(sbml_entries)
             biomodel_path = omex.get_path(sbml_entries[0].location)
             example = create_models_metadata(biomodel_path)
             example.id = biomodel_id
