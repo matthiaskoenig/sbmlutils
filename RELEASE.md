@@ -11,7 +11,7 @@
 
 * test installation in virtualenv from pypi
 ```
-mkvirtualenv test --python=python3.8
+mkvirtualenv test --python=python3.9
 (test) pip install sbmlutils
 ```
 
