@@ -13,6 +13,7 @@ sudo ln -s /etc/nginx/sites-available/sbml4humans.de /etc/nginx/sites-enabled/
 ### Certificates
 #### Initial certificates
 ```
+sudo mkdir -p /usr/share/nginx/letsencrypt
 sudo service nginx stop
 sudo certbot certonly
 
@@ -24,8 +25,7 @@ sudo service nginx status
 
 #### Certificate renewal
 ```
-sudo mkdir -p /usr/share/nginx/letsencrypt
-sudo certbot certonly --webroot
+sudo certbot certonly --webroot -w /usr/share/nginx/letsencrypt -d sbml4humans.de -d www.sbml4humans.de --dry-run
 ```
 
 ## Setup server

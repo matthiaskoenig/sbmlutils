@@ -48,7 +48,7 @@ def cobra_reaction_info(cobra_model: "cobra.core.Model") -> pd.DataFrame:
         ],
     )
     for rid in rids:
-        r = cobra_model.reactions.get_by_id(rid)
+        r = cobra_model.reactions.get_by_sid(rid)
         df.loc[rid] = [
             r.lower_bound,
             r.upper_bound,

@@ -27,7 +27,7 @@ def sqr(x: float) -> float:
 
 def root(a: float, b: float) -> float:
     """Root calculation."""
-    return a ** (1 / b)
+    return float(a ** (1.0 / b))
 
 
 def xor(*args: float) -> int:
