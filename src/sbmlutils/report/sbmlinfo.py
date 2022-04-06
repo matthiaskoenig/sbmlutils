@@ -1068,9 +1068,15 @@ class SBMLDocumentInfo:
             else:
                 d["trigger"] = None
 
-            d["priority"] = (
-                astnode_to_latex(event.getPriority()) if event.isSetPriority() else None
+            priority: libsbml.Priority = (
+                event.getPriority() if event.isSetPriority() else None
             )
+            if priority:
+                d["priority"] = (
+                    astnode_to_latex(priority.getMath())
+                    if priority.isSetMath()
+                    else None
+                )
             delay: libsbml.Delay = event.getDelay() if event.isSetDelay() else None
             if delay:
                 d["delay"] = (
@@ -1256,6 +1262,7 @@ if __name__ == "__main__":
         # FBC_ECOLI_CORE_SBML,
         # DISTRIB_DISTRIBUTIONS_SBML,
         # DISTRIB_UNCERTAINTIES_SBML,
+        # output_dir / "icg_body_flat_v2.xml",
         GLUCOSE_SBML
         # REPRESSILATOR_SBML,
     ]:
@@ -1267,17 +1274,3 @@ if __name__ == "__main__":
 
     with open(output_dir / "test.json", "w") as fout:
         fout.write(json_str)
-
-    doc = libsbml.SBMLDocument()
-    model: libsbml.Model = doc.createModel()
-    udef = model.getUnitDefinition("dimensionless")
-    print("udef", udef)
-
-    print(libsbml.UnitKind_toString(libsbml.UNIT_KIND_DIMENSIONLESS))
-    udef = model.getUnitDefinition("metre")
-    print("udef", udef)
-
-    print(libsbml.UnitKind_forName("dimensionless"))
-    print(libsbml.UnitKind_forName("abc"))
-    print(libsbml.UnitKind_toString(libsbml.UNIT_KIND_INVALID))
-    print(libsbml.UnitKind_toString(36))
