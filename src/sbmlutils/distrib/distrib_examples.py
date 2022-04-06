@@ -89,7 +89,7 @@ def distrib_all() -> libsbml.SBMLDocument:
 
     # create parameters with distribution assignments
     for pid, formula in formulas_data:
-        print("{} = {}".format(pid, formula))
+        # print(f"{pid} = {formula}")
         _: libsbml.Parameter = _create_parameter(pid, model=model)
         assignment: libsbml.InitialAssignment = model.createInitialAssignment()
         assignment.setSymbol(pid)
@@ -277,7 +277,7 @@ def create_examples(tmp: bool = False) -> None:
         if tmp:
             sbml_path = tempfile.mktemp()
         else:
-            sbml_path = f"./{name}.xml"
+            sbml_path = f"./results/{name}.xml"
 
         libsbml.writeSBMLToFile(doc, sbml_path)
         validation.validate_doc(doc)

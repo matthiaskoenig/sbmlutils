@@ -14,6 +14,10 @@ formulas = [
     "lambda(x, y, piecewise(x, x > y, y))",
     "lambda(x, y, x+y)",
     "(1 - gamma) * GSn + gamma * GSp",
+    "piecewise(0, (delay(dClk, tau1) - delay(Per, tau1)) < 0, delay(dClk, tau1) - delay(Per, tau1))",
+    "piecewise(VmaxM, exercise_level == 1, piecewise(VmaxH, exercise_level == 2, VmaxVH))",
+    "Gamma(v, u, J, K)",
+    "lambda(r, C, k, r * C * (1 - C / k))",
 ]
 
 cmathmls = [
@@ -76,7 +80,6 @@ cmathmls = [
 @pytest.mark.parametrize("formula", formulas)
 def test_formula_to_astnode(formula: str) -> None:
     astnode = mathml.formula_to_astnode(formula)
-    print(astnode)
     assert astnode
     assert isinstance(astnode, libsbml.ASTNode)
 
@@ -87,47 +90,6 @@ def test_cmathml_to_astnode(cmathml: str) -> None:
     assert astnode
     assert isinstance(astnode, libsbml.ASTNode)
     libsbml.readMathMLFromString(cmathml)
-
-
-@pytest.mark.parametrize("formula", formulas)
-def test_astnode_to_expression(formula: str) -> None:
-    astnode = mathml.formula_to_astnode(formula)
-    expr = mathml.astnode_to_expression(astnode)
-    assert expr
-
-
-@pytest.mark.parametrize("formula", formulas)
-def test_formula_to_expression(formula: str) -> None:
-    expr = mathml.formula_to_expression(formula)
-    assert expr
-
-
-@pytest.mark.parametrize("formula", formulas)
-def test_astnode_to_mathml(formula: str) -> None:
-    astnode = mathml.formula_to_astnode(formula)
-    cmathml = mathml.astnode_to_mathml(astnode, printer="content")
-    assert cmathml
-    assert isinstance(cmathml, str)
-    pmathml = mathml.astnode_to_mathml(astnode, printer="presentation")
-    assert pmathml
-    assert isinstance(pmathml, str)
-
-
-@pytest.mark.parametrize("formula", formulas)
-def test_formula_to_mathml(formula: str) -> None:
-    cmathml = mathml.formula_to_mathml(formula, printer="content")
-    assert cmathml
-    assert isinstance(cmathml, str)
-    pmathml = mathml.formula_to_mathml(formula, printer="content")
-    assert pmathml
-    assert isinstance(pmathml, str)
-
-
-@pytest.mark.parametrize("cmathml", cmathmls)
-def test_cmathml_to_pmathml(cmathml: str) -> None:
-    pmathml = mathml.cmathml_to_pmathml(cmathml)
-    assert pmathml
-    assert isinstance(pmathml, str)
 
 
 @pytest.mark.parametrize("formula", formulas)
@@ -143,16 +105,3 @@ def test_astnode_to_latex(formula: str) -> None:
     latex = mathml.astnode_to_latex(astnode)
     assert latex
     assert isinstance(latex, str)
-
-
-@pytest.mark.parametrize("cmathml", cmathmls)
-def test_cmathml_to_latex(cmathml: str) -> None:
-    latex = mathml.cmathml_to_latex(cmathml)
-    assert latex
-    assert isinstance(latex, str)
-
-
-def test_inline_unit_formula_to_expression() -> None:
-    formula = "1 dimensionless"
-    formula_new = mathml.formula_to_expression(formula)
-    assert formula_new == 1

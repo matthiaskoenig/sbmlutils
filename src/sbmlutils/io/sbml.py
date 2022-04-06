@@ -1,15 +1,14 @@
 """Utility functions for reading, writing and validating SBML."""
-import logging
 from pathlib import Path
 from typing import List, Union
 
 import libsbml
 
-from sbmlutils import validation
+from sbmlutils import log, validation
 from sbmlutils.utils import deprecated
 
 
-logger = logging.getLogger(__name__)
+logger = log.get_logger(__name__)
 
 
 def read_sbml(
@@ -38,7 +37,7 @@ def read_sbml(
 
     :return: SBMLDocument
     """
-    doc = None  # type: libsbml.SBMLDocument
+    doc: libsbml.SBMLDocument
     if isinstance(source, str) and "<sbml" in source:
         doc = libsbml.readSBMLFromString(source)  # type: ignore
     else:
@@ -176,7 +175,7 @@ def promote_local_variables(
     :param suffix: str suffix for promoted SBML
     :return: SBMLDocument with promoted parameters
     """
-    model = doc.getModel()  # type: libsbml.Model
+    model: libsbml.Model = doc.getModel()
     model.setId(f"{model.id}{suffix}")
 
     # promote local parameters

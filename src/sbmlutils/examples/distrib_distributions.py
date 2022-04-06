@@ -1,42 +1,41 @@
 """Distrib example demonstrating distributions."""
-from sbmlutils.creator import create_model
-from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
+from sbmlutils import EXAMPLES_DIR
+from sbmlutils.examples import templates
 from sbmlutils.factory import *
-from sbmlutils.units import *
 
 
-mid = "distributions_example"
-packages = ["distrib"]
-creators = templates.creators
-notes = Notes(
-    [
-        """
-    <h1>sbmlutils {}</h1>
-    <h2>Description</h2>
-    <p>Example creating distrib model with distribution elements.</p>
-    """,
-        templates.terms_of_use,
-    ]
+class U(Units):
+    """UnitsDefinitions."""
+
+    hr = UnitDefinition("hr")
+    m2 = UnitDefinition("m2", "meter^2")
+
+
+_m = Model("distrib_distributions", name="model with distrib distributions")
+_m.packages = ["distrib"]
+_m.creators = templates.creators
+_m.notes = (
+    """
+    # Distrib example
+    Example creating distrib model with distribution elements.
+    """
+    + templates.terms_of_use
 )
-model_units = ModelUnits(
-    time=UNIT_hr,
-    extent=UNIT_KIND_MOLE,
-    substance=UNIT_KIND_MOLE,
-    length=UNIT_m,
-    area=UNIT_m2,
-    volume=UNIT_KIND_LITRE,
+_m.units = U
+_m.model_units = ModelUnits(
+    time=U.hr,
+    extent=U.mole,
+    substance=U.mole,
+    length=U.meter,
+    area=U.m2,
+    volume=U.liter,
 )
-units = [
-    UNIT_hr,
-    UNIT_m,
-    UNIT_m2,
-]
 
-assignments = [
+_m.assignments = [
     InitialAssignment("p_normal_1", "normal(0, 1)"),
     InitialAssignment("p_normal_2", "normal(0, 1, 0, 10)"),
     InitialAssignment("p_uniform", "uniform(5, 10)"),
-    InitialAssignment("p_bernoulli", "bernoulli(0.4)"),
+    InitialAssignment("p_bernoulli", "bernoulli(10)"),
     InitialAssignment("p_binomial_1", "binomial(100, 0.3)"),
     InitialAssignment("p_binomial_2", "binomial(100, 0.3, 0, 2)"),
     InitialAssignment("p_cauchy_1", "cauchy(0, 1)"),
@@ -61,8 +60,8 @@ assignments = [
 def create(tmp: bool = False) -> None:
     """Create model."""
     create_model(
-        modules=["sbmlutils.examples.distrib_distributions"],
-        output_dir=EXAMPLE_RESULTS_DIR,
+        models=_m,
+        output_dir=EXAMPLES_DIR,
         tmp=tmp,
         units_consistency=False,
     )

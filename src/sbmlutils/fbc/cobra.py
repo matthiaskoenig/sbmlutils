@@ -1,9 +1,10 @@
 """cobrapy based helper methods."""
-import logging
 from pathlib import Path
 from typing import Dict
 
 import pandas as pd
+
+from sbmlutils import log
 
 
 try:
@@ -11,7 +12,7 @@ try:
 except ImportError:
     cobra = None
 
-logger = logging.getLogger(__name__)
+logger = log.get_logger(__name__)
 
 
 def read_cobra_model(sbml_path: Path) -> "cobra.core.Model":
@@ -47,7 +48,7 @@ def cobra_reaction_info(cobra_model: "cobra.core.Model") -> pd.DataFrame:
         ],
     )
     for rid in rids:
-        r = cobra_model.reactions.get_by_id(rid)
+        r = cobra_model.reactions.get_by_sid(rid)
         df.loc[rid] = [
             r.lower_bound,
             r.upper_bound,

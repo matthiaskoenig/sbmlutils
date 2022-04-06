@@ -82,7 +82,7 @@ class SpeciesGlyph(factory.Sbase):
         obj.setBoundingBox(bb)
         # text glyph
         t_glyph = layout.createTextGlyph()
-        t_glyph.setId("tglyph_{}".format(self.sid))
+        t_glyph.setId(f"tglyph_{self.sid}")
         t_glyph.setGraphicalObjectId(self.sid)
         t_glyph.setText(self.text)
 
@@ -144,7 +144,7 @@ class CompartmentGlyph(factory.Sbase):
         obj.setBoundingBox(bb)
         # text glyph
         t_glyph = layout.createTextGlyph()
-        t_glyph.setId("tglyph_{}".format(self.sid))
+        t_glyph.setId(f"tglyph_{self.sid}")
         t_glyph.setGraphicalObjectId(self.sid)
         t_glyph.setText(self.text)
         bb = _create_bounding_box(
@@ -211,7 +211,7 @@ class ReactionGlyph(factory.Sbase):
 
         # text glyph
         t_glyph = layout.createTextGlyph()
-        t_glyph.setId("tglyph_{}".format(self.sid))
+        t_glyph.setId(f"tglyph_{self.sid}")
         t_glyph.setGraphicalObjectId(self.sid)
         t_glyph.setText(self.text)
         bb = _create_bounding_box(
@@ -226,8 +226,8 @@ class ReactionGlyph(factory.Sbase):
         x_r = bb.getX()
         y_r = bb.getY()
         for sg_id, role in self.species_glyphs.items():
-            s_glyph = layout.getSpeciesGlyph(sg_id)  # type: libsbml.SpeciesGlyph
-            s_bb = s_glyph.getBoundingBox()  # type: libsbml.BoundingBox
+            s_glyph: libsbml.SpeciesGlyph = layout.getSpeciesGlyph(sg_id)
+            s_bb: libsbml.BoundingBox = s_glyph.getBoundingBox()
             x_s = s_bb.getX()
             y_s = s_bb.getY()
             if role in [LAYOUT_ROLE_SIDESUBSTRATE, LAYOUT_ROLE_SUBSTRATE]:
@@ -253,9 +253,7 @@ class ReactionGlyph(factory.Sbase):
 
         # create speciesReferenceGlyphs
         for sg_id, role in self.species_glyphs.items():
-            srg = (
-                obj.createSpeciesReferenceGlyph()
-            )  # type: libsbml.SpeciesReferenceGlyph
+            srg: libsbml.SpeciesReferenceGlyph = obj.createSpeciesReferenceGlyph()
             srg.setId(obj.getId() + "__" + sg_id)
             srg.setSpeciesGlyphId(sg_id)
             srg.setRole(role)
@@ -284,15 +282,15 @@ class ReactionGlyph(factory.Sbase):
         # 1. Find the direction of the reaction (via location of substrates and
         # 2. Orient the curves accordingly (at the bounding box, with all ingoing connecting
         # at same point and all outgoing connecting at same point.
-        r_glyph = layout.getReactionGlyph(r_glyph_id)  # type: libsbml.ReactionGlyph
-        s_glyph = layout.getSpeciesGlyph(s_glyph_id)  # type: libsbml.SpeciesGlyph
+        r_glyph: libsbml.ReactionGlyph = layout.getReactionGlyph(r_glyph_id)
+        s_glyph: libsbml.SpeciesGlyph = layout.getSpeciesGlyph(s_glyph_id)
 
         # create curve
-        line_segment = srg.createLineSegment()  # type: libsbml.LineSegment
+        line_segment: libsbml.LineSegment = srg.createLineSegment()
 
         # calculate start and end points for line
-        s_bb = s_glyph.getBoundingBox()  # type: libsbml.BoundingBox
-        r_bb = r_glyph.getBoundingBox()  # type: libsbml.BoundingBox
+        s_bb: libsbml.BoundingBox = s_glyph.getBoundingBox()
+        r_bb: libsbml.BoundingBox = r_glyph.getBoundingBox()
 
         x, y, h, w = r_bb.getX(), r_bb.getY(), r_bb.getHeight(), r_bb.getWidth()
         xs, ys, hs, ws = s_bb.getX(), s_bb.getY(), s_bb.getHeight(), s_bb.getWidth()
@@ -378,9 +376,7 @@ class Layout(factory.Sbase):
         if not layout_model:
             doc: libsbml.SBML_RULE = model.getSBMLDocument()
             doc.enablePackage(
-                "http://www.sbml.org/sbml/level3/version1/layout/version{}".format(
-                    LAYOUT_VERSION
-                ),
+                f"http://www.sbml.org/sbml/level3/version1/layout/version{LAYOUT_VERSION}",
                 "layout",
                 True,
             )

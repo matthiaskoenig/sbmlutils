@@ -1,106 +1,77 @@
 """AssignmentRule and InitialAssignment example."""
-from sbmlutils.creator import create_model
-from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
+from sbmlutils import EXAMPLES_DIR
+from sbmlutils.examples import templates
 from sbmlutils.factory import *
-from sbmlutils.units import *
 
 
-mid = "assignment_example"
-creators = templates.creators
-notes = Notes(
-    [
-        """<p>Example model for testing InitialAssignments in roadrunner.</p>""",
-        templates.terms_of_use,
-    ]
+class U(Units):
+    """UnitsDefinition."""
+
+    hr = UnitDefinition("hr")
+    mg = UnitDefinition("mg")
+    m2 = UnitDefinition("m2", "meter^2")
+    kg = UnitDefinition("kg")
+    l_per_hr = UnitDefinition("l_per_hr", "liter/hr")
+    l_per_kg = UnitDefinition("l_per_kg", "liter/kg")
+    mg_per_l = UnitDefinition("mg_per_l", "mg/liter")
+    mg_per_hr = UnitDefinition("mg_per_hr", "mg/hr")
+
+
+_m = Model(
+    "assignment",
+    name="model with assignments",
+    creators=templates.creators,
+    notes="""
+    # Example model demonstrating `InitialAssignment` and `AssignmentRule`.
+    """
+    + templates.terms_of_use,
+    units=U,
+    model_units=ModelUnits(
+        time=U.hr,
+        extent=U.mg,
+        substance=U.mg,
+        length=U.meter,
+        area=U.m2,
+        volume=U.liter,
+    ),
 )
-model_units = ModelUnits(
-    time=UNIT_hr,
-    extent=UNIT_mg,
-    substance=UNIT_mg,
-    length=UNIT_m,
-    area=UNIT_m2,
-    volume=UNIT_KIND_LITRE,
-)
-units = [
-    UNIT_kg,
-    UNIT_hr,
-    UNIT_mg,
-    UNIT_m,
-    UNIT_m2,
-    Unit("per_h", [(UNIT_KIND_SECOND, -1.0, 0, 3600)]),
-    Unit(
-        "mg_per_litre",
-        [(UNIT_KIND_GRAM, 1.0, -3, 1.0), (UNIT_KIND_LITRE, -1.0, 0, 1.0)],
-    ),
-    Unit("mg_per_g", [(UNIT_KIND_GRAM, 1.0, -3, 1.0), (UNIT_KIND_GRAM, -1.0, 0, 1.0)]),
-    Unit(
-        "mg_per_h", [(UNIT_KIND_GRAM, 1.0, -3, 1.0), (UNIT_KIND_SECOND, -1.0, 0, 3600)]
-    ),
-    Unit(
-        "litre_per_h",
-        [(UNIT_KIND_LITRE, 1.0, 0, 1.0), (UNIT_KIND_SECOND, -1.0, 0, 3600)],
-    ),
-    Unit(
-        "litre_per_kg", [(UNIT_KIND_LITRE, 1.0, 0, 1.0), (UNIT_KIND_GRAM, -1.0, 3, 1.0)]
-    ),
-    Unit(
-        "mulitre_per_min_mg",
-        [
-            (UNIT_KIND_LITRE, 1.0, -6, 1.0),
-            (UNIT_KIND_SECOND, -1.0, 0, 60),
-            (UNIT_KIND_GRAM, -1.0, -3, 1.0),
-        ],
-    ),
-    Unit("ml_per_s", [(UNIT_KIND_LITRE, 1.0, -3, 1.0), (UNIT_KIND_SECOND, -1.0, 0, 1)]),
-    # conversion factors
-    Unit(
-        "s_per_h", [(UNIT_KIND_SECOND, 1.0, 0, 1.0), (UNIT_KIND_SECOND, -1.0, 0, 3600)]
-    ),
-    Unit(
-        "min_per_h", [(UNIT_KIND_SECOND, 1.0, 0, 60), (UNIT_KIND_SECOND, -1.0, 0, 3600)]
-    ),
-    Unit(
-        "ml_per_litre", [(UNIT_KIND_LITRE, 1.0, -3, 1.0), (UNIT_KIND_LITRE, -1.0, 0, 1)]
-    ),
-    Unit(
-        "mulitre_per_g", [(UNIT_KIND_LITRE, 1.0, -6, 1.0), (UNIT_KIND_GRAM, -1.0, 0, 1)]
-    ),
-]
 
-parameters = [
+_m.parameters = [
     # dosing
-    Parameter("Ave", 0, "mg", constant=False),
-    Parameter("D", 0, "mg", constant=False),
-    Parameter("IVDOSE", 0, "mg", constant=True),
-    Parameter("PODOSE", 100, "mg", constant=True),
-    Parameter("k1", 0.1, "litre_per_h", constant=True),
+    Parameter("Ave", 0, U.mg, constant=False),
+    Parameter("D", 0, U.mg, constant=False),
+    Parameter("IVDOSE", 0, U.mg, constant=True),
+    Parameter("PODOSE", 100, U.mg, constant=True),
+    Parameter("k1", 0.1, U.l_per_hr, constant=True),
     # whole body data
-    Parameter("BW", 70, "kg", True),
-    Parameter("FVve", 0.0514, "litre_per_kg", True),
+    Parameter("BW", 70, U.kg, True),
+    Parameter("FVve", 0.0514, U.l_per_kg, True),
 ]
 
-assignments = [
-    InitialAssignment("Ave", "IVDOSE", "mg"),
-    InitialAssignment("D", "PODOSE", "mg"),
+_m.assignments = [
+    InitialAssignment("Ave", "IVDOSE", U.mg),
+    InitialAssignment("D", "PODOSE", U.mg),
 ]
 
-rules = [
+_m.rules = [
     # concentrations
-    AssignmentRule("Cve", "Ave/Vve", "mg_per_litre"),
+    AssignmentRule("Cve", "Ave/Vve", U.mg_per_l),
     # volumes
-    AssignmentRule("Vve", "BW*FVve", UNIT_KIND_LITRE),
+    AssignmentRule("Vve", "BW*FVve", U.liter),
 ]
 
-rate_rules = [
-    RateRule("Ave", "- k1*Cve", "mg_per_h"),
+_m.rate_rules = [
+    RateRule("Ave", "- k1*Cve", U.mg_per_hr),
 ]
+
+model = _m
 
 
 def create(tmp: bool = False) -> None:
     """Create model."""
     create_model(
-        modules=["sbmlutils.examples.assignment"],
-        output_dir=EXAMPLE_RESULTS_DIR,
+        models=model,
+        output_dir=EXAMPLES_DIR,
         tmp=tmp,
     )
 

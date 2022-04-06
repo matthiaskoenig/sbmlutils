@@ -14,21 +14,25 @@ def show_versions() -> None:
     print_dependencies("sbmlutils")
 
 
-class bcolors:
-    """Colors for console formating."""
+class FrozenClass(object):
+    """FrozenClass.
 
-    HEADER = "\033[95m"
-    OKBLUE = "\033[94m"
-    OKGREEN = "\033[92m"
-    WARNING = "\033[93m"
-    FAIL = "\033[91m"
-    BGWHITE = "\033[47m"
-    BGBLACK = "\033[49m"
-    WHITE = "\033[37m"
-    BLACK = "\033[30m"
-    ENDC = "\033[0m"
-    BOLD = "\033[1m"
-    UNDERLINE = "\033[4m"
+    After freezing no additional attributes can be added.
+    """
+
+    __isfrozen: bool = False
+
+    def __setattr__(self, key: str, value: Any) -> None:
+        """Attribute setter."""
+        if self.__isfrozen and not hasattr(self, key):
+            raise AttributeError(
+                f"{self} is a frozen class, no new attributes. But "
+                f"trying to set `{key} = {value}`."
+            )
+        object.__setattr__(self, key, value)
+
+    def _freeze(self) -> None:
+        self.__isfrozen = True
 
 
 def create_metaid(sbase: libsbml.SBase) -> str:
@@ -45,7 +49,7 @@ def create_hash_id(sbase: libsbml.SBase) -> str:
         hash_key = sbase.getId()
     else:
         # hash the xml_node
-        xml_node = sbase.toXMLNode()  # type: libsbml.XMLNode
+        xml_node: libsbml.XMLNode = sbase.toXMLNode()
         xml_str = xml_node.toString().encode("utf-8")
         hash_key = hashlib.md5(xml_str).hexdigest()
     return hash_key  # type: ignore
@@ -63,7 +67,6 @@ def timeit(f: Callable) -> Callable:
         ts = time.time()
         result = f(*args, **kwargs)
         te = time.time()
-
         print(
             "func:%r args:[%r, %r] took: %2.4f sec"
             % (f.__name__, args, kwargs, te - ts)
@@ -84,7 +87,7 @@ def deprecated(f: Callable) -> Callable:
     @functools.wraps(f)
     def new_func(*args: Any, **kwargs: Any) -> Any:
         warnings.warn_explicit(
-            "Call to deprecated function {}.".format(f.__name__),
+            f"Call to deprecated function {f.__name__}.",
             category=DeprecationWarning,
             filename=f.func_code.co_filename,  # type: ignore
             lineno=f.func_code.co_firstlineno + 1,  # type: ignore

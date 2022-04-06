@@ -1,60 +1,53 @@
 """Create reaction example."""
 import numpy as np
 
-from sbmlutils.creator import create_model
-from sbmlutils.examples import EXAMPLE_RESULTS_DIR, templates
+from sbmlutils import EXAMPLES_DIR
+from sbmlutils.examples import templates
 from sbmlutils.factory import *
-from sbmlutils.metadata.sbo import *
-from sbmlutils.units import *
+from sbmlutils.metadata import *
 
 
-mid = "reaction_example"
-notes = Notes(
-    [
-        """
-    <h1>Koenig sbmlutils example</h1>
-    <h2>Description</h2>
-    <p>Model creating a simple reaction.
-    </p>
-    """,
-        templates.terms_of_use,
-    ]
+_m = Model(
+    "reaction",
+    name="model with reaction",
+    notes="""
+    # Reaction definition
+    This example demonstrates the creation of a reaction.
+    """
+    + templates.terms_of_use,
+    creators=templates.creators,
+    compartments=[
+        Compartment(sid="c", name="cytosol", value=np.NaN),
+    ],
+    species=[
+        Species(
+            sid="x",
+            compartment="c",
+            sboTerm=SBO.SIMPLE_CHEMICAL,
+            initialConcentration=np.NaN,
+        ),
+        Species(
+            sid="y",
+            compartment="c",
+            sboTerm=SBO.SIMPLE_CHEMICAL,
+            initialConcentration=np.NaN,
+        ),
+    ],
+    reactions=[
+        Reaction(
+            sid="v1",
+            equation="x -> y",
+            compartment="c",
+        )
+    ],
 )
-creators = templates.creators
-
-compartments = [
-    Compartment(sid="c", name="cytosol", value=np.NaN),
-]
-
-species = [
-    Species(
-        sid="x",
-        compartment="c",
-        sboTerm=SBO_SIMPLE_CHEMICAL,
-        initialConcentration=np.NaN,
-    ),
-    Species(
-        sid="y",
-        compartment="c",
-        sboTerm=SBO_SIMPLE_CHEMICAL,
-        initialConcentration=np.NaN,
-    ),
-]
-
-reactions = [
-    Reaction(
-        sid="v1",
-        equation="x -> y",
-        compartment="c",
-    )
-]
 
 
 def create(tmp: bool = False) -> None:
     """Create model."""
     create_model(
-        modules=["sbmlutils.examples.reaction"],
-        output_dir=EXAMPLE_RESULTS_DIR,
+        models=_m,
+        output_dir=EXAMPLES_DIR,
         tmp=tmp,
         units_consistency=False,
     )

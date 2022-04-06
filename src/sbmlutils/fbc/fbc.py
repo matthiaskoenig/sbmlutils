@@ -1,11 +1,12 @@
 """Helper functions for working with FBC and cobrapy models."""
-import logging
 import warnings
 
 import libsbml
 
+from sbmlutils import log
 
-logger = logging.getLogger(__name__)
+
+logger = log.get_logger(__name__)
 
 
 def set_flux_bounds(reaction: libsbml.Reaction, lb: float, ub: float) -> None:

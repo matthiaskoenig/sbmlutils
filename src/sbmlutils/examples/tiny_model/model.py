@@ -4,16 +4,22 @@ from math import inf
 import sbmlutils.layout as layout
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
-from sbmlutils.metadata.sbo import *
-from sbmlutils.units import *
+from sbmlutils.metadata import *
 
 
-mid = "tiny_example"
-packages = ["fbc"]
-version = 12
-notes = Notes(
-    [
-        """
+class U(Units):
+    """UnitsDefinitions."""
+
+    m2 = UnitDefinition("m2", "meter^2")
+    mmole = UnitDefinition("mmole")
+    mM = UnitDefinition("mM", "mmole/liter")
+    mmole_per_s = UnitDefinition("mmole_per_s", "mmole/s")
+
+
+_m = Model(
+    sid="tiny_example",
+    packages=["fbc"],
+    notes="""
     <h2>Description</h2>
     <p>A minimal example in <a href="http://sbml.org" target="_blank">SBML</a> format.
     </p>
@@ -37,37 +43,28 @@ notes = Notes(
         implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
         </p>
     </div>
-    """
-    ]
+    """,
+    creators=templates.creators,
+    units=U,
+    model_units=ModelUnits(
+        time=U.second,
+        extent=U.mmole,
+        substance=U.mmole,
+        length=U.meter,
+        area=U.m2,
+        volume=U.liter,
+    ),
 )
-creators = templates.creators
 
-# -----------------------------------------------------------------------------
-# Units
-# -----------------------------------------------------------------------------
-model_units = ModelUnits(
-    time=UNIT_KIND_SECOND,
-    extent="mmole",
-    substance="mmole",
-    length=UNIT_KIND_METRE,
-    area="m2",
-    volume=UNIT_KIND_LITRE,
-)
-units = [
-    Unit("m2", [(UNIT_KIND_METRE, 2.0)]),
-    Unit("mmole", [(UNIT_KIND_MOLE, 1, -3, 1.0)]),
-    Unit("mM", [(UNIT_KIND_MOLE, 1, -3, 1.0), (UNIT_KIND_LITRE, -1.0)]),
-    Unit("mmole_per_s", [(UNIT_KIND_MOLE, 1, -3, 1.0), (UNIT_KIND_SECOND, -1.0)]),
-]
 
 # -----------------------------------------------------------------------------
 # Compartments
 # -----------------------------------------------------------------------------
-compartments = [
+_m.compartments = [
     Compartment(
         sid="c",
         value=1e-5,
-        unit=UNIT_KIND_LITRE,
+        unit=U.liter,
         constant=True,
         name="cell compartment",
         port=True,
@@ -77,185 +74,187 @@ compartments = [
 # -----------------------------------------------------------------------------
 # Species
 # -----------------------------------------------------------------------------
-species = [
+_m.species = [
     Species(
         sid="glc",
         compartment="c",
         initialConcentration=5.0,
-        substanceUnit="mmole",
+        substanceUnit=U.mmole,
         constant=False,
         boundaryCondition=False,
         hasOnlySubstanceUnits=False,
         name="glucose",
-        sboTerm=SBO_SIMPLE_CHEMICAL,
+        sboTerm=SBO.SIMPLE_CHEMICAL,
         port=True,
     ),
     Species(
         sid="g6p",
         compartment="c",
         initialConcentration=0.1,
-        substanceUnit="mmole",
+        substanceUnit=U.mmole,
         constant=False,
         boundaryCondition=False,
         hasOnlySubstanceUnits=False,
         name="glucose-6-phosphate",
-        sboTerm=SBO_SIMPLE_CHEMICAL,
+        sboTerm=SBO.SIMPLE_CHEMICAL,
     ),
     Species(
         sid="atp",
         compartment="c",
         initialConcentration=3.0,
-        substanceUnit="mmole",
+        substanceUnit=U.mmole,
         constant=False,
         boundaryCondition=False,
         hasOnlySubstanceUnits=False,
         name="ATP",
-        sboTerm=SBO_SIMPLE_CHEMICAL,
+        sboTerm=SBO.SIMPLE_CHEMICAL,
         port=True,
     ),
     Species(
         sid="adp",
         compartment="c",
         initialConcentration=0.8,
-        substanceUnit="mmole",
+        substanceUnit=U.mmole,
         constant=False,
         boundaryCondition=False,
         hasOnlySubstanceUnits=False,
         name="ADP",
-        sboTerm=SBO_SIMPLE_CHEMICAL,
+        sboTerm=SBO.SIMPLE_CHEMICAL,
         port=True,
     ),
     Species(
         sid="phos",
         compartment="c",
         initialConcentration=0,
-        substanceUnit="mmole",
+        substanceUnit=U.mmole,
         constant=True,
         boundaryCondition=True,
         hasOnlySubstanceUnits=False,
         name="P",
-        sboTerm=SBO_SIMPLE_CHEMICAL,
+        sboTerm=SBO.SIMPLE_CHEMICAL,
         port=True,
     ),
     Species(
         sid="hydron",
         compartment="c",
         initialConcentration=0,
-        substanceUnit="mmole",
+        substanceUnit=U.mmole,
         constant=True,
         boundaryCondition=True,
         hasOnlySubstanceUnits=False,
         name="H+",
-        sboTerm=SBO_SIMPLE_CHEMICAL,
+        sboTerm=SBO.SIMPLE_CHEMICAL,
     ),
     Species(
         sid="h2o",
         compartment="c",
         initialConcentration=0,
-        substanceUnit="mmole",
+        substanceUnit=U.mmole,
         constant=True,
         boundaryCondition=True,
         hasOnlySubstanceUnits=False,
         name="H2O",
-        sboTerm=SBO_SIMPLE_CHEMICAL,
+        sboTerm=SBO.SIMPLE_CHEMICAL,
     ),
 ]
 
 # -----------------------------------------------------------------------------
 # Parameters
 # -----------------------------------------------------------------------------
-parameters = [
+_m.parameters = [
     Parameter(
         "Vmax_GK",
         1.0e-6,
-        unit="mmole_per_s",
+        unit=U.mmole_per_s,
         constant=True,
-        sboTerm=SBO_MAXIMAL_VELOCITY,
+        sboTerm=SBO.MAXIMAL_VELOCITY,
         name="Vmax Glucokinase",
     ),
     Parameter(
         "Km_glc",
         0.5,
-        unit="mM",
+        unit=U.mM,
         constant=True,
-        sboTerm=SBO_MICHAELIS_CONSTANT,
+        sboTerm=SBO.MICHAELIS_CONSTANT,
         name="Km glucose",
     ),
     Parameter(
         "Km_atp",
         0.1,
-        unit="mM",
+        unit=U.mM,
         constant=True,
-        sboTerm=SBO_MICHAELIS_CONSTANT,
+        sboTerm=SBO.MICHAELIS_CONSTANT,
         name="Km ATP",
     ),
     Parameter(
         "Km_adp",
         0.1,
-        unit="mM",
+        unit=U.mM,
         constant=True,
-        sboTerm=SBO_MICHAELIS_CONSTANT,
+        sboTerm=SBO.MICHAELIS_CONSTANT,
         name="Km ADP",
     ),
     Parameter(
         "Vmax_ATPASE",
         1.0e-6,
-        unit="mmole_per_s",
+        unit=U.mmole_per_s,
         constant=True,
-        sboTerm=SBO_MAXIMAL_VELOCITY,
+        sboTerm=SBO.MAXIMAL_VELOCITY,
         name="Vmax ATPase",
     ),
     Parameter(
         sid="zero",
         name="zero bound",
         value=0,
-        unit="mmole_per_s",
+        unit=U.mmole_per_s,
         constant=True,
-        sboTerm=SBO_FLUX_BOUND,
+        sboTerm=SBO.FLUX_BOUND,
     ),
     Parameter(
         sid="inf",
         name="upper bound",
         value=inf,
-        unit="mmole_per_s",
+        unit=U.mmole_per_s,
         constant=True,
-        sboTerm=SBO_FLUX_BOUND,
+        sboTerm=SBO.FLUX_BOUND,
     ),
     Parameter(
         sid="minus_1000",
         value=-1000,
-        unit="mmole_per_s",
+        unit=U.mmole_per_s,
         constant=True,
-        sboTerm=SBO_FLUX_BOUND,
+        sboTerm=SBO.FLUX_BOUND,
     ),
     Parameter(
         sid="plus_1000",
         value=1000,
-        unit="mmole_per_s",
+        unit=U.mmole_per_s,
         constant=True,
-        sboTerm=SBO_FLUX_BOUND,
+        sboTerm=SBO.FLUX_BOUND,
     ),
 ]
 
 # -----------------------------------------------------------------------------
 # FunctionDefinitions
 # -----------------------------------------------------------------------------
-functions = [Function(sid="f_oscillation", value="lambda(x, cos(x/10 dimensionless))")]
+_m.functions = [
+    Function(sid="f_oscillation", value="lambda(x, cos(x/10 dimensionless))")
+]
 
 # -----------------------------------------------------------------------------
 # Assignments
 # -----------------------------------------------------------------------------
-assignments = [InitialAssignment("glc", "4.5 mM")]
+_m.assignments = [InitialAssignment("glc", "4.5 mM")]
 
 # -----------------------------------------------------------------------------
 # Rules
 # -----------------------------------------------------------------------------
-rules = [AssignmentRule("a_sum", "atp + adp", unit="mM", name="ATP + ADP balance")]
+_m.rules = [AssignmentRule("a_sum", "atp + adp", unit=U.mM, name="ATP + ADP balance")]
 
 # -----------------------------------------------------------------------------
 # Reactions
 # -----------------------------------------------------------------------------
-reactions = [
+_m.reactions = [
     Reaction(
         sid="GK",
         name="Glucokinase",
@@ -263,10 +262,10 @@ reactions = [
         compartment="c",
         pars=[],
         rules=[],
-        formula=("Vmax_GK * (glc/(Km_glc+glc)) * (atp/(Km_atp+atp))", "mmole_per_s"),
+        formula=("Vmax_GK * (glc/(Km_glc+glc)) * (atp/(Km_atp+atp))", U.mmole_per_s),
         lowerFluxBound="zero",
         upperFluxBound="inf",
-        sboTerm=SBO_BIOCHEMICAL_REACTION,
+        sboTerm=SBO.BIOCHEMICAL_REACTION,
     ),
     Reaction(
         sid="ATPPROD",
@@ -277,11 +276,11 @@ reactions = [
         rules=[],
         formula=(
             "Vmax_ATPASE * (adp/(Km_adp+adp)) * f_oscillation(time/ 1 second)",
-            "mmole_per_s",
+            U.mmole_per_s,
         ),
         lowerFluxBound="zero",
         upperFluxBound="inf",
-        sboTerm=SBO_BIOCHEMICAL_REACTION,
+        sboTerm=SBO.BIOCHEMICAL_REACTION,
     ),
     Reaction(
         sid="EX_glc",
@@ -292,8 +291,8 @@ reactions = [
         rules=[],
         lowerFluxBound="minus_1000",
         upperFluxBound="plus_1000",
-        formula=("zero", "mmole_per_s"),
-        sboTerm=SBO_EXCHANGE_REACTION,
+        formula=("zero", U.mmole_per_s),
+        sboTerm=SBO.EXCHANGE_REACTION,
     ),
     Reaction(
         sid="EX_g6p",
@@ -304,15 +303,15 @@ reactions = [
         rules=[],
         lowerFluxBound="minus_1000",
         upperFluxBound="plus_1000",
-        formula=("zero", "mmole_per_s"),
-        sboTerm=SBO_EXCHANGE_REACTION,
+        formula=("zero", U.mmole_per_s),
+        sboTerm=SBO.EXCHANGE_REACTION,
     ),
 ]
 
 # -----------------------------------------------------------------------------
 # Objective function
 # -----------------------------------------------------------------------------
-objectives = [
+_m.objectives = [
     Objective(
         sid="atp_consume_max",
         objectiveType="maximize",
@@ -324,7 +323,7 @@ objectives = [
 # -----------------------------------------------------------------------------
 # Events
 # -----------------------------------------------------------------------------
-events = [
+_m.events = [
     Event(
         "event_1",
         trigger="time >= 200 second",
@@ -341,7 +340,7 @@ events = [
 # -----------------------------------------------------------------------------
 # Constraints
 # -----------------------------------------------------------------------------
-constraints = [
+_m.constraints = [
     Constraint(
         "constraint_1",
         math="atp >= 0 mM",
@@ -353,7 +352,7 @@ constraints = [
 # -----------------------------------------------------------------------------
 # Layout
 # -----------------------------------------------------------------------------
-layouts = [
+_m.layouts = [
     layout.Layout(
         sid="layout_1",
         name="Layout 1",
@@ -424,3 +423,5 @@ layouts = [
         ],
     )
 ]
+
+tiny_model = _m

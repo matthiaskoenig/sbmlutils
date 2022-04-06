@@ -7,7 +7,6 @@ import numpy as np
 import pytest
 
 from sbmlutils import factory
-from sbmlutils.creator import create_model
 from sbmlutils.factory import *
 from sbmlutils.io import read_sbml
 
@@ -80,19 +79,19 @@ compartment_value_data = [
 def test_compartment_value(
     value: Any, constant: bool, expected: Dict, tmp_path: Path
 ) -> None:
-    m1 = {
-        "mid": "compartment_value",
+    m1: ModelDict = {
+        "sid": "compartment_value",
         "compartments": [Compartment(sid="C", value=value, constant=constant)],
     }
 
     result = create_model(
-        modules=m1,
+        models=Model(**m1),
         output_dir=tmp_path,
         units_consistency=False,
     )
 
-    doc = read_sbml(source=result.sbml_path)
-    model = doc.getModel()  # type: libsbml.Model
+    doc: libsbml.SBMLDocument = read_sbml(source=result.sbml_path)
+    model: libsbml.Model = doc.getModel()
     assert model.getNumCompartments() == expected["compartments"]
     assert model.getNumInitialAssignments() == expected["initial_assignments"]
     assert model.getNumRules() == expected["rules"]
@@ -118,19 +117,19 @@ parameter_value_data = [
 def test_parameter_value(
     value: Any, constant: bool, expected: Dict, tmp_path: Path
 ) -> None:
-    m1 = {
-        "mid": "parameter_value",
+    m1: ModelDict = {
+        "sid": "parameter_value",
         "parameters": [Parameter(sid="p", value=value, constant=constant)],
     }
 
     result = create_model(
-        modules=m1,
+        models=Model(**m1),
         output_dir=tmp_path,
         units_consistency=False,
     )
 
-    doc = read_sbml(source=result.sbml_path)
-    model = doc.getModel()  # type: libsbml.Model
+    doc: libsbml.SBMLDocument = read_sbml(source=result.sbml_path)
+    model: libsbml.Model = doc.getModel()
     assert model.getNumParameters() == expected["parameters"]
     assert model.getNumInitialAssignments() == expected["initial_assignments"]
     assert model.getNumRules() == expected["rules"]
@@ -140,6 +139,7 @@ def test_reaction_creation() -> None:
     """Test Equation.
     bA: A_ext => A; (scale_f*(Vmax_bA/Km_A)*(A_ext - A))/(1 dimensionless + A_ext/Km_A + A/Km_A);
     """
+    mmole_per_s = UnitDefinition("mmole_per_s", "mmole/s")
     rt = Reaction(
         sid="bA",
         name="bA (A import)",
@@ -149,7 +149,7 @@ def test_reaction_creation() -> None:
         rules=[],
         formula=(
             "scale_f*(Vmax_bA/Km_A)*(A_ext - A))/(1 dimensionless + A_ext/Km_A + A/Km_A",
-            "mole_per_s",
+            mmole_per_s,
         ),
     )
     assert rt

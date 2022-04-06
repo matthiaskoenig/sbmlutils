@@ -1,14 +1,14 @@
 """Helpers for validation and checking of SBML and libsbml operations."""
-import logging
 import time
 from typing import Iterable, List, Optional
 
 import libsbml
 
-from sbmlutils.utils import bcolors
+from sbmlutils.console import console
+from sbmlutils.log import get_logger
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def check(value: int, message: str) -> bool:
@@ -27,7 +27,7 @@ def check(value: int, message: str) -> bool:
         valid = False
     elif isinstance(value, int):
         if value != libsbml.LIBSBML_OPERATION_SUCCESS:
-            logger.error(f"Error encountered trying to <{message}>.")
+            logger.error(f"Error encountered trying to '{message}'.")
             logger.error(
                 f"LibSBML returned error code {str(value)}: "
                 f"{libsbml.OperationReturnValue_toString(value).strip()}"
@@ -105,11 +105,11 @@ def log_sbml_error(error: libsbml.SBMLError, index: int = None) -> None:
     """Log SBMLError."""
     msg, severity = error_string(error=error, index=index)
     if severity == libsbml.LIBSBML_SEV_WARNING:
-        logger.warning(msg)
+        logger.warning(msg, extra={"markup": True})
     elif severity in [libsbml.LIBSBML_SEV_ERROR, libsbml.LIBSBML_SEV_FATAL]:
-        logger.error(msg)
+        logger.error(msg, extra={"markup": True})
     else:
-        logger.info(msg)
+        logger.info(msg, extra={"markup": True})
 
 
 def error_string(error: libsbml.SBMLError, index: int = None) -> tuple:
@@ -125,17 +125,13 @@ def error_string(error: libsbml.SBMLError, index: int = None) -> tuple:
 
     severity = error.getSeverity()
     lines = [
-        bcolors.BGWHITE
-        + bcolors.BLACK
+        "[black on white]"
         + "E{}: {} ({}, L{}, {})".format(
             index, error.getCategoryAsString(), package, error.getLine(), "code"
         )
-        + bcolors.ENDC
-        + bcolors.ENDC,
-        bcolors.FAIL
-        + "[{}] {}".format(error.getSeverityAsString(), error.getShortMessage())
-        + bcolors.ENDC,
-        bcolors.OKBLUE + error.getMessage() + bcolors.ENDC,
+        + "[/black on white]",
+        f"[{error.getSeverityAsString().lower()}][on black][{error.getSeverityAsString()}] {error.getShortMessage()}[/on black][/{error.getSeverityAsString().lower()}]",
+        f"{error.getMessage()}",
     ]
     error_str = "\n".join(lines)
     return error_str, severity
@@ -162,6 +158,8 @@ def validate_doc(
     """
     if not name:
         name = str(doc)
+    if str(name).startswith("/"):
+        name = "file://" + str(name)
 
     # set the unit checking, similar for the other settings
     doc.setConsistencyChecks(libsbml.LIBSBML_CAT_UNITS_CONSISTENCY, units_consistency)
@@ -181,8 +179,6 @@ def validate_doc(
     vresults = ValidationResult.from_results([results_internal, results_not_internal])
 
     lines = [
-        "",
-        "-" * 80,
         str(name),
         "{:<25}: {}".format("valid", str(vresults.is_valid()).upper()),
     ]
@@ -193,25 +189,23 @@ def validate_doc(
         ]
     lines += [
         "{:<25}: {:.3f}".format("check time (s)", time.perf_counter() - current),
-        "-" * 80,
-        "",
     ]
     info = "\n".join(lines)
 
-    if vresults.is_valid():
-        info = bcolors.OKGREEN + info + bcolors.ENDC
-    else:
-        info = bcolors.FAIL + info + bcolors.ENDC
-    info = bcolors.BOLD + info + bcolors.ENDC
-
-    # overall validation report
     if vresults.is_perfect():
-        print(info)
+        style = "success"
     else:
         if vresults.is_valid():
-            logging.warning(info)
+            style = "warning"
         else:
-            logging.error(info)
+            style = "error"
+
+    # validation report
+    console.print()
+    console.rule("Validate SBML", style=style)
+    console.print(info, style=style)
+    console.rule(style=style)
+    console.print()
 
     # individual error and warning report
     if log_errors:

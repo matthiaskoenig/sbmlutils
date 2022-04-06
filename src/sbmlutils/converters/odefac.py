@@ -19,9 +19,9 @@ The following SBML core constructs are currently NOT supported:
 # TODO: add parameter rules, i.e. parameters which are assignments solely based on parameters (reduces complexity of full system).
 
 import re
-from collections import Iterable, defaultdict
+from collections import defaultdict
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Dict, List, Set, Tuple, Union
 
 import jinja2
 import libsbml
@@ -61,17 +61,18 @@ class SBML2ODE:
     @classmethod
     def from_file(cls, sbml_file: Path) -> "SBML2ODE":
         """Create converter from SBML file."""
-        doc = libsbml.readSBMLFromFile(str(sbml_file))  # type: libsbml.SBMLDocument
+        doc: libsbml.SBMLDocument = libsbml.readSBMLFromFile(str(sbml_file))
         return cls(doc)
 
     def _create_odes(self) -> None:
         """Create information of ODE system from SBMLDocument."""
-        model = self.doc.getModel()  # type: libsbml.Model
+        model: libsbml.Model = self.doc.getModel()
         # --------------
         # parameters
         # --------------
         # 1. constant parameters (real parameters of the system)
-        for parameter in model.getListOfParameters():  # type: libsbml.Parameter
+        parameter: libsbml.Parameter
+        for parameter in model.getListOfParameters():
             pid = parameter.getId()
             if parameter.getConstant():
                 value = parameter.getValue()
@@ -139,7 +140,7 @@ class SBML2ODE:
             # --------------
             if type_code == libsbml.SBML_RATE_RULE:
                 # directly converted to odes (create additional state variables)
-                rate_rule = rule  # type: libsbml.AssignmentRule
+                rate_rule: libsbml.RateRule = rule
                 variable = rate_rule.getVariable()
 
                 # store rule
@@ -162,7 +163,7 @@ class SBML2ODE:
             # assignment rules
             # --------------
             elif type_code == libsbml.SBML_ASSIGNMENT_RULE:
-                as_rule = rule  # type: libsbml.RateRule
+                as_rule: libsbml.AssignmentRule = rule
                 variable = as_rule.getVariable()
                 astnode = as_rule.getMath()
                 self.y_ast[variable] = astnode
@@ -187,9 +188,8 @@ class SBML2ODE:
                 self._add_reaction_formula(
                     model, rid=rid, species_ref=reactant, sign="-"
                 )
-            for (
-                product
-            ) in reaction.getListOfProducts():  # type: libsbml.SpeciesReference
+            product: libsbml.SpeciesReference
+            for product in reaction.getListOfProducts():
                 self._add_reaction_formula(
                     model, rid=rid, species_ref=product, sign="+"
                 )
@@ -220,7 +220,7 @@ class SBML2ODE:
         if abs(stoichiometry - 1.0) < 1e-10:
             stoichiometry = ""
         else:
-            stoichiometry = "{}*".format(stoichiometry)
+            stoichiometry = f"{stoichiometry}*"
 
         # check if only substance units
         if species.getHasOnlySubstanceUnits():
@@ -335,7 +335,7 @@ class SBML2ODE:
         # template environment
         env = jinja2.Environment(
             loader=jinja2.FileSystemLoader(TEMPLATE_DIR),
-            extensions=["jinja2.ext.autoescape"],
+            extensions=[],
             trim_blocks=True,
             lstrip_blocks=True,
         )
@@ -369,11 +369,11 @@ class SBML2ODE:
 
                     # replace parameters (p)
                     for key_rep, index in pids_idx.items():
-                        ast_rep = libsbml.parseL3Formula("p__{}__".format(index))
+                        ast_rep = libsbml.parseL3Formula(f"p__{index}__")
                         astnode.replaceArgument(key_rep, ast_rep)
                     # replace states (x)
                     for key_rep, index in dxids_idx.items():
-                        ast_rep = libsbml.parseL3Formula("x__{}__".format(index))
+                        ast_rep = libsbml.parseL3Formula(f"x__{index}__")
                         astnode.replaceArgument(key_rep, ast_rep)
 
                 formula = evaluableMathML(astnode)

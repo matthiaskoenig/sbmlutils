@@ -1,17 +1,17 @@
 # Release information
 
 ## update documentation
-* build documentation `cd docs_builder` and `make html`
+* build documentation `cd docs_builder`, `pip install -r requirements-docs.txt` and `make html`
 
 ## make release
 * update release notes in `release-notes` with commit
 * make sure all tests run (`tox -p`)
-* bump version (`bumpversion patch` or `bumpversion` minor)
+* bump version (`bumpversion [major|minor|patch]`)
 * `git push --tags` (triggers release)
 
 * test installation in virtualenv from pypi
 ```
-mkvirtualenv test --python=python3.8
+mkvirtualenv test --python=python3.9
 (test) pip install sbmlutils
 ```
 

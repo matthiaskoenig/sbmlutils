@@ -3,17 +3,16 @@ Test annotation functions and annotating of SBML models.
 """
 import re
 from pathlib import Path
-from typing import Iterable, List
+from typing import Iterable
 
 import libsbml
 
-from sbmlutils.creator import create_model
 from sbmlutils.examples import annotation as annotation_example
-from sbmlutils.factory import Compartment, Species
-from sbmlutils.io.sbml import read_sbml, write_sbml
-from sbmlutils.metadata import SBO_PHYSICAL_COMPARTMENT, SBO_SIMPLE_CHEMICAL, annotator
-from sbmlutils.metadata.annotator import Annotation, ExternalAnnotation, ModelAnnotator
-from sbmlutils.metadata.miriam import BQB
+from sbmlutils.factory import *
+from sbmlutils.io.sbml import read_sbml
+from sbmlutils.metadata import SBO, annotator
+from sbmlutils.metadata.annotator import ExternalAnnotation, ModelAnnotator
+from sbmlutils.metadata.miriam import *
 from sbmlutils.test import (
     DEMO_ANNOTATIONS,
     DEMO_SBML_NO_ANNOTATIONS,
@@ -23,14 +22,12 @@ from sbmlutils.test import (
 
 
 def test_create_annotation() -> None:
-    """Create assignment model.
-    :return:
-    """
+    """Create assignment model."""
     annotation_example.create(tmp=True)
 
 
 def test_external_annotation() -> None:
-    """ Check annotation data structure. """
+    """Check annotation data structure."""
     d = {
         "pattern": "id1",
         "sbml_type": "reaction",
@@ -61,20 +58,23 @@ def test_model_annotator() -> None:
 
 def test_model_annotation(tmp_path: Path) -> None:
     """Create minimal model and check that annotation is written correctly."""
-    model_dict = {
-        "mid": "example_annotation",
+    model_dict: ModelDict = {
+        "sid": "example_annotation",
         "compartments": [
             Compartment(
                 sid="C",
                 value=1.0,
-                sboTerm=SBO_PHYSICAL_COMPARTMENT,
+                sboTerm=SBO.PHYSICAL_COMPARTMENT,
                 annotations=[
                     (BQB.IS, "chebi/CHEBI:28061"),  # alpha-D-galactose
                 ],
             )
         ],
     }
-    results = create_model(model_dict, output_dir=tmp_path, filename="annotation1.xml")
+
+    results = create_model(
+        Model(**model_dict), output_dir=tmp_path, filename="annotation1.xml"
+    )
     # check annotations
     doc: libsbml.SBMLDocument = read_sbml(source=results.sbml_path)
     model: libsbml.Model = doc.getModel()
@@ -82,16 +82,14 @@ def test_model_annotation(tmp_path: Path) -> None:
     assert compartment
 
     cvterms: libsbml.CVTermList = compartment.getCVTerms()
-    assert len(cvterms) == 1
+    assert compartment.getNumCVTerms() == 1
 
     cv: libsbml.CVTerm = cvterms[0]
-    assert cv.getNumResources() == 1
-    # FIXME: additional tests
-    # assert cv.getResources()
+    assert cv.getNumResources() == 2
 
 
 def test_demo_annotation(tmp_path: Path) -> None:
-    """ Annotate the demo network. """
+    """Annotate the demo network."""
 
     tmp_sbml_path = tmp_path / "sbml_annotated.xml"
     annotator.annotate_sbml(
@@ -185,7 +183,7 @@ def test_demo_annotation(tmp_path: Path) -> None:
 
 
 def test_galactose_annotation(tmp_path: Path) -> None:
-    """ Annotate the galactose network. """
+    """Annotate the galactose network."""
     tmp_sbml_path = tmp_path / "sbml_annotated.xml"
     annotator.annotate_sbml(
         GALACTOSE_SINGLECELL_SBML_NO_ANNOTATIONS,

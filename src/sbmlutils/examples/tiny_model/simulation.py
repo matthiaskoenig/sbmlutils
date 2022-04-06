@@ -4,7 +4,10 @@ Runs ODE and FBA simulation with the model.
 memote model report can be generated via:
 memote report snapshot --filename tiny_example_10_memote.html tiny_example_10.xml
 
-Requires the cobra functionality
+Requires the cobra functionality and roadrunner functionality
+```
+pip install libroadrunner cobra
+```
 
 """
 from pathlib import Path
@@ -14,7 +17,7 @@ import roadrunner
 from matplotlib import pylab as plt
 
 from sbmlutils.examples.tiny_model import factory as tiny_factory
-from sbmlutils.examples.tiny_model import model as model_definition
+from sbmlutils.examples.tiny_model.model import tiny_model
 from sbmlutils.fbc.cobra import read_cobra_model
 
 
@@ -72,9 +75,7 @@ def tiny_simulation() -> None:
 
     plt.show()
     f.savefig(
-        tiny_dir
-        / "results"
-        / f"{model_definition.mid}_{model_definition.version}_roadrunner.png",
+        tiny_dir / "results" / f"{tiny_model.sid}_roadrunner.png",
         bbox_inches="tight",
     )
 

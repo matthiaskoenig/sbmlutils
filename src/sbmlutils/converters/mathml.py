@@ -27,7 +27,7 @@ def sqr(x: float) -> float:
 
 def root(a: float, b: float) -> float:
     """Root calculation."""
-    return a ** (1 / b)
+    return float(a ** (1.0 / b))
 
 
 def xor(*args: float) -> int:
@@ -126,7 +126,7 @@ def evaluableMathML(astnode: libsbml.ASTNode, variables: Optional[Dict] = None) 
         astnode.replaceArgument(key, libsbml.parseFormula(str(value)))
 
     # parse formula
-    settings = libsbml.L3ParserSettings()  # type: libsbml.L3ParserSettings
+    settings: libsbml.L3ParserSettings = libsbml.L3ParserSettings()
     settings.setParseUnits(False)
     settings.setParseCollapseMinus(True)
     formula: str = libsbml.formulaToL3StringWithSettings(astnode, settings)

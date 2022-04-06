@@ -49,12 +49,16 @@ with source code available from `https://github.com/matthiaskoenig/sbmlutils <ht
 Features include among others
 
 -  helper functions for model creation, manipulation, and annotation
--  HTML reports of SBML models
--  interpolation functions to add experimental data to models
+-  HTML reports of SBML models `https://sbml4humans.de <https://sbml4humans.de>`__.
 -  file converters (XPP)
 
 The documentation is available on `https://sbmlutils.readthedocs.io <https://sbmlutils.readthedocs.io>`__. 
 If you have any questions or issues please `open an issue <https://github.com/matthiaskoenig/sbmlutils/issues>`__.
+
+.. image:: docs/presentations/reproducibility_center_2021/screenshot.png
+   :target: https://youtu.be/SxIq8qeXxD0?t=1261
+   :alt: sbmlutils introduction
+   :height: 200px
 
 How to cite
 ===========
@@ -90,8 +94,14 @@ PARTICULAR PURPOSE. See the GNU General Public License for more details.
 Funding
 =======
 Matthias König is supported by the Federal Ministry of Education and Research (BMBF, Germany)
-within the research network Systems Medicine of the Liver (**LiSyM**, grant number 031L0054).
-
+within the research network Systems Medicine of the Liver (**LiSyM**, grant number 031L0054) 
+and by the German Research Foundation (DFG) within the Research Unit Programme FOR 5151 
+"`QuaLiPerF <https://qualiperf.de>`__ (Quantifying Liver Perfusion-Function Relationship in Complex Resection - 
+A Systems Medicine Approach)" by grant number 436883643 and by grant number 
+465194077 (Priority Programme SPP 2311, Subproject SimLivA).
+SBML4Humans was funded as part of `Google Summer of Code 2021 <https://summerofcode.withgoogle.com/>`__.
+Matthias König has received funding from the EOSCsecretariat.eu which has received funding 
+from the European Union's Horizon Programme call H2020-INFRAEOSC-05-2018-2019, grant Agreement number 831644.
 
 Installation
 ============
@@ -125,4 +135,4 @@ To install for development use::
 
     pip install -e .[development]
 
-© 2017-2021 Matthias König
+© 2017-2022 Matthias König
