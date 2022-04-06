@@ -101,7 +101,7 @@ master_doc = "index"
 
 # General information about the project.
 project = u"sbmlutils"
-copyright = u"2017-2021, Matthias König"
+copyright = u"2017-2022, Matthias König"
 author = u"Matthias König et al."
 
 # The version info for the project you're documenting, acts as replacement for

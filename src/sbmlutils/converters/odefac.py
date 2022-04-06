@@ -335,7 +335,7 @@ class SBML2ODE:
         # template environment
         env = jinja2.Environment(
             loader=jinja2.FileSystemLoader(TEMPLATE_DIR),
-            extensions=["jinja2.ext.autoescape"],
+            extensions=[],
             trim_blocks=True,
             lstrip_blocks=True,
         )
