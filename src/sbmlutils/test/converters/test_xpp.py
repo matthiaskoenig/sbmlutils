@@ -12,6 +12,7 @@ model_ids = [
     "PLoSCompBiol_Fig1",
 ]
 
+
 def xpp_check(
     tmp_path: Path, ode_id: str, Nall: int = 0, Nerr: int = 0, Nwarn: int = 0
 ) -> None:
