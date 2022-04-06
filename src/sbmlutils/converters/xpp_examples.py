@@ -1,4 +1,10 @@
-"""Test xpp file."""
+"""Test xpp file.
+
+This requires roadrunner.
+```
+pip install libroadrunner
+```
+"""
 from pathlib import Path
 
 import roadrunner

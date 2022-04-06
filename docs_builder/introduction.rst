@@ -12,7 +12,6 @@ Main features of **sbmlutils** are
 - :ref:`SBML report` : HTML report of SBML models `https://sbml4humans.de <https://sbml4humans.de>`__. This provides overview of the model contents.
 - :ref:`SBML annotation` : Helper functions for the annotation of SBML models. Annotations are hereby defined in separate annotation files with annotations being matched to ids based on regular expression matching.
 - :ref:`SBML converters` : Converters from and to SBML, e.g. xpp.
-- :ref:`SBML interpolation` : Helper functions for working with data interpolation in SBML models.
 
 Source code is available from
 `https://github.com/matthiaskoenig/sbmlutils

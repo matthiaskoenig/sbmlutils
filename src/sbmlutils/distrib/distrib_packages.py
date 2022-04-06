@@ -1,5 +1,4 @@
 """Example testing uncertainty with libsbml packages."""
-import os
 import tempfile
 from pathlib import Path
 
@@ -13,9 +12,9 @@ logger = get_logger(__name__)
 
 def add_uncertainty_example(tmp: bool = False) -> None:
     """Add uncertainty to a model."""
-    output_dir = str(Path(__file__).parent)
+    output_dir = Path(__file__).parent / "results"
     doc: libsbml.SBMLDocument = libsbml.readSBMLFromFile(
-        os.path.join(output_dir, "e_coli_core.xml")
+        str(output_dir / "e_coli_core.xml")
     )
 
     # activate distrib
@@ -29,9 +28,7 @@ def add_uncertainty_example(tmp: bool = False) -> None:
 
     # write gene expression data
     gp = model_fbc.getGeneProduct(0)
-    print(gp)
     gp_distrib: libsbml.DistribSBasePlugin = gp.getPlugin("distrib")
-    print(gp_distrib)
 
     if gp_distrib:
         uncertainty: libsbml.Uncertainty = gp_distrib.createUncertainty()
@@ -47,9 +44,7 @@ def add_uncertainty_example(tmp: bool = False) -> None:
         with tempfile.NamedTemporaryFile(suffix=".xml") as f_sbml:
             libsbml.writeSBMLToFile(doc, f_sbml.name)
     else:
-        libsbml.writeSBMLToFile(
-            doc, os.path.join(output_dir, "e_coli_core_expression.xml")
-        )
+        libsbml.writeSBMLToFile(doc, str(output_dir / "e_coli_core_expression.xml"))
 
 
 if __name__ == "__main__":

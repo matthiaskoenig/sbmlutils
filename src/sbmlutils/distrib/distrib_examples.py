@@ -277,7 +277,7 @@ def create_examples(tmp: bool = False) -> None:
         if tmp:
             sbml_path = tempfile.mktemp()
         else:
-            sbml_path = f"./{name}.xml"
+            sbml_path = f"./results/{name}.xml"
 
         libsbml.writeSBMLToFile(doc, sbml_path)
         validation.validate_doc(doc)

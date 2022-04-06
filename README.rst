@@ -50,7 +50,6 @@ Features include among others
 
 -  helper functions for model creation, manipulation, and annotation
 -  HTML reports of SBML models `https://sbml4humans.de <https://sbml4humans.de>`__.
--  interpolation functions to add experimental data to models
 -  file converters (XPP)
 
 The documentation is available on `https://sbmlutils.readthedocs.io <https://sbmlutils.readthedocs.io>`__. 

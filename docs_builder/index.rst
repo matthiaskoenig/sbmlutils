@@ -20,7 +20,6 @@ Contents:
    notebooks/sbml_distrib
    notebooks/sbml_annotator
    notebooks/sbml_converters
-   notebooks/sbml_interpolation
    notebooks/sbml_merge
    _autogen/modules
 

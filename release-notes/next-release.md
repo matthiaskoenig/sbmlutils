@@ -8,5 +8,6 @@ following changes:
 ## Fixes
 
 ## Backwards compatibility
+- moving interpolation functionality to sbmlsim
 
 Your sbmlutils team

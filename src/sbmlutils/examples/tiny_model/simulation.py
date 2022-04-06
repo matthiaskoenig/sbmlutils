@@ -4,7 +4,10 @@ Runs ODE and FBA simulation with the model.
 memote model report can be generated via:
 memote report snapshot --filename tiny_example_10_memote.html tiny_example_10.xml
 
-Requires the cobra functionality
+Requires the cobra functionality and roadrunner functionality
+```
+pip install libroadrunner cobra
+```
 
 """
 from pathlib import Path
