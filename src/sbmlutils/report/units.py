@@ -65,7 +65,7 @@ def udef_to_string(
 
             # (m * 10^s *k)^e
             # parse with pint
-            term = Q_(float(m) * 10 ** s, k) ** float(abs(e))
+            term = Q_(float(m) * 10**s, k) ** float(abs(e))
             try:
                 term = term.to_compact()
             except KeyError:
