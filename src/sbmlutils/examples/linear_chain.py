@@ -1,6 +1,8 @@
-"""Example creating minimal model.
+"""Example creating linear chain.
 
-This demonstrates just the very core SBML functionality.
+This demonstrates core SBML functionality in combination with using patterns.
+`sbmlutils` allows to generate patterns of objects by combining loops in combination
+with string patterns. In this example we create a kinetic model of a linear chain.
 """
 from pathlib import Path
 from typing import List
@@ -10,7 +12,7 @@ from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
 from sbmlutils.metadata import *
-
+import libsbml
 
 n_chain = 20
 # -------------------------------------------------------------------------------------
