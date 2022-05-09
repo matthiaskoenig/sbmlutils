@@ -4,10 +4,12 @@ from pathlib import Path
 from sbmlutils.examples.demo.model import demo_model
 from sbmlutils.factory import create_model
 
+output_dir = Path(__file__).parent
+
 
 def create(tmp: bool = False) -> None:
     """Create model."""
-    output_dir = Path(__file__).parent
+
     create_model(
         models=demo_model,
         output_dir=output_dir / "results",

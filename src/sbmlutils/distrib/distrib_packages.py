@@ -9,10 +9,11 @@ from sbmlutils.log import get_logger
 
 logger = get_logger(__name__)
 
+output_dir = Path(__file__).parent / "results"
+
 
 def add_uncertainty_example(tmp: bool = False) -> None:
     """Add uncertainty to a model."""
-    output_dir = Path(__file__).parent / "results"
     doc: libsbml.SBMLDocument = libsbml.readSBMLFromFile(
         str(output_dir / "e_coli_core.xml")
     )
