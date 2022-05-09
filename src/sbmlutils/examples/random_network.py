@@ -2,9 +2,9 @@
 import random
 from pathlib import Path
 
-from sbmlutils import EXAMPLES_DIR
 from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.factory import *
+from sbmlutils.resources import EXAMPLES_DIR
 
 
 random.seed(1234)

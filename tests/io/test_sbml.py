@@ -4,7 +4,7 @@ from pathlib import Path
 import libsbml
 
 from sbmlutils.io.sbml import read_sbml, write_sbml
-from tests import BASIC_SBML, GZ_SBML
+from sbmlutils.resources import BASIC_SBML, GZ_SBML
 
 
 def test_read_sbml_from_path() -> None:

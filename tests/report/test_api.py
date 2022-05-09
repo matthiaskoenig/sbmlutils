@@ -5,7 +5,7 @@ import pytest
 from rich import print
 
 from sbmlutils.report import api
-from tests import BIOMODELS_CURATED_PATH, sbml_paths_idfn
+from sbmlutils.resources import BIOMODELS_CURATED_PATH, sbml_paths_idfn
 
 
 sbml_paths = []

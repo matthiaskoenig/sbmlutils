@@ -2,9 +2,9 @@
 from pathlib import Path
 from typing import List
 
-from sbmlutils import EXAMPLES_DIR
 from sbmlutils.factory import *
 from sbmlutils.metadata import *
+from sbmlutils.resources import EXAMPLES_DIR
 
 
 n_cells = 10

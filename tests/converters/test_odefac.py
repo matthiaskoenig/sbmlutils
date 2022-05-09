@@ -6,7 +6,7 @@ import pytest
 
 from sbmlutils.converters.odefac import SBML2ODE
 from sbmlutils.io import read_sbml
-from tests import DEMO_SBML, GALACTOSE_SINGLECELL_SBML
+from sbmlutils.resources import DEMO_SBML, GALACTOSE_SINGLECELL_SBML
 
 
 test_models = [

@@ -10,7 +10,7 @@ from requests.exceptions import HTTPError
 
 from sbmlutils import log
 from sbmlutils.console import console
-from tests import BIOMODELS_CURATED_PATH
+from sbmlutils.resources import BIOMODELS_CURATED_PATH
 
 
 logger = log.get_logger(__name__)

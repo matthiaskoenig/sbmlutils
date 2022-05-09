@@ -4,9 +4,10 @@ Resources for testing
 from pathlib import Path
 from typing import List
 
-from sbmlutils import RESOURCES_DIR, EXAMPLES_DIR
+from sbmlutils import RESOURCES_DIR
 
 TESTDATA_DIR = RESOURCES_DIR / "testdata"
+EXAMPLES_DIR: Path = RESOURCES_DIR / "examples"
 
 # -------------------------------------------------------------------------------------
 # COMBINE ARCHIVES

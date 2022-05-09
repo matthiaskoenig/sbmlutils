@@ -11,7 +11,7 @@ from sbmlutils.fbc.cobra import (
 )
 from sbmlutils.fbc.fbc import add_default_flux_bounds
 from sbmlutils.io.sbml import read_sbml, write_sbml
-from tests import DEMO_SBML, FBC_DIAUXIC_GROWTH_SBML
+from sbmlutils.resources import DEMO_SBML, FBC_DIAUXIC_GROWTH_SBML
 
 
 @pytest.mark.skipif(cobra is None, reason="requires cobrapy")

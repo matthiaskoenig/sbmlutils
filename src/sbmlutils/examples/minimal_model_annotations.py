@@ -1,9 +1,9 @@
 """Annotate an existing model."""
 from pathlib import Path
 
-from sbmlutils import EXAMPLES_DIR
 from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.metadata.annotator import annotate_sbml
+from sbmlutils.resources import EXAMPLES_DIR
 
 
 if __name__ == "__main__":

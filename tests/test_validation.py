@@ -4,7 +4,12 @@ from pathlib import Path
 import pytest
 
 from sbmlutils.io.sbml import validate_sbml
-from tests import BASIC_SBML, DEMO_SBML, GALACTOSE_SINGLECELL_SBML, VDP_SBML
+from sbmlutils.resources import (
+    BASIC_SBML,
+    DEMO_SBML,
+    GALACTOSE_SINGLECELL_SBML,
+    VDP_SBML,
+)
 
 
 @pytest.mark.parametrize(

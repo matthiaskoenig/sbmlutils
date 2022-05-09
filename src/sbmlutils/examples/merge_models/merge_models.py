@@ -4,7 +4,7 @@ from pathlib import Path
 from pprint import pprint
 
 from sbmlutils.manipulation import merge_models
-from tests import TESTDATA_DIR
+from sbmlutils.resources import TESTDATA_DIR
 
 
 def merge_models_example() -> None:

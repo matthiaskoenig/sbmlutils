@@ -98,7 +98,7 @@ def create_online_report(
 
 
 if __name__ == "__main__":
-    from tests import REPRESSILATOR_SBML
+    from sbmlutils.resources import REPRESSILATOR_SBML
 
     # create_online_report(sbml_path=REPRESSILATOR_SBML)
     create_online_report(sbml_path=REPRESSILATOR_SBML, server="localhost:3456")

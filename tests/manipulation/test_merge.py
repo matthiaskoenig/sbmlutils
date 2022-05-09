@@ -5,7 +5,7 @@ from sbmlutils import comp, validation
 from sbmlutils.examples.merge_models.merge_models import merge_models_example
 from sbmlutils.io import write_sbml
 from sbmlutils.manipulation import merge
-from tests import TESTDATA_DIR
+from sbmlutils.resources import TESTDATA_DIR
 
 
 def test_merge_models_example() -> None:

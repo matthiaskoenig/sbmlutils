@@ -1251,7 +1251,7 @@ if __name__ == "__main__":
         output_dir.mkdir(parents=True, exist_ok=True)
 
     print("-" * 80)
-    from tests import GLUCOSE_SBML
+    from sbmlutils.resources import GLUCOSE_SBML
 
     for source in [
         # COMP_ICG_BODY,

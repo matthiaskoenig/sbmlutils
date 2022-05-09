@@ -1,11 +1,11 @@
 """Example for model composition via multiple models."""
 from pathlib import Path
 
-from sbmlutils import EXAMPLES_DIR
 from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.examples.minimal_model import model_minimal
 from sbmlutils.factory import *
 from sbmlutils.metadata import *
+from sbmlutils.resources import EXAMPLES_DIR
 
 
 model = Model(

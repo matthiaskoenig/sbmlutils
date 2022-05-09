@@ -2,7 +2,7 @@
 from pathlib import Path
 
 from sbmlutils.converters import copasi
-from tests import REPRESSILATOR_SBML
+from sbmlutils.resources import REPRESSILATOR_SBML
 
 
 def test_write_ids_to_names(tmp_path: Path) -> None:
