@@ -15,14 +15,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Send tweet
-      uses: ethomson/send-tweet-action@v1
-      with:
-        status: "Automatic test. Ignore. Tests passed for ${{ github.event.repository.name }}"
-        consumer-key: ${{ secrets.TWITTER_CONSUMER_API_KEY }}
-        consumer-secret: ${{ secrets.TWITTER_CONSUMER_API_SECRET }}
-        access-token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
-        access-token-secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
@@ -83,7 +75,7 @@ jobs:
     - name: Send release tweet
       uses: ethomson/send-tweet-action@v1
       with:
-        status: "New ${{ github.event.repository.name }} release ${{ github.event.release.tag_name }}! Try it will it is HOT! ${{ github.event.release.html_url }} #python # SBML #release"
+        status: "New ${{ github.event.repository.name }} release ${{ github.event.release.tag_name }}! ${{ github.event.release.html_url }} #python # SBML #release"
         consumer-key: ${{ secrets.TWITTER_CONSUMER_API_KEY }}
         consumer-secret: ${{ secrets.TWITTER_CONSUMER_API_SECRET }}
         access-token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
