@@ -38,7 +38,7 @@ def add_default_flux_bounds(
         p = model.createParameter()
         p.setId(sid)
         p.setValue(value)
-        p.setName("{} flux bound".format(sid))
+        p.setName(f"{sid} flux bound")
         p.setSBOTerm("SBO:0000626")  # default flux bound
         p.setConstant(True)
         return p
@@ -64,5 +64,5 @@ def no_boundary_conditions(doc: libsbml.SBMLDocument) -> None:
     model = doc.getModel()
     for s in model.species:
         if s.boundary_condition:
-            warnings.warn("boundaryCondition changed {}".format(s), UserWarning)
+            warnings.warn(f"boundaryCondition changed {s}", UserWarning)
             s.setBoundaryCondition(False)

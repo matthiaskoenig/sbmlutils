@@ -170,7 +170,7 @@ def ast_node_from_formula(model: libsbml.Model, formula: str) -> libsbml.ASTNode
 
     ast_node = libsbml.parseL3FormulaWithModel(formula, model)
     if not ast_node:
-        logger.error("Formula could not be parsed: '{}'".format(formula))
+        logger.error(f"Formula could not be parsed: '{formula}'")
         logger.error(libsbml.getLastParseL3Error())
     return ast_node
 
@@ -1353,7 +1353,7 @@ class AssignmentRule(Rule):
 
     def __repr__(self) -> str:
         """Representation."""
-        return "<AssignmentRule({})>".format(super(AssignmentRule, self).__repr__())
+        return f"<AssignmentRule({super(AssignmentRule, self).__repr__()})>"
 
     def create_sbml(self, model: libsbml.Model) -> libsbml.AssignmentRule:
         """Create AssignmentRule in model.
@@ -1860,7 +1860,7 @@ class Uncertainty(Sbase):
             ]:
                 if key in self.formula:
                     up_dist.setDefinitionURL(
-                        "http://www.sbml.org/sbml/symbols/distrib/{}".format(key)
+                        f"http://www.sbml.org/sbml/symbols/distrib/{key}"
                     )
                     ast = libsbml.parseL3FormulaWithModel(self.formula, model)
                     if ast is None:
@@ -1912,7 +1912,7 @@ class ExchangeReaction(Reaction):
     ):
         super(ExchangeReaction, self).__init__(
             sid=ExchangeReaction.PREFIX + species_id,
-            equation="{} ->".format(species_id),
+            equation=f"{species_id} ->",
             sboTerm=SBO.EXCHANGE_REACTION,
             name=name,
             compartment=compartment,

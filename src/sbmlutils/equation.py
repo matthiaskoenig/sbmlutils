@@ -78,9 +78,9 @@ class Equation:
             eq_string = tokens[0].strip()
         elif len(mod_list) > 1:
             raise self.EquationException(
-                "Invalid equation: {}. "
-                "Modifier list could not be parsed. "
-                "{}".format(self.raw, Equation.help())
+                f"Invalid equation: {self.raw}. "
+                f"Modifier list could not be parsed. "
+                f"{Equation.help()}"
             )
 
         # now parse the equation without modifiers
@@ -93,19 +93,18 @@ class Equation:
             self.reversible = False
         else:
             raise self.EquationException(
-                "Invalid equation: {}. "
-                "Equation could not be split into left "
-                "and right side. {}".format(self.raw, Equation.help())
+                f"Invalid equation: {self.raw}. "
+                f"Equation could not be split into left "
+                f"and right side. {Equation.help()}"
             )
 
         # remove whitespaces
         items = [o.strip() for o in items]
         if len(items) < 2:
             raise self.EquationException(
-                "Invalid equation: {}. "
-                "Equation could not be split into left "
-                "and right side. Use '<=>' or '=>' as separator. "
-                "{}".format(self.raw, Equation.help())
+                f"Invalid equation: {self.raw}. "
+                f"Equation could not be split into left "
+                f"and right side. Use '<=>' or '=>' as separator. {Equation.help()}"
             )
         left, right = items[0], items[1]
         if len(left) > 0:
@@ -154,7 +153,7 @@ class Equation:
         return " + ".join(tokens)
 
     def _to_string_modifiers(self) -> str:
-        return "[{}]".format(", ".join(self.modifiers))
+        return f"[{', '.join(self.modifiers)}]"
 
     def to_string(self, modifiers: bool = False) -> str:
         """Get string representation of equation."""
@@ -174,12 +173,12 @@ class Equation:
     def info(self) -> None:
         """Print overview of parsed equation."""
         lines = [
-            "{:<10s} : {}".format("raw", self.raw),
-            "{:<10s} : {}".format("parsed", self.to_string()),
-            "{:<10s} : {}".format("reversible", self.reversible),
-            "{:<10s} : {}".format("reactants", self.reactants),
-            "{:<10s} : {}".format("products", self.products),
-            "{:<10s} : {}".format("modifiers", self.modifiers),
+            f"{'raw':<10s}: {self.raw}",
+            f"{'parsed':<10s}: {self.to_string()}",
+            f"{'reversible':<10s}: {self.reversible}",
+            f"{'reactants':<10s}: {self.reactants}",
+            f"{'products':<10s}: {self.products}",
+            f"{'modifiers':<10s}: {self.modifiers}",
             "\n",
         ]
         print("\n".join(lines))

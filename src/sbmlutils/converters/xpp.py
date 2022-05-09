@@ -338,9 +338,7 @@ def xpp2sbml(
                 condition = group[0]
                 assignment = group[1]
                 otherwise = group[2]
-                f_piecewise = "piecewise({}, {}, {})".format(
-                    assignment, condition, otherwise
-                )
+                f_piecewise = f"piecewise({assignment}, {condition}, {otherwise})"
                 line = re.sub(pattern_ite_sub, f_piecewise, line)
 
             ################################
@@ -409,7 +407,7 @@ def xpp2sbml(
         formula = fdata["formula"]
         arguments = ",".join(fdata["old_args"] + fdata["new_args"])
         functions.append(
-            fac.Function(fid, "lambda({}, {})".format(arguments, formula)),
+            fac.Function(fid, f"lambda({arguments}, {formula})"),
         )
 
     ###########################################################################
@@ -466,7 +464,7 @@ def xpp2sbml(
                     parameters.append(fac.Parameter(sid=sid, value=0.0))
                     continue  # line finished
             else:
-                warnings.warn("XPP line not parsed: '{}'".format(line))
+                warnings.warn(f"XPP line not parsed: '{line}'")
 
         #####################
         # Line with '=' sign
@@ -524,11 +522,11 @@ def xpp2sbml(
                     of a lookup table which uses linear interpolation. The name of the function follows the
                     declaration and this is followed by (i) a filename (ii) or a function of "t"."""
                     warnings.warn(
-                        "XPP_TAB not supported: XPP line not parsed: '{}'".format(line)
+                        f"XPP_TAB not supported: XPP line not parsed: '{line}'"
                     )
 
                 else:
-                    warnings.warn("XPP line not parsed: '{}'".format(line))
+                    warnings.warn(f"XPP line not parsed: '{line}'")
 
             elif len(items) >= 2:
                 xid = items[0]
@@ -567,7 +565,7 @@ def xpp2sbml(
 
                         events.append(
                             fac.Event(
-                                sid="e{}".format(len(events)),
+                                sid=f"e{len(events)}",
                                 trigger=trigger,
                                 assignments=assignments,  # type: ignore
                             )
@@ -575,10 +573,10 @@ def xpp2sbml(
 
                     else:
                         warnings.warn(
-                            "global expression could not be parsed: {}".format(line)
+                            f"global expression could not be parsed: {line}"
                         )
                 else:
-                    warnings.warn("XPP line not parsed: '{}'".format(line))
+                    warnings.warn(f"XPP line not parsed: '{line}'")
 
             # direct assignments
             elif len(items) == 1:
@@ -592,9 +590,8 @@ def xpp2sbml(
                 # difference equations
                 elif left.endswith("(t+1)"):
                     warnings.warn(
-                        "Difference Equations not supported: XPP line not parsed: '{}'".format(
-                            line
-                        )
+                        f"Difference Equations not supported: "
+                        f"XPP line not parsed: '{line}'"
                     )
 
                 # ode
@@ -608,7 +605,7 @@ def xpp2sbml(
                 else:
                     assignment_rules.append(fac.AssignmentRule(sid=left, value=right))
             else:
-                warnings.warn("XPP line not parsed: '{}'".format(line))
+                warnings.warn(f"XPP line not parsed: '{line}'")
 
     # add time
     assignment_rules.append(
