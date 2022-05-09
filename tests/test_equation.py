@@ -1,6 +1,4 @@
-"""
-Test equations.
-"""
+"""Test equations."""
 import pytest
 
 from sbmlutils.equation import IRREV_SEP, REV_SEP, Equation
@@ -20,6 +18,7 @@ equations = [
 
 @pytest.mark.parametrize("equation", equations)
 def test_equation_examples(equation: str) -> None:
+    """Test equation examples."""
     eq = Equation(equation)
     assert eq
     assert isinstance(eq, Equation)

@@ -1,3 +1,4 @@
+"""Test SBML reading and writing."""
 from pathlib import Path
 
 import libsbml
@@ -58,6 +59,7 @@ def test_read_sbml_validate() -> None:
 
 
 def test_write_sbml(tmp_path: Path) -> None:
+    """Test writing SBML."""
     doc: libsbml.SBMLDocument = libsbml.SBMLDocument()
     model: libsbml.Model = doc.createModel()
     model.setId("test_id")

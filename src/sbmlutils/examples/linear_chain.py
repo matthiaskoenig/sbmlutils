@@ -7,12 +7,14 @@ with string patterns. In this example we create a kinetic model of a linear chai
 from pathlib import Path
 from typing import List
 
+import libsbml
+
 from sbmlutils import EXAMPLES_DIR
 from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
 from sbmlutils.metadata import *
-import libsbml
+
 
 n_chain = 20
 # -------------------------------------------------------------------------------------

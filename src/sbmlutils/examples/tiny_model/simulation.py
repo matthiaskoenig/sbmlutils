@@ -44,9 +44,7 @@ def tiny_simulation() -> None:
         + r.model.getReactionIds()
         + r.model.getGlobalParameterIds()
     )
-    r.timeCourseSelections += [
-        f"[{key}]" for key in r.model.getFloatingSpeciesIds()
-    ]
+    r.timeCourseSelections += [f"[{key}]" for key in r.model.getFloatingSpeciesIds()]
     # print(r)
     s = r.simulate(0, 400, steps=400)
     df = pd.DataFrame(s, columns=s.colnames)

@@ -1,3 +1,4 @@
+"""Test MathML functionality."""
 import libsbml
 import pytest
 
@@ -79,6 +80,7 @@ cmathmls = [
 
 @pytest.mark.parametrize("formula", formulas)
 def test_formula_to_astnode(formula: str) -> None:
+    """Test conversion formula to ASTNode."""
     astnode = mathml.formula_to_astnode(formula)
     assert astnode
     assert isinstance(astnode, libsbml.ASTNode)
@@ -86,6 +88,7 @@ def test_formula_to_astnode(formula: str) -> None:
 
 @pytest.mark.parametrize("cmathml", cmathmls)
 def test_cmathml_to_astnode(cmathml: str) -> None:
+    """Test conversion content MathML to ASTNode."""
     astnode = mathml.cmathml_to_astnode(cmathml)
     assert astnode
     assert isinstance(astnode, libsbml.ASTNode)
@@ -94,6 +97,7 @@ def test_cmathml_to_astnode(cmathml: str) -> None:
 
 @pytest.mark.parametrize("formula", formulas)
 def test_formula_to_latex(formula: str) -> None:
+    """Test conversion formula to Latex."""
     latex = mathml.formula_to_latex(formula)
     assert latex
     assert isinstance(latex, str)
@@ -101,6 +105,7 @@ def test_formula_to_latex(formula: str) -> None:
 
 @pytest.mark.parametrize("formula", formulas)
 def test_astnode_to_latex(formula: str) -> None:
+    """Test conversion ASTNode to Latex."""
     astnode = mathml.formula_to_astnode(formula)
     latex = mathml.astnode_to_latex(astnode)
     assert latex

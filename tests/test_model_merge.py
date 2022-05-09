@@ -1,4 +1,4 @@
-import pytest
+"""Test model merging."""
 
 from sbmlutils.factory import *
 

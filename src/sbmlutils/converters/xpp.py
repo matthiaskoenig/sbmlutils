@@ -572,9 +572,7 @@ def xpp2sbml(
                         )
 
                     else:
-                        warnings.warn(
-                            f"global expression could not be parsed: {line}"
-                        )
+                        warnings.warn(f"global expression could not be parsed: {line}")
                 else:
                     warnings.warn(f"XPP line not parsed: '{line}'")
 

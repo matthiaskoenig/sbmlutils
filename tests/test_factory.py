@@ -79,6 +79,7 @@ compartment_value_data = [
 def test_compartment_value(
     value: Any, constant: bool, expected: Dict, tmp_path: Path
 ) -> None:
+    """Test compartment value."""
     m1: ModelDict = {
         "sid": "compartment_value",
         "compartments": [Compartment(sid="C", value=value, constant=constant)],
@@ -117,6 +118,7 @@ parameter_value_data = [
 def test_parameter_value(
     value: Any, constant: bool, expected: Dict, tmp_path: Path
 ) -> None:
+    """Test parameter value."""
     m1: ModelDict = {
         "sid": "parameter_value",
         "parameters": [Parameter(sid="p", value=value, constant=constant)],
@@ -137,6 +139,7 @@ def test_parameter_value(
 
 def test_reaction_creation() -> None:
     """Test Equation.
+
     bA: A_ext => A; (scale_f*(Vmax_bA/Km_A)*(A_ext - A))/(1 dimensionless + A_ext/Km_A + A/Km_A);
     """
     mmole_per_s = UnitDefinition("mmole_per_s", "mmole/s")
@@ -156,6 +159,7 @@ def test_reaction_creation() -> None:
 
 
 def test_event() -> None:
+    """Test event."""
     objects = [
         Parameter(sid="p1", value=0.0, constant=False),
         Event(sid="e1", trigger="time >= 10", assignments={"p1": 10.0}),
@@ -175,6 +179,7 @@ def test_event() -> None:
 
 
 def test_event2() -> None:
+    """Test event."""
     objects = [
         Compartment("c", value=1.0),
         Species("S1", initialAmount=1.0, compartment="c"),

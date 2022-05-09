@@ -1,6 +1,4 @@
-"""
-Test annotation functions and annotating of SBML models.
-"""
+"""Test annotation functions and annotating of SBML models."""
 import re
 from pathlib import Path
 from typing import Iterable
@@ -47,6 +45,7 @@ def test_external_annotation() -> None:
 
 
 def test_model_annotator() -> None:
+    """Test model annotator."""
     doc = libsbml.SBMLDocument(3, 1)
     model = doc.createModel()
     annotations: Iterable[ExternalAnnotation] = []

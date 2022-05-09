@@ -13,6 +13,7 @@ from sbmlutils import log
 from sbmlutils.comp import comp, flatten_sbml
 from sbmlutils.io import read_sbml, validate_sbml, write_sbml
 
+
 logger = log.get_logger(__name__)
 
 

@@ -1,4 +1,4 @@
-"""Testing the biomodels module"""
+"""Testing the biomodels module."""
 from pathlib import Path
 
 import pytest

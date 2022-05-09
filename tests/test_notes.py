@@ -1,4 +1,4 @@
-"""Test notes which could be """
+"""Testing notes."""
 import re
 
 import libsbml
@@ -63,26 +63,26 @@ notes_data = [
     1. First item
     2. Second item
     """,
-        "<ol.*>[\s]*<li.*>First item</li>[\s]*<li.*>Second item</li>[\s]*</ol>",
+        r"<ol.*>[\s]*<li.*>First item</li>[\s]*<li.*>Second item</li>[\s]*</ol>",
     ),
     (
         """
     * First item
     * Second item
     """,
-        "<ul.*>[\s]*<li.*>First item</li>[\s]*<li.*>Second item</li>[\s]*</ul>",
+        r"<ul.*>[\s]*<li.*>First item</li>[\s]*<li.*>Second item</li>[\s]*</ul>",
     ),
     (
         """
     - item
     """,
-        "<ul.*>[\s]*<li.*>item</li>[\s]*</ul>",
+        r"<ul.*>[\s]*<li.*>item</li>[\s]*</ul>",
     ),
     (
         """
     + item
     """,
-        "<ul.*>[\s]*<li.*>item</li>[\s]*</ul>",
+        r"<ul.*>[\s]*<li.*>item</li>[\s]*</ul>",
     ),
 ]
 

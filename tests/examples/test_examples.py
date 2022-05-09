@@ -67,4 +67,5 @@ testdata = [
 
 @pytest.mark.parametrize("module", testdata)
 def test_create_model(module: Any) -> None:
+    """Test create model."""
     module.create(tmp=True)

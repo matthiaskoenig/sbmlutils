@@ -219,6 +219,7 @@ class ModelUnits:
         area: UnitType = None,
         volume: UnitType = None,
     ):
+        """Construct ModelUnits."""
         self.time = time
         self.extent = extent
         self.substance = substance
@@ -660,6 +661,7 @@ class UnitDefinition(Sbase):
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
     ):
+        """Construct UnitDefinition."""
         super(UnitDefinition, self).__init__(
             sid=sid,
             name=name,
@@ -922,6 +924,7 @@ class Function(Sbase):
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
     ):
+        """Construct Function."""
         super(Function, self).__init__(
             sid=sid,
             name=name,
@@ -969,6 +972,7 @@ class Parameter(ValueWithUnit):
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
     ):
+        """Construct Parameter."""
         super(Parameter, self).__init__(
             sid=sid,
             value=value,  # type: ignore
@@ -1036,6 +1040,7 @@ class Compartment(ValueWithUnit):
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
     ):
+        """Construct Compartment."""
         super(Compartment, self).__init__(
             sid=sid,
             value=value,
@@ -1110,6 +1115,7 @@ class Species(Sbase):
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
     ):
+        """Construct Species."""
         super(Species, self).__init__(
             sid=sid,
             name=name,
@@ -1213,6 +1219,7 @@ class InitialAssignment(Value):
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
     ):
+        """Construct InitialAssignment."""
         super(InitialAssignment, self).__init__(
             sid,
             value,
@@ -1446,6 +1453,7 @@ class Reaction(Sbase):
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
     ):
+        """Construct Reaction."""
         super(Reaction, self).__init__(
             sid=sid,
             name=name,
@@ -1591,6 +1599,7 @@ class Event(Sbase):
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
     ):
+        """Construct Event."""
         super(Event, self).__init__(
             sid,
             name=name,
@@ -1685,6 +1694,7 @@ class UncertParameter:
         var: Optional[str] = None,
         unit: UnitType = None,
     ):
+        """Construct UncertParameter."""
         if (value is None) and (var is None):
             raise ValueError(
                 "Either 'value' or 'var' have to be set in UncertParameter."
@@ -1710,6 +1720,7 @@ class UncertSpan:
         varUpper: Optional[str] = None,
         unit: UnitType = None,
     ):
+        """Construct UncertSpan."""
         if (valueLower is None) and (varLower is None):
             raise ValueError(
                 "Either 'valueLower' or 'varLower' have to be set in UncertSpan."
@@ -1747,6 +1758,7 @@ class Uncertainty(Sbase):
         port: Any = None,
         replacedBy: Optional[Any] = None,
     ):
+        """Uncertainty constructor."""
         super(Uncertainty, self).__init__(
             sid,
             name=name,
@@ -1910,6 +1922,7 @@ class ExchangeReaction(Reaction):
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
     ):
+        """Construct ExchangeReaction."""
         super(ExchangeReaction, self).__init__(
             sid=ExchangeReaction.PREFIX + species_id,
             equation=f"{species_id} ->",
@@ -1953,6 +1966,7 @@ class Constraint(Sbase):
         uncertainties: Optional[List["Uncertainty"]] = None,
         replacedBy: Optional[Any] = None,
     ):
+        """Constraint constructor."""
         super(Constraint, self).__init__(
             sid,
             name=name,
@@ -2732,6 +2746,7 @@ class Model(Sbase, FrozenClass, BaseModel):
         objectives: Optional[List[Objective]] = None,
         layouts: Optional[List] = None,
     ):
+        """Model constructor."""
         super(Model, self).__init__(
             sid=sid,
             name=name,
@@ -2870,6 +2885,7 @@ class Document(Sbase):
         sbml_level: int = SBML_LEVEL,
         sbml_version: int = SBML_VERSION,
     ):
+        """Document constructor."""
         self.model = model
         self.sid = sid
         self.name = name

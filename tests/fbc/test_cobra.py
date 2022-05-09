@@ -1,6 +1,4 @@
-"""
-Unit tests for fbc.
-"""
+"""Testing cobra and fbc functionality."""
 from pathlib import Path
 
 import pytest
@@ -18,12 +16,14 @@ from tests import DEMO_SBML, FBC_DIAUXIC_GROWTH_SBML
 
 @pytest.mark.skipif(cobra is None, reason="requires cobrapy")
 def test_load_cobra_model() -> None:
+    """Test loading of cobra model."""
     model = read_cobra_model(FBC_DIAUXIC_GROWTH_SBML)
     assert model
 
 
 @pytest.mark.skipif(cobra is None, reason="requires cobrapy")
 def test_reaction_info() -> None:
+    """Test reaction info."""
     cobra_model = read_cobra_model(FBC_DIAUXIC_GROWTH_SBML)
     df = cobra_reaction_info(cobra_model)
     assert df is not None
@@ -40,6 +40,7 @@ def test_reaction_info() -> None:
 
 @pytest.mark.skipif(cobra is None, reason="requires cobrapy")
 def test_mass_balance(tmp_path: Path) -> None:
+    """Test mass balance."""
     doc = read_sbml(DEMO_SBML)
 
     # add defaults
@@ -58,4 +59,5 @@ def test_mass_balance(tmp_path: Path) -> None:
 
 @pytest.mark.skipif(cobra is None, reason="requires cobrapy")
 def test_check_mass_balance() -> None:
+    """Test check mass balance."""
     check_mass_balance(sbml_path=DEMO_SBML)

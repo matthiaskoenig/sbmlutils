@@ -1,3 +1,4 @@
+"""Test distrib functionality."""
 import libsbml
 
 from sbmlutils.distrib import distrib_examples, distrib_packages
@@ -15,10 +16,12 @@ class U(Units):
 
 
 def test_distrib_examples() -> None:
+    """Test distrib examples."""
     distrib_examples.create_examples(tmp=True)
 
 
 def test_add_uncertainty_example() -> None:
+    """Test add uncertainty example."""
     distrib_packages.add_uncertainty_example(tmp=True)
 
 
@@ -40,6 +43,7 @@ def check_model(model: Model) -> libsbml.SBMLDocument:
 
 
 def test_assign_distribution() -> None:
+    """Test assign distribution."""
     model_dict = {
         "sid": "distrib_assignment",
         "packages": ["distrib"],
@@ -62,6 +66,7 @@ def test_assign_distribution() -> None:
 
 
 def test_normal_distribution() -> None:
+    """Test normal distribution."""
     model_dict = {
         "sid": "normal",
         "packages": ["distrib"],
@@ -77,6 +82,7 @@ def test_normal_distribution() -> None:
 
 
 def test_trunctated_normal_distribution() -> None:
+    """Test truncated normal distribution."""
     model_dict = {
         "sid": "truncated_normal",
         "packages": ["distrib"],
@@ -92,6 +98,7 @@ def test_trunctated_normal_distribution() -> None:
 
 
 def test_conditional_event() -> None:
+    """Test conditional event."""
     model_dict = {
         "sid": "conditional_events",
         "packages": ["distrib"],
@@ -119,6 +126,7 @@ def test_conditional_event() -> None:
 
 
 def test_overview_distributions() -> None:
+    """Test all distributions."""
     model_dict = {
         "sid": "all_distributions",
         "packages": ["distrib"],
@@ -151,6 +159,7 @@ def test_overview_distributions() -> None:
 
 
 def test_basic_uncertainty_example() -> None:
+    """Test basic uncertainty example."""
     import libsbml
 
     model_dict = {
@@ -179,6 +188,7 @@ def test_basic_uncertainty_example() -> None:
 
 
 def test_multiple_uncertainties() -> None:
+    """Test multiple uncertainties."""
     model_dict = {
         "sid": "multiple_uncertainties",
         "packages": ["distrib"],
@@ -270,6 +280,7 @@ def test_multiple_uncertainties() -> None:
 
 
 def test_define_random_variable() -> None:
+    """Test definition of random variable."""
     import libsbml
 
     model_dict = {
@@ -301,6 +312,7 @@ def test_define_random_variable() -> None:
 
 
 def test_parameters_and_spans() -> None:
+    """Test parameters and spans."""
     model_dict = {
         "sid": "parameters_spans",
         "packages": ["distrib"],
@@ -375,6 +387,7 @@ def test_parameters_and_spans() -> None:
 
 
 def test_sabiork_uncertainty() -> None:
+    """Test SabioRK uncertainty."""
     model_dict = {
         "sid": "sabiork_parameter",
         "packages": ["distrib"],

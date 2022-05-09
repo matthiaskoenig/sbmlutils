@@ -13,7 +13,7 @@ model_ids = [
 ]
 
 
-def xpp_check(
+def _xpp_check(
     tmp_path: Path, ode_id: str, Nall: int = 0, Nerr: int = 0, Nwarn: int = 0
 ) -> None:
     sbml_file = tmp_path / f"{ode_id}.xml"
@@ -26,8 +26,10 @@ def xpp_check(
 
 
 def test_PLoSCompBiol_Fig1(tmp_path: Path) -> None:
-    xpp_check(tmp_path=tmp_path, ode_id="PLoSCompBiol_Fig1")
+    """Test model creation."""
+    _xpp_check(tmp_path=tmp_path, ode_id="PLoSCompBiol_Fig1")
 
 
 def test_SkM_AP_KCa(tmp_path: Path) -> None:
-    xpp_check(tmp_path=tmp_path, ode_id="SkM_AP_KCa")
+    """Test model creation."""
+    _xpp_check(tmp_path=tmp_path, ode_id="SkM_AP_KCa")

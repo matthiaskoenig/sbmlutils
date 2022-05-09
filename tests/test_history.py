@@ -1,17 +1,17 @@
-"""
-Test annotation functions and annotating of SBML models.
-"""
+"""Test history on SBML models."""
 import libsbml
 
 from sbmlutils.factory import Creator, date_now, set_model_history
 
 
 def test_date_now() -> None:
+    """Test date now."""
     now = date_now()
     assert now
 
 
 def test_set_model_history() -> None:
+    """Test setting model history."""
     creators = [
         Creator(
             familyName="Koenig",

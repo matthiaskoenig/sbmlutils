@@ -1,6 +1,4 @@
-"""
-Tests for the comp module.
-"""
+"""Tests for the comp package."""
 import libsbml
 
 from sbmlutils import comp
@@ -10,6 +8,7 @@ from sbmlutils.metadata.sbo import SBO
 
 
 def create_port_doc() -> libsbml.SBMLDocument:
+    """Test create port."""
     sbmlns = libsbml.SBMLNamespaces(3, 1, "comp", 1)
     doc = libsbml.SBMLDocument(sbmlns)
     doc.setPackageRequired("comp", True)
@@ -47,6 +46,7 @@ def create_port_doc() -> libsbml.SBMLDocument:
 
 
 def test_create_ports_dict() -> None:
+    """Test create ports from dict."""
     doc: libsbml.SBMLDocument = create_port_doc()
     model = doc.getModel()
 
@@ -75,6 +75,7 @@ def test_create_ports_dict() -> None:
 
 
 def test_create_ports_list() -> None:
+    """Test create ports from list."""
     doc: libsbml.SBMLDocument = create_port_doc()
     model = doc.getModel()
 

@@ -1,6 +1,4 @@
-"""
-Test model merging functionality.
-"""
+"""Test model merging functionality."""
 from pathlib import Path
 
 from sbmlutils import comp, validation
