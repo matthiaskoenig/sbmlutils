@@ -4,18 +4,17 @@ from pathlib import Path
 
 import libsbml
 
+from sbmlutils import RESOURCES_DIR
 from sbmlutils.log import get_logger
 
 
 logger = get_logger(__name__)
 
-output_dir = Path(__file__).parent / "results"
-
 
 def add_uncertainty_example(tmp: bool = False) -> None:
     """Add uncertainty to a model."""
     doc: libsbml.SBMLDocument = libsbml.readSBMLFromFile(
-        str(output_dir / "e_coli_core.xml")
+        str(RESOURCES_DIR / "distrib" / "e_coli_core.xml")
     )
 
     # activate distrib
@@ -45,7 +44,9 @@ def add_uncertainty_example(tmp: bool = False) -> None:
         with tempfile.NamedTemporaryFile(suffix=".xml") as f_sbml:
             libsbml.writeSBMLToFile(doc, f_sbml.name)
     else:
-        libsbml.writeSBMLToFile(doc, str(output_dir / "e_coli_core_expression.xml"))
+        libsbml.writeSBMLToFile(
+            doc, str(RESOURCES_DIR / "distrib" / "e_coli_core_expression.xml")
+        )
 
 
 if __name__ == "__main__":

@@ -3,12 +3,8 @@ import tempfile
 
 import libsbml
 
-from sbmlutils import validation
+from sbmlutils import RESOURCES_DIR, validation
 from sbmlutils.validation import check
-
-
-# TODO: function to check for distributions in ast_nodes
-# TODO: read the example cases
 
 
 def _distrib_doc() -> libsbml.SBMLDocument:
@@ -277,7 +273,7 @@ def create_examples(tmp: bool = False) -> None:
         if tmp:
             sbml_path = tempfile.mktemp()
         else:
-            sbml_path = f"./results/{name}.xml"
+            sbml_path = str(RESOURCES_DIR / "distrib" / f"{name}.xml")
 
         libsbml.writeSBMLToFile(doc, sbml_path)
         validation.validate_doc(doc)

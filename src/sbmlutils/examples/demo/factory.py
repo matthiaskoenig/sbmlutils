@@ -4,6 +4,7 @@ from pathlib import Path
 from sbmlutils.examples.demo.model import demo_model
 from sbmlutils.factory import create_model
 
+
 output_dir = Path(__file__).parent
 
 
