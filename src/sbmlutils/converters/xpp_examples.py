@@ -25,7 +25,7 @@ def example(model_id: str) -> None:
     xpp.xpp2sbml(xpp_file=xpp_file, sbml_file=sbml_file)
     sbmlreport.create_report(sbml_file, validate=False)
 
-    # test simulation
+    # tests simulation
     r = roadrunner.RoadRunner(str(sbml_file))
     s = r.simulate(start=0, end=1000, steps=100)
 

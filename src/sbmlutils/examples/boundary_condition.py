@@ -1,4 +1,4 @@
-"""Simple assignment test case."""
+"""Simple assignment tests case."""
 from sbmlutils import EXAMPLES_DIR
 from sbmlutils.examples import templates
 from sbmlutils.factory import *

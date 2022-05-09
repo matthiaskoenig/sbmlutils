@@ -1,5 +1,5 @@
 from sbmlutils.io.sbml import validate_sbml
-from sbmlutils.test import GALACTOSE_SINGLECELL_SBML
+from tests import GALACTOSE_SINGLECELL_SBML
 
 
 def test_validate_sbml() -> None:

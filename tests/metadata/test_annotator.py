@@ -13,7 +13,7 @@ from sbmlutils.io.sbml import read_sbml
 from sbmlutils.metadata import SBO, annotator
 from sbmlutils.metadata.annotator import ExternalAnnotation, ModelAnnotator
 from sbmlutils.metadata.miriam import *
-from sbmlutils.test import (
+from tests import (
     DEMO_ANNOTATIONS,
     DEMO_SBML_NO_ANNOTATIONS,
     GALACTOSE_ANNOTATIONS,

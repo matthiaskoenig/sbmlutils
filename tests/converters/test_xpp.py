@@ -3,7 +3,7 @@ from pathlib import Path
 
 from sbmlutils.converters import xpp
 from sbmlutils.io.sbml import validate_sbml
-from sbmlutils.test import TESTDATA_DIR
+from tests import TESTDATA_DIR
 
 
 model_ids = [

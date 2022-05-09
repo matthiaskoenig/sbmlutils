@@ -179,5 +179,5 @@ BIOMODELS_CURATED_PATH = MODELS_DIR / "biomodels_curated"
 
 
 def sbml_paths_idfn(sbml_path: Path) -> str:
-    """Helper function to inject Path in test name."""
+    """Helper function to inject Path in tests name."""
     return sbml_path.name

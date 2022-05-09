@@ -5,15 +5,13 @@ a single model.
 """
 import os
 from pathlib import Path
-from typing import Dict, Iterable, List, Union
+from typing import Dict
 
 import libsbml
 
-from sbmlutils import log, validation
+from sbmlutils import log
 from sbmlutils.comp import comp, flatten_sbml
 from sbmlutils.io import read_sbml, validate_sbml, write_sbml
-from sbmlutils.test import TESTDATA_DIR
-
 
 logger = log.get_logger(__name__)
 

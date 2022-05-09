@@ -3,7 +3,7 @@ from pathlib import Path
 import libsbml
 
 from sbmlutils.io.sbml import read_sbml, write_sbml
-from sbmlutils.test import BASIC_SBML, GZ_SBML
+from tests import BASIC_SBML, GZ_SBML
 
 
 def test_read_sbml_from_path() -> None:
@@ -62,7 +62,7 @@ def test_write_sbml(tmp_path: Path) -> None:
     model: libsbml.Model = doc.createModel()
     model.setId("test_id")
 
-    sbml_path = tmp_path / "test.xml"
+    sbml_path = tmp_path / "tests.xml"
     write_sbml(doc=doc, filepath=sbml_path)
     assert sbml_path.exists()
 

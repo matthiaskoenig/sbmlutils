@@ -13,7 +13,7 @@ from sbmlutils.fbc.cobra import (
 )
 from sbmlutils.fbc.fbc import add_default_flux_bounds
 from sbmlutils.io.sbml import read_sbml, write_sbml
-from sbmlutils.test import DEMO_SBML, FBC_DIAUXIC_GROWTH_SBML
+from tests import DEMO_SBML, FBC_DIAUXIC_GROWTH_SBML
 
 
 @pytest.mark.skipif(cobra is None, reason="requires cobrapy")
@@ -45,7 +45,7 @@ def test_mass_balance(tmp_path: Path) -> None:
     # add defaults
     add_default_flux_bounds(doc)
 
-    filepath = tmp_path / "test.xml"
+    filepath = tmp_path / "tests.xml"
     write_sbml(doc, filepath=filepath)
     model = read_cobra_model(filepath)
 

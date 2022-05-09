@@ -11,7 +11,7 @@ from sbmlutils.biomodels import download_biomodel_omex, download_biomodel_sbml
 def test_download_biomodel_omex_success(tmp_path: Path) -> None:
     """Download OMEX for existing biomodels."""
     biomodel_id = "BIOMD0000000001"
-    omex_path = tmp_path / "test.omex"
+    omex_path = tmp_path / "tests.omex"
     download_biomodel_omex(biomodel_id=biomodel_id, omex_path=omex_path)
     assert omex_path.exists()
     assert omex_path.is_file()
@@ -22,7 +22,7 @@ def test_download_biomodel_omex_success(tmp_path: Path) -> None:
 def test_download_biomodel_omex_failure(tmp_path: Path) -> None:
     """Download OMEX for existing biomodels."""
     with pytest.raises(HTTPError):
-        omex_path = tmp_path / "test.omex"
+        omex_path = tmp_path / "tests.omex"
         download_biomodel_omex(biomodel_id="BIOMDXYZ", omex_path=omex_path)
 
 

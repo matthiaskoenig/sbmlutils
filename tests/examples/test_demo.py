@@ -1,7 +1,7 @@
 """Test the demo model."""
 
 from sbmlutils.io.sbml import validate_sbml
-from sbmlutils.test import DEMO_SBML
+from tests import DEMO_SBML
 
 
 def test_check_sbml() -> None:

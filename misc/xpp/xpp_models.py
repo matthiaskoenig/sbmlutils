@@ -126,7 +126,7 @@ def simulate(sbml_file):
     """
     print("SIMULATING SBML FILE")
 
-    # test simulation
+    # tests simulation
     r = roadrunner.RoadRunner(sbml_file)
     s = r.simulate(start=0, end=1000, steps=100)
 
@@ -168,7 +168,7 @@ if __name__ == "__main__":
     results = []
     debug, show_errors = False, False
 
-    # test single model
+    # tests single model
     # ode_all = ["./87762/Neuron_KATP/NeuronKATP_Stoch.ode"]
     # debug, show_errors = True, True
 

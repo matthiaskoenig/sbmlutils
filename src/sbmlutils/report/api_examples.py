@@ -8,7 +8,7 @@ from pymetadata.omex import Omex
 
 from sbmlutils.console import console
 from sbmlutils.io import read_sbml
-from sbmlutils.test import API_EXAMPLES_MODEL, API_EXAMPLES_OMEX, BIOMODELS_CURATED_PATH
+from tests import API_EXAMPLES_MODEL, API_EXAMPLES_OMEX, BIOMODELS_CURATED_PATH
 
 
 class ExampleMetaData(BaseModel):

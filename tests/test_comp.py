@@ -71,7 +71,7 @@ def test_create_ports_dict() -> None:
     assert comp_model.getPort("C_port")
     assert comp_model.getPort("EX_A_port")
     assert comp_model.getPort("EX_C_port")
-    assert comp_model.getPort("test") is None
+    assert comp_model.getPort("tests") is None
 
 
 def test_create_ports_list() -> None:
@@ -91,4 +91,4 @@ def test_create_ports_list() -> None:
     assert comp_model.getPort("C_port")
     assert comp_model.getPort("EX_A_port")
     assert comp_model.getPort("EX_C_port")
-    assert comp_model.getPort("test") is None
+    assert comp_model.getPort("tests") is None

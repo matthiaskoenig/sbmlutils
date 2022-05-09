@@ -13,7 +13,7 @@ from sbmlutils.notes import Notes
     [
         '<a href="https://example.com">https://example.com</a>',
         "<h2.*>Heading 2</h2>",
-        '<img src="./test.png"/>',
+        '<img src="./tests.png"/>',
     ],
 )
 def test_markdown_note(pattern: str) -> None:
@@ -30,7 +30,7 @@ def test_markdown_note(pattern: str) -> None:
         ## Heading 2
         <https://example.com>
 
-        <img src="./test.png" />
+        <img src="./tests.png" />
         """,
     )
     doc = libsbml.SBMLDocument()
@@ -45,18 +45,18 @@ def test_markdown_note(pattern: str) -> None:
 
 notes_data = [
     # headings
-    ("# test", "<h1.*>test</h1>"),
-    ("## test", "<h2.*>test</h2>"),
-    ("### test", "<h3.*>test</h3>"),
-    ("#### test", "<h4.*>test</h4>"),
-    ("##### test", "<h5.*>test</h5>"),
-    ("###### test", "<h6.*>test</h6>"),
+    ("# tests", "<h1.*>tests</h1>"),
+    ("## tests", "<h2.*>tests</h2>"),
+    ("### tests", "<h3.*>tests</h3>"),
+    ("#### tests", "<h4.*>tests</h4>"),
+    ("##### tests", "<h5.*>tests</h5>"),
+    ("###### tests", "<h6.*>tests</h6>"),
     # emphasize
     ("*asterisks*", r"<p.*>[.\s]*<em>asterisks</em>[s\s]*</p>"),
     ("_underscore_", r"<p.*>[\s]*<em>underscore</em>[\s]*</p>"),
     ("**asterisks**", r"<p.*>[\s]*<strong>asterisks</strong>[\s]*</p>"),
     ("__underscores__", r"<p.*>[\s]*<strong>underscores</strong>[\s]*</p>"),
-    ("<p>test</p>", "<p.*>test</p>"),
+    ("<p>tests</p>", "<p.*>tests</p>"),
     # lists
     (
         """
