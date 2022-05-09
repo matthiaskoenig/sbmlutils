@@ -29,6 +29,14 @@ jobs:
     - name: Report coverage
       shell: bash
       run: bash <(curl -s https://codecov.io/bash)
+    - name: Send tweet
+      uses: ethomson/send-tweet-action@v1
+      with:
+        status: "Tests passed for ${{ github.event.repository.name }}"
+        consumer-key: ${{ secrets.TWITTER_CONSUMER_API_KEY }}
+        consumer-secret: ${{ secrets.TWITTER_CONSUMER_API_SECRET }}
+        access-token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+        access-token-secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
 
   release:
     needs: tests
@@ -72,3 +80,11 @@ jobs:
         body_path: "release-notes/${{ steps.tag.outputs.version }}.md"
         draft: false
         prerelease: false
+    - name: Send release tweet
+      uses: ethomson/send-tweet-action@v1
+      with:
+        status: "New ${{ github.event.repository.name }} release ${{ github.event.release.tag_name }}! Try it will it is HOT! ${{ github.event.release.html_url }} #python # SBML #release"
+        consumer-key: ${{ secrets.TWITTER_CONSUMER_API_KEY }}
+        consumer-secret: ${{ secrets.TWITTER_CONSUMER_API_SECRET }}
+        access-token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+        access-token-secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
