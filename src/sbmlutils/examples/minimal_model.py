@@ -4,9 +4,9 @@ This demonstrates just the very core SBML functionality.
 """
 from pathlib import Path
 
-from sbmlutils import EXAMPLES_DIR
 from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.factory import *
+from sbmlutils.resources import EXAMPLES_DIR
 
 
 model_minimal = Model(

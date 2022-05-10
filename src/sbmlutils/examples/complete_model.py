@@ -6,11 +6,11 @@ from pathlib import Path
 
 import libsbml
 
-from sbmlutils import EXAMPLES_DIR
 from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
 from sbmlutils.metadata import *
+from sbmlutils.resources import EXAMPLES_DIR
 
 
 class U(Units):

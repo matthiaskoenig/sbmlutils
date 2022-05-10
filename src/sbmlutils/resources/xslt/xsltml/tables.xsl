@@ -2,7 +2,7 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 		xmlns:m="http://www.w3.org/1998/Math/MathML"
                 version='1.0'>
-                
+
 <!-- ====================================================================== -->
 <!-- $id: tables.xsl, 2002/17/05 Exp $
      This file is part of the XSLT MathML Library distribution.
@@ -31,7 +31,7 @@
 		<xsl:text>\hfill </xsl:text>
 	</xsl:if>
 	<xsl:if test="count(following-sibling::*)>0">
-<!--    this test valid for Sablotron, another form - test="not(position()=last())".
+<!--    this tests valid for Sablotron, another form - tests="not(position()=last())".
 	Also for m:mtd[@columnspan] and m:mtr  -->
 		<xsl:text>&amp; </xsl:text>
 	</xsl:if>

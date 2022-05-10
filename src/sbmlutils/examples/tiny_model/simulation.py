@@ -34,9 +34,6 @@ def tiny_simulation() -> None:
     # -----------------------------------------------------------------------------
     # run ode simulation
     # -----------------------------------------------------------------------------
-    # tiny_sbml = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-    #                         'results',
-    #                         '{}_{}.xml'.format(model.mid, model.version))
 
     tiny_dir = Path(__file__).parent
     r = roadrunner.RoadRunner(str(factory_result.sbml_path))
@@ -47,9 +44,7 @@ def tiny_simulation() -> None:
         + r.model.getReactionIds()
         + r.model.getGlobalParameterIds()
     )
-    r.timeCourseSelections += [
-        "[{}]".format(key) for key in r.model.getFloatingSpeciesIds()
-    ]
+    r.timeCourseSelections += [f"[{key}]" for key in r.model.getFloatingSpeciesIds()]
     # print(r)
     s = r.simulate(0, 400, steps=400)
     df = pd.DataFrame(s, columns=s.colnames)

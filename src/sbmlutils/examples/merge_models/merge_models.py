@@ -4,12 +4,11 @@ from pathlib import Path
 from pprint import pprint
 
 from sbmlutils.manipulation import merge_models
-from sbmlutils.test import TESTDATA_DIR
+from sbmlutils.resources import TESTDATA_DIR
 
 
 def merge_models_example() -> None:
     """Demonstrate merging of models."""
-
     input_dir = TESTDATA_DIR / "manipulation" / "merge"
 
     # dictionary of ids & paths of models which should be combined
@@ -19,6 +18,7 @@ def merge_models_example() -> None:
 
     pprint(model_paths)
     output_dir = Path(__file__).parent / "_results"
+    Path.mkdir(output_dir, parents=True, exist_ok=True)
     merge_models(model_paths, output_dir=output_dir)
 
 

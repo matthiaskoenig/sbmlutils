@@ -1246,12 +1246,12 @@ class SBMLDocumentInfo:
 if __name__ == "__main__":
     from pathlib import Path
 
-    output_dir = Path(__file__).parent / "test"
+    output_dir = Path(__file__).parent / "tests"
     if not output_dir.exists():
         output_dir.mkdir(parents=True, exist_ok=True)
 
     print("-" * 80)
-    from sbmlutils.test import GLUCOSE_SBML
+    from sbmlutils.resources import GLUCOSE_SBML
 
     for source in [
         # COMP_ICG_BODY,
@@ -1272,5 +1272,5 @@ if __name__ == "__main__":
         print(json_str)
         print("-" * 80)
 
-    with open(output_dir / "test.json", "w") as fout:
+    with open(output_dir / "tests.json", "w") as fout:
         fout.write(json_str)

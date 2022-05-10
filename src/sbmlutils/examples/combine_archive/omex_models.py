@@ -8,11 +8,11 @@ from typing import Dict
 
 from pymetadata.omex import EntryFormat, ManifestEntry, Omex
 
-from sbmlutils import EXAMPLES_DIR
 from sbmlutils.comp import flatten_sbml
 from sbmlutils.console import console
 from sbmlutils.examples.templates import creators, terms_of_use
 from sbmlutils.factory import *
+from sbmlutils.resources import EXAMPLES_DIR
 
 
 # -------------------------------------------------------------------------------------

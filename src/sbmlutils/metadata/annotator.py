@@ -290,6 +290,8 @@ class ModelAnnotator:
                 e = model.getUnitDefinition(sid)
             else:
                 # returns the first element with id
+                # FIXME: this is very slow in a loop, better solution required via
+                #
                 e = model.getElementBySId(sid)
             if e is None:
                 if sid == model.getId():
@@ -341,7 +343,7 @@ class ModelAnnotator:
                             splugin.setCharge(int(ex_a.resource))  # type: ignore
             else:
                 raise ValueError(
-                    "Annotation type not supported: " "{}".format(ex_a.annotation_type)
+                    f"Annotation type not supported: '{ex_a.annotation_type}'"
                 )
 
     @staticmethod
@@ -448,16 +450,15 @@ class ModelAnnotator:
         formats = ["xlsx", "tsv", "csv", "json"]
         if file_format not in formats:
             raise IOError(
-                "Annotation format '{}' not in supported formats: '{}'".format(
-                    file_format, formats
-                )
+                f"Annotation format '{file_format}' not in supported formats: "
+                f"'{formats}'"
             )
 
         if file_extension != ("." + file_format):
             logger.warning(
-                "format '{}' not matching file extension '{}' for file_path '{}'".format(
-                    file_format, file_extension, file_path
-                )
+                f"format '{file_format}' not matching file extension "
+                f"'{file_extension}' "
+                f"for file_path '{file_path}'"
             )
 
         if file_format == "tsv":

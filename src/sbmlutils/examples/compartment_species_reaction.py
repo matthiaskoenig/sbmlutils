@@ -1,8 +1,8 @@
 """Example model for creating an SBML ODE model."""
-from sbmlutils import EXAMPLES_DIR
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
 from sbmlutils.metadata.sbo import *
+from sbmlutils.resources import EXAMPLES_DIR
 
 
 class U(Units):

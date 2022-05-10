@@ -85,8 +85,8 @@ def flatten_sbml_doc(
 
     lines = [
         str(doc),
-        "{:<25}: {}".format("flattened", str(flattened_status).upper()),
-        "{:<25}: {:.3f}".format("flatten time (ms)", time.perf_counter() - current),
+        f"{'flattend':<25}: {str(flattened_status).upper()}",
+        f"{'flatten time (ms)':<25}: {time.perf_counter() - current:.3f}",
     ]
     info = "\n".join(lines)
 

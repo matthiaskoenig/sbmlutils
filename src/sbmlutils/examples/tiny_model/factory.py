@@ -11,9 +11,11 @@ from sbmlutils.examples.tiny_model.model import _m
 from sbmlutils.factory import FactoryResult, create_model
 
 
+models_dir = Path(__file__).parent
+
+
 def create(tmp: bool = False) -> FactoryResult:
     """Create model."""
-    models_dir = Path(__file__).parent
 
     return create_model(
         models=_m,

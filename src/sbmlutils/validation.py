@@ -178,17 +178,14 @@ def validate_doc(
     # sum up
     vresults = ValidationResult.from_results([results_internal, results_not_internal])
 
-    lines = [
-        str(name),
-        "{:<25}: {}".format("valid", str(vresults.is_valid()).upper()),
-    ]
+    lines = [str(name), f"{'valid':<25}: {str(vresults.is_valid()).upper()}"]
     if not vresults.is_perfect():
         lines += [
-            "{:<25}: {}".format("validation error(s)", vresults.error_count),
-            "{:<25}: {}".format("validation warnings(s)", vresults.warning_count),
+            f"{'validation error(s)':<25}: {vresults.error_count}",
+            f"{'validation warnings(s)':<25}: {vresults.warning_count}",
         ]
     lines += [
-        "{:<25}: {:.3f}".format("check time (s)", time.perf_counter() - current),
+        f"{'check time (s)':<25}: {time.perf_counter() - current:.3f}",
     ]
     info = "\n".join(lines)
 

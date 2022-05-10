@@ -2,7 +2,7 @@
 from pathlib import Path
 
 __author__ = "Matthias Koenig"
-__version__ = "0.7.1"
+__version__ = "0.7.5"
 
 
 from sbmlutils.utils import show_versions
@@ -11,4 +11,3 @@ from sbmlutils.utils import show_versions
 program_name = "sbmlutils"
 
 RESOURCES_DIR = Path(__file__).parent / "resources"
-EXAMPLES_DIR: Path = RESOURCES_DIR / "examples"

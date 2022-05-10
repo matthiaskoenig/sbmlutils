@@ -53,6 +53,7 @@ class SpeciesGlyph(factory.Sbase):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
     ):
+        """Construct SpeciesGlyph."""
         super(SpeciesGlyph, self).__init__(
             sid=sid, name=name, sboTerm=sboTerm, metaId=metaId
         )
@@ -115,6 +116,7 @@ class CompartmentGlyph(factory.Sbase):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
     ):
+        """Construct CompartmentGlyph."""
         super(CompartmentGlyph, self).__init__(
             sid=sid, name=name, sboTerm=sboTerm, metaId=metaId
         )
@@ -177,6 +179,7 @@ class ReactionGlyph(factory.Sbase):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
     ):
+        """Construct ReactionGlyph."""
         super(ReactionGlyph, self).__init__(
             sid=sid, name=name, sboTerm=sboTerm, metaId=metaId
         )

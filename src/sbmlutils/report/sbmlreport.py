@@ -6,10 +6,8 @@ import threading
 import time
 import webbrowser
 from pathlib import Path
-from typing import Dict
 
 from sbmlutils import __version__
-from sbmlutils.console import console
 from sbmlutils.log import get_logger
 
 
@@ -100,7 +98,7 @@ def create_online_report(
 
 
 if __name__ == "__main__":
-    from sbmlutils.test import REPRESSILATOR_SBML
+    from sbmlutils.resources import REPRESSILATOR_SBML
 
     # create_online_report(sbml_path=REPRESSILATOR_SBML)
     create_online_report(sbml_path=REPRESSILATOR_SBML, server="localhost:3456")

@@ -1,7 +1,7 @@
 """Example model with notes."""
-from sbmlutils import EXAMPLES_DIR
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
+from sbmlutils.resources import EXAMPLES_DIR
 
 
 _m = Model(

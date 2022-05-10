@@ -2,7 +2,7 @@
 import shutil
 import tempfile
 from pathlib import Path
-from typing import List, Optional
+from typing import List
 
 import requests
 from pymetadata.omex import EntryFormat, ManifestEntry, Omex
@@ -10,7 +10,7 @@ from requests.exceptions import HTTPError
 
 from sbmlutils import log
 from sbmlutils.console import console
-from sbmlutils.test import BIOMODELS_CURATED_PATH
+from sbmlutils.resources import BIOMODELS_CURATED_PATH
 
 
 logger = log.get_logger(__name__)

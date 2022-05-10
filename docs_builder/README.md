@@ -11,6 +11,8 @@ The sbmlutils kernel is needed to execute the notebooks
 ```
 (sbmlutils) python -m ipykernel install --user --name=sbmlutils
 ```
+In addition, a pandoc installation is required from https://github.com/jgm/pandoc/releases
+
 
 ## Update notebooks
 An important part of the documentation are jupyter notebooks in
