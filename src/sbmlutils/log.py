@@ -29,7 +29,7 @@ def get_logger(name: str, level: int = logging.INFO) -> logging.Logger:
     return logger
 
 
-def set_level_for_all_loggers(level: int = logging.DEBUG):
+def set_level_for_all_loggers(level: int = logging.DEBUG) -> None:
     """Set log level for all loggers.
 
     This is mainly used in debugging to get additional information.
