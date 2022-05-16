@@ -3,6 +3,7 @@
 Using rich for output formating.
 """
 import logging
+from typing import List
 
 from rich.logging import RichHandler
 
@@ -34,7 +35,7 @@ def set_level_for_all_loggers(level: int = logging.DEBUG):
     This is mainly used in debugging to get additional information.
     FIXME: add resetting functionality
     """
-    loggers: List[Logger] = [
+    loggers: List[logging.Logger] = [
         logging.getLogger(name) for name in logging.root.manager.loggerDict
     ]
     for logger in loggers:
