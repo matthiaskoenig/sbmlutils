@@ -6,12 +6,6 @@ import warnings
 from typing import Any, Callable
 
 import libsbml
-from depinfo import print_dependencies  # type: ignore
-
-
-def show_versions() -> None:
-    """Print dependency information."""
-    print_dependencies("sbmlutils")
 
 
 class FrozenClass(object):
