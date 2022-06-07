@@ -1,4 +1,6 @@
 # SBML4Humans
+This document describes the techology and how to setup the SBML4Humans report
+for development.
 
 ## Technology
 1. Backend API: ```sbmlutils``` Python package served using FastAPI service [https://fastapi.tiangolo.com/]
@@ -11,41 +13,36 @@
 ## Vue.js devtools
 Vue 3 is only working with the beta version of the devtools available from
 https://github.com/vuejs/vue-devtools/releases
+To install the devtools use the `xpi` file from the download and install in Firefox.
 
-- download xpi file
+## Project setup for development
 
-## Project setup
+### Start backend API
+Create Python virtual environment and install sbml4humans
+``` 
+mkvirtualenv sbmlutils
+pip install -e .[development]
+``` 
 
-### Install all dependencies
+Start the API from `src/sbmlutils/report/api.py` either from the python module or via
+the command line via 
+```bash
+python src/sbmlutils/report/api.py
+```
+This will run the API on port 1444, see for example
+http://localhost:1444/api/examples
+
+
+### Start frontend
+**Install all dependencies**  
 ```
 cd sbml4humans
 npm install
 ```
 
-### Compiles and hot-reloads for development
+**Compiles and hot-reloads for development**
 ```
 npm run serve
 ```
-
-### Compiles and minifies for production
-```
-npm run build
-```
-
-### Run your unit tests
-```
-npm run test:unit
-```
-
-### Run your end-to-end tests
-```
-npm run test:e2e
-```
-
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+This starts the frontend server on http://localhost:3456/ which communicates with 
+the running backend API.

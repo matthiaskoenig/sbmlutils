@@ -68,7 +68,7 @@ Ready to contribute? Here's how to set up sbmlutils for local development.
 
        mkvirtualenv sbmlutils
        cd sbmlutils/
-       pip install -e ".[development]"
+       pip install -e .[development]
 
 4. Create a branch for local development using the ``develop`` branch as a
    starting point. Use ``fix``, ``refactor``, or ``feat`` as a prefix
@@ -108,8 +108,7 @@ Ready to contribute? Here's how to set up sbmlutils for local development.
    
    .. code-block:: console
 
-       isort src/sbmlutils
-       black src/sbmlutils
+       ./fcode.sh
 
 7. Push your branch to GitHub.
 
