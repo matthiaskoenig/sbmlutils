@@ -1245,13 +1245,13 @@ class SBMLDocumentInfo:
 
 if __name__ == "__main__":
     from pathlib import Path
+    from sbmlutils.console import console
 
     output_dir = Path(__file__).parent / "tests"
     if not output_dir.exists():
         output_dir.mkdir(parents=True, exist_ok=True)
 
-    print("-" * 80)
-    from sbmlutils.resources import GLUCOSE_SBML
+    from sbmlutils.resources import GLUCOSE_SBML, REPRESSILATOR_SBML
 
     for source in [
         # COMP_ICG_BODY,
@@ -1263,14 +1263,13 @@ if __name__ == "__main__":
         # DISTRIB_DISTRIBUTIONS_SBML,
         # DISTRIB_UNCERTAINTIES_SBML,
         # output_dir / "icg_body_flat_v2.xml",
-        GLUCOSE_SBML
-        # REPRESSILATOR_SBML,
+        # GLUCOSE_SBML
+        REPRESSILATOR_SBML,
     ]:
         info = SBMLDocumentInfo.from_sbml(source)
-        print("-" * 80)
+        console.rule()
         json_str = info.to_json()
-        print(json_str)
-        print("-" * 80)
+        console.print(json_str)
 
     with open(output_dir / "tests.json", "w") as fout:
         fout.write(json_str)
