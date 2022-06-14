@@ -14,6 +14,7 @@ import requests
 import uvicorn
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+
 from pymetadata.core.annotation import RDFAnnotation, RDFAnnotationData
 from pymetadata.identifiers.miriam import BQB
 from pymetadata.omex import EntryFormat, Manifest, ManifestEntry, Omex
@@ -257,6 +258,23 @@ def get_annotation_resource(resource: str) -> Dict[Any, Any]:
         annotation = RDFAnnotation(qualifier=BQB.IS, resource=resource)
         data = RDFAnnotationData(annotation=annotation)
         return data.to_dict()  # type: ignore
+
+    except Exception as e:
+        return _handle_error(e)
+
+
+@api.get("/api/annotation_search", tags=["metadata"])
+def get_annotation_search(query: str) -> Dict[Any, Any]:
+    """Search annotations for given query string.
+
+    Used to search annotation information.
+
+    :param query: search string to query
+    :return: Response
+    """
+    try:
+        # TODO: use the OLSSearch from pymetadata
+        raise NotImplementedError
 
     except Exception as e:
         return _handle_error(e)
