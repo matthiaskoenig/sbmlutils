@@ -268,6 +268,8 @@ def get_annotation_search(query: str) -> Dict[Any, Any]:
     """Search annotations for given query string.
 
     Used to search annotation information.
+    TODO: Gets ranked results.
+    TODO: register search parameters
 
     :param query: search string to query
     :return: Response
