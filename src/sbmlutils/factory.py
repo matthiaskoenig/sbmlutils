@@ -1261,127 +1261,93 @@ class InitialAssignment(Value):
         return obj
 
 
-class Rule(ValueWithUnit):
-    """Rule."""
 
-    rule_types = ["AssignmentRule", "RateRule"]
 
-    def __repr__(self) -> str:
-        """Get string representation."""
-        return super(Rule, self).__repr__()
 
-    @staticmethod
-    def _rule_factory(
-        model: libsbml.Model, rule: libsbml.Rule, rule_type: str, value: float = None
-    ) -> Union["RateRule", "AssignmentRule", libsbml.Rule]:
-        """Create libsbml rule of given rule_type.
 
-        :param model:
-        :param rule:
-        :param rule_type:
-        :return:
+
+class AssignmentRule(ValueWithUnit):
+    """InitialAssignments.
+
+    The unit attribute is only for the case where a parameter must be created
+    (which has the unit). In case of an initialAssignment of a value the units
+    have to be defined in the math.
+    """
+
+    def __init__(
+        self,
+        variable: str,
+        value: Union[str, float],
+        unit: UnitType = Units.dimensionless,
+        sid: Optional[str] = None,
+        name: Optional[str] = None,
+        sboTerm: Optional[str] = None,
+        metaId: Optional[str] = None,
+        annotations: AnnotationsType = None,
+        notes: Optional[str] = None,
+        port: Any = None,
+        uncertainties: Optional[List["Uncertainty"]] = None,
+        replacedBy: Optional[Any] = None,
+    ):
+        """Construct AssignmentRule."""
+        super(ValueWithUnit, self).__init__(
+            sid,  # FIXME: this must be the AssignmentRule_sid, i.e. the sid is the variable here,
+            value,
+            unit=unit,
+            name=name,
+            sboTerm=sboTerm,
+            metaId=metaId,
+            annotations=annotations,
+            notes=notes,
+            port=port,
+            uncertainties=uncertainties,
+            replacedBy=replacedBy,
+        )
+
+    def create_sbml(self, model: libsbml.Model) -> libsbml.AssignmentRule:
+        """Create AssignmentRule.
+
+        Creates a required parameter if the symbol for the
+        initial assignment does not exist in the model.
         """
-        if rule_type not in Rule.rule_types:
-            raise ValueError(
-                f"rule_type '{rule_type}' is not supported, use one of: "
-                f"{Rule.rule_types}"
-            )
-        sid = rule.sid
-
-        # Create parameter if symbol is neither parameter or species, or compartment
+        # Create parameter if not existing
         if (
-            (not model.getParameter(sid))
-            and (not model.getSpecies(sid))
-            and (not model.getCompartment(sid))
+            (not model.getParameter(self.sid))
+            and (not model.getSpecies(self.sid))
+            and (not model.getCompartment(self.sid))
         ):
-
             Parameter(
-                sid,
-                unit=rule.unit,
-                name=rule.name,
-                value=value,
-                constant=False,
-                # sboTerm=rule.sboTerm : FIXME not working due to duplicate meta ids
+                sid=self.sid, value=None, unit=self.unit, constant=False, name=self.name
             ).create_sbml(model)
 
         # Make sure the parameter is const=False
-        p: libsbml.Parameter = model.getParameter(sid)
+        p: libsbml.Parameter = model.getParameter(self.sid)
         if p is not None:
             if p.getConstant() is True:
                 logger.warning(
-                    f"Parameter affected by AssignmentRule or RateRule "
-                    f"should be set 'constant=False', but '{p.getId()}' "
+                    f"Parameter affected by AssignmentRule "
+                    f"must be 'constant=False', but '{p.getId()}' "
                     f"is 'constant={p.getConstant()}'."
                 )
                 p.setConstant(False)
 
-        # Add rule if not existing
-        obj: Union[RateRule, AssignmentRule]
-        if not model.getRule(sid):
-            if rule_type == "RateRule":
-                obj = RateRule._create(model, sid=sid, formula=rule.value)
-            elif rule_type == "AssignmentRule":
-                obj = AssignmentRule._create(model, sid=sid, formula=rule.value)
-        else:
+        # Check if rule exists
+        if model.getRule(self.sid):
             logger.warning(
-                f"Rule with sid already exists in model: {sid}. "
-                f"Rule not updated with '{rule.value}'"
+                f"Rule with sid '{self.sid}' already exists in model: . "
+                f"Rule not updated with '{self.value}'"
             )
-            return model.getRule(sid)
-        return obj
 
-    def create_sbml(self, model: libsbml.Model) -> None:
-        """Create Rule in model.
-
-        :param model:
-        :return:
-        """
-        logger.error(
-            "Rule cannot be created, use either <AssignmentRule> or <RateRule>."
-        )
-        raise NotImplementedError
-
-    @staticmethod
-    def _create_rule(
-        model: libsbml.Model,
-        rule: Union[libsbml.RateRule, libsbml.AssignmentRule, libsbml.Rule],
-        sid: str,
-        formula: str,
-    ) -> Union[libsbml.RateRule, libsbml.AssignmentRule, libsbml.Rule]:
-        """Set information in rule."""
-        rule.setVariable(sid)
-        ast_node = ast_node_from_formula(model, formula)
-        rule.setMath(ast_node)
-        return rule
-
-
-class AssignmentRule(Rule):
-    """AssignmentRule."""
-
-    def __repr__(self) -> str:
-        """Representation."""
-        return f"<AssignmentRule({super(AssignmentRule, self).__repr__()})>"
-
-    def create_sbml(self, model: libsbml.Model) -> libsbml.AssignmentRule:
-        """Create AssignmentRule in model.
-
-        :param model:
-        :return:
-        """
-        obj: libsbml.AssignmentRule = Rule._rule_factory(
-            model, self, rule_type="AssignmentRule"
-        )
+        obj: libsbml.AssignmentRule = model.createAssignmentRule()
         self._set_fields(obj, model)
+        obj.setVariable(self.sid)
+        ast_node: libsbml.ASTNode = ast_node_from_formula(model, str(self.value))
+        obj.setMath(ast_node)
         self.create_port(model)
         return obj
 
-    @staticmethod
-    def _create(model: libsbml.Model, sid: str, formula: str) -> libsbml.AssignmentRule:
-        """Create libsbml AssignmentRule."""
-        rule: libsbml.AssignmentRule = model.createAssignmentRule()
-        return Rule._create_rule(model, rule, sid, formula)
 
-
+# FIXME: RATE RULE & ALGEBRAIC RULES:
 class RateRule(Rule):
     """RateRule."""
 
