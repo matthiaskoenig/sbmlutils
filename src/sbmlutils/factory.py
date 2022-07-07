@@ -77,6 +77,7 @@ __all__ = [
     "InitialAssignment",
     "AssignmentRule",
     "RateRule",
+    "AlgebraicRule",
     "Event",
     "Constraint",
     "Reaction",
@@ -895,8 +896,9 @@ class ValueWithUnit(Value):
             if obj.getTypeCode() in [
                 libsbml.SBML_ASSIGNMENT_RULE,
                 libsbml.SBML_RATE_RULE,
+                libsbml.SBML_ALGEBRAIC_RULE,
             ]:
-                # AssignmentRules and RateRules have no units
+                # AssignmentRules, RateRules and AlgebraicRules have no units
                 pass
             else:
                 uid = UnitDefinition.get_uid_for_unit(unit=self.unit)
@@ -1261,18 +1263,59 @@ class InitialAssignment(Value):
         return obj
 
 
+class Rule:
+    """Rule."""
+
+    def check_model_for_rule(self, model) -> None:
+        """Check model for rule requirements.
+
+        Creates a required parameter if the symbol for the
+        initial assignment does not exist in the model.
+        """
+        # Create parameter if not existing
+        if (
+            (not model.getParameter(self.variable))
+            and (not model.getSpecies(self.variable))
+            and (not model.getCompartment(self.variable))
+        ):
+            Parameter(
+                sid=self.variable,
+                value=None,
+                unit=self.unit,
+                constant=False,
+                name=self.name,
+            ).create_sbml(model)
+
+        # Make sure the parameter is const=False
+        p: libsbml.Parameter = model.getParameter(self.variable)
+        if p is not None:
+            if p.getConstant() is True:
+                logger.warning(
+                    f"Parameter affected by AssignmentRule "
+                    f"must be 'constant=False', but '{p.getId()}' "
+                    f"is 'constant={p.getConstant()}'."
+                )
+                p.setConstant(False)
+
+        # Check if rule exists
+        if model.getRule(self.variable):
+            logger.warning(
+                f"Rule with variable '{self.variable}' already exists in model: . "
+                f"Rule not updated with '{self.value}'"
+            )
 
 
-
-
-
-class AssignmentRule(ValueWithUnit):
-    """InitialAssignments.
+class AssignmentRule(ValueWithUnit, Rule):
+    """AssignmentRule.
 
     The unit attribute is only for the case where a parameter must be created
     (which has the unit). In case of an initialAssignment of a value the units
     have to be defined in the math.
     """
+
+    def __repr__(self) -> str:
+        """Get string representation."""
+        return f"{self.variable} = {self.value} [{self.unit}]"
 
     def __init__(
         self,
@@ -1290,9 +1333,108 @@ class AssignmentRule(ValueWithUnit):
         replacedBy: Optional[Any] = None,
     ):
         """Construct AssignmentRule."""
-        super(ValueWithUnit, self).__init__(
-            sid,  # FIXME: this must be the AssignmentRule_sid, i.e. the sid is the variable here,
-            value,
+        super(AssignmentRule, self).__init__(
+            sid=sid if sid else f"AssignmentRule_{variable}",
+            value=value,
+            unit=unit,
+            name=name,
+            sboTerm=sboTerm,
+            metaId=metaId,
+            annotations=annotations,
+            notes=notes,
+            port=port,
+            uncertainties=uncertainties,
+            replacedBy=replacedBy,
+        )
+        self.variable: str = variable
+
+    def create_sbml(self, model: libsbml.Model) -> libsbml.AssignmentRule:
+        """Create AssignmentRule."""
+        self.check_model_for_rule(model)
+        obj: libsbml.AssignmentRule = model.createAssignmentRule()
+        self._set_fields(obj, model)
+        obj.setVariable(self.variable)
+        ast_node: libsbml.ASTNode = ast_node_from_formula(model, str(self.value))
+        obj.setMath(ast_node)
+        self.create_port(model)
+        return obj
+
+
+class RateRule(ValueWithUnit, Rule):
+    """RateRule."""
+
+    def __repr__(self) -> str:
+        """Get string representation."""
+        return f"d{self.variable}/dt = {self.value} [{self.unit}]"
+
+    def __init__(
+        self,
+        variable: str,
+        value: Union[str, float],
+        unit: UnitType = Units.dimensionless,
+        sid: Optional[str] = None,
+        name: Optional[str] = None,
+        sboTerm: Optional[str] = None,
+        metaId: Optional[str] = None,
+        annotations: AnnotationsType = None,
+        notes: Optional[str] = None,
+        port: Any = None,
+        uncertainties: Optional[List["Uncertainty"]] = None,
+        replacedBy: Optional[Any] = None,
+    ):
+        """Construct RateRule."""
+        super(RateRule, self).__init__(
+            sid=sid if sid else f"RateRule_{variable}",
+            value=value,
+            unit=unit,
+            name=name,
+            sboTerm=sboTerm,
+            metaId=metaId,
+            annotations=annotations,
+            notes=notes,
+            port=port,
+            uncertainties=uncertainties,
+            replacedBy=replacedBy,
+        )
+        self.variable: str = variable
+
+    def create_sbml(self, model: libsbml.Model) -> libsbml.RateRule:
+        """Create RateRule."""
+        self.check_model_for_rule(model)
+        obj: libsbml.RateRule = model.createRateRule()
+        self._set_fields(obj, model)
+        obj.setVariable(self.variable)
+        ast_node: libsbml.ASTNode = ast_node_from_formula(model, str(self.value))
+        obj.setMath(ast_node)
+        self.create_port(model)
+        return obj
+
+
+class AlgebraicRule(ValueWithUnit, Rule):
+    """AlgebraicRule."""
+
+    def __repr__(self) -> str:
+        """Get string representation."""
+        return f"0 = {self.value} [{self.unit}]"
+
+    def __init__(
+        self,
+        value: Union[str, float],
+        unit: UnitType = Units.dimensionless,
+        sid: Optional[str] = None,
+        name: Optional[str] = None,
+        sboTerm: Optional[str] = None,
+        metaId: Optional[str] = None,
+        annotations: AnnotationsType = None,
+        notes: Optional[str] = None,
+        port: Any = None,
+        uncertainties: Optional[List["Uncertainty"]] = None,
+        replacedBy: Optional[Any] = None,
+    ):
+        """Construct AlgebraicRule."""
+        super(AlgebraicRule, self).__init__(
+            sid=sid,
+            value=value,
             unit=unit,
             name=name,
             sboTerm=sboTerm,
@@ -1304,65 +1446,15 @@ class AssignmentRule(ValueWithUnit):
             replacedBy=replacedBy,
         )
 
-    def create_sbml(self, model: libsbml.Model) -> libsbml.AssignmentRule:
-        """Create AssignmentRule.
-
-        Creates a required parameter if the symbol for the
-        initial assignment does not exist in the model.
-        """
-        # Create parameter if not existing
-        if (
-            (not model.getParameter(self.sid))
-            and (not model.getSpecies(self.sid))
-            and (not model.getCompartment(self.sid))
-        ):
-            Parameter(
-                sid=self.sid, value=None, unit=self.unit, constant=False, name=self.name
-            ).create_sbml(model)
-
-        # Make sure the parameter is const=False
-        p: libsbml.Parameter = model.getParameter(self.sid)
-        if p is not None:
-            if p.getConstant() is True:
-                logger.warning(
-                    f"Parameter affected by AssignmentRule "
-                    f"must be 'constant=False', but '{p.getId()}' "
-                    f"is 'constant={p.getConstant()}'."
-                )
-                p.setConstant(False)
-
-        # Check if rule exists
-        if model.getRule(self.sid):
-            logger.warning(
-                f"Rule with sid '{self.sid}' already exists in model: . "
-                f"Rule not updated with '{self.value}'"
-            )
-
-        obj: libsbml.AssignmentRule = model.createAssignmentRule()
+    def create_sbml(self, model: libsbml.Model) -> libsbml.AlgebraicRule:
+        """Create AlgebraicRule."""
+        obj: libsbml.AlgebraicRule = model.createAlgebraicRule()
+        AlgebraicRule
         self._set_fields(obj, model)
-        obj.setVariable(self.sid)
         ast_node: libsbml.ASTNode = ast_node_from_formula(model, str(self.value))
         obj.setMath(ast_node)
         self.create_port(model)
         return obj
-
-
-# FIXME: RATE RULE & ALGEBRAIC RULES:
-class RateRule(Rule):
-    """RateRule."""
-
-    def create_sbml(self, model: libsbml.Model) -> libsbml.RateRule:
-        """Create RateRule in model."""
-        obj: libsbml.RateRule = Rule._rule_factory(model, self, rule_type="RateRule")
-        self._set_fields(obj, model)
-        self.create_port(model)
-        return obj
-
-    @staticmethod
-    def _create(model: libsbml.Model, sid: str, formula: str) -> libsbml.RateRule:
-        """Create libsbml.RateRule."""
-        rule: libsbml.RateRule = model.createRateRule()
-        return Rule._create_rule(model, rule, sid, formula)
 
 
 Formula = namedtuple("Formula", "value unit")
@@ -2703,6 +2795,7 @@ class Model(Sbase, FrozenClass, BaseModel):
         assignments: Optional[List[InitialAssignment]] = None,
         rules: Optional[List[Rule]] = None,
         rate_rules: Optional[List[RateRule]] = None,
+        algebraic_rules: Optional[List[AlgebraicRule]] = None,
         reactions: Optional[List[Reaction]] = None,
         events: Optional[List[Event]] = None,
         constraints: Optional[List[Constraint]] = None,
@@ -2738,6 +2831,7 @@ class Model(Sbase, FrozenClass, BaseModel):
         self.assignments = assignments if assignments else []
         self.rules = rules if rules else []
         self.rate_rules = rate_rules if rate_rules else []
+        self.algebraic_rules = algebraic_rules if algebraic_rules else []
         self.reactions = reactions if reactions else []
         self.events = events if events else []
         self.constraints = constraints if constraints else []
@@ -2766,6 +2860,8 @@ class Model(Sbase, FrozenClass, BaseModel):
                     self.rules.append(sbase)
                 elif isinstance(sbase, RateRule):
                     self.rate_rules.append(sbase)
+                elif isinstance(sbase, AlgebraicRule):
+                    self.algebraic_rules.append(sbase)
                 elif isinstance(sbase, Reaction):
                     self.reactions.append(sbase)
                 elif isinstance(sbase, Event):
@@ -2818,6 +2914,7 @@ class Model(Sbase, FrozenClass, BaseModel):
             "assignments",
             "rules",
             "rate_rules",
+            "algebraic_rules",
             "reactions",
             "events",
             "constraints",

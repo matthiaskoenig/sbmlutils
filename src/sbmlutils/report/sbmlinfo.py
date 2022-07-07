@@ -1245,6 +1245,7 @@ class SBMLDocumentInfo:
 
 if __name__ == "__main__":
     from pathlib import Path
+
     from sbmlutils.console import console
 
     output_dir = Path(__file__).parent / "tests"
