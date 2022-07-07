@@ -26,23 +26,8 @@ def start_server(path: Path, port: int = 5115) -> None:
         httpd.serve_forever()
 
 
-def create_report(
-    sbml_path: Path,
-    validate: bool = False,
-    server: str = "https://sbml4humans.de",
-    fileserver_duration: int = 10,
-    fileserver_port: int = 5115,
-) -> None:
-    """Create sbml4humans report."""
-
-    # FIXME: implement static report
-    logger.info(f"No support for 'create_report' in sbmlutils-v{__version__}.")
-    pass
-
-
 def create_online_report(
     sbml_path: Path,
-    validate: bool = False,
     server: str = "https://sbml4humans.de",
     fileserver_duration: int = 10,
     fileserver_port: int = 5115,
@@ -53,7 +38,6 @@ def create_online_report(
     Local parameters can be promoted during report generation.
 
     :param sbml_path: path to SBML file
-    :param validate: FIXME: add validation option and information in frontend
     :param server: server to use for report, for local development use `localhost:3456`
     :param fileserver_duration: duration of file server in seconds
     :param fileserver_port: port of file server
@@ -73,7 +57,6 @@ def create_online_report(
         raise IOError(f"'sbml_path' does not exist: '{sbml_path}'")
 
     # serve files
-
     daemon = threading.Thread(
         name="daemon_server",
         target=start_server,

@@ -15,6 +15,7 @@ must be correct in the model definition files.
 To create complete models one should use the modelcreator functionality,
 which takes care of the order of object creation.
 """
+from __future__ import annotations
 import datetime
 import inspect
 import json
@@ -42,7 +43,6 @@ from sbmlutils.metadata import *
 from sbmlutils.metadata import annotator
 from sbmlutils.metadata.annotator import Annotation
 from sbmlutils.notes import Notes, NotesFormat
-from sbmlutils.report import sbmlreport
 from sbmlutils.utils import FrozenClass, create_metaid, deprecated
 from sbmlutils.validation import check
 
@@ -2635,6 +2635,7 @@ class ModelDict(TypedDict, total=False):
     assignments: Optional[List[InitialAssignment]]
     rules: Optional[List[Rule]]
     rate_rules: Optional[List[RateRule]]
+    algebraic_rules: Optional[List[AlgebraicRule]]
     reactions: Optional[List[Reaction]]
     events: Optional[List[Event]]
     constraints: Optional[List[Constraint]]
@@ -2669,6 +2670,7 @@ class Model(Sbase, FrozenClass, BaseModel):
     assignments: Optional[List[InitialAssignment]]
     rules: Optional[List[Rule]]
     rate_rules: Optional[List[RateRule]]
+    algebraic_rules: Optional[List[AlgebraicRule]]
     reactions: Optional[List[Reaction]]
     events: Optional[List[Event]]
     constraints: Optional[List[Constraint]]
@@ -2705,6 +2707,7 @@ class Model(Sbase, FrozenClass, BaseModel):
         "assignments": list,
         "rules": list,
         "rate_rules": list,
+        "algebraic_rules": list,
         "reactions": list,
         "events": list,
         "constraints": list,
@@ -3039,7 +3042,6 @@ def create_model(
     mid: str = None,
     suffix: str = None,
     annotations: Path = None,
-    create_report: bool = True,
     validate: bool = True,
     log_errors: bool = True,
     units_consistency: bool = True,
@@ -3063,7 +3065,6 @@ def create_model(
     :param mid: model id to use for filename
     :param suffix: suffix for SBML filename
     :param annotations: Path to annotations file
-    :param create_report: boolean switch to create SBML report
     :param validate: validates the SBML file
     :param log_errors: boolean flag to log errors
     :param units_consistency: boolean flag to check units consistency
@@ -3134,15 +3135,9 @@ def create_model(
                 # type: ignore
             )
 
-        # create report
-        if create_report:
-            # file is already validated, no validation on report needed
-            sbmlreport.create_report(
-                sbml_path=sbml_path, validate=False  # type: ignore
-            )
     finally:
         if tmp:
             shutil.rmtree(str(output_dir))
 
     console.rule(style="white")
-    return FactoryResult(sbml_path=sbml_path, model=model)  # type: ignore
+    return FactoryResult(sbml_path=sbml_path, model=model)

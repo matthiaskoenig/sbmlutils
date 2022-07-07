@@ -1,7 +1,6 @@
 """
 Download models from ModelDB
 """
-from __future__ import print_function, absolute_import
 import os
 import urllib
 import zipfile
@@ -15,7 +14,6 @@ import warnings
 import traceback
 import sys
 from sbmlutils import validation
-from sbmlutils.report import sbmlreport
 from sbmlutils.converters import xpp
 import roadrunner
 import numpy as np
@@ -68,15 +66,11 @@ def unzip_odes(model_id, output_dir):
     :return: list of ode files
     """
 
-    name = os.path.join(output_dir, '{}.zip'.format(model_id))
+    name = os.path.join(output_dir, f'{model_id}.zip')
     print('Extracting:', model_id)
-    # extract zip file
-    try:
-        z = zipfile.ZipFile(name)
-    except zipfile.error as e:
-        print("Bad zipfile (from %r): %s" % (url, e))
-        return []
 
+    # extract zip file
+    z = zipfile.ZipFile(name)
     zip_dir = os.path.join(output_dir, str(model_id))
 
     ode_files = []
@@ -118,6 +112,7 @@ def get_models(download=True):
         ode_files = unzip_odes(model_id=model_id, output_dir='')
         ode_all.extend(ode_files)
     return ode_all
+
 
 def simulate(sbml_file):
     """ Simulate given SBML file.
@@ -181,7 +176,6 @@ if __name__ == "__main__":
             print('[{}]'.format(k))
             xpp.xpp2sbml(xpp_file=xpp_file, sbml_file=sbml_file, force_lower=force_lower, validate=False, debug=debug)
             success = True
-            sbmlreport.create_report(sbml_file, target_dir=out_dir, validate=False)
             Nall, Nerr, Nwarn = validation.check_sbml(sbml_file, name=None, ucheck=False, log_errors=show_errors)
             valid = (Nerr == 0)
             simulates = False

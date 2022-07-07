@@ -4,6 +4,7 @@ from typing import Any
 import pytest
 
 from sbmlutils.examples import (
+    algebraic_rule,
     amount_species,
     annotation,
     assignment,
@@ -35,6 +36,7 @@ from sbmlutils.examples.tiny_model import factory as tiny_factory
 
 
 testdata = [
+    algebraic_rule,
     amount_species,
     annotation,
     assignment,
