@@ -43,7 +43,7 @@ from sbmlutils.metadata import *
 from sbmlutils.metadata import annotator
 from sbmlutils.metadata.annotator import Annotation
 from sbmlutils.notes import Notes, NotesFormat
-from sbmlutils.reaction_equation import ReactionEquation, EquationPart
+from sbmlutils.reaction_equation import EquationPart, ReactionEquation
 from sbmlutils.utils import FrozenClass, create_metaid, deprecated
 from sbmlutils.validation import check
 

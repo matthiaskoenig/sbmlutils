@@ -39,32 +39,42 @@ _m = Model(
 
 _m.parameters = [
     Parameter(
-        "p1", 1.0, U.mg,
+        "p1",
+        1.0,
+        U.mg,
         notes="""
         Constant parameter with value.
-        """
+        """,
     ),
     Parameter(
-        "p2", 2E-5, U.mg,
+        "p2",
+        2e-5,
+        U.mg,
         notes="""
         Constant parameter with value in E notation.
-        """
+        """,
     ),
     Parameter(
-        "p3", NaN, U.mg,
+        "p3",
+        NaN,
+        U.mg,
         notes="""
         Constant parameter with value set via InitialAssignment.
-        """
+        """,
     ),
     Parameter(
-        "p4", NaN, U.mg,
+        "p4",
+        NaN,
+        U.mg,
         constant=False,
         notes="""
         Parameter set via time-dependent AssignmentRule.
-        """
+        """,
     ),
     Parameter(
-        "dose", 10.0, U.mg,
+        "dose",
+        10.0,
+        U.mg,
         metaId="meta_dose",
         constant=True,
         sboTerm=SBO.QUANTITATIVE_SYSTEMS_DESCRIPTION_PARAMETER,
@@ -74,32 +84,35 @@ _m.parameters = [
         ],
         notes="""
         Parameter with SBOTerm and annotations.
-        """
+        """,
     ),
 ]
 
 _m.assignments = [
     InitialAssignment(
-        "p3", "p1 + p2",
+        "p3",
+        "p1 + p2",
         notes="""
         Sets the initial value of p3 as the sum of p1 and p2.
-        """
+        """,
     )
 ]
 _m.rules = [
     AssignmentRule(
-        "p4", "10 mg + 2.0 mg * sin(time/1 hr)",
+        "p4",
+        "10 mg + 2.0 mg * sin(time/1 hr)",
         notes="""
         Sets p4 as a time dependent parameter via an assignment rule.
-        """
+        """,
     ),
     AssignmentRule(
-        "p5", "10 mg + 2.0 mg * sin(time/1 hr)",
+        "p5",
+        "10 mg + 2.0 mg * sin(time/1 hr)",
         unit=U.mg,
         notes="""
         Creates parameter p5 and sets it via a time dependent assignment rule.
-        """
-    )
+        """,
+    ),
 ]
 
 model = _m

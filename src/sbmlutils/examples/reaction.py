@@ -71,7 +71,7 @@ _m = Model(
             compartment="c",
             notes="""
             Reaction with constant stoichiometry 1.0.
-            """
+            """,
         ),
         Reaction(
             sid="v2",
@@ -79,7 +79,7 @@ _m = Model(
             compartment="c",
             notes="""
             Reaction with constant stoichiometry.
-            """
+            """,
         ),
         Reaction(
             sid="v3",
@@ -87,7 +87,7 @@ _m = Model(
             compartment="c",
             notes="""
             Reaction with variable stoichiometry.
-            """
+            """,
         ),
         Reaction(
             sid="v4",
@@ -98,13 +98,13 @@ _m = Model(
                 products=[
                     EquationPart(species="y", stoichiometry=2.0, sid="v4_y"),
                 ],
-                reversible=False
+                reversible=False,
             ),
             compartment="c",
             notes="""
             Reaction with initial assignment of stoichiometry.
-            """
-        )
+            """,
+        ),
     ],
 )
 
