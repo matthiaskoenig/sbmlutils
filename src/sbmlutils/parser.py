@@ -1,15 +1,17 @@
 """Parse Models in internal model format."""
 from pathlib import Path
-from typing import Union, Dict, Any, Optional
+from typing import Any, Dict, Optional, Union
 
 import libsbml
+from factory import *
+
+from sbmlutils.console import console
 from sbmlutils.io.sbml import read_sbml
 from sbmlutils.log import get_logger
-from sbmlutils.console import console
-from factory import *
 
 
 logger = get_logger(__name__)
+
 
 def sbml_to_model(
     source: Union[Path, str],
@@ -53,9 +55,7 @@ def sbml_to_model(
     if not model:
         logger.error("No model in SBMLDocument.")
 
-    m = Model(
-        **parse_sbase_kwargs(model)
-    )
+    m = Model(**parse_sbase_kwargs(model))
 
     p: libsbml.Parameter
     for p in model.getListOfParameters():
@@ -74,7 +74,9 @@ def sbml_to_model(
             Compartment(
                 value=c.getSize() if c.isSetSize() else None,
                 constant=c.getConstant() if c.isSetConstant() else None,
-                spatialDimensions=c.getSpatialDimensions() if c.isSetSpatialDimensions() else None,
+                spatialDimensions=c.getSpatialDimensions()
+                if c.isSetSpatialDimensions()
+                else None,
                 # unit=p.getUnits(),
                 **parse_sbase_kwargs(c)
             )
@@ -86,10 +88,16 @@ def sbml_to_model(
             Species(
                 compartment=s.getCompartment() if s.isSetCompartment() else None,
                 initialAmount=s.getInitialAmount() if s.isSetInitialAmount() else None,
-                initialConcentration=s.getInitialConcentration() if s.isSetInitialConcentration() else None,
+                initialConcentration=s.getInitialConcentration()
+                if s.isSetInitialConcentration()
+                else None,
                 constant=s.getConstant() if s.isSetConstant() else None,
-                hasOnlySubstanceUnits=s.getHasOnlySubstanceUnits() if s.isSetHasOnlySubstanceUnits() else None,
-                boundaryCondition=s.getBoundaryCondition() if s.isSetBoundaryCondition() else None,
+                hasOnlySubstanceUnits=s.getHasOnlySubstanceUnits()
+                if s.isSetHasOnlySubstanceUnits()
+                else None,
+                boundaryCondition=s.getBoundaryCondition()
+                if s.isSetBoundaryCondition()
+                else None,
                 # unit=p.getUnits(),
                 **parse_sbase_kwargs(s)
             )
@@ -100,12 +108,7 @@ def sbml_to_model(
     for ia in model.getListOfInitialAssignments():
         ast: Optional[libsbml.ASTNode] = ia.getMath() if ia.isSetMath() else None
         formula: Optional[str] = libsbml.formulaToL3String(ast) if ast else None
-        m.assignments.append(
-            InitialAssignment(
-                value=formula,
-                **parse_sbase_kwargs(ia)
-            )
-        )
+        m.assignments.append(InitialAssignment(value=formula, **parse_sbase_kwargs(ia)))
 
     # rules
     rule: libsbml.Rule
@@ -131,10 +134,7 @@ def sbml_to_model(
             )
         elif typecode == libsbml.SBML_ALGEBRAIC_RULE:
             m.algebraic_rules.append(
-                AlgebraicRule(
-                    value=formula,
-                    **parse_sbase_kwargs(rule)
-                )
+                AlgebraicRule(value=formula, **parse_sbase_kwargs(rule))
             )
 
     # reactions
@@ -145,13 +145,8 @@ def sbml_to_model(
         equation = ReactionEquation()
 
         m.reactions.append(
-            Reaction(
-                equation="",
-                formula=formula,
-                **parse_sbase_kwargs(r)
-            )
+            Reaction(equation="", formula=formula, **parse_sbase_kwargs(r))
         )
-
 
     # events
 
@@ -170,11 +165,10 @@ def sbml_to_model_dict() -> Model:
     pass
 
 
-
 if __name__ == "__main__":
     from sbmlutils.console import console
-
     from sbmlutils.resources import REPRESSILATOR_SBML
+
     m = sbml_to_model(REPRESSILATOR_SBML)
     console.print(m)
     create_model(
@@ -185,4 +179,3 @@ if __name__ == "__main__":
         sbml_level=3,
         sbml_version=2,
     )
-

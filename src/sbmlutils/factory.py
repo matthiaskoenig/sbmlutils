@@ -16,6 +16,7 @@ To create complete models one should use the modelcreator functionality,
 which takes care of the order of object creation.
 """
 from __future__ import annotations
+
 import datetime
 import inspect
 import json
@@ -36,13 +37,13 @@ from pydantic import BaseModel
 from pymetadata.core.creator import Creator
 
 from sbmlutils.console import console
-from sbmlutils.reaction_equation import ReactionEquation
 from sbmlutils.io import write_sbml
 from sbmlutils.log import get_logger
 from sbmlutils.metadata import *
 from sbmlutils.metadata import annotator
 from sbmlutils.metadata.annotator import Annotation
 from sbmlutils.notes import Notes, NotesFormat
+from sbmlutils.reaction_equation import ReactionEquation, EquationPart
 from sbmlutils.utils import FrozenClass, create_metaid, deprecated
 from sbmlutils.validation import check
 
@@ -1544,7 +1545,7 @@ class Reaction(Sbase):
         if isinstance(equation, ReactionEquation):
             return equation
         else:
-            return ReactionEquation(equation=equation)
+            return ReactionEquation.from_str(str(equation))
 
     @staticmethod
     def _process_formula(
@@ -1572,18 +1573,29 @@ class Reaction(Sbase):
         r: libsbml.Reaction = model.createReaction()
         self._set_fields(r, model)
 
+        def set_speciesref_fields(sref: libsbml.SpeciesReference, part: EquationPart):
+            """Set the fields on the SpeciesReference."""
+            if part.species is not None:
+                sref.setSpecies(part.species)
+            if part.sid is not None:
+                sref.setId(part.sid)
+            if part.constant is not None:
+                sref.setConstant(part.constant)
+            if part.stoichiometry is not None:
+                sref.setStoichiometry(part.stoichiometry)
+            if part.metaId is not None:
+                sref.setMetaId(part.metaId)
+            if part.sboTerm is not None:
+                sref.setSBOTerm(part.sboTerm)
+
         # equation
         for reactant in self.equation.reactants:
             rref: libsbml.SpeciesReference = r.createReactant()
-            rref.setSpecies(reactant.sid)
-            rref.setStoichiometry(reactant.stoichiometry)
-            rref.setConstant(True)
+            set_speciesref_fields(sref=rref, part=reactant)
 
         for product in self.equation.products:
             pref: libsbml.SpeciesReference = r.createProduct()
-            pref.setSpecies(product.sid)
-            pref.setStoichiometry(product.stoichiometry)
-            pref.setConstant(True)
+            set_speciesref_fields(sref=pref, part=product)
 
         for modifier in self.equation.modifiers:
             mref: libsbml.ModifierSpeciesReference = r.createModifier()

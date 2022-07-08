@@ -40,9 +40,10 @@ Examples of valid equations with variable stoichiometries are:
 
 """
 from __future__ import annotations
+
 import re
-from dataclasses import dataclass
-from typing import Iterable, List, Optional, Final
+from dataclasses import dataclass, field
+from typing import Final, Iterable, List, Optional
 
 
 @dataclass
@@ -61,15 +62,16 @@ class EquationPart:
     2. `stoichiometry=None, constant=False, sid=str`
 
     """
+
     species: str
     stoichiometry: Optional[float] = None
-    constant: bool = True
     sid: Optional[str] = None
-    metaId: Optional[str] = None
-    sboTerm: Optional[str] = None
+    constant: bool = True
+    metaId: Optional[str] = field(default=None, repr=False)
+    sboTerm: Optional[str] = field(default=None, repr=False)
 
 
-REVERSIBILITY_PATTERN: Final = re.compile(r"<[-=]>")
+REVERSIBILITY_PATTERN: Final = r"<[-=]>"
 IRREVERSIBILITY_PATTERN: Final = r"[-=]>"
 MODIFIER_PATTERN: Final = r"\[.*\]"
 REVERSIBILITY_SEPARATOR: Final = r"<=>"
@@ -89,7 +91,7 @@ class ReactionEquation:
         reactants: Optional[List[EquationPart]] = None,
         products: Optional[List[EquationPart]] = None,
         modifiers: Optional[List[str]] = None,
-        reversible: bool = True
+        reversible: bool = True,
     ):
         """Initialize equation."""
 
@@ -98,13 +100,12 @@ class ReactionEquation:
         self.products: List[EquationPart] = products if products else []
         self.modifiers: List[str] = modifiers if modifiers else []
 
-        # self.raw: Optional[str] = self.to_string(modifiers = True)
-
     @staticmethod
     def from_str(equation_str: str) -> ReactionEquation:
         """Parse components of equation string."""
         equation = ReactionEquation()
         equation._parse_equation(equation_str)
+        return equation
 
     def _parse_equation(self, equation_str: str) -> None:
 
@@ -120,7 +121,7 @@ class ReactionEquation:
             equation_str = tokens[0].strip()
         elif len(mod_list) > 1:
             raise self.EquationException(
-                f"Invalid equation: {self.raw}. "
+                f"Invalid equation: {equation_str}. "
                 f"Modifier list could not be parsed. "
                 f"{ReactionEquation.help()}"
             )
@@ -135,7 +136,7 @@ class ReactionEquation:
             self.reversible = False
         else:
             raise self.EquationException(
-                f"Invalid equation: {self.raw}. "
+                f"Invalid equation: {equation_str}. "
                 f"Equation could not be split into left "
                 f"and right side. {ReactionEquation.help()}"
             )
@@ -144,7 +145,7 @@ class ReactionEquation:
         items = [o.strip() for o in items]
         if len(items) < 2:
             raise self.EquationException(
-                f"Invalid equation: {self.raw}. "
+                f"Invalid equation: {equation_str}. "
                 f"Equation could not be split into left "
                 f"and right side. Use '<=>' or '=>' as separator. {ReactionEquation.help()}"
             )
@@ -173,25 +174,52 @@ class ReactionEquation:
 
     @staticmethod
     def _parse_reactant(item: str) -> EquationPart:
-        """Return tuple of stoichiometry, sid."""
+        """Parse stoichiometry, species, sid information."""
         tokens = item.split()
         if len(tokens) == 1:
             stoichiometry = 1.0
-            sid = tokens[0]
+            species = tokens[0]
+            constant = True
+            sid = None
         else:
-            stoichiometry = float(tokens[0])
-            sid = " ".join(tokens[1:])
-        return EquationPart(stoichiometry, sid)
+            try:
+                stoichiometry = float(tokens[0])
+                constant = True
+                sid = None
+            except ValueError:
+                stoichiometry = None
+                constant = False
+                sid = tokens[0]
+
+            if tokens[1] == "*":
+                species = " ".join(tokens[2:]).strip()
+            else:
+                species = " ".join(tokens[1:])
+
+        return EquationPart(
+            stoichiometry=stoichiometry,
+            species=species,
+            constant=constant,
+            sid=sid,
+        )
 
     @staticmethod
     def _to_string_side(items: Iterable[EquationPart]) -> str:
         tokens = []
         for item in items:
-            stoichiometry, sid = item[0], item[1]
-            if abs(1.0 - stoichiometry) < 1e-10:
-                tokens.append(sid)
+            stoichiometry = item.stoichiometry
+            species = item.species
+            sid = item.sid
+
+            if stoichiometry is None:
+                if sid is not None:
+                    tokens.append(f"{sid} * {species}")
             else:
-                tokens.append(" ".join([str(stoichiometry), sid]))
+                if abs(1.0 - stoichiometry) < 1e-10:
+                    tokens.append(species)
+                else:
+                    tokens.append(f"{stoichiometry} {species}")
+
         return " + ".join(tokens)
 
     def _to_string_modifiers(self) -> str:
@@ -215,8 +243,7 @@ class ReactionEquation:
     def info(self) -> None:
         """Print overview of parsed equation."""
         lines = [
-            f"{'raw':<10s}: {self.raw}",
-            f"{'parsed':<10s}: {self.to_string()}",
+            f"{'equation':<10s}: {self.to_string(modifiers=True)}",
             f"{'reversible':<10s}: {self.reversible}",
             f"{'reactants':<10s}: {self.reactants}",
             f"{'products':<10s}: {self.products}",
@@ -248,16 +275,15 @@ if __name__ == "__main__":
         "A_ext => A []",
         "=> cit",
         "acoa =>",
-
         # variable stoichiometry
-        'fS1 S1 + 2 S2 => 2.0 P1 + 2 P2 [M1, M2]',
-        'f1 c__gal1p => f1 c__gal + f1 c__phos',
-        'f1 * e__h2oM <-> f1 * c__h2oM',
-        '3 atp + 2.0 phos + ki <-> stet tet',
-        'f * c__gal1p => f * c__gal + f * c__phos [c__udp, c__utp]',
-        'A_ext => f * A []',
-        '=> f * cit',
-        'f * acoa =>',
+        "fS1 S1 + 2 S2 => 2.0 P1 + 2 P2 [M1, M2]",
+        "f1 c__gal1p => f1 c__gal + f1 c__phos",
+        "f1 * e__h2oM <-> f1 * c__h2oM",
+        "3 atp + 2.0 phos + ki <-> stet tet",
+        "f * c__gal1p => f * c__gal + f * c__phos [c__udp, c__utp]",
+        "A_ext => f * A []",
+        "=> f * cit",
+        "f * acoa =>",
     ]
 
     for equation_str in examples:
