@@ -1131,8 +1131,8 @@ class Species(Sbase):
         )
 
         if (initialAmount is None) and (initialConcentration is None):
-            raise ValueError(
-                f"Either initialAmount or initialConcentration required "
+            logger.warning(
+                f"Either initialAmount or initialConcentration should be set "
                 f"for species: '{sid}'"
             )
         if initialAmount and initialConcentration:
@@ -1264,7 +1264,7 @@ class InitialAssignment(Value):
         return obj
 
 
-class Rule:
+class RuleWithVariable:
     """Rule."""
 
     def check_model_for_rule(self, model) -> None:
@@ -1307,7 +1307,7 @@ class Rule:
             )
 
 
-class AssignmentRule(ValueWithUnit, Rule):
+class AssignmentRule(ValueWithUnit, RuleWithVariable):
     """AssignmentRule.
 
     The unit attribute is only for the case where a parameter must be created
@@ -1362,7 +1362,7 @@ class AssignmentRule(ValueWithUnit, Rule):
         return obj
 
 
-class RateRule(ValueWithUnit, Rule):
+class RateRule(ValueWithUnit, RuleWithVariable):
     """RateRule."""
 
     def __repr__(self) -> str:
@@ -1412,7 +1412,7 @@ class RateRule(ValueWithUnit, Rule):
         return obj
 
 
-class AlgebraicRule(ValueWithUnit, Rule):
+class AlgebraicRule(ValueWithUnit, RuleWithVariable):
     """AlgebraicRule."""
 
     def __repr__(self) -> str:
@@ -1498,7 +1498,7 @@ class Reaction(Sbase):
         equation: Union[ReactionEquation, str],
         formula: Optional[Union[Formula, Tuple[str, UnitType], str]] = None,
         pars: Optional[List[Parameter]] = None,
-        rules: Optional[List[Rule]] = None,
+        rules: Optional[List[RuleWithVariable]] = None,
         compartment: Optional[str] = None,
         fast: bool = False,
         reversible: Optional[bool] = None,
@@ -2646,7 +2646,7 @@ class ModelDict(TypedDict, total=False):
     species: Optional[List[Species]]
     parameters: Optional[List[Parameter]]
     assignments: Optional[List[InitialAssignment]]
-    rules: Optional[List[Rule]]
+    rules: Optional[List[RuleWithVariable]]
     rate_rules: Optional[List[RateRule]]
     algebraic_rules: Optional[List[AlgebraicRule]]
     reactions: Optional[List[Reaction]]
@@ -2681,7 +2681,7 @@ class Model(Sbase, FrozenClass, BaseModel):
     species: Optional[List[Species]]
     parameters: Optional[List[Parameter]]
     assignments: Optional[List[InitialAssignment]]
-    rules: Optional[List[Rule]]
+    rules: Optional[List[RuleWithVariable]]
     rate_rules: Optional[List[RateRule]]
     algebraic_rules: Optional[List[AlgebraicRule]]
     reactions: Optional[List[Reaction]]
@@ -2809,7 +2809,7 @@ class Model(Sbase, FrozenClass, BaseModel):
         species: Optional[List[Species]] = None,
         parameters: Optional[List[Parameter]] = None,
         assignments: Optional[List[InitialAssignment]] = None,
-        rules: Optional[List[Rule]] = None,
+        rules: Optional[List[RuleWithVariable]] = None,
         rate_rules: Optional[List[RateRule]] = None,
         algebraic_rules: Optional[List[AlgebraicRule]] = None,
         reactions: Optional[List[Reaction]] = None,

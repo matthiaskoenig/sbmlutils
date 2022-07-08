@@ -3,11 +3,12 @@ from pathlib import Path
 from typing import Any, Dict, Optional, Union
 
 import libsbml
-from sbmlutils.factory import *
 
+from sbmlutils.factory import *
 from sbmlutils.io.sbml import read_sbml
 from sbmlutils.log import get_logger
 from sbmlutils.reaction_equation import EquationPart
+
 
 logger = get_logger(__name__)
 
@@ -42,7 +43,6 @@ def sbml_to_model(
         kwargs["metaId"] = sbase.getMetaId() if sbase.isSetMetaId() else None
         kwargs["name"] = sbase.getName() if sbase.isSetName() else None
         kwargs["sboTerm"] = sbase.getSBOTermID() if sbase.isSetSBOTerm() else None
-
 
         # FIXME:
         # annotations
@@ -117,8 +117,12 @@ def sbml_to_model(
             equation.reactants.append(
                 EquationPart(
                     species=reactant.getSpecies() if reactant.isSetSpecies() else None,
-                    stoichiometry=reactant.getStoichiometry() if reactant.isSetStoichiometry() else None,
-                    constant=reactant.getConstant() if reactant.isSetConstant() else True,
+                    stoichiometry=reactant.getStoichiometry()
+                    if reactant.isSetStoichiometry()
+                    else None,
+                    constant=reactant.getConstant()
+                    if reactant.isSetConstant()
+                    else True,
                     **parse_sbase_kwargs(reactant)
                 )
             )
@@ -127,7 +131,9 @@ def sbml_to_model(
             equation.products.append(
                 EquationPart(
                     species=product.getSpecies() if product.isSetSpecies() else None,
-                    stoichiometry=product.getStoichiometry() if product.isSetStoichiometry() else None,
+                    stoichiometry=product.getStoichiometry()
+                    if product.isSetStoichiometry()
+                    else None,
                     constant=product.getConstant() if product.isSetConstant() else True,
                     **parse_sbase_kwargs(product)
                 )
@@ -141,15 +147,13 @@ def sbml_to_model(
         ast = None
         if r.isSetKineticLaw():
             klaw: libsbml.KineticLaw = r.getKineticLaw()
-            ast: Optional[libsbml.ASTNode] = klaw.getMath() if klaw.isSetMath() else None
+            ast: Optional[libsbml.ASTNode] = (
+                klaw.getMath() if klaw.isSetMath() else None
+            )
         formula: Optional[str] = libsbml.formulaToL3String(ast) if ast else None
 
         m.reactions.append(
-            Reaction(
-                equation=equation,
-                formula=formula,
-                **parse_sbase_kwargs(r)
-            )
+            Reaction(equation=equation, formula=formula, **parse_sbase_kwargs(r))
         )
 
     # initial assignment
@@ -186,7 +190,6 @@ def sbml_to_model(
                 AlgebraicRule(value=formula, **parse_sbase_kwargs(rule))
             )
 
-
     # events
 
     # constraints
@@ -198,10 +201,6 @@ def sbml_to_model(
     # distrib
 
     return m
-
-
-def sbml_to_model_dict() -> Model:
-    pass
 
 
 if __name__ == "__main__":
