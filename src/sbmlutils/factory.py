@@ -36,7 +36,7 @@ from pydantic import BaseModel
 from pymetadata.core.creator import Creator
 
 from sbmlutils.console import console
-from sbmlutils.equation import Equation
+from sbmlutils.reaction_equation import ReactionEquation
 from sbmlutils.io import write_sbml
 from sbmlutils.log import get_logger
 from sbmlutils.metadata import *
@@ -82,7 +82,7 @@ __all__ = [
     "Constraint",
     "Reaction",
     "Formula",
-    "Equation",
+    "ReactionEquation",
     "ExchangeReaction",
     "Uncertainty",
     "UncertParameter",
@@ -1493,7 +1493,7 @@ class Reaction(Sbase):
     def __init__(
         self,
         sid: str,
-        equation: Union[Equation, str],
+        equation: Union[ReactionEquation, str],
         formula: Optional[Union[Formula, Tuple[str, UnitType], str]] = None,
         pars: Optional[List[Parameter]] = None,
         rules: Optional[List[Rule]] = None,
@@ -1539,12 +1539,12 @@ class Reaction(Sbase):
         self.upperFluxBound = upperFluxBound
 
     @staticmethod
-    def _process_equation(equation: Union[Equation, str]) -> Equation:
+    def _process_equation(equation: Union[ReactionEquation, str]) -> ReactionEquation:
         """Process reaction equation."""
-        if isinstance(equation, Equation):
+        if isinstance(equation, ReactionEquation):
             return equation
         else:
-            return Equation(equation=equation)
+            return ReactionEquation(equation=equation)
 
     @staticmethod
     def _process_formula(

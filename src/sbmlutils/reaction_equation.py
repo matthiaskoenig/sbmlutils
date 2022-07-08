@@ -1,4 +1,4 @@
-"""Module for parsing equation strings.
+"""Module for parsing reaction equation strings.
 
 Various string formats are allowed which are subsequently brought into
 an internal standard format.
@@ -26,23 +26,57 @@ Examples of valid equations are:
     'A_ext => A []',
     '=> cit',
     'acoa =>',
+
+In addition, variable stoichiometries can be used, by providing sids as stoichiometries.
+Examples of valid equations with variable stoichiometries are:
+    'fS1 S1 + 2 S2 => 2.0 P1 + 2 P2 [M1, M2]',
+    'f1 c__gal1p => f1 c__gal + f1 c__phos',
+    'f1 * e__h2oM <-> f1 * c__h2oM',
+    '3 atp + 2.0 phos + ki <-> stet tet',
+    'f * c__gal1p => f * c__gal + f * c__phos [c__udp, c__utp]',
+    'A_ext => f * A []',
+    '=> f * cit',
+    'f * acoa =>',
+
 """
-
+from __future__ import annotations
 import re
-from collections import namedtuple
-from typing import Iterable, List, Optional
+from dataclasses import dataclass
+from typing import Iterable, List, Optional, Final
 
 
-Part = namedtuple("Part", "stoichiometry sid")
+@dataclass
+class EquationPart:
+    """EquationPart.
 
-REV_PATTERN = r"<[-=]>"
-IRREV_PATTERN = r"[-=]>"
-MOD_PATTERN = r"\[.*\]"
-REV_SEP = r"<=>"
-IRREV_SEP = r"=>"
+    An equation consists of parts which define species with their respective
+    stoichiometries. The stoichiometries could be constant or vary over time.
+
+    The sid may be target of an InitialAssignment, EventAssignment or Rule.
+
+    Two main cases exists:
+    1. `stoichiometry=float, constant=True`
+      The EquationPart has a constant stoichiometry and does not change in the
+      simulation. It could be set via an InitialAssignment if an sid is provided.
+    2. `stoichiometry=None, constant=False, sid=str`
+
+    """
+    species: str
+    stoichiometry: Optional[float] = None
+    constant: bool = True
+    sid: Optional[str] = None
+    metaId: Optional[str] = None
+    sboTerm: Optional[str] = None
 
 
-class Equation:
+REVERSIBILITY_PATTERN: Final = re.compile(r"<[-=]>")
+IRREVERSIBILITY_PATTERN: Final = r"[-=]>"
+MODIFIER_PATTERN: Final = r"\[.*\]"
+REVERSIBILITY_SEPARATOR: Final = r"<=>"
+IRREVERSIBILITY_SEPARATOR: Final = r"=>"
+
+
+class ReactionEquation:
     """Representation of stoichiometric equations with modifiers."""
 
     class EquationException(Exception):
@@ -50,52 +84,60 @@ class Equation:
 
         pass
 
-    def __init__(self, equation: str):
+    def __init__(
+        self,
+        reactants: Optional[List[EquationPart]] = None,
+        products: Optional[List[EquationPart]] = None,
+        modifiers: Optional[List[str]] = None,
+        reversible: bool = True
+    ):
         """Initialize equation."""
-        self.raw = equation
 
-        self.reactants: List[Part] = []
-        self.products: List[Part] = []
-        self.modifiers: List[str] = []
-        self.reversible: Optional[bool] = None
+        self.reversible: bool = reversible
+        self.reactants: List[EquationPart] = reactants if reactants else []
+        self.products: List[EquationPart] = products if products else []
+        self.modifiers: List[str] = modifiers if modifiers else []
 
-        self._parse_equation()
+        # self.raw: Optional[str] = self.to_string(modifiers = True)
 
-    def _parse_equation(self) -> None:
+    @staticmethod
+    def from_str(equation_str: str) -> ReactionEquation:
         """Parse components of equation string."""
-        eq_string = self.raw[:]
+        equation = ReactionEquation()
+        equation._parse_equation(equation_str)
+
+    def _parse_equation(self, equation_str: str) -> None:
 
         # handle empty equation (for dummy reations in comp)
-        if len(eq_string) == 0:
-            self.reversible = True
+        if not equation_str or len(equation_str) == 0:
             return
 
         # get modifiers and remove from equation string
-        mod_list = re.findall(MOD_PATTERN, eq_string)
+        mod_list = re.findall(MODIFIER_PATTERN, equation_str)
         if len(mod_list) == 1:
             self._parse_modifiers(mod_list[0])
-            tokens = eq_string.split("[")
-            eq_string = tokens[0].strip()
+            tokens = equation_str.split("[")
+            equation_str = tokens[0].strip()
         elif len(mod_list) > 1:
             raise self.EquationException(
                 f"Invalid equation: {self.raw}. "
                 f"Modifier list could not be parsed. "
-                f"{Equation.help()}"
+                f"{ReactionEquation.help()}"
             )
 
         # now parse the equation without modifiers
-        items = re.split(REV_PATTERN, eq_string)
+        items = re.split(REVERSIBILITY_PATTERN, equation_str)
 
         if len(items) == 2:
             self.reversible = True
         elif len(items) == 1:
-            items = re.split(IRREV_PATTERN, eq_string)
+            items = re.split(IRREVERSIBILITY_PATTERN, equation_str)
             self.reversible = False
         else:
             raise self.EquationException(
                 f"Invalid equation: {self.raw}. "
                 f"Equation could not be split into left "
-                f"and right side. {Equation.help()}"
+                f"and right side. {ReactionEquation.help()}"
             )
 
         # remove whitespaces
@@ -104,7 +146,7 @@ class Equation:
             raise self.EquationException(
                 f"Invalid equation: {self.raw}. "
                 f"Equation could not be split into left "
-                f"and right side. Use '<=>' or '=>' as separator. {Equation.help()}"
+                f"and right side. Use '<=>' or '=>' as separator. {ReactionEquation.help()}"
             )
         left, right = items[0], items[1]
         if len(left) > 0:
@@ -120,7 +162,7 @@ class Equation:
         modifiers = [t.strip() for t in tokens]
         self.modifiers = [t for t in modifiers if len(t) > 0]
 
-    def _parse_half_equation(self, string: str) -> List[Part]:
+    def _parse_half_equation(self, string: str) -> List[EquationPart]:
         """Parse half-equation.
 
         Only '+ supported in equation !, do not use negative stoichiometries.
@@ -130,7 +172,7 @@ class Equation:
         return [self._parse_reactant(item) for item in items]
 
     @staticmethod
-    def _parse_reactant(item: str) -> Part:
+    def _parse_reactant(item: str) -> EquationPart:
         """Return tuple of stoichiometry, sid."""
         tokens = item.split()
         if len(tokens) == 1:
@@ -139,10 +181,10 @@ class Equation:
         else:
             stoichiometry = float(tokens[0])
             sid = " ".join(tokens[1:])
-        return Part(stoichiometry, sid)
+        return EquationPart(stoichiometry, sid)
 
     @staticmethod
-    def _to_string_side(items: Iterable[Part]) -> str:
+    def _to_string_side(items: Iterable[EquationPart]) -> str:
         tokens = []
         for item in items:
             stoichiometry, sid = item[0], item[1]
@@ -160,9 +202,9 @@ class Equation:
         left = self._to_string_side(self.reactants)
         right = self._to_string_side(self.products)
         if self.reversible:
-            sep = REV_SEP
+            sep = REVERSIBILITY_SEPARATOR
         else:
-            sep = IRREV_SEP
+            sep = IRREVERSIBILITY_SEPARATOR
 
         if modifiers:
             mod = self._to_string_modifiers()
@@ -196,7 +238,8 @@ class Equation:
 # -----------------------------------------------------------------------------
 if __name__ == "__main__":
 
-    tests = [
+    examples = [
+        # constant stoichiometry
         "1.0 S1 + 2 S2 => 2.0 P1 + 2 P2 [M1, M2]",
         "c__gal1p => c__gal + c__phos",
         "e__h2oM <-> c__h2oM",
@@ -205,11 +248,21 @@ if __name__ == "__main__":
         "A_ext => A []",
         "=> cit",
         "acoa =>",
+
+        # variable stoichiometry
+        'fS1 S1 + 2 S2 => 2.0 P1 + 2 P2 [M1, M2]',
+        'f1 c__gal1p => f1 c__gal + f1 c__phos',
+        'f1 * e__h2oM <-> f1 * c__h2oM',
+        '3 atp + 2.0 phos + ki <-> stet tet',
+        'f * c__gal1p => f * c__gal + f * c__phos [c__udp, c__utp]',
+        'A_ext => f * A []',
+        '=> f * cit',
+        'f * acoa =>',
     ]
 
-    for test in tests:
+    for equation_str in examples:
         print("-" * 40)
-        print(test)
+        print(equation_str)
         print("-" * 40)
-        eq = Equation(test)
+        eq = ReactionEquation.from_str(equation_str)
         eq.info()

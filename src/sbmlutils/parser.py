@@ -1,4 +1,4 @@
-"""Parse SBML in Modelformat."""
+"""Parse Models in internal model format."""
 from pathlib import Path
 from typing import Union, Dict, Any, Optional
 
@@ -13,16 +13,19 @@ logger = get_logger(__name__)
 
 def sbml_to_model(
     source: Union[Path, str],
-    promote: bool = False,
     validate: bool = False,
     log_errors: bool = True,
     units_consistency: bool = True,
     modeling_practice: bool = True,
     internal_consistency: bool = True,
 ) -> Model:
+    """Parse SBML model.
+
+    LocalParameters are promoted.
+    """
     doc: libsbml.SBMLDocument = read_sbml(
         source=source,
-        promote=promote,
+        promote=True,
         validate=validate,
         log_errors=log_errors,
         units_consistency=units_consistency,
@@ -139,6 +142,7 @@ def sbml_to_model(
     for r in model.getListOfReactions():
 
         # FIXME: better equation support.
+        equation = ReactionEquation()
 
         m.reactions.append(
             Reaction(
