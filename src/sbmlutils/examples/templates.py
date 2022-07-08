@@ -19,13 +19,8 @@ terms_of_use = """
     ## Terms of use
     The content of this model has been carefully created in a manual research effort.
     This file has been created by [{given_name} {family_name}]({site})
-    using <a href="">[sbmlutils](https://github.com/matthiaskoenig/sbmlutils)</a>.
-    For questions contact {email}.
-
-    <a href="{site}">
-    <img src="https://livermetabolism.com/img/people/koenig.png" width="80"></img>
-    </a>
-    Copyright © {year} {given_name} {family_name}.
+    using [sbmlutils](https://github.com/matthiaskoenig/sbmlutils).
+    For questions contact <a href="mailto:{email}">{email}</a>. Copyright © {year} {given_name} {family_name}.
 
     <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">
     <img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.

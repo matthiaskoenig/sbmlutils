@@ -136,7 +136,6 @@ def create_objects(
     :param model: SBMLModel instance
     :param obj_iter: iterator of given model object classes like Parameter, ...
     :param key: object key
-    :param debug: print list of created objects
     :return: dictionary of SBML objects
     """
     sbml_objects: Dict[str, libsbml.Sbase] = {}
@@ -1249,6 +1248,7 @@ class InitialAssignment(Value):
             (not model.getParameter(sid))
             and (not model.getSpecies(sid))
             and (not model.getCompartment(sid))
+            and (not model.getSpeciesReference(sid))
         ):
             Parameter(
                 sid=sid, value=None, unit=self.unit, constant=True, name=self.name  # type: ignore
@@ -1278,6 +1278,7 @@ class Rule:
             (not model.getParameter(self.variable))
             and (not model.getSpecies(self.variable))
             and (not model.getCompartment(self.variable))
+            and (not model.getSpeciesReference(self.variable))
         ):
             Parameter(
                 sid=self.variable,
@@ -2926,11 +2927,11 @@ class Model(Sbase, FrozenClass, BaseModel):
             "parameters",
             "compartments",
             "species",
+            "reactions",
             "assignments",
             "rules",
             "rate_rules",
             "algebraic_rules",
-            "reactions",
             "events",
             "constraints",
             "ports",
