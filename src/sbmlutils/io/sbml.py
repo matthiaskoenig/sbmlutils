@@ -176,7 +176,8 @@ def promote_local_variables(
     :return: SBMLDocument with promoted parameters
     """
     model: libsbml.Model = doc.getModel()
-    model.setId(f"{model.id}{suffix}")
+    if model.isSetId():
+        model.setId(f"{model.id}{suffix}")
 
     # promote local parameters
     props = libsbml.ConversionProperties()

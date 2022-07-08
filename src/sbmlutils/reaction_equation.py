@@ -69,6 +69,7 @@ class EquationPart:
     constant: bool = True
     metaId: Optional[str] = field(default=None, repr=False)
     sboTerm: Optional[str] = field(default=None, repr=False)
+    name: Optional[str] = field(default=None, repr=False)
 
 
 REVERSIBILITY_PATTERN: Final = r"<[-=]>"

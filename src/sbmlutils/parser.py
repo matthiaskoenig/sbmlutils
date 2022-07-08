@@ -3,12 +3,11 @@ from pathlib import Path
 from typing import Any, Dict, Optional, Union
 
 import libsbml
-from factory import *
+from sbmlutils.factory import *
 
-from sbmlutils.console import console
 from sbmlutils.io.sbml import read_sbml
 from sbmlutils.log import get_logger
-
+from sbmlutils.reaction_equation import EquationPart
 
 logger = get_logger(__name__)
 
@@ -44,6 +43,8 @@ def sbml_to_model(
         kwargs["name"] = sbase.getName() if sbase.isSetName() else None
         kwargs["sboTerm"] = sbase.getSBOTermID() if sbase.isSetSBOTerm() else None
 
+
+        # FIXME:
         # annotations
         # notes
         # port
@@ -103,6 +104,54 @@ def sbml_to_model(
             )
         )
 
+    # reactions
+    r: libsbml.Reaction
+    for r in model.getListOfReactions():
+
+        # FIXME: better equation support.
+        equation = ReactionEquation(
+            reversible=r.getReversible() if r.isSetReversible() else None
+        )
+        reactant: libsbml.SpeciesReference
+        for reactant in r.getListOfReactants():
+            equation.reactants.append(
+                EquationPart(
+                    species=reactant.getSpecies() if reactant.isSetSpecies() else None,
+                    stoichiometry=reactant.getStoichiometry() if reactant.isSetStoichiometry() else None,
+                    constant=reactant.getConstant() if reactant.isSetConstant() else True,
+                    **parse_sbase_kwargs(reactant)
+                )
+            )
+            product: libsbml.SpeciesReference
+        for product in r.getListOfProducts():
+            equation.products.append(
+                EquationPart(
+                    species=product.getSpecies() if product.isSetSpecies() else None,
+                    stoichiometry=product.getStoichiometry() if product.isSetStoichiometry() else None,
+                    constant=product.getConstant() if product.isSetConstant() else True,
+                    **parse_sbase_kwargs(product)
+                )
+            )
+        modifier: libsbml.SpeciesReference
+        for modifier in r.getListOfModifiers():
+            if modifier.isSetSpecies():
+                equation.modifiers.append(modifier.getSpecies())
+
+        # formula
+        ast = None
+        if r.isSetKineticLaw():
+            klaw: libsbml.KineticLaw = r.getKineticLaw()
+            ast: Optional[libsbml.ASTNode] = klaw.getMath() if klaw.isSetMath() else None
+        formula: Optional[str] = libsbml.formulaToL3String(ast) if ast else None
+
+        m.reactions.append(
+            Reaction(
+                equation=equation,
+                formula=formula,
+                **parse_sbase_kwargs(r)
+            )
+        )
+
     # initial assignment
     ia: libsbml.InitialAssignment
     for ia in model.getListOfInitialAssignments():
@@ -137,16 +186,6 @@ def sbml_to_model(
                 AlgebraicRule(value=formula, **parse_sbase_kwargs(rule))
             )
 
-    # reactions
-    r: libsbml.Reaction
-    for r in model.getListOfReactions():
-
-        # FIXME: better equation support.
-        equation = ReactionEquation()
-
-        m.reactions.append(
-            Reaction(equation="", formula=formula, **parse_sbase_kwargs(r))
-        )
 
     # events
 
