@@ -48,14 +48,14 @@ _m.algebraic_rules = [
 
 model = _m
 
-
+# FIXME: remove this duplicated code
 def create(tmp: bool = False) -> None:
     """Create model."""
     create_model(
-        models=model,
-        output_dir=EXAMPLES_DIR,
-        tmp=tmp,
+        model=model,
+        filepath=EXAMPLES_DIR / f"{model.sid}.xml",
     )
+
 
 
 if __name__ == "__main__":
