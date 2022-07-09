@@ -26,7 +26,7 @@ from collections import namedtuple
 from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Type, Union
+from typing import Any, Dict, Iterable, List, Optional, Tuple, Type, Union
 
 import libsbml
 import numpy as np
@@ -3042,115 +3042,78 @@ class Document(Sbase):
 
 @dataclass
 class FactoryResult:
-    """Results structure when creating SBML models with sbmlutils."""
+    """Data structure for model creation."""
 
+    model: Model
     sbml_path: Path
-    model: "Model"
 
 
 def create_model(
-    models: Union["Model", List["Model"]],
-    output_dir: Optional[Path] = None,
-    filename: str = None,
-    mid: str = None,
-    suffix: str = None,
+    model: Union[Model, Iterable[Model]],
+    filepath: Path,
+    sbml_level: int = SBML_LEVEL,
+    sbml_version: int = SBML_VERSION,
     annotations: Path = None,
     validate: bool = True,
     log_errors: bool = True,
     units_consistency: bool = True,
     modeling_practice: bool = True,
     internal_consistency: bool = True,
-    sbml_level: int = SBML_LEVEL,
-    sbml_version: int = SBML_VERSION,
-    tmp: bool = False,
 ) -> FactoryResult:
-    """Create SBML model from module information.
+    """Create SBML model from models.
 
-    This is the entry point for creating models.
-    The model information is provided as a list of importable python modules.
-    If no filename is provided the filename is created from the id and suffix.
-    Additional model annotations can be provided.
+    This is the entry point for creating models. If multiple models are provided
+    these are merged in the process of model creation. See `merge_models` for more
+    details.
 
-    :param models: iterable of Model instances
-    :param output_dir: directory in which to create SBML file
-    :param tmp: boolean flag to create files in a temporary directory (for testing)
-    :param filename: filename to write to with suffix, if not provided mid and suffix are used
-    :param mid: model id to use for filename
-    :param suffix: suffix for SBML filename
+    Additional model annotations can be provided via a file.
+
+    :param model: Model or iterable of Model instances which are merged in single model
+    :param filepath: Path to write the SBML model to
+    :param sbml_level: set SBML level for model generation
+    :param sbml_version: set SBML version for model generation
     :param annotations: Path to annotations file
-    :param validate: validates the SBML file
+    :param validate: boolean flag to validate the SBML file
     :param log_errors: boolean flag to log errors
     :param units_consistency: boolean flag to check units consistency
     :param modeling_practice: boolean flag to check modeling practise
     :param internal_consistency: boolean flag to check internal consistency
-    :param sbml_level: set SBML level for model generation
-    :param sbml_version: set SBML version for model generation
 
     :return: FactoryResult
     """
     console.rule(title="Create SBML", style="white")
-    if output_dir is None and tmp is False:
-        raise TypeError("create_model() missing 1 required argument: 'output_dir'")
 
-    # preprocess
-    if isinstance(models, Model):
-        models = [models]
+    # merge models
+    m: Model
+    if isinstance(model, Iterable):
+        m = Model.merge_models(model)
+    elif isinstance(model, Model):
+        m = model
+    else:
+        raise ValueError(f"Unsupported `model` type: {type(model)}")
 
-    model = Model.merge_models(models)
+    # create and write SBML
     doc: libsbml.SBMLDocument = Document(
         model=model,
         sbml_level=sbml_level,
         sbml_version=sbml_version,
     ).create_sbml()
 
-    if not filename:
-        # create filename
-        if mid is None:
-            mid = model.sid
-        if suffix is None:
-            suffix = ""
-        filename = f"{mid}{suffix}.xml"
+    write_sbml(
+        doc=doc,
+        filepath=filepath,
+        validate=validate,
+        log_errors=log_errors,
+        units_consistency=units_consistency,
+        modeling_practice=modeling_practice,
+        internal_consistency=internal_consistency,
+    )
 
-    if tmp:
-        output_dir = Path(tempfile.mkdtemp())
-    else:
-        if not output_dir:
-            raise ValueError("'output_dir' must be provided")
-        if isinstance(output_dir, str):
-            output_dir = Path(output_dir)
-            logger.warning(f"'output_dir' should be a Path: {output_dir}")
-
-        if not output_dir.exists():
-            logger.warning(f"'output_dir' does not exist and is created: {output_dir}")
-            output_dir.mkdir(parents=True)
-
-    sbml_path = output_dir / filename
-
-    # write sbml
-    try:
-        write_sbml(
-            doc=doc,
-            filepath=sbml_path,
-            validate=validate,
-            log_errors=log_errors,
-            units_consistency=units_consistency,
-            modeling_practice=modeling_practice,
-            internal_consistency=internal_consistency,
+    # annotation of model (overwrites file)
+    if annotations is not None:
+        annotator.annotate_sbml(
+            source=filepath, annotations_path=annotations, filepath=filepath
         )
 
-        # annotate
-        if annotations is not None:
-            # overwrite the normal file
-            annotator.annotate_sbml(
-                source=sbml_path,
-                annotations_path=annotations,
-                filepath=sbml_path
-                # type: ignore
-            )
-
-    finally:
-        if tmp:
-            shutil.rmtree(str(output_dir))
-
     console.rule(style="white")
-    return FactoryResult(sbml_path=sbml_path, model=model)
+    return FactoryResult(sbml_path=filepath, model=model)

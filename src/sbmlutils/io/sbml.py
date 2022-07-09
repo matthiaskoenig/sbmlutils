@@ -1,11 +1,16 @@
 """Utility functions for reading, writing and validating SBML."""
 from pathlib import Path
-from typing import List, Union
+from typing import Optional, Union
 
 import libsbml
 
-from sbmlutils import log, validation
-from sbmlutils.utils import deprecated
+from sbmlutils import log
+from sbmlutils.validation import (
+    ValidationOptions,
+    ValidationResult,
+    log_sbml_errors_for_doc,
+    validate_doc,
+)
 
 
 logger = log.get_logger(__name__)
@@ -15,31 +20,25 @@ def read_sbml(
     source: Union[Path, str],
     promote: bool = False,
     validate: bool = False,
-    log_errors: bool = True,
-    units_consistency: bool = True,
-    modeling_practice: bool = True,
-    internal_consistency: bool = True,
+    validation_options: ValidationOptions = ValidationOptions(),
 ) -> libsbml.SBMLDocument:
     """Read SBMLDocument from given source.
 
     Local parameters can be promoted using the `promote flag.
     Allows to validate the file during reading via the `validate` flag.
-    The subset of reported warnings can be choosen using the
-    `units_consistency`, `modeling_practice` and `internal_consistency` flag.
+    The subset of tested features in validation can be set via the
+    `validation_options`.
 
     :param source: SBML path or string
     :param promote: promote local parameters to global parameters
     :param validate: validate file
-    :param log_errors: validation flag
-    :param units_consistency: validation flag
-    :param modeling_practice: validation flag
-    :param internal_consistency: validation flag
+    :param validation_options: options for validation
 
-    :return: SBMLDocument
+    :return: libsbml.SBMLDocument
     """
     doc: libsbml.SBMLDocument
     if isinstance(source, str) and "<sbml" in source:
-        doc = libsbml.readSBMLFromString(source)  # type: ignore
+        doc = libsbml.readSBMLFromString(source)
     else:
         if not isinstance(source, Path):
             logger.error(
@@ -48,11 +47,11 @@ def read_sbml(
             )
             source = Path(source)
 
-        doc = libsbml.readSBMLFromFile(str(source))  # type: ignore
+        doc = libsbml.readSBMLFromFile(str(source))
 
     # promote local parameters
     if promote:
-        doc = promote_local_variables(doc)  # type: ignore
+        doc = promote_local_variables(doc)
 
     # check for errors
     if doc.getNumErrors() > 0:
@@ -63,18 +62,14 @@ def read_sbml(
         else:
             err_message = "SBMLDocumentErrors encountered while reading the SBML file."
 
-        validation.log_sbml_errors_for_doc(doc)
-        err_message = f"read_sbml error '{source}': {err_message}"
-        logger.error(err_message)
+        log_sbml_errors_for_doc(doc)
+        logger.error(f"`read_sbml` error '{source}': {err_message}")
 
     if validate:
-        validation.validate_doc(
+        validate_doc(
             doc=doc,
-            name=str(source),
-            log_errors=log_errors,
-            units_consistency=units_consistency,
-            modeling_practice=modeling_practice,
-            internal_consistency=internal_consistency,
+            options=validation_options,
+            title=str(source),
         )
 
     return doc
@@ -82,30 +77,24 @@ def read_sbml(
 
 def write_sbml(
     doc: libsbml.SBMLDocument,
-    filepath: Union[Path] = None,
+    filepath: Optional[Path] = None,
+    validate: bool = False,
+    validation_options: ValidationOptions = ValidationOptions(),
     program_name: str = None,
     program_version: str = None,
-    validate: bool = False,
-    log_errors: bool = True,
-    units_consistency: bool = True,
-    modeling_practice: bool = True,
-    internal_consistency: bool = True,
 ) -> str:
     """Write SBMLDocument to file or string.
 
     To write the SBML to string use 'filepath=None', which returns the SBML string.
 
-    Optional validation with validate flag.
+    The file can be validated during writing via the validate flag.
 
     :param doc: SBMLDocument to write
     :param filepath: output file to write
-    :param validate: flag for validation (True: full validation, False: no validation)
+    :param validate: flag for validation
+    :param validation_options: validation flag
     :param program_name: Program name for SBML file
     :param program_version: Program version for SBML file
-    :param log_errors: validation flag
-    :param units_consistency: validation flag
-    :param modeling_practice: validation flag
-    :param internal_consistency: validation flag
 
     :return: None or SBML string
     """
@@ -115,52 +104,43 @@ def write_sbml(
     if program_version:
         writer.setProgramVersion(program_version)
 
+    # write file
+    sbml_str: Optional[str] = None
     if filepath is None:
         sbml_str = writer.writeSBMLToString(doc)
         source = sbml_str
     else:
         writer.writeSBMLToFile(doc, str(filepath))
-        sbml_str = None
         source = filepath
 
+    # validation
     if validate:
         validate_sbml(
             source=source,
-            name=source,
-            log_errors=log_errors,
-            units_consistency=units_consistency,
-            modeling_practice=modeling_practice,
-            internal_consistency=internal_consistency,
+            title=source,
+            validation_options=validation_options,
         )
-    return sbml_str  # type: ignore
+
+    return sbml_str
 
 
 def validate_sbml(
     source: Union[str, Path],
-    name: str = None,
-    log_errors: bool = True,
-    units_consistency: bool = True,
-    modeling_practice: bool = True,
-    internal_consistency: bool = True,
-) -> validation.ValidationResult:
+    validation_options: ValidationOptions = ValidationOptions,
+    title: str = None,
+) -> ValidationResult:
     """Check given SBML source.
 
     :param source: SBML path or string
-    :param name: identifier or path for report
-    :param units_consistency: boolean flag units consistency
-    :param modeling_practice: boolean flag modeling practise
-    :param internal_consistency: boolean flag internal consistency
-    :param log_errors: boolean flag of errors should be logged
-    :return: Nall, Nerr, Nwarn (number of all warnings/errors, errors and warnings)
+    :param validation_options: options for validation
+    :param title: title for validation report (should be filname or model name)
+    :return: ValidationResult
     """
-    doc = read_sbml(source)
-    return validation.validate_doc(
-        doc,
-        name=name,
-        log_errors=log_errors,
-        units_consistency=units_consistency,
-        modeling_practice=modeling_practice,
-        internal_consistency=internal_consistency,
+    doc = read_sbml(source, validate=False)
+    return validate_doc(
+        doc=doc,
+        options=validation_options,
+        title=title,
     )
 
 
@@ -190,19 +170,3 @@ def promote_local_variables(
     else:
         logger.info(f"Promotion of local paramters successful: {doc}")
     return doc
-
-
-@deprecated
-def write_model_to_sbml(model: libsbml.Model, filepath: Path) -> None:
-    """Write SBML Model to file.
-
-    An empty SBMLDocument is created for the model.
-
-    :param model: SBML Model
-    :param filepath: output path
-
-    :return: None
-    """
-    doc = libsbml.SBMLDocument()
-    doc.setModel(model)
-    write_sbml(doc=doc, filepath=filepath)

@@ -3,6 +3,8 @@
 The model dictionary can be used for rendering the HTML report.
 The information can be serialized to JSON for later rendering in web app.
 """
+from __future__ import annotations
+
 import hashlib
 import json
 import pprint
@@ -55,7 +57,7 @@ class SBMLDocumentInfo:
         self.info = self.create_info()
 
     @staticmethod
-    def from_sbml(source: Union[Path, str]) -> "SBMLDocumentInfo":
+    def from_sbml(source: Union[Path, str]) -> SBMLDocumentInfo:
         """Read model info from SBML."""
         doc: libsbml.SBMLDocument = read_sbml(source)
         return SBMLDocumentInfo(doc=doc)

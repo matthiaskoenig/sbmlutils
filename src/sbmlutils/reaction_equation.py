@@ -50,6 +50,8 @@ from typing import Final, Iterable, List, Optional
 class EquationPart:
     """EquationPart.
 
+    # FIXME: this must be a SpeciesReference, but circular imports!
+
     An equation consists of parts which define species with their respective
     stoichiometries. The stoichiometries could be constant or vary over time.
 
@@ -70,6 +72,8 @@ class EquationPart:
     metaId: Optional[str] = field(default=None, repr=False)
     sboTerm: Optional[str] = field(default=None, repr=False)
     name: Optional[str] = field(default=None, repr=False)
+    annotations: Optional[List] = field(default=None, repr=False)
+    notes: Optional[str] = field(default=None, repr=False)
 
 
 REVERSIBILITY_PATTERN: Final = r"<[-=]>"

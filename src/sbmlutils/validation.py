@@ -1,5 +1,6 @@
 """Helpers for validation and checking of SBML and libsbml operations."""
 import time
+from dataclasses import dataclass
 from typing import Iterable, List, Optional
 
 import libsbml
@@ -35,6 +36,83 @@ def check(value: int, message: str) -> bool:
             valid = False
 
     return valid
+
+
+@dataclass
+class ValidationOptions:
+    """Options for SBML validator.
+
+    Controls the consistency checks that are performed when
+    SBMLDocument.checkConsistency() is called.
+
+    * `general_consistency`: Correctness and consistency of
+    specific SBML language constructs. Performing this set of checks is
+    highly recommended.  With respect to the SBML specification, these
+    concern failures in applying the validation rules numbered 2xxxx in
+    the Level 2 Versions 2-4 and Level 3 Versions 1-2 specifications.
+
+    * `ìdentifier_consistency`: Correctness and consistency of
+    identifiers used for model entities.  An example of inconsistency
+    would be using a species identifier in a reaction rate formula without
+    first having declared the species.  With respect to the SBML
+    specification, these concern failures in applying the validation rules
+    numbered 103xx in the Level 2 Versions 2-4 and Level 3 Versions 1-2
+    specifications.
+
+    * `units_consistency`: Consistency of measurement units
+    associated with quantities in a model. With respect to the SBML
+    specification, these concern failures in applying the validation rules
+    numbered 105xx in the Level 2 Versions 2-4 and Level 3 Versions 1-2
+    specifications.
+
+    * `mathml_consistency`: Syntax of MathML constructs.  With
+    respect to the SBML specification, these concern failures in applying
+    the validation rules numbered 102xx in the Level 2 Versions 2-4 and
+    Level 3 Versions 1-2 specifications.
+
+    * `sbo_consistency`: Consistency and validity of SBO
+    identifiers (if any) used in the model. With respect to the SBML
+    specification, these concern failures in applying the validation rules
+    numbered 107xx in the Level 2 Versions 2-4 and Level 3 Versions 1-2
+    specifications.
+
+    * `overdetermined_model`: Static analysis of whether the
+    system of equations implied by a model is mathematically
+    overdetermined.  With respect to the SBML specification, this is
+    validation rule #10601 in the Level 2 Versions 2-4 and Level 3
+    Versions 1-2 specifications.
+
+    * `modeling_practise`: Additional checks for recommended
+    good modeling practice. (These are tests performed by libSBML and do
+    not have equivalent SBML validation rules.)  By default, all
+    validation checks are applied to the model in an SBMLDocument object
+    unless SBMLDocument.setConsistencyChecks() is called to indicate that
+    only a subset should be applied.  Further, this default (i.e.,
+    performing all checks) applies separately to each new SBMLDocument
+    object created.  In other words, each time a model is read using
+    SBMLReader.readSBML(), SBMLReader.readSBMLFromString(), or the global
+    functions readSBML() and readSBMLFromString(), a new SBMLDocument is
+    created and for that document, a call to
+    SBMLDocument.checkConsistency() will default to applying all possible
+    checks. Calling programs must invoke
+    SBMLDocument.setConsistencyChecks() for each such new model if they
+    wish to change the consistency checks applied.
+
+    * `internal_consistency`: Additional checks that model is consistent XML.
+
+    * `log_errors` Boolean flag to log errors.
+    """
+
+    log_errors: bool = True
+    internal_consistency: bool = True
+
+    general_consistency: bool = True
+    identifier_consistency: bool = True
+    mathml_consistency: bool = True
+    units_consistency: bool = True
+    sbo_consistency: bool = True
+    overdetermined_model: bool = True
+    modeling_practice: bool = True
 
 
 class ValidationResult:
@@ -139,46 +217,62 @@ def error_string(error: libsbml.SBMLError, index: int = None) -> tuple:
 
 def validate_doc(
     doc: libsbml.SBMLDocument,
-    name: Optional[str] = None,
-    log_errors: bool = True,
-    units_consistency: bool = True,
-    modeling_practice: bool = True,
-    internal_consistency: bool = True,
+    options: ValidationOptions = ValidationOptions(),
+    title: Optional[str] = None,
 ) -> ValidationResult:
     """Validate SBMLDocument.
 
     :param doc: SBMLDocument to check
-    :param name: identifier or path for report
-    :param log_errors: boolean flag of errors should be logged
-    :param units_consistency: boolean flag units consistency
-    :param modeling_practice: boolean flag modeling practise
-    :param internal_consistency: boolean flag internal consistency
+    :param title: identifier or path for validation report
+    :param options: validation options and settings.
 
     :return: ValidationResult
     """
-    if not name:
-        name = str(doc)
-    if str(name).startswith("/"):
-        name = "file://" + str(name)
 
-    # set the unit checking, similar for the other settings
-    doc.setConsistencyChecks(libsbml.LIBSBML_CAT_UNITS_CONSISTENCY, units_consistency)
-    doc.setConsistencyChecks(libsbml.LIBSBML_CAT_MODELING_PRACTICE, modeling_practice)
+    if not title:
+        title = str(doc)
+    if str(title).startswith("/"):
+        title = f"file://{title}"
+
+    # set the consistency
+    doc.setConsistencyChecks(
+        libsbml.LIBSBML_CAT_GENERAL_CONSISTENCY, options.general_consistency
+    )
+    doc.setConsistencyChecks(
+        libsbml.LIBSBML_CAT_IDENTIFIER_CONSISTENCY, options.identifier_consistency
+    )
+    doc.setConsistencyChecks(
+        libsbml.LIBSBML_CAT_MATHML_CONSISTENCY, options.mathml_consistency
+    )
+    doc.setConsistencyChecks(
+        libsbml.LIBSBML_CAT_UNITS_CONSISTENCY, options.units_consistency
+    )
+    doc.setConsistencyChecks(
+        libsbml.LIBSBML_CAT_SBO_CONSISTENCY, options.sbo_consistency
+    ),
+    doc.setConsistencyChecks(
+        libsbml.LIBSBML_CAT_OVERDETERMINED_MODEL, options.overdetermined_model
+    )
+    doc.setConsistencyChecks(
+        libsbml.LIBSBML_CAT_SBO_CONSISTENCY, options.sbo_consistency
+    ),
 
     # time
     current = time.perf_counter()
 
-    # all, error, warn
-    if internal_consistency:
-        results_internal = _check_consistency(doc, internal_consistency=True)
+    # check the document
+    if options.internal_consistency:
+        results_internal: ValidationResult = _check_consistency(
+            doc, internal_consistency=True
+        )
     else:
-        results_internal = ValidationResult()
+        results_internal: ValidationResult = ValidationResult()
     results_not_internal = _check_consistency(doc, internal_consistency=False)
 
     # sum up
     vresults = ValidationResult.from_results([results_internal, results_not_internal])
 
-    lines = [str(name), f"{'valid':<25}: {str(vresults.is_valid()).upper()}"]
+    lines = [str(title), f"{'valid':<25}: {str(vresults.is_valid()).upper()}"]
     if not vresults.is_perfect():
         lines += [
             f"{'validation error(s)':<25}: {vresults.error_count}",
@@ -205,7 +299,7 @@ def validate_doc(
     console.print()
 
     # individual error and warning report
-    if log_errors:
+    if options.log_errors:
         vresults.log()
 
     return vresults

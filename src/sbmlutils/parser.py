@@ -1,13 +1,20 @@
-"""Parse Models in internal model format."""
+"""Parse Models in internal model format.
+
+FIXME: no support for notes
+FIXME: no support for modelHistory
+
+"""
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import libsbml
 
 from sbmlutils.factory import *
 from sbmlutils.io.sbml import read_sbml
 from sbmlutils.log import get_logger
+from sbmlutils.metadata import BQB, BQM
 from sbmlutils.reaction_equation import EquationPart
+from sbmlutils.report.sbmlinfo import SBMLDocumentInfo
 
 
 logger = get_logger(__name__)
@@ -38,18 +45,37 @@ def sbml_to_model(
 
     def parse_sbase_kwargs(sbase: libsbml.SBase) -> Dict[str, Any]:
         """Parse SBase information in dictionary."""
-        kwargs: Dict[str, Any] = {}
-        kwargs["sid"] = sbase.getId() if sbase.isSetId() else None
-        kwargs["metaId"] = sbase.getMetaId() if sbase.isSetMetaId() else None
-        kwargs["name"] = sbase.getName() if sbase.isSetName() else None
-        kwargs["sboTerm"] = sbase.getSBOTermID() if sbase.isSetSBOTerm() else None
+        d = SBMLDocumentInfo.sbase_dict(sbase)
+        kwargs = {
+            "sid": d["id"],
+            "name": d["name"],
+            "metaId": d["metaId"],
+            "sboTerm": d["sbo"],
+            "annotations": [],
+        }
 
-        # FIXME:
         # annotations
+        if d["cvterms"]:
+            for cvterm in d["cvterms"]:
+                qualifier_str = cvterm["qualifier"]
+                qualifier: Union[BQB, BQM]
+                if qualifier_str.startswith("BQB_"):
+                    qualifier = BQB.__getitem__(qualifier_str[4:])
+                elif qualifier_str.startswith("BQM_"):
+                    qualifier = BQM.__getitem__(qualifier_str[4:])
+
+                for resource in cvterm["resources"]:
+                    kwargs["annotations"].append((qualifier, resource))
+
+        # model history
+        # FIXME: currently not supported consistently, see
+        # https: // github.com / matthiaskoenig / sbmlutils / issues / 416
+
         # notes
-        # port
-        # uncertainties
-        # replacedBy
+        # FIXME: support merging of notes, see
+
+        # if d["notes"]:
+        #     kwargs["notes"] = d["notes"]  # This is an XML string.
 
         return kwargs
 
@@ -191,13 +217,13 @@ def sbml_to_model(
             )
 
     # events
-
     # constraints
 
+    # FIXME:
+    # comp
+    # ports
     # fbc
-
     # groups
-
     # distrib
 
     return m
@@ -217,3 +243,4 @@ if __name__ == "__main__":
         sbml_level=3,
         sbml_version=2,
     )
+    SBMLDocumentInfo.from_sbml(Path(__file__).parent / "repressilator.xml")
