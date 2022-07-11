@@ -2,7 +2,6 @@
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
 from sbmlutils.metadata import *
-from sbmlutils.resources import EXAMPLES_DIR
 
 
 class U(Units):
@@ -13,7 +12,7 @@ class U(Units):
     mole_per_s = UnitDefinition("mole_per_s", "mole/s")
 
 
-_m = Model(
+model = Model(
     sid="fbc_mass_charge",
     name="fbc model with mass and charge balance",
     packages=["fbc"],
@@ -132,8 +131,8 @@ _m = Model(
 )
 
 # write custom annotations:
-if _m.species:
-    for s in _m.species:
+if model.species:
+    for s in model.species:
         if s.sid == "glc":
             for item in [
                 "bigg.metabolite/glc__D",
@@ -145,8 +144,8 @@ if _m.species:
                     s.annotations = []
                 s.annotations.append((BQB.IS, item))
 
-if _m.reactions:
-    for r in _m.reactions:
+if model.reactions:
+    for r in model.reactions:
         if r.sid == "HEX1":
             for item in [
                 "ec-code/2.7.1.1",
@@ -159,14 +158,9 @@ if _m.reactions:
                 r.annotations.append((BQB.IS, item))
 
 
-def create(tmp: bool = False) -> None:
-    """Create model."""
-    create_model(
-        models=_m,
-        output_dir=EXAMPLES_DIR,
-        tmp=tmp,
-    )
-
-
 if __name__ == "__main__":
-    create()
+    from sbmlutils.resources import EXAMPLES_DIR
+    create_model(
+        model=model,
+        filepath=EXAMPLES_DIR / f"{model.sid}.xml"
+    )

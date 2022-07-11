@@ -7,7 +7,7 @@ from pymetadata.omex import ManifestEntry, Omex
 from sbmlutils.factory import Model, create_model
 from sbmlutils.parser import sbml_to_model
 from sbmlutils.resources import BIOMODELS_CURATED_PATH, sbml_paths_idfn
-
+from sbmlutils.validation import ValidationOptions
 
 sbml_paths = []
 for k in range(100):
@@ -31,10 +31,9 @@ def test_model_from_biomodels_omex(sbml_path: Path, tmp_path: Path) -> None:
             m: Model = sbml_to_model(sbml_path)
             print(m)
             create_model(
-                models=m,
-                output_dir=tmp_path,
-                filename="model.xml",
-                units_consistency=False,
+                model=m,
+                filepath=tmp_path / "models.xml",
                 sbml_level=3,
                 sbml_version=2,
+                validation_options=ValidationOptions(units_consistency=False)
             )

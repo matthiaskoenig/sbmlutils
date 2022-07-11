@@ -1,12 +1,10 @@
 """Example for model composition via multiple models."""
-from pathlib import Path
-
+from sbmlutils.resources import EXAMPLES_DIR
 from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.examples.minimal_model import model_minimal
 from sbmlutils.factory import *
 from sbmlutils.metadata import *
-from sbmlutils.resources import EXAMPLES_DIR
-
+from sbmlutils.validation import ValidationOptions
 
 model = Model(
     sid="model_composition",
@@ -21,13 +19,12 @@ model = Model(
 )
 
 
-def create(tmp: bool = False) -> FactoryResult:
+def create() -> FactoryResult:
     """Create model."""
     return create_model(
-        models=[model_minimal, model],
-        output_dir=EXAMPLES_DIR,
-        units_consistency=False,
-        tmp=tmp,
+        model=[model_minimal, model],
+        filepath=EXAMPLES_DIR / f"{model.sid}.xml",
+        validation_options=ValidationOptions(units_consistency=False),
     )
 
 

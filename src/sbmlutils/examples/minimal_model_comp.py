@@ -1,15 +1,12 @@
 """Example creating composite model."""
-from pathlib import Path
-from typing import List
 
 from sbmlutils.factory import *
 from sbmlutils.metadata import *
-from sbmlutils.resources import EXAMPLES_DIR
-
+from sbmlutils.validation import ValidationOptions
 
 n_cells = 10
 # -------------------------------------------------------------------------------------
-_m = Model(
+model = Model(
     "minimal_model_comp",
     notes="""
     Hierarchical model reusing the minimal model in composite model coupling.
@@ -17,13 +14,13 @@ _m = Model(
 )
 
 # create grid of compartments with main species
-_m.compartments = []
-_m.species = []
+model.compartments = []
+model.species = []
 for k in range(n_cells):
-    _m.compartments.append(
+    model.compartments.append(
         Compartment(sid=f"cell{k}", value=1.0),
     )
-    _m.species.append(
+    model.species.append(
         Species(
             sid=f"S{k}",
             # metaId=f"meta_S{k}",
@@ -32,12 +29,12 @@ for k in range(n_cells):
         )
     )
 
-_m.parameters = [Parameter("D", 0.01)]
+model.parameters = [Parameter("D", 0.01)]
 
 # transport reactions to couple cells
-_m.reactions = []
+model.reactions = []
 for k in range(n_cells - 1):
-    _m.reactions.append(
+    model.reactions.append(
         Reaction(
             sid=f"J{k}", equation=f"S{k} <-> S{k+1}", formula=f"D * (S{k}-S{k+1})"
         ),
@@ -45,17 +42,17 @@ for k in range(n_cells - 1):
 
 # -------------------------------------------------------------------------------------
 # model coupling
-_m.external_model_definitions = []
-_m.replaced_elements = []
-_m.submodels = []
+model.external_model_definitions = []
+model.replaced_elements = []
+model.submodels = []
 for k in range(n_cells):
-    _m.external_model_definitions.append(
+    model.external_model_definitions.append(
         ExternalModelDefinition(
             sid=f"emd{k}", source="minimal_model.xml", modelRef="minimal_model"
         ),
     )
-    _m.submodels.append(Submodel(sid=f"submodel{k}", modelRef=f"emd{k}"))
-    _m.replaced_elements.extend(
+    model.submodels.append(Submodel(sid=f"submodel{k}", modelRef=f"emd{k}"))
+    model.replaced_elements.extend(
         [
             # replace compartments
             ReplacedElement(
@@ -78,22 +75,17 @@ for k in range(n_cells):
 # -------------------------------------------------------------------------------------
 
 
-def create(tmp: bool = False) -> FactoryResult:
-    """Create model."""
-    return create_model(
-        models=_m,
-        output_dir=EXAMPLES_DIR,
-        units_consistency=False,
-        tmp=tmp,
-    )
-
-
 if __name__ == "__main__":
+    from sbmlutils.resources import EXAMPLES_DIR
     from sbmlutils.comp import flatten_sbml
     from sbmlutils.cytoscape import visualize_sbml
 
-    fac_result = create()
-    sbml_path_flat = Path(__file__).parent / "comp_model_flat.xml"
+    fac_result = create_model(
+        model=model,
+        filepath=EXAMPLES_DIR / f"{model.sid}.xml",
+        validation_options=ValidationOptions(units_consistency=False)
+    )
+    sbml_path_flat = EXAMPLES_DIR / f"{model.sid}_flat.xml"
 
     # flatten SBML model
     flatten_sbml(fac_result.sbml_path, sbml_flat_path=sbml_path_flat)

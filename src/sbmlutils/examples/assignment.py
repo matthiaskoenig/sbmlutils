@@ -17,7 +17,7 @@ class U(Units):
 
 
 model = Model(
-    "assignment_example",
+    "assignment",
     name="model with assignments",
     creators=templates.creators,
     notes="""

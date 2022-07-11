@@ -1,7 +1,7 @@
 """Distrib example demonstrating distributions."""
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
-from sbmlutils.resources import EXAMPLES_DIR
+from sbmlutils.validation import ValidationOptions
 
 
 class U(Units):
@@ -11,27 +11,29 @@ class U(Units):
     m2 = UnitDefinition("m2", "meter^2")
 
 
-_m = Model("distrib_distributions", name="model with distrib distributions")
-_m.packages = ["distrib"]
-_m.creators = templates.creators
-_m.notes = (
+model = Model(
+    "distrib_distributions",
+    name="model with distrib distributions",
+    packages=["distrib"],
+    creators=templates.creators,
+    notes=
     """
     # Distrib example
+
     Example creating distrib model with distribution elements.
-    """
-    + templates.terms_of_use
-)
-_m.units = U
-_m.model_units = ModelUnits(
-    time=U.hr,
-    extent=U.mole,
-    substance=U.mole,
-    length=U.meter,
-    area=U.m2,
-    volume=U.liter,
+    """ + templates.terms_of_use,
+    units=U,
+    model_units = ModelUnits(
+        time=U.hr,
+        extent=U.mole,
+        substance=U.mole,
+        length=U.meter,
+        area=U.m2,
+        volume=U.liter,
+    ),
 )
 
-_m.assignments = [
+model.assignments = [
     InitialAssignment("p_normal_1", "normal(0, 1)"),
     InitialAssignment("p_normal_2", "normal(0, 1, 0, 10)"),
     InitialAssignment("p_uniform", "uniform(5, 10)"),
@@ -57,15 +59,10 @@ _m.assignments = [
 ]
 
 
-def create(tmp: bool = False) -> None:
-    """Create model."""
-    create_model(
-        models=_m,
-        output_dir=EXAMPLES_DIR,
-        tmp=tmp,
-        units_consistency=False,
-    )
-
-
 if __name__ == "__main__":
-    create()
+    from sbmlutils.resources import EXAMPLES_DIR
+    create_model(
+        model=model,
+        filepath=EXAMPLES_DIR / f"{model.sid}.xml",
+        validation_options=ValidationOptions(units_consistency=False)
+    )

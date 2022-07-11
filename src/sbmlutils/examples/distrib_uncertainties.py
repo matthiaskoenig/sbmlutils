@@ -1,9 +1,8 @@
-"""Distrib uncertainty example."""
+"""Uncertainty example."""
 import libsbml
 
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
-from sbmlutils.resources import EXAMPLES_DIR
 
 
 class U(Units):
@@ -13,7 +12,7 @@ class U(Units):
     m2 = UnitDefinition("m2", "meter^2")
 
 
-_m = Model(
+model = Model(
     "distrib_uncertainties",
     name="""model with distrib uncertainties""",
     packages=["distrib"],
@@ -38,6 +37,8 @@ _m = Model(
             value=1.0,
             unit=U.mole,
             constant=True,
+            notes="""
+            """,
             uncertainties=[
                 Uncertainty(
                     formula="normal(2.0, 2.0)",
@@ -63,14 +64,10 @@ _m = Model(
 )
 
 
-def create(tmp: bool = False) -> None:
-    """Create model."""
-    create_model(
-        models=_m,
-        output_dir=EXAMPLES_DIR,
-        tmp=tmp,
-    )
-
-
 if __name__ == "__main__":
-    create()
+
+    from sbmlutils.resources import EXAMPLES_DIR
+    create_model(
+        model=model,
+        filepath=EXAMPLES_DIR / f"{model.sid}.xml"
+    )

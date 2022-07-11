@@ -2,12 +2,9 @@
 
 This demonstrates just the very core SBML functionality.
 """
-from pathlib import Path
-
 from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.factory import *
-from sbmlutils.resources import EXAMPLES_DIR
-
+from sbmlutils.validation import ValidationOptions
 
 model_minimal = Model(
     sid="minimal_model",
@@ -27,17 +24,11 @@ model_minimal = Model(
     ],
 )
 
-
-def create(tmp: bool = False) -> FactoryResult:
-    """Create model."""
-    return create_model(
-        models=model_minimal,
-        output_dir=EXAMPLES_DIR,
-        units_consistency=False,
-        tmp=tmp,
-    )
-
-
 if __name__ == "__main__":
-    fac_result = create()
+    from sbmlutils.resources import EXAMPLES_DIR
+    fac_result = create_model(
+        model=model_minimal,
+        filepath=EXAMPLES_DIR / f"{model_minimal.sid}.xml",
+        validation_options=ValidationOptions(units_consistency=False)
+    )
     visualize_sbml(sbml_path=fac_result.sbml_path, delete_session=True)

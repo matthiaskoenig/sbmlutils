@@ -48,12 +48,12 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import libsbml
 
-from sbmlutils import __version__
 from sbmlutils import factory as fac
 from sbmlutils.converters import xpp_helpers
 from sbmlutils.factory import Event, Function
 from sbmlutils.io import sbml
 from sbmlutils.notes import NotesFormat
+from sbmlutils.validation import  ValidationOptions
 
 
 XPP_ODE = "ode"
@@ -637,6 +637,8 @@ def xpp2sbml(
         doc,
         sbml_file,
         validate=validate,
-        units_consistency=False,
+        validation_options=ValidationOptions(
+            units_consistency=False,
+        )
     )
     return doc

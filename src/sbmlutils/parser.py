@@ -15,7 +15,7 @@ from sbmlutils.log import get_logger
 from sbmlutils.metadata import BQB, BQM
 from sbmlutils.reaction_equation import EquationPart
 from sbmlutils.report.sbmlinfo import SBMLDocumentInfo
-
+from sbmlutils.validation import ValidationOptions
 
 logger = get_logger(__name__)
 
@@ -23,10 +23,7 @@ logger = get_logger(__name__)
 def sbml_to_model(
     source: Union[Path, str],
     validate: bool = False,
-    log_errors: bool = True,
-    units_consistency: bool = True,
-    modeling_practice: bool = True,
-    internal_consistency: bool = True,
+    validation_options=ValidationOptions(),
 ) -> Model:
     """Parse SBML model.
 
@@ -36,10 +33,7 @@ def sbml_to_model(
         source=source,
         promote=True,
         validate=validate,
-        log_errors=log_errors,
-        units_consistency=units_consistency,
-        modeling_practice=modeling_practice,
-        internal_consistency=internal_consistency,
+        validation_options=validation_options,
     )
     model: libsbml.Model = doc.getModel()
 
@@ -233,14 +227,15 @@ if __name__ == "__main__":
     from sbmlutils.console import console
     from sbmlutils.resources import REPRESSILATOR_SBML
 
+    model_path: Path = Path(__file__).parent / "repressilator.xml"
+
     m = sbml_to_model(REPRESSILATOR_SBML)
     console.print(m)
     create_model(
-        models=m,
-        output_dir=Path(__file__).parent,
-        filename="repressilator.xml",
-        units_consistency=False,
+        model=m,
+        filepath=model_path,
         sbml_level=3,
         sbml_version=2,
+        validation_options=ValidationOptions(units_consistency=False),
     )
-    SBMLDocumentInfo.from_sbml(Path(__file__).parent / "repressilator.xml")
+    SBMLDocumentInfo.from_sbml(model_path)

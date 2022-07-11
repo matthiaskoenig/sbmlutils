@@ -1,9 +1,7 @@
 """Multiple model definitions."""
-from typing import List
-
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
-from sbmlutils.resources import EXAMPLES_DIR
+from sbmlutils.validation import ValidationOptions
 
 
 class U(Units):
@@ -14,7 +12,7 @@ class U(Units):
     m2 = UnitDefinition("m2", "meter^2")
 
 
-_m = Model(
+model = Model(
     "model_definitions",
     creators=templates.creators,
     notes="""
@@ -44,11 +42,11 @@ _m = Model(
 )
 
 
-_m.model_definitions = [
+model.model_definitions = [
     ModelDefinition(
         sid="m1",
         name="Model Definition 1",
-        units=_m.units,
+        units=model.units,
         compartments=[Compartment("d", value=1.0, unit=U.liter)],
         species=[
             Species(
@@ -63,15 +61,12 @@ _m.model_definitions = [
     )
 ]
 
-
-def create(tmp: bool = False) -> None:
-    """Create model."""
-    create_model(
-        models=_m,
-        output_dir=EXAMPLES_DIR,
-        tmp=tmp,
-    )
-
-
 if __name__ == "__main__":
-    create()
+    # FIXME: model units are not correct
+
+    from sbmlutils.resources import EXAMPLES_DIR
+    create_model(
+        model=model,
+        filepath=EXAMPLES_DIR / f"{model.sid}.xml",
+        validation_options=ValidationOptions(units_consistency=False)
+    )

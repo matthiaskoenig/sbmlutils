@@ -77,16 +77,14 @@ def create(tmp: bool = False) -> None:
         output_dir = Path(tmp_dir)
     else:
         output_dir = EXAMPLES_DIR
-    sbml_path_flat = output_dir / "distrib_comp_flat.xml"
 
     result = create_model(
-        models=_m,
-        output_dir=output_dir,
+        model=_m,
+        filepath=EXAMPLES_DIR / "distrib_comp.xml"
     )
 
+    sbml_path_flat = output_dir / "distrib_comp_flat.xml"
     flatten_sbml(result.sbml_path, sbml_flat_path=sbml_path_flat)
-    # create model report
-    # sbmlreport.create_report(sbml_path_flat)
 
     if tmp:
         shutil.rmtree(tmp_dir)

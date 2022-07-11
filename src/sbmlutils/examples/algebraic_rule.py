@@ -18,7 +18,7 @@ class U(Units):
 
 
 model = Model(
-    "algebraic_rule_example",
+    "algebraic_rule",
     name="model with AlgebraicRule",
     creators=templates.creators,
     notes="""

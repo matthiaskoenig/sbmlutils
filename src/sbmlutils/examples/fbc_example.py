@@ -2,7 +2,6 @@
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
 from sbmlutils.metadata.sbo import *
-from sbmlutils.resources import EXAMPLES_DIR
 
 
 class U(Units):
@@ -15,7 +14,7 @@ class U(Units):
     mmole_per_hr = UnitDefinition("mmole_per_hr", "mmole/hr")
 
 
-_m = Model(
+model = Model(
     "fbc_example",
     packages=["fbc"],
     creators=templates.creators,
@@ -35,7 +34,7 @@ _m = Model(
     ),
 )
 
-_m.compartments = [
+model.compartments = [
     Compartment(
         sid="bioreactor",
         value=1.0,
@@ -46,7 +45,7 @@ _m.compartments = [
     ),
 ]
 
-_m.species = [
+model.species = [
     Species(
         sid="Glcxt",
         name="glucose",
@@ -89,7 +88,7 @@ FLUX_BOUND_GLC_IMPORT = "glc_import"
 FLUX_BOUND_O2_IMPORT = "o2_import"
 
 
-_m.parameters = [
+model.parameters = [
     # bounds
     Parameter(
         sid=FLUX_BOUND_ZERO,
@@ -137,7 +136,7 @@ _m.parameters = [
 # Reactions
 # -----------------------------------------------------------------------------
 # metabolic reactions
-_m.reactions = [
+model.reactions = [
     Reaction(
         sid="v1",
         name="v1 (39.43 Ac + 35 O2 -> X)",
@@ -160,14 +159,14 @@ _m.reactions = [
     ),
 ]
 
-for rt in _m.reactions:
+for rt in model.reactions:
     if rt.sid in ["v1", "v2", "v3", "v4"]:
         rt.compartment = "bioreactor"
         rt.lowerFluxBound = FLUX_BOUND_ZERO
         rt.upperFluxBound = FLUX_BOUND_PLUS_INF
 
 # exchange reactions
-_m.reactions.extend(
+model.reactions.extend(
     [
         ExchangeReaction(
             species_id="Ac",
@@ -196,7 +195,7 @@ _m.reactions.extend(
 # -----------------------------------------------------------------------------
 # Objective function
 # -----------------------------------------------------------------------------
-_m.objectives = [
+model.objectives = [
     Objective(
         sid="biomass_max",
         objectiveType="maximize",
@@ -206,14 +205,9 @@ _m.objectives = [
 ]
 
 
-def create(tmp: bool = False) -> None:
-    """Create model."""
-    create_model(
-        models=_m,
-        output_dir=EXAMPLES_DIR,
-        tmp=tmp,
-    )
-
-
 if __name__ == "__main__":
-    create()
+    from sbmlutils.resources import EXAMPLES_DIR
+    create_model(
+        model=model,
+        filepath=EXAMPLES_DIR / f"{model.sid}.xml"
+    )

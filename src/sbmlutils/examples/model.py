@@ -25,7 +25,7 @@ class U(Units):
 
 
 model = Model(
-    sid="complete_model",
+    sid="model",
     packages=["distrib", "fbc"],
     notes="""
     # Complete model
