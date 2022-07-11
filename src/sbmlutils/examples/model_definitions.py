@@ -62,7 +62,6 @@ model.model_definitions = [
 ]
 
 if __name__ == "__main__":
-    # FIXME: model units are not correct
 
     from sbmlutils.resources import EXAMPLES_DIR
     create_model(

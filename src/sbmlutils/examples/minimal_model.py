@@ -6,7 +6,7 @@ from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.factory import *
 from sbmlutils.validation import ValidationOptions
 
-model_minimal = Model(
+model = Model(
     sid="minimal_model",
     packages=["fbc"],
     compartments=[
@@ -27,8 +27,8 @@ model_minimal = Model(
 if __name__ == "__main__":
     from sbmlutils.resources import EXAMPLES_DIR
     fac_result = create_model(
-        model=model_minimal,
-        filepath=EXAMPLES_DIR / f"{model_minimal.sid}.xml",
+        model=model,
+        filepath=EXAMPLES_DIR / f"{model.sid}.xml",
         validation_options=ValidationOptions(units_consistency=False)
     )
     visualize_sbml(sbml_path=fac_result.sbml_path, delete_session=True)

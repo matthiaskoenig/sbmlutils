@@ -80,7 +80,7 @@ model.assignments = [
 model.rules = [
     AssignmentRule(
         "Cve", "A/Vblood", U.mg_per_l,
-        name="rule to caluclate concentration",
+        name="rule to calulate concentration",
         notes="""
         Assignment rule to calculate the concentration `Cve` in [mg/l] from the
         species `A` and the volume `Vblood`.

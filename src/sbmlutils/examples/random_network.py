@@ -1,18 +1,17 @@
 """Example creating random network."""
 import random
-from pathlib import Path
 
 from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.factory import *
 from sbmlutils.resources import EXAMPLES_DIR
-
+from sbmlutils.validation import ValidationOptions
 
 random.seed(1234)
 n_species = 20
 n_links = 30
 
 # -------------------------------------------------------------------------------------
-_m = Model(
+model = Model(
     "random_network",
     compartments=[
         Compartment(sid="cell", value=1.0),
@@ -27,12 +26,12 @@ _m = Model(
     reactions=[],
 )
 
-_m.reactions = []
+model.reactions = []
 for k in range(n_links):
     k_source = random.randint(0, n_species - 1)
     k_target = random.randint(0, n_species - 1)
 
-    _m.reactions.append(
+    model.reactions.append(
         Reaction(
             sid=f"J{k+1}",
             equation=f"S{k_source} -> S{k_target}",
@@ -41,17 +40,10 @@ for k in range(n_links):
     )
 # -------------------------------------------------------------------------------------
 
-
-def create(tmp: bool = False) -> FactoryResult:
-    """Create model."""
-    return create_model(
-        models=_m,
-        output_dir=EXAMPLES_DIR,
-        units_consistency=False,
-        tmp=tmp,
-    )
-
-
 if __name__ == "__main__":
-    fac_result = create()
+    fac_result: FactoryResult = create_model(
+        model=model,
+        filepath=EXAMPLES_DIR / f"{model.sid}.xml",
+        validation_options=ValidationOptions(units_consistency=False)
+    )
     visualize_sbml(sbml_path=fac_result.sbml_path)

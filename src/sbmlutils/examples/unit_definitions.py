@@ -48,7 +48,7 @@ class U(Units):
     mg_per_day = UnitDefinition("mg_per_day", "mg/day")
 
 
-_m = Model(
+model = Model(
     "unit_definitions",
     name="model with UnitDefinitions",
     notes="""
@@ -69,10 +69,8 @@ _m = Model(
 )
 
 
-def create(tmp: bool = False) -> None:
-    """Create model."""
-    create_model(models=_m, output_dir=EXAMPLES_DIR, tmp=tmp, units_consistency=False)
-
-
 if __name__ == "__main__":
-    create()
+    create_model(
+        model=model,
+        filepath=EXAMPLES_DIR / f"{model.sid}.xml"
+    )

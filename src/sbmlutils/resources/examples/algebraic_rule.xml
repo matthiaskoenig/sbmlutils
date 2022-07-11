@@ -7,12 +7,10 @@
         <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.5525390.svg" alt="DOI"/></a></p>
       </body>
     </notes>
-  <model metaid="meta_assignment_example" id="assignment_example" name="model with assignments" substanceUnits="mg" timeUnits="hr" volumeUnits="litre" areaUnits="m2" lengthUnits="metre" extentUnits="mg">
+  <model metaid="meta_algebraic_rule" id="algebraic_rule" name="model with AlgebraicRule" substanceUnits="mg" timeUnits="hr" volumeUnits="litre" areaUnits="m2" lengthUnits="metre" extentUnits="mg">
     <notes>
       <body xmlns="http://www.w3.org/1999/xhtml">
-        <h1>Example model demonstrating <code>InitialAssignment</code> and <code>AssignmentRule</code>.</h1>
-        <p>InitalAssignments allow to set values at the initial timepoint of simulation.
-AssignmentRules are evaluated at every time point.</p>
+        <h1>Example model demonstrating <code>AlgebraicRule</code>.</h1>
         <h2>Terms of use</h2>
         <p>The content of this model has been carefully created in a manual research effort.
 This file has been created by <a href="https://livermetabolism.com">Matthias König</a>
@@ -37,7 +35,7 @@ FOR A PARTICULAR PURPOSE.</p></body>
       </notes>
     <annotation>
       <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#" xmlns:vCard4="http://www.w3.org/2006/vcard/ns#" xmlns:bqbiol="http://biomodels.net/biology-qualifiers/" xmlns:bqmodel="http://biomodels.net/model-qualifiers/">
-        <rdf:Description rdf:about="#meta_assignment_example">
+        <rdf:Description rdf:about="#meta_algebraic_rule">
           <dcterms:creator>
             <rdf:Bag>
               <rdf:li rdf:parseType="Resource">
@@ -108,89 +106,24 @@ FOR A PARTICULAR PURPOSE.</p></body>
       </unitDefinition>
     </listOfUnitDefinitions>
     <listOfParameters>
-      <parameter id="D" name="total dose" value="NaN" units="mg" constant="false">
-        <notes>
-          <body xmlns="http://www.w3.org/1999/xhtml">
-            <p>The parameter does not have an initial value set.
-An InitialAssignment is used to set the parameter.</p>
-          </body>
-        </notes>
-      </parameter>
-      <parameter id="A" name="amount in blood" value="0" units="mg" constant="true"/>
-      <parameter id="IVDOSE" name="intravenous dose" value="0" units="mg" constant="true"/>
-      <parameter id="PODOSE" name="oral dose" value="100" units="mg" constant="true"/>
-      <parameter id="k1" name="rate constant for dose" value="0.1" units="l_per_hr" constant="true"/>
-      <parameter id="BW" name="body weight" value="70" units="kg" constant="true"/>
-      <parameter id="FVblood" name="fractional volume of the blood" value="0.05" units="l_per_kg" constant="true"/>
-      <parameter id="Vblood" name="blood volume" value="NaN" units="litre" constant="true"/>
-      <parameter id="Cve" name="rule to caluclate concentration" value="NaN" units="mg_per_l" constant="false"/>
+      <parameter id="Atot" name="total A" value="20" units="mg" constant="true"/>
+      <parameter id="A1" name="A1" value="15" units="mg" constant="false"/>
+      <parameter id="A2" name="A2" value="5" units="mg" constant="false"/>
     </listOfParameters>
-    <listOfInitialAssignments>
-      <initialAssignment symbol="D">
-        <notes>
-          <body xmlns="http://www.w3.org/1999/xhtml">
-            <p>Using an InitialAssignment to set the total dose at the beginning
-of the simulation as sum from iv and oral dose.
-The target parameter <code>D</code> of the initial assignment exists in the model.</p>
-          </body>
-        </notes>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <plus/>
-            <ci> PODOSE </ci>
-            <ci> IVDOSE </ci>
-          </apply>
-        </math>
-      </initialAssignment>
-      <initialAssignment symbol="Vblood">
-        <notes>
-          <body xmlns="http://www.w3.org/1999/xhtml">
-            <p>Calculating the blood volume via an Initial assignment.
-The target of the initial assignment <code>Vblood</code> does not exist in the model
-so a corresponding parameter for the assignment is generated.</p>
-            <pre>
-              <code>    The `sid` can be used to set the id of the assignment.
-</code>
-            </pre>
-          </body>
-        </notes>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <times/>
-            <ci> BW </ci>
-            <ci> FVblood </ci>
-          </apply>
-        </math>
-      </initialAssignment>
-    </listOfInitialAssignments>
     <listOfRules>
-      <assignmentRule variable="Cve">
-        <notes>
-          <body xmlns="http://www.w3.org/1999/xhtml">
-            <p>Assignment rule to calculate the concentration <code>Cve</code> in [mg/l] from the
-species <code>A</code> and the volume <code>Vblood</code>.</p>
-          </body>
-        </notes>
+      <algebraicRule>
         <math xmlns="http://www.w3.org/1998/Math/MathML">
           <apply>
-            <divide/>
-            <ci> A </ci>
-            <ci> Vblood </ci>
-          </apply>
-        </math>
-      </assignmentRule>
-      <rateRule variable="D">
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
-          <apply>
-            <times/>
+            <minus/>
+            <ci> Atot </ci>
             <apply>
-              <minus/>
-              <ci> k1 </ci>
+              <plus/>
+              <ci> A1 </ci>
+              <ci> A2 </ci>
             </apply>
-            <ci> Cve </ci>
           </apply>
         </math>
-      </rateRule>
+      </algebraicRule>
     </listOfRules>
   </model>
 </sbml>

@@ -4,70 +4,31 @@ from typing import Any
 
 import pytest
 
-from sbmlutils.examples import (
-    algebraic_rule,
-    annotation,
-    assignment,
-    compartment_species_reaction,
-
-    distrib_comp,
-    distrib_distributions,
-    distrib_uncertainties,
-    fbc_example,
-    fbc_mass_charge,
-    linear_chain,
-    minimal_model,
-    minimal_model_comp,
-    model_composition,
-    model_definitions,
-    multiple_substance_units,
-    notes,
-    model,
-    parameter,
-    random_network,
-    reaction,
-    reaction_with_units,
-    species,
-    unit_definitions,
-    units_namespace,
-)
-from sbmlutils.examples.dallaman import factory as dallaman_factory
-from sbmlutils.examples.demo import factory as demo_factory
-from sbmlutils.examples.tiny_model import factory as tiny_factory
+from sbmlutils.factory import create_model
+from sbmlutils.examples import examples_models, examples_create
+from sbmlutils.io import validate_sbml
+from sbmlutils.validation import ValidationResult, ValidationOptions
 
 
-testdata = [
-    algebraic_rule,
-    annotation,
-    assignment,
-    compartment_species_reaction,
-    distrib_comp,
-    distrib_distributions,
-    distrib_uncertainties,
-    fbc_example,
-    fbc_mass_charge,
-    linear_chain,
-    minimal_model,
-    minimal_model_comp,
-    model_composition,
-    model_definitions,
-    multiple_substance_units,
-    notes,
-    model,
-    random_network,
-    parameter,
-    reaction,
-    reaction_with_units,
-    species,
-    unit_definitions,
-    units_namespace,
-    dallaman_factory,
-    demo_factory,
-    tiny_factory,
-]
-
-
-@pytest.mark.parametrize("module", testdata)
+@pytest.mark.parametrize("module", examples_create)
 def test_create_model(tmp_path: Path, module: Any) -> None:
     """Test create model."""
     module.create(tmp=True)
+
+
+@pytest.mark.parametrize("module", examples_models)
+def test_create_model(tmp_path: Path, module: Any) -> None:
+    """Test create model."""
+    model_path: Path = tmp_path / f"model.xml"
+    results = create_model(
+        model=module.model,
+        filepath=model_path,
+    )
+    assert model_path.exists()
+
+    # check that valid model
+    vresults: ValidationResult = validate_sbml(
+        source=results.sbml_path,
+        validation_options=ValidationOptions(units_consistency=False)
+    )
+    assert vresults.error_count == 0
