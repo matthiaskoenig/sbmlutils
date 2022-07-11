@@ -1,4 +1,8 @@
-"""Example model with meta-data annotations."""
+"""Annotation example.
+
+Model demonstrates how to annotate model objects with SBOTerms and Terms from
+other ontologies. Annotations use the functionality from `pymetadata`.
+"""
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
 from sbmlutils.metadata import *

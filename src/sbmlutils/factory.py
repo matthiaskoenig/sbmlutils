@@ -1209,9 +1209,10 @@ class InitialAssignment(Value):
 
     def __init__(
         self,
-        sid: str,
+        symbol: str,
         value: Union[str, float],
         unit: UnitType = Units.dimensionless,
+        sid: Optional[str] = None,
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
@@ -1234,6 +1235,7 @@ class InitialAssignment(Value):
             uncertainties=uncertainties,
             replacedBy=replacedBy,
         )
+        self.symbol = symbol
         self.unit = unit
 
     def create_sbml(self, model: libsbml.Model) -> libsbml.InitialAssignment:
@@ -1242,21 +1244,27 @@ class InitialAssignment(Value):
         Creates a required parameter if the symbol for the
         initial assignment does not exist in the model.
         """
-        sid = self.sid
         # Create parameter if not existing
         if (
-            (not model.getParameter(sid))
-            and (not model.getSpecies(sid))
-            and (not model.getCompartment(sid))
-            and (not model.getSpeciesReference(sid))
+            (not model.getParameter(self.symbol))
+            and (not model.getSpecies(self.symbol))
+            and (not model.getCompartment(self.symbol))
+            and (not model.getSpeciesReference(self.symbol))
         ):
             Parameter(
-                sid=sid, value=None, unit=self.unit, constant=True, name=self.name  # type: ignore
+                sid=self.symbol, value=None, unit=self.unit, constant=True, name=self.name
             ).create_sbml(model)
+
+        # Check if rule exists
+        if model.getInitialAssignmentBySymbol(self.symbol):
+            logger.error(
+                f"InitialAssignment for symbol '{self.symbol}' already exists in model: . "
+                f"InitialAssignment will be overwritten '{self.value}'"
+            )
 
         obj: libsbml.InitialAssignment = model.createInitialAssignment()
         self._set_fields(obj, model)
-        obj.setSymbol(sid)
+        obj.setSymbol(self.symbol)
         ast_node = ast_node_from_formula(model, str(self.value))
         obj.setMath(ast_node)
 
@@ -1300,10 +1308,10 @@ class RuleWithVariable:
                 p.setConstant(False)
 
         # Check if rule exists
-        if model.getRule(self.variable):
-            logger.warning(
-                f"Rule with variable '{self.variable}' already exists in model: . "
-                f"Rule not updated with '{self.value}'"
+        if model.getRuleByVariable(self.variable):
+            logger.error(
+                f"Rule with target variable `{self.variable}` already exists in model: . "
+                f"Existing rule will be overwritten with `{self.value}`."
             )
 
 

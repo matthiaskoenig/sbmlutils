@@ -17,7 +17,7 @@ class U(Units):
     mg_per_hr = UnitDefinition("mg_per_hr", "mg/hr")
 
 
-_m = Model(
+m = Model(
     "algebraic_rule_example",
     name="model with AlgebraicRule",
     creators=templates.creators,
@@ -36,27 +36,19 @@ _m = Model(
     ),
 )
 
-_m.parameters = [
+m.parameters = [
     Parameter("Atot", 20, U.mg, constant=True, name="total A"),
     Parameter("A1", 15, U.mg, constant=False, name="A1"),
     Parameter("A2", 5, U.mg, constant=False, name="A2"),
 ]
 
-_m.algebraic_rules = [
+m.algebraic_rules = [
     AlgebraicRule("Atot - (A1 + A2)", unit=U.mg),
 ]
 
-model = _m
-
-# FIXME: remove this duplicated code
-def create(tmp: bool = False) -> None:
-    """Create model."""
-    create_model(
-        model=model,
-        filepath=EXAMPLES_DIR / f"{model.sid}.xml",
-    )
-
-
 
 if __name__ == "__main__":
-    create()
+    create_model(
+        model=m,
+        filepath=EXAMPLES_DIR / f"{m.sid}.xml",
+    )

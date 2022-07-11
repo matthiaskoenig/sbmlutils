@@ -291,7 +291,6 @@ class ModelAnnotator:
             else:
                 # returns the first element with id
                 # FIXME: this is very slow in a loop, better solution required via
-                #
                 e = model.getElementBySId(sid)
             if e is None:
                 if sid == model.getId():

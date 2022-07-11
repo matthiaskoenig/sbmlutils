@@ -1,4 +1,5 @@
 """Example model creation."""
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -70,6 +71,6 @@ testdata = [
 
 
 @pytest.mark.parametrize("module", testdata)
-def test_create_model(module: Any) -> None:
+def test_create_model(tmp_path: Path, module: Any) -> None:
     """Test create model."""
     module.create(tmp=True)
