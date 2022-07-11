@@ -1,8 +1,7 @@
-"""Example model for creating an SBML ODE model."""
+"""Compartment, Species, Reaction example."""
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
 from sbmlutils.metadata.sbo import *
-from sbmlutils.resources import EXAMPLES_DIR
 
 
 class U(Units):
@@ -117,14 +116,9 @@ model = Model(
 )
 
 
-def create(tmp: bool = False) -> None:
-    """Create model."""
-    create_model(
-        models=model,
-        output_dir=EXAMPLES_DIR,
-        tmp=tmp,
-    )
-
-
 if __name__ == "__main__":
-    create()
+    from sbmlutils.resources import EXAMPLES_DIR
+    create_model(
+        model=model,
+        filepath=EXAMPLES_DIR / f"{model.sid}.xml"
+    )

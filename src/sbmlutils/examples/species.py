@@ -55,13 +55,15 @@ model = Model(
             notes="""
             Species in amounts. The unit of the species is the `substanceUnit`,
             i.e. [mmole].
+            The boundary condition has been set to `true` for the species, i.e.,
+            the species value will stay constant.
             """,
             name="glucose",
             compartment="Vc",
             initialAmount=5.0,
             substanceUnit=U.mmole,
             hasOnlySubstanceUnits=True,
-            boundaryCondition=False,
+            boundaryCondition=True,
             sboTerm=SBO.SIMPLE_CHEMICAL,
         ),
         Species(

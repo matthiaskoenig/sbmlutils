@@ -16,7 +16,7 @@ class U(Units):
     mg_per_hr = UnitDefinition("mg_per_hr", "mg/hr")
 
 
-m = Model(
+model = Model(
     "assignment_example",
     name="model with assignments",
     creators=templates.creators,
@@ -38,7 +38,7 @@ m = Model(
     ),
 )
 
-m.parameters = [
+model.parameters = [
     # dosing
     Parameter(
         "D", NaN, U.mg, name="total dose", constant=False,
@@ -55,7 +55,7 @@ m.parameters = [
     Parameter("FVblood", 0.05, U.l_per_kg, name="fractional volume of the blood"),
 ]
 
-m.assignments = [
+model.assignments = [
     InitialAssignment(
         "D", "PODOSE +  IVDOSE", U.mg,
         name="total dose",
@@ -77,7 +77,7 @@ m.assignments = [
     ),
 ]
 
-m.rules = [
+model.rules = [
     AssignmentRule(
         "Cve", "A/Vblood", U.mg_per_l,
         name="rule to caluclate concentration",
@@ -88,7 +88,7 @@ m.rules = [
     ),
 ]
 
-m.rate_rules = [
+model.rate_rules = [
     RateRule(
         "D", "-k1*Cve", U.mg_per_hr,
         name="rule for the change of D"
@@ -99,6 +99,6 @@ m.rate_rules = [
 if __name__ == "__main__":
     from sbmlutils.resources import EXAMPLES_DIR
     create_model(
-        model=m,
-        filepath=EXAMPLES_DIR / f"{m.sid}.xml"
+        model=model,
+        filepath=EXAMPLES_DIR / f"{model.sid}.xml"
     )

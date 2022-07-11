@@ -24,7 +24,7 @@ class U(Units):
     l_per_min = UnitDefinition("l_per_min", "l/min")
 
 
-_m = Model(
+model = Model(
     sid="complete_model",
     packages=["distrib", "fbc"],
     notes="""
@@ -44,7 +44,7 @@ _m = Model(
         volume=U.liter,
     ),
 )
-_m.compartments = [
+model.compartments = [
     Compartment(
         sid="cell",
         metaId="meta_cell",
@@ -81,7 +81,7 @@ _m.compartments = [
         ],
     ),
 ]
-_m.species = [
+model.species = [
     Species(
         sid="S1",
         metaId="meta_S1",
@@ -115,7 +115,7 @@ _m.species = [
         annotations=[(BQB.IS, "chebi/CHEBI:58225")],
     ),
 ]
-_m.parameters = [
+model.parameters = [
     Parameter(
         sid="k1",
         value=0.1,
@@ -124,7 +124,7 @@ _m.parameters = [
         sboTerm=SBO.KINETIC_CONSTANT,
     ),
 ]
-_m.reactions = [
+model.reactions = [
     Reaction(
         sid="J0",
         name="hexokinase",
@@ -156,23 +156,15 @@ _m.reactions = [
         annotations=[(BQB.IS, "uniprot/P17710")],
     ),
 ]
-_m.constraints = [
+model.constraints = [
     Constraint("J0_lb_constraint", math="J0 >= J0_lb"),
     Constraint("J0_ub_constraint", math="J0 >= J0_ub"),
 ]
 
 
-def create(tmp: bool = False) -> FactoryResult:
-    """Create model."""
-    return create_model(
-        models=_m,
-        output_dir=EXAMPLES_DIR,
-        # now unit valid model
-        units_consistency=True,
-        tmp=tmp,
-    )
-
-
 if __name__ == "__main__":
-    fac_result = create()
+    fac_result: FactoryResult = create_model(
+        model=model,
+        filepath=EXAMPLES_DIR / f"{model.sid}.xml"
+    )
     visualize_sbml(sbml_path=fac_result.sbml_path)
