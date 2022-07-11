@@ -46,6 +46,7 @@ m.parameters = [
         An InitialAssignment is used to set the parameter.
         """
     ),
+    Parameter("A", 0, U.mg, name="amount in blood"),
     Parameter("IVDOSE", 0, U.mg, name="intravenous dose"),
     Parameter("PODOSE", 100, U.mg, name="oral dose"),
     Parameter("k1", 0.1, U.l_per_hr, name="rate constant for dose"),
@@ -78,17 +79,19 @@ m.assignments = [
 
 m.rules = [
     AssignmentRule(
-        "Cve", "Ave/Vve", U.mg_per_l,
+        "Cve", "A/Vblood", U.mg_per_l,
+        name="rule to caluclate concentration",
         notes="""
         Assignment rule to calculate the concentration `Cve` in [mg/l] from the
-        species `Ave` and the volume `Vve`.
+        species `A` and the volume `Vblood`.
         """
     ),
 ]
 
 m.rate_rules = [
     RateRule(
-        "D", "-k1*Cve", U.mg_per_hr
+        "D", "-k1*Cve", U.mg_per_hr,
+        name="rule for the change of D"
     ),
 ]
 

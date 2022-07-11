@@ -45,8 +45,7 @@ from sbmlutils.metadata.annotator import Annotation
 from sbmlutils.notes import Notes, NotesFormat
 from sbmlutils.reaction_equation import EquationPart, ReactionEquation
 from sbmlutils.utils import FrozenClass, create_metaid, deprecated
-from sbmlutils.validation import check
-
+from sbmlutils.validation import check, ValidationOptions
 
 try:
     from typing import TypedDict
@@ -3061,12 +3060,9 @@ def create_model(
     filepath: Path,
     sbml_level: int = SBML_LEVEL,
     sbml_version: int = SBML_VERSION,
-    annotations: Path = None,
     validate: bool = True,
-    log_errors: bool = True,
-    units_consistency: bool = True,
-    modeling_practice: bool = True,
-    internal_consistency: bool = True,
+    validation_options: ValidationOptions = ValidationOptions(),
+    annotations: Path = None,
 ) -> FactoryResult:
     """Create SBML model from models.
 
@@ -3080,12 +3076,9 @@ def create_model(
     :param filepath: Path to write the SBML model to
     :param sbml_level: set SBML level for model generation
     :param sbml_version: set SBML version for model generation
-    :param annotations: Path to annotations file
     :param validate: boolean flag to validate the SBML file
-    :param log_errors: boolean flag to log errors
-    :param units_consistency: boolean flag to check units consistency
-    :param modeling_practice: boolean flag to check modeling practise
-    :param internal_consistency: boolean flag to check internal consistency
+    :param validation_options: options for model validation
+    :param annotations: Path to annotations file
 
     :return: FactoryResult
     """
@@ -3102,7 +3095,7 @@ def create_model(
 
     # create and write SBML
     doc: libsbml.SBMLDocument = Document(
-        model=model,
+        model=m,
         sbml_level=sbml_level,
         sbml_version=sbml_version,
     ).create_sbml()
@@ -3111,10 +3104,7 @@ def create_model(
         doc=doc,
         filepath=filepath,
         validate=validate,
-        log_errors=log_errors,
-        units_consistency=units_consistency,
-        modeling_practice=modeling_practice,
-        internal_consistency=internal_consistency,
+        validation_options=validation_options,
     )
 
     # annotation of model (overwrites file)

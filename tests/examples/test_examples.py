@@ -6,7 +6,6 @@ import pytest
 
 from sbmlutils.examples import (
     algebraic_rule,
-    amount_species,
     annotation,
     assignment,
     boundary_condition,
@@ -28,6 +27,7 @@ from sbmlutils.examples import (
     parameter,
     random_network,
     reaction,
+    species,
     simple_reaction_with_units,
     unit_definitions,
     units_namespace,

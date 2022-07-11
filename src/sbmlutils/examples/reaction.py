@@ -5,10 +5,9 @@ from sbmlutils.examples import templates
 from sbmlutils.factory import *
 from sbmlutils.metadata import *
 from sbmlutils.reaction_equation import EquationPart
-from sbmlutils.resources import EXAMPLES_DIR
 
 
-_m = Model(
+model = Model(
     "reaction",
     name="model with reaction",
     notes="""
@@ -119,15 +118,9 @@ _m = Model(
 )
 
 
-def create(tmp: bool = False) -> None:
-    """Create model."""
-    create_model(
-        models=_m,
-        output_dir=EXAMPLES_DIR,
-        tmp=tmp,
-        units_consistency=False,
-    )
-
-
 if __name__ == "__main__":
-    create()
+    from sbmlutils.resources import EXAMPLES_DIR
+    create_model(
+        model=model,
+        filepath=EXAMPLES_DIR / f"{model.sid}.xml"
+    )

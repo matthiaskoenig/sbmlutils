@@ -1,11 +1,8 @@
-"""Example simple_reaction.
+"""Reaction example."""
 
-Model with single irreversible reaction v1: A -> B.
-"""
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
 from sbmlutils.metadata import *
-from sbmlutils.resources import EXAMPLES_DIR
 
 
 class U(Units):
@@ -20,13 +17,15 @@ class U(Units):
     liter = UnitDefinition("liter", "liter")
 
 
-_m = Model(
+model = Model(
     "simple_reaction_with_units",
     name="model reaction with units",
     notes="""
     # Model reaction with units
+
     This example demonstrates how to create a compartment, species and reaction.
     The model uses units.
+    Model with single irreversible reaction v1: A -> B.
     """
     + templates.terms_of_use,
     creators=templates.creators,
@@ -85,14 +84,9 @@ _m = Model(
 )
 
 
-def create(tmp: bool = False) -> None:
-    """Create model."""
-    create_model(
-        models=_m,
-        output_dir=EXAMPLES_DIR,
-        tmp=tmp,
-    )
-
-
 if __name__ == "__main__":
-    create()
+    from sbmlutils.resources import EXAMPLES_DIR
+    create_model(
+        model=model,
+        filepath=EXAMPLES_DIR / f"{model.sid}.xml"
+    )
