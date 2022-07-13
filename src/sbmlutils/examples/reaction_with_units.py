@@ -18,7 +18,7 @@ class U(Units):
 
 
 model = Model(
-    "simple_reaction_with_units",
+    "reaction_with_units",
     name="model reaction with units",
     notes="""
     # Model reaction with units

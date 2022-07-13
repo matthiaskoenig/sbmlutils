@@ -115,13 +115,11 @@ interpolation_paths = [
 ]
 
 example_ids = [
-    "amount_species",
+    "algebraic_rule",
     "annotation",
     "assignment",
-    "boundary_condition",
-    "compartment_species_reaction",
-    "complete_model",
     "distrib_comp",
+    "distrib_comp_flat",
     "distrib_distributions",
     "distrib_uncertainties",
     "fbc_example",
@@ -129,14 +127,16 @@ example_ids = [
     "linear_chain",
     "minimal_model",
     "minimal_model_comp",
+    "minimal_model_comp_flat",
     "model_composition",
     "model_definitions",
     "multiple_substance_units",
-    "nan",
     "notes",
+    "parameter",
     "random_network",
     "reaction",
-    "simple_reaction_with_units",
+    "reaction_with_units",
+    "species",
     "unit_definitions",
     "units_namespace",
 ]
@@ -176,9 +176,12 @@ ALL_SBML_PATHS = (
     + interpolation_paths
 )
 
-BIOMODELS_CURATED_PATH = MODELS_DIR / "biomodels_curated"
+BIOMODELS_CURATED_PATH = MODELS_DIR / "biomodels"
 
 
 def sbml_paths_idfn(sbml_path: Path) -> str:
     """Helper function to inject Path in tests name."""
     return sbml_path.name
+
+
+SBML_TESTSUITE_DIR = MODELS_DIR / "sbml-test-suite-3.4.0"

@@ -18,7 +18,7 @@ class U(Units):
 
 
 _m = Model(
-    "parameter_example",
+    "parameter",
     name="model with parameters",
     creators=templates.creators,
     notes="""

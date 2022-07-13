@@ -136,7 +136,7 @@ def validate_sbml(
     :param title: title for validation report (should be filname or model name)
     :return: ValidationResult
     """
-    doc = read_sbml(source, validate=False)
+    doc = read_sbml(source, promote=False, validate=False)
     return validate_doc(
         doc=doc,
         options=validation_options,

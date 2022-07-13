@@ -10,7 +10,7 @@ from typing import Any, Dict, List, Optional, Union
 import libsbml
 
 from sbmlutils.factory import *
-from sbmlutils.io.sbml import read_sbml
+from sbmlutils.io.sbml import read_sbml, validate_sbml
 from sbmlutils.log import get_logger
 from sbmlutils.metadata import BQB, BQM
 from sbmlutils.reaction_equation import EquationPart
@@ -23,7 +23,7 @@ logger = get_logger(__name__)
 def sbml_to_model(
     source: Union[Path, str],
     validate: bool = False,
-    validation_options=ValidationOptions(),
+    validation_options: object = ValidationOptions(),
 ) -> Model:
     """Parse SBML model.
 
@@ -181,7 +181,13 @@ def sbml_to_model(
     for ia in model.getListOfInitialAssignments():
         ast: Optional[libsbml.ASTNode] = ia.getMath() if ia.isSetMath() else None
         formula: Optional[str] = libsbml.formulaToL3String(ast) if ast else None
-        m.assignments.append(InitialAssignment(value=formula, **parse_sbase_kwargs(ia)))
+        m.assignments.append(
+            InitialAssignment(
+                symbol=ia.getSymbol() if ia.isSetSymbol() else None,
+                value=formula,
+                **parse_sbase_kwargs(ia)
+            )
+        )
 
     # rules
     rule: libsbml.Rule
@@ -225,17 +231,60 @@ def sbml_to_model(
 
 if __name__ == "__main__":
     from sbmlutils.console import console
-    from sbmlutils.resources import REPRESSILATOR_SBML
+    # from sbmlutils.resources import REPRESSILATOR_SBML
+    #
+    # model_path: Path = Path(__file__).parent / "repressilator.xml"
+    #
+    # m = sbml_to_model(REPRESSILATOR_SBML)
+    # console.print(m)
+    # create_model(
+    #     model=m,
+    #     filepath=model_path,
+    #     sbml_level=3,
+    #     sbml_version=2,
+    #     validation_options=ValidationOptions(units_consistency=False),
+    # )
+    # SBMLDocumentInfo.from_sbml(model_path)
 
-    model_path: Path = Path(__file__).parent / "repressilator.xml"
 
-    m = sbml_to_model(REPRESSILATOR_SBML)
-    console.print(m)
-    create_model(
-        model=m,
-        filepath=model_path,
-        sbml_level=3,
-        sbml_version=2,
-        validation_options=ValidationOptions(units_consistency=False),
+    # model = sbml_to_model(source=sbml_path, validate=True, validation_options=ValidationOptions(
+    #     units_consistency=False)
+    # )
+
+
+    sbml_path = Path("/home/mkoenig/Downloads/semantic/00927/00927-sbml-l1v2.xml")
+    validate_sbml(source=sbml_path, validation_options=ValidationOptions(units_consistency=False))
+
+
+    doc = libsbml.readSBMLFromFile(str(sbml_path))
+    doc.setConsistencyChecks(
+        libsbml.LIBSBML_CAT_GENERAL_CONSISTENCY, True
     )
-    SBMLDocumentInfo.from_sbml(model_path)
+    doc.setConsistencyChecks(
+        libsbml.LIBSBML_CAT_IDENTIFIER_CONSISTENCY, True
+    )
+    doc.setConsistencyChecks(
+        libsbml.LIBSBML_CAT_MATHML_CONSISTENCY, True
+    )
+    doc.setConsistencyChecks(
+        libsbml.LIBSBML_CAT_UNITS_CONSISTENCY, True
+    )
+    doc.setConsistencyChecks(
+        libsbml.LIBSBML_CAT_SBO_CONSISTENCY, True
+    ),
+    doc.setConsistencyChecks(
+        libsbml.LIBSBML_CAT_OVERDETERMINED_MODEL, True
+    )
+    doc.setConsistencyChecks(
+        libsbml.LIBSBML_CAT_SBO_CONSISTENCY, True
+    ),
+
+    count = doc.checkInternalConsistency()
+    # count = doc.checkConsistency()
+    if count > 0:
+        for i in range(count):
+            print(f"*** Error {i}")
+            error: libsbml.SBMLError = doc.getError(i)
+            print(error.getMessage())
+    else:
+        print("no errors")

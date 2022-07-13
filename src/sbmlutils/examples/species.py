@@ -19,7 +19,7 @@ class U(Units):
 
 
 model = Model(
-    sid="species_example",
+    sid="species",
     name="model with species in amounts and concentrations",
     notes="""
     # Example model with species in amounts and concentrations
