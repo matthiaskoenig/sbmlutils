@@ -35,7 +35,7 @@ def check(value: int, message: str) -> bool:
 
 
 # create document with new fbc version 3 namespace
-sbmlns: libsbml.SBMLNamespaces = libsbml.SBMLNamespaces(3, 2)
+sbmlns: libsbml.SBMLNamespaces = libsbml.SBMLNamespaces(3, 1)
 sbmlns.addPkgNamespace("fbc", 3)
 
 
@@ -71,34 +71,47 @@ check(kvp.setKey("testdata"), "Set Key on KeyValuePair")
 check(kvp.setValue("1.0"), "Set Value on KeyValuePair")
 
 
-# Support exists for user constraints (FIXME: naming of classes different to spec)
-# s2: libsbml.Species = model.createSpecies()
-# s2.setId("s2")
-# s2.setCompartment("c1")
-# s2.setInitialConcentration(1.0)
-# s2.setConstant(True)
-# s2.setHasOnlySubstanceUnits(False)
-# s2.setBoundaryCondition(False)
-#
-# p1: libsbml.Parameter = model.createParameter()
-# p1.setId("lb")
-# p1.setValue(-100)
-# p1.setConstant(True)
-#
-# p2: libsbml.Parameter = model.createParameter()
-# p2.setId("ub")
-# p2.setValue(100)
-# p2.setConstant(True)
-#
-# constraint: libsbml.UserDefinedConstraint = model_fbc.createUserDefinedConstraint()
-# constraint.setId("constraint1")
-# constraint.setLowerBound("lb")
-# constraint.setUpperBound("ub")
-#
-# component: libsbml.UserDefinedConstraintComponent = constraint.createUserDefinedConstraintComponent()
-# component.setCoefficient(10.0)
-# component.setVariable("s1")
-# component.setVariableType(libsbml.FBC_FBCVARIABLETYPE_LINEAR)
+s2: libsbml.Species = model.createSpecies()
+s2.setId("s2")
+s2.setCompartment("c1")
+s2.setInitialConcentration(1.0)
+s2.setConstant(True)
+s2.setHasOnlySubstanceUnits(False)
+s2.setBoundaryCondition(False)
+
+p1: libsbml.Parameter = model.createParameter()
+p1.setId("lb")
+p1.setValue(-100)
+p1.setConstant(True)
+
+p2: libsbml.Parameter = model.createParameter()
+p2.setId("ub")
+p2.setValue(100)
+p2.setConstant(True)
+
+# Support exists for user constraints
+reaction: libsbml.Reaction = model.createReaction()
+reaction.setId("r1")
+reaction.setReversible(True)
+reaction.setFast(False)
+reactant: libsbml.SpeciesReference = reaction.createReactant()
+reactant.setSpecies("s1")
+reactant.setConstant(True)
+reactant.setStoichiometry(1.0)
+product: libsbml.SpeciesReference = reaction.createProduct()
+product.setSpecies("s2")
+product.setConstant(True)
+product.setStoichiometry(1.0)
+
+constraint: libsbml.UserDefinedConstraint = model_fbc.createUserDefinedConstraint()
+constraint.setId("constraint1")
+constraint.setLowerBound("lb")
+constraint.setUpperBound("ub")
+
+component: libsbml.UserDefinedConstraintComponent = constraint.createUserDefinedConstraintComponent()
+component.setCoefficient(10.0)
+component.setVariable("r1")
+component.setVariableType(libsbml.FBC_FBCVARIABLETYPE_LINEAR)
 
 sbml_str: str = libsbml.writeSBMLToString(doc)
 print("-" * 80)
