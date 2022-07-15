@@ -15,8 +15,8 @@ class U(Units):
 
 
 model = Model(
-    "fbc_example",
-    packages=[Package.FBC_V2],
+    "fbc_v2",
+    packages=[Package.FBC_V3],
     creators=templates.creators,
     notes="""
     # Model with fbc version 2

@@ -2141,22 +2141,14 @@ class FluxObjective(Sbase):
 
     def create_sbml(self, objective: libsbml.Objective) -> libsbml.FluxObjective:
         """Create Objective."""
-        model_fbc: libsbml.FbcModelPlugin = model.getPlugin("fbc")
-        obj: libsbml.Objective = model_fbc.createObjective()
-        self._set_fields(obj, model)
-        obj.setType(self.objectiveType)
+        flux_objective: libsbml.FluxObjective = objective.createFluxObjective()
+        self._set_fields(flux_objective, model=objective.getModel())
 
-        if self.active:
-            model_fbc.setActiveObjectiveId(self.sid)
+        flux_objective.setReaction(self.reaction)
+        flux_objective.setCoefficient(self.coefficient)
+        flux_objective.setVariableType(self.variableType)
 
-        for fluxObjective in flux
-            # FIXME: check for rid
-            fluxObjective: libsbml.FluxObjective = obj.createFluxObjective()
-            fluxObjective.setReaction(rid)
-            fluxObjective.setCoefficient(coefficient)
-
-
-        return obj
+        return flux_objective
 
 
 class Objective(Sbase):
@@ -2220,7 +2212,7 @@ class Objective(Sbase):
                 )
         else:
             for flux_objective in fluxObjectives:
-                # infer varibleType from objective
+                # infer variableType from objective
                 if not flux_objective.variableType:
                     flux_objective.variableType = variableType
                 self.fluxObjectives.append(flux_objective)
@@ -2244,21 +2236,15 @@ class Objective(Sbase):
     def create_sbml(self, model: libsbml.Model) -> libsbml.Objective:
         """Create Objective."""
         model_fbc: libsbml.FbcModelPlugin = model.getPlugin("fbc")
-        obj: libsbml.Objective = model_fbc.createObjective()
-        self._set_fields(obj, model)
-        obj.setType(self.objectiveType)
-
+        objective: libsbml.Objective = model_fbc.createObjective()
+        self._set_fields(objective, model)
+        objective.setType(self.objectiveType)
         if self.active:
             model_fbc.setActiveObjectiveId(self.sid)
+        for flux_objective in self.fluxObjectives:
+            flux_objective.create_sbml(objective=objective)
 
-        for fluxObjective in flux
-            # FIXME: check for rid
-            fluxObjective: libsbml.FluxObjective = obj.createFluxObjective()
-            fluxObjective.setReaction(rid)
-            fluxObjective.setCoefficient(coefficient)
-
-
-        return obj
+        return objective
 
 
 class ModelDefinition(Sbase):
