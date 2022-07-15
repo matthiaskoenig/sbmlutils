@@ -20,13 +20,12 @@ from __future__ import annotations
 import datetime
 import inspect
 import json
-import shutil
-import tempfile
 from collections import namedtuple
 from copy import deepcopy
 from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Tuple, Type, Union
+from typing import Any, Dict, Iterable, List, Optional, Tuple, Type, Union, Set
 
 import libsbml
 import numpy as np
@@ -95,6 +94,7 @@ __all__ = [
     "ReplacedElement",
     "ReplacedBy",
     "Port",
+    "Package",
     "ModelDict",
     "Model",
     "Document",
@@ -2079,34 +2079,119 @@ class Constraint(Sbase):
             )
 
 
-class Objective(Sbase):
-    """Objective."""
+class FluxObjective(Sbase):
+    """FluxObjective."""
 
-    objective_types = [
-        libsbml.OBJECTIVE_TYPE_MAXIMIZE,
-        libsbml.OBJECTIVE_TYPE_MINIMIZE,
-        "maximize",
-        "minimize",
-        "max",
-        "min",
-    ]
+    fbc_variable_types: Set[str] = {
+        libsbml.FBC_FBCVARIABLETYPE_LINEAR,
+        libsbml.FBC_FBCVARIABLETYPE_QUADRATIC,
+        libsbml.FBC_FBCVARIABLETYPE_INVALID,
+        "linear",
+        "quadratic",
+        "invalid",
+    }
 
     def __init__(
         self,
-        sid: str,
-        objectiveType: str = libsbml.OBJECTIVE_TYPE_MAXIMIZE,
-        active: bool = True,
-        fluxObjectives: Optional[Dict[str, float]] = None,
+        reaction: str,
+        coefficient: float,
+        variableType: Optional[str] = None,
+        sid: Optional[str] = None,
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
         notes: Optional[str] = None,
         port: Any = None,
-        uncertainties: Optional[List["Uncertainty"]] = None,
+        uncertainties: Optional[List[Uncertainty]] = None,
         replacedBy: Optional[Any] = None,
     ):
-        """Create an Objective."""
+        """Create a FluxObjective."""
+        super(FluxObjective, self).__init__(
+            sid=sid,
+            name=name,
+            sboTerm=sboTerm,
+            metaId=metaId,
+            annotations=annotations,
+            notes=notes,
+            port=port,
+            uncertainties=uncertainties,
+            replacedBy=replacedBy,
+        )
+        self.reaction = reaction
+        self.coefficient = coefficient
+        self.variableType = variableType
+
+    @classmethod
+    def normalize_variable_type(cls, variable_type: str) -> str:
+        """Normalize variable type."""
+        if variable_type not in cls.fbc_variable_types:
+            raise ValueError(
+                f"Unsupported objective type `{variable_type}`. Supported are "
+                f"`{FluxObjective.fbc_variable_types}`."
+            )
+
+        if variable_type == "linear":
+            variable_type = libsbml.FBC_FBCVARIABLETYPE_LINEAR
+        elif variable_type == "quadratic":
+            variable_type = libsbml.FBC_FBCVARIABLETYPE_QUADRATIC
+        elif variable_type == "invalid":
+            variable_type = libsbml.FBC_FBCVARIABLETYPE_INVALID
+        return variable_type
+
+    def create_sbml(self, objective: libsbml.Objective) -> libsbml.FluxObjective:
+        """Create Objective."""
+        model_fbc: libsbml.FbcModelPlugin = model.getPlugin("fbc")
+        obj: libsbml.Objective = model_fbc.createObjective()
+        self._set_fields(obj, model)
+        obj.setType(self.objectiveType)
+
+        if self.active:
+            model_fbc.setActiveObjectiveId(self.sid)
+
+        for fluxObjective in flux
+            # FIXME: check for rid
+            fluxObjective: libsbml.FluxObjective = obj.createFluxObjective()
+            fluxObjective.setReaction(rid)
+            fluxObjective.setCoefficient(coefficient)
+
+
+        return obj
+
+
+class Objective(Sbase):
+    """Objective."""
+
+    objective_types: Set[str] = {
+        libsbml.OBJECTIVE_TYPE_MAXIMIZE,
+        libsbml.OBJECTIVE_TYPE_MINIMIZE,
+        "maximize",
+        "minimize",
+        "max",
+        "min",
+    }
+
+    def __init__(
+        self,
+        sid: str,
+        objectiveType: str = libsbml.OBJECTIVE_TYPE_MAXIMIZE,
+        active: bool = True,
+        fluxObjectives: Optional[Union[List[FluxObjective], Dict[str, float]]] = None,
+        variableType: str = libsbml.FBC_FBCVARIABLETYPE_LINEAR,
+        name: Optional[str] = None,
+        sboTerm: Optional[str] = None,
+        metaId: Optional[str] = None,
+        annotations: AnnotationsType = None,
+        notes: Optional[str] = None,
+        port: Any = None,
+        uncertainties: Optional[List[Uncertainty]] = None,
+        replacedBy: Optional[Any] = None,
+    ):
+        """Create an Objective.
+
+        FluxObjectives can either be provided as a list of FluxObjectives or as a
+        dictionary with the reaction ids as keys and the coefficients as values.
+        """
         super(Objective, self).__init__(
             sid=sid,
             name=name,
@@ -2118,68 +2203,62 @@ class Objective(Sbase):
             uncertainties=uncertainties,
             replacedBy=replacedBy,
         )
-        self.objectiveType = objectiveType
+        self.objectiveType = self.normalize_objective_type(objectiveType)
         self.active = active
-        self.fluxObjectives = fluxObjectives if fluxObjectives else {}
 
-        if self.objectiveType not in Objective.objective_types:
-            raise ValueError(
-                f"Unsupported objective type '{objectiveType}'. Supported are "
-                f"{Objective.objective_types}"
-            )
+        # normalize fluxObjectives
+        self.fluxObjectives: List[FluxObjective] = []
+        if isinstance(fluxObjectives, dict):
+            # create FluxObjectives from dict
+            for rid, coefficient in fluxObjectives.items():
+                self.fluxObjectives.append(
+                    FluxObjective(
+                        reaction=rid,
+                        coefficient=coefficient,
+                        variableType=variableType,
+                    )
+                )
         else:
-            if self.objectiveType in {"min", "minimize"}:
-                self.objectiveType = libsbml.OBJECTIVE_TYPE_MINIMIZE
-            elif self.objectiveType in {"max", "maximize"}:
-                self.objectiveType = libsbml.OBJECTIVE_TYPE_MAXIMIZE
+            for flux_objective in fluxObjectives:
+                # infer varibleType from objective
+                if not flux_objective.variableType:
+                    flux_objective.variableType = variableType
+                self.fluxObjectives.append(flux_objective)
+
+    @classmethod
+    def normalize_objective_type(cls, objective_type: str) -> str:
+        """Normalize objective type."""
+
+        if objective_type not in Objective.objective_types:
+            raise ValueError(
+                f"Unsupported objective type `{objective_type}`. Supported are "
+                f"`{Objective.objective_types}`."
+            )
+        if objective_type in {"min", "minimize"}:
+            objective_type = libsbml.OBJECTIVE_TYPE_MINIMIZE
+        elif objective_type in {"max", "maximize"}:
+            objective_type = libsbml.OBJECTIVE_TYPE_MAXIMIZE
+
+        return objective_type
 
     def create_sbml(self, model: libsbml.Model) -> libsbml.Objective:
         """Create Objective."""
         model_fbc: libsbml.FbcModelPlugin = model.getPlugin("fbc")
         obj: libsbml.Objective = model_fbc.createObjective()
-        obj.setId(self.sid)
+        self._set_fields(obj, model)
         obj.setType(self.objectiveType)
 
         if self.active:
             model_fbc.setActiveObjectiveId(self.sid)
-        for rid, coefficient in self.fluxObjectives.items():
+
+        for fluxObjective in flux
             # FIXME: check for rid
             fluxObjective: libsbml.FluxObjective = obj.createFluxObjective()
             fluxObjective.setReaction(rid)
             fluxObjective.setCoefficient(coefficient)
 
-        self._set_fields(obj, model)
+
         return obj
-
-    def _set_fields(self, obj: libsbml.Objective, model: libsbml.Model) -> None:
-        """Set fields in libsbml.Objective."""
-        super(Objective, self)._set_fields(obj, model)
-
-
-@deprecated
-def create_objective(
-    model_fbc: libsbml.FbcModelPlugin,
-    oid: str,
-    otype: str,
-    fluxObjectives: Dict[str, float],
-    active: bool = True,
-) -> libsbml.Objective:
-    """Create flux optimization objective.
-
-    Helper function which will be removed in future releases.
-    Directly add the Objective to the list of objects instead.
-    """
-    objective: libsbml.Objective = model_fbc.createObjective()
-    objective.setId(oid)
-    objective.setType(otype)
-    if active:
-        model_fbc.setActiveObjectiveId(oid)
-    for rid, coefficient in fluxObjectives.items():
-        flux_objective = objective.createFluxObjective()
-        flux_objective.setReaction(rid)
-        flux_objective.setCoefficient(coefficient)
-
-    return objective
 
 
 class ModelDefinition(Sbase):
@@ -2622,6 +2701,17 @@ class Port(SbaseRef):
         super(Port, self)._set_fields(obj, model)
 
 
+class Package(str, Enum):
+    """Supported/tested packages"""
+    COMP = "comp"
+    COMP_V1 = "comp-v1"
+    DISTRIB = "distrib"
+    DISTRIB_V1 = "distrib-v1"
+    FBC = "fbc"
+    FBC_V2 = "fbc-v2"
+    FBC_V3 = "fbc-v3"
+
+
 class ModelDict(TypedDict, total=False):
     """ModelDict.
 
@@ -2640,7 +2730,7 @@ class ModelDict(TypedDict, total=False):
     metaId: Optional[str]
     annotations: AnnotationsType
     notes: Optional[str]
-    packages: Optional[List[str]]
+    packages: Optional[List[Package]]
     creators: Optional[List[Creator]]
     model_units: Optional[ModelUnits]
     objects: Optional[List[Sbase]]
@@ -2676,7 +2766,7 @@ class Model(Sbase, FrozenClass, BaseModel):
     annotations: AnnotationsType
     notes: Optional[str]
     port: Optional[PortType]
-    packages: Optional[List[str]]
+    packages: Optional[List[Package]]
     creators: Optional[List[Creator]]
     model_units: Optional[ModelUnits]
     external_model_definitions: Optional[List[ExternalModelDefinition]]
@@ -2738,62 +2828,15 @@ class Model(Sbase, FrozenClass, BaseModel):
         "layouts": list,
     }
 
-    def get_sbml(self) -> str:
-        """Create SBML model."""
-        return Document(model=self).get_sbml()
-
-    @staticmethod
-    def merge_models(models: List["Model"]) -> "Model":
-        """Merge information from multiple models."""
-        if isinstance(models, Model):
-            return models
-        if not models:
-            raise ValueError("No models are provided.")
-        model = Model("template")
-        units_base_classes: List[Type[Units]] = (
-            [model.units] if model.units else [Units]
-        )
-        creators = set()
-        for m2 in models:
-            for key, value in m2.__dict__.items():
-                kind = m2._keys.get(key, None)
-                # lists of higher modules are extended
-                if kind in [list, tuple]:
-                    # create new list
-                    if not hasattr(model, key) or getattr(model, key) is None:
-                        setattr(model, key, [])
-                    # now add elements by copy
-                    if getattr(model, key):
-                        if value:
-                            getattr(model, key).extend(deepcopy(value))
-                    else:
-                        if value:
-                            setattr(model, key, deepcopy(value))
-
-                # units are collected and class created dynamically at the end
-                elif key == "units":
-                    if m2.units:
-                        units_base_classes.append(m2.units)
-                elif key == "creators":
-                    if m2.creators:
-                        for c in m2.creators:
-                            creators.add(c)
-                # !everything else is overwritten
-                else:
-                    setattr(model, key, value)
-
-        # Handle merging of units
-        attr_dict = {}
-        for base_class in units_base_classes:
-            for a in base_class.attributes():
-                attr_dict[a[0]] = a[1]
-
-        if units_base_classes:
-            model.units = type("U", (Units,), attr_dict)
-
-        model.creators = list(creators)
-
-        return model
+    _supported_packages = {
+        Package.COMP,
+        Package.COMP_V1,
+        Package.DISTRIB,
+        Package.DISTRIB_V1,
+        Package.FBC,
+        Package.FBC_V2,
+        Package.FBC_V3,
+    }
 
     def __init__(
         self,
@@ -2803,7 +2846,7 @@ class Model(Sbase, FrozenClass, BaseModel):
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
         notes: Optional[str] = None,
-        packages: Optional[List[str]] = None,
+        packages: Optional[List[Package]] = None,
         creators: Optional[List[Creator]] = None,
         model_units: Optional[ModelUnits] = None,
         units: Optional[Type[Units]] = None,
@@ -2838,13 +2881,14 @@ class Model(Sbase, FrozenClass, BaseModel):
             notes=notes,
         )
 
-        self.packages = packages
+        self.packages = self.check_packages(packages)
+
         self.creators = creators
         self.model_units = model_units
         self.units = units if units else Units
         self.units_dict = None
-        self.external_model_definitions = external_model_definitions
-        self.model_definitions = model_definitions
+        self.external_model_definitions = external_model_definitions if external_model_definitions else []
+        self.model_definitions = model_definitions if model_definitions else []
 
         self.submodels = submodels if submodels else []
         self.functions = functions if functions else []
@@ -2955,6 +2999,104 @@ class Model(Sbase, FrozenClass, BaseModel):
 
         return model
 
+    def get_sbml(self) -> str:
+        """Create SBML model."""
+        return Document(model=self).get_sbml()
+
+    def check_packages(self, packages: Optional[List[Package]]) -> List[Package]:
+        """Check that all provided packages are supported."""
+        if not packages:
+            return []
+
+        packages_set: Set[Package] = set(packages)
+        # normalize package versions
+        if Package.COMP in packages_set:
+            packages_set.remove(Package.COMP)
+            packages_set.add(Package.COMP_V1)
+
+        if Package.FBC in packages_set:
+            packages_set.remove(Package.FBC)
+            packages_set.add(Package.FBC_V3)
+
+        if Package.DISTRIB in packages_set:
+            packages_set.remove(Package.DISTRIB)
+            packages_set.add(Package.DISTRIB_V1)
+
+        if len(packages_set) < len(packages):
+            raise ValueError(
+                f"Duplicate packages in "
+            )
+
+        for p in packages_set:
+            if not isinstance(p, str):
+                raise ValueError(
+                    f"Packages must be provided as `Package`, but type `{type(p)}` "
+                    f"for package `{p}`."
+                )
+            if p not in self._supported_packages:
+                raise ValueError(
+                    f"Supported packages are: '{self._supported_packages}', "
+                    f"but package '{p}' found."
+                )
+
+        # add comp as default package
+        packages_set.add(Package.COMP_V1)
+
+        return list(packages_set)
+
+    @staticmethod
+    def merge_models(models: List[Model]) -> Model:
+        """Merge information from multiple models."""
+        if isinstance(models, Model):
+            return models
+        if not models:
+            raise ValueError("No models are provided.")
+        model = Model("template")
+        units_base_classes: List[Type[Units]] = (
+            [model.units] if model.units else [Units]
+        )
+        creators = set()
+        for m2 in models:
+            for key, value in m2.__dict__.items():
+                kind = m2._keys.get(key, None)
+                # lists of higher modules are extended
+                if kind in [list, tuple]:
+                    # create new list
+                    if not hasattr(model, key) or getattr(model, key) is None:
+                        setattr(model, key, [])
+                    # now add elements by copy
+                    if getattr(model, key):
+                        if value:
+                            getattr(model, key).extend(deepcopy(value))
+                    else:
+                        if value:
+                            setattr(model, key, deepcopy(value))
+
+                # units are collected and class created dynamically at the end
+                elif key == "units":
+                    if m2.units:
+                        units_base_classes.append(m2.units)
+                elif key == "creators":
+                    if m2.creators:
+                        for c in m2.creators:
+                            creators.add(c)
+                # !everything else is overwritten
+                else:
+                    setattr(model, key, value)
+
+        # Handle merging of units
+        attr_dict = {}
+        for base_class in units_base_classes:
+            for a in base_class.attributes():
+                attr_dict[a[0]] = a[1]
+
+        if units_base_classes:
+            model.units = type("U", (Units,), attr_dict)
+
+        model.creators = list(creators)
+
+        return model
+
 
 class Document(Sbase):
     """Document."""
@@ -2999,21 +3141,16 @@ class Document(Sbase):
         # create core model
         sbmlns = libsbml.SBMLNamespaces(self.sbml_level, self.sbml_version)
 
-        # add all the packages
-        # FIXME: only add packages which are required for the model
-        supported_packages = {"fbc", "comp", "distrib"}
-        sbmlns.addPackageNamespace("comp", 1)
-        if self.model.packages:
-            for package in self.model.packages:
-                if package not in supported_packages:
-                    raise ValueError(
-                        f"Supported packages are: '{supported_packages}', "
-                        f"but package '{package}' found."
-                    )
-                if package == "fbc":
-                    sbmlns.addPackageNamespace("fbc", 2)
-                if package == "distrib":
-                    sbmlns.addPackageNamespace("distrib", 1)
+        # add all the package
+        for package in self.model.packages:
+            if package == Package.COMP_V1:
+                sbmlns.addPackageNamespace("comp", 1)
+            if package == Package.DISTRIB_V1:
+                sbmlns.addPackageNamespace("distrib", 1)
+            if package == Package.FBC_V2:
+                sbmlns.addPackageNamespace("fbc", 2)
+            if package == Package.FBC_V3:
+                sbmlns.addPackageNamespace("fbc", 3)
 
         self.doc = libsbml.SBMLDocument(sbmlns)
         self._set_fields(self.doc, None)
@@ -3021,14 +3158,14 @@ class Document(Sbase):
         # create model
         sbml_model: libsbml.Model = self.model.create_sbml(self.doc)
 
-        self.doc.setPackageRequired("comp", True)
-        if self.model.packages:
-            if "fbc" in self.model.packages:
-                self.doc.setPackageRequired("fbc", False)
-                fbc_plugin = sbml_model.getPlugin("fbc")
-                fbc_plugin.setStrict(False)
-            if "distrib" in self.model.packages:
-                self.doc.setPackageRequired("distrib", True)
+        if Package.COMP_V1 in self.model.packages:
+            self.doc.setPackageRequired("comp", True)
+        if (Package.FBC_V2 in self.model.packages) or (Package.FBC_V3 in self.model.packages):
+            self.doc.setPackageRequired("fbc", False)
+            fbc_plugin = sbml_model.getPlugin("fbc")
+            fbc_plugin.setStrict(False)
+        if Package.DISTRIB in self.model.packages:
+            self.doc.setPackageRequired("distrib", True)
 
         return self.doc
 

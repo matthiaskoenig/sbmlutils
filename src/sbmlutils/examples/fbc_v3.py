@@ -16,10 +16,11 @@ class U(Units):
 
 model = Model(
     "fbc_example",
-    packages=["fbc"],
+    packages=[Package.FBC_V3],
     creators=templates.creators,
     notes="""
-    # Model with fbc
+    # Model with fbc version 3.
+
     Example creating fbc model.
     """
     + templates.terms_of_use,
