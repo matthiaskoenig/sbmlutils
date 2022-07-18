@@ -15,11 +15,11 @@ class U(Units):
 
 
 model = Model(
-    "fbc_example",
-    packages=["fbc"],
+    "fbc_v2",
+    packages=[Package.FBC_V3],
     creators=templates.creators,
     notes="""
-    # Model with fbc
+    # Model with fbc version 2
     Example creating fbc model.
     """
     + templates.terms_of_use,
@@ -201,8 +201,12 @@ model.objectives = [
         objectiveType="maximize",
         active=True,
         fluxObjectives={"v1": 1.0, "v2": 1.0, "v3": 1.0, "v4": 1.0},
+        variableType="linear",
     )
 ]
+
+
+# FIXME: Gene Product & GPR
 
 
 if __name__ == "__main__":

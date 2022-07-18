@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" xmlns:fbc="http://www.sbml.org/sbml/level3/version1/fbc/version3" xmlns:comp="http://www.sbml.org/sbml/level3/version1/comp/version1" level="3" version="1" fbc:required="false" comp:required="true">
+  <model fbc:strict="true">
+    <listOfCompartments>
+      <compartment id="c1" size="1" constant="true"/>
+    </listOfCompartments>
+    <listOfSpecies>
+      <species id="s1" compartment="c1" initialConcentration="1" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false">
+        <annotation>
+          <listOfKeyValuePairs xmlns="http://sbml.org/fbc/keyvaluepair">
+            <keyValuePair key="testdata" value="1.0"/>
+          </listOfKeyValuePairs>
+        </annotation>
+      </species>
+      <species id="s2" compartment="c1" initialConcentration="1" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+    </listOfSpecies>
+    <listOfParameters>
+      <parameter id="lb" value="-100" constant="true">
+        <annotation>
+          <listOfKeyValuePairs xmlns="http://sbml.org/fbc/keyvaluepair">
+            <keyValuePair key="pdata" value="10.0"/>
+          </listOfKeyValuePairs>
+        </annotation>
+      </parameter>
+      <parameter id="ub" value="100" constant="true"/>
+    </listOfParameters>
+    <listOfReactions>
+      <reaction id="r1" reversible="true" fast="false" fbc:lowerFluxBound="lb" fbc:upperFluxBound="ub">
+        <listOfReactants>
+          <speciesReference species="s1" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="s2" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+      </reaction>
+    </listOfReactions>
+    <fbc:listOfUserDefinedConstraints>
+      <fbc:userDefinedConstraint fbc:id="constraint1" fbc:lowerBound="lb" fbc:upperBound="ub">
+        <fbc:listOfUserDefinedConstraintComponents>
+          <fbc:userDefinedConstraintComponent fbc:coefficient="10" fbc:variable="r1" fbc:variableType="linear"/>
+        </fbc:listOfUserDefinedConstraintComponents>
+      </fbc:userDefinedConstraint>
+    </fbc:listOfUserDefinedConstraints>
+  </model>
+</sbml>

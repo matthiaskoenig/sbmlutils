@@ -55,12 +55,8 @@ def add_default_flux_bounds(
             rfbc.setUpperFluxBound("upper")
 
 
-def no_boundary_conditions(doc: libsbml.SBMLDocument) -> None:
-    """Set all boundaryCondition to False in the model.
-
-    :param doc: libsbml.SBMLDocument
-    :return:
-    """
+def set_boundary_conditions_false(doc: libsbml.SBMLDocument) -> None:
+    """Set all boundaryConditions to False in the model."""
     model = doc.getModel()
     for s in model.species:
         if s.boundary_condition:
