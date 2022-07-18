@@ -9,6 +9,7 @@ from typing import Any, Dict, List, Optional, Union
 
 import libsbml
 
+from sbmlutils import RESOURCES_DIR
 from sbmlutils.factory import *
 from sbmlutils.io.sbml import read_sbml, validate_sbml
 from sbmlutils.log import get_logger
@@ -252,7 +253,7 @@ if __name__ == "__main__":
     # )
 
 
-    sbml_path = Path("/home/mkoenig/Downloads/semantic/00927/00927-sbml-l1v2.xml")
+    sbml_path = Path(RESOURCES_DIR / "models//semantic/00927/00927-sbml-l1v2.xml")
     validate_sbml(source=sbml_path, validation_options=ValidationOptions(units_consistency=False))
 
 
