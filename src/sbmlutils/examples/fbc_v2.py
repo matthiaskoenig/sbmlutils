@@ -1,7 +1,7 @@
 """FBA example with exchange reactions."""
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
-from sbmlutils.metadata.sbo import *
+from sbmlutils.metadata import *
 
 
 class U(Units):
@@ -32,18 +32,17 @@ model = Model(
         area=U.m2,
         volume=U.liter,
     ),
+    compartments=[
+        Compartment(
+            sid="bioreactor",
+            value=1.0,
+            unit=U.liter,
+            constant=True,
+            name="bioreactor",
+            spatialDimensions=3,
+        ),
+    ],
 )
-
-model.compartments = [
-    Compartment(
-        sid="bioreactor",
-        value=1.0,
-        unit=U.liter,
-        constant=True,
-        name="bioreactor",
-        spatialDimensions=3,
-    ),
-]
 
 model.species = [
     Species(
@@ -73,6 +72,14 @@ model.species = [
     Species(
         sid="X",
         name="biomass",
+        initialConcentration=0.0,
+        substanceUnit=U.mmole,
+        hasOnlySubstanceUnits=False,
+        compartment="bioreactor",
+    ),
+    Species(
+        sid="s_Rv0649",
+        name="s_Rv0649 (GeneProduct)",
         initialConcentration=0.0,
         substanceUnit=U.mmole,
         hasOnlySubstanceUnits=False,
@@ -132,10 +139,17 @@ model.parameters = [
     ),
 ]
 
-# -----------------------------------------------------------------------------
-# Reactions
-# -----------------------------------------------------------------------------
-# metabolic reactions
+model.gene_products = [
+    GeneProduct(
+        sid="gene1", metaId="meta_gene_1",
+        label="Rv0649",
+        associatedSpecies="s_Rv0649",
+        annotations=[
+            (BQB.IS, "kegg.genes/mtu:Rv0649")
+        ]
+    )
+]
+
 model.reactions = [
     Reaction(
         sid="v1",
@@ -165,7 +179,6 @@ for rt in model.reactions:
         rt.lowerFluxBound = FLUX_BOUND_ZERO
         rt.upperFluxBound = FLUX_BOUND_PLUS_INF
 
-# exchange reactions
 model.reactions.extend(
     [
         ExchangeReaction(

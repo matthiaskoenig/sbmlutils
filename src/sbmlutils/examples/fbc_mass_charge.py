@@ -55,7 +55,7 @@ model = Model(
             boundaryCondition=True,
             name="D-glucose",
             sboTerm=SBO.SIMPLE_CHEMICAL,
-            charge=0,
+            charge=0.5,
             chemicalFormula="C6H12O6",
             annotations=[(BQB.IS, "vmhmetabolite/glc_D")],
         ),

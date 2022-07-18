@@ -87,6 +87,7 @@ __all__ = [
     "UncertParameter",
     "UncertSpan",
     "Objective",
+    "GeneProduct",
     "KeyValuePair",
     "ExternalModelDefinition",
     "ModelDefinition",
@@ -1223,7 +1224,7 @@ class Species(Sbase):
                 )
             else:
                 if self.charge is not None:
-                    obj_fbc.setCharge(int(self.charge))
+                    obj_fbc.setCharge(self.charge)
                 if self.chemicalFormula is not None:
                     obj_fbc.setChemicalFormula(self.chemicalFormula)
 
@@ -2177,6 +2178,60 @@ class KeyValuePair(Sbase):
         return kvp
 
 
+class GeneProduct(Sbase):
+    """GeneProduct.
+
+    GeneProduct is a new FBC class derived from SBML SBase that inherits metaid
+    and sboTerm, as well as the subcomponents for Annotation and Notes.
+    The purpose of this class is to define a single gene product. It implements
+    two required attributes id and label as well as two optional attributes
+    name and associatedSpecies.
+    """
+
+    def __init__(
+        self,
+        sid: str,
+        label: str,
+        associatedSpecies: Optional[str],
+        name: Optional[str] = None,
+        sboTerm: Optional[str] = None,
+        metaId: Optional[str] = None,
+        annotations: AnnotationsType = None,
+        notes: Optional[str] = None,
+        keyValuePairs: Optional[List[KeyValuePair]] = None,
+        port: Any = None,
+        uncertainties: Optional[List[Uncertainty]] = None,
+        replacedBy: Optional[Any] = None,
+    ):
+        """Create a GeneProduct."""
+        super(GeneProduct, self).__init__(
+            sid=sid,
+            name=name,
+            sboTerm=sboTerm,
+            metaId=metaId,
+            annotations=annotations,
+            notes=notes,
+            keyValuePairs=keyValuePairs,
+            port=port,
+            uncertainties=uncertainties,
+            replacedBy=replacedBy,
+        )
+        self.associatedSpecies = associatedSpecies
+        self.label = label
+
+    def create_sbml(self, model: libsbml.Model) -> libsbml.GeneProduct:
+        """Create GeneProduct."""
+        model_fbc: libsbml.FbcModelPlugin = model.getPlugin("fbc")
+        gene_product: libsbml.GeneProduct = model_fbc.createGeneProduct()
+        self._set_fields(gene_product, model=model)
+
+        gene_product.setLabel(self.label)
+        if self.associatedSpecies:
+            gene_product.setAssociatedSpecies(self.associatedSpecies)
+
+        return gene_product
+
+
 class FluxObjective(Sbase):
     """FluxObjective."""
 
@@ -2839,9 +2894,7 @@ class ModelDict(TypedDict, total=False):
     creators: Optional[List[Creator]]
     model_units: Optional[ModelUnits]
     objects: Optional[List[Sbase]]
-    external_model_definitions: Optional[List[ExternalModelDefinition]]
-    model_definitions: Optional[List[ModelDefinition]]
-    submodels: Optional[List[Submodel]]
+
     units: Optional[Type[Units]]
     functions: Optional[List[Function]]
     compartments: Optional[List[Compartment]]
@@ -2854,10 +2907,17 @@ class ModelDict(TypedDict, total=False):
     reactions: Optional[List[Reaction]]
     events: Optional[List[Event]]
     constraints: Optional[List[Constraint]]
+    # comp
+    external_model_definitions: Optional[List[ExternalModelDefinition]]
+    model_definitions: Optional[List[ModelDefinition]]
+    submodels: Optional[List[Submodel]]
     ports: Optional[List[Port]]
     replaced_elements: Optional[List[ReplacedElement]]
     deletions: Optional[List[Deletion]]
+    # fbc
     objectives: Optional[List[Objective]]
+    gene_products: Optional[List[GeneProduct]]
+    # layout
     layouts: Optional[List]
 
 
@@ -2875,9 +2935,6 @@ class Model(Sbase, FrozenClass, BaseModel):
     packages: Optional[List[Package]]
     creators: Optional[List[Creator]]
     model_units: Optional[ModelUnits]
-    external_model_definitions: Optional[List[ExternalModelDefinition]]
-    model_definitions: Optional[List[ModelDefinition]]
-    submodels: Optional[List[Submodel]]
     units: Optional[Type[Units]]
     functions: Optional[List[Function]]
     compartments: Optional[List[Compartment]]
@@ -2890,10 +2947,17 @@ class Model(Sbase, FrozenClass, BaseModel):
     reactions: Optional[List[Reaction]]
     events: Optional[List[Event]]
     constraints: Optional[List[Constraint]]
+    # comp
+    external_model_definitions: Optional[List[ExternalModelDefinition]]
+    model_definitions: Optional[List[ModelDefinition]]
+    submodels: Optional[List[Submodel]]
     ports: Optional[List[Port]]
     replaced_elements: Optional[List[ReplacedElement]]
     deletions: Optional[List[Deletion]]
+    # fbc
     objectives: Optional[List[Objective]]
+    gene_products: Optional[List[GeneProduct]]
+    # layout
     layouts: Optional[List]
 
     class Config:
@@ -2913,9 +2977,6 @@ class Model(Sbase, FrozenClass, BaseModel):
         "packages": list,
         "creators": None,
         "model_units": None,
-        "external_model_definitions": list,
-        "model_definitions": list,
-        "submodels": list,
         "units": None,
         "functions": list,
         "compartments": list,
@@ -2928,10 +2989,14 @@ class Model(Sbase, FrozenClass, BaseModel):
         "reactions": list,
         "events": list,
         "constraints": list,
+        "external_model_definitions": list,
+        "model_definitions": list,
+        "submodels": list,
         "ports": list,
         "replaced_elements": list,
         "deletions": list,
         "objectives": list,
+        "gene_products": list,
         "layouts": list,
     }
 
@@ -2977,6 +3042,7 @@ class Model(Sbase, FrozenClass, BaseModel):
         replaced_elements: Optional[List[ReplacedElement]] = None,
         deletions: Optional[List[Deletion]] = None,
         objectives: Optional[List[Objective]] = None,
+        gene_products: Optional[List[GeneProduct]] = None,
         layouts: Optional[List] = None,
     ):
         """Model constructor."""
@@ -3015,6 +3081,7 @@ class Model(Sbase, FrozenClass, BaseModel):
         self.replaced_elements = replaced_elements if replaced_elements else []
         self.deletions = deletions if deletions else []
         self.objectives = objectives if objectives else []
+        self.gene_products = gene_products if gene_products else []
 
         self.layouts = layouts
 
@@ -3052,6 +3119,8 @@ class Model(Sbase, FrozenClass, BaseModel):
                     self.deletions.append(sbase)
                 elif isinstance(sbase, Objective):
                     self.objectives.append(sbase)
+                elif isinstance(sbase, GeneProduct):
+                    self.gene_products.append(sbase)
 
         self._freeze()  # no new attributes after this point
 
@@ -3098,6 +3167,7 @@ class Model(Sbase, FrozenClass, BaseModel):
             "replaced_elements",
             "deletions",
             "objectives",
+            "gene_products",
             "layouts",
         ]:
             # create the respective objects
