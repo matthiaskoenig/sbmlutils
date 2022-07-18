@@ -206,6 +206,9 @@ model.objectives = [
 ]
 
 
+# FIXME: Gene Product & GPR
+
+
 if __name__ == "__main__":
     from sbmlutils.resources import EXAMPLES_DIR
     create_model(
