@@ -1549,6 +1549,7 @@ class Reaction(Sbase):
         reversible: Optional[bool] = None,
         lowerFluxBound: Optional[str] = None,
         upperFluxBound: Optional[str] = None,
+        geneProductAssociation: Optional[str] = None,
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
@@ -1572,20 +1573,17 @@ class Reaction(Sbase):
             uncertainties=uncertainties,
             replacedBy=replacedBy,
         )
-        if pars is None:
-            pars = list()
-        if rules is None:
-            rules = list()
 
         self.equation = Reaction._process_equation(equation=equation)
         self.compartment = compartment
         self.reversible = reversible
-        self.pars = pars
-        self.rules = rules
+        self.pars = pars if pars else []
+        self.rules = rules if rules else []
         self.formula = Reaction._process_formula(formula=formula)
         self.fast = fast
         self.lowerFluxBound = lowerFluxBound
         self.upperFluxBound = upperFluxBound
+        self.geneProductAssociation = geneProductAssociation
 
     @staticmethod
     def _process_equation(equation: Union[ReactionEquation, str]) -> ReactionEquation:
@@ -1660,6 +1658,31 @@ class Reaction(Sbase):
                 r_fbc.setUpperFluxBound(self.upperFluxBound)
             if self.lowerFluxBound:
                 r_fbc.setLowerFluxBound(self.lowerFluxBound)
+
+        # add gpa
+        if self.geneProductAssociation:
+            # parse the string and create the respective GPA
+            r_fbc: libsbml.FbcReactionPlugin = r.getPlugin("fbc")
+            gpa: libsbml.GeneProductAssociation = r_fbc.createGeneProductAssociation()
+            print(f"Set GPA: {self.geneProductAssociation}")
+
+            # check all genes are in model
+            gpr_clean = self.geneProductAssociation.replace("(", " ").replace(")", " ").replace("and", " ").replace("AND", "").replace("or", "").replace("OR", "")
+            gps: List[str] = [g for g in gpr_clean.split(" ") if g]
+            model_fbc: libsbml.FbcModelPlugin = r.getModel().getPlugin("fbc")
+            print(f"GeneProducts: {gps}")
+            for gp in gps:
+                if not model_fbc.getGeneProduct(gp):
+                    logger.error(f"GeneProduct missing in model: `{gp}`")
+
+            check(
+                gpa.setAssociation(
+                    self.geneProductAssociation,
+                    True,  # bool usingId=False,
+                    False  # bool addMissingGP=True
+                ),
+                f"set gpa: `{self.geneProductAssociation}`"
+            )
 
         self.create_port(model)
         return r
@@ -1792,6 +1815,67 @@ class Event(Sbase):
     @staticmethod
     def _assignments_dict(species: List[str], values: List[str]) -> Dict[str, str]:
         return dict(zip(species, values))
+
+
+class Constraint(Sbase):
+    """Constraint.
+
+    The Constraint object is a mechanism for stating the assumptions under which a model is designed to operate.
+    The constraints are statements about permissible values of different quantities in a model.
+
+    The message must be well formated XHTML, e.g.,
+        message='<body xmlns="http://www.w3.org/1999/xhtml">ATP must be non-negative</body>'
+    """
+
+    def __init__(
+        self,
+        sid: str,
+        math: str,
+        message: Optional[str] = None,
+        name: Optional[str] = None,
+        sboTerm: Optional[str] = None,
+        metaId: Optional[str] = None,
+        annotations: AnnotationsType = None,
+        notes: Optional[str] = None,
+        keyValuePairs: Optional[List[KeyValuePair]] = None,
+        port: Any = None,
+        uncertainties: Optional[List[Uncertainty]] = None,
+        replacedBy: Optional[Any] = None,
+    ):
+        """Constraint constructor."""
+        super(Constraint, self).__init__(
+            sid,
+            name=name,
+            sboTerm=sboTerm,
+            metaId=metaId,
+            annotations=annotations,
+            notes=notes,
+            keyValuePairs=keyValuePairs,
+            port=port,
+            uncertainties=uncertainties,
+            replacedBy=replacedBy,
+        )
+        self.math = math
+        self.message = message
+
+    def create_sbml(self, model: libsbml.Model) -> libsbml.Constraint:
+        """Create Constraint SBML in model."""
+        constraint: libsbml.Constraint = model.createConstraint()
+        self._set_fields(constraint, model)
+        return constraint
+
+    def _set_fields(self, sbase: libsbml.Constraint, model: libsbml.Model) -> None:
+        """Set fields on libsbml.Constraint."""
+        super(Constraint, self)._set_fields(sbase, model)
+
+        if self.math is not None:
+            ast_math = libsbml.parseL3FormulaWithModel(self.math, model)
+            sbase.setMath(ast_math)
+        if self.message is not None:
+            check(
+                sbase.setMessage(self.message),
+                message=f"Setting message on constraint: '{self.message}'",
+            )
 
 
 """
@@ -2005,13 +2089,6 @@ class Uncertainty(Sbase):
         return uncertainty
 
 
-"""
----------------------------------------------------------------------------------------
-fbc information
----------------------------------------------------------------------------------------
-"""
-
-
 class ExchangeReaction(Reaction):
     """Exchange reactions define substances which can be exchanged.
 
@@ -2034,8 +2111,9 @@ class ExchangeReaction(Reaction):
         compartment: str = None,
         fast: bool = False,
         reversible: bool = None,
-        lowerFluxBound: str = None,
-        upperFluxBound: str = None,
+        lowerFluxBound: Optional[str] = None,
+        upperFluxBound: Optional[str] = None,
+        geneProductAssociation: Optional[str] = None,
         name: Optional[str] = None,
         metaId: Optional[str] = None,
         annotations: AnnotationsType = None,
@@ -2060,71 +2138,14 @@ class ExchangeReaction(Reaction):
             keyValuePairs=keyValuePairs,
             lowerFluxBound=lowerFluxBound,
             upperFluxBound=upperFluxBound,
+            geneProductAssociation=geneProductAssociation,
             uncertainties=uncertainties,
             port=port,
             replacedBy=replacedBy,
         )
 
 
-class Constraint(Sbase):
-    """Constraint.
 
-    The Constraint object is a mechanism for stating the assumptions under which a model is designed to operate.
-    The constraints are statements about permissible values of different quantities in a model.
-
-    The message must be well formated XHTML, e.g.,
-        message='<body xmlns="http://www.w3.org/1999/xhtml">ATP must be non-negative</body>'
-    """
-
-    def __init__(
-        self,
-        sid: str,
-        math: str,
-        message: Optional[str] = None,
-        name: Optional[str] = None,
-        sboTerm: Optional[str] = None,
-        metaId: Optional[str] = None,
-        annotations: AnnotationsType = None,
-        notes: Optional[str] = None,
-        keyValuePairs: Optional[List[KeyValuePair]] = None,
-        port: Any = None,
-        uncertainties: Optional[List[Uncertainty]] = None,
-        replacedBy: Optional[Any] = None,
-    ):
-        """Constraint constructor."""
-        super(Constraint, self).__init__(
-            sid,
-            name=name,
-            sboTerm=sboTerm,
-            metaId=metaId,
-            annotations=annotations,
-            notes=notes,
-            keyValuePairs=keyValuePairs,
-            port=port,
-            uncertainties=uncertainties,
-            replacedBy=replacedBy,
-        )
-        self.math = math
-        self.message = message
-
-    def create_sbml(self, model: libsbml.Model) -> libsbml.Constraint:
-        """Create Constraint SBML in model."""
-        constraint: libsbml.Constraint = model.createConstraint()
-        self._set_fields(constraint, model)
-        return constraint
-
-    def _set_fields(self, sbase: libsbml.Constraint, model: libsbml.Model) -> None:
-        """Set fields on libsbml.Constraint."""
-        super(Constraint, self)._set_fields(sbase, model)
-
-        if self.math is not None:
-            ast_math = libsbml.parseL3FormulaWithModel(self.math, model)
-            sbase.setMath(ast_math)
-        if self.message is not None:
-            check(
-                sbase.setMessage(self.message),
-                message=f"Setting message on constraint: '{self.message}'",
-            )
 
 
 class KeyValuePair(Sbase):
@@ -2192,7 +2213,7 @@ class GeneProduct(Sbase):
         self,
         sid: str,
         label: str,
-        associatedSpecies: Optional[str],
+        associatedSpecies: Optional[str] = None,
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
@@ -3156,6 +3177,7 @@ class Model(Sbase, FrozenClass, BaseModel):
             "parameters",
             "compartments",
             "species",
+            "gene_products",
             "reactions",
             "assignments",
             "rules",
@@ -3167,7 +3189,6 @@ class Model(Sbase, FrozenClass, BaseModel):
             "replaced_elements",
             "deletions",
             "objectives",
-            "gene_products",
             "layouts",
         ]:
             # create the respective objects
