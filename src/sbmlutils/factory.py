@@ -87,6 +87,9 @@ __all__ = [
     "Uncertainty",
     "UncertParameter",
     "UncertSpan",
+    "UserDefinedConstraintComponent",
+    "UserDefinedConstraint",
+    "FluxObjective",
     "Objective",
     "GeneProduct",
     "KeyValuePair",
@@ -2264,6 +2267,134 @@ class GeneProduct(Sbase):
         return gene_product
 
 
+class UserDefinedConstraintComponent(Sbase):
+    """UserDefinedConstraintComponent."""
+
+    def __init__(
+        self,
+        coefficient: float,
+        variable: str,
+        variableType: Optional[str] = None,
+        sid: Optional[str] = None,
+        name: Optional[str] = None,
+        sboTerm: Optional[str] = None,
+        metaId: Optional[str] = None,
+        annotations: AnnotationsType = None,
+        notes: Optional[str] = None,
+        keyValuePairs: Optional[List[KeyValuePair]] = None,
+        port: Any = None,
+        uncertainties: Optional[List[Uncertainty]] = None,
+        replacedBy: Optional[Any] = None,
+    ):
+        """Create a UserDefinedConstraintComponent."""
+        super(UserDefinedConstraintComponent, self).__init__(
+            sid=sid,
+            name=name,
+            sboTerm=sboTerm,
+            metaId=metaId,
+            annotations=annotations,
+            notes=notes,
+            keyValuePairs=keyValuePairs,
+            port=port,
+            uncertainties=uncertainties,
+            replacedBy=replacedBy,
+        )
+        self.variable = variable
+        self.coefficient = coefficient
+        self.variableType = FluxObjective.normalize_variable_type(variableType)
+
+    def create_sbml(self, constraint: libsbml.UserDefinedConstraint) -> libsbml.UserDefinedConstraintComponent:
+        """Create Objective."""
+        component: libsbml.UserDefinedConstraintComponent = constraint.createUserDefinedConstraintComponent()
+        self._set_fields(component, model=constraint.getModel())
+
+        check(component.setVariable(self.variable), f"set variable `{self.variable}`")
+        check(component.setCoefficient(self.coefficient), f"set coefficient `{self.coefficient}`")
+        check(component.setVariableType(self.variableType), f"set variableType `{self.variableType}`")
+
+        print("required attributes:", component.hasRequiredAttributes())
+        print(component.toSBML())
+
+        return component
+
+
+class UserDefinedConstraint(Sbase):
+    """UserDefinedConstraint.
+
+    The FBC UserDefinedConstraint class is derived from SBML SBase and inherits
+    metaid and sboTerm, as well as the subcomponents for Annotation and Notes.
+    It’s purpose is to define non-stoichiometric constraints, that is
+    constraints that are not necessarily defined by the stoichiometrically coupled
+    reaction network. In order to achieve, we defined a new type of linear
+    constraint, the UserDefinedConstraint
+
+    """
+
+    def __init__(
+        self,
+        lowerBound: str,
+        upperBound: str,
+        components: Optional[Union[List[UserDefinedConstraintComponent], Dict[str, float]]] = None,
+        variableType: str = libsbml.FBC_FBCVARIABLETYPE_LINEAR,
+        sid: Optional[str] = None,
+        name: Optional[str] = None,
+        sboTerm: Optional[str] = None,
+        metaId: Optional[str] = None,
+        annotations: AnnotationsType = None,
+        notes: Optional[str] = None,
+        keyValuePairs: Optional[List[KeyValuePair]] = None,
+        port: Any = None,
+        uncertainties: Optional[List[Uncertainty]] = None,
+        replacedBy: Optional[Any] = None,
+    ):
+        """Create an UserDefinedConstraint."""
+        super(UserDefinedConstraint, self).__init__(
+            sid=sid,
+            name=name,
+            sboTerm=sboTerm,
+            metaId=metaId,
+            annotations=annotations,
+            notes=notes,
+            keyValuePairs=keyValuePairs,
+            port=port,
+            uncertainties=uncertainties,
+            replacedBy=replacedBy,
+        )
+        self.lowerBound = lowerBound
+        self.upperBound = upperBound
+
+        # normalize components
+        self.components: List[UserDefinedConstraintComponent] = []
+        if isinstance(components, dict):
+            # create FluxObjectives from dict
+            for variable, coefficient in components.items():
+                self.components.append(
+                    UserDefinedConstraintComponent(
+                        variable=variable,
+                        coefficient=coefficient,
+                        variableType=variableType,
+                    )
+                )
+        else:
+            for component in components:
+                # infer variableType from objective
+                if not component.variableType:
+                    component.variableType = variableType
+                self.components.append(component)
+
+    def create_sbml(self, model: libsbml.Model) -> libsbml.UserDefinedConstraint:
+        """Create UserDefinedConstraint."""
+        model_fbc: libsbml.FbcModelPlugin = model.getPlugin("fbc")
+        udc: libsbml.UserDefinedConstraint = model_fbc.createUserDefinedConstraint()
+        self._set_fields(udc, model)
+        udc.setUpperBound(self.upperBound)
+        udc.setLowerBound(self.lowerBound)
+        for component in self.components:
+            component.create_sbml(constraint=udc)
+
+        return udc
+
+
 class FluxObjective(Sbase):
     """FluxObjective."""
 
@@ -2307,7 +2438,7 @@ class FluxObjective(Sbase):
         )
         self.reaction = reaction
         self.coefficient = coefficient
-        self.variableType = variableType
+        self.variableType = FluxObjective.normalize_variable_type(variableType)
 
     @classmethod
     def normalize_variable_type(cls, variable_type: str) -> str:
@@ -2948,6 +3079,7 @@ class ModelDict(TypedDict, total=False):
     replaced_elements: Optional[List[ReplacedElement]]
     deletions: Optional[List[Deletion]]
     # fbc
+    user_defined_constraints: Optional[List[UserDefinedConstraint]]
     objectives: Optional[List[Objective]]
     gene_products: Optional[List[GeneProduct]]
     # layout
@@ -2988,6 +3120,7 @@ class Model(Sbase, FrozenClass, BaseModel):
     replaced_elements: Optional[List[ReplacedElement]]
     deletions: Optional[List[Deletion]]
     # fbc
+    user_defined_constraints: Optional[List[UserDefinedConstraint]]
     objectives: Optional[List[Objective]]
     gene_products: Optional[List[GeneProduct]]
     # layout
@@ -3028,6 +3161,7 @@ class Model(Sbase, FrozenClass, BaseModel):
         "ports": list,
         "replaced_elements": list,
         "deletions": list,
+        "user_defined_constraints": list,
         "objectives": list,
         "gene_products": list,
         "layouts": list,
@@ -3074,6 +3208,7 @@ class Model(Sbase, FrozenClass, BaseModel):
         ports: Optional[List[Port]] = None,
         replaced_elements: Optional[List[ReplacedElement]] = None,
         deletions: Optional[List[Deletion]] = None,
+        user_defined_constraints: Optional[List[UserDefinedConstraint]] = None,
         objectives: Optional[List[Objective]] = None,
         gene_products: Optional[List[GeneProduct]] = None,
         layouts: Optional[List] = None,
@@ -3115,6 +3250,7 @@ class Model(Sbase, FrozenClass, BaseModel):
         self.ports = ports if ports else []
         self.replaced_elements = replaced_elements if replaced_elements else []
         self.deletions = deletions if deletions else []
+        self.user_defined_constraints = user_defined_constraints if user_defined_constraints else []
         self.objectives = objectives if objectives else []
         self.gene_products = gene_products if gene_products else []
 
@@ -3152,6 +3288,8 @@ class Model(Sbase, FrozenClass, BaseModel):
                     self.replaced_elements.append(sbase)
                 elif isinstance(sbase, Deletion):
                     self.deletions.append(sbase)
+                elif isinstance(sbase, UserDefinedConstraint):
+                    self.user_defined_constraints.append(sbase)
                 elif isinstance(sbase, Objective):
                     self.objectives.append(sbase)
                 elif isinstance(sbase, GeneProduct):
@@ -3202,6 +3340,7 @@ class Model(Sbase, FrozenClass, BaseModel):
             "ports",
             "replaced_elements",
             "deletions",
+            "user_defined_constraints",
             "objectives",
             "layouts",
         ]:
