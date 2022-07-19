@@ -31,7 +31,8 @@ def test_biomodel_merge(tmp_path: Path) -> None:
     assert doc is not None
 
     vresults = validation.validate_doc(
-        doc, options=ValidationOptions(units_consistency=False),
+        doc,
+        options=ValidationOptions(units_consistency=False),
     )
     assert vresults.error_count == 0
     assert vresults.warning_count == 0
@@ -42,7 +43,8 @@ def test_biomodel_merge(tmp_path: Path) -> None:
     assert doc_flat is not None
 
     vresults = validation.validate_doc(
-        doc_flat, options=ValidationOptions(units_consistency=False),
+        doc_flat,
+        options=ValidationOptions(units_consistency=False),
     )
     assert vresults.error_count == 0
     assert vresults.warning_count in [0, 74]

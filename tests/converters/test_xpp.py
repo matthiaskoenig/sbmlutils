@@ -6,6 +6,7 @@ from sbmlutils.io.sbml import validate_sbml
 from sbmlutils.resources import TESTDATA_DIR
 from sbmlutils.validation import ValidationOptions
 
+
 model_ids = [
     # "112836_HH-ext",
     # "SkM_AP_KCa",
@@ -20,8 +21,7 @@ def _xpp_check(
     xpp_file = TESTDATA_DIR / "xpp" / f"{ode_id}.ode"
     xpp.xpp2sbml(xpp_file=xpp_file, sbml_file=sbml_file)
     vresults = validate_sbml(
-        sbml_file,
-        validation_options=ValidationOptions(units_consistency=False)
+        sbml_file, validation_options=ValidationOptions(units_consistency=False)
     )
     assert vresults.all_count == Nall
     assert vresults.error_count == Nerr

@@ -18,6 +18,7 @@ from sbmlutils.reaction_equation import EquationPart
 from sbmlutils.report.sbmlinfo import SBMLDocumentInfo
 from sbmlutils.validation import ValidationOptions
 
+
 logger = get_logger(__name__)
 
 
@@ -86,7 +87,7 @@ def sbml_to_model(
                 value=p.getValue() if p.isSetValue else None,
                 # unit=p.getUnits(),
                 constant=p.getConstant() if p.isSetConstant() else None,
-                **parse_sbase_kwargs(p)
+                **parse_sbase_kwargs(p),
             )
         )
 
@@ -100,7 +101,7 @@ def sbml_to_model(
                 if c.isSetSpatialDimensions()
                 else None,
                 # unit=p.getUnits(),
-                **parse_sbase_kwargs(c)
+                **parse_sbase_kwargs(c),
             )
         )
 
@@ -121,7 +122,7 @@ def sbml_to_model(
                 if s.isSetBoundaryCondition()
                 else None,
                 # unit=p.getUnits(),
-                **parse_sbase_kwargs(s)
+                **parse_sbase_kwargs(s),
             )
         )
 
@@ -144,7 +145,7 @@ def sbml_to_model(
                     constant=reactant.getConstant()
                     if reactant.isSetConstant()
                     else True,
-                    **parse_sbase_kwargs(reactant)
+                    **parse_sbase_kwargs(reactant),
                 )
             )
             product: libsbml.SpeciesReference
@@ -156,7 +157,7 @@ def sbml_to_model(
                     if product.isSetStoichiometry()
                     else None,
                     constant=product.getConstant() if product.isSetConstant() else True,
-                    **parse_sbase_kwargs(product)
+                    **parse_sbase_kwargs(product),
                 )
             )
         modifier: libsbml.SpeciesReference
@@ -186,7 +187,7 @@ def sbml_to_model(
             InitialAssignment(
                 symbol=ia.getSymbol() if ia.isSetSymbol() else None,
                 value=formula,
-                **parse_sbase_kwargs(ia)
+                **parse_sbase_kwargs(ia),
             )
         )
 
@@ -201,7 +202,7 @@ def sbml_to_model(
                 AssignmentRule(
                     variable=rule.getVariable() if rule.isSetVariable() else None,
                     value=formula,
-                    **parse_sbase_kwargs(rule)
+                    **parse_sbase_kwargs(rule),
                 )
             )
         elif typecode == libsbml.SBML_RATE_RULE:
@@ -209,7 +210,7 @@ def sbml_to_model(
                 RateRule(
                     variable=rule.getVariable() if rule.isSetVariable() else None,
                     value=formula,
-                    **parse_sbase_kwargs(rule)
+                    **parse_sbase_kwargs(rule),
                 )
             )
         elif typecode == libsbml.SBML_ALGEBRAIC_RULE:
@@ -232,6 +233,7 @@ def sbml_to_model(
 
 if __name__ == "__main__":
     from sbmlutils.console import console
+
     # from sbmlutils.resources import REPRESSILATOR_SBML
     #
     # model_path: Path = Path(__file__).parent / "repressilator.xml"
@@ -246,39 +248,23 @@ if __name__ == "__main__":
     #     validation_options=ValidationOptions(units_consistency=False),
     # )
     # SBMLDocumentInfo.from_sbml(model_path)
-
-
     # model = sbml_to_model(source=sbml_path, validate=True, validation_options=ValidationOptions(
     #     units_consistency=False)
     # )
 
-
     sbml_path = Path(RESOURCES_DIR / "models//semantic/00927/00927-sbml-l1v2.xml")
-    validate_sbml(source=sbml_path, validation_options=ValidationOptions(units_consistency=False))
-
+    validate_sbml(
+        source=sbml_path, validation_options=ValidationOptions(units_consistency=False)
+    )
 
     doc = libsbml.readSBMLFromFile(str(sbml_path))
-    doc.setConsistencyChecks(
-        libsbml.LIBSBML_CAT_GENERAL_CONSISTENCY, True
-    )
-    doc.setConsistencyChecks(
-        libsbml.LIBSBML_CAT_IDENTIFIER_CONSISTENCY, True
-    )
-    doc.setConsistencyChecks(
-        libsbml.LIBSBML_CAT_MATHML_CONSISTENCY, True
-    )
-    doc.setConsistencyChecks(
-        libsbml.LIBSBML_CAT_UNITS_CONSISTENCY, True
-    )
-    doc.setConsistencyChecks(
-        libsbml.LIBSBML_CAT_SBO_CONSISTENCY, True
-    ),
-    doc.setConsistencyChecks(
-        libsbml.LIBSBML_CAT_OVERDETERMINED_MODEL, True
-    )
-    doc.setConsistencyChecks(
-        libsbml.LIBSBML_CAT_SBO_CONSISTENCY, True
-    ),
+    doc.setConsistencyChecks(libsbml.LIBSBML_CAT_GENERAL_CONSISTENCY, True)
+    doc.setConsistencyChecks(libsbml.LIBSBML_CAT_IDENTIFIER_CONSISTENCY, True)
+    doc.setConsistencyChecks(libsbml.LIBSBML_CAT_MATHML_CONSISTENCY, True)
+    doc.setConsistencyChecks(libsbml.LIBSBML_CAT_UNITS_CONSISTENCY, True)
+    doc.setConsistencyChecks(libsbml.LIBSBML_CAT_SBO_CONSISTENCY, True),
+    doc.setConsistencyChecks(libsbml.LIBSBML_CAT_OVERDETERMINED_MODEL, True)
+    doc.setConsistencyChecks(libsbml.LIBSBML_CAT_SBO_CONSISTENCY, True),
 
     count = doc.checkInternalConsistency()
     # count = doc.checkConsistency()

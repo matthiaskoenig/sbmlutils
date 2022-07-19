@@ -16,14 +16,14 @@ model = Model(
     name="model with distrib distributions",
     packages=["distrib"],
     creators=templates.creators,
-    notes=
-    """
+    notes="""
     # Distrib example
 
     Example creating distrib model with distribution elements.
-    """ + templates.terms_of_use,
+    """
+    + templates.terms_of_use,
     units=U,
-    model_units = ModelUnits(
+    model_units=ModelUnits(
         time=U.hr,
         extent=U.mole,
         substance=U.mole,
@@ -61,8 +61,9 @@ model.assignments = [
 
 if __name__ == "__main__":
     from sbmlutils.resources import EXAMPLES_DIR
+
     create_model(
         model=model,
         filepath=EXAMPLES_DIR / f"{model.sid}.xml",
-        validation_options=ValidationOptions(units_consistency=False)
+        validation_options=ValidationOptions(units_consistency=False),
     )

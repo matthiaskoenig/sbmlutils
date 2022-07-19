@@ -4,7 +4,7 @@ import libsbml
 from sbmlutils.distrib import distrib_examples, distrib_packages
 from sbmlutils.factory import *
 from sbmlutils.metadata import *
-from sbmlutils.validation import validate_doc, ValidationOptions
+from sbmlutils.validation import ValidationOptions, validate_doc
 
 
 class U(Units):
@@ -31,10 +31,7 @@ def check_model(model: Model) -> libsbml.SBMLDocument:
     doc: libsbml.SBMLDocument = Document(model=model).create_sbml()
 
     assert doc
-    vresults = validate_doc(
-        doc,
-        options=ValidationOptions(units_consistency=False)
-    )
+    vresults = validate_doc(doc, options=ValidationOptions(units_consistency=False))
 
     # debugging
     if vresults.error_count > 0:

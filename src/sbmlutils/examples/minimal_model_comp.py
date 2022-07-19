@@ -10,6 +10,7 @@ from sbmlutils.metadata import *
 from sbmlutils.resources import EXAMPLES_DIR
 from sbmlutils.validation import ValidationOptions
 
+
 n_cells = 10
 # -------------------------------------------------------------------------------------
 model = Model(
@@ -80,6 +81,7 @@ for k in range(n_cells):
     )
 # -------------------------------------------------------------------------------------
 
+
 def create(tmp: bool = False) -> None:
     """Create model."""
     if tmp:
@@ -91,7 +93,7 @@ def create(tmp: bool = False) -> None:
     result = create_model(
         model=model,
         filepath=EXAMPLES_DIR / f"{model.sid}.xml",
-        validation_options=ValidationOptions(units_consistency=False)
+        validation_options=ValidationOptions(units_consistency=False),
     )
 
     # flatten SBML model

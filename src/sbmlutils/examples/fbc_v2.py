@@ -141,12 +141,11 @@ model.parameters = [
 
 model.gene_products = [
     GeneProduct(
-        sid="gene1", metaId="meta_gene_1",
+        sid="gene1",
+        metaId="meta_gene_1",
         label="Rv0649",
         associatedSpecies="s_Rv0649",
-        annotations=[
-            (BQB.IS, "kegg.genes/mtu:Rv0649")
-        ]
+        annotations=[(BQB.IS, "kegg.genes/mtu:Rv0649")],
     ),
     GeneProduct("g_b3670", label="b3670"),
     GeneProduct("g_b3671", label="b3671"),
@@ -163,7 +162,7 @@ model.reactions = [
         name="v1 (39.43 Ac + 35 O2 -> X)",
         equation="39.43 Ac + 35 O2 => X []",
         # geneProductAssociation="((g_b3670 and g_b3671) or (g_b0077 and g_b0078) or (g_b3768 and g_b3769 and g_b3767))"
-        geneProductAssociation="b3767"
+        geneProductAssociation="b3767",
     ),
     Reaction(
         sid="v2",
@@ -230,7 +229,5 @@ model.objectives = [
 
 if __name__ == "__main__":
     from sbmlutils.resources import EXAMPLES_DIR
-    create_model(
-        model=model,
-        filepath=EXAMPLES_DIR / f"{model.sid}.xml"
-    )
+
+    create_model(model=model, filepath=EXAMPLES_DIR / f"{model.sid}.xml")

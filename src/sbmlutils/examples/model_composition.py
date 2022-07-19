@@ -3,12 +3,13 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from sbmlutils.resources import EXAMPLES_DIR
 from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.examples.minimal_model import model
 from sbmlutils.factory import *
 from sbmlutils.metadata import *
+from sbmlutils.resources import EXAMPLES_DIR
 from sbmlutils.validation import ValidationOptions
+
 
 model = Model(
     sid="model_composition",

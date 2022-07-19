@@ -85,5 +85,3 @@ if __name__ == "__main__":
     for module in examples_create:
         print(module)
         module.create(tmp=False)
-
-

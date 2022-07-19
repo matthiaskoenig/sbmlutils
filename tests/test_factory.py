@@ -11,6 +11,7 @@ from sbmlutils.factory import *
 from sbmlutils.io import read_sbml
 from sbmlutils.validation import ValidationOptions
 
+
 compartment_value_data = [
     (
         1.0,
@@ -88,9 +89,7 @@ def test_compartment_value(
     result = create_model(
         model=Model(**m1),
         filepath=tmp_path / "model.xml",
-        validation_options=ValidationOptions(
-            units_consistency=False
-        )
+        validation_options=ValidationOptions(units_consistency=False),
     )
 
     doc: libsbml.SBMLDocument = read_sbml(source=result.sbml_path)
@@ -129,9 +128,7 @@ def test_parameter_value(
     result = create_model(
         model=Model(**m1),
         filepath=tmp_path / "model.xml",
-        validation_options=ValidationOptions(
-            units_consistency=False
-        )
+        validation_options=ValidationOptions(units_consistency=False),
     )
 
     doc: libsbml.SBMLDocument = read_sbml(source=result.sbml_path)

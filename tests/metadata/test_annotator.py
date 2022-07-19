@@ -22,10 +22,7 @@ from sbmlutils.resources import (
 def test_create_annotation(tmp_path: Path) -> None:
     """Create assignment model."""
     model_path: Path = tmp_path / "model.xml"
-    create_model(
-        annotation_example.model,
-        filepath=model_path
-    )
+    create_model(annotation_example.model, filepath=model_path)
     assert model_path.exists()
 
 
@@ -77,8 +74,7 @@ def test_model_annotation(tmp_path: Path) -> None:
     }
 
     results = create_model(
-        model=Model(**model_dict),
-        filepath=tmp_path / "annotation1.xml"
+        model=Model(**model_dict), filepath=tmp_path / "annotation1.xml"
     )
     # check annotations
     doc: libsbml.SBMLDocument = read_sbml(source=results.sbml_path)

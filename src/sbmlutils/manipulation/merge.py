@@ -14,6 +14,7 @@ from sbmlutils.comp import comp, flatten_sbml
 from sbmlutils.io import read_sbml, validate_sbml, write_sbml
 from sbmlutils.validation import ValidationOptions
 
+
 logger = log.get_logger(__name__)
 
 
@@ -96,7 +97,7 @@ def merge_models(
         validate_sbml(
             source=merged_path,
             validation_options=validation_options,
-            title=str(merged_path)
+            title=str(merged_path),
         )
 
     if flatten:
@@ -106,7 +107,7 @@ def merge_models(
             validate_sbml(
                 source=flat_path,
                 validation_options=validation_options,
-                title=str(flat_path)
+                title=str(flat_path),
             )
 
     return merged_doc

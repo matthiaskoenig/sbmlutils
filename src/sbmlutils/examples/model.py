@@ -164,7 +164,6 @@ model.constraints = [
 
 if __name__ == "__main__":
     fac_result: FactoryResult = create_model(
-        model=model,
-        filepath=EXAMPLES_DIR / f"{model.sid}.xml"
+        model=model, filepath=EXAMPLES_DIR / f"{model.sid}.xml"
     )
     visualize_sbml(sbml_path=fac_result.sbml_path)

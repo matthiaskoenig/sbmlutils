@@ -25,7 +25,7 @@ from copy import deepcopy
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Tuple, Type, Union, Set
+from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, Type, Union
 
 import libsbml
 import numpy as np
@@ -44,7 +44,8 @@ from sbmlutils.metadata.annotator import Annotation
 from sbmlutils.notes import Notes, NotesFormat
 from sbmlutils.reaction_equation import EquationPart, ReactionEquation
 from sbmlutils.utils import FrozenClass, create_metaid, deprecated
-from sbmlutils.validation import check, ValidationOptions
+from sbmlutils.validation import ValidationOptions, check
+
 
 try:
     from typing import TypedDict
@@ -1284,7 +1285,11 @@ class InitialAssignment(Value):
             and (not model.getSpeciesReference(self.symbol))
         ):
             Parameter(
-                sid=self.symbol, value=None, unit=self.unit, constant=True, name=self.name
+                sid=self.symbol,
+                value=None,
+                unit=self.unit,
+                constant=True,
+                name=self.name,
             ).create_sbml(model)
 
         # Check if rule exists
@@ -1667,7 +1672,14 @@ class Reaction(Sbase):
             print(f"Set GPA: {self.geneProductAssociation}")
 
             # check all genes are in model
-            gpr_clean = self.geneProductAssociation.replace("(", " ").replace(")", " ").replace("and", " ").replace("AND", "").replace("or", "").replace("OR", "")
+            gpr_clean = (
+                self.geneProductAssociation.replace("(", " ")
+                .replace(")", " ")
+                .replace("and", " ")
+                .replace("AND", "")
+                .replace("or", "")
+                .replace("OR", "")
+            )
             gps: List[str] = [g for g in gpr_clean.split(" ") if g]
             model_fbc: libsbml.FbcModelPlugin = r.getModel().getPlugin("fbc")
             print(f"GeneProducts: {gps}")
@@ -1679,9 +1691,9 @@ class Reaction(Sbase):
                 gpa.setAssociation(
                     self.geneProductAssociation,
                     True,  # bool usingId=False,
-                    False  # bool addMissingGP=True
+                    False,  # bool addMissingGP=True
                 ),
-                f"set gpa: `{self.geneProductAssociation}`"
+                f"set gpa: `{self.geneProductAssociation}`",
             )
 
         self.create_port(model)
@@ -2143,9 +2155,6 @@ class ExchangeReaction(Reaction):
             port=port,
             replacedBy=replacedBy,
         )
-
-
-
 
 
 class KeyValuePair(Sbase):
@@ -2883,6 +2892,7 @@ class Port(SbaseRef):
 
 class Package(str, Enum):
     """Supported/tested packages"""
+
     COMP = "comp"
     COMP_V1 = "comp-v1"
     DISTRIB = "distrib"
@@ -3083,7 +3093,9 @@ class Model(Sbase, FrozenClass, BaseModel):
         self.model_units = model_units
         self.units = units if units else Units
         self.units_dict = None
-        self.external_model_definitions = external_model_definitions if external_model_definitions else []
+        self.external_model_definitions = (
+            external_model_definitions if external_model_definitions else []
+        )
         self.model_definitions = model_definitions if model_definitions else []
 
         self.submodels = submodels if submodels else []
@@ -3223,9 +3235,7 @@ class Model(Sbase, FrozenClass, BaseModel):
             packages_set.add(Package.DISTRIB_V1)
 
         if len(packages_set) < len(packages):
-            raise ValueError(
-                f"Duplicate packages in "
-            )
+            raise ValueError(f"Duplicate packages in ")
 
         for p in packages_set:
             if not isinstance(p, str):
@@ -3362,7 +3372,9 @@ class Document(Sbase):
 
         if Package.COMP_V1 in self.model.packages:
             self.doc.setPackageRequired("comp", True)
-        if (Package.FBC_V2 in self.model.packages) or (Package.FBC_V3 in self.model.packages):
+        if (Package.FBC_V2 in self.model.packages) or (
+            Package.FBC_V3 in self.model.packages
+        ):
             self.doc.setPackageRequired("fbc", False)
             fbc_plugin = sbml_model.getPlugin("fbc")
             fbc_plugin.setStrict(False)

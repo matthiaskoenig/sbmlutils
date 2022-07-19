@@ -7,6 +7,7 @@ from sbmlutils.factory import *
 from sbmlutils.io import read_sbml
 from sbmlutils.validation import ValidationOptions
 
+
 level_version_testdata = [
     (1, 1),
     (1, 2),
@@ -50,10 +51,7 @@ def test_sbml_level_version(level: int, version: int, tmp_path: Path) -> None:
         filepath=tmp_path / "model.xml",
         sbml_level=level,
         sbml_version=version,
-        validation_options=ValidationOptions(
-            units_consistency=False
-        )
-
+        validation_options=ValidationOptions(units_consistency=False),
     )
     doc = read_sbml(source=results.sbml_path, validate=False)
     assert level == doc.getLevel()

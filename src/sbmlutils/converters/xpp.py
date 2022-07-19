@@ -53,7 +53,7 @@ from sbmlutils.converters import xpp_helpers
 from sbmlutils.factory import Event, Function
 from sbmlutils.io import sbml
 from sbmlutils.notes import NotesFormat
-from sbmlutils.validation import  ValidationOptions
+from sbmlutils.validation import ValidationOptions
 
 
 XPP_ODE = "ode"
@@ -639,6 +639,6 @@ def xpp2sbml(
         validate=validate,
         validation_options=ValidationOptions(
             units_consistency=False,
-        )
+        ),
     )
     return doc

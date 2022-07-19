@@ -78,10 +78,7 @@ def create(tmp: bool = False) -> None:
     else:
         output_dir = EXAMPLES_DIR
 
-    result = create_model(
-        model=_m,
-        filepath=EXAMPLES_DIR / "distrib_comp.xml"
-    )
+    result = create_model(model=_m, filepath=EXAMPLES_DIR / "distrib_comp.xml")
 
     sbml_path_flat = output_dir / "distrib_comp_flat.xml"
     flatten_sbml(result.sbml_path, sbml_flat_path=sbml_path_flat)

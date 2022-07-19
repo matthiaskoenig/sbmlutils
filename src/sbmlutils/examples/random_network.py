@@ -6,6 +6,7 @@ from sbmlutils.factory import *
 from sbmlutils.resources import EXAMPLES_DIR
 from sbmlutils.validation import ValidationOptions
 
+
 random.seed(1234)
 n_species = 20
 n_links = 30
@@ -44,6 +45,6 @@ if __name__ == "__main__":
     fac_result: FactoryResult = create_model(
         model=model,
         filepath=EXAMPLES_DIR / f"{model.sid}.xml",
-        validation_options=ValidationOptions(units_consistency=False)
+        validation_options=ValidationOptions(units_consistency=False),
     )
     visualize_sbml(sbml_path=fac_result.sbml_path)

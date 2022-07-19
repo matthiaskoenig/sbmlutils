@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from sbmlutils.io.sbml import validate_sbml, ValidationOptions, ValidationResult
+from sbmlutils.io.sbml import ValidationOptions, ValidationResult, validate_sbml
 from sbmlutils.resources import (
     BASIC_SBML,
     DEMO_SBML,
@@ -24,8 +24,8 @@ from sbmlutils.resources import (
 def test_sbml_validation(sbml_path: Path, ucheck: bool, n_all: int) -> None:
     """Test SBML validation."""
     v_results = validate_sbml(
-        source=sbml_path,
-        validation_options=ValidationOptions(units_consistency=ucheck))
+        source=sbml_path, validation_options=ValidationOptions(units_consistency=ucheck)
+    )
     assert v_results
     assert n_all == v_results.all_count
 
@@ -48,7 +48,6 @@ def test_sbml_validation(sbml_path: Path, ucheck: bool, n_all: int) -> None:
 def test_sbml_validation_options(options: ValidationOptions) -> None:
     """Test options for SBML validation."""
     v_results: ValidationResult = validate_sbml(
-        source=DEMO_SBML,
-        validation_options=options
+        source=DEMO_SBML, validation_options=options
     )
     assert v_results

@@ -160,7 +160,5 @@ if model.reactions:
 
 if __name__ == "__main__":
     from sbmlutils.resources import EXAMPLES_DIR
-    create_model(
-        model=model,
-        filepath=EXAMPLES_DIR / f"{model.sid}.xml"
-    )
+
+    create_model(model=model, filepath=EXAMPLES_DIR / f"{model.sid}.xml")

@@ -9,6 +9,7 @@ from sbmlutils.parser import sbml_to_model
 from sbmlutils.resources import BIOMODELS_CURATED_PATH, sbml_paths_idfn
 from sbmlutils.validation import ValidationOptions
 
+
 sbml_paths = []
 for k in range(100):
     path = BIOMODELS_CURATED_PATH / f"BIOMD0000000{k:0>3}.omex"
@@ -35,5 +36,5 @@ def test_model_from_biomodels_omex(sbml_path: Path, tmp_path: Path) -> None:
                 filepath=tmp_path / "models.xml",
                 sbml_level=3,
                 sbml_version=2,
-                validation_options=ValidationOptions(units_consistency=False)
+                validation_options=ValidationOptions(units_consistency=False),
             )

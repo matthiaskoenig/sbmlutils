@@ -3,11 +3,14 @@ Test bed for FBC version 3.
 For latest SBML fbc v3 specification see
 https://github.com/bgoli/sbml-fbc-spec/blob/main/sf_svn/spec/main.pdf
 """
+from logging import getLogger
 from pathlib import Path
 
 import libsbml
-from logging import getLogger
+
 from sbmlutils.console import console
+
+
 logger = getLogger(__name__)
 
 
@@ -127,7 +130,9 @@ constraint.setId("constraint1")
 constraint.setLowerBound("lb")
 constraint.setUpperBound("ub")
 
-component: libsbml.UserDefinedConstraintComponent = constraint.createUserDefinedConstraintComponent()
+component: libsbml.UserDefinedConstraintComponent = (
+    constraint.createUserDefinedConstraintComponent()
+)
 component.setCoefficient(10.0)
 component.setVariable("r1")
 component.setVariableType(libsbml.FBC_FBCVARIABLETYPE_LINEAR)
@@ -158,10 +163,15 @@ if doc2.getNumErrors() > 0:
 
 from sbmlutils.io import validate_sbml
 from sbmlutils.validation import ValidationOptions
-validate_sbml(source=sbml_str, validation_options=ValidationOptions(units_consistency=False))
+
+
+validate_sbml(
+    source=sbml_str, validation_options=ValidationOptions(units_consistency=False)
+)
 sbml_path = Path("fbc_version3.xml")
 with open("fbc_version3.xml", "w") as f_sbml:
     f_sbml.write(sbml_str)
 
-validate_sbml(source=sbml_path, validation_options=ValidationOptions(units_consistency=False))
-
+validate_sbml(
+    source=sbml_path, validation_options=ValidationOptions(units_consistency=False)
+)

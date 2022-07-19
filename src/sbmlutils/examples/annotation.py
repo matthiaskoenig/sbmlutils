@@ -144,7 +144,4 @@ model.reactions = [
 
 
 if __name__ == "__main__":
-    create_model(
-        model=model,
-        filepath=EXAMPLES_DIR / f"{model.sid}.xml"
-    )
+    create_model(model=model, filepath=EXAMPLES_DIR / f"{model.sid}.xml")

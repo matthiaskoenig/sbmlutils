@@ -45,20 +45,28 @@ model = Model(
             # unit=U.mmole_per_hr,
             constant=True,
             keyValuePairs=[
-                KeyValuePair(key="keyX", value="47", uri="https://tinyurl.com/ybyr7b62"),
-                KeyValuePair(key="ZZkey", value="level 5", uri="urn:tinyurl.com:example:kvp"),
-                KeyValuePair(key="x-factor", value="intangible metaphysical property", uri="https://tinyurl.com/ybyr7b62")
-            ]
+                KeyValuePair(
+                    key="keyX", value="47", uri="https://tinyurl.com/ybyr7b62"
+                ),
+                KeyValuePair(
+                    key="ZZkey", value="level 5", uri="urn:tinyurl.com:example:kvp"
+                ),
+                KeyValuePair(
+                    key="x-factor",
+                    value="intangible metaphysical property",
+                    uri="https://tinyurl.com/ybyr7b62",
+                ),
+            ],
         ),
-    ]
+    ],
 )
 
 if __name__ == "__main__":
     from sbmlutils.resources import EXAMPLES_DIR
+
     fac_results = create_model(
         model=model,
         filepath=EXAMPLES_DIR / f"{model.sid}.xml",
         show_sbml=True,
         validation_options=ValidationOptions(units_consistency=False),
     )
-

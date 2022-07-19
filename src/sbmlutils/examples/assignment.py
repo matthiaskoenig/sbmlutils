@@ -41,10 +41,14 @@ model = Model(
 model.parameters = [
     # dosing
     Parameter(
-        "D", NaN, U.mg, name="total dose", constant=False,
+        "D",
+        NaN,
+        U.mg,
+        name="total dose",
+        constant=False,
         notes="""The parameter does not have an initial value set.
         An InitialAssignment is used to set the parameter.
-        """
+        """,
     ),
     Parameter("A", 0, U.mg, name="amount in blood"),
     Parameter("IVDOSE", 0, U.mg, name="intravenous dose"),
@@ -57,15 +61,19 @@ model.parameters = [
 
 model.assignments = [
     InitialAssignment(
-        "D", "PODOSE +  IVDOSE", U.mg,
+        "D",
+        "PODOSE +  IVDOSE",
+        U.mg,
         name="total dose",
         notes="""Using an InitialAssignment to set the total dose at the beginning
         of the simulation as sum from iv and oral dose.
         The target parameter `D` of the initial assignment exists in the model.
-        """
+        """,
     ),
     InitialAssignment(
-        "Vblood", "BW*FVblood", U.liter,
+        "Vblood",
+        "BW*FVblood",
+        U.liter,
         name="blood volume",
         sid="init_Vblood",
         notes="""Calculating the blood volume via an Initial assignment.
@@ -73,32 +81,29 @@ model.assignments = [
         so a corresponding parameter for the assignment is generated.
 
         The `sid` can be used to set the id of the assignment.
-        """
+        """,
     ),
 ]
 
 model.rules = [
     AssignmentRule(
-        "Cve", "A/Vblood", U.mg_per_l,
+        "Cve",
+        "A/Vblood",
+        U.mg_per_l,
         name="rule to calulate concentration",
         notes="""
         Assignment rule to calculate the concentration `Cve` in [mg/l] from the
         species `A` and the volume `Vblood`.
-        """
+        """,
     ),
 ]
 
 model.rate_rules = [
-    RateRule(
-        "D", "-k1*Cve", U.mg_per_hr,
-        name="rule for the change of D"
-    ),
+    RateRule("D", "-k1*Cve", U.mg_per_hr, name="rule for the change of D"),
 ]
 
 
 if __name__ == "__main__":
     from sbmlutils.resources import EXAMPLES_DIR
-    create_model(
-        model=model,
-        filepath=EXAMPLES_DIR / f"{model.sid}.xml"
-    )
+
+    create_model(model=model, filepath=EXAMPLES_DIR / f"{model.sid}.xml")

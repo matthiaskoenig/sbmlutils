@@ -10,6 +10,7 @@ from sbmlutils.factory import *
 from sbmlutils.metadata import *
 from sbmlutils.validation import ValidationOptions
 
+
 n_chain = 20
 model = Model(
     sid="linear_chain",
@@ -17,19 +18,24 @@ model = Model(
     # Linear chain
 
     Example model for the programatic creation of a linear chain.
-    """ + templates.terms_of_use,
+    """
+    + templates.terms_of_use,
     creators=templates.creators,
     compartments=[
         Compartment(sid="cell", value=1.0),
     ],
     species=[
         Species(sid="S1", initialConcentration=10.0, compartment="cell"),
-    ]
+    ],
 )
 for k in range(n_chain):
     model.species.append(
-        Species(sid=f"S{k + 2}", initialConcentration=0.0, compartment="cell",
-                name=f"Species {k +2}"),
+        Species(
+            sid=f"S{k + 2}",
+            initialConcentration=0.0,
+            compartment="cell",
+            name=f"Species {k +2}",
+        ),
     )
     model.parameters.append(
         Parameter(sid=f"k{k+1}", value=0.1, name=f"rate constant {k+1}"),
@@ -42,9 +48,10 @@ for k in range(n_chain):
 
 if __name__ == "__main__":
     from sbmlutils.resources import EXAMPLES_DIR
+
     factory_results = create_model(
         model=model,
         filepath=EXAMPLES_DIR / f"{model.sid}.xml",
-        validation_options=ValidationOptions(units_consistency=False)
+        validation_options=ValidationOptions(units_consistency=False),
     )
     visualize_sbml(sbml_path=factory_results.sbml_path)
