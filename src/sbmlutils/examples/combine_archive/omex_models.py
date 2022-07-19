@@ -2,9 +2,8 @@
 
 This demonstrates just the very core SBML functionality.
 """
-import tempfile
 from pathlib import Path
-from typing import Dict
+from typing import final, Optional
 
 from pymetadata.omex import EntryFormat, ManifestEntry, Omex
 
@@ -16,11 +15,10 @@ from sbmlutils.resources import EXAMPLES_DIR
 
 
 # -------------------------------------------------------------------------------------
-model_minimal = Model(
+model = Model(
     sid="omex_minimal",
     notes=terms_of_use,
     creators=creators,
-    packages=["fbc"],
     compartments=[
         Compartment(sid="cell", value=1.0, port=True),
     ],
@@ -37,7 +35,6 @@ model_minimal = Model(
 )
 # -------------------------------------------------------------------------------------
 
-n_cells = 5
 
 _m = Model(
     sid="omex_comp",
@@ -54,11 +51,12 @@ _m = Model(
 )
 
 # create grid of compartments with main species
+n_cells: final = 5
 for k in range(n_cells):
-    _m.compartments.append(  # type: ignore
+    _m.compartments.append(
         Compartment(sid=f"cell{k}", value=1.0),
     )
-    _m.species.append(  # type: ignore
+    _m.species.append(
         Species(
             sid=f"S{k}",
             # metaId=f"meta_S{k}",
@@ -77,11 +75,11 @@ for k in range(n_cells - 1):
 
 # model coupling
 for k in range(n_cells):
-    _m.external_model_definitions.append(  # type: ignore
+    _m.external_model_definitions.append(
         ExternalModelDefinition(
             sid=f"emd{k}",
-            source=f"{model_minimal.sid}.xml",
-            modelRef=f"{model_minimal.sid}",
+            source=f"{_m.sid}.xml",
+            modelRef=f"{_m.sid}",
         ),
     )
     _m.submodels.append(Submodel(sid=f"submodel{k}", modelRef=f"emd{k}"))  # type: ignore
@@ -106,56 +104,53 @@ for k in range(n_cells):
         ]
     )
 
-comp_model = _m
-# -------------------------------------------------------------------------------------
-results: Dict[str, Path] = {}
+model_comp = _m
 
 
-def create_omex(tmp: bool = False) -> None:
+def create_omex(tmp_dir: Optional[Path] = None) -> None:
     """Create omex with models."""
 
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        if tmp:
-            output_dir = Path(tmp_dir)
-        else:
-            output_dir = EXAMPLES_DIR
+    output_dir = tmp_dir if tmp_dir else EXAMPLES_DIR
+    sbml_path = output_dir / f"{model.sid}.xml"
+    sbml_comp_path = output_dir / f"{_m.sid}.xml"
+    sbml_comp_flat_path = output_dir / f"{_m.sid}_flat.xml"
 
-        results_minimal_model = create_model(
-            models=model_minimal,
-            output_dir=output_dir,
-            units_consistency=False,
-        )
-        results_comp_model = create_model(
-            models=comp_model,
-            output_dir=output_dir,
-            units_consistency=False,
-        )
-        sbml_flat_path = (
-            results_comp_model.sbml_path.parent / f"{comp_model.sid}_flat.xml"
-        )
-        flatten_sbml(
-            sbml_path=results_comp_model.sbml_path, sbml_flat_path=sbml_flat_path
-        )
+    create_model(
+        model=model,
+        filepath=sbml_path,
+        validation_options=ValidationOptions(units_consistency=False),
+        sbml_level=3,
+        sbml_version=1,
+    )
+    create_model(
+        model=model_comp,
+        filepath=sbml_comp_path,
+        validation_options=ValidationOptions(units_consistency=False),
+        sbml_level=3,
+        sbml_version=1,
+    )
+    flatten_sbml(
+        sbml_path=sbml_comp_path, sbml_flat_path=sbml_comp_flat_path
+    )
 
-        sbml_paths = [
-            results_minimal_model.sbml_path,
-            results_comp_model.sbml_path,
-            sbml_flat_path,
-        ]
+    # Create COMBINE archive
+    omex = Omex()
+    for path in [
+        sbml_path,
+        sbml_comp_path,
+        sbml_comp_flat_path
 
-        # Create COMBINE archive
-        omex = Omex()
-        for path in sbml_paths:
-            omex.add_entry(
-                entry_path=path,
-                entry=ManifestEntry(
-                    format=EntryFormat.SBML_L3V1, location=f"./models/{path.name}"
-                ),
-            )
-        omex_path = output_dir / f"{comp_model.sid}.omex"
-        omex.to_omex(omex_path)
-        console.print(f"OMEX created: {omex_path}")
-        console.print(omex.manifest.dict())
+    ]:
+        omex.add_entry(
+            entry_path=path,
+            entry=ManifestEntry(
+                format=EntryFormat.SBML_L3V1, location=f"./models/{path.name}"
+            ),
+        )
+    omex_path = output_dir / f"{model_comp.sid}.omex"
+    omex.to_omex(omex_path)
+    console.print(f"OMEX created: {omex_path}")
+    console.print(omex.manifest.dict())
 
 
 if __name__ == "__main__":

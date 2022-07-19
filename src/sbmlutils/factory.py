@@ -101,10 +101,12 @@ __all__ = [
     "ModelDict",
     "Model",
     "Document",
-    "FactoryResult",
-    "create_model",
     "UnitType",
     "NaN",
+
+    "create_model",
+    "ValidationOptions",
+    "FactoryResult",
 ]
 
 
