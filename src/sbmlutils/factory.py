@@ -3221,6 +3221,13 @@ class Model(Sbase, FrozenClass, BaseModel):
             return []
 
         packages_set: Set[Package] = set(packages)
+        for p in packages_set:
+            if not isinstance(p, Package):
+                msg = f"Packages must be provided as `Package`, but package " \
+                      f"`{p}` is `{type(p)}`."
+                logger.error(msg)
+                raise ValueError(msg)
+
         # normalize package versions
         if Package.COMP in packages_set:
             packages_set.remove(Package.COMP)
@@ -3378,7 +3385,7 @@ class Document(Sbase):
             self.doc.setPackageRequired("fbc", False)
             fbc_plugin = sbml_model.getPlugin("fbc")
             fbc_plugin.setStrict(False)
-        if Package.DISTRIB in self.model.packages:
+        if Package.DISTRIB_V1 in self.model.packages:
             self.doc.setPackageRequired("distrib", True)
 
         return self.doc
