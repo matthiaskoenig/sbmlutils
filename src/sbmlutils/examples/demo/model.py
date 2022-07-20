@@ -14,7 +14,7 @@ class U(Units):
 
 _m = Model(
     "Koenig_demo_v15",
-    packages=["fbc"],
+    packages=[Package.FBC_V2],
     notes="""
     # Koenig Demo Metabolism
     ## Description

@@ -295,47 +295,34 @@ class ModelUnits:
                     model.setVolumeUnits(uid)
 
 
-def date_now() -> libsbml.Date:
-    """Get current time stamp for history.
-
-    :return: current libsbml Date
-    """
-    time = datetime.datetime.now()
-    timestr = time.strftime("%Y-%m-%dT%H:%M:%S")
-    return libsbml.Date(timestr)
-
-
-def set_model_history(sbase: libsbml.SBase, creators: List[Creator]) -> None:
+def set_model_history(sbase: libsbml.SBase, creators: List[Creator], set_timestamps: bool = False) -> None:
     """Set the model history from given creators.
 
     :param sbase: SBML model
     :param creators: list of creators
+    :param set_timestamps: boolean flag to set timestamps on history.
     :return:
     """
     if not sbase.isSetMetaId():
         sbase.setMetaId(create_metaid(sbase=sbase))
 
     # create and set model history
-    h = _create_history(creators)
+    h = _create_history(creators=creators, set_timestamps=set_timestamps)
     check(sbase.setModelHistory(h), "set model history")
 
 
 def _create_history(
-    creators: List[Creator], set_timestamps: bool = False
+    creators: Iterable[Creator], set_timestamps: bool = False
 ) -> libsbml.ModelHistory:
     """Create the model history.
 
     Sets the create and modified date to the current time.
-    Creators are a list or dictionary with values as
-
-    :param creators:
-    :param set_timestamps:
-    :return:
+    The `set_timestamps` flag allows to set no timestamps.
     """
-    h = libsbml.ModelHistory()
+    h: libsbml.ModelHistory() = libsbml.ModelHistory()
 
     for creator in creators:
-        c = libsbml.ModelCreator()
+        c: libsbml.ModelCreator = libsbml.ModelCreator()
         if creator.familyName:
             c.setFamilyName(creator.familyName)
         if creator.givenName:
@@ -357,6 +344,15 @@ def _create_history(
         check(h.setModifiedDate(datetime), "set modified date")
 
     return h
+
+def date_now() -> libsbml.Date:
+    """Get current time stamp for history.
+
+    :return: current libsbml Date
+    """
+    time = datetime.datetime.now()
+    timestr = time.strftime("%Y-%m-%dT%H:%M:%S")
+    return libsbml.Date(timestr)
 
 
 class Sbase:
@@ -3176,6 +3172,11 @@ class Model(Sbase, FrozenClass, BaseModel):
         Package.FBC_V2,
         Package.FBC_V3,
     }
+
+    def __str__(self) -> str:
+        """Get string."""
+        field_str = ", ".join(f'{a}={v!r}' for a, v in self.__repr_args__() if a and v)
+        return f"{self.__class__.__name__}({field_str})"
 
     def __init__(
         self,

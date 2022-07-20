@@ -25,15 +25,13 @@ logger = get_logger(__name__)
 def sbml_to_model(
     source: Union[Path, str],
     validate: bool = False,
-    validation_options: object = ValidationOptions(),
+    promote: bool = False,
+    validation_options: ValidationOptions = ValidationOptions(),
 ) -> Model:
-    """Parse SBML model.
-
-    LocalParameters are promoted.
-    """
+    """Parse SBML model."""
     doc: libsbml.SBMLDocument = read_sbml(
         source=source,
-        promote=True,
+        promote=promote,
         validate=validate,
         validation_options=validation_options,
     )
@@ -70,6 +68,22 @@ def sbml_to_model(
         # notes
         # FIXME: support merging of notes, see
 
+        # keyValuePairs
+        sbase_fbc: libsbml.FbcSBasePlugin = sbase.getPlugin("fbc")
+        kvps: List[KeyValuePair] = []
+        if sbase_fbc:
+            kvp: libsbml.KeyValuePair
+            for kvp in sbase_fbc.getListOfKeyValuePairs():
+                kvps.append(
+                    KeyValuePair(
+                        key=kvp.getKey(),
+                        value=kvp.getValue(),
+                        uri=kvp.getUri() if kvp.isSetUri() else None,
+                        **parse_sbase_kwargs(kvp)
+                    )
+                )
+
+        kwargs["keyValuePairs"] = kvps
         # if d["notes"]:
         #     kwargs["notes"] = d["notes"]  # This is an XML string.
 
@@ -79,15 +93,23 @@ def sbml_to_model(
         logger.error("No model in SBMLDocument.")
 
     m = Model(**parse_sbase_kwargs(model))
+    # FIXME: parse packages
+    m.packages = [
+        Package.FBC_V3
+    ]
+
 
     p: libsbml.Parameter
     for p in model.getListOfParameters():
+        d = parse_sbase_kwargs(p)
+        print(d)
         m.parameters.append(
             Parameter(
                 value=p.getValue() if p.isSetValue else None,
                 # unit=p.getUnits(),
                 constant=p.getConstant() if p.isSetConstant() else None,
-                **parse_sbase_kwargs(p),
+                **d,
+
             )
         )
 
