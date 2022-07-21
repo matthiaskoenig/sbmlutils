@@ -25,7 +25,8 @@ from copy import deepcopy
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, Type, Union
+from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, Type, Union, \
+    ForwardRef
 
 import libsbml
 import numpy as np
@@ -345,6 +346,7 @@ def _create_history(
 
     return h
 
+
 def date_now() -> libsbml.Date:
     """Get current time stamp for history.
 
@@ -357,7 +359,6 @@ def date_now() -> libsbml.Date:
 
 class Sbase:
     """Base class of all SBML objects."""
-
     def __init__(
         self,
         sid: Optional[str] = None,
@@ -382,19 +383,23 @@ class Sbase:
         self.replacedBy = replacedBy
         self.annotations: AnnotationsType = annotations
 
-    def __str__(self) -> str:
-        """Get string representation."""
-        tokens = str(self.__class__).split(".")
-        class_name = tokens[-1][:-2]
-        info: str = ""
-        if self.sid and not self.name:
-            info = f" {self.sid}"
-        elif self.sid and self.name:
-            info = f" {self.sid}|{self.name}"
-        elif not self.sid and self.name:
-            info = f" {self.name}"
+    fields = [
+        "sid",
+        "name",
+        "sboTerm",
+        "metaId",
+        "notes",
+        "keyValuePairs",
+        "port",
+        "uncertainties",
+        "replacedBy",
+        "annotations",
+    ]
 
-        return f"<{class_name}{info}>"
+    def __str__(self) -> str:
+        """Get string."""
+        field_str = ", ".join([str(getattr(self, f)) for f in self.fields if getattr(self, f)])
+        return f"{self.__class__.__name__}({field_str})"
 
     @staticmethod
     def _process_annotations(annotation_objects: AnnotationsType) -> List[Annotation]:
@@ -579,6 +584,57 @@ class Sbase:
         return kvps
 
 
+class KeyValuePair(Sbase):
+    """KeyValuePair."""
+
+    def __init__(
+        self,
+        key: str,
+        value: Optional[str],
+        uri: Optional[str],
+        sid: Optional[str] = None,
+        name: Optional[str] = None,
+        sboTerm: Optional[str] = None,
+        metaId: Optional[str] = None,
+        notes: Optional[str] = None,
+        annotations: AnnotationsType = None,
+        keyValuePairs: Optional[List[KeyValuePair]] = None,
+        port: Any = None,
+        uncertainties: Optional[List[Uncertainty]] = None,
+        replacedBy: Optional[Any] = None,
+    ):
+        """Create a KeyValuePair."""
+        super(KeyValuePair, self).__init__(
+            sid=sid,
+            name=name,
+            sboTerm=sboTerm,
+            metaId=metaId,
+            annotations=annotations,
+            notes=notes,
+            keyValuePairs=keyValuePairs,
+            port=port,
+            uncertainties=uncertainties,
+            replacedBy=replacedBy,
+        )
+        self.key = key
+        self.value = value
+        self.uri = uri
+
+    def create_sbml(self, sbase: libsbml.SBase) -> libsbml.KeyValuePair:
+        """Create KeyValuePair on object."""
+        sbase_fbc: libsbml.FbcSBasePlugin = sbase.getPlugin("fbc")
+        kvp_list: libsbml.ListOfKeyValuePairs = sbase_fbc.getListOfKeyValuePairs()
+        kvp_list.setXmlns("http://sbml.org/fbc/keyvaluepair")
+        kvp: libsbml.KeyValuePair = kvp_list.createKeyValuePair()
+        check(kvp.setKey(self.key), "Set Key on KeyValuePair")
+        if self.value is not None:
+            check(kvp.setValue(self.value), f"Set `value={self.value}` on KeyValuePair")
+        if self.uri is not None:
+            check(kvp.setValue(self.value), f"Set `uri={self.uri}` on KeyValuePair")
+
+        return kvp
+
+
 class Value(Sbase):
     """Helper class.
 
@@ -623,8 +679,9 @@ class UnitDefinition(Sbase):
 
     Corresponds to the information in the libsbml.UnitDefinition.
     """
+    definition: str = None,
 
-    pint2sbml = {
+    _pint2sbml = {
         "dimensionless": libsbml.UNIT_KIND_DIMENSIONLESS,
         "ampere": libsbml.UNIT_KIND_AMPERE,
         # None: libsbml.UNIT_KIND_BECQUEREL,
@@ -648,7 +705,7 @@ class UnitDefinition(Sbase):
         "volt": libsbml.UNIT_KIND_VOLT,
     }
     # see https://github.com/hgrecco/pint/blob/master/pint/default_en.txt
-    prefixes = {
+    _prefixes = {
         "yocto": 1e-24,
         "zepto": 1e-21,
         "atto": 1e-18,
@@ -701,6 +758,11 @@ class UnitDefinition(Sbase):
         if not self.name:
             self.name = self.definition
 
+    class Config:
+        """Pydantic configuration."""
+
+        arbitrary_types_allowed = True
+
     def create_sbml(self, model: libsbml.Model) -> Optional[libsbml.UnitDefinition]:
         """Create libsbml.UnitDefinition."""
         if isinstance(self.definition, int):
@@ -710,16 +772,11 @@ class UnitDefinition(Sbase):
         obj: libsbml.UnitDefinition = model.createUnitDefinition()
 
         # parse the string into pint
-        # quantity = Q_(self.definition).to_compact().to_reduced_units().to_base_units()
-        # quantity = Q_(self.definition).to_base_units()
         quantity = Q_(self.definition)
         magnitude, units = quantity.to_tuple()
-        # console.log(magnitude, units)
 
         if units:
             for k, item in enumerate(units):
-                # console.rule()
-                # console.log(item)
                 prefix, unit_name, suffix = ureg.parse_unit_name(item[0])[0]
                 exponent = item[1]
                 # first unit gets the multiplier
@@ -728,19 +785,19 @@ class UnitDefinition(Sbase):
                     multiplier = magnitude
 
                 if prefix:
-                    multiplier = multiplier * self.__class__.prefixes[prefix]
+                    multiplier = multiplier * self.__class__._prefixes[prefix]
 
                 multiplier = np.power(multiplier, 1 / abs(exponent))
 
                 scale = 0
                 # resolve the kind (this is already a unit known by libsbml)
-                kind = self.__class__.pint2sbml.get(unit_name, None)
+                kind = self.__class__._pint2sbml.get(unit_name, None)
                 if kind is None:
                     # we have to bring the unit to base units
                     uq = Q_(unit_name).to_base_units()
                     # console.log("uq:", uq)
                     multiplier = multiplier * uq.magnitude
-                    kind = self.__class__.pint2sbml.get(str(uq.units), None)
+                    kind = self.__class__._pint2sbml.get(str(uq.units), None)
                     if kind is None:
                         msg = (
                             f"Unit '{uq.units}' in definition "
@@ -749,11 +806,10 @@ class UnitDefinition(Sbase):
                         logger.error(msg)
                         raise ValueError(msg)
 
-                # console.log(f"({multiplier} * 10^{scale} {libsbml.UnitKind_toString(kind)})^{exponent}")
                 self._create_unit(obj, kind, exponent, scale, multiplier)
         else:
             # only magnitude (units canceled)
-            kind = self.__class__.pint2sbml["dimensionless"]
+            kind = self.__class__._pint2sbml["dimensionless"]
             self._create_unit(obj, kind, 1.0, 0, magnitude)
 
         self._set_fields(obj, model)
@@ -778,11 +834,10 @@ class UnitDefinition(Sbase):
         unit.setExponent(exponent)
         unit.setScale(scale)
         unit.setMultiplier(multiplier)
-        # print(f"({multiplier} * 10^{scale} {libsbml.UnitKind_toString(kind)})^exponent")
         return unit
 
     @staticmethod
-    def get_uid_for_unit(unit: Union["UnitDefinition", str]) -> Optional[str]:
+    def get_uid_for_unit(unit: Union[UnitDefinition, str]) -> Optional[str]:
         """Get unit id for given definition string."""
         uid: Optional[str]
         if unit is None:
@@ -2158,55 +2213,7 @@ class ExchangeReaction(Reaction):
         )
 
 
-class KeyValuePair(Sbase):
-    """KeyValuePair."""
 
-    def __init__(
-        self,
-        key: str,
-        value: Optional[str],
-        uri: Optional[str],
-        sid: Optional[str] = None,
-        name: Optional[str] = None,
-        sboTerm: Optional[str] = None,
-        metaId: Optional[str] = None,
-        annotations: AnnotationsType = None,
-        notes: Optional[str] = None,
-        keyValuePairs: Optional[List[KeyValuePair]] = None,
-        port: Any = None,
-        uncertainties: Optional[List[Uncertainty]] = None,
-        replacedBy: Optional[Any] = None,
-    ):
-        """Create a KeyValuePair."""
-        super(KeyValuePair, self).__init__(
-            sid=sid,
-            name=name,
-            sboTerm=sboTerm,
-            metaId=metaId,
-            annotations=annotations,
-            notes=notes,
-            keyValuePairs=keyValuePairs,
-            port=port,
-            uncertainties=uncertainties,
-            replacedBy=replacedBy,
-        )
-        self.key = key
-        self.value = value
-        self.uri = uri
-
-    def create_sbml(self, sbase: libsbml.SBase) -> libsbml.KeyValuePair:
-        """Create KeyValuePair on object."""
-        sbase_fbc: libsbml.FbcSBasePlugin = sbase.getPlugin("fbc")
-        kvp_list: libsbml.ListOfKeyValuePairs = sbase_fbc.getListOfKeyValuePairs()
-        kvp_list.setXmlns("http://sbml.org/fbc/keyvaluepair")
-        kvp: libsbml.KeyValuePair = kvp_list.createKeyValuePair()
-        check(kvp.setKey(self.key), "Set Key on KeyValuePair")
-        if self.value is not None:
-            check(kvp.setValue(self.value), f"Set `value={self.value}` on KeyValuePair")
-        if self.uri is not None:
-            check(kvp.setValue(self.value), f"Set `uri={self.uri}` on KeyValuePair")
-
-        return kvp
 
 
 class GeneProduct(Sbase):
@@ -2951,20 +2958,22 @@ class Deletion(SbaseRef):
         super(Deletion, self)._set_fields(sbase, model)
 
 
-##########################################################################
-# Ports
-##########################################################################
-# Ports are stored in an optional child ListOfPorts object, which, if
-# present, must contain one or more Port objects.  All of the Ports
-# present in the ListOfPorts collectively define the 'port interface' of
-# the Model.
-PORT_TYPE_PORT = "port"
-PORT_TYPE_INPUT = "input port"
-PORT_TYPE_OUTPUT = "output port"
+class PortType(str, Enum):
+    """Supported port types."""
+
+    PORT = "port"
+    INPUT_PORT = "input port"
+    OUTPUT_PORT = "output port"
 
 
 class Port(SbaseRef):
-    """Port."""
+    """Port.
+
+    Ports are stored in an optional child ListOfPorts object, which, if
+    present, must contain one or more Port objects.  All of the Ports
+    present in the ListOfPorts collectively define the 'port interface' of
+    the Model.
+    """
 
     def __init__(
         self,
@@ -2973,7 +2982,7 @@ class Port(SbaseRef):
         idRef: Optional[str] = None,
         unitRef: Optional[str] = None,
         metaIdRef: Optional[str] = None,
-        portType: Optional[str] = PORT_TYPE_PORT,
+        portType: Optional[PortType] = PortType.PORT,
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
@@ -3004,11 +3013,11 @@ class Port(SbaseRef):
         self._set_fields(p, model)
 
         if self.sboTerm is None:
-            if self.portType == PORT_TYPE_PORT:
+            if self.portType == PortType.PORT:
                 sbo = SBO.PORT
-            elif self.portType == PORT_TYPE_INPUT:
+            elif self.portType == PortType.INPUT_PORT:
                 sbo = SBO.INPUT_PORT
-            elif self.portType == PORT_TYPE_OUTPUT:
+            elif self.portType == PortType.OUTPUT_POR:
                 sbo = SBO.OUTPUT_PORT
             p.setSBOTerm(sbo.value.replace("_", ":"))
 
@@ -3626,3 +3635,4 @@ def create_model(
 
     console.rule(style="white")
     return FactoryResult(sbml_path=filepath, model=model)
+
