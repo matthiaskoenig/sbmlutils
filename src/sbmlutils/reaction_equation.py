@@ -43,7 +43,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from typing import Final, Iterable, List, Optional
+from typing import Final, Iterable, List, Optional, Any
 
 
 @dataclass
@@ -74,7 +74,7 @@ class EquationPart:
     name: Optional[str] = field(default=None, repr=False)
     annotations: Optional[List] = field(default=None, repr=False)
     notes: Optional[str] = field(default=None, repr=False)
-    keyValuePairs: Optional[List[KeyValuePair]] = field(default=None, repr=False)
+    keyValuePairs: Optional[List[Any]] = field(default=None, repr=False)
 
 
 REVERSIBILITY_PATTERN: Final = r"<[-=]>"

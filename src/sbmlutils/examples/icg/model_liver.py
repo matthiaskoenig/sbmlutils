@@ -8,6 +8,8 @@ from sbmlutils.metadata import *
 
 
 class U(Units):
+    """UnitDefinitions."""
+
     min = UnitDefinition("min")
     mmole = UnitDefinition("mmole")
     m2 = UnitDefinition("m2", "meter^2")

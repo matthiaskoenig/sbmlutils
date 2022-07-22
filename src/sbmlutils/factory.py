@@ -3390,7 +3390,7 @@ class Model(Sbase, FrozenClass, BaseModel):
             packages_set.add(Package.DISTRIB_V1)
 
         if len(packages_set) < len(packages):
-            raise ValueError(f"Duplicate packages in ")
+            raise ValueError(f"Duplicate packages in `{packages}`.")
 
         for p in packages_set:
             if not isinstance(p, str):

@@ -17,6 +17,8 @@ logger = get_logger(__name__)
 # Whole body model
 # -------------------------------------------------------------------------------------
 class U(Units):
+    """UnitDefinitions."""
+
     mmole = UnitDefinition("mmole", "mmole")
     min = UnitDefinition("min", "min")
     kg = UnitDefinition("kg", "kg")

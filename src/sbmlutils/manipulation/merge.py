@@ -25,7 +25,7 @@ def merge_models(
     flatten: bool = True,
     validate: bool = True,
     validate_input: bool = True,
-    validation_options: ValidationOptions = ValidationOptions(),
+    validation_options: Optional[ValidationOptions] = ValidationOptions(),
     sbml_level: int = 3,
     sbml_version: int = 1,
 ) -> libsbml.SBMLDocument:
