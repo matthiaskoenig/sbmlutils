@@ -3,7 +3,7 @@
 This demonstrates just the very core SBML functionality.
 """
 from pathlib import Path
-from typing import final, Optional
+from typing import Optional, final
 
 from pymetadata.omex import EntryFormat, ManifestEntry, Omex
 
@@ -129,18 +129,11 @@ def create_omex(tmp_dir: Optional[Path] = None) -> None:
         sbml_level=3,
         sbml_version=1,
     )
-    flatten_sbml(
-        sbml_path=sbml_comp_path, sbml_flat_path=sbml_comp_flat_path
-    )
+    flatten_sbml(sbml_path=sbml_comp_path, sbml_flat_path=sbml_comp_flat_path)
 
     # Create COMBINE archive
     omex = Omex()
-    for path in [
-        sbml_path,
-        sbml_comp_path,
-        sbml_comp_flat_path
-
-    ]:
+    for path in [sbml_path, sbml_comp_path, sbml_comp_flat_path]:
         omex.add_entry(
             entry_path=path,
             entry=ManifestEntry(

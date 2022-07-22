@@ -58,9 +58,8 @@ if __name__ == "__main__":
         sbml_version=2,
     )
 
-
-    from sbmlutils.parser import sbml_to_model
     from sbmlutils.console import console
+    from sbmlutils.parser import sbml_to_model
 
     model2: Model = sbml_to_model(source=sbml_path)
     console.print(model2.__repr__())

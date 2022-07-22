@@ -1,7 +1,6 @@
 """Multiple model definitions."""
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
-from sbmlutils.validation import ValidationOptions
 
 
 class U(Units):

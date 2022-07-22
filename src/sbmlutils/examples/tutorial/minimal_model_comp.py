@@ -7,8 +7,6 @@ from sbmlutils.comp import flatten_sbml
 from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.factory import *
 from sbmlutils.metadata import *
-from sbmlutils.resources import EXAMPLES_DIR
-from sbmlutils.validation import ValidationOptions
 
 
 n_cells = 10
@@ -82,28 +80,23 @@ for k in range(n_cells):
 # -------------------------------------------------------------------------------------
 
 
-def create(tmp: bool = False) -> None:
+def create(output_dir: Path) -> None:
     """Create model."""
-    if tmp:
-        tmp_dir = tempfile.mkdtemp()
-        output_dir = Path(tmp_dir)
-    else:
-        output_dir = EXAMPLES_DIR
 
-    result = create_model(
+    sbml_path = output_dir / f"{model.sid}.xml"
+    sbml_path_flat = EXAMPLES_DIR / f"{model.sid}_flat.xml"
+
+    create_model(
         model=model,
-        filepath=EXAMPLES_DIR / f"{model.sid}.xml",
+        filepath=sbml_path,
         validation_options=ValidationOptions(units_consistency=False),
     )
 
-    # flatten SBML model
-    sbml_path_flat = EXAMPLES_DIR / f"{model.sid}_flat.xml"
-    flatten_sbml(result.sbml_path, sbml_flat_path=sbml_path_flat)
+    flatten_sbml(sbml_path, sbml_flat_path=sbml_path_flat)
     visualize_sbml(sbml_path=sbml_path_flat)
-
-    if tmp:
-        shutil.rmtree(tmp_dir)
 
 
 if __name__ == "__main__":
-    create(tmp=False)
+    from sbmlutils.resources import EXAMPLES_DIR
+
+    create(output_dir=EXAMPLES_DIR)

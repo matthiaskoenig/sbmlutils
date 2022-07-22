@@ -93,8 +93,8 @@ def create_ports(
     idRefs: Optional[Any] = None,
     unitRefs: Optional[Any] = None,
     metaIdRefs: Optional[Any] = None,
-    portType: str = factory.PORT_TYPE_PORT,
-    suffix: str = "_port",
+    portType: factory.PortType = factory.PortType.PORT,
+    suffix: str = factory.PORT_SUFFIX,
 ) -> List[factory.Port]:
     """Create ports for given model.
 
@@ -147,7 +147,7 @@ def _create_port(
     idRef: Optional[str] = None,
     unitRef: Optional[str] = None,
     metaIdRef: Optional[str] = None,
-    portType: str = factory.PORT_TYPE_PORT,
+    portType: factory.PortType = factory.PortType.PORT,
 ) -> libsbml.Port:
     """Create port in given model."""
     cmodel: libsbml.CompModelPlugin = model.getPlugin("comp")
@@ -172,13 +172,13 @@ def _create_port(
         ref = metaIdRef
     if name is None and ref is not None:
         p.setName(f"port {ref}")
-    if portType == factory.PORT_TYPE_PORT:
+    if portType == factory.PortType.PORT:
         # SBO:0000599 - port
         p.setSBOTerm(599)
-    elif portType == factory.PORT_TYPE_INPUT:
+    elif portType == factory.PortType.INPUT_PORT:
         # SBO:0000600 - input port
         p.setSBOTerm(600)
-    elif portType == factory.PORT_TYPE_OUTPUT:
+    elif portType == factory.PortType.OUTPUT_PORT:
         # SBO:0000601 - output port
         p.setSBOTerm(601)
 

@@ -1,5 +1,6 @@
 """Tiny model example."""
 from math import inf
+from pathlib import Path
 
 import sbmlutils.layout as layout
 from sbmlutils.examples import templates
@@ -16,9 +17,9 @@ class U(Units):
     mmole_per_s = UnitDefinition("mmole_per_s", "mmole/s")
 
 
-_m = Model(
+model = Model(
     sid="tiny_example",
-    packages=["fbc"],
+    packages=[Package.FBC_V2],
     notes="""
     <h2>Description</h2>
     <p>A minimal example in <a href="http://sbml.org" target="_blank">SBML</a> format.
@@ -60,7 +61,7 @@ _m = Model(
 # -----------------------------------------------------------------------------
 # Compartments
 # -----------------------------------------------------------------------------
-_m.compartments = [
+model.compartments = [
     Compartment(
         sid="c",
         value=1e-5,
@@ -74,7 +75,7 @@ _m.compartments = [
 # -----------------------------------------------------------------------------
 # Species
 # -----------------------------------------------------------------------------
-_m.species = [
+model.species = [
     Species(
         sid="glc",
         compartment="c",
@@ -161,7 +162,7 @@ _m.species = [
 # -----------------------------------------------------------------------------
 # Parameters
 # -----------------------------------------------------------------------------
-_m.parameters = [
+model.parameters = [
     Parameter(
         "Vmax_GK",
         1.0e-6,
@@ -237,24 +238,26 @@ _m.parameters = [
 # -----------------------------------------------------------------------------
 # FunctionDefinitions
 # -----------------------------------------------------------------------------
-_m.functions = [
+model.functions = [
     Function(sid="f_oscillation", value="lambda(x, cos(x/10 dimensionless))")
 ]
 
 # -----------------------------------------------------------------------------
 # Assignments
 # -----------------------------------------------------------------------------
-_m.assignments = [InitialAssignment("glc", "4.5 mM")]
+model.assignments = [InitialAssignment("glc", "4.5 mM")]
 
 # -----------------------------------------------------------------------------
 # Rules
 # -----------------------------------------------------------------------------
-_m.rules = [AssignmentRule("a_sum", "atp + adp", unit=U.mM, name="ATP + ADP balance")]
+model.rules = [
+    AssignmentRule("a_sum", "atp + adp", unit=U.mM, name="ATP + ADP balance")
+]
 
 # -----------------------------------------------------------------------------
 # Reactions
 # -----------------------------------------------------------------------------
-_m.reactions = [
+model.reactions = [
     Reaction(
         sid="GK",
         name="Glucokinase",
@@ -311,7 +314,7 @@ _m.reactions = [
 # -----------------------------------------------------------------------------
 # Objective function
 # -----------------------------------------------------------------------------
-_m.objectives = [
+model.objectives = [
     Objective(
         sid="atp_consume_max",
         objectiveType="maximize",
@@ -323,7 +326,7 @@ _m.objectives = [
 # -----------------------------------------------------------------------------
 # Events
 # -----------------------------------------------------------------------------
-_m.events = [
+model.events = [
     Event(
         "event_1",
         trigger="time >= 200 second",
@@ -340,7 +343,7 @@ _m.events = [
 # -----------------------------------------------------------------------------
 # Constraints
 # -----------------------------------------------------------------------------
-_m.constraints = [
+model.constraints = [
     Constraint(
         "constraint_1",
         math="atp >= 0 mM",
@@ -352,7 +355,7 @@ _m.constraints = [
 # -----------------------------------------------------------------------------
 # Layout
 # -----------------------------------------------------------------------------
-_m.layouts = [
+model.layouts = [
     layout.Layout(
         sid="layout_1",
         name="Layout 1",
@@ -424,4 +427,21 @@ _m.layouts = [
     )
 ]
 
-tiny_model = _m
+
+def create(output_dir: Path) -> FactoryResult:
+    """Create model."""
+
+    return create_model(
+        model=model,
+        filepath=output_dir / f"{model.sid}.xml",
+        annotations=Path(__file__).parent / "annotations.xlsx",
+    )
+
+
+if __name__ == "__main__":
+    """
+    The MEMOTE report can be created via
+        memote report snapshot --filename "report.html" path/to/model.xml
+    """
+
+    create(output_dir=Path(__file__).parent / "results")

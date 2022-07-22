@@ -58,20 +58,24 @@ model = Model(
     ],
     user_defined_constraints=[
         UserDefinedConstraint(
-            lowerBound="uc1", upperBound="uc1",
+            lowerBound="uc1",
+            upperBound="uc1",
             components={
-                "RGLX": 1.0, "RXLG": -1.0,
+                "RGLX": 1.0,
+                "RXLG": -1.0,
             },
-            variableType="linear"
+            variableType="linear",
         ),
-            UserDefinedConstraint(
-            lowerBound="uc2lb", upperBound="uc2ub",
+        UserDefinedConstraint(
+            lowerBound="uc2lb",
+            upperBound="uc2ub",
             components={
-                "Avar": 2.0, "RGDP": -1.0,
+                "Avar": 2.0,
+                "RGDP": -1.0,
             },
-            variableType="linear"
-        )
-    ]
+            variableType="linear",
+        ),
+    ],
 )
 
 if __name__ == "__main__":

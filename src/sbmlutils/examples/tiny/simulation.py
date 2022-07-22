@@ -16,8 +16,8 @@ import pandas as pd
 import roadrunner
 from matplotlib import pylab as plt
 
-from sbmlutils.examples.tiny_model import factory as tiny_factory
-from sbmlutils.examples.tiny_model.model import tiny_model
+from sbmlutils.examples.tiny import factory as tiny_factory
+from sbmlutils.examples.tiny.tiny import tiny_model
 from sbmlutils.fbc.cobra import read_cobra_model
 
 

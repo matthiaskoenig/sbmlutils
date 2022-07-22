@@ -79,7 +79,7 @@ def sbml_to_model(
                         key=kvp.getKey(),
                         value=kvp.getValue(),
                         uri=kvp.getUri() if kvp.isSetUri() else None,
-                        **parse_sbase_kwargs(kvp)
+                        **parse_sbase_kwargs(kvp),
                     )
                 )
 
@@ -94,10 +94,7 @@ def sbml_to_model(
 
     m = Model(**parse_sbase_kwargs(model))
     # FIXME: parse packages
-    m.packages = [
-        Package.FBC_V3
-    ]
-
+    m.packages = [Package.FBC_V3]
 
     p: libsbml.Parameter
     for p in model.getListOfParameters():
@@ -109,7 +106,6 @@ def sbml_to_model(
                 # unit=p.getUnits(),
                 constant=p.getConstant() if p.isSetConstant() else None,
                 **d,
-
             )
         )
 

@@ -25,8 +25,7 @@ from copy import deepcopy
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, Type, Union, \
-    ForwardRef
+from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, Type, Union
 
 import libsbml
 import numpy as np
@@ -67,6 +66,7 @@ __all__ = [
     "SBML_VERSION",
     "PORT_SUFFIX",
     "PORT_UNIT_SUFFIX",
+    "PortType",
     "ModelUnits",
     "Units",
     "Creator",
@@ -107,7 +107,6 @@ __all__ = [
     "Document",
     "UnitType",
     "NaN",
-
     "create_model",
     "ValidationOptions",
     "FactoryResult",
@@ -119,18 +118,6 @@ SBML_VERSION = 1  # default SBML version
 PORT_SUFFIX = "_port"
 PORT_UNIT_SUFFIX = "_unit_port"
 PREFIX_EXCHANGE_REACTION = "EX_"
-
-PACKAGE_COMP = "comp"
-PACKAGE_FBC = "fbc"
-PACKAGE_DISTRIB = "distrib"
-PACKAGE_LAYOUT = "layout"
-
-ALLOWED_PACKAGES = {
-    PACKAGE_COMP,
-    PACKAGE_FBC,
-    PACKAGE_DISTRIB,
-    PACKAGE_LAYOUT,
-}
 
 
 def create_objects(
@@ -146,7 +133,7 @@ def create_objects(
     :param key: object key
     :return: dictionary of SBML objects
     """
-    sbml_objects: Dict[str, libsbml.Sbase] = {}
+    sbml_objects: Dict[str, libsbml.SBase] = {}
     try:
         for obj in obj_iter:
             if obj is None:
@@ -155,7 +142,7 @@ def create_objects(
                     f"check for incorrect terminating ',' on objects: "
                     f"'{sbml_objects}'"
                 )
-            sbml_obj: libsbml.Sbase = obj.create_sbml(model)
+            sbml_obj: libsbml.SBase = obj.create_sbml(model)
             # FIXME: what happens for objects without id?
             sbml_objects[sbml_obj.getId()] = sbml_obj
     except Exception as err:
@@ -186,8 +173,6 @@ def ast_node_from_formula(model: libsbml.Model, formula: str) -> libsbml.ASTNode
 
 UnitType = Optional["UnitDefinition"]
 AnnotationsType = Optional[List[Union[Annotation, Tuple[Union[BQB, BQM], str]]]]
-
-PortType = Any  # Union[bool, Port]
 
 
 def set_notes(
@@ -296,7 +281,9 @@ class ModelUnits:
                     model.setVolumeUnits(uid)
 
 
-def set_model_history(sbase: libsbml.SBase, creators: List[Creator], set_timestamps: bool = False) -> None:
+def set_model_history(
+    sbase: libsbml.SBase, creators: List[Creator], set_timestamps: bool = False
+) -> None:
     """Set the model history from given creators.
 
     :param sbase: SBML model
@@ -359,6 +346,7 @@ def date_now() -> libsbml.Date:
 
 class Sbase:
     """Base class of all SBML objects."""
+
     def __init__(
         self,
         sid: Optional[str] = None,
@@ -398,7 +386,9 @@ class Sbase:
 
     def __str__(self) -> str:
         """Get string."""
-        field_str = ", ".join([str(getattr(self, f)) for f in self.fields if getattr(self, f)])
+        field_str = ", ".join(
+            [str(getattr(self, f)) for f in self.fields if getattr(self, f)]
+        )
         return f"{self.__class__.__name__}({field_str})"
 
     @staticmethod
@@ -679,7 +669,8 @@ class UnitDefinition(Sbase):
 
     Corresponds to the information in the libsbml.UnitDefinition.
     """
-    definition: str = None,
+
+    definition: str = (None,)
 
     _pint2sbml = {
         "dimensionless": libsbml.UNIT_KIND_DIMENSIONLESS,
@@ -2213,9 +2204,6 @@ class ExchangeReaction(Reaction):
         )
 
 
-
-
-
 class GeneProduct(Sbase):
     """GeneProduct.
 
@@ -2306,14 +2294,24 @@ class UserDefinedConstraintComponent(Sbase):
         self.coefficient = coefficient
         self.variableType = FluxObjective.normalize_variable_type(variableType)
 
-    def create_sbml(self, constraint: libsbml.UserDefinedConstraint) -> libsbml.UserDefinedConstraintComponent:
+    def create_sbml(
+        self, constraint: libsbml.UserDefinedConstraint
+    ) -> libsbml.UserDefinedConstraintComponent:
         """Create Objective."""
-        component: libsbml.UserDefinedConstraintComponent = constraint.createUserDefinedConstraintComponent()
+        component: libsbml.UserDefinedConstraintComponent = (
+            constraint.createUserDefinedConstraintComponent()
+        )
         self._set_fields(component, model=constraint.getModel())
 
         check(component.setVariable(self.variable), f"set variable `{self.variable}`")
-        check(component.setCoefficient(self.coefficient), f"set coefficient `{self.coefficient}`")
-        check(component.setVariableType(self.variableType), f"set variableType `{self.variableType}`")
+        check(
+            component.setCoefficient(self.coefficient),
+            f"set coefficient `{self.coefficient}`",
+        )
+        check(
+            component.setVariableType(self.variableType),
+            f"set variableType `{self.variableType}`",
+        )
 
         print("required attributes:", component.hasRequiredAttributes())
         print(component.toSBML())
@@ -2337,7 +2335,9 @@ class UserDefinedConstraint(Sbase):
         self,
         lowerBound: str,
         upperBound: str,
-        components: Optional[Union[List[UserDefinedConstraintComponent], Dict[str, float]]] = None,
+        components: Optional[
+            Union[List[UserDefinedConstraintComponent], Dict[str, float]]
+        ] = None,
         variableType: str = libsbml.FBC_FBCVARIABLETYPE_LINEAR,
         sid: Optional[str] = None,
         name: Optional[str] = None,
@@ -3101,7 +3101,7 @@ class Model(Sbase, FrozenClass, BaseModel):
     annotations: AnnotationsType
     notes: Optional[str]
     keyValuePairs: Optional[List[KeyValuePair]]
-    port: Optional[PortType]
+    port: Optional[Any]
     packages: Optional[List[Package]]
     creators: Optional[List[Creator]]
     model_units: Optional[ModelUnits]
@@ -3184,7 +3184,7 @@ class Model(Sbase, FrozenClass, BaseModel):
 
     def __str__(self) -> str:
         """Get string."""
-        field_str = ", ".join(f'{a}={v!r}' for a, v in self.__repr_args__() if a and v)
+        field_str = ", ".join(f"{a}={v!r}" for a, v in self.__repr_args__() if a and v)
         return f"{self.__class__.__name__}({field_str})"
 
     def __init__(
@@ -3260,7 +3260,9 @@ class Model(Sbase, FrozenClass, BaseModel):
         self.ports = ports if ports else []
         self.replaced_elements = replaced_elements if replaced_elements else []
         self.deletions = deletions if deletions else []
-        self.user_defined_constraints = user_defined_constraints if user_defined_constraints else []
+        self.user_defined_constraints = (
+            user_defined_constraints if user_defined_constraints else []
+        )
         self.objectives = objectives if objectives else []
         self.gene_products = gene_products if gene_products else []
 
@@ -3374,8 +3376,10 @@ class Model(Sbase, FrozenClass, BaseModel):
         packages_set: Set[Package] = set(packages)
         for p in packages_set:
             if not isinstance(p, Package):
-                msg = f"Packages must be provided as `Package`, but package " \
-                      f"`{p}` is `{type(p)}`."
+                msg = (
+                    f"Packages must be provided as `Package`, but package "
+                    f"`{p}` is `{type(p)}`."
+                )
                 logger.error(msg)
                 raise ValueError(msg)
 
@@ -3635,4 +3639,3 @@ def create_model(
 
     console.rule(style="white")
     return FactoryResult(sbml_path=filepath, model=model)
-

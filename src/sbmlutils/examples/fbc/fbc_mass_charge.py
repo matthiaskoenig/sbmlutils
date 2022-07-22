@@ -15,7 +15,7 @@ class U(Units):
 model = Model(
     sid="fbc_mass_charge",
     name="fbc model with mass and charge balance",
-    packages=["fbc"],
+    packages=[Package.FBC_V2],
     notes="""
     # Model demonstrating mass and charge balance
     ## Description

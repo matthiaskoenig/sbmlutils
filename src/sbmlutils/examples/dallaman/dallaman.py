@@ -1,6 +1,7 @@
 """DallaMan2006."""
 # TODO: encode units for model
 # TODO: T2DM simulations (in current version not working)
+from pathlib import Path
 
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
@@ -219,3 +220,16 @@ _m.rules = [
 ]
 
 dallaman_model = _m
+
+
+def create(output_dir: Path) -> None:
+    """Create model."""
+    create_model(
+        model=dallaman_model,
+        filepath=output_dir / f"{dallaman_model.sid}.xml",
+        validation_options=ValidationOptions(units_consistency=False),
+    )
+
+
+if __name__ == "__main__":
+    create(output_dir=Path(__file__).parent / "results")

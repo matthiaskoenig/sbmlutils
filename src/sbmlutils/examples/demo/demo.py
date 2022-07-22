@@ -1,4 +1,6 @@
 """Demo kinetic network."""
+from pathlib import Path
+
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
 
@@ -12,7 +14,7 @@ class U(Units):
     mole_per_s = UnitDefinition("mole_per_s", "mole/s")
 
 
-_m = Model(
+model = Model(
     "Koenig_demo_v15",
     packages=[Package.FBC_V2],
     notes="""
@@ -33,7 +35,7 @@ _m = Model(
         volume=U.m3,
     ),
 )
-_m.compartments = [
+model.compartments = [
     Compartment(
         sid="e", value=1e-06, unit=U.m3, constant=False, name="external compartment"
     ),
@@ -50,7 +52,7 @@ _m.compartments = [
     ),
 ]
 
-_m.species = [
+model.species = [
     Species(
         sid="c__A",
         compartment="c",
@@ -107,7 +109,7 @@ _m.species = [
     ),
 ]
 
-_m.parameters = [
+model.parameters = [
     Parameter(
         "scale_f",
         value=1e-6,
@@ -129,7 +131,7 @@ _m.parameters = [
     Parameter("Keq_v4", 2.0, U.dimensionless, True),
 ]
 
-_m.reactions = [
+model.reactions = [
     Reaction(
         sid="bA",
         name="bA (A import)",
@@ -202,4 +204,23 @@ _m.reactions = [
     ),
 ]
 
-demo_model = _m
+
+def create(output_dir: Path) -> None:
+    """Create model."""
+
+    # with annotations
+    create_model(
+        model=model,
+        filepath=output_dir / "results" / f"{model.sid}.xml",
+        annotations=output_dir / "demo_annotations.xlsx",
+    )
+
+    # without annotations
+    create_model(
+        model=model,
+        filepath=output_dir / "results" / f"{model.sid}_no_annotations.xml",
+    )
+
+
+if __name__ == "__main__":
+    create(output_dir=Path(__file__).parent / "results")

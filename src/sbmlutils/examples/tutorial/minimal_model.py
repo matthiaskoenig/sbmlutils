@@ -9,7 +9,7 @@ from sbmlutils.validation import ValidationOptions
 
 model = Model(
     sid="minimal_model",
-    packages=["fbc"],
+    packages=[Package.FBC_V2],
     compartments=[
         Compartment(sid="cell", value=1.0, port=True),
     ],

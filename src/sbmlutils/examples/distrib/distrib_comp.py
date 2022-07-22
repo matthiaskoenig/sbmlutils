@@ -1,6 +1,5 @@
 """Distrib and comp example to check flattening."""
 import shutil
-import tempfile
 from pathlib import Path
 
 import libsbml
@@ -9,7 +8,6 @@ from sbmlutils.comp import flatten_sbml
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
 from sbmlutils.metadata import *
-from sbmlutils.resources import EXAMPLES_DIR
 
 
 class U(Units):
@@ -19,13 +17,14 @@ class U(Units):
     m2 = UnitDefinition("m2", "meter^2")
 
 
-_m = Model(
+model = Model(
     "distrib_comp",
     name="model combining distrib and comp",
-    packages=["distrib", "comp"],
+    packages=[Package.DISTRIB_V1, Package.COMP_V1],
     creators=templates.creators,
     notes="""
     # Example model using distrib and comp packages
+
     Example creating distrib model with distribution elements.
     """
     + templates.terms_of_use,
@@ -70,22 +69,18 @@ _m = Model(
 )
 
 
-def create(tmp: bool = False) -> None:
-    """Create model."""
-    if tmp:
-        tmp_dir = tempfile.mkdtemp()
-        output_dir = Path(tmp_dir)
-    else:
-        output_dir = EXAMPLES_DIR
+def create(output_dir: Path) -> None:
+    """Create and flatten model."""
 
-    result = create_model(model=_m, filepath=EXAMPLES_DIR / "distrib_comp.xml")
+    sbml_path = output_dir / f"{model.sid}.xml"
+    sbml_path_flat = output_dir / f"{model.sid}_flat.xml"
 
-    sbml_path_flat = output_dir / "distrib_comp_flat.xml"
-    flatten_sbml(result.sbml_path, sbml_flat_path=sbml_path_flat)
+    create_model(model=model, filepath=sbml_path)
 
-    if tmp:
-        shutil.rmtree(tmp_dir)
+    flatten_sbml(sbml_path, sbml_flat_path=sbml_path_flat)
 
 
 if __name__ == "__main__":
-    create(tmp=False)
+    from sbmlutils.resources import EXAMPLES_DIR
+
+    create(output_dir=EXAMPLES_DIR)
