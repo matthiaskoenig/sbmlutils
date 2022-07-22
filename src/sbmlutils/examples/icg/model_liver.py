@@ -2,11 +2,9 @@
 from pathlib import Path
 
 from sbmlutils.cytoscape import visualize_sbml
+from sbmlutils.examples.icg import MODEL_BASE_PATH, annotations, templates
 from sbmlutils.factory import *
 from sbmlutils.metadata import *
-
-from sbmlutils.examples.icg import templates, MODEL_BASE_PATH
-from sbmlutils.examples.icg import annotations
 
 
 class U(Units):
@@ -267,8 +265,5 @@ model = _m
 
 if __name__ == "__main__":
 
-    results = create_model(
-        model=model,
-        filepath=MODEL_BASE_PATH / f"{model.sid}.xml"
-    )
+    results = create_model(model=model, filepath=MODEL_BASE_PATH / f"{model.sid}.xml")
     visualize_sbml(results.sbml_path)

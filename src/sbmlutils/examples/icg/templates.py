@@ -1,7 +1,8 @@
 """Templates for icg model."""
 
-from sbmlutils.factory import *
 from sbmlutils.examples import templates
+from sbmlutils.factory import *
+
 
 creators = [
     Creator(

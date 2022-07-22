@@ -3,7 +3,7 @@ import libsbml
 
 from sbmlutils import comp
 from sbmlutils.factory import *
-from sbmlutils.factory import PORT_TYPE_PORT, create_objects
+from sbmlutils.factory import PortType, create_objects
 from sbmlutils.metadata.sbo import SBO
 
 
@@ -52,7 +52,7 @@ def test_create_ports_dict() -> None:
 
     comp.create_ports(
         model,
-        portType=PORT_TYPE_PORT,
+        portType=PortType.PORT,
         idRefs={
             "extern_port": "extern",
             "A_port": "A",
@@ -80,7 +80,7 @@ def test_create_ports_list() -> None:
     model = doc.getModel()
 
     comp.create_ports(
-        model, portType=PORT_TYPE_PORT, idRefs=["extern", "A", "C", "EX_A", "EX_C"]
+        model, portType=PortType.PORT, idRefs=["extern", "A", "C", "EX_A", "EX_C"]
     )
 
     comp_model = model.getPlugin("comp")

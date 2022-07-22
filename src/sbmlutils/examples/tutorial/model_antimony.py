@@ -1,13 +1,13 @@
 """Load and modify an existing antimony model."""
 import antimony
 
-from sbmlutils.cytoscape import visualize_sbml, visualize_antimony
-from sbmlutils.metadata.annotator import annotate_sbml
-from sbmlutils.resources import EXAMPLES_DIR
-from sbmlutils.parser import antimony_to_model
-
-from sbmlutils.metadata import *
+from sbmlutils.cytoscape import visualize_antimony, visualize_sbml
 from sbmlutils.factory import *
+from sbmlutils.metadata import *
+from sbmlutils.metadata.annotator import annotate_sbml
+from sbmlutils.parser import antimony_to_model
+from sbmlutils.resources import EXAMPLES_DIR
+
 
 model_antimony: str = """
     model antimony_repressilator
@@ -68,14 +68,10 @@ if __name__ == "__main__":
 
     # load model and manipulate
     model: Model = antimony_to_model(source=model_antimony)
-    model.species.append(
-        Species(sid="PA", initialAmount=0, compartment="cell")
-    )
+    model.species.append(Species(sid="PA", initialAmount=0, compartment="cell"))
     for s in model.species:
         if s.sid in ["X", "Y", "Z"]:
-            s.annotations.append(
-                (BQB.IS, "chebi/CHEBI:33699")  # messenger RNA
-            )
+            s.annotations.append((BQB.IS, "chebi/CHEBI:33699"))  # messenger RNA
 
     result = create_model(
         model=model,
@@ -83,7 +79,6 @@ if __name__ == "__main__":
         validation_options=ValidationOptions(units_consistency=False),
     )
     visualize_sbml(sbml_path=result.sbml_path)
-
 
     # base_path = EXAMPLES_DIR
     #

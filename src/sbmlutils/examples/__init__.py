@@ -30,7 +30,8 @@ from sbmlutils.examples.tutorial import (
     linear_chain,
     minimal_model,
     minimal_model_comp,
-    random_network, model_composition,
+    random_network,
+    model_composition,
 )
 from sbmlutils.examples.fbc import (
     fbc_v2,
@@ -86,6 +87,7 @@ if __name__ == "__main__":
     #     assert model_path.exists()
 
     import tempfile
+
     with tempfile.TemporaryDirectory() as tmp_dir:
 
         for module in examples_create:

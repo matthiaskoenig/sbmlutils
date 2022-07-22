@@ -7,10 +7,11 @@ FIXME: no support for modelHistory
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-import libsbml
 import antimony
+import libsbml
 
 from sbmlutils import RESOURCES_DIR
+from sbmlutils.console import console
 from sbmlutils.factory import *
 from sbmlutils.io.sbml import read_sbml, validate_sbml
 from sbmlutils.log import get_logger
@@ -18,7 +19,6 @@ from sbmlutils.metadata import BQB, BQM
 from sbmlutils.reaction_equation import EquationPart
 from sbmlutils.report.sbmlinfo import SBMLDocumentInfo
 from sbmlutils.validation import ValidationOptions
-from sbmlutils.console import console
 
 
 logger = get_logger(__name__)
@@ -43,7 +43,6 @@ def antimony_to_sbml(
 
         status: int = antimony.loadAntimonyFile(str(source))
 
-
     # log errors
     if status != -1:
         logger.error(f"Antimony status: {status}")
@@ -66,18 +65,19 @@ def antimony_to_model(
         source=source,
         validate=validate,
         promote=promote,
-        validation_options=validation_options
+        validation_options=validation_options,
     )
 
     return sbml_to_model(
         source=sbml_str,
         validate=validate,
         promote=promote,
-        validation_options=validation_options
+        validation_options=validation_options,
     )
 
 
 # TODO: validation & validation options
+
 
 def sbml_to_model(
     source: Union[Path, str],

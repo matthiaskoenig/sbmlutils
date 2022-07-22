@@ -84,6 +84,7 @@ def create(output_dir: Path) -> None:
 
     # create external model
     from sbmlutils.examples.tutorial.minimal_model import model as minimal_model
+
     sbml_minimal_path = output_dir / f"{minimal_model.sid}.xml"
     create_model(
         model=minimal_model,
@@ -105,10 +106,14 @@ def create(output_dir: Path) -> None:
     flatten_sbml(sbml_path, sbml_flat_path=sbml_path_flat)
 
     # visualize all files
-    for k, path in enumerate([
-        sbml_minimal_path, sbml_path, sbml_path_flat,
-    ]):
-        visualize_sbml(sbml_path=path, delete_session=(k==0))
+    for k, path in enumerate(
+        [
+            sbml_minimal_path,
+            sbml_path,
+            sbml_path_flat,
+        ]
+    ):
+        visualize_sbml(sbml_path=path, delete_session=(k == 0))
 
 
 if __name__ == "__main__":

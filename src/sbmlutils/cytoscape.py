@@ -1,4 +1,5 @@
 """Module for interacting with Cytoscape."""
+import tempfile
 from pathlib import Path
 from typing import Any, Union
 
@@ -7,10 +8,10 @@ from requests.exceptions import ConnectionError  # type: ignore
 
 from sbmlutils import log
 from sbmlutils.parser import antimony_to_sbml
-import tempfile
 
 
 logger = log.get_logger(__name__)
+
 
 def visualize_antimony(source: Union[Path, str], delete_session: bool = False) -> Any:
     """Visualize antimony in cytoscape."""

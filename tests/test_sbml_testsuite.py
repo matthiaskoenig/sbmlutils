@@ -16,6 +16,7 @@ def sbml_paths_idfn(sbml_path: Path) -> str:
     return f"{sbml_path.name}"
 
 
+@pytest.mark.skip("not testing testsuite")
 @pytest.mark.parametrize("sbml_path", sbml_paths, ids=sbml_paths_idfn)
 def test_parse_model(tmp_path: Path, sbml_path: Path) -> None:
     model = sbml_to_model(

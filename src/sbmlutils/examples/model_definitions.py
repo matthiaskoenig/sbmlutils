@@ -46,14 +46,14 @@ model.model_definitions = [
     ModelDefinition(
         sid="m1",
         name="Model Definition 1",
-        units=model.units,
+        # units=model.units,
         compartments=[Compartment("d", value=1.0, unit=U.liter)],
         species=[
             Species(
                 "A",
                 initialAmount=1.0,
                 constant=False,
-                substanceUnit=U.mmole,
+                # substanceUnit=U.mmole,
                 compartment="d",
                 hasOnlySubstanceUnits=True,
             )

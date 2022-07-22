@@ -2,6 +2,7 @@
 
 from sbmlutils.metadata import *
 
+
 compartments = {
     # liver
     "li": [
@@ -63,7 +64,7 @@ compartments = {
         (BQB.IS, "bto/BTO:0000671"),
         (BQB.IS, "ncit/C12415"),
     ],
-    #lung
+    # lung
     "lu": [
         (BQB.IS, "fma/FMA:7195"),
         (BQB.IS, "bto/BTO:0000763"),
@@ -74,12 +75,12 @@ compartments = {
         (BQB.IS, "ncit/C13356"),  # plasma
         (BQB.IS_PART_OF, "fma/FMA:50723"),  # vein
     ],
-    'ar': [
+    "ar": [
         (BQB.IS, "bto/BTO:0000131"),  # plasma
         (BQB.IS, "ncit/C13356"),  # plasma
         (BQB.IS_PART_OF, "fma/FMA:50720"),  # artery
     ],
-    'po': [
+    "po": [
         (BQB.IS, "bto/BTO:0000131"),  # plasma
         (BQB.IS, "ncit/C13356"),  # plasma
         (BQB.IS_PART_OF, "fma/FMA:66645"),  # portal vein

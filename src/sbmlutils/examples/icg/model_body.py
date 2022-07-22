@@ -1,14 +1,14 @@
 """PKPD model for whole-body icg metabolism."""
 import os
+
 import numpy as np
 
 from sbmlutils.cytoscape import visualize_sbml
-from sbmlutils.examples.icg import templates
-from sbmlutils.examples.icg import annotations
-
+from sbmlutils.examples.icg import annotations, templates
 from sbmlutils.factory import *
-from sbmlutils.metadata import *
 from sbmlutils.log import get_logger
+from sbmlutils.metadata import *
+
 
 logger = get_logger(__name__)
 
@@ -1191,7 +1191,6 @@ for sid, sdict in SUBSTANCES_BODY.items():
             rid_out = f"Flow_{cid}_ar_{sid}"
             name_out = f"outflow {cname} {sname}"
 
-
             # distribution in plasma volume
             _m.reactions.extend(
                 [
@@ -1394,4 +1393,3 @@ if __name__ == "__main__":
         filepath=MODEL_BASE_PATH / f"{model_body.sid}.xml",
     )
     visualize_sbml(results.sbml_path)
-
