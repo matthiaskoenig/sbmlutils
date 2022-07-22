@@ -1,4 +1,8 @@
-"""Example model with meta-data annotations."""
+"""Annotation example.
+
+Model demonstrates how to annotate model objects with SBOTerms and Terms from
+other ontologies. Annotations use the functionality from `pymetadata`.
+"""
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
 from sbmlutils.metadata import *
@@ -16,11 +20,12 @@ class U(Units):
     mole_per_s = UnitDefinition("mole_per_s", "mole/s")
 
 
-_m = Model(
+model = Model(
     sid="annotation",
     name="model with inline annotations",
     notes="""
     # Model with inline annotations
+
     Test model demonstrating inline annotations.
     """
     + templates.terms_of_use,
@@ -36,7 +41,7 @@ _m = Model(
     ),
 )
 
-_m.compartments = [
+model.compartments = [
     Compartment(
         sid="ext",
         value="Vol_e",
@@ -74,7 +79,7 @@ _m.compartments = [
     ),
 ]
 
-_m.species = [
+model.species = [
     Species(
         sid="e__gal",
         compartment="ext",
@@ -100,7 +105,7 @@ _m.species = [
     ),
 ]
 
-_m.parameters = [
+model.parameters = [
     Parameter(
         sid="x_cell", value=25e-6, unit=U.meter, constant=True, name="cell diameter"
     ),
@@ -110,11 +115,11 @@ _m.parameters = [
     Parameter(sid="A_m", value=1.0, unit=U.m2, constant=True, name="membrane area"),
 ]
 
-_m.assignments = [
-    InitialAssignment(sid="Vol_c", value="x_cell*x_cell*x_cell", unit=U.m3),
+model.assignments = [
+    InitialAssignment(symbol="Vol_c", value="x_cell*x_cell*x_cell", unit=U.m3),
 ]
 
-_m.reactions = [
+model.reactions = [
     Reaction(
         sid="e__GLUT2_GAL",
         name="galactose transport [e__]",
@@ -137,17 +142,6 @@ _m.reactions = [
     )
 ]
 
-model = _m
-
-
-def create(tmp: bool = False) -> None:
-    """Create model."""
-    create_model(
-        models=model,
-        output_dir=EXAMPLES_DIR,
-        tmp=tmp,
-    )
-
 
 if __name__ == "__main__":
-    create()
+    create_model(model=model, filepath=EXAMPLES_DIR / f"{model.sid}.xml")

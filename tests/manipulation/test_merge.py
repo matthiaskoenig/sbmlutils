@@ -6,6 +6,7 @@ from sbmlutils.examples.merge_models.merge_models import merge_models_example
 from sbmlutils.io import write_sbml
 from sbmlutils.manipulation import merge
 from sbmlutils.resources import TESTDATA_DIR
+from sbmlutils.validation import ValidationOptions
 
 
 def test_merge_models_example() -> None:
@@ -29,7 +30,10 @@ def test_biomodel_merge(tmp_path: Path) -> None:
     doc = merge.merge_models(model_paths, output_dir=out_dir)
     assert doc is not None
 
-    vresults = validation.validate_doc(doc, units_consistency=False)
+    vresults = validation.validate_doc(
+        doc,
+        options=ValidationOptions(units_consistency=False),
+    )
     assert vresults.error_count == 0
     assert vresults.warning_count == 0
     assert vresults.all_count == 0
@@ -38,7 +42,10 @@ def test_biomodel_merge(tmp_path: Path) -> None:
     doc_flat = comp.flatten_sbml_doc(doc)
     assert doc_flat is not None
 
-    vresults = validation.validate_doc(doc_flat, units_consistency=False)
+    vresults = validation.validate_doc(
+        doc_flat,
+        options=ValidationOptions(units_consistency=False),
+    )
     assert vresults.error_count == 0
     assert vresults.warning_count in [0, 74]
     assert vresults.all_count in [0, 74]

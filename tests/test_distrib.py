@@ -4,7 +4,7 @@ import libsbml
 from sbmlutils.distrib import distrib_examples, distrib_packages
 from sbmlutils.factory import *
 from sbmlutils.metadata import *
-from sbmlutils.validation import validate_doc
+from sbmlutils.validation import ValidationOptions, validate_doc
 
 
 class U(Units):
@@ -31,7 +31,7 @@ def check_model(model: Model) -> libsbml.SBMLDocument:
     doc: libsbml.SBMLDocument = Document(model=model).create_sbml()
 
     assert doc
-    vresults = validate_doc(doc, units_consistency=False)
+    vresults = validate_doc(doc, options=ValidationOptions(units_consistency=False))
 
     # debugging
     if vresults.error_count > 0:
@@ -46,7 +46,7 @@ def test_assign_distribution() -> None:
     """Test assign distribution."""
     model_dict = {
         "sid": "distrib_assignment",
-        "packages": ["distrib"],
+        "packages": [Package.DISTRIB_V1],
         "model_units": ModelUnits(
             time=U.hr,
             extent=U.mole,
@@ -69,7 +69,7 @@ def test_normal_distribution() -> None:
     """Test normal distribution."""
     model_dict = {
         "sid": "normal",
-        "packages": ["distrib"],
+        "packages": [Package.DISTRIB_V1],
         "parameters": [
             Parameter("y", value=1.0),
             Parameter("z", value=1.0),
@@ -85,7 +85,7 @@ def test_trunctated_normal_distribution() -> None:
     """Test truncated normal distribution."""
     model_dict = {
         "sid": "truncated_normal",
-        "packages": ["distrib"],
+        "packages": [Package.DISTRIB_V1],
         "parameters": [
             Parameter("y", value=1.0),
             Parameter("z", value=1.0),
@@ -101,7 +101,7 @@ def test_conditional_event() -> None:
     """Test conditional event."""
     model_dict = {
         "sid": "conditional_events",
-        "packages": ["distrib"],
+        "packages": [Package.DISTRIB_V1],
         "parameters": [Parameter("x", value=1.0, constant=False)],
         "events": [
             Event(
@@ -129,7 +129,7 @@ def test_overview_distributions() -> None:
     """Test all distributions."""
     model_dict = {
         "sid": "all_distributions",
-        "packages": ["distrib"],
+        "packages": [Package.DISTRIB_V1],
         "assignments": [
             InitialAssignment("p_normal_1", "normal(0, 1)"),
             InitialAssignment("p_normal_2", "normal(0, 1, 0, 10)"),
@@ -164,7 +164,7 @@ def test_basic_uncertainty_example() -> None:
 
     model_dict = {
         "sid": "basic_example_1",
-        "packages": ["distrib"],
+        "packages": [Package.DISTRIB_V1],
         "compartments": [Compartment("C", value=1.0)],
         "species": [
             Species(
@@ -191,7 +191,7 @@ def test_multiple_uncertainties() -> None:
     """Test multiple uncertainties."""
     model_dict = {
         "sid": "multiple_uncertainties",
-        "packages": ["distrib"],
+        "packages": [Package.DISTRIB_V1],
         "model_units": ModelUnits(
             time=U.hr,
             extent=U.mole,
@@ -285,7 +285,7 @@ def test_define_random_variable() -> None:
 
     model_dict = {
         "sid": "random_variable",
-        "packages": ["distrib"],
+        "packages": [Package.DISTRIB_V1],
         "parameters": [
             Parameter("shape_Z", value=10.0),
             Parameter("scale_Z", value=0.1),
@@ -315,7 +315,7 @@ def test_parameters_and_spans() -> None:
     """Test parameters and spans."""
     model_dict = {
         "sid": "parameters_spans",
-        "packages": ["distrib"],
+        "packages": [Package.DISTRIB_V1],
         "parameters": [
             Parameter(
                 "p",
@@ -390,7 +390,7 @@ def test_sabiork_uncertainty() -> None:
     """Test SabioRK uncertainty."""
     model_dict = {
         "sid": "sabiork_parameter",
-        "packages": ["distrib"],
+        "packages": [Package.DISTRIB_V1],
         "model_units": ModelUnits(
             time=U.hr,
             extent=U.mole,

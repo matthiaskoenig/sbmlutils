@@ -1,18 +1,30 @@
 """Module for interacting with Cytoscape."""
+import tempfile
 from pathlib import Path
-from typing import Any
+from typing import Any, Union
 
 from py2cytoscape.data.cyrest_client import CyRestClient  # type: ignore
 from requests.exceptions import ConnectionError  # type: ignore
 
 from sbmlutils import log
+from sbmlutils.parser import antimony_to_sbml
 
 
 logger = log.get_logger(__name__)
 
 
+def visualize_antimony(source: Union[Path, str], delete_session: bool = False) -> Any:
+    """Visualize antimony in cytoscape."""
+    sbml_str = antimony_to_sbml(source=source)
+    tmp_file = tempfile.NamedTemporaryFile()
+    with open(tmp_file.name, "w") as f_tmp:
+        f_tmp.write(sbml_str)
+
+    visualize_sbml(Path(f_tmp.name), delete_session=delete_session)
+
+
 def visualize_sbml(sbml_path: Path, delete_session: bool = False) -> Any:
-    """Visualize networks in cytoscape."""
+    """Visualize SBML networks in cytoscape."""
     try:
         cy = CyRestClient()
         if delete_session:

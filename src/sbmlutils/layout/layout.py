@@ -391,8 +391,8 @@ class Layout(factory.Sbase):
 
         return layout
 
-    def _set_fields(self, obj: libsbml.Layout, model: libsbml.Model) -> None:
-        super(Layout, self)._set_fields(obj, model)
+    def _set_fields(self, sbase: libsbml.Layout, model: libsbml.Model) -> None:
+        super(Layout, self)._set_fields(sbase, model)
         dim: libsbml.Dimensions = libsbml.Dimensions(
             SBML_LEVEL,
             SBML_VERSION,
@@ -401,15 +401,15 @@ class Layout(factory.Sbase):
         dim.setWidth(self.width)
         dim.setHeight(self.height)
         dim.setDepth(self.depth)
-        obj.setDimensions(dim)
+        sbase.setDimensions(dim)
 
         for s_item in self.species_glyphs:
-            s_glyph: libsbml.SpeciesGlyph = obj.createSpeciesGlyph()
-            s_item._set_glyph_fields(s_glyph, obj, model)
+            s_glyph: libsbml.SpeciesGlyph = sbase.createSpeciesGlyph()
+            s_item._set_glyph_fields(s_glyph, sbase, model)
 
         for r_item in self.reaction_glyphs:
-            r_glyph: libsbml.ReactionGlyph = obj.createReactionGlyph()
-            r_item._set_glyph_fields(r_glyph, obj, model)
+            r_glyph: libsbml.ReactionGlyph = sbase.createReactionGlyph()
+            r_item._set_glyph_fields(r_glyph, sbase, model)
 
 
 def _create_bounding_box(

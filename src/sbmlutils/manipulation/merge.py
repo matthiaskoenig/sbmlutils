@@ -12,6 +12,7 @@ import libsbml
 from sbmlutils import log
 from sbmlutils.comp import comp, flatten_sbml
 from sbmlutils.io import read_sbml, validate_sbml, write_sbml
+from sbmlutils.validation import ValidationOptions
 
 
 logger = log.get_logger(__name__)
@@ -24,8 +25,7 @@ def merge_models(
     flatten: bool = True,
     validate: bool = True,
     validate_input: bool = True,
-    units_consistency: bool = False,
-    modeling_practice: bool = False,
+    validation_options: ValidationOptions = ValidationOptions(),
     sbml_level: int = 3,
     sbml_version: int = 1,
 ) -> libsbml.SBMLDocument:
@@ -62,11 +62,6 @@ def merge_models(
     if not output_dir.exists():
         raise IOError(f"'output_dir' does not exist: {output_dir}")
 
-    validate_kwargs: Dict[str, bool] = {
-        "units_consistency": units_consistency,
-        "modeling_practice": modeling_practice,
-    }
-
     for model_id, path in model_paths.items():
         if not path.exists():
             raise IOError(f"Path for SBML file does not exist: {path}")
@@ -83,8 +78,8 @@ def merge_models(
         if validate_input:
             validate_sbml(
                 source=path_L3,
-                name=str(path),
-                **validate_kwargs,
+                title=str(path),
+                validation_options=validation_options,
             )
 
     # create comp model
@@ -99,13 +94,21 @@ def merge_models(
     merged_path = output_dir / f"{merged_id}.xml"
     write_sbml(merged_doc, filepath=merged_path)
     if validate:
-        validate_sbml(merged_path, name=str(merged_path), **validate_kwargs)
+        validate_sbml(
+            source=merged_path,
+            validation_options=validation_options,
+            title=str(merged_path),
+        )
 
     if flatten:
         flat_path = output_dir / f"{merged_id}_flat.xml"
         flatten_sbml(sbml_path=merged_path, sbml_flat_path=flat_path)
         if validate:
-            validate_sbml(flat_path, name=str(flat_path), **validate_kwargs)
+            validate_sbml(
+                source=flat_path,
+                validation_options=validation_options,
+                title=str(flat_path),
+            )
 
     return merged_doc
 

@@ -1,7 +1,6 @@
 """AssignmentRule and InitialAssignment example."""
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
-from sbmlutils.resources import EXAMPLES_DIR
 
 
 class U(Units):
@@ -17,12 +16,15 @@ class U(Units):
     mg_per_hr = UnitDefinition("mg_per_hr", "mg/hr")
 
 
-_m = Model(
+model = Model(
     "assignment",
     name="model with assignments",
     creators=templates.creators,
     notes="""
     # Example model demonstrating `InitialAssignment` and `AssignmentRule`.
+
+    InitalAssignments allow to set values at the initial timepoint of simulation.
+    AssignmentRules are evaluated at every time point.
     """
     + templates.terms_of_use,
     units=U,
@@ -36,45 +38,72 @@ _m = Model(
     ),
 )
 
-_m.parameters = [
+model.parameters = [
     # dosing
-    Parameter("Ave", 0, U.mg, constant=False),
-    Parameter("D", 0, U.mg, constant=False),
-    Parameter("IVDOSE", 0, U.mg, constant=True),
-    Parameter("PODOSE", 100, U.mg, constant=True),
-    Parameter("k1", 0.1, U.l_per_hr, constant=True),
+    Parameter(
+        "D",
+        NaN,
+        U.mg,
+        name="total dose",
+        constant=False,
+        notes="""The parameter does not have an initial value set.
+        An InitialAssignment is used to set the parameter.
+        """,
+    ),
+    Parameter("A", 0, U.mg, name="amount in blood"),
+    Parameter("IVDOSE", 0, U.mg, name="intravenous dose"),
+    Parameter("PODOSE", 100, U.mg, name="oral dose"),
+    Parameter("k1", 0.1, U.l_per_hr, name="rate constant for dose"),
     # whole body data
-    Parameter("BW", 70, U.kg, True),
-    Parameter("FVve", 0.0514, U.l_per_kg, True),
+    Parameter("BW", 70, U.kg, name="body weight"),
+    Parameter("FVblood", 0.05, U.l_per_kg, name="fractional volume of the blood"),
 ]
 
-_m.assignments = [
-    InitialAssignment("Ave", "IVDOSE", U.mg),
-    InitialAssignment("D", "PODOSE", U.mg),
+model.assignments = [
+    InitialAssignment(
+        "D",
+        "PODOSE +  IVDOSE",
+        U.mg,
+        name="total dose",
+        notes="""Using an InitialAssignment to set the total dose at the beginning
+        of the simulation as sum from iv and oral dose.
+        The target parameter `D` of the initial assignment exists in the model.
+        """,
+    ),
+    InitialAssignment(
+        "Vblood",
+        "BW*FVblood",
+        U.liter,
+        name="blood volume",
+        sid="init_Vblood",
+        notes="""Calculating the blood volume via an Initial assignment.
+        The target of the initial assignment `Vblood` does not exist in the model
+        so a corresponding parameter for the assignment is generated.
+
+        The `sid` can be used to set the id of the assignment.
+        """,
+    ),
 ]
 
-_m.rules = [
-    # concentrations
-    AssignmentRule("Cve", "Ave/Vve", U.mg_per_l),
-    # volumes
-    AssignmentRule("Vve", "BW*FVve", U.liter),
+model.rules = [
+    AssignmentRule(
+        "Cve",
+        "A/Vblood",
+        U.mg_per_l,
+        name="rule to calulate concentration",
+        notes="""
+        Assignment rule to calculate the concentration `Cve` in [mg/l] from the
+        species `A` and the volume `Vblood`.
+        """,
+    ),
 ]
 
-_m.rate_rules = [
-    RateRule("Ave", "- k1*Cve", U.mg_per_hr),
+model.rate_rules = [
+    RateRule("D", "-k1*Cve", U.mg_per_hr, name="rule for the change of D"),
 ]
-
-model = _m
-
-
-def create(tmp: bool = False) -> None:
-    """Create model."""
-    create_model(
-        models=model,
-        output_dir=EXAMPLES_DIR,
-        tmp=tmp,
-    )
 
 
 if __name__ == "__main__":
-    create()
+    from sbmlutils.resources import EXAMPLES_DIR
+
+    create_model(model=model, filepath=EXAMPLES_DIR / f"{model.sid}.xml")

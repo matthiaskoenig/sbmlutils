@@ -2,7 +2,6 @@
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
 from sbmlutils.metadata.sbo import *
-from sbmlutils.resources import EXAMPLES_DIR
 
 
 class U(Units):
@@ -19,7 +18,7 @@ class U(Units):
     per_min = UnitDefinition("per_min", "1/min")
 
 
-_m = Model(
+model = Model(
     "multiple_substance_units",
     name="model with multiple substance units",
     notes="""
@@ -97,7 +96,7 @@ _m = Model(
     ],
 )
 
-_m.reactions = [
+model.reactions = [
     Reaction(
         sid="HEX1SYNTHESIS",
         name="hexokinase synthesis",
@@ -145,14 +144,10 @@ _m.reactions = [
 ]
 
 
-def create(tmp: bool = False) -> None:
-    """Create model."""
-    create_model(
-        models=_m,
-        output_dir=EXAMPLES_DIR,
-        tmp=tmp,
-    )
-
-
 if __name__ == "__main__":
-    create()
+    from sbmlutils.resources import EXAMPLES_DIR
+
+    create_model(
+        model=model,
+        filepath=EXAMPLES_DIR / f"{model.sid}.xml",
+    )

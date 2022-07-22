@@ -48,12 +48,12 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import libsbml
 
-from sbmlutils import __version__
 from sbmlutils import factory as fac
 from sbmlutils.converters import xpp_helpers
 from sbmlutils.factory import Event, Function
 from sbmlutils.io import sbml
 from sbmlutils.notes import NotesFormat
+from sbmlutils.validation import ValidationOptions
 
 
 XPP_ODE = "ode"
@@ -507,7 +507,7 @@ def xpp2sbml(
                             pass
                         else:
                             assignment_rules.append(
-                                fac.AssignmentRule(sid=sid, value=value)
+                                fac.AssignmentRule(variable=sid, value=value)
                             )
 
                 # init
@@ -595,19 +595,21 @@ def xpp2sbml(
                 # ode
                 elif left.endswith("'"):
                     sid = left[0:-1]
-                    rate_rules.append(fac.RateRule(sid=sid, value=right))
+                    rate_rules.append(fac.RateRule(variable=sid, value=right))
                 elif left.endswith("/dt"):
                     sid = left[1:-3]
-                    rate_rules.append(fac.RateRule(sid=sid, value=right))
+                    rate_rules.append(fac.RateRule(variable=sid, value=right))
                 # assignment rules
                 else:
-                    assignment_rules.append(fac.AssignmentRule(sid=left, value=right))
+                    assignment_rules.append(
+                        fac.AssignmentRule(variable=left, value=right)
+                    )
             else:
                 warnings.warn(f"XPP line not parsed: '{line}'")
 
     # add time
     assignment_rules.append(
-        fac.AssignmentRule(sid="t", value="time", name="model time")
+        fac.AssignmentRule(variable="t", value="time", name="model time")
     )
 
     # create SBML objects
@@ -635,6 +637,8 @@ def xpp2sbml(
         doc,
         sbml_file,
         validate=validate,
-        units_consistency=False,
+        validation_options=ValidationOptions(
+            units_consistency=False,
+        ),
     )
     return doc

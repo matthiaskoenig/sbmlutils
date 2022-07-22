@@ -11,7 +11,6 @@ import roadrunner
 from matplotlib import pyplot as plt
 
 from sbmlutils.converters import xpp
-from sbmlutils.report import sbmlreport
 
 
 def example(model_id: str) -> None:
@@ -23,7 +22,6 @@ def example(model_id: str) -> None:
     xpp_file = xpp_dir / f"{model_id}.ode"
     sbml_file = out_dir / f"{model_id}.xml"
     xpp.xpp2sbml(xpp_file=xpp_file, sbml_file=sbml_file)
-    sbmlreport.create_report(sbml_file, validate=False)
 
     # tests simulation
     r = roadrunner.RoadRunner(str(sbml_file))

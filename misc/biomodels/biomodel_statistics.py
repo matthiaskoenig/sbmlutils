@@ -85,7 +85,7 @@ def sbml_statistics(sbml_path):
         s["rules_assignment_rules"] = 0
         s["rules_rate_rules"] = 0
         s["rules_algebraic_rules"] = 0
-        for rule in model.getListOfRules():  # type: libsbml.Rule
+        for rule in model.getListOfRules():  # type: libsbml.RuleWithVariable
             if rule.isAssignment():
                 s["rules_assignment_rules"] += 1
             elif rule.isRate():

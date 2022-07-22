@@ -20,7 +20,7 @@ class U(Units):
     m3 = UnitDefinition("m3", "meter^3")
 
 
-_m = Model(
+model = Model(
     "units_namespace",
     name="model with unit and sid namespace clash",
     notes="""
@@ -33,6 +33,7 @@ _m = Model(
     """
     + templates.terms_of_use,
     creators=templates.creators,
+    packages=[Package.COMP_V1],
     units=U,
     model_units=ModelUnits(
         time=U.min,
@@ -54,15 +55,5 @@ _m = Model(
 )
 
 
-def create(tmp: bool = False) -> FactoryResult:
-    """Create model."""
-    return create_model(
-        models=_m,
-        output_dir=EXAMPLES_DIR,
-        units_consistency=False,
-        tmp=tmp,
-    )
-
-
 if __name__ == "__main__":
-    fac_result = create()
+    create_model(model=model, filepath=EXAMPLES_DIR / f"{model.sid}.xml")
