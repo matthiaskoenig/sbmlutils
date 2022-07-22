@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 import libsbml
+import antimony
 
 from sbmlutils import RESOURCES_DIR
 from sbmlutils.factory import *
@@ -17,10 +18,66 @@ from sbmlutils.metadata import BQB, BQM
 from sbmlutils.reaction_equation import EquationPart
 from sbmlutils.report.sbmlinfo import SBMLDocumentInfo
 from sbmlutils.validation import ValidationOptions
+from sbmlutils.console import console
 
 
 logger = get_logger(__name__)
 
+
+def antimony_to_sbml(
+    source: Union[Path, str],
+    validate: bool = False,
+    promote: bool = False,
+    validation_options: ValidationOptions = ValidationOptions(),
+) -> str:
+    """Parse antimony model to SBML string."""
+    if isinstance(source, str) and "model" in source:
+        status: int = antimony.loadAntimonyString(source)
+    else:
+        if not isinstance(source, Path):
+            logger.error(
+                f"All antimony paths should be of type 'Path', but "
+                f"'{type(source)}' found for: {source}"
+            )
+            source = Path(source)
+
+        status: int = antimony.loadAntimonyFile(str(source))
+
+
+    # log errors
+    if status != -1:
+        logger.error(f"Antimony status: {status}")
+        logger.error(antimony.getLastError())
+        # antimony.getSBMLWarnings()
+
+    sbml_str = antimony.getSBMLString()
+
+    return sbml_str
+
+
+def antimony_to_model(
+    source: Union[Path, str],
+    validate: bool = False,
+    promote: bool = False,
+    validation_options: ValidationOptions = ValidationOptions(),
+) -> Model:
+    """Parse antimony model."""
+    sbml_str = antimony_to_sbml(
+        source=source,
+        validate=validate,
+        promote=promote,
+        validation_options=validation_options
+    )
+
+    return sbml_to_model(
+        source=sbml_str,
+        validate=validate,
+        promote=promote,
+        validation_options=validation_options
+    )
+
+
+# TODO: validation & validation options
 
 def sbml_to_model(
     source: Union[Path, str],
@@ -99,7 +156,7 @@ def sbml_to_model(
     p: libsbml.Parameter
     for p in model.getListOfParameters():
         d = parse_sbase_kwargs(p)
-        print(d)
+        # print(d)
         m.parameters.append(
             Parameter(
                 value=p.getValue() if p.isSetValue else None,

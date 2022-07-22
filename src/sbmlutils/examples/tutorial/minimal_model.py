@@ -16,12 +16,15 @@ model = Model(
     species=[
         Species(sid="S1", initialConcentration=10.0, compartment="cell", port=True),
         Species(sid="S2", initialConcentration=0.0, compartment="cell"),
+        # Species(sid="S3", initialConcentration=0.0, compartment="cell"),
     ],
     parameters=[
         Parameter(sid="k1", value=0.1),
+        # Parameter(sid="k2", value=0.2),
     ],
     reactions=[
-        Reaction(sid="J0", equation="S1 -> S2", formula="k1 * S2"),
+        Reaction(sid="J0", equation="S1 -> S2", formula="k1 * S1"),
+        # Reaction(sid="R1", equation="S1 -> S3", formula="k2 * S1"),
     ],
 )
 

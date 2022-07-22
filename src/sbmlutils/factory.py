@@ -902,7 +902,6 @@ class Units:
                     f"but '{type(definition)} for '{definition}'."
                 )
             # create and register libsbml.UnitDefinition in libsbml.Model
-            # print("Create:", uid)
             try:
                 _: libsbml.UnitDefinition = unit_definition.create_sbml(model=model)
             except UndefinedUnitError as err:
@@ -1716,7 +1715,6 @@ class Reaction(Sbase):
             # parse the string and create the respective GPA
             r_fbc: libsbml.FbcReactionPlugin = r.getPlugin("fbc")
             gpa: libsbml.GeneProductAssociation = r_fbc.createGeneProductAssociation()
-            print(f"Set GPA: {self.geneProductAssociation}")
 
             # check all genes are in model
             gpr_clean = (
@@ -1729,7 +1727,6 @@ class Reaction(Sbase):
             )
             gps: List[str] = [g for g in gpr_clean.split(" ") if g]
             model_fbc: libsbml.FbcModelPlugin = r.getModel().getPlugin("fbc")
-            print(f"GeneProducts: {gps}")
             for gp in gps:
                 if not model_fbc.getGeneProduct(gp):
                     logger.error(f"GeneProduct missing in model: `{gp}`")
@@ -2312,9 +2309,6 @@ class UserDefinedConstraintComponent(Sbase):
             component.setVariableType(self.variableType),
             f"set variableType `{self.variableType}`",
         )
-
-        print("required attributes:", component.hasRequiredAttributes())
-        print(component.toSBML())
 
         return component
 
@@ -3370,9 +3364,8 @@ class Model(Sbase, FrozenClass, BaseModel):
 
     def check_packages(self, packages: Optional[List[Package]]) -> List[Package]:
         """Check that all provided packages are supported."""
-        if not packages:
-            return []
-
+        if packages is None:
+            packages: List[Package] = []
         packages_set: Set[Package] = set(packages)
         for p in packages_set:
             if not isinstance(p, Package):

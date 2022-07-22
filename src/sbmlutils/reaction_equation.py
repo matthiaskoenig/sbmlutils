@@ -74,6 +74,7 @@ class EquationPart:
     name: Optional[str] = field(default=None, repr=False)
     annotations: Optional[List] = field(default=None, repr=False)
     notes: Optional[str] = field(default=None, repr=False)
+    keyValuePairs: Optional[List[KeyValuePair]] = field(default=None, repr=False)
 
 
 REVERSIBILITY_PATTERN: Final = r"<[-=]>"

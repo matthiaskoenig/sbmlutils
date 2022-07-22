@@ -15,7 +15,7 @@ class U(Units):
 model = Model(
     "distrib_uncertainties",
     name="""model with distrib uncertainties""",
-    packages=["distrib"],
+    packages=[Package.DISTRIB_V1],
     creators=templates.creators,
     notes="""
     # Uncertainty example

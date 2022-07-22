@@ -1,17 +1,14 @@
 """Examples for model creation."""
-import tempfile
 from pathlib import Path
 from sbmlutils.examples.dallaman import dallaman
 from sbmlutils.examples.demo import demo
 from sbmlutils.examples.tiny import tiny
-from sbmlutils.factory import create_model
 
 from sbmlutils.examples import (
     algebraic_rule,
     annotation,
     assignment,
     compartment_species_reaction,
-    model_composition,
     model_definitions,
     multiple_substance_units,
     notes,
@@ -33,7 +30,7 @@ from sbmlutils.examples.tutorial import (
     linear_chain,
     minimal_model,
     minimal_model_comp,
-    random_network,
+    random_network, model_composition,
 )
 from sbmlutils.examples.fbc import (
     fbc_v2,
@@ -77,21 +74,21 @@ examples_models = [
 
 
 if __name__ == "__main__":
-    from sbmlutils.resources import EXAMPLES_DIR
 
-    for module in examples_models:
-        model = module.model
-
-        model_path: Path = EXAMPLES_DIR / f"{model.sid}.xml"
-        create_model(
-            model=module.model,
-            filepath=model_path,
-        )
-        assert model_path.exists()
-
-    # with open(tempfile.TemporaryDirectory()) as tmp_dir:
+    # for module in examples_models:
+    #     model = module.model
     #
-    #     for module in examples_create:
-    #         print(module)
-    #
-    #         module.create(output_dir=tmp_dir)
+    #     model_path: Path = EXAMPLES_DIR / f"{model.sid}.xml"
+    #     create_model(
+    #         model=module.model,
+    #         filepath=model_path,
+    #     )
+    #     assert model_path.exists()
+
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmp_dir:
+
+        for module in examples_create:
+            print(module)
+
+            module.create(output_dir=Path(tmp_dir))

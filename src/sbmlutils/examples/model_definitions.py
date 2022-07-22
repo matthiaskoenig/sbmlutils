@@ -18,6 +18,7 @@ model = Model(
     # Example model with multiple ModelDefinitions.
     """
     + templates.terms_of_use,
+    packages=[Package.COMP_V1],
     units=U,
     model_units=ModelUnits(
         time=U.min,

@@ -1,6 +1,4 @@
 """Example creating composite model."""
-import shutil
-import tempfile
 from pathlib import Path
 
 from sbmlutils.comp import flatten_sbml
@@ -9,13 +7,14 @@ from sbmlutils.factory import *
 from sbmlutils.metadata import *
 
 
-n_cells = 10
+n_cells = 5
 # -------------------------------------------------------------------------------------
 model = Model(
     "minimal_model_comp",
     notes="""
     Hierarchical model reusing the minimal model in composite model coupling.
     """,
+    packages=[Package.COMP_V1],
 )
 
 # create grid of compartments with main species
@@ -83,8 +82,18 @@ for k in range(n_cells):
 def create(output_dir: Path) -> None:
     """Create model."""
 
+    # create external model
+    from sbmlutils.examples.tutorial.minimal_model import model as minimal_model
+    sbml_minimal_path = output_dir / f"{minimal_model.sid}.xml"
+    create_model(
+        model=minimal_model,
+        filepath=sbml_minimal_path,
+        validation_options=ValidationOptions(units_consistency=False),
+    )
+
+    # create comp model
     sbml_path = output_dir / f"{model.sid}.xml"
-    sbml_path_flat = EXAMPLES_DIR / f"{model.sid}_flat.xml"
+    sbml_path_flat = output_dir / f"{model.sid}_flat.xml"
 
     create_model(
         model=model,
@@ -92,8 +101,14 @@ def create(output_dir: Path) -> None:
         validation_options=ValidationOptions(units_consistency=False),
     )
 
+    # flatten model
     flatten_sbml(sbml_path, sbml_flat_path=sbml_path_flat)
-    visualize_sbml(sbml_path=sbml_path_flat)
+
+    # visualize all files
+    for k, path in enumerate([
+        sbml_minimal_path, sbml_path, sbml_path_flat,
+    ]):
+        visualize_sbml(sbml_path=path, delete_session=(k==0))
 
 
 if __name__ == "__main__":

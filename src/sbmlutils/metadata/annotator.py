@@ -332,8 +332,9 @@ class ModelAnnotator:
                     splugin = s.getPlugin("fbc")
                     if splugin is None:
                         logger.error(
-                            "FbcSpeciesPlugin does not exist, add `packages = ['fbc']`"
-                            " to model definition."
+                            "FbcSpeciesPlugin does not exist, add "
+                            "`packages=['Package.FBC']` "
+                            "to model definition."
                         )
                     else:
                         if ex_a.annotation_type == "formula":

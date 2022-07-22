@@ -14,7 +14,7 @@ class U(Units):
 model = Model(
     "distrib_distributions",
     name="model with distrib distributions",
-    packages=["distrib"],
+    packages=[Package.DISTRIB_V1],
     creators=templates.creators,
     notes="""
     # Distrib example

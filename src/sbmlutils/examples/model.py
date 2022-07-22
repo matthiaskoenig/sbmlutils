@@ -26,7 +26,7 @@ class U(Units):
 
 model = Model(
     sid="model",
-    packages=["distrib", "fbc"],
+    packages=[Package.DISTRIB, Package.FBC_V2],
     notes="""
     # Complete model
     Example demonstrating more complete information in SBML model.

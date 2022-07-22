@@ -33,6 +33,7 @@ model = Model(
     """
     + templates.terms_of_use,
     creators=templates.creators,
+    packages=[Package.COMP_V1],
     units=U,
     model_units=ModelUnits(
         time=U.min,
