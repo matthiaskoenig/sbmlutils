@@ -8,8 +8,8 @@ from sbmlutils.validation import ValidationOptions
 
 
 random.seed(1234)
-n_species = 20
-n_links = 30
+n_species = 100
+n_links = 10
 
 # -------------------------------------------------------------------------------------
 model = Model(
