@@ -416,9 +416,9 @@ for tkey, skey_list in replaced_species.items():
 # replace ICG in feces
 _m.replaced_elements.append(
     ReplacedElement(
-        sid=f"Afeces_icg_RE",
-        metaId=f"Afeces_icg_RE",
-        elementRef=f"Afeces_icg",
+        sid="Afeces_icg_RE",
+        metaId="Afeces_icg_RE",
+        elementRef="Afeces_icg",
         submodelRef=SUBMODEL_SID_DICT["li"],
         portRef=f"icg_feces{PORT_SUFFIX}",
     )
@@ -1110,20 +1110,20 @@ _m.rules.extend(
         #  (handled by very small concentration offset)
         # FIXME: many issues with numerical tolerances
         AssignmentRule(
-            f"ER_icg",
-            f"(Car_icg + 1E-7 mM -(Chv_icg+1E-7mM))/(Car_icg + 1E-7 mM)",
+            "ER_icg",
+            "(Car_icg + 1E-7 mM -(Chv_icg+1E-7mM))/(Car_icg + 1E-7 mM)",
             U.dimensionless,
-            name=f"extraction ratio ICG",
+            name="extraction ratio ICG",
         ),
         # Clearance calculated during steady state in continous infusion
         # Ri_icg [mg/min] / Cve_icg / Mr_icg [mmole/l]  -> [(g*l)/(min*mole)]  [ml/min]
         # FIXME: divide by zero
         AssignmentRule(
-            f"CLinfusion_icg",
-            f"Ri_icg/Mr_icg/(Cve_icg + 1E-12 mM)",
+            "CLinfusion_icg",
+            "Ri_icg/Mr_icg/(Cve_icg + 1E-12 mM)",
             U.l_per_min,
             # f'Ri_icg/Mr_icg/Cve_icg', U.litre_per_min,
-            name=f"infusion clearance (steady state)",
+            name="infusion clearance (steady state)",
         ),
     ]
 )
@@ -1310,7 +1310,7 @@ for sid, sdict in SUBSTANCES_BODY.items():
                     # shunted arterial flow
                     Reaction(
                         sid=f"Flow_arli_hv_{sid}",
-                        name=f"flow arterial shunts",
+                        name="flow arterial shunts",
                         formula=(f"f_shunts*Qha*Car_{sid}", U.mmole_per_min),
                         equation=f"Car_{sid} -> Chv_{sid}",
                         sboTerm=SBO.TRANSPORT_REACTION,
@@ -1329,7 +1329,7 @@ for sid, sdict in SUBSTANCES_BODY.items():
                     # portal shunts
                     Reaction(
                         sid=f"Flow_po_hv_{sid}",
-                        name=f"flow portal shunts",
+                        name="flow portal shunts",
                         formula=(f"f_shunts*Qpo*Cpo_{sid}", U.mmole_per_min),
                         equation=f"Cpo_{sid} -> Chv_{sid}",
                         sboTerm=SBO.TRANSPORT_REACTION,

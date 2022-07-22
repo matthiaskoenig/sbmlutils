@@ -30,8 +30,8 @@ API_EXAMPLES_OMEX = [
 MODELS_DIR = RESOURCES_DIR / "models"
 BASIC_SBML = MODELS_DIR / "basic" / "basic_7.xml"
 
-DEMO_SBML = MODELS_DIR / "demo" / "Koenig_demo_14.xml"
-DEMO_SBML_NO_ANNOTATIONS = MODELS_DIR / "demo" / "Koenig_demo_14_no_annotations.xml"
+DEMO_SBML = MODELS_DIR / "demo" / "Koenig_demo_v15.xml"
+DEMO_SBML_NO_ANNOTATIONS = MODELS_DIR / "demo" / "Koenig_demo_v15_no_annotations.xml"
 DEMO_ANNOTATIONS = MODELS_DIR / "demo" / "demo_annotations.xlsx"
 
 GALACTOSE_SINGLECELL_SBML = MODELS_DIR / "galactose" / "galactose_30.xml"

@@ -26,6 +26,7 @@ model = Model(
     """
     + templates.terms_of_use,
     creators=templates.creators,
+    units=U,
     model_units=ModelUnits(
         time=U.second,
         substance=U.mole,
@@ -211,14 +212,14 @@ def create(output_dir: Path) -> None:
     # with annotations
     create_model(
         model=model,
-        filepath=output_dir / "results" / f"{model.sid}.xml",
-        annotations=output_dir / "demo_annotations.xlsx",
+        filepath=output_dir / f"{model.sid}.xml",
+        annotations=Path(__file__).parent / "demo_annotations.xlsx",
     )
 
     # without annotations
     create_model(
         model=model,
-        filepath=output_dir / "results" / f"{model.sid}_no_annotations.xml",
+        filepath=output_dir / f"{model.sid}_no_annotations.xml",
     )
 
 

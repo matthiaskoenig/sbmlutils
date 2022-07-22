@@ -11,15 +11,15 @@ from sbmlutils.validation import ValidationOptions, ValidationResult
 
 
 @pytest.mark.parametrize("module", examples_create)
-def test_create_model(tmp_path: Path, module: Any) -> None:
+def test_create_example_create(tmp_path: Path, module: Any) -> None:
     """Test create model."""
-    module.create(tmp=True)
+    module.create(output_dir=tmp_path)
 
 
 @pytest.mark.parametrize("module", examples_models)
-def test_create_model(tmp_path: Path, module: Any) -> None:
+def test_create_example_models(tmp_path: Path, module: Any) -> None:
     """Test create model."""
-    model_path: Path = tmp_path / f"model.xml"
+    model_path: Path = tmp_path / "model.xml"
     results = create_model(
         model=module.model,
         filepath=model_path,
