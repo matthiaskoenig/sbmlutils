@@ -39,13 +39,19 @@ def create_metaid(sbase: libsbml.SBase) -> str:
 
 def create_hash_id(sbase: libsbml.SBase) -> str:
     """Create hash code."""
+    # FIXME: issues with assignment rules in pancreas model
+    # print(f"create_hashcode for sbase: '{sbase}'")
+    # print(sbase.getId())
+
     if sbase and hasattr(sbase, "getId") and sbase.isSetId():
         hash_key = sbase.getId()
     else:
         # hash the xml_node
         xml_node: libsbml.XMLNode = sbase.toXMLNode()
         xml_str = xml_node.toString().encode("utf-8")
+        # print(f"xml_str -> {xml_node} -> {xml_str}" )
         hash_key = hashlib.md5(xml_str).hexdigest()
+    # print(f"-> {hash_key}")
     return hash_key  # type: ignore
 
 

@@ -134,21 +134,23 @@ def create_objects(
     :return: dictionary of SBML objects
     """
     sbml_objects: Dict[str, libsbml.SBase] = {}
-    try:
-        for obj in obj_iter:
-            if obj is None:
-                logger.error(
-                    f"Trying to create None object, "
-                    f"check for incorrect terminating ',' on objects: "
-                    f"'{sbml_objects}'"
-                )
+
+    for obj in obj_iter:
+        if obj is None:
+            logger.error(
+                f"Trying to create None object, "
+                f"check for incorrect terminating ',' on objects: "
+                f"'{sbml_objects}'"
+            )
+
+        try:
             sbml_obj: libsbml.SBase = obj.create_sbml(model)
-            # FIXME: what happens for objects without id?
-            sbml_objects[sbml_obj.getId()] = sbml_obj
-    except Exception as err:
-        logger.error(f"Error creation SBML objects '{key}: {obj_iter}'")
-        logger.error(err)
-        raise err
+        except Exception as err:
+            logger.error(f"Error creating SBML object '{sbml_obj}'")
+            logger.error(err)
+            raise err
+        # FIXME: what happens for objects without id?
+        sbml_objects[sbml_obj.getId()] = sbml_obj
 
     return sbml_objects
 
@@ -1177,7 +1179,7 @@ class Species(Sbase):
         initialAmount: Optional[float] = None,
         initialConcentration: Optional[float] = None,
         substanceUnit: UnitType = None,
-        hasOnlySubstanceUnits: bool = False,
+        hasOnlySubstanceUnits: bool = False,  # default: concentrations
         constant: bool = False,
         boundaryCondition: bool = False,
         charge: Optional[float] = None,
