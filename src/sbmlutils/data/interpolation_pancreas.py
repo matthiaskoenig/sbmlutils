@@ -30,9 +30,7 @@ def interpolate_data(
     - interpolate timecourse data (added via a parameter and rule)
     - interpolate data dependencies (added via a parameter and rule)
 
-    TODO: plot interpolation results
-
-    TODO: support unit conversions.
+    TODO: support units in formula creation.
     """
     x: np.ndarray = data[xid].values
     y: np.ndarray = data[yid].values
@@ -46,7 +44,8 @@ def interpolate_data(
     f, ax1 = plt.subplots(nrows=1, ncols=1)
     ax1.set_xlabel(f"{xid_model} [AU]")
     ax1.set_ylabel(f"{yid_model} [AU]")
-    ax1.set_title("Interpolation Example")
+    if title:
+        ax1.set_title(title)
     ax1.plot(x, y, "o", color="black", label="y")
 
     colors = ["tab:red", "tab:green", "tab:blue"]
@@ -61,9 +60,8 @@ def interpolate_data(
             tmp_f = Path(tmpdir, "tests.xml")
 
             interpolation = ip.Interpolation(data=data1, method=method)
-            # TODO: plot interpolation formula
             print("-" * 80)
-            print(f"{method}: {yid_model} ~ {xid_model}")
+            print(f"*** {method}: {yid_model} ~ {xid_model}***")
             interpolators = interpolation.create_interpolators(data=data1, method=method)
             for interpolator in interpolators:
                 print(interpolator.formula())
@@ -77,9 +75,9 @@ def interpolate_data(
             if xid_model == "time":
                 s = r.simulate(0, x.max(), steps=200)
                 # plot interpolation
-                ax1.plot(s["time"], s[yid_model], label=f"{yid} {method}", color=colors[k])
+                ax1.plot(s["time"], s[yid_model], label=f"{yid_model} {method}", color=colors[k])
                 ax1.plot(
-                    s["time"], s[yid_model], label=f"z {method}", color=colors[k], linestyle="--"
+                    s["time"], s[yid_model], label=f"{yid_model} {method}", color=colors[k], linestyle="--"
                 )
 
             # parameter scan
@@ -87,11 +85,20 @@ def interpolate_data(
                 xvec = np.linspace(start=np.min(x), stop=np.max(x), num=50)
                 xvec_model = np.zeros_like(xvec)
                 yvec_model = np.zeros_like(xvec)
-                for k, xvalue in enumerate(xvec):
+                for kv, xvalue in enumerate(xvec):
                     r.resetAll()
-                    s = r.simulate(0, x.max(), steps=200)
+                    r.setValue(xid_model, xvalue)
+                    s = r.simulate(0, 1, steps=2)
+                    df: pd.DataFrame = pd.DataFrame(s, columns=s.colnames)
+                    xvec_model[kv] = df[xid_model].values[-1]
+                    yvec_model[kv] = df[yid_model].values[-1]
 
-                    # TODO: implement
+                ax1.plot(xvec_model, yvec_model, label=f"{yid_model} {method}",
+                         color=colors[k])
+                ax1.plot(
+                    xvec_model, yvec_model, label=f"{yid_model} {method}",
+                    color=colors[k], linestyle="--"
+                )
 
     ax1.legend()
     plt.show()
@@ -101,7 +108,12 @@ if __name__ == "__main__":
 
     interpolate_data(
         data=pd.read_csv("atp_adp_mean.tsv", sep="\t"),
-        xid="dose", yid="atp_adp", xid_model="time", yid_model="atp_adp_total",
-        title="atp_adp_mean",
+        xid="dose", yid="atp_adp", xid_model="glc", yid_model="atp_adp_total",
+        title="Interpolation: atp_adp_mean",
     )
 
+    # interpolate_data(
+    #     data=pd.read_csv("atp_adp_normalized.tsv", sep="\t"),
+    #     xid="dose", yid="atp_adp", xid_model="time", yid_model="atp_adp_total",
+    #     title="Interpolation: atp_adp_normalized",
+    # )

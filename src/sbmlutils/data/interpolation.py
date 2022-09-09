@@ -8,6 +8,7 @@ TODO: support coupling with existing models via comp
 The functionality is very useful, but only if this can be applied to existing
 models in a simple manner.
 """
+from __future__ import annotations
 from pathlib import Path
 from typing import Any, List, Optional, Tuple, Union
 
@@ -57,7 +58,7 @@ INTERPOLATION_CUBIC_SPLINE = "cubic spline"
 
 
 class Interpolator:
-    """Interpolator class handles the interpolation of given data series.
+    """Interpolator class handles the 2D interpolation of given data series.
 
     Two data series and the type of interpolation are provided.
     """
@@ -66,13 +67,11 @@ class Interpolator:
         self,
         x: pd.Series,
         y: pd.Series,
-        z: pd.Series = None,
         method: str = INTERPOLATION_CONSTANT,
     ):
         """Initialize Interpolator."""
         self.x: pd.Series = x
         self.y: pd.Series = y
-        self.z: pd.Series = z
         self.method = method
 
     def __str__(self) -> str:
@@ -97,11 +96,6 @@ class Interpolator:
         """Y id."""
         return str(self.y.name)
 
-    @property
-    def zid(self) -> str:
-        """Z id."""
-        return str(self.z.name)
-
     def formula(self) -> str:
         """Get formula string."""
         formula: str
@@ -125,12 +119,13 @@ class Interpolator:
 
         # create piecewise terms
         items: List[str] = []
+        xid = x.name
         for k in range(len(x) - 1):
             x1 = x.iloc[k]
             x2 = x.iloc[k + 1]
             (a, b, c, d) = coeffs[k]  # type: ignore
-            formula = f"{d}*(time-{x1})^3 + {c}*(time-{x1})^2 + {b}*(time-{x1}) + {a}"  # type: ignore
-            condition = f"time >= {x1} && time <= {x2}"
+            formula = f"{d}*({xid}-{x1})^3 + {c}*({xid}-{x1})^2 + {b}*({xid}-{x1}) + {a}"  # type: ignore
+            condition = f"{xid} >= {x1} && {xid} <= {x2}"
             s = f"{formula}, {condition}"
             items.append(s)
 
@@ -191,24 +186,21 @@ class Interpolator:
 
     @staticmethod
     def _formula_linear(col1: pd.Series, col2: pd.Series) -> str:
-        """Linear interpolation between data points.
-
-        :return:
-        :rtype:
-        """
+        """Linear interpolation between data points."""
         items = []
+        xid = col1.name
         for k in range(len(col1) - 1):
             x1 = col1.iloc[k]
             x2 = col1.iloc[k + 1]
             y1 = col2.iloc[k]
             y2 = col2.iloc[k + 1]
             m = (y2 - y1) / (x2 - x1)
-            formula = "{} + {}*(time-{})".format(y1, m, x1)
-            condition = "time >= {} && time < {}".format(x1, x2)
+            formula = f"{y1} + {m}*({xid}-{x1})"
+            condition = f"{xid} >= {x1} && {xid} < {x2}"
             s = "{}, {}".format(formula, condition)
             items.append(s)
-        # last value after last time
-        s = "{}, time >= {}".format(col2.iloc[len(col1) - 1], col1.iloc[len(col1) - 1])
+        # last value after last {xid}
+        s = f"{col2.iloc[len(col1) - 1]}, {xid} >= {col1.iloc[len(col1) - 1]}"
         items.append(s)
         # otherwise
         items.append("0.0")
@@ -223,20 +215,21 @@ class Interpolator:
         piecewise x1, y1, [x2, y2, ][...][z]
         A piecewise function: if (y1), x1.Otherwise, if (y2), x2, etc.Otherwise, z.
         """
+        xid = col1.name
         items = []
         # first value before first time
-        s = "{}, time < {}".format(col2.iloc[0], col1.iloc[0])
+        s = f"{col2.iloc[0]}, {xid} < {col1.iloc[0]}"
         items.append(s)
 
         # intermediate vales
         for k in range(len(col1) - 1):
-            condition = "time >= {} && time < {}".format(col1.iloc[k], col1.iloc[k + 1])
-            formula = "{}".format(col2.iloc[k])
+            condition = f"{xid} >= {col1.iloc[k]} && {xid} < {col1.iloc[k + 1]}"
+            formula = f"{col2.iloc[k]}"
             s = "{}, {}".format(formula, condition)
             items.append(s)
 
-        # last value after last time
-        s = "{}, time >= {}".format(col2.iloc[len(col1) - 1], col1.iloc[len(col1) - 1])
+        # last value after last {xid
+        s = f"{col2.iloc[len(col1) - 1]}, {xid} >= {col1.iloc[len(col1) - 1]}"
         items.append(s)
 
         # otherwise
@@ -354,15 +347,15 @@ class Interpolation:
         """
         interpolators: List[Interpolator] = []
         columns = data.columns
-        time = data[columns[0]]
+        x = data[columns[0]]
         for k in range(1, len(columns)):
-            interpolator = Interpolator(x=time, y=data[columns[k]], method=method)
+            interpolator = Interpolator(x=x, y=data[columns[k]], method=method)
             interpolators.append(interpolator)
         return interpolators
 
     @staticmethod
     def add_interpolator_to_model(
-        interpolator: "Interpolator", model: libsbml.Model
+        interpolator: Interpolator, model: libsbml.Model
     ) -> None:
         """Add interpolator to model.
 
@@ -373,13 +366,25 @@ class Interpolation:
         :return:
         """
 
+        # FIXME: use the sbmlutils structure for addition
+
+        # add xid if needed
+        xid = interpolator.xid
+        xobj = model.getElementBySId(xid)
+        if not xobj:
+            px: libsbml.Parameter = model.createParameter()
+            px.setId(xid)
+            px.setName(xid)
+            px.setConstant(True)
+            px.setValue(interpolator.x.values[0])
+
         # create parameter
         pid = interpolator.yid
 
         # if parameter exists remove it
         if model.getParameter(pid):
             logger.warning(
-                "Model contains parameter: {}. Parameter is removed.".format(pid)
+                f"Model contains parameter: {pid}. Parameter is removed."
             )
             model.removeParameter(pid)
 
