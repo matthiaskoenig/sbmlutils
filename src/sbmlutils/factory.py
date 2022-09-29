@@ -2334,7 +2334,7 @@ class UserDefinedConstraint(Sbase):
         components: Optional[
             Union[List[UserDefinedConstraintComponent], Dict[str, float]]
         ] = None,
-        variableType: str = libsbml.FBC_FBCVARIABLETYPE_LINEAR,
+        variableType: str = libsbml.FBC_VARIABLE_TYPE_LINEAR,
         sid: Optional[str] = None,
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
@@ -2398,9 +2398,9 @@ class FluxObjective(Sbase):
     """FluxObjective."""
 
     fbc_variable_types: Set[str] = {
-        libsbml.FBC_FBCVARIABLETYPE_LINEAR,
-        libsbml.FBC_FBCVARIABLETYPE_QUADRATIC,
-        libsbml.FBC_FBCVARIABLETYPE_INVALID,
+        libsbml.FBC_VARIABLE_TYPE_LINEAR,
+        libsbml.FBC_VARIABLE_TYPE_QUADRATIC,
+        libsbml.FBC_VARIABLE_TYPE_INVALID,
         "linear",
         "quadratic",
         "invalid",
@@ -2449,11 +2449,11 @@ class FluxObjective(Sbase):
             )
 
         if variable_type == "linear":
-            variable_type = libsbml.FBC_FBCVARIABLETYPE_LINEAR
+            variable_type = libsbml.FBC_VARIABLE_TYPE_LINEAR
         elif variable_type == "quadratic":
-            variable_type = libsbml.FBC_FBCVARIABLETYPE_QUADRATIC
+            variable_type = libsbml.FBC_VARIABLE_TYPE_QUADRATIC
         elif variable_type == "invalid":
-            variable_type = libsbml.FBC_FBCVARIABLETYPE_INVALID
+            variable_type = libsbml.FBC_VARIABLE_TYPE_INVALID
         return variable_type
 
     def create_sbml(self, objective: libsbml.Objective) -> libsbml.FluxObjective:
@@ -2486,7 +2486,7 @@ class Objective(Sbase):
         objectiveType: str = libsbml.OBJECTIVE_TYPE_MAXIMIZE,
         active: bool = True,
         fluxObjectives: Optional[Union[List[FluxObjective], Dict[str, float]]] = None,
-        variableType: str = libsbml.FBC_FBCVARIABLETYPE_LINEAR,
+        variableType: str = libsbml.FBC_VARIABLE_TYPE_LINEAR,
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
