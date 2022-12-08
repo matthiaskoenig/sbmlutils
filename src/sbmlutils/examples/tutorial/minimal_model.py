@@ -20,8 +20,12 @@ model = Model(
         # Species(sid="S3", initialConcentration=0.0, compartment="cell"),
     ],
     parameters=[
-        Parameter(sid="k1", value=0.1, name="rate constant for J0",
-                  sboTerm=SBO.QUANTITATIVE_SYSTEMS_DESCRIPTION_PARAMETER),
+        Parameter(
+            sid="k1",
+            value=0.1,
+            name="rate constant for J0",
+            sboTerm=SBO.QUANTITATIVE_SYSTEMS_DESCRIPTION_PARAMETER,
+        ),
         # Parameter(sid="k2", value=0.2),
     ],
     reactions=[

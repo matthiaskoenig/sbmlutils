@@ -43,7 +43,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from typing import Final, Iterable, List, Optional, Any
+from typing import Any, Final, Iterable, List, Optional
 
 
 @dataclass

@@ -3,12 +3,12 @@ import tempfile
 from pathlib import Path
 
 import pandas as pd
+import roadrunner
 from matplotlib import pyplot as plt
 from matplotlib.pyplot import Axes, Figure
+
 from sbmlutils import log
 from sbmlutils.data import interpolation as ip
-
-import roadrunner
 
 
 logger = log.get_logger(__name__)

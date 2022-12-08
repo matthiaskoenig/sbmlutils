@@ -9,14 +9,17 @@ The functionality is very useful, but only if this can be applied to existing
 models in a simple manner.
 """
 from __future__ import annotations
+
 from pathlib import Path
 from typing import Any, List, Optional, Tuple, Union
 
 import libsbml
 import pandas as pd
+
 from sbmlutils import log
 from sbmlutils.io.sbml import write_sbml
-from sbmlutils.validation import validate_doc, ValidationOptions
+from sbmlutils.validation import ValidationOptions, validate_doc
+
 
 logger = log.get_logger(__name__)
 
@@ -383,9 +386,7 @@ class Interpolation:
 
         # if parameter exists remove it
         if model.getParameter(pid):
-            logger.warning(
-                f"Model contains parameter: {pid}. Parameter is removed."
-            )
+            logger.warning(f"Model contains parameter: {pid}. Parameter is removed.")
             model.removeParameter(pid)
 
         # if assignment rule exists remove it

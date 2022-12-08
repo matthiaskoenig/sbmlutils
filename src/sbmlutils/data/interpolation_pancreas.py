@@ -3,15 +3,14 @@ import tempfile
 from pathlib import Path
 from typing import Optional
 
+import numpy as np
 import pandas as pd
+import roadrunner
 from matplotlib import pyplot as plt
 from matplotlib.pyplot import Axes, Figure
+
 from sbmlutils import log
 from sbmlutils.data import interpolation as ip
-
-import numpy as np
-
-import roadrunner
 
 
 logger = log.get_logger(__name__)
@@ -19,10 +18,11 @@ logger = log.get_logger(__name__)
 
 def interpolate_data(
     data: pd.DataFrame,
-    xid: str, yid: str,
+    xid: str,
+    yid: str,
     xid_model: Optional[str] = None,
     yid_model: Optional[str] = None,
-    title: Optional[str] = None
+    title: Optional[str] = None,
 ) -> None:
     """Interpolate given data.yid ~ data.xid.
 
@@ -62,7 +62,9 @@ def interpolate_data(
             interpolation = ip.Interpolation(data=data1, method=method)
             print("-" * 80)
             print(f"*** {method}: {yid_model} ~ {xid_model}***")
-            interpolators = interpolation.create_interpolators(data=data1, method=method)
+            interpolators = interpolation.create_interpolators(
+                data=data1, method=method
+            )
             for interpolator in interpolators:
                 print(interpolator.formula())
 
@@ -75,9 +77,18 @@ def interpolate_data(
             if xid_model == "time":
                 s = r.simulate(0, x.max(), steps=200)
                 # plot interpolation
-                ax1.plot(s["time"], s[yid_model], label=f"{yid_model} {method}", color=colors[k])
                 ax1.plot(
-                    s["time"], s[yid_model], label=f"{yid_model} {method}", color=colors[k], linestyle="--"
+                    s["time"],
+                    s[yid_model],
+                    label=f"{yid_model} {method}",
+                    color=colors[k],
+                )
+                ax1.plot(
+                    s["time"],
+                    s[yid_model],
+                    label=f"{yid_model} {method}",
+                    color=colors[k],
+                    linestyle="--",
                 )
 
             # parameter scan
@@ -93,11 +104,18 @@ def interpolate_data(
                     xvec_model[kv] = df[xid_model].values[-1]
                     yvec_model[kv] = df[yid_model].values[-1]
 
-                ax1.plot(xvec_model, yvec_model, label=f"{yid_model} {method}",
-                         color=colors[k])
                 ax1.plot(
-                    xvec_model, yvec_model, label=f"{yid_model} {method}",
-                    color=colors[k], linestyle="--"
+                    xvec_model,
+                    yvec_model,
+                    label=f"{yid_model} {method}",
+                    color=colors[k],
+                )
+                ax1.plot(
+                    xvec_model,
+                    yvec_model,
+                    label=f"{yid_model} {method}",
+                    color=colors[k],
+                    linestyle="--",
                 )
 
     ax1.legend()
@@ -108,7 +126,10 @@ if __name__ == "__main__":
 
     interpolate_data(
         data=pd.read_csv("atp_adp_mean.tsv", sep="\t"),
-        xid="dose", yid="atp_adp", xid_model="glc", yid_model="atp_adp_total",
+        xid="dose",
+        yid="atp_adp",
+        xid_model="glc",
+        yid_model="atp_adp_total",
         title="Interpolation: atp_adp_mean",
     )
 
