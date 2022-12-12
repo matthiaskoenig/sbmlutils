@@ -217,7 +217,7 @@ def error_string(error: libsbml.SBMLError, index: int = None) -> tuple:
 
 def validate_doc(
     doc: libsbml.SBMLDocument,
-    options: ValidationOptions = ValidationOptions(),
+    options: Optional[ValidationOptions] = None,
     title: Optional[str] = None,
 ) -> ValidationResult:
     """Validate SBMLDocument.
@@ -228,6 +228,8 @@ def validate_doc(
 
     :return: ValidationResult
     """
+    if options is None:
+        options = ValidationOptions()
 
     if not title:
         title = str(doc)

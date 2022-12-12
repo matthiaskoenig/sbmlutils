@@ -26,9 +26,6 @@ logger = get_logger(__name__)
 
 def antimony_to_sbml(
     source: Union[Path, str],
-    validate: bool = False,
-    promote: bool = False,
-    validation_options: ValidationOptions = ValidationOptions(),
 ) -> str:
     """Parse antimony model to SBML string."""
     if isinstance(source, str) and "model" in source:
@@ -58,14 +55,11 @@ def antimony_to_model(
     source: Union[Path, str],
     validate: bool = False,
     promote: bool = False,
-    validation_options: ValidationOptions = ValidationOptions(),
+    validation_options: Optional[ValidationOptions] = None,
 ) -> Model:
     """Parse antimony model."""
     sbml_str = antimony_to_sbml(
         source=source,
-        validate=validate,
-        promote=promote,
-        validation_options=validation_options,
     )
 
     return sbml_to_model(
@@ -83,7 +77,7 @@ def sbml_to_model(
     source: Union[Path, str],
     validate: bool = False,
     promote: bool = False,
-    validation_options: ValidationOptions = ValidationOptions(),
+    validation_options: Optional[ValidationOptions] = None,
 ) -> Model:
     """Parse SBML model."""
     doc: libsbml.SBMLDocument = read_sbml(
@@ -307,7 +301,6 @@ def sbml_to_model(
 
 
 if __name__ == "__main__":
-    from sbmlutils.console import console
 
     # from sbmlutils.resources import REPRESSILATOR_SBML
     #

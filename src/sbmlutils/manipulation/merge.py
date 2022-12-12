@@ -5,7 +5,7 @@ a single model.
 """
 import os
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Optional
 
 import libsbml
 
@@ -25,7 +25,7 @@ def merge_models(
     flatten: bool = True,
     validate: bool = True,
     validate_input: bool = True,
-    validation_options: Optional[ValidationOptions] = ValidationOptions(),
+    validation_options: Optional[ValidationOptions] = None,
     sbml_level: int = 3,
     sbml_version: int = 1,
 ) -> libsbml.SBMLDocument:
@@ -49,8 +49,7 @@ def merge_models(
     :param flatten: flattens the merged model
     :param validate: boolean flag to validate the merged model
     :param validate_input: boolean flag to validate the input models
-    :param units_consistency: boolean flag to check units consistency
-    :param modeling_practice: boolean flag to check modeling practise
+    :param validation_options: ValidationOptions
     :param sbml_level: SBML Level of the merged model in [3]
     :param sbml_version: SBML Version of the merged model in [1, 2]
     :return: SBMLDocument of the merged models

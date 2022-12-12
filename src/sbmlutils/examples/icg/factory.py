@@ -17,7 +17,7 @@ logger = get_logger(__name__)
 
 
 def create_models(results_path, create_tissues: bool = True) -> Dict[str, Path]:
-    """Creates tissue and whole-body model."""
+    """Create tissue and whole-body model."""
 
     results = {}
     if create_tissues:

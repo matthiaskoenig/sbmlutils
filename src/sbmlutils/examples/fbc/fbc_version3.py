@@ -1,5 +1,5 @@
-"""
-Test bed for FBC version 3.
+"""Test bed for FBC version 3.
+
 For latest SBML fbc v3 specification see
 https://github.com/bgoli/sbml-fbc-spec/blob/main/sf_svn/spec/main.pdf
 """

@@ -78,8 +78,7 @@ api.add_middleware(
 def examples() -> Dict[Any, Any]:
     """Get examples for reports."""
     try:
-        example: ExampleMetaData
-        return {"examples": [example.dict() for example in examples_info.values()]}
+        return {"examples": [v.dict() for v in examples_info.values()]}
 
     except Exception as e:
         return _handle_error(e)

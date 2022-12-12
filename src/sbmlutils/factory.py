@@ -3025,7 +3025,7 @@ class Port(SbaseRef):
 
 
 class Package(str, Enum):
-    """Supported/tested packages"""
+    """Supported/tested packages."""
 
     COMP = "comp"
     COMP_V1 = "comp-v1"
@@ -3569,7 +3569,7 @@ def create_model(
     sbml_level: int = SBML_LEVEL,
     sbml_version: int = SBML_VERSION,
     validate: bool = True,
-    validation_options: ValidationOptions = ValidationOptions(),
+    validation_options: Optional[ValidationOptions] = None,
     show_sbml: bool = False,
     annotations: Path = None,
 ) -> FactoryResult:
@@ -3593,6 +3593,8 @@ def create_model(
     :return: FactoryResult
     """
     console.rule(title="Create SBML", style="white")
+    if validation_options is None:
+        validation_options = ValidationOptions()
 
     # merge models
     m: Model

@@ -20,7 +20,7 @@ def read_sbml(
     source: Union[Path, str],
     promote: bool = False,
     validate: bool = False,
-    validation_options: ValidationOptions = ValidationOptions(),
+    validation_options: Optional[ValidationOptions] = None,
 ) -> libsbml.SBMLDocument:
     """Read SBMLDocument from given source.
 
@@ -79,7 +79,7 @@ def write_sbml(
     doc: libsbml.SBMLDocument,
     filepath: Optional[Path] = None,
     validate: bool = False,
-    validation_options: ValidationOptions = ValidationOptions(),
+    validation_options: Optional[ValidationOptions] = None,
     program_name: str = None,
     program_version: str = None,
 ) -> str:
