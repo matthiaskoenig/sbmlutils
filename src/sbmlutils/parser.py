@@ -28,8 +28,9 @@ def antimony_to_sbml(
     source: Union[Path, str],
 ) -> str:
     """Parse antimony model to SBML string."""
+    status: int
     if isinstance(source, str) and "model" in source:
-        status: int = antimony.loadAntimonyString(source)
+        status = antimony.loadAntimonyString(source)
     else:
         if not isinstance(source, Path):
             logger.error(
@@ -38,7 +39,7 @@ def antimony_to_sbml(
             )
             source = Path(source)
 
-        status: int = antimony.loadAntimonyFile(str(source))
+        status = antimony.loadAntimonyFile(str(source))
 
     # log errors
     if status != -1:
@@ -46,7 +47,7 @@ def antimony_to_sbml(
         logger.error(antimony.getLastError())
         # antimony.getSBMLWarnings()
 
-    sbml_str = antimony.getSBMLString()
+    sbml_str: str = antimony.getSBMLString()
 
     return sbml_str
 
@@ -164,8 +165,8 @@ def sbml_to_model(
     for c in model.getListOfCompartments():
         m.compartments.append(
             Compartment(
-                value=c.getSize() if c.isSetSize() else None,
-                constant=c.getConstant() if c.isSetConstant() else None,
+                value=c.getSize() if c.isSetSize() else NaN,
+                constant=c.getConstant() if c.isSetConstant() else True,
                 spatialDimensions=c.getSpatialDimensions()
                 if c.isSetSpatialDimensions()
                 else None,
@@ -179,7 +180,7 @@ def sbml_to_model(
         m.species.append(
             Species(
                 compartment=s.getCompartment() if s.isSetCompartment() else None,
-                initialAmount=s.getInitialAmount() if s.isSetInitialAmount() else None,
+                initialAmount=s.getInitialAmount() if s.isSetInitialAmount() else NaN,
                 initialConcentration=s.getInitialConcentration()
                 if s.isSetInitialConcentration()
                 else None,
@@ -197,6 +198,9 @@ def sbml_to_model(
 
     # reactions
     r: libsbml.Reaction
+    ast: Optional[libsbml.ASTNode]
+    formula: Optional[str]
+
     for r in model.getListOfReactions():
 
         # FIXME: better equation support.
@@ -235,13 +239,10 @@ def sbml_to_model(
                 equation.modifiers.append(modifier.getSpecies())
 
         # formula
-        ast = None
         if r.isSetKineticLaw():
             klaw: libsbml.KineticLaw = r.getKineticLaw()
-            ast: Optional[libsbml.ASTNode] = (
-                klaw.getMath() if klaw.isSetMath() else None
-            )
-        formula: Optional[str] = libsbml.formulaToL3String(ast) if ast else None
+            ast = klaw.getMath() if klaw.isSetMath() else None
+        formula = libsbml.formulaToL3String(ast) if ast else None
 
         m.reactions.append(
             Reaction(equation=equation, formula=formula, **parse_sbase_kwargs(r))
@@ -250,42 +251,44 @@ def sbml_to_model(
     # initial assignment
     ia: libsbml.InitialAssignment
     for ia in model.getListOfInitialAssignments():
-        ast: Optional[libsbml.ASTNode] = ia.getMath() if ia.isSetMath() else None
-        formula: Optional[str] = libsbml.formulaToL3String(ast) if ast else None
-        m.assignments.append(
-            InitialAssignment(
-                symbol=ia.getSymbol() if ia.isSetSymbol() else None,
-                value=formula,
-                **parse_sbase_kwargs(ia),
+        ast = ia.getMath() if ia.isSetMath() else None
+        formula = libsbml.formulaToL3String(ast) if ast else None
+        if formula:
+            m.assignments.append(
+                InitialAssignment(
+                    symbol=ia.getSymbol() if ia.isSetSymbol() else None,
+                    value=formula,
+                    **parse_sbase_kwargs(ia),
+                )
             )
-        )
 
     # rules
     rule: libsbml.Rule
     for rule in model.getListOfRules():
-        ast: Optional[libsbml.ASTNode] = rule.getMath() if rule.isSetMath() else None
-        formula: Optional[str] = libsbml.formulaToL3String(ast) if ast else None
+        ast = rule.getMath() if rule.isSetMath() else None
+        formula = libsbml.formulaToL3String(ast) if ast else None
         typecode: int = rule.getTypeCode()
-        if typecode == libsbml.SBML_ASSIGNMENT_RULE:
-            m.rules.append(
-                AssignmentRule(
-                    variable=rule.getVariable() if rule.isSetVariable() else None,
-                    value=formula,
-                    **parse_sbase_kwargs(rule),
+        if formula:
+            if typecode == libsbml.SBML_ASSIGNMENT_RULE:
+                m.rules.append(
+                    AssignmentRule(
+                        variable=rule.getVariable() if rule.isSetVariable() else None,
+                        value=formula,
+                        **parse_sbase_kwargs(rule),
+                    )
                 )
-            )
-        elif typecode == libsbml.SBML_RATE_RULE:
-            m.rate_rules.append(
-                RateRule(
-                    variable=rule.getVariable() if rule.isSetVariable() else None,
-                    value=formula,
-                    **parse_sbase_kwargs(rule),
+            elif typecode == libsbml.SBML_RATE_RULE:
+                m.rate_rules.append(
+                    RateRule(
+                        variable=rule.getVariable() if rule.isSetVariable() else None,
+                        value=formula,
+                        **parse_sbase_kwargs(rule),
+                    )
                 )
-            )
-        elif typecode == libsbml.SBML_ALGEBRAIC_RULE:
-            m.algebraic_rules.append(
-                AlgebraicRule(value=formula, **parse_sbase_kwargs(rule))
-            )
+            elif typecode == libsbml.SBML_ALGEBRAIC_RULE:
+                m.algebraic_rules.append(
+                    AlgebraicRule(value=formula, **parse_sbase_kwargs(rule))
+                )
 
     # events
     # constraints
