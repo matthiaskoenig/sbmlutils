@@ -1,10 +1,8 @@
 """Load and modify an existing antimony model."""
-import antimony
 
 from sbmlutils.cytoscape import visualize_antimony, visualize_sbml
 from sbmlutils.factory import *
 from sbmlutils.metadata import *
-from sbmlutils.metadata.annotator import annotate_sbml
 from sbmlutils.parser import antimony_to_model
 from sbmlutils.resources import EXAMPLES_DIR
 
@@ -79,16 +77,3 @@ if __name__ == "__main__":
         validation_options=ValidationOptions(units_consistency=False),
     )
     visualize_sbml(sbml_path=result.sbml_path)
-
-    # base_path = EXAMPLES_DIR
-    #
-    # doc = annotate_sbml(
-    #     source=base_path / "minimal_model.xml",
-    #     annotations_path=base_path / "minimal_model_annotations.xlsx",
-    #     filepath=base_path / "minimal_model_annotations.xml",
-    # )
-    #
-    # visualize_sbml(
-    #     sbml_path=base_path / "minimal_model_annotations.xml", delete_session=True
-    # )
-    pass

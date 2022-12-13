@@ -16,8 +16,7 @@ import pandas as pd
 import roadrunner
 from matplotlib import pylab as plt
 
-from sbmlutils.examples.tiny import factory as tiny_factory
-from sbmlutils.examples.tiny.tiny import tiny_model
+from sbmlutils.examples.tiny import tiny
 from sbmlutils.fbc.cobra import read_cobra_model
 
 
@@ -26,17 +25,14 @@ def tiny_simulation() -> None:
 
     Creates model and runs simulation.
     """
-    # -----------------------------------------------------------------------------
-    # create model
-    # -----------------------------------------------------------------------------
-    factory_result = tiny_factory.create()
+    sbml_path: Path = Path(__file__).parent / "results" / f"{tiny.model.sid}.xml"
 
     # -----------------------------------------------------------------------------
     # run ode simulation
     # -----------------------------------------------------------------------------
 
     tiny_dir = Path(__file__).parent
-    r = roadrunner.RoadRunner(str(factory_result.sbml_path))
+    r = roadrunner.RoadRunner(str(sbml_path))
     r.timeCourseSelections = (
         ["time"]
         + r.model.getBoundarySpeciesIds()
@@ -70,14 +66,14 @@ def tiny_simulation() -> None:
 
     plt.show()
     f.savefig(
-        tiny_dir / "results" / f"{tiny_model.sid}_roadrunner.png",
+        tiny_dir / "results" / f"{tiny.model.sid}_roadrunner.png",
         bbox_inches="tight",
     )
 
     # -----------------------------------------------------------------------------
     # fba simulation
     # -----------------------------------------------------------------------------
-    model = read_cobra_model(factory_result.sbml_path)
+    model = read_cobra_model(sbml_path)
     print(model)
 
     # Iterate through the the objects in the model

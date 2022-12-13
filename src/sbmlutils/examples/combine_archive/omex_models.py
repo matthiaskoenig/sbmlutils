@@ -3,7 +3,7 @@
 This demonstrates just the very core SBML functionality.
 """
 from pathlib import Path
-from typing import Optional, final
+from typing import Optional
 
 from pymetadata.omex import EntryFormat, ManifestEntry, Omex
 
@@ -51,7 +51,7 @@ _m = Model(
 )
 
 # create grid of compartments with main species
-n_cells: final = 5
+n_cells: int = 5
 for k in range(n_cells):
     _m.compartments.append(
         Compartment(sid=f"cell{k}", value=1.0),

@@ -174,7 +174,8 @@ def ast_node_from_formula(model: libsbml.Model, formula: str) -> libsbml.ASTNode
 
 
 UnitType = Optional["UnitDefinition"]
-AnnotationsType = Optional[List[Union[Annotation, Tuple[Union[BQB, BQM], str]]]]
+AnnotationsType = List[Union[Annotation, Tuple[Union[BQB, BQM], str]]]
+OptionalAnnotationsType = Optional[List[Union[Annotation, Tuple[Union[BQB, BQM], str]]]]
 
 
 def set_notes(
@@ -355,7 +356,7 @@ class Sbase:
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
-        annotations: AnnotationsType = None,
+        annotations: OptionalAnnotationsType = None,
         notes: Optional[str] = None,
         keyValuePairs: Optional[List[KeyValuePair]] = None,
         port: Any = None,
@@ -589,7 +590,7 @@ class KeyValuePair(Sbase):
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
         notes: Optional[str] = None,
-        annotations: AnnotationsType = None,
+        annotations: OptionalAnnotationsType = None,
         keyValuePairs: Optional[List[KeyValuePair]] = None,
         port: Any = None,
         uncertainties: Optional[List[Uncertainty]] = None,
@@ -641,7 +642,7 @@ class Value(Sbase):
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
-        annotations: AnnotationsType = None,
+        annotations: OptionalAnnotationsType = None,
         notes: Optional[str] = None,
         keyValuePairs: Optional[List[KeyValuePair]] = None,
         port: Any = None,
@@ -728,7 +729,7 @@ class UnitDefinition(Sbase):
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
-        annotations: AnnotationsType = None,
+        annotations: OptionalAnnotationsType = None,
         notes: Optional[str] = None,
         keyValuePairs: Optional[List[KeyValuePair]] = None,
         port: Any = None,
@@ -934,7 +935,7 @@ class ValueWithUnit(Value):
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
-        annotations: AnnotationsType = None,
+        annotations: OptionalAnnotationsType = None,
         notes: Optional[str] = None,
         keyValuePairs: Optional[List[KeyValuePair]] = None,
         port: Any = None,
@@ -991,7 +992,7 @@ class Function(Sbase):
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
-        annotations: AnnotationsType = None,
+        annotations: OptionalAnnotationsType = None,
         notes: Optional[str] = None,
         keyValuePairs: Optional[List[KeyValuePair]] = None,
         port: Any = None,
@@ -1041,7 +1042,7 @@ class Parameter(ValueWithUnit):
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
-        annotations: AnnotationsType = None,
+        annotations: OptionalAnnotationsType = None,
         notes: Optional[str] = None,
         keyValuePairs: Optional[List[KeyValuePair]] = None,
         port: Any = None,
@@ -1111,7 +1112,7 @@ class Compartment(ValueWithUnit):
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
-        annotations: AnnotationsType = None,
+        annotations: OptionalAnnotationsType = None,
         notes: Optional[str] = None,
         keyValuePairs: Optional[List[KeyValuePair]] = None,
         port: Any = None,
@@ -1188,7 +1189,7 @@ class Species(Sbase):
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
-        annotations: AnnotationsType = None,
+        annotations: OptionalAnnotationsType = None,
         notes: Optional[str] = None,
         keyValuePairs: Optional[List[KeyValuePair]] = None,
         port: Any = None,
@@ -1295,7 +1296,7 @@ class InitialAssignment(Value):
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
-        annotations: AnnotationsType = None,
+        annotations: OptionalAnnotationsType = None,
         notes: Optional[str] = None,
         keyValuePairs: Optional[List[KeyValuePair]] = None,
         port: Any = None,
@@ -1421,7 +1422,7 @@ class AssignmentRule(ValueWithUnit, RuleWithVariable):
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
-        annotations: AnnotationsType = None,
+        annotations: OptionalAnnotationsType = None,
         notes: Optional[str] = None,
         keyValuePairs: Optional[List[KeyValuePair]] = None,
         port: Any = None,
@@ -1473,7 +1474,7 @@ class RateRule(ValueWithUnit, RuleWithVariable):
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
-        annotations: AnnotationsType = None,
+        annotations: OptionalAnnotationsType = None,
         notes: Optional[str] = None,
         keyValuePairs: Optional[List[KeyValuePair]] = None,
         port: Any = None,
@@ -1524,7 +1525,7 @@ class AlgebraicRule(ValueWithUnit, RuleWithVariable):
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
-        annotations: AnnotationsType = None,
+        annotations: OptionalAnnotationsType = None,
         notes: Optional[str] = None,
         keyValuePairs: Optional[List[KeyValuePair]] = None,
         port: Any = None,
@@ -1596,7 +1597,7 @@ class Reaction(Sbase):
         equation: Union[ReactionEquation, str],
         formula: Optional[Union[Formula, Tuple[str, UnitType], str]] = None,
         pars: Optional[List[Parameter]] = None,
-        rules: Optional[List[RuleWithVariable]] = None,
+        rules: Optional[List[AssignmentRule]] = None,
         compartment: Optional[str] = None,
         fast: bool = False,
         reversible: Optional[bool] = None,
@@ -1606,7 +1607,7 @@ class Reaction(Sbase):
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
-        annotations: AnnotationsType = None,
+        annotations: OptionalAnnotationsType = None,
         notes: Optional[str] = None,
         keyValuePairs: Optional[List[KeyValuePair]] = None,
         port: Any = None,
@@ -1792,7 +1793,7 @@ class Event(Sbase):
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
-        annotations: AnnotationsType = None,
+        annotations: OptionalAnnotationsType = None,
         notes: Optional[str] = None,
         keyValuePairs: Optional[List[KeyValuePair]] = None,
         port: Any = None,
@@ -1893,7 +1894,7 @@ class Constraint(Sbase):
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
-        annotations: AnnotationsType = None,
+        annotations: OptionalAnnotationsType = None,
         notes: Optional[str] = None,
         keyValuePairs: Optional[List[KeyValuePair]] = None,
         port: Any = None,
@@ -2015,7 +2016,7 @@ class Uncertainty(Sbase):
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
-        annotations: AnnotationsType = None,
+        annotations: OptionalAnnotationsType = None,
         notes: Optional[str] = None,
         keyValuePairs: Optional[List[KeyValuePair]] = None,
         port: Any = None,
@@ -2174,7 +2175,7 @@ class ExchangeReaction(Reaction):
         geneProductAssociation: Optional[str] = None,
         name: Optional[str] = None,
         metaId: Optional[str] = None,
-        annotations: AnnotationsType = None,
+        annotations: OptionalAnnotationsType = None,
         notes: Optional[str] = None,
         keyValuePairs: Optional[List[KeyValuePair]] = None,
         port: Any = None,
@@ -2221,7 +2222,7 @@ class GeneProduct(Sbase):
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
-        annotations: AnnotationsType = None,
+        annotations: OptionalAnnotationsType = None,
         notes: Optional[str] = None,
         keyValuePairs: Optional[List[KeyValuePair]] = None,
         port: Any = None,
@@ -2269,7 +2270,7 @@ class UserDefinedConstraintComponent(Sbase):
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
-        annotations: AnnotationsType = None,
+        annotations: OptionalAnnotationsType = None,
         notes: Optional[str] = None,
         keyValuePairs: Optional[List[KeyValuePair]] = None,
         port: Any = None,
@@ -2339,7 +2340,7 @@ class UserDefinedConstraint(Sbase):
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
-        annotations: AnnotationsType = None,
+        annotations: OptionalAnnotationsType = None,
         notes: Optional[str] = None,
         keyValuePairs: Optional[List[KeyValuePair]] = None,
         port: Any = None,
@@ -2415,7 +2416,7 @@ class FluxObjective(Sbase):
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
-        annotations: AnnotationsType = None,
+        annotations: OptionalAnnotationsType = None,
         notes: Optional[str] = None,
         keyValuePairs: Optional[List[KeyValuePair]] = None,
         port: Any = None,
@@ -2490,7 +2491,7 @@ class Objective(Sbase):
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
-        annotations: AnnotationsType = None,
+        annotations: OptionalAnnotationsType = None,
         notes: Optional[str] = None,
         keyValuePairs: Optional[List[KeyValuePair]] = None,
         port: Any = None,
@@ -2577,7 +2578,7 @@ class ModelDefinition(Sbase):
         name: str = None,
         sboTerm: str = None,
         metaId: str = None,
-        annotations: AnnotationsType = None,
+        annotations: OptionalAnnotationsType = None,
         notes: Optional[str] = None,
         keyValuePairs: Optional[List[KeyValuePair]] = None,
         units: Optional[Type[Units]] = None,
@@ -2654,7 +2655,7 @@ class ExternalModelDefinition(Sbase):
         name: str = None,
         sboTerm: str = None,
         metaId: str = None,
-        annotations: AnnotationsType = None,
+        annotations: OptionalAnnotationsType = None,
         notes: Optional[str] = None,
         keyValuePairs: Optional[List[KeyValuePair]] = None,
     ):
@@ -2703,7 +2704,7 @@ class Submodel(Sbase):
         name: str = None,
         sboTerm: str = None,
         metaId: str = None,
-        annotations: AnnotationsType = None,
+        annotations: OptionalAnnotationsType = None,
         notes: Optional[str] = None,
         keyValuePairs: Optional[List[KeyValuePair]] = None,
     ):
@@ -2752,7 +2753,7 @@ class SbaseRef(Sbase):
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
-        annotations: AnnotationsType = None,
+        annotations: OptionalAnnotationsType = None,
         notes: Optional[str] = None,
         keyValuePairs: Optional[List[KeyValuePair]] = None,
     ):
@@ -2803,7 +2804,7 @@ class ReplacedElement(SbaseRef):
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
-        annotations: AnnotationsType = None,
+        annotations: OptionalAnnotationsType = None,
         notes: Optional[str] = None,
         keyValuePairs: Optional[List[KeyValuePair]] = None,
     ):
@@ -2869,7 +2870,7 @@ class ReplacedBy(SbaseRef):
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
-        annotations: AnnotationsType = None,
+        annotations: OptionalAnnotationsType = None,
         notes: Optional[str] = None,
         keyValuePairs: Optional[List[KeyValuePair]] = None,
     ):
@@ -2920,7 +2921,7 @@ class Deletion(SbaseRef):
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
-        annotations: AnnotationsType = None,
+        annotations: OptionalAnnotationsType = None,
         notes: Optional[str] = None,
         keyValuePairs: Optional[List[KeyValuePair]] = None,
     ):
@@ -2982,7 +2983,7 @@ class Port(SbaseRef):
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
-        annotations: AnnotationsType = None,
+        annotations: OptionalAnnotationsType = None,
         notes: Optional[str] = None,
         keyValuePairs: Optional[List[KeyValuePair]] = None,
     ):
@@ -3052,7 +3053,7 @@ class ModelDict(TypedDict, total=False):
     name: Optional[str]
     sboTerm: Optional[str]
     metaId: Optional[str]
-    annotations: AnnotationsType
+    annotations: OptionalAnnotationsType
     notes: Optional[str]
     keyValuePairs: Optional[List[KeyValuePair]]
     packages: Optional[List[Package]]
@@ -3066,7 +3067,7 @@ class ModelDict(TypedDict, total=False):
     species: Optional[List[Species]]
     parameters: Optional[List[Parameter]]
     assignments: Optional[List[InitialAssignment]]
-    rules: Optional[List[RuleWithVariable]]
+    rules: Optional[List[AssignmentRule]]
     rate_rules: Optional[List[RateRule]]
     algebraic_rules: Optional[List[AlgebraicRule]]
     reactions: Optional[List[Reaction]]
@@ -3094,36 +3095,36 @@ class Model(Sbase, FrozenClass, BaseModel):
     name: Optional[str]
     sboTerm: Optional[str]
     metaId: Optional[str]
-    annotations: AnnotationsType
+    annotations: OptionalAnnotationsType
     notes: Optional[str]
     keyValuePairs: Optional[List[KeyValuePair]]
     port: Optional[Any]
-    packages: Optional[List[Package]]
-    creators: Optional[List[Creator]]
+    packages: List[Package]
+    creators: List[Creator]
     model_units: Optional[ModelUnits]
     units: Optional[Type[Units]]
-    functions: Optional[List[Function]]
-    compartments: Optional[List[Compartment]]
-    species: Optional[List[Species]]
-    parameters: Optional[List[Parameter]]
-    assignments: Optional[List[InitialAssignment]]
-    rules: Optional[List[RuleWithVariable]]
-    rate_rules: Optional[List[RateRule]]
-    algebraic_rules: Optional[List[AlgebraicRule]]
-    reactions: Optional[List[Reaction]]
-    events: Optional[List[Event]]
-    constraints: Optional[List[Constraint]]
+    functions: List[Function]
+    compartments: List[Compartment]
+    species: List[Species]
+    parameters: List[Parameter]
+    assignments: List[InitialAssignment]
+    rules: List[AssignmentRule]
+    rate_rules: List[RateRule]
+    algebraic_rules: List[AlgebraicRule]
+    reactions: List[Reaction]
+    events: List[Event]
+    constraints: List[Constraint]
     # comp
-    external_model_definitions: Optional[List[ExternalModelDefinition]]
-    model_definitions: Optional[List[ModelDefinition]]
-    submodels: Optional[List[Submodel]]
-    ports: Optional[List[Port]]
-    replaced_elements: Optional[List[ReplacedElement]]
-    deletions: Optional[List[Deletion]]
+    external_model_definitions: List[ExternalModelDefinition]
+    model_definitions: List[ModelDefinition]
+    submodels: List[Submodel]
+    ports: List[Port]
+    replaced_elements: List[ReplacedElement]
+    deletions: List[Deletion]
     # fbc
-    user_defined_constraints: Optional[List[UserDefinedConstraint]]
-    objectives: Optional[List[Objective]]
-    gene_products: Optional[List[GeneProduct]]
+    user_defined_constraints: List[UserDefinedConstraint]
+    objectives: List[Objective]
+    gene_products: List[GeneProduct]
     # layout
     layouts: Optional[List]
 
@@ -3189,7 +3190,7 @@ class Model(Sbase, FrozenClass, BaseModel):
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
-        annotations: AnnotationsType = None,
+        annotations: OptionalAnnotationsType = None,
         notes: Optional[str] = None,
         keyValuePairs: Optional[List[KeyValuePair]] = None,
         packages: Optional[List[Package]] = None,
@@ -3205,7 +3206,7 @@ class Model(Sbase, FrozenClass, BaseModel):
         species: Optional[List[Species]] = None,
         parameters: Optional[List[Parameter]] = None,
         assignments: Optional[List[InitialAssignment]] = None,
-        rules: Optional[List[RuleWithVariable]] = None,
+        rules: Optional[List[AssignmentRule]] = None,
         rate_rules: Optional[List[RateRule]] = None,
         algebraic_rules: Optional[List[AlgebraicRule]] = None,
         reactions: Optional[List[Reaction]] = None,
@@ -3241,28 +3242,28 @@ class Model(Sbase, FrozenClass, BaseModel):
         )
         self.model_definitions = model_definitions if model_definitions else []
 
-        self.submodels = submodels if submodels else []
-        self.functions = functions if functions else []
-        self.compartments = compartments if compartments else []
-        self.species = species if species else []
-        self.parameters = parameters if parameters else []
-        self.assignments = assignments if assignments else []
-        self.rules = rules if rules else []
-        self.rate_rules = rate_rules if rate_rules else []
-        self.algebraic_rules = algebraic_rules if algebraic_rules else []
-        self.reactions = reactions if reactions else []
-        self.events = events if events else []
-        self.constraints = constraints if constraints else []
-        self.ports = ports if ports else []
-        self.replaced_elements = replaced_elements if replaced_elements else []
-        self.deletions = deletions if deletions else []
-        self.user_defined_constraints = (
+        self.submodels: List[Submodel] = submodels if submodels else []
+        self.functions: List[Function] = functions if functions else []
+        self.compartments: List[Compartment] = compartments if compartments else []
+        self.species: List[Species] = species if species else []
+        self.parameters: List[Parameter] = parameters if parameters else []
+        self.assignments: List[InitialAssignment] = assignments if assignments else []
+        self.rules: List[AssignmentRule] = rules if rules else []
+        self.rate_rules: List[RateRule] = rate_rules if rate_rules else []
+        self.algebraic_rules: List[AlgebraicRule] = algebraic_rules if algebraic_rules else []
+        self.reactions: List[Reaction] = reactions if reactions else []
+        self.events: List[Event] = events if events else []
+        self.constraints: List[Constraint] = constraints if constraints else []
+        self.ports: List[Port] = ports if ports else []
+        self.replaced_elements: List[ReplacedElement] = replaced_elements if replaced_elements else []
+        self.deletions: List[Deletion] = deletions if deletions else []
+        self.user_defined_constraints: List[UserDefinedConstraint] = (
             user_defined_constraints if user_defined_constraints else []
         )
-        self.objectives = objectives if objectives else []
-        self.gene_products = gene_products if gene_products else []
+        self.objectives: List[Objective] = objectives if objectives else []
+        self.gene_products: List[GeneProduct] = gene_products if gene_products else []
 
-        self.layouts = layouts
+        self.layouts: Optional[List] = layouts
 
         if objects:
             for sbase in objects:
@@ -3475,7 +3476,7 @@ class Document(Sbase):
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
-        annotations: AnnotationsType = None,
+        annotations: OptionalAnnotationsType = None,
         notes: Optional[str] = None,
         keyValuePairs: Optional[List[KeyValuePair]] = None,
         sbml_level: int = SBML_LEVEL,
@@ -3487,7 +3488,7 @@ class Document(Sbase):
         self.name = name
         self.sboTerm = sboTerm
         self.metaId = metaId
-        self.annotations: AnnotationsType = annotations
+        self.annotations: AnnotationsType = annotations if annotations else []
         self.notes = notes
         self.keyValuePairs = keyValuePairs
         self.sbml_level = sbml_level

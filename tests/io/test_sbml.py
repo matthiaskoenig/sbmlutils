@@ -25,20 +25,24 @@ def test_read_sbml_from_str() -> None:
     """Read SBML str."""
     doc1 = read_sbml(str(BASIC_SBML))
     sbml_str = write_sbml(doc1)
+    assert sbml_str
 
-    doc = read_sbml(sbml_str)
-    assert doc
-    assert doc.getModel()
+    if sbml_str:
+        doc = read_sbml(sbml_str)
+        assert doc
+        assert doc.getModel()
 
 
 def test_read_sbml_from_gz() -> None:
     """Read SBML str."""
     doc1 = read_sbml(GZ_SBML)
     sbml_str = write_sbml(doc1)
+    assert sbml_str
 
-    doc = read_sbml(sbml_str)
-    assert doc
-    assert doc.getModel()
+    if sbml_str:
+        doc = read_sbml(sbml_str)
+        assert doc
+        assert doc.getModel()
 
 
 def test_read_sbml_from_gzstr() -> None:
@@ -46,9 +50,11 @@ def test_read_sbml_from_gzstr() -> None:
     doc1 = read_sbml(str(GZ_SBML))
     sbml_str = write_sbml(doc1)
 
-    doc = read_sbml(sbml_str)
-    assert doc
-    assert doc.getModel()
+    assert sbml_str
+    if sbml_str:
+        doc = read_sbml(sbml_str)
+        assert doc
+        assert doc.getModel()
 
 
 def test_read_sbml_validate() -> None:

@@ -346,13 +346,13 @@ for sid, sdict in SUBSTANCES_BODY.items():
             Species(
                 sid_ex,
                 metaId=f"meta_{sid_ex}",
-                initialConcentration=sdict["cinit"],
+                initialConcentration=sdict["cinit"],  # type: ignore
                 compartment=cid_ex,
-                substanceUnit=sdict["unit"],
+                substanceUnit=sdict["unit"],  # type: ignore
                 name=f"{sdict['name']} ({cname})",
                 hasOnlySubstanceUnits=False,
                 port=True,
-                annotations=sdict["annotations"],
+                annotations=sdict["annotations"],  # type: ignore
                 sboTerm=SBO.SIMPLE_CHEMICAL,
             )
         )
@@ -369,13 +369,13 @@ for sid, sdict in SUBSTANCES_BODY.items():
                         Species(
                             sid_ex,
                             metaId=f"meta_{sid_ex}",
-                            initialConcentration=sdict["cinit"],
+                            initialConcentration=sdict["cinit"],  # type: ignore
                             compartment=cid_ex,
-                            substanceUnit=sdict["unit"],
+                            substanceUnit=sdict["unit"],  # type: ignore
                             name=f"{sdict['name']} ({cname})",
                             hasOnlySubstanceUnits=False,
                             port=True,
-                            annotations=sdict["annotations"],
+                            annotations=sdict["annotations"],  # type: ignore
                             sboTerm=SBO.SIMPLE_CHEMICAL,
                         )
                     ]
@@ -388,10 +388,10 @@ for sid, sdict in SUBSTANCES_BODY.items():
                 metaId=f"meta_Afeces_{sid}",
                 initialConcentration=0,
                 compartment="Vfeces",
-                substanceUnit=sdict["unit"],
+                substanceUnit=sdict["unit"],  # type: ignore
                 name=f"{sdict['name']} (feces)",
                 hasOnlySubstanceUnits=True,
-                annotations=sdict["annotations"],
+                annotations=sdict["annotations"],  # type: ignore
                 sboTerm=SBO.SIMPLE_CHEMICAL,
             )
         )
@@ -813,14 +813,14 @@ for sid, sdict in SUBSTANCES_BODY.items():
             # molecular weights
             Parameter(
                 f"Mr_{sid}",
-                sdict["Mr"],
+                sdict["Mr"],  # type: ignore
                 U.g_per_mole,
                 constant=True,
                 name=f"Molecular weight {sid} [g/mole]",
                 sboTerm=SBO.MOLECULAR_MASS,
                 annotations=[
                     (BQB.IS_VERSION_OF, "opb/OPB_01146"),  # Molecular weight
-                    (BQB.HAS_PART, sdict["annotations"][0][1]),  # icg
+                    (BQB.HAS_PART, sdict["annotations"][0][1]),  # type: ignore
                 ],
             ),
         ]
@@ -832,7 +832,7 @@ for sid, sdict in SUBSTANCES_BODY.items():
                 # tissue distribution
                 Parameter(
                     f"ftissue_{sid}",
-                    sdict["ftissue"],
+                    sdict["ftissue"],  # type: ignore
                     U.l_per_min,
                     constant=True,
                     name=f"tissue distribution {sid}",
@@ -847,7 +847,7 @@ for sid, sdict in SUBSTANCES_BODY.items():
                 # dosing
                 Parameter(
                     f"IVDOSE_{sid}",
-                    sdict["IVDOSE"],
+                    sdict["IVDOSE"],  # type: ignore
                     U.mg,
                     constant=False,
                     name=f"IV bolus dose {sid} [mg]",

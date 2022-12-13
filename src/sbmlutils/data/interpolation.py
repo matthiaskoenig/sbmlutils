@@ -308,7 +308,7 @@ class Interpolation:
         self._create_sbml()
         write_sbml(doc=self.doc, filepath=sbml_out)
 
-    def write_sbml_to_string(self) -> str:
+    def write_sbml_to_string(self) -> Optional[str]:
         """Write the SBML file.
 
         :return: SBML str

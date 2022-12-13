@@ -276,7 +276,7 @@ def xpp2sbml(
                 fac.Parameter(sid=sid, value=0.0, name=sid, constant=False)
             )
             initial_assignments.append(
-                fac.InitialAssignment(sid=sid, value=value, name=f"{sid} = {value}")
+                fac.InitialAssignment(symbol=sid, value=value, name=f"{sid} = {value}")
             )
 
     ###########################################################################

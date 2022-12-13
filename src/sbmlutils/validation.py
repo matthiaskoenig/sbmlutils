@@ -179,7 +179,7 @@ def log_sbml_errors_for_doc(doc: libsbml.SBMLDocument) -> None:
         log_sbml_error(error=doc.getError(k))
 
 
-def log_sbml_error(error: libsbml.SBMLError, index: int = None) -> None:
+def log_sbml_error(error: libsbml.SBMLError, index: Optional[int] = None) -> None:
     """Log SBMLError."""
     msg, severity = error_string(error=error, index=index)
     if severity == libsbml.LIBSBML_SEV_WARNING:
@@ -191,13 +191,8 @@ def log_sbml_error(error: libsbml.SBMLError, index: int = None) -> None:
 
 
 def error_string(error: libsbml.SBMLError, index: Optional[int] = None) -> tuple:
-    """Get string representation and severity of SBMLError.
-
-    :param error: SBML error
-    :param index: optional index of error
-    :return:
-    """
-    package = error.getPackage()
+    """Get string representation and severity of SBMLError."""
+    package: str = error.getPackage()
     if package == "":
         package = "core"
 
@@ -263,12 +258,13 @@ def validate_doc(
     current = time.perf_counter()
 
     # check the document
+    results_internal: ValidationResult
     if options.internal_consistency:
-        results_internal: ValidationResult = _check_consistency(
+        results_internal = _check_consistency(
             doc, internal_consistency=True
         )
     else:
-        results_internal: ValidationResult = ValidationResult()
+        results_internal = ValidationResult()
     results_not_internal = _check_consistency(doc, internal_consistency=False)
 
     # sum up
@@ -312,7 +308,7 @@ def _check_consistency(
 ) -> ValidationResult:
     """Calculate the type of errors.
 
-    :param doc:
+    :param doc: SBMLDocument
     :param internal_consistency: flag for internal consistency
     :return: ValidationResult
     """

@@ -272,7 +272,7 @@ class ModelAnnotator:
 
     @staticmethod
     def _elements_from_ids(
-        model: libsbml.Model, sbml_ids: Iterable[str], sbml_type: str = None
+        model: libsbml.Model, sbml_ids: Iterable[str], sbml_type: Optional[str] = None
     ) -> List[libsbml.SBase]:
         """
         Get list of SBML elements from given ids.

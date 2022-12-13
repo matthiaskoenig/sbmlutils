@@ -1,8 +1,8 @@
 """ICG model factory."""
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Any
 
-from pymetadata.omex import *
+from pymetadata.omex import Omex, ManifestEntry, EntryFormat
 
 from sbmlutils.comp import flatten_sbml
 from sbmlutils.console import console
@@ -16,10 +16,10 @@ from sbmlutils.log import get_logger
 logger = get_logger(__name__)
 
 
-def create_models(results_path, create_tissues: bool = True) -> Dict[str, Path]:
+def create_models(results_path: Path, create_tissues: bool = True) -> Dict[str, Any]:
     """Create tissue and whole-body model."""
 
-    results = {}
+    results: Dict[str, Any] = {}
     if create_tissues:
         fac_res_liver = create_model(
             model=model_liver,

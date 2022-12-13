@@ -2,6 +2,7 @@
 import os
 import time
 from pathlib import Path
+from typing import Optional
 
 import libsbml
 
@@ -15,7 +16,7 @@ logger = get_logger(__name__)
 
 
 def flatten_sbml(
-    sbml_path: Path, sbml_flat_path: Path = None, leave_ports: bool = True
+    sbml_path: Path, sbml_flat_path: Path, leave_ports: bool = True
 ) -> libsbml.SBMLDocument:
     """Flatten given SBML file.
 
@@ -36,7 +37,7 @@ def flatten_sbml(
 
     doc = read_sbml(source=sbml_path)
     flat_doc = flatten_sbml_doc(
-        doc, leave_ports=leave_ports, output_path=sbml_flat_path
+        doc, leave_ports=leave_ports, sbml_flat_path=sbml_flat_path
     )
 
     # change back the working dir
@@ -46,7 +47,7 @@ def flatten_sbml(
 
 
 def flatten_sbml_doc(
-    doc: libsbml.SBMLDocument, output_path: Path = None, leave_ports: bool = True
+    doc: libsbml.SBMLDocument, sbml_flat_path: Optional[Path] = None, leave_ports: bool = True
 ) -> libsbml.SBMLDocument:
     """Flatten SBMLDocument.
 
@@ -55,7 +56,7 @@ def flatten_sbml_doc(
     If an output path is provided the file is written to the output path.
 
     :param doc: SBMLDocument to flatten.
-    :param output_path: Path to write flattended SBMLDocument to
+    :param sbml_flat_path: Path to write flattended SBMLDocument to
     :param leave_ports: flag to leave ports
 
     :return: SBMLDocument
@@ -101,9 +102,9 @@ def flatten_sbml_doc(
             "SBML could not be flattend due to errors in the SBMLDocument."
         )
 
-    if output_path is not None:
-        write_sbml(doc, filepath=output_path)
-        logger.info(f"Flattened model created: '{output_path}'")
+    if sbml_flat_path is not None:
+        write_sbml(doc, filepath=sbml_flat_path)
+        logger.info(f"Flattened model created: '{sbml_flat_path}'")
 
     return doc
 

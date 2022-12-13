@@ -80,9 +80,9 @@ def write_sbml(
     filepath: Optional[Path] = None,
     validate: bool = False,
     validation_options: Optional[ValidationOptions] = None,
-    program_name: str = None,
-    program_version: str = None,
-) -> str:
+    program_name: Optional[str] = None,
+    program_version: Optional[str] = None,
+) -> Optional[str]:
     """Write SBMLDocument to file or string.
 
     To write the SBML to string use 'filepath=None', which returns the SBML string.
@@ -105,10 +105,11 @@ def write_sbml(
         writer.setProgramVersion(program_version)
 
     # write file
-    sbml_str: Optional[str] = None
+    source: Union[str, Path]
+    sbml_str: Optional[str]
     if filepath is None:
         sbml_str = writer.writeSBMLToString(doc)
-        source = sbml_str
+        source = str(source)
     else:
         writer.writeSBMLToFile(doc, str(filepath))
         source = filepath
@@ -117,7 +118,7 @@ def write_sbml(
     if validate:
         validate_sbml(
             source=source,
-            title=source,
+            title=str(source),
             validation_options=validation_options,
         )
 
@@ -126,8 +127,8 @@ def write_sbml(
 
 def validate_sbml(
     source: Union[str, Path],
-    validation_options: ValidationOptions = ValidationOptions,
-    title: str = None,
+    validation_options: Optional[ValidationOptions] = None,
+    title: Optional[str] = None,
 ) -> ValidationResult:
     """Check given SBML source.
 

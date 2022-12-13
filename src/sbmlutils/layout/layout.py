@@ -170,7 +170,7 @@ class ReactionGlyph(factory.Sbase):
         x: float,
         y: float,
         z: float = 0,
-        species_glyphs: Dict[str, str] = None,
+        species_glyphs: Optional[Dict[str, str]] = None,
         w: float = 20,
         h: float = 20,
         d: float = 0,
