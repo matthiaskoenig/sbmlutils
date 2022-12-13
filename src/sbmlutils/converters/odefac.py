@@ -21,7 +21,7 @@ The following SBML core constructs are currently NOT supported:
 import re
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, Dict, List, Set, Tuple, Union
+from typing import Any, Dict, List, Set, Tuple, Union, Optional
 
 import jinja2
 import libsbml
@@ -276,7 +276,7 @@ class SBML2ODE:
         # pprint(g)
 
         def create_ordered_variables(
-            g: Dict[str, Set], yids: List[str] = None
+            g: Dict[str, Set], yids: Optional[List[str]] = None
         ) -> List[str]:
             if yids is None:
                 yids = []

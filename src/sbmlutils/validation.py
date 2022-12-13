@@ -120,8 +120,8 @@ class ValidationResult:
 
     def __init__(
         self,
-        errors: List[libsbml.SBMLError] = None,
-        warnings: List[libsbml.SBMLError] = None,
+        errors: Optional[List[libsbml.SBMLError]] = None,
+        warnings: Optional[List[libsbml.SBMLError]] = None,
     ):
         """Initialize ValidationResult."""
         if errors is None:
@@ -190,11 +190,11 @@ def log_sbml_error(error: libsbml.SBMLError, index: int = None) -> None:
         logger.info(msg, extra={"markup": True})
 
 
-def error_string(error: libsbml.SBMLError, index: int = None) -> tuple:
+def error_string(error: libsbml.SBMLError, index: Optional[int] = None) -> tuple:
     """Get string representation and severity of SBMLError.
 
     :param error: SBML error
-    :param index: index of error
+    :param index: optional index of error
     :return:
     """
     package = error.getPackage()
