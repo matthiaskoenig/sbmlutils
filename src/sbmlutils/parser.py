@@ -9,6 +9,7 @@ from typing import Any, Dict, List, Optional, Union
 
 import antimony
 import libsbml
+from pymetadata.omex import ManifestEntry, Omex
 
 from sbmlutils import RESOURCES_DIR
 from sbmlutils.console import console
@@ -180,7 +181,7 @@ def sbml_to_model(
         m.species.append(
             Species(
                 compartment=s.getCompartment() if s.isSetCompartment() else None,
-                initialAmount=s.getInitialAmount() if s.isSetInitialAmount() else NaN,
+                initialAmount=s.getInitialAmount() if s.isSetInitialAmount() else None,
                 initialConcentration=s.getInitialConcentration()
                 if s.isSetInitialConcentration()
                 else None,
@@ -305,44 +306,28 @@ def sbml_to_model(
 
 if __name__ == "__main__":
 
-    # from sbmlutils.resources import REPRESSILATOR_SBML
-    #
-    # model_path: Path = Path(__file__).parent / "repressilator.xml"
-    #
-    # m = sbml_to_model(REPRESSILATOR_SBML)
-    # console.print(m)
-    # create_model(
-    #     model=m,
-    #     filepath=model_path,
-    #     sbml_level=3,
-    #     sbml_version=2,
-    #     validation_options=ValidationOptions(units_consistency=False),
-    # )
-    # SBMLDocumentInfo.from_sbml(model_path)
-    # model = sbml_to_model(source=sbml_path, validate=True, validation_options=ValidationOptions(
-    #     units_consistency=False)
-    # )
+    from sbmlutils.resources import BIOMODELS_CURATED_PATH, REPRESSILATOR_SBML
 
-    sbml_path = Path(RESOURCES_DIR / "models//semantic/00927/00927-sbml-l1v2.xml")
-    validate_sbml(
-        source=sbml_path, validation_options=ValidationOptions(units_consistency=False)
-    )
+    omex_path: Path = BIOMODELS_CURATED_PATH / "BIOMD0000000003.omex"
 
-    doc = libsbml.readSBMLFromFile(str(sbml_path))
-    doc.setConsistencyChecks(libsbml.LIBSBML_CAT_GENERAL_CONSISTENCY, True)
-    doc.setConsistencyChecks(libsbml.LIBSBML_CAT_IDENTIFIER_CONSISTENCY, True)
-    doc.setConsistencyChecks(libsbml.LIBSBML_CAT_MATHML_CONSISTENCY, True)
-    doc.setConsistencyChecks(libsbml.LIBSBML_CAT_UNITS_CONSISTENCY, True)
-    doc.setConsistencyChecks(libsbml.LIBSBML_CAT_SBO_CONSISTENCY, True),
-    doc.setConsistencyChecks(libsbml.LIBSBML_CAT_OVERDETERMINED_MODEL, True)
-    doc.setConsistencyChecks(libsbml.LIBSBML_CAT_SBO_CONSISTENCY, True),
+    omex = Omex().from_omex(omex_path)
+    entry: ManifestEntry
+    for entry in omex.manifest.entries:
+        if entry.is_sbml():
+            sbml_path: Path = omex.get_path(entry.location)
 
-    count = doc.checkInternalConsistency()
-    # count = doc.checkConsistency()
-    if count > 0:
-        for i in range(count):
-            print(f"*** Error {i}")
-            error: libsbml.SBMLError = doc.getError(i)
-            print(error.getMessage())
-    else:
-        print("no errors")
+            m = sbml_to_model(REPRESSILATOR_SBML)
+            console.print(m)
+            create_model(
+                model=m,
+                filepath=sbml_path,
+                sbml_level=3,
+                sbml_version=2,
+                validation_options=ValidationOptions(units_consistency=False),
+            )
+            SBMLDocumentInfo.from_sbml(sbml_path)
+            model = sbml_to_model(
+                source=sbml_path,
+                validate=True,
+                validation_options=ValidationOptions(units_consistency=False),
+            )

@@ -1023,8 +1023,9 @@ class SBMLDocumentInfo:
         :return: half equation string
         """
         items = []
+        sr: libsbml.SpeciesReference
         for sr in speciesList:
-            stoichiometry = sr.getStoichiometry()
+            stoichiometry = sr.getStoichiometry() if sr.isSetStoichiometry() else 1.0
             species = sr.getSpecies()
             if abs(stoichiometry - 1.0) < 1e-8:
                 sd = f"{species}"
@@ -1035,7 +1036,10 @@ class SBMLDocumentInfo:
             elif stoichiometry < 0:
                 sd = f"-{stoichiometry} {species}"
             else:
-                raise ValueError(f"Half equation could not be generated: '{sr}'")
+                raise ValueError(
+                    f"Half equation could not be generated: '{sr}' with "
+                    f"stoichiometry: '{stoichiometry}'."
+                )
             items.append(sd)
         return " + ".join(items)
 

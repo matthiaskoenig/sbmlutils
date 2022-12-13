@@ -16,6 +16,7 @@ class U(Units):
 
 model = Model(
     "fbc_v2",
+    name="Example FBC v2",
     packages=[Package.FBC_V3],
     creators=templates.creators,
     notes="""
@@ -147,13 +148,13 @@ model.gene_products = [
         associatedSpecies="s_Rv0649",
         annotations=[(BQB.IS, "kegg.genes/mtu:Rv0649")],
     ),
-    GeneProduct("g_b3670", label="b3670"),
-    GeneProduct("g_b3671", label="b3671"),
-    GeneProduct("g_b0077", label="b0077"),
-    GeneProduct("g_b0078", label="b0078"),
-    GeneProduct("g_b3768", label="b3768"),
-    GeneProduct("g_b3769", label="b3769"),
-    GeneProduct("g_b3767", label="b3767"),
+    GeneProduct("g_b3670", label="b3670", name="b3670"),
+    GeneProduct("g_b3671", label="b3671", name="b3671"),
+    GeneProduct("g_b0077", label="b0077", name="b0077"),
+    GeneProduct("g_b0078", label="b0078", name="b0078"),
+    GeneProduct("g_b3768", label="b3768", name="b3768"),
+    GeneProduct("g_b3769", label="b3769", name="b3769"),
+    GeneProduct("g_b3767", label="b3767", name="b3767"),
 ]
 
 model.reactions = [
@@ -162,7 +163,7 @@ model.reactions = [
         name="v1 (39.43 Ac + 35 O2 -> X)",
         equation="39.43 Ac + 35 O2 => X []",
         # geneProductAssociation="((g_b3670 and g_b3671) or (g_b0077 and g_b0078) or (g_b3768 and g_b3769 and g_b3767))"
-        geneProductAssociation="b3767",
+        geneProductAssociation="g_b3767",
     ),
     Reaction(
         sid="v2",

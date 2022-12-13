@@ -106,10 +106,10 @@ def write_sbml(
 
     # write file
     source: Union[str, Path]
-    sbml_str: Optional[str]
+    sbml_str: Optional[str] = None
     if filepath is None:
         sbml_str = writer.writeSBMLToString(doc)
-        source = str(source)
+        source = str(sbml_str)
     else:
         writer.writeSBMLToFile(doc, str(filepath))
         source = filepath

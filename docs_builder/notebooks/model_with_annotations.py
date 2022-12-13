@@ -15,6 +15,7 @@ class U(Units):
     
 _m = Model(
     'annotation_example',
+    name="Annotation example model",
     notes="""
         <h1>Model with inline annotations</h1>
         <h2>Description</h2>
@@ -70,7 +71,7 @@ _m = Model(
         Parameter(sid='A_m', value=1.0, unit=U.m2, constant=True, name="membrane area"),
     ],
     assignments = [
-        InitialAssignment(sid='Vol_c', value='x_cell*x_cell*x_cell', unit=U.m3),
+        InitialAssignment(symbol='Vol_c', value='x_cell*x_cell*x_cell', unit=U.m3),
     ],
     reactions = [
         Reaction(
