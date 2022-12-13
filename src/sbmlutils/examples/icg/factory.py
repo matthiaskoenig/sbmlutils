@@ -1,8 +1,8 @@
 """ICG model factory."""
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
 
-from pymetadata.omex import Omex, ManifestEntry, EntryFormat
+from pymetadata.omex import EntryFormat, ManifestEntry, Omex
 
 from sbmlutils.comp import flatten_sbml
 from sbmlutils.console import console

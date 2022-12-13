@@ -121,7 +121,7 @@ PREFIX_EXCHANGE_REACTION = "EX_"
 
 
 def create_objects(
-    model: libsbml.Model, obj_iter: List[Any], key: str = None
+    model: libsbml.Model, obj_iter: List[Any], key: Optional[str] = None
 ) -> Dict[str, libsbml.SBase]:
     """Create the objects in the model.
 
@@ -310,7 +310,7 @@ def _create_history(
     Sets the create and modified date to the current time.
     The `set_timestamps` flag allows to set no timestamps.
     """
-    h: libsbml.ModelHistory() = libsbml.ModelHistory()
+    h: libsbml.ModelHistory = libsbml.ModelHistory()
 
     for creator in creators:
         c: libsbml.ModelCreator = libsbml.ModelCreator()
@@ -372,7 +372,7 @@ class Sbase:
         self.port = port
         self.uncertainties = uncertainties
         self.replacedBy = replacedBy
-        self.annotations: AnnotationsType = annotations
+        self.annotations: AnnotationsType = annotations if annotations else []
 
     fields = [
         "sid",
@@ -673,7 +673,7 @@ class UnitDefinition(Sbase):
     Corresponds to the information in the libsbml.UnitDefinition.
     """
 
-    definition: str = (None,)
+    # definition: str = (None,)
 
     _pint2sbml = {
         "dimensionless": libsbml.UNIT_KIND_DIMENSIONLESS,
@@ -725,7 +725,7 @@ class UnitDefinition(Sbase):
     def __init__(
         self,
         sid: str,
-        definition: str = None,
+        definition: Optional[str] = None,
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
@@ -1361,7 +1361,13 @@ class InitialAssignment(Value):
 class RuleWithVariable:
     """Rule."""
 
-    def check_model_for_rule(self, model) -> None:
+    variable: str
+    value: Union[str, float]
+    unit: UnitType
+    sid: Optional[str]
+    name: Optional[str]
+
+    def check_model_for_rule(self, model: libsbml.Model) -> None:
         """Check model for rule requirements.
 
         Creates a required parameter if the symbol for the
@@ -1519,9 +1525,9 @@ class AlgebraicRule(ValueWithUnit, RuleWithVariable):
 
     def __init__(
         self,
+        sid: str,
         value: Union[str, float],
         unit: UnitType = Units.dimensionless,
-        sid: Optional[str] = None,
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
         metaId: Optional[str] = None,
@@ -1672,8 +1678,11 @@ class Reaction(Sbase):
         # reaction
         r: libsbml.Reaction = model.createReaction()
         self._set_fields(r, model)
+        r_fbc: libsbml.FbcReactionPlugin = r.getPlugin("fbc")
 
-        def set_speciesref_fields(sref: libsbml.SpeciesReference, part: EquationPart):
+        def set_speciesref_fields(
+            sref: libsbml.SpeciesReference, part: EquationPart
+        ) -> None:
             """Set the fields on the SpeciesReference."""
             if part.species is not None:
                 sref.setSpecies(part.species)
@@ -1707,7 +1716,6 @@ class Reaction(Sbase):
 
         # add fbc bounds
         if self.upperFluxBound or self.lowerFluxBound:
-            r_fbc: libsbml.FbcReactionPlugin = r.getPlugin("fbc")
             if self.upperFluxBound:
                 r_fbc.setUpperFluxBound(self.upperFluxBound)
             if self.lowerFluxBound:
@@ -1716,7 +1724,6 @@ class Reaction(Sbase):
         # add gpa
         if self.geneProductAssociation:
             # parse the string and create the respective GPA
-            r_fbc: libsbml.FbcReactionPlugin = r.getPlugin("fbc")
             gpa: libsbml.GeneProductAssociation = r_fbc.createGeneProductAssociation()
 
             # check all genes are in model
@@ -2167,9 +2174,9 @@ class ExchangeReaction(Reaction):
     def __init__(
         self,
         species_id: str,
-        compartment: str = None,
+        compartment: Optional[str] = None,
         fast: bool = False,
-        reversible: bool = None,
+        reversible: bool = True,
         lowerFluxBound: Optional[str] = None,
         upperFluxBound: Optional[str] = None,
         geneProductAssociation: Optional[str] = None,
@@ -2292,7 +2299,11 @@ class UserDefinedConstraintComponent(Sbase):
         )
         self.variable = variable
         self.coefficient = coefficient
-        self.variableType = FluxObjective.normalize_variable_type(variableType)
+        self.variableType = (
+            FluxObjective.normalize_variable_type(variableType)
+            if variableType
+            else None
+        )
 
     def create_sbml(
         self, constraint: libsbml.UserDefinedConstraint
@@ -2365,22 +2376,23 @@ class UserDefinedConstraint(Sbase):
 
         # normalize components
         self.components: List[UserDefinedConstraintComponent] = []
-        if isinstance(components, dict):
-            # create FluxObjectives from dict
-            for variable, coefficient in components.items():
-                self.components.append(
-                    UserDefinedConstraintComponent(
-                        variable=variable,
-                        coefficient=coefficient,
-                        variableType=variableType,
+        if components:
+            if isinstance(components, dict):
+                # create FluxObjectives from dict
+                for variable, coefficient in components.items():
+                    self.components.append(
+                        UserDefinedConstraintComponent(
+                            variable=variable,
+                            coefficient=coefficient,
+                            variableType=variableType,
+                        )
                     )
-                )
-        else:
-            for component in components:
-                # infer variableType from objective
-                if not component.variableType:
-                    component.variableType = variableType
-                self.components.append(component)
+            else:
+                for component in components:
+                    # infer variableType from objective
+                    if not component.variableType:
+                        component.variableType = variableType
+                    self.components.append(component)
 
     def create_sbml(self, model: libsbml.Model) -> libsbml.UserDefinedConstraint:
         """Create UserDefinedConstraint."""
@@ -2411,7 +2423,7 @@ class FluxObjective(Sbase):
         self,
         reaction: str,
         coefficient: float,
-        variableType: Optional[str] = None,
+        variableType: str,
         sid: Optional[str] = None,
         name: Optional[str] = None,
         sboTerm: Optional[str] = None,
@@ -2520,22 +2532,23 @@ class Objective(Sbase):
 
         # normalize fluxObjectives
         self.fluxObjectives: List[FluxObjective] = []
-        if isinstance(fluxObjectives, dict):
-            # create FluxObjectives from dict
-            for rid, coefficient in fluxObjectives.items():
-                self.fluxObjectives.append(
-                    FluxObjective(
-                        reaction=rid,
-                        coefficient=coefficient,
-                        variableType=variableType,
+        if fluxObjectives:
+            if isinstance(fluxObjectives, dict):
+                # create FluxObjectives from dict
+                for rid, coefficient in fluxObjectives.items():
+                    self.fluxObjectives.append(
+                        FluxObjective(
+                            reaction=rid,
+                            coefficient=coefficient,
+                            variableType=variableType,
+                        )
                     )
-                )
-        else:
-            for flux_objective in fluxObjectives:
-                # infer variableType from objective
-                if not flux_objective.variableType:
-                    flux_objective.variableType = variableType
-                self.fluxObjectives.append(flux_objective)
+            else:
+                for flux_objective in fluxObjectives:
+                    # infer variableType from objective
+                    if not flux_objective.variableType:
+                        flux_objective.variableType = variableType
+                    self.fluxObjectives.append(flux_objective)
 
     @classmethod
     def normalize_objective_type(cls, objective_type: str) -> str:
@@ -2575,9 +2588,9 @@ class ModelDefinition(Sbase):
     def __init__(
         self,
         sid: str,
-        name: str = None,
-        sboTerm: str = None,
-        metaId: str = None,
+        name: Optional[str] = None,
+        sboTerm: Optional[str] = None,
+        metaId: Optional[str] = None,
         annotations: OptionalAnnotationsType = None,
         notes: Optional[str] = None,
         keyValuePairs: Optional[List[KeyValuePair]] = None,
@@ -2651,10 +2664,10 @@ class ExternalModelDefinition(Sbase):
         sid: str,
         source: str,
         modelRef: str,
-        md5: str = None,
-        name: str = None,
-        sboTerm: str = None,
-        metaId: str = None,
+        md5: Optional[str] = None,
+        name: Optional[str] = None,
+        sboTerm: Optional[str] = None,
+        metaId: Optional[str] = None,
         annotations: OptionalAnnotationsType = None,
         notes: Optional[str] = None,
         keyValuePairs: Optional[List[KeyValuePair]] = None,
@@ -2698,12 +2711,12 @@ class Submodel(Sbase):
     def __init__(
         self,
         sid: str,
-        modelRef: str = None,
-        timeConversionFactor: str = None,
-        extentConversionFactor: str = None,
-        name: str = None,
-        sboTerm: str = None,
-        metaId: str = None,
+        modelRef: Optional[str] = None,
+        timeConversionFactor: Optional[str] = None,
+        extentConversionFactor: Optional[str] = None,
+        name: Optional[str] = None,
+        sboTerm: Optional[str] = None,
+        metaId: Optional[str] = None,
         annotations: OptionalAnnotationsType = None,
         notes: Optional[str] = None,
         keyValuePairs: Optional[List[KeyValuePair]] = None,
@@ -3014,7 +3027,7 @@ class Port(SbaseRef):
                 sbo = SBO.PORT
             elif self.portType == PortType.INPUT_PORT:
                 sbo = SBO.INPUT_PORT
-            elif self.portType == PortType.OUTPUT_POR:
+            elif self.portType == PortType.OUTPUT_PORT:
                 sbo = SBO.OUTPUT_PORT
             p.setSBOTerm(sbo.value.replace("_", ":"))
 
@@ -3095,7 +3108,7 @@ class Model(Sbase, FrozenClass, BaseModel):
     name: Optional[str]
     sboTerm: Optional[str]
     metaId: Optional[str]
-    annotations: OptionalAnnotationsType
+    annotations: AnnotationsType
     notes: Optional[str]
     keyValuePairs: Optional[List[KeyValuePair]]
     port: Optional[Any]
@@ -3233,7 +3246,7 @@ class Model(Sbase, FrozenClass, BaseModel):
 
         self.packages = self.check_packages(packages)
 
-        self.creators = creators
+        self.creators = creators if creators else []
         self.model_units = model_units
         self.units = units if units else Units
         self.units_dict = None
@@ -3250,12 +3263,16 @@ class Model(Sbase, FrozenClass, BaseModel):
         self.assignments: List[InitialAssignment] = assignments if assignments else []
         self.rules: List[AssignmentRule] = rules if rules else []
         self.rate_rules: List[RateRule] = rate_rules if rate_rules else []
-        self.algebraic_rules: List[AlgebraicRule] = algebraic_rules if algebraic_rules else []
+        self.algebraic_rules: List[AlgebraicRule] = (
+            algebraic_rules if algebraic_rules else []
+        )
         self.reactions: List[Reaction] = reactions if reactions else []
         self.events: List[Event] = events if events else []
         self.constraints: List[Constraint] = constraints if constraints else []
         self.ports: List[Port] = ports if ports else []
-        self.replaced_elements: List[ReplacedElement] = replaced_elements if replaced_elements else []
+        self.replaced_elements: List[ReplacedElement] = (
+            replaced_elements if replaced_elements else []
+        )
         self.deletions: List[Deletion] = deletions if deletions else []
         self.user_defined_constraints: List[UserDefinedConstraint] = (
             user_defined_constraints if user_defined_constraints else []
@@ -3368,7 +3385,7 @@ class Model(Sbase, FrozenClass, BaseModel):
     def check_packages(self, packages: Optional[List[Package]]) -> List[Package]:
         """Check that all provided packages are supported."""
         if packages is None:
-            packages: List[Package] = []
+            packages = []
         packages_set: Set[Package] = set(packages)
         for p in packages_set:
             if not isinstance(p, Package):
@@ -3413,7 +3430,7 @@ class Model(Sbase, FrozenClass, BaseModel):
         return list(packages_set)
 
     @staticmethod
-    def merge_models(models: List[Model]) -> Model:
+    def merge_models(models: Iterable[Model]) -> Model:
         """Merge information from multiple models."""
         if isinstance(models, Model):
             return models
@@ -3572,7 +3589,7 @@ def create_model(
     validate: bool = True,
     validation_options: Optional[ValidationOptions] = None,
     show_sbml: bool = False,
-    annotations: Path = None,
+    annotations: Optional[Path] = None,
 ) -> FactoryResult:
     """Create SBML model from models.
 
@@ -3636,4 +3653,4 @@ def create_model(
         console.log(sbml_str)
 
     console.rule(style="white")
-    return FactoryResult(sbml_path=filepath, model=model)
+    return FactoryResult(sbml_path=filepath, model=m)

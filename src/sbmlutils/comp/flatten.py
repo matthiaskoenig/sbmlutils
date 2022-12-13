@@ -47,7 +47,9 @@ def flatten_sbml(
 
 
 def flatten_sbml_doc(
-    doc: libsbml.SBMLDocument, sbml_flat_path: Optional[Path] = None, leave_ports: bool = True
+    doc: libsbml.SBMLDocument,
+    sbml_flat_path: Optional[Path] = None,
+    leave_ports: bool = True,
 ) -> libsbml.SBMLDocument:
     """Flatten SBMLDocument.
 

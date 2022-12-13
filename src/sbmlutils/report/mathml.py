@@ -173,7 +173,9 @@ def _fix_mathit_symbols(tex_str: str) -> str:
     return tex_str
 
 
-def _get_variables(astnode: libsbml.ASTNode, variables: Optional[Set[str]] = None) -> Set[str]:
+def _get_variables(
+    astnode: libsbml.ASTNode, variables: Optional[Set[str]] = None
+) -> Set[str]:
     """Get variables from ASTNode."""
     if variables is None:
         variables: Set[str] = set()  # type: ignore

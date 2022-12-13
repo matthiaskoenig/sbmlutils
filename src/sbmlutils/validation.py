@@ -260,9 +260,7 @@ def validate_doc(
     # check the document
     results_internal: ValidationResult
     if options.internal_consistency:
-        results_internal = _check_consistency(
-            doc, internal_consistency=True
-        )
+        results_internal = _check_consistency(doc, internal_consistency=True)
     else:
         results_internal = ValidationResult()
     results_not_internal = _check_consistency(doc, internal_consistency=False)

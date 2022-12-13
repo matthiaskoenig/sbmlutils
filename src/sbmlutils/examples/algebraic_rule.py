@@ -43,7 +43,7 @@ model.parameters = [
 ]
 
 model.algebraic_rules = [
-    AlgebraicRule("Atot - (A1 + A2)", unit=U.mg),
+    AlgebraicRule("Atotal_rule", "Atot - (A1 + A2)", unit=U.mg),
 ]
 
 

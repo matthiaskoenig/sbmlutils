@@ -47,7 +47,7 @@ def test_sbml_level_version(level: int, version: int, tmp_path: Path) -> None:
     }
 
     results = create_model(
-        model=Model(**md),
+        model=Model(**md),  # type: ignore
         filepath=tmp_path / "model.xml",
         sbml_level=level,
         sbml_version=version,

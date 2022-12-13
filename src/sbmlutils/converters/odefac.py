@@ -21,7 +21,7 @@ The following SBML core constructs are currently NOT supported:
 import re
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, Dict, List, Set, Tuple, Union, Optional
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
 import jinja2
 import libsbml
