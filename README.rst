@@ -135,4 +135,4 @@ To install for development use::
 
     pip install -e .[development]
 
-© 2017-2022 Matthias König
+© 2017-2023 Matthias König
