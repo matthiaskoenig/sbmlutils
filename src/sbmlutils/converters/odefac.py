@@ -338,6 +338,14 @@ class SBML2ODE:
         with open(r_file, "w") as f:
             f.write(content)
 
+    def to_markdown(self, r_file: Path) -> None:
+        """Write ODEs to markdown."""
+        content = self._render_template(
+            template_file="odefac_template.md", index_offset=1
+        )
+        with open(r_file, "w") as f:
+            f.write(content)
+
     def _render_template(
         self, template_file: str = "odefac_template.pytemp", index_offset: int = 0
     ) -> str:
@@ -372,9 +380,10 @@ class SBML2ODE:
 
             for key in ast_dict:
                 astnode = ast_dict[key]
-                if isinstance(astnode, float):
+
+                if not astnode:
                     # constant rate
-                    d[key] = astnode
+                    d[key] = 0
                 else:
                     # rate equations
                     if not isinstance(astnode, libsbml.ASTNode):
@@ -429,8 +438,7 @@ class SBML2ODE:
                 if astnode is not None:
                     dx_flat[xid] = astnode.deepCopy()
                 else:
-                    logger.warn(f"No ASTNode for '{xid}'")
-                    dx_flat[xid] = 0
+                    logger.warning(f"No ASTNode for '{xid}'")
 
             # replacements y_flat
             for yid in reversed(self.yids_ordered):
