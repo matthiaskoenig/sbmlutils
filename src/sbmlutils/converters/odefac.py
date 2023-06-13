@@ -29,8 +29,10 @@ import libsbml
 # template location (for language templates)
 from sbmlutils import RESOURCES_DIR
 from sbmlutils.converters.mathml import evaluableMathML
+from sbmlutils.console import console
+from sbmlutils.log import get_logger
 
-
+logger = get_logger(__file__)
 TEMPLATE_DIR = RESOURCES_DIR / "converters"
 
 
@@ -50,13 +52,24 @@ class SBML2ODE:
 
         self.x0: Dict = {}  # initial amounts/concentrations
         self.a_ast: Dict = {}  # initial assignments
-        self.dx: Any
+        self.dx: Any = None
         self.dx_ast: Dict = {}  # state variables x (odes)
         self.p: Dict = {}  # parameters p (constants)
         self.y_ast: Dict = {}  # assigned variables
         self.yids_ordered: List[str]  # yids in order of math dependencies
 
         self._create_odes()
+
+    def info(self) -> None:
+        """Print information on ODE system to console."""
+        console.rule(title="ODE System", align="left", style="white")
+        console.print(f"{self.x0=}")
+        console.print(f"{self.a_ast=}")
+        console.print(f"{self.dx=}")
+        console.print(f"{self.dx_ast=}")
+        console.print(f"{self.p=}")
+        console.print(f"{self.y_ast=}")
+        console.print(f"{self.yids_ordered=}")
 
     @classmethod
     def from_file(cls, sbml_file: Path) -> "SBML2ODE":
@@ -359,31 +372,36 @@ class SBML2ODE:
 
             for key in ast_dict:
                 astnode = ast_dict[key]
-                if not isinstance(astnode, libsbml.ASTNode):
-                    # already a formula
+                if isinstance(astnode, float):
+                    # constant rate
                     d[key] = astnode
-                    continue
+                else:
+                    # rate equations
+                    if not isinstance(astnode, libsbml.ASTNode):
+                        # already a formula
+                        d[key] = astnode
+                        continue
 
-                if replace_symbols:
-                    astnode = astnode.deepCopy()
+                    if replace_symbols:
+                        astnode = astnode.deepCopy()
 
-                    # replace parameters (p)
-                    for key_rep, index in pids_idx.items():
-                        ast_rep = libsbml.parseL3Formula(f"p__{index}__")
-                        astnode.replaceArgument(key_rep, ast_rep)
-                    # replace states (x)
-                    for key_rep, index in dxids_idx.items():
-                        ast_rep = libsbml.parseL3Formula(f"x__{index}__")
-                        astnode.replaceArgument(key_rep, ast_rep)
+                        # replace parameters (p)
+                        for key_rep, index in pids_idx.items():
+                            ast_rep = libsbml.parseL3Formula(f"p__{index}__")
+                            astnode.replaceArgument(key_rep, ast_rep)
+                        # replace states (x)
+                        for key_rep, index in dxids_idx.items():
+                            ast_rep = libsbml.parseL3Formula(f"x__{index}__")
+                            astnode.replaceArgument(key_rep, ast_rep)
 
-                formula = evaluableMathML(astnode)
-                if replace_symbols:
-                    formula = re.sub("p__", "p[", formula)
-                    formula = re.sub("x__", "x[", formula)
-                    formula = re.sub("y__", "y[", formula)
-                    formula = re.sub("__", "]", formula)
+                    formula = evaluableMathML(astnode)
+                    if replace_symbols:
+                        formula = re.sub("p__", "p[", formula)
+                        formula = re.sub("x__", "x[", formula)
+                        formula = re.sub("y__", "y[", formula)
+                        formula = re.sub("__", "]", formula)
 
-                d[key] = formula
+                    d[key] = formula
             return d
 
         # replace parameters and states with (p[*], x[*]
@@ -408,7 +426,11 @@ class SBML2ODE:
             # deepcopy
             dx_flat = dict()
             for xid, astnode in self.dx_ast.items():
-                dx_flat[xid] = astnode.deepCopy()
+                if astnode is not None:
+                    dx_flat[xid] = astnode.deepCopy()
+                else:
+                    logger.warn(f"No ASTNode for '{xid}'")
+                    dx_flat[xid] = 0
 
             # replacements y_flat
             for yid in reversed(self.yids_ordered):
@@ -419,9 +441,10 @@ class SBML2ODE:
 
             # replacements dx_flat
             for _x_id, astnode in dx_flat.items():
-                for key in reversed(self.yids_ordered):
-                    ast_rep = y_flat[key]
-                    astnode.replaceArgument(key, ast_rep)
+                if isinstance(astnode, libsbml.ASTNode):
+                    for key in reversed(self.yids_ordered):
+                        ast_rep = y_flat[key]
+                        astnode.replaceArgument(key, ast_rep)
 
             return y_flat, dx_flat
 
