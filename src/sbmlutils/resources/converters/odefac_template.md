@@ -10,14 +10,14 @@ area: [{{units["area"]}}]
 length: [{{units["length"]}}]
 ```
 
-## Parameters
+## Parameters `p`
 ```
 {% for id in pids %}
 {{ id }} = {{p[id]}}  # [{{p_units[id]}}] 
 {% endfor %}
 ```
 
-## Initial conditions
+## Initial conditions `x0`
 ```
 {% for id in xids %}
 {{ id }} = {{x0[id]}}  # [{{x_units[id]}}]
