@@ -26,6 +26,14 @@ length: [{{units["length"]}}]
 
 ## ODE system
 ```
+{% for id in pids %}
+p[{{loop.index0 + 1}}] = {{id}}
+{% endfor %}
+
+{% for id in xids %}
+x[{{loop.index0 + 1}}] = {{id}}
+{% endfor %}
+
 {% for id in yids %}
 {{id}} = {{y[id]}}  # [{{y_units[id]}}]
 {% endfor %}

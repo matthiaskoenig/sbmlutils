@@ -19,7 +19,7 @@ yids = [{% for id in yids %}"{{ id }}", {% endfor %}]
 # -------------------
 x0 = np.array([
 {% for id in xids %}
-    {{x0[id]}},     # [{{ loop.index0 }}] {{ id }}
+    {{x0[id]}},     # [{{ loop.index0 }}] {{ id }} [{{x_units[id]}}]
 {% endfor %}
 ])
 
@@ -28,7 +28,7 @@ x0 = np.array([
 # -------------------
 p = np.array([
 {% for id in pids %}
-    {{p[id]}},     # [{{ loop.index0 }}] {{ id }}
+    {{p[id]}},     # [{{ loop.index0 }}] {{ id }} [{{p_units[id]}}]
 {% endfor %}
 ])
 
@@ -36,13 +36,13 @@ p = np.array([
 def f_dxdt(x, t, p):
     """ ODE system """
     {% for id in yids %}
-    {{id}} = {{y[id]}}      # [{{ loop.index0 }}] {{ id }}
+    {{id}} = {{y[id]}}      # [{{ loop.index0 }}] {{ id }} [{{y_units[id]}}]
     {% endfor %}
 
     # ode
     return [
         {% for id in xids %}
-        {{dx[id]}},       # [{{ loop.index0 }}] {{ id }}
+        {{dx[id]}},       # [{{ loop.index0 }}] {{ id }} [{{x_units[id]}}]
         {% endfor %}
     ]
 
@@ -56,14 +56,14 @@ def f_y(x, t, p):
     """
 
     {% for id in yids %}
-    {{id}} = {{y[id]}}  # [{{ loop.index0 }}] {{ id }}
+    {{id}} = {{y[id]}}  # [{{ loop.index0 }}] {{ id }}  [{{y_units[id]}}]
     {% endfor %}
 
     # --------------------------------------
 
     y = np.empty(shape=({{yids | length}}))
     {% for id in yids %}
-    y[{{loop.index0}}] = {{id}}  # [{{ loop.index0 }}] {{ id }}
+    y[{{loop.index0}}] = {{id}}  # [{{ loop.index0 }}] {{ id }}  [{{y_units[id]}}]
     {% endfor %}
 
     return y

@@ -69,6 +69,7 @@ class SBML2ODE:
     def info(self) -> None:
         """Print information on ODE system to console."""
         console.rule(title="ODE System", align="left", style="white")
+        console.print(f"{self.units=}")
         console.print(f"{self.x0=}")
         console.print(f"{self.x_units=}")
         console.print(f"{self.a_ast=}")
