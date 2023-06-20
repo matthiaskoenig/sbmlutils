@@ -123,8 +123,6 @@ def udef_to_string(
     if ustr == "1":
         ustr = "-"
 
-    # json escape
-
     return ustr
 
 

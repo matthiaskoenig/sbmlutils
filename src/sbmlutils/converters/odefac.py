@@ -17,11 +17,12 @@ The following SBML core constructs are currently NOT supported:
 # TODO: helper functions for initial conditions (initial assignments & assignment rules)
 # TODO: does not handle: ConversionFactors, FunctionDefinitions, InitialAssignments, nor Events
 # TODO: add parameter rules, i.e. parameters which are assignments solely based on parameters (reduces complexity of full system).
-
+from __future__ import annotations
 import re
 from collections import defaultdict
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from sbmlutils.report.units import udef_to_string
 
 import jinja2
 import libsbml
@@ -46,17 +47,22 @@ class SBML2ODE:
     def __init__(self, doc: libsbml.SBMLDocument):
         """Init with SBMLDocument.
 
-        :param doc: SBMLdocument
+        :param doc: SBMLDocument
         """
         self.doc: libsbml.SBMLDocument = doc
 
+        self.units = {}  # model units
         self.x0: Dict = {}  # initial amounts/concentrations
         self.a_ast: Dict = {}  # initial assignments
         self.dx: Any = None
         self.dx_ast: Dict = {}  # state variables x (odes)
+        self.x_units: Dict = {}  # state variables x units
+        self.x_concentrations: Dict = {}  # state variables in concentrations
         self.p: Dict = {}  # parameters p (constants)
+        self.p_units: Dict = {}  # parameter units
         self.y_ast: Dict = {}  # assigned variables
         self.yids_ordered: List[str]  # yids in order of math dependencies
+        self.y_units: Dict = {}  # y units
 
         self._create_odes()
 
@@ -64,15 +70,18 @@ class SBML2ODE:
         """Print information on ODE system to console."""
         console.rule(title="ODE System", align="left", style="white")
         console.print(f"{self.x0=}")
+        console.print(f"{self.x_units=}")
         console.print(f"{self.a_ast=}")
         console.print(f"{self.dx=}")
         console.print(f"{self.dx_ast=}")
         console.print(f"{self.p=}")
+        console.print(f"{self.p_units=}")
         console.print(f"{self.y_ast=}")
+        console.print(f"{self.y_units=}")
         console.print(f"{self.yids_ordered=}")
 
     @classmethod
-    def from_file(cls, sbml_file: Path) -> "SBML2ODE":
+    def from_file(cls, sbml_file: Path) -> SBML2ODE:
         """Create converter from SBML file."""
         doc: libsbml.SBMLDocument = libsbml.readSBMLFromFile(str(sbml_file))
         return cls(doc)
@@ -80,6 +89,18 @@ class SBML2ODE:
     def _create_odes(self) -> None:
         """Create information of ODE system from SBMLDocument."""
         model: libsbml.Model = self.doc.getModel()
+        # --------------
+        # model units
+        # --------------
+        self.units["time"] = udef_to_string(model.getTimeUnits(), model=model, format="str")
+        self.units["substance"] = udef_to_string(model.getSubstanceUnits(), model=model,
+                                              format="str")
+        self.units["length"] = udef_to_string(model.getLengthUnits(), model=model,
+                                                 format="str")
+        self.units["area"] = udef_to_string(model.getAreaUnits(), model=model, format="str")
+        self.units["volume"] = udef_to_string(model.getVolumeUnits(), model=model, format="str")
+        self.units["extend"] = udef_to_string(model.getExtentUnits(), model=model, format="str")
+
         # --------------
         # parameters
         # --------------
@@ -92,6 +113,7 @@ class SBML2ODE:
             else:
                 value = ""
             self.p[pid] = value
+            self.p_units[pid] = udef_to_string(parameter.getUnits(), model=model, format="str")
 
         # --------------
         # compartments
@@ -105,6 +127,7 @@ class SBML2ODE:
             else:
                 value = ""
             self.p[cid] = value
+            self.p_units[cid] = udef_to_string(compartment.getUnits(), model=model, format="str")
 
         # --------------
         # species
@@ -129,6 +152,7 @@ class SBML2ODE:
                     value = value * compartment.getSize()
 
             self.x0[sid] = value
+            self.x_units[sid] = udef_to_string(species.getUnits(), model=model, format="str")
 
         # --------------------
         # initial assignments
@@ -180,11 +204,15 @@ class SBML2ODE:
                 variable = as_rule.getVariable()
                 astnode = as_rule.getMath()
                 self.y_ast[variable] = astnode
-                # yids[variable] = evaluableMathML(astnode)
                 if variable in self.dx_ast:
                     del self.dx[variable]
+                    self.y_units[variable] = self.x_units[variable]
+                    del self.x_units[variable]
+
                 if variable in self.p:
                     del self.p[variable]
+                    self.y_units[variable] = self.p_units[variable]
+                    del self.p_units[variable]
 
         # Process the kinetic laws of reactions
         reaction: libsbml.Reaction
@@ -464,13 +492,17 @@ class SBML2ODE:
         # context
         c = {
             "model": self.doc.getModel(),
+            "units": self.units,
             "xids": sorted(self.dx_ast.keys()),
             "pids": sorted(self.p.keys()),
             "yids": self.yids_ordered,
             # 'rids': sorted(self.r.keys()),
             "x0": self.x0,
+            "x_units": self.x_units,
             "p": self.p,
+            "p_units": self.p_units,
             "y": y,
+            "y_units": self.y_units,
             "dx": dx,
             "y_sym": y_sym,
             "dx_sym": dx_sym,
