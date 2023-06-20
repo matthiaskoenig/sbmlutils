@@ -338,12 +338,12 @@ class SBML2ODE:
         with open(r_file, "w") as f:
             f.write(content)
 
-    def to_markdown(self, r_file: Path) -> None:
+    def to_markdown(self, md_file: Path) -> None:
         """Write ODEs to markdown."""
         content = self._render_template(
             template_file="odefac_template.md", index_offset=1
         )
-        with open(r_file, "w") as f:
+        with open(md_file, "w") as f:
             f.write(content)
 
     def _render_template(
