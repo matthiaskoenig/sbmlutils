@@ -354,7 +354,8 @@ class SBML2ODE:
     def to_python(self, py_file: Path) -> None:
         """Write ODEs to python."""
         content = self._render_template(
-            template_file="odefac_template.pytemp", index_offset=0
+            template_file="odefac_template.pytemp", index_offset=0,
+            replace_symbols=True,
         )
         with open(py_file, "w") as f:
             f.write(content)
@@ -362,7 +363,8 @@ class SBML2ODE:
     def to_R(self, r_file: Path) -> None:
         """Write ODEs to R."""
         content = self._render_template(
-            template_file="odefac_template.R", index_offset=1
+            template_file="odefac_template.R", index_offset=1,
+            replace_symbols=True,
         )
         with open(r_file, "w") as f:
             f.write(content)
@@ -370,13 +372,15 @@ class SBML2ODE:
     def to_markdown(self, md_file: Path) -> None:
         """Write ODEs to markdown."""
         content = self._render_template(
-            template_file="odefac_template.md", index_offset=1
+            template_file="odefac_template.md", index_offset=0,
+            replace_symbols=False,
         )
         with open(md_file, "w") as f:
             f.write(content)
 
     def _render_template(
-        self, template_file: str = "odefac_template.pytemp", index_offset: int = 0
+        self, template_file: str = "odefac_template.pytemp", index_offset: int = 0,
+        replace_symbols: bool = True
     ) -> str:
         """Render given language template.
 
@@ -443,12 +447,12 @@ class SBML2ODE:
             return d
 
         # replace parameters and states with (p[*], x[*]
-        y = to_formula(self.y_ast, replace_symbols=True)
-        dx = to_formula(self.dx_ast, replace_symbols=True)
+        y = to_formula(self.y_ast, replace_symbols=replace_symbols)
+        dx = to_formula(self.dx_ast, replace_symbols=replace_symbols)
 
         # keep symbols (no replacements)
-        y_sym = to_formula(self.y_ast, replace_symbols=False)
-        dx_sym = to_formula(self.dx_ast, replace_symbols=False)
+        y_sym = to_formula(self.y_ast, replace_symbols=replace_symbols)
+        dx_sym = to_formula(self.dx_ast, replace_symbols=replace_symbols)
 
         def flat_formulas() -> Tuple[Dict, Dict]:
             """Create a flat formula by full replacement.
