@@ -9,7 +9,7 @@ import libsbml
 from sbmlutils.console import console
 from sbmlutils.io import read_sbml, write_sbml
 from sbmlutils.log import get_logger
-from sbmlutils.validation import validate_doc, log_sbml_errors_for_doc
+from sbmlutils.validation import log_sbml_errors_for_doc, validate_doc
 
 
 logger = get_logger(__name__)
@@ -101,9 +101,7 @@ def flatten_sbml_doc(
         console.rule("Flatten SBML", style="error")
         console.print(info, style="error")
         log_sbml_errors_for_doc(doc)
-        raise ValueError(
-            "SBML could not be flattend due to errors."
-        )
+        raise ValueError("SBML could not be flattend due to errors.")
 
     if sbml_flat_path is not None:
         write_sbml(doc, filepath=sbml_flat_path)

@@ -18,20 +18,22 @@ The following SBML core constructs are currently NOT supported:
 # TODO: does not handle: ConversionFactors, FunctionDefinitions, InitialAssignments, nor Events
 # TODO: add parameter rules, i.e. parameters which are assignments solely based on parameters (reduces complexity of full system).
 from __future__ import annotations
+
 import re
 from collections import defaultdict
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
-from sbmlutils.report.units import udef_to_string
 
 import jinja2
 import libsbml
 
 # template location (for language templates)
 from sbmlutils import RESOURCES_DIR
-from sbmlutils.converters.mathml import evaluableMathML
 from sbmlutils.console import console
+from sbmlutils.converters.mathml import evaluableMathML
 from sbmlutils.log import get_logger
+from sbmlutils.report.units import udef_to_string
+
 
 logger = get_logger(__file__)
 TEMPLATE_DIR = RESOURCES_DIR / "converters"
@@ -57,7 +59,8 @@ class SBML2ODE:
         self.dx: Any = None
         self.dx_ast: Dict = {}  # state variables x (odes)
         self.x_units: Dict = {}  # state variables x units
-        self.x_concentrations: Dict = {}  # state variables in concentrations
+        self.x_compartments: Dict = {}  # compartments of species
+        self.x_: Set = set()  # species state variables as concentrations
         self.p: Dict = {}  # parameters p (constants)
         self.p_units: Dict = {}  # parameter units
         self.y_ast: Dict = {}  # assigned variables
@@ -93,14 +96,24 @@ class SBML2ODE:
         # --------------
         # model units
         # --------------
-        self.units["time"] = udef_to_string(model.getTimeUnits(), model=model, format="str")
-        self.units["substance"] = udef_to_string(model.getSubstanceUnits(), model=model,
-                                              format="str")
-        self.units["length"] = udef_to_string(model.getLengthUnits(), model=model,
-                                                 format="str")
-        self.units["area"] = udef_to_string(model.getAreaUnits(), model=model, format="str")
-        self.units["volume"] = udef_to_string(model.getVolumeUnits(), model=model, format="str")
-        self.units["extend"] = udef_to_string(model.getExtentUnits(), model=model, format="str")
+        self.units["time"] = udef_to_string(
+            model.getTimeUnits(), model=model, format="str"
+        )
+        self.units["substance"] = udef_to_string(
+            model.getSubstanceUnits(), model=model, format="str"
+        )
+        self.units["length"] = udef_to_string(
+            model.getLengthUnits(), model=model, format="str"
+        )
+        self.units["area"] = udef_to_string(
+            model.getAreaUnits(), model=model, format="str"
+        )
+        self.units["volume"] = udef_to_string(
+            model.getVolumeUnits(), model=model, format="str"
+        )
+        self.units["extent"] = udef_to_string(
+            model.getExtentUnits(), model=model, format="str"
+        )
 
         # --------------
         # parameters
@@ -114,7 +127,9 @@ class SBML2ODE:
             else:
                 value = ""
             self.p[pid] = value
-            self.p_units[pid] = udef_to_string(parameter.getUnits(), model=model, format="str")
+            self.p_units[pid] = udef_to_string(
+                parameter.getUnits(), model=model, format="str"
+            )
 
         # --------------
         # compartments
@@ -128,7 +143,9 @@ class SBML2ODE:
             else:
                 value = ""
             self.p[cid] = value
-            self.p_units[cid] = udef_to_string(compartment.getUnits(), model=model, format="str")
+            self.p_units[cid] = udef_to_string(
+                compartment.getUnits(), model=model, format="str"
+            )
 
         # --------------
         # species
@@ -153,7 +170,14 @@ class SBML2ODE:
                     value = value * compartment.getSize()
 
             self.x0[sid] = value
-            self.x_units[sid] = udef_to_string(species.getUnits(), model=model, format="str")
+            ustr = udef_to_string(species.getUnits(), model=model, format="str")
+            if not species.getHasOnlySubstanceUnits():
+                compartment = model.getCompartment(species.getCompartment())
+                ustr = f"{ustr}/{udef_to_string(compartment.getUnits(), model=model, format='str')}"
+            self.x_units[sid] = ustr
+
+            # compartments
+            self.x_compartments[sid] = species.getCompartment()
 
         # --------------------
         # initial assignments
@@ -223,6 +247,7 @@ class SBML2ODE:
                 klaw: libsbml.KineticLaw = reaction.getKineticLaw()
                 astnode = klaw.getMath()
             self.y_ast[rid] = astnode
+            self.y_units = f"{self.units['extent']}/{self.units['time']}"
 
             # create astnode for dx_ast
             reactant: libsbml.SpeciesReference
@@ -258,6 +283,21 @@ class SBML2ODE:
         species = model.getSpecies(sid)
         vid = species.getCompartment()
 
+        # conversion factor
+        # ------------------
+        # conversion factor
+        # ------------------
+        cf: str = ""
+        # global conversion factor
+        if model.isSetConversionFactor():
+            cf = model.getConversionFactor()
+        # local conversion factor takes precedence
+        if species.isSetConversionFactor():
+            cf = species.getConversionFactor()
+
+        if cf != "":
+            cf = f"{cf}*"
+
         # stoichiometry prefix
         if abs(stoichiometry - 1.0) < 1e-10:
             stoichiometry = ""
@@ -265,10 +305,14 @@ class SBML2ODE:
             stoichiometry = f"{stoichiometry}*"
 
         # check if only substance units
-        if species.getHasOnlySubstanceUnits():
-            self.dx_ast[sid] += f" {sign}{stoichiometry}{rid}"
+        in_amount = species.getHasOnlySubstanceUnits()
+        if in_amount:
+            self.dx_ast[sid] += f" {sign}{stoichiometry}{cf}{rid}"
         else:
-            self.dx_ast[sid] += f" {sign}{stoichiometry}{rid}/{vid}"
+            # in concentration, dividing by the volume
+            self.dx_ast[sid] += f" {sign}{stoichiometry}{cf}{rid}/{vid}"
+
+        # FIXME: handle variable compartments (see SBML specification for details)
 
     @staticmethod
     def dependency_graph(
@@ -354,7 +398,8 @@ class SBML2ODE:
     def to_python(self, py_file: Path) -> None:
         """Write ODEs to python."""
         content = self._render_template(
-            template_file="odefac_template.pytemp", index_offset=0,
+            template_file="odefac_template.pytemp",
+            index_offset=0,
             replace_symbols=True,
         )
         with open(py_file, "w") as f:
@@ -363,7 +408,8 @@ class SBML2ODE:
     def to_R(self, r_file: Path) -> None:
         """Write ODEs to R."""
         content = self._render_template(
-            template_file="odefac_template.R", index_offset=1,
+            template_file="odefac_template.R",
+            index_offset=1,
             replace_symbols=True,
         )
         with open(r_file, "w") as f:
@@ -372,15 +418,18 @@ class SBML2ODE:
     def to_markdown(self, md_file: Path) -> None:
         """Write ODEs to markdown."""
         content = self._render_template(
-            template_file="odefac_template.md", index_offset=0,
+            template_file="odefac_template.md",
+            index_offset=0,
             replace_symbols=False,
         )
         with open(md_file, "w") as f:
             f.write(content)
 
     def _render_template(
-        self, template_file: str = "odefac_template.pytemp", index_offset: int = 0,
-        replace_symbols: bool = True
+        self,
+        template_file: str = "odefac_template.pytemp",
+        index_offset: int = 0,
+        replace_symbols: bool = True,
     ) -> str:
         """Render given language template.
 
@@ -504,6 +553,7 @@ class SBML2ODE:
             # 'rids': sorted(self.r.keys()),
             "x0": self.x0,
             "x_units": self.x_units,
+            "x_compartments": self.x_compartments,
             "p": self.p,
             "p_units": self.p_units,
             "y": y,
