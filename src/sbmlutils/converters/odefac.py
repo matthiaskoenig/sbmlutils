@@ -12,11 +12,10 @@ The following SBML core constructs are currently NOT supported:
 - FunctionDefinitions
 - InitialAssignments
 - Events
+- Piecewise functions
+- Dynamical changing compartments
 """
 
-# TODO: helper functions for initial conditions (initial assignments & assignment rules)
-# TODO: does not handle: ConversionFactors, FunctionDefinitions, InitialAssignments, nor Events
-# TODO: add parameter rules, i.e. parameters which are assignments solely based on parameters (reduces complexity of full system).
 from __future__ import annotations
 
 import re
@@ -369,8 +368,7 @@ class SBML2ODE:
         # console.print(f"{filtered_ids=}")
         # console.print(f"{self.y_ast=}")
         g: Dict[str, Set] = SBML2ODE.dependency_graph(self.y_ast, filtered_ids)
-        from pprint import pprint
-        pprint(g)
+        # console.print(g)
 
         def create_ordered_variables(
             g: Dict[str, Set], yids: Optional[List[str]] = None
