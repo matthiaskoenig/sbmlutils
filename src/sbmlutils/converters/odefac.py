@@ -23,6 +23,7 @@ import re
 from collections import defaultdict
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
+import numpy as np
 
 import jinja2
 import libsbml
@@ -122,10 +123,7 @@ class SBML2ODE:
         parameter: libsbml.Parameter
         for parameter in model.getListOfParameters():
             pid = parameter.getId()
-            if parameter.getConstant():
-                value = parameter.getValue()
-            else:
-                value = ""
+            value = parameter.getValue()
             self.p[pid] = value
             self.p_units[pid] = udef_to_string(
                 parameter.getUnits(), model=model, format="str"
@@ -138,10 +136,7 @@ class SBML2ODE:
         compartment: libsbml.Compartment
         for compartment in model.getListOfCompartments():
             cid = compartment.getId()
-            if compartment.getConstant():
-                value = compartment.getSize()
-            else:
-                value = ""
+            value = compartment.getSize()
             self.p[cid] = value
             self.p_units[cid] = udef_to_string(
                 compartment.getUnits(), model=model, format="str"
@@ -477,19 +472,19 @@ class SBML2ODE:
 
                         # replace parameters (p)
                         for key_rep, index in pids_idx.items():
-                            ast_rep = libsbml.parseL3Formula(f"p__{index}__")
+                            ast_rep = libsbml.parseL3Formula(f"p___{index}___")
                             astnode.replaceArgument(key_rep, ast_rep)
                         # replace states (x)
                         for key_rep, index in dxids_idx.items():
-                            ast_rep = libsbml.parseL3Formula(f"x__{index}__")
+                            ast_rep = libsbml.parseL3Formula(f"x___{index}___")
                             astnode.replaceArgument(key_rep, ast_rep)
 
                     formula = evaluableMathML(astnode)
                     if replace_symbols:
-                        formula = re.sub("p__", "p[", formula)
-                        formula = re.sub("x__", "x[", formula)
-                        formula = re.sub("y__", "y[", formula)
-                        formula = re.sub("__", "]", formula)
+                        formula = re.sub("p___", "p[", formula)
+                        formula = re.sub("x___", "x[", formula)
+                        formula = re.sub("y___", "y[", formula)
+                        formula = re.sub("___", "]", formula)
 
                     d[key] = formula
             return d
