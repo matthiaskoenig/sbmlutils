@@ -330,6 +330,14 @@ class SBML2ODE:
             g: Dict[str, Set], variable: str, astnode: libsbml.ASTNode
         ) -> None:
             """Add the dependency edges to the graph."""
+            # handle terminal nodes
+            if astnode.getType() == libsbml.AST_NAME:
+                # add to dependency graph if id is not a defined parameter or state variable
+                sid = astnode.getName()
+                if sid not in filtered_ids:
+                    g[variable].add(sid)
+
+
             # variable --depends_on--> v2
             for k in range(astnode.getNumChildren()):
                 child: libsbml.ASTNode = astnode.getChild(k)
@@ -358,8 +366,11 @@ class SBML2ODE:
         :return:
         """
         filtered_ids: Set[str] = set(list(self.p.keys()) + list(self.dx_ast.keys()))
+        # console.print(f"{filtered_ids=}")
+        # console.print(f"{self.y_ast=}")
         g: Dict[str, Set] = SBML2ODE.dependency_graph(self.y_ast, filtered_ids)
-        # pprint(g)
+        from pprint import pprint
+        pprint(g)
 
         def create_ordered_variables(
             g: Dict[str, Set], yids: Optional[List[str]] = None
