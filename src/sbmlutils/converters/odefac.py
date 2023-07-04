@@ -333,7 +333,6 @@ class SBML2ODE:
             for k in range(astnode.getNumChildren()):
                 child: libsbml.ASTNode = astnode.getChild(k)
                 if child.getType() == libsbml.AST_NAME:
-
                     # add to dependency graph if id is not a defined parameter or state variable
                     sid = child.getName()
                     if sid not in filtered_ids:

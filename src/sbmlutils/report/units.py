@@ -134,7 +134,7 @@ if __name__ == "__main__":
     doc: libsbml.SBMLDocument = libsbml.SBMLDocument()
     model: libsbml.Model = doc.createModel()
 
-    for (key, definition, _, _) in [
+    for key, definition, _, _ in [
         # ("mmole_per_min", "mmole/min", "str", "mmol/min"),
         # ("m3", "meter^3", "str", "m^3"),
         # ("m3", "meter^3/second", "str", "m^3/s"),
@@ -144,7 +144,6 @@ if __name__ == "__main__":
         ("item", "item", "str", "item"),
         # ("mM", "mmole/min", "latex", "\\frac{mmol}/{min}"),
     ]:
-
         ud = UnitDefinition(key, definition=definition)
         # ud = UnitDefinition("item")
         udef: libsbml.UnitDefinition = ud.create_sbml(model=model)

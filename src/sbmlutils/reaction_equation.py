@@ -114,7 +114,6 @@ class ReactionEquation:
         return equation
 
     def _parse_equation(self, equation_str: str) -> None:
-
         # handle empty equation (for dummy reations in comp)
         if not equation_str or len(equation_str) == 0:
             return
@@ -270,7 +269,6 @@ class ReactionEquation:
 
 # -----------------------------------------------------------------------------
 if __name__ == "__main__":
-
     examples = [
         # constant stoichiometry
         "1.0 S1 + 2 S2 => 2.0 P1 + 2 P2 [M1, M2]",

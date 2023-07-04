@@ -75,7 +75,6 @@ examples_models = [
 
 
 if __name__ == "__main__":
-
     # for module in examples_models:
     #     model = module.model
     #
@@ -89,7 +88,6 @@ if __name__ == "__main__":
     import tempfile
 
     with tempfile.TemporaryDirectory() as tmp_dir:
-
         for module in examples_create:
             print(module)
 

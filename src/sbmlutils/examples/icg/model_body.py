@@ -329,7 +329,6 @@ _m.replaced_elements = [
 # -------------------------------------------------------------------------------------
 _m.species = []
 for sid, sdict in SUBSTANCES_BODY.items():
-
     # plasma species
     for cid, cname in COMPARTMENTS_BODY.items():
         if cid == "bi":
@@ -807,7 +806,6 @@ _m.parameters = [
 
 # species specific parameters
 for sid, sdict in SUBSTANCES_BODY.items():
-
     _m.parameters.extend(
         [
             # molecular weights

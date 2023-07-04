@@ -203,7 +203,6 @@ def sbml_to_model(
     formula: Optional[str]
 
     for r in model.getListOfReactions():
-
         # FIXME: better equation support.
         equation = ReactionEquation(
             reversible=r.getReversible() if r.isSetReversible() else None
@@ -305,7 +304,6 @@ def sbml_to_model(
 
 
 if __name__ == "__main__":
-
     from sbmlutils.resources import BIOMODELS_CURATED_PATH, REPRESSILATOR_SBML
 
     omex_path: Path = BIOMODELS_CURATED_PATH / "BIOMD0000000003.omex"

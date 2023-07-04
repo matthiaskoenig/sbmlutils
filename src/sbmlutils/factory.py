@@ -255,7 +255,6 @@ class ModelUnits:
             )
         else:
             for key in ("time", "extent", "substance", "length", "area", "volume"):
-
                 if getattr(model_units, key) is None:
                     msg = f"'{key}' should be set in 'model_units'."
                     if key in ["time", "extent", "substance", "volume"]:

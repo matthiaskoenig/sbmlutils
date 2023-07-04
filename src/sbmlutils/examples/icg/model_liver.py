@@ -266,6 +266,5 @@ model = _m
 
 
 if __name__ == "__main__":
-
     results = create_model(model=model, filepath=MODEL_BASE_PATH / f"{model.sid}.xml")
     visualize_sbml(results.sbml_path)

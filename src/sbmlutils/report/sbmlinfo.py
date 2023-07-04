@@ -1119,7 +1119,6 @@ class SBMLDocumentInfo:
 
         doc_comp: libsbml.CompSBMLDocumentPlugin = self.doc.getPlugin("comp")
         if doc_comp:
-
             md: libsbml.ModelDefinition
             for md in doc_comp.getListOfModelDefinitions():
                 mds.append(self.model_dict(model=md))
@@ -1200,7 +1199,6 @@ class SBMLDocumentInfo:
         gps = []
         model_fbc: libsbml.FbcModelPlugin = model.getPlugin("fbc")
         if model_fbc:
-
             gp: libsbml.GeneProduct
             for gp in model_fbc.getListOfGeneProducts():
                 d = self.sbase_dict(gp)
@@ -1250,7 +1248,6 @@ class SBMLDocumentInfo:
 
 
 if __name__ == "__main__":
-
     from sbmlutils.console import console
 
     output_dir = Path(__file__).parent / "tests"

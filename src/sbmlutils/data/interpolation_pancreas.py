@@ -123,7 +123,6 @@ def interpolate_data(
 
 
 if __name__ == "__main__":
-
     interpolate_data(
         data=pd.read_csv("atp_adp_mean.tsv", sep="\t"),
         xid="dose",

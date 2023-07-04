@@ -176,7 +176,6 @@ def uncertainty() -> libsbml.SBMLDocument:
             libsbml.DISTRIB_UNCERTTYPE_VARIANCE,
         ]
     ):
-
         up: libsbml.UncertParameter = uncertainty.createUncertParameter()
         up.setType(parameter_type)
         up.setValue(k)
@@ -195,7 +194,6 @@ def uncertainty() -> libsbml.SBMLDocument:
             libsbml.DISTRIB_UNCERTTYPE_RANGE,
         ]
     ):
-
         up_range = libsbml.UncertSpan()
         up_range.setType(parameter_type)
         up_range.setValueLower(k - 1.0)

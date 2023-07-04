@@ -418,7 +418,6 @@ def xpp2sbml(
         pprint(parsed_lines)
         print("\n\n")
     for line in parsed_lines:
-
         # replace function definitions in lines
         new_line = line
         for fdata in function_definitions:
@@ -490,7 +489,8 @@ def xpp2sbml(
                 if xpp_type in [XPP_PAR, XPP_NUM]:
                     """Parameter values are optional; if not they are set to zero.
                     Number declarations are like parameter declarations, except that they cannot be
-                    changed within the program and do not appear in the parameter window."""
+                    changed within the program and do not appear in the parameter window.
+                    """
                     for part in parts:
                         sid, value = sid_value_from_part(part)
                         create_initial_assignment(sid, value)
@@ -520,7 +520,8 @@ def xpp2sbml(
                 elif xpp_type == XPP_TAB:
                     """The Table declaration allows the user to specify a function of 1 variable in terms
                     of a lookup table which uses linear interpolation. The name of the function follows the
-                    declaration and this is followed by (i) a filename (ii) or a function of "t"."""
+                    declaration and this is followed by (i) a filename (ii) or a function of "t".
+                    """
                     warnings.warn(
                         f"XPP_TAB not supported: XPP line not parsed: '{line}'"
                     )

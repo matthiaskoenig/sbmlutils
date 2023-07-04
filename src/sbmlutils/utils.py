@@ -63,7 +63,6 @@ def timeit(f: Callable) -> Callable:
     """
 
     def timed(*args: Any, **kwargs: Any) -> Any:
-
         ts = time.time()
         result = f(*args, **kwargs)
         te = time.time()

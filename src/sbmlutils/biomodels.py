@@ -137,7 +137,6 @@ def _create_biomodels_testfiles(output_dir: Path) -> None:
     biomodel_ids = query_curated_biomodels()
     console.print(biomodel_ids)
     for biomodel_id in biomodel_ids:
-
         # download SBML model as omex
         try:
             download_biomodel_sbml(biomodel_id, output_dir, output_format="omex")
