@@ -212,9 +212,15 @@ class SBML2ODE:
                     parameter = model.getParameter(variable)
                     if parameter:
                         self.x0[variable] = parameter.getValue()
+                        self.x_units[variable] = udef_to_string(
+                            parameter.getUnits(), model=model, format="str"
+                        )
                     compartment = model.getCompartment(variable)
                     if compartment:
                         self.x0[variable] = compartment.getSize()
+                        self.x_units[variable] = udef_to_string(
+                            compartment.getUnits(), model=model, format="str"
+                        )
 
             # --------------
             # assignment rules
@@ -345,7 +351,7 @@ class SBML2ODE:
         return g
 
     def _ordered_yids(self) -> List[str]:
-        """Get the order of the vids from the assignment rules.
+        """Get the order of the yids from the assignment rules.
 
         :param model:
         :param filtered_ids
