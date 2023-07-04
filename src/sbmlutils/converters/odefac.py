@@ -53,7 +53,7 @@ class SBML2ODE:
         """
         self.doc: libsbml.SBMLDocument = doc
 
-        self.units = {}  # model units
+        self.units: Dict[str, Optional[str]] = {}  # model units
         self.x0: Dict = {}  # initial amounts/concentrations
         self.a_ast: Dict = {}  # initial assignments
         self.dx: Any = None
@@ -247,7 +247,7 @@ class SBML2ODE:
                 klaw: libsbml.KineticLaw = reaction.getKineticLaw()
                 astnode = klaw.getMath()
             self.y_ast[rid] = astnode
-            self.y_units = f"{self.units['extent']}/{self.units['time']}"
+            self.y_units[rid] = f"{self.units['extent']}/{self.units['time']}"
 
             # create astnode for dx_ast
             reactant: libsbml.SpeciesReference

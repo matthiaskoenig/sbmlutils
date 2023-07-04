@@ -278,7 +278,7 @@ class Interpolation:
 
         # first column has to be ascending (times)
         def is_sorted(df: pd.DataFrame, colname: str) -> bool:
-            return bool(pd.Index(df[colname]).is_monotonic)
+            return bool(pd.Index(df[colname]).is_monotonic_increasing)
 
         if not is_sorted(self.data, colname=self.data.columns[0]):
             logger.warning("First column should contain ascending values.")

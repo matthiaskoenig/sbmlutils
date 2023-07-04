@@ -130,7 +130,7 @@ def parse_keyword(xpp_id: str) -> Optional[str]:
     for xpp_key, c in XPP_TYPE_CHARS.items():
         if xpp_id.startswith(c):
             return xpp_key
-    warnings.warn(f"Keyword not supported: {xpp_id}")
+    warnings.warn(f"Keyword not supported: {xpp_id}", stacklevel=1)
     return None
 
 
@@ -253,7 +253,8 @@ def xpp2sbml(
         # check if valid identifier
         if "(" in sid:
             warnings.warn(
-                f"sid is not valid: {sid}. Initial assignment is not generated"
+                f"sid is not valid: {sid}. Initial assignment is not generated",
+                stacklevel=1,
             )
             return
 
@@ -368,7 +369,8 @@ def xpp2sbml(
                 # handle special functions
                 if fid == "power":
                     warnings.warn(
-                        "power function cannot be added to model, rename function."
+                        "power function cannot be added to model, rename function.",
+                        stacklevel=1,
                     )
                 else:
                     # store functions with additional arguments
@@ -463,7 +465,7 @@ def xpp2sbml(
                     parameters.append(fac.Parameter(sid=sid, value=0.0))
                     continue  # line finished
             else:
-                warnings.warn(f"XPP line not parsed: '{line}'")
+                warnings.warn(f"XPP line not parsed: '{line}'", stacklevel=1)
 
         #####################
         # Line with '=' sign
@@ -523,11 +525,12 @@ def xpp2sbml(
                     declaration and this is followed by (i) a filename (ii) or a function of "t".
                     """
                     warnings.warn(
-                        f"XPP_TAB not supported: XPP line not parsed: '{line}'"
+                        f"XPP_TAB not supported: XPP line not parsed: '{line}'",
+                        stacklevel=1,
                     )
 
                 else:
-                    warnings.warn(f"XPP line not parsed: '{line}'")
+                    warnings.warn(f"XPP line not parsed: '{line}'", stacklevel=1)
 
             elif len(items) >= 2:
                 xid = items[0]
@@ -573,9 +576,12 @@ def xpp2sbml(
                         )
 
                     else:
-                        warnings.warn(f"global expression could not be parsed: {line}")
+                        warnings.warn(
+                            f"global expression could not be parsed: {line}",
+                            stacklevel=1,
+                        )
                 else:
-                    warnings.warn(f"XPP line not parsed: '{line}'")
+                    warnings.warn(f"XPP line not parsed: '{line}'", stacklevel=1)
 
             # direct assignments
             elif len(items) == 1:
@@ -590,7 +596,8 @@ def xpp2sbml(
                 elif left.endswith("(t+1)"):
                     warnings.warn(
                         f"Difference Equations not supported: "
-                        f"XPP line not parsed: '{line}'"
+                        f"XPP line not parsed: '{line}'",
+                        stacklevel=1,
                     )
 
                 # ode
@@ -606,7 +613,7 @@ def xpp2sbml(
                         fac.AssignmentRule(variable=left, value=right)
                     )
             else:
-                warnings.warn(f"XPP line not parsed: '{line}'")
+                warnings.warn(f"XPP line not parsed: '{line}'", stacklevel=1)
 
     # add time
     assignment_rules.append(

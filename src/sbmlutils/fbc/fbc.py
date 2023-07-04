@@ -60,5 +60,5 @@ def set_boundary_conditions_false(doc: libsbml.SBMLDocument) -> None:
     model = doc.getModel()
     for s in model.species:
         if s.boundary_condition:
-            warnings.warn(f"boundaryCondition changed {s}", UserWarning)
+            warnings.warn(f"boundaryCondition changed {s}", stacklevel=1)
             s.setBoundaryCondition(False)
