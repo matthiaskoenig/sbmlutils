@@ -14,6 +14,7 @@ The following SBML core constructs are currently NOT supported:
 - Events
 - Piecewise functions
 - Dynamical changing compartments
+- Species with AssignmentRules
 """
 
 from __future__ import annotations
@@ -22,10 +23,10 @@ import re
 from collections import defaultdict
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
-import numpy as np
 
 import jinja2
 import libsbml
+import numpy as np
 
 # template location (for language templates)
 from sbmlutils import RESOURCES_DIR
@@ -56,7 +57,7 @@ class SBML2ODE:
         self.units: Dict[str, Optional[str]] = {}  # model units
         self.x0: Dict = {}  # initial amounts/concentrations
         self.a_ast: Dict = {}  # initial assignments
-        self.dx: Any = None
+        self.dx: Dict = {}
         self.dx_ast: Dict = {}  # state variables x (odes)
         self.x_units: Dict = {}  # state variables x units
         self.x_compartments: Dict = {}  # compartments of species
@@ -93,6 +94,7 @@ class SBML2ODE:
     def _create_odes(self) -> None:
         """Create information of ODE system from SBMLDocument."""
         model: libsbml.Model = self.doc.getModel()
+
         # --------------
         # model units
         # --------------
@@ -118,7 +120,6 @@ class SBML2ODE:
         # --------------
         # parameters
         # --------------
-        # 1. constant parameters (real parameters of the system)
         parameter: libsbml.Parameter
         for parameter in model.getListOfParameters():
             pid = parameter.getId()
@@ -147,7 +148,7 @@ class SBML2ODE:
         species: libsbml.Species
         for species in model.getListOfSpecies():
             sid = species.getId()
-            self.dx_ast[sid] = ""
+            # self.dx_ast[sid] = ""
             # initial condition
             value = None
             compartment = model.getCompartment(species.getCompartment())
@@ -229,10 +230,12 @@ class SBML2ODE:
                 variable = as_rule.getVariable()
                 astnode = as_rule.getMath()
                 self.y_ast[variable] = astnode
+
                 if variable in self.dx_ast:
-                    del self.dx[variable]
-                    self.y_units[variable] = self.x_units[variable]
-                    del self.x_units[variable]
+                    if variable in self.dx:
+                        del self.dx[variable]
+                        self.y_units[variable] = self.x_units[variable]
+                        del self.x_units[variable]
 
                 if variable in self.p:
                     del self.p[variable]
@@ -278,9 +281,9 @@ class SBML2ODE:
         sign: str,
     ) -> None:
         """Add part of reaction formula to ODEs for species."""
-        stoichiometry = species_ref.getStoichiometry()
-        sid = species_ref.getSpecies()
-        species = model.getSpecies(sid)
+        stoichiometry: float = species_ref.getStoichiometry()
+        sid: str = species_ref.getSpecies()
+        species: libsbml.Species = model.getSpecies(sid)
         vid = species.getCompartment()
 
         # conversion factor
@@ -300,17 +303,21 @@ class SBML2ODE:
 
         # stoichiometry prefix
         if abs(stoichiometry - 1.0) < 1e-10:
-            stoichiometry = ""
+            stoichiometry_str = ""
         else:
-            stoichiometry = f"{stoichiometry}*"
+            stoichiometry_str = f"{stoichiometry}*"
 
-        # check if only substance units
-        in_amount = species.getHasOnlySubstanceUnits()
-        if in_amount:
-            self.dx_ast[sid] += f" {sign}{stoichiometry}{cf}{rid}"
-        else:
-            # in concentration, dividing by the volume
-            self.dx_ast[sid] += f" {sign}{stoichiometry}{cf}{rid}/{vid}"
+        if not species.getBoundaryCondition():
+            if sid not in self.dx_ast:
+                self.dx_ast[sid] = ""
+
+            # check if only substance units
+            in_amount = species.getHasOnlySubstanceUnits()
+            if in_amount:
+                self.dx_ast[sid] += f" {sign}{stoichiometry_str}{cf}{rid}"
+            else:
+                # in concentration, dividing by the volume
+                self.dx_ast[sid] += f" {sign}{stoichiometry_str}{cf}{rid}/{vid}"
 
         # FIXME: handle variable compartments (see SBML specification for details)
 
@@ -336,7 +343,6 @@ class SBML2ODE:
                 if sid not in filtered_ids:
                     g[variable].add(sid)
 
-
             # variable --depends_on--> v2
             for k in range(astnode.getNumChildren()):
                 child: libsbml.ASTNode = astnode.getChild(k)
@@ -358,15 +364,10 @@ class SBML2ODE:
         return g
 
     def _ordered_yids(self) -> List[str]:
-        """Get the order of the yids from the assignment rules.
-
-        :param model:
-        :param filtered_ids
-        :return:
-        """
+        """Get the order of the yids from the assignment rules."""
         filtered_ids: Set[str] = set(list(self.p.keys()) + list(self.dx_ast.keys()))
-        # console.print(f"{filtered_ids=}")
-        # console.print(f"{self.y_ast=}")
+        console.print(f"{filtered_ids=}")
+        console.print(f"{self.y_ast=}")
         g: Dict[str, Set] = SBML2ODE.dependency_graph(self.y_ast, filtered_ids)
         # console.print(g)
 
@@ -397,6 +398,7 @@ class SBML2ODE:
 
             # still nodes in dependency graph (recursive removal)
             if len(g) > 0:
+                # console.print(g)
                 yids = create_ordered_variables(g, yids=yids)
             return yids
 
