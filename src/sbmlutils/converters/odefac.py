@@ -148,7 +148,9 @@ class SBML2ODE:
         species: libsbml.Species
         for species in model.getListOfSpecies():
             sid = species.getId()
-            # self.dx_ast[sid] = ""
+
+            # FIXME: handle species with assignment rules
+            self.dx_ast[sid] = ""
             # initial condition
             value = None
             compartment = model.getCompartment(species.getCompartment())
@@ -286,7 +288,6 @@ class SBML2ODE:
         species: libsbml.Species = model.getSpecies(sid)
         vid = species.getCompartment()
 
-        # conversion factor
         # ------------------
         # conversion factor
         # ------------------
@@ -366,8 +367,8 @@ class SBML2ODE:
     def _ordered_yids(self) -> List[str]:
         """Get the order of the yids from the assignment rules."""
         filtered_ids: Set[str] = set(list(self.p.keys()) + list(self.dx_ast.keys()))
-        console.print(f"{filtered_ids=}")
-        console.print(f"{self.y_ast=}")
+        # console.print(f"{filtered_ids=}")
+        # console.print(f"{self.y_ast=}")
         g: Dict[str, Set] = SBML2ODE.dependency_graph(self.y_ast, filtered_ids)
         # console.print(g)
 
