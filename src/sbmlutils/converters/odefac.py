@@ -437,6 +437,16 @@ class SBML2ODE:
         with open(md_file, "w") as f:
             f.write(content)
 
+    def to_cpp_frauenhofer(self, cpp_file: Path) -> None:
+        """Write ODEs to CPP for Frauenhofer coupling."""
+        content = self._render_template(
+            template_file="odefac_template.cpp",
+            index_offset=0,
+            replace_symbols=False,
+        )
+        with open(cpp_file, "w") as f:
+            f.write(content)
+
     def _render_template(
         self,
         template_file: str = "odefac_template.pytemp",
