@@ -437,14 +437,15 @@ class SBML2ODE:
         with open(md_file, "w") as f:
             f.write(content)
 
-    def to_cpp_frauenhofer(self, cpp_file: Path) -> None:
-        """Write ODEs to CPP for Frauenhofer coupling."""
+    def to_custom_template(self, output_file: Path, template_file: Path) -> None:
+        """Write ODEs to custom template."""
         content = self._render_template(
-            template_file="odefac_template.cpp",
+            template_file=template_file.name,
             index_offset=0,
             replace_symbols=False,
+            template_dir=template_file.parent
         )
-        with open(cpp_file, "w") as f:
+        with open(output_file, "w") as f:
             f.write(content)
 
     def _render_template(
@@ -452,14 +453,17 @@ class SBML2ODE:
         template_file: str = "odefac_template.pytemp",
         index_offset: int = 0,
         replace_symbols: bool = True,
+        template_dir: Optional[Path] = None,
     ) -> str:
         """Render given language template.
 
         :return: rendered template string.
         """
+        if not template_dir:
+            template_dir = TEMPLATE_DIR
         # template environment
         env = jinja2.Environment(
-            loader=jinja2.FileSystemLoader(TEMPLATE_DIR),
+            loader=jinja2.FileSystemLoader(template_dir),
             extensions=[],
             trim_blocks=True,
             lstrip_blocks=True,
