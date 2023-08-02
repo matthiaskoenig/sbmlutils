@@ -25,14 +25,25 @@ from copy import deepcopy
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, Type, Union
+from typing import (
+    Any,
+    ClassVar,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    Type,
+    Union,
+)
 
 import libsbml
 import numpy as np
 import xmltodict  # type: ignore
 from numpy import NaN
 from pint import UndefinedUnitError, UnitRegistry
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from pymetadata.core.creator import Creator
 
 from sbmlutils.console import console
@@ -750,11 +761,6 @@ class UnitDefinition(Sbase):
         self.definition = definition if definition is not None else sid
         if not self.name:
             self.name = self.definition
-
-    class Config:
-        """Pydantic configuration."""
-
-        arbitrary_types_allowed = True
 
     def create_sbml(self, model: libsbml.Model) -> Optional[libsbml.UnitDefinition]:
         """Create libsbml.UnitDefinition."""
@@ -3103,6 +3109,11 @@ class ModelDict(TypedDict, total=False):
 class Model(Sbase, FrozenClass, BaseModel):
     """Model."""
 
+    model_config = ConfigDict(
+        extra="allow",
+        arbitrary_types_allowed=True,
+    )
+
     sid: str
     name: Optional[str]
     sboTerm: Optional[str]
@@ -3140,12 +3151,7 @@ class Model(Sbase, FrozenClass, BaseModel):
     # layout
     layouts: Optional[List]
 
-    class Config:
-        """Pydantic configuration."""
-
-        arbitrary_types_allowed = True
-
-    _keys = {
+    _keys: ClassVar[Dict[str, Any]] = {
         "sid": None,
         "name": None,
         "sboTerm": None,
@@ -3181,7 +3187,7 @@ class Model(Sbase, FrozenClass, BaseModel):
         "layouts": list,
     }
 
-    _supported_packages = {
+    _supported_packages: ClassVar[Set[str]] = {
         Package.COMP,
         Package.COMP_V1,
         Package.DISTRIB,
@@ -3193,8 +3199,10 @@ class Model(Sbase, FrozenClass, BaseModel):
 
     def __str__(self) -> str:
         """Get string."""
-        field_str = ", ".join(f"{a}={v!r}" for a, v in self.__repr_args__() if a and v)
-        return f"{self.__class__.__name__}({field_str})"
+        # FIXME: issue with access
+        # field_str = ", ".join(f"{a}={v!r}" for a, v in self.__repr_args__() if a and v and not a.startswith("_"))
+        # return f"{self.__class__.__name__}({field_str})"
+        return f"{self.__class__.__name__}"
 
     def __init__(
         self,

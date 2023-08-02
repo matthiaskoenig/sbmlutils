@@ -343,7 +343,7 @@ class SBMLDocumentInfo:
 
         # comp
         item_comp = sbase.getPlugin("comp")
-        if item_comp and type(item_comp) == libsbml.CompSBasePlugin:
+        if item_comp and isinstance(item_comp, libsbml.CompSBasePlugin):
             # ReplacedBy
             if item_comp.isSetReplacedBy():
                 replaced_by = item_comp.getReplacedBy()

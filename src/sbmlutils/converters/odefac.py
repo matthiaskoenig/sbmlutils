@@ -443,7 +443,7 @@ class SBML2ODE:
             template_file=template_file.name,
             index_offset=0,
             replace_symbols=False,
-            template_dir=template_file.parent
+            template_dir=template_file.parent,
         )
         with open(output_file, "w") as f:
             f.write(content)

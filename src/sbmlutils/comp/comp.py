@@ -124,13 +124,13 @@ def create_ports(
         data = metaIdRefs
 
     # dictionary, port ids are provided
-    if type(data) == dict:
+    if isinstance(data, dict):
         for pid, ref in data.items():
             kwargs = {"pid": pid, ptype: ref}
             ports.append(_create_port(model, portType=portType, **kwargs))
 
     # only a list of references, port ids created via suffix appending
-    elif type(data) in [list, tuple]:
+    elif isinstance(data, (list, tuple)):
         for ref in data:
             pid = ref + suffix
             kwargs = {"pid": pid, ptype: ref}
