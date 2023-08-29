@@ -696,8 +696,10 @@ class UnitDefinition(Sbase):
         "farad": libsbml.UNIT_KIND_FARAD,
         "gram": libsbml.UNIT_KIND_GRAM,
         "gray": libsbml.UNIT_KIND_GRAY,
+        "henry": libsbml.UNIT_KIND_HENRY,
         "hertz": libsbml.UNIT_KIND_HERTZ,
         "item": libsbml.UNIT_KIND_ITEM,
+        "joule": libsbml.UNIT_KIND_JOULE,
         "kelvin": libsbml.UNIT_KIND_KELVIN,
         "kilogram": libsbml.UNIT_KIND_KILOGRAM,
         "liter": libsbml.UNIT_KIND_LITRE,
@@ -705,8 +707,12 @@ class UnitDefinition(Sbase):
         "mole": libsbml.UNIT_KIND_MOLE,
         "newton": libsbml.UNIT_KIND_NEWTON,
         "ohm": libsbml.UNIT_KIND_OHM,
+        "pascal": libsbml.UNIT_KIND_PASCAL,
         "second": libsbml.UNIT_KIND_SECOND,
+        "siemens": libsbml.UNIT_KIND_SIEMENS,
+        "sievert": libsbml.UNIT_KIND_SIEVERT,
         "volt": libsbml.UNIT_KIND_VOLT,
+        "watt": libsbml.UNIT_KIND_WATT,
     }
     # see https://github.com/hgrecco/pint/blob/master/pint/default_en.txt
     _prefixes = {
