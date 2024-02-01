@@ -14,9 +14,9 @@ jobs:
         python-version: ["3.9", "3.10", "3.11"]
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install libncurses for roadrunner
@@ -28,9 +28,6 @@ jobs:
     - name: Test with tox
       run:
         tox -- --cov-report=xml
-    - name: Report coverage
-      shell: bash
-      run: bash <(curl -s https://codecov.io/bash)
 
   release:
     needs: tests
@@ -39,17 +36,22 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: [3.9]
-
+        python-version: ["3.11"]
+    environment:
+      name: pypi
+      url: https://pypi.org/p/<your-pypi-project-name>
+    permissions:
+      id-token: write
+      contents: write
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     - name: Get tag
       id: tag
-      run: echo "::set-output name=version::${GITHUB_REF#refs/tags/}"
+      run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip setuptools wheel
@@ -59,26 +61,12 @@ jobs:
     - name: Check the package
       run: twine check dist/*
     - name: Publish to PyPI
-      env:
-        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-      run:
-        twine upload --skip-existing --non-interactive dist/*
-    - name: Create GitHub release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: pypa/gh-action-pypi-publish@release/v1
       with:
-        tag_name: ${{ github.ref }}
-        release_name: ${{ github.ref }}
-        body_path: "release-notes/${{ steps.tag.outputs.version }}.md"
+        packages-dir: dist
+    - name: Create GitHub release
+      uses: softprops/action-gh-release@v1
+      with:
+        body_path: "release-notes/${{ github.ref_name }}.md"
         draft: false
         prerelease: false
-#    - name: Send release tweet
-#      uses: ethomson/send-tweet-action@v1
-#      with:
-#        status: "New ${{ github.event.repository.name }} release ${{ steps.tag.outputs.version }}! https://github.com/matthiaskoenig/sbmlutils/releases/tag/${{ steps.tag.outputs.version }} #python #SBML #release"
-#        consumer-key: ${{ secrets.TWITTER_CONSUMER_API_KEY }}
-#        consumer-secret: ${{ secrets.TWITTER_CONSUMER_API_SECRET }}
-#        access-token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
-#        access-token-secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
