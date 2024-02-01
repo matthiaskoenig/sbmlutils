@@ -11,9 +11,9 @@ class U(Units):
     """UnitDefinitions."""
 
     kg = UnitDefinition("kg")
-    m2 = UnitDefinition("m2", "m2")
-    m3 = UnitDefinition("m3", "m3")
-    min = UnitDefinition("min")
+    m2 = UnitDefinition("m2", "m^2")
+    m3 = UnitDefinition("m3", "m^3")
+    min = UnitDefinition("min", "min")
     per_min = UnitDefinition("per_min", "1/min")
     l_per_kg = UnitDefinition("l_per_kg", "l/kg")
     dl_per_kg = UnitDefinition("dl_per_kg", "dl/kg")
@@ -30,54 +30,57 @@ class U(Units):
     pmolmg_per_kgmindl = UnitDefinition("pmolmg_per_kgmindl", "pmol*mg/kg/min/dl")
 
 
-_m = Model("DallaMan2006_v4")
-_m.notes = (
-    """
-<h1>DallaMan2006 - Glucose Insulin System</h1>
-<h2>Description</h2>
-<p>
-    This is a A simulation model of the glucose-insulin system in the postprandial state in
-    <a href="http://sbml.org">SBML</a> format.
-</p>
-<p>This model is described in the article:</p>
-<div class="bibo:title">
-    <a href="http://identifiers.org/pubmed/17926672" title="Access to this publication">Meal simulation model of
-    the glucose-insulin system.</a>
-</div>
-<div class="bibo:authorList">Dalla Man C, Rizza RA, Cobelli C.</div>
-<div class="bibo:Journal">IEEE Trans Biomed Eng. 2007 Oct;54(10):1740-9.</div>
-<p>Abstract:</p>
-<div class="bibo:abstract">
-<p>A simulation model of the glucose-insulin system in the
-postprandial state can be useful in several circumstances, including
-testing of glucose sensors, insulin infusion algorithms and decision
-support systems for diabetes. Here, we present a new simulation
-model in normal humans that describes the physiological events
-that occur after a meal, by employing the quantitative knowledge
-that has become available in recent years. Model parameters were
-set to fit the mean data of a large normal subject database that underwent
-a triple tracer meal protocol which provided quasi-model independent
-estimates of major glucose and insulin fluxes, e.g., meal
-rate of appearance, endogenous glucose production, utilization of
-glucose, insulin secretion.</p>
-</div>
-"""
-    + templates.terms_of_use
+# -------------------------------------------------------------------------------------
+# Model
+# -------------------------------------------------------------------------------------
+_m = Model(
+    sid="DallaMan2006_v5",
+    name="DallaMan2006",
+    notes="""
+    <h1>DallaMan2006 - Glucose Insulin System</h1>
+    <h2>Description</h2>
+    <p>
+        This is a A simulation model of the glucose-insulin system in the postprandial state in
+        <a href="http://sbml.org">SBML</a> format.
+    </p>
+    <p>This model is described in the article:</p>
+    <div class="bibo:title">
+        <a href="http://identifiers.org/pubmed/17926672" title="Access to this publication">Meal simulation model of
+        the glucose-insulin system.</a>
+    </div>
+    <div class="bibo:authorList">Dalla Man C, Rizza RA, Cobelli C.</div>
+    <div class="bibo:Journal">IEEE Trans Biomed Eng. 2007 Oct;54(10):1740-9.</div>
+    <p>Abstract:</p>
+    <div class="bibo:abstract">
+    <p>A simulation model of the glucose-insulin system in the
+    postprandial state can be useful in several circumstances, including
+    testing of glucose sensors, insulin infusion algorithms and decision
+    support systems for diabetes. Here, we present a new simulation
+    model in normal humans that describes the physiological events
+    that occur after a meal, by employing the quantitative knowledge
+    that has become available in recent years. Model parameters were
+    set to fit the mean data of a large normal subject database that underwent
+    a triple tracer meal protocol which provided quasi-model independent
+    estimates of major glucose and insulin fluxes, e.g., meal
+    rate of appearance, endogenous glucose production, utilization of
+    glucose, insulin secretion.</p>
+    </div>
+    """ + templates.terms_of_use,
+    creators=templates.creators,
+    model_units=ModelUnits(
+        time=U.min,
+        extent=U.mole,
+        substance=U.mole,
+        length=U.meter,
+        area=U.m2,
+        volume=U.m3,
+    ),
+    units=U,
 )
-_m.creators = templates.creators
 
-# ---------------------------------------------------------------------------------------------------------------------
-# Units
-# ---------------------------------------------------------------------------------------------------------------------
-_m.model_units = ModelUnits(
-    time=U.min,
-    extent=U.mole,
-    substance=U.mole,
-    length=U.meter,
-    area=U.m2,
-    volume=U.m3,
-)
-
+# -------------------------------------------------------------------------------------
+# Parameters
+# -------------------------------------------------------------------------------------
 _m.parameters = [
     # state variables (initial values)
     Parameter("Gp", 178, U.mg_per_kg, constant=False, name="glucose plasma"),
@@ -156,11 +159,12 @@ _m.parameters = [
     Parameter("k_e2", 339, U.mg_per_kg, constant=True),
 ]
 
-# ---------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------
 # Rules
-# ---------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------
+
+# rate rules d/dt
 _m.rate_rules = [
-    # rate rules d/dt
     RateRule("Gp", "EGP +Ra -U_ii -E -k_1*Gp +k_2*Gt", U.mg_per_kgmin),
     RateRule("Gt", "-U_id + k_1*Gp -k_2*Gt", U.mg_per_kgmin),
     RateRule("Il", "-(m_1+m_3)*Il + m_2*Ip + S", U.pmol_per_kg),
@@ -175,6 +179,7 @@ _m.rate_rules = [
     RateRule("Y", "-alpha*(Y-beta*(G-G_b))", None),
 ]
 
+# assignment rules
 _m.rules = [
     AssignmentRule("aa", "5/2/(1-b)/D", None),
     AssignmentRule("cc", "5/2/d/D", None),
@@ -227,7 +232,7 @@ def create(output_dir: Path) -> None:
     create_model(
         model=dallaman_model,
         filepath=output_dir / f"{dallaman_model.sid}.xml",
-        validation_options=ValidationOptions(units_consistency=False),
+        validation_options=ValidationOptions(units_consistency=True),
     )
 
 
