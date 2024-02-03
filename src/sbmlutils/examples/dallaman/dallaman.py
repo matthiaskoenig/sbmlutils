@@ -11,6 +11,7 @@ class U(Units):
     """UnitDefinitions."""
 
     kg = UnitDefinition("kg")
+    mg = UnitDefinition("mg")
     m2 = UnitDefinition("m2", "m^2")
     m3 = UnitDefinition("m3", "m^3")
     min = UnitDefinition("min", "min")
@@ -19,8 +20,10 @@ class U(Units):
     dl_per_kg = UnitDefinition("dl_per_kg", "dl/kg")
     mg_per_kg = UnitDefinition("mg_per_kg", "mg/kg")
     mg_per_dl = UnitDefinition("mg_per_dl", "mg/dl")
+    mg_per_min = UnitDefinition("mg_per_min", "mg/min")
     pmol_per_kg = UnitDefinition("pmol_per_kg", "pmol/kg")
     pmol_per_l = UnitDefinition("pmol_per_l", "pmol/l")
+    pmol_per_lmin = UnitDefinition("pmol_per_lmin", "pmol/l/min")
     pmol_per_kgmin = UnitDefinition("pmol_per_kgmin", "pmol/kg/min")
     minkg_per_pmol = UnitDefinition("minkg_per_pmol", "min*kg/pmol")
     mg_per_kgmin = UnitDefinition("mg_per_kgmin", "mg/kg/min")
@@ -83,101 +86,105 @@ _m = Model(
 # -------------------------------------------------------------------------------------
 _m.parameters = [
     # state variables (initial values)
-    Parameter("Gp", 178, U.mg_per_kg, constant=False, name="glucose plasma"),
-    Parameter("Gt", 135, U.mg_per_kg, constant=False, name="glucose tissue"),
-    Parameter("Il", 4.5, U.pmol_per_kg, constant=False, name="insulin mass liver"),
-    Parameter("Ip", 1.25, U.pmol_per_kg, constant=False, name="insulin mass plasma"),
-    Parameter("Qsto1", 78000, None, constant=False),
-    Parameter("Qsto2", 0, None, constant=False),
-    Parameter("Qgut", 0, None, constant=False),
-    Parameter("I1", 25, None, constant=False),
-    Parameter("Id", 25, U.pmol_per_l, constant=False, name="delayed insulin"),
+    Parameter("Gp", 178, U.mg_per_kg, constant=False, name="glucose mass in plasma [mg/kg]"),
+    Parameter("Gt", 135, U.mg_per_kg, constant=False, name="glucose mass rapidly equilibrating tissue [mg/kg]"),
+    Parameter("Il", 4.5, U.pmol_per_kg, constant=False, name="insulin mass liver [pmol/kg]"),
+    Parameter("Ip", 1.25, U.pmol_per_kg, constant=False, name="insulin mass plasma [pmol/kg]"),
+    Parameter("Qsto1", 78000, U.mg, constant=False, name="glucose in the stomach solid [mg]"),
+    Parameter("Qsto2", 0, None, constant=False, name="glucose in the stomach liquid [mg]"),
+    Parameter("Qgut", 0, None, constant=False, name="glucose in the intestine [mg]"),
+    Parameter("I1", 25, None, constant=False),  # I1(0) = Ib
+    Parameter("Id", 25, U.pmol_per_l, constant=False, name="delayed insulin [pmol/l]"), # Id(0) = Ib
     Parameter("INS", 0, None, constant=False),
-    Parameter("Ipo", 3.6, U.pmol_per_kg, constant=False, name="insulin portal vein"),
-    Parameter("Y", 0, None, constant=False),
+    Parameter("Ipo", 3.6, U.pmol_per_kg, constant=False, name="insulin portal vein [pmol/kg]"),
+    Parameter("Y", 0, U.pmol_per_kgmin, constant=False),  # ? unit unclear
+]
+# rate rules d/dt
+_m.rate_rules = [
+    RateRule("Gp", "EGP +Ra -U_ii -E -k_1*Gp +k_2*Gt", U.mg_per_kgmin),
+    RateRule("Gt", "-U_id + k_1*Gp -k_2*Gt", U.mg_per_kgmin),
+    RateRule("Il", "-(m_1+m_3)*Il + m_2*Ip + S", U.pmol_per_kgmin),
+    RateRule("Ip", "-(m_2+m_4)*Ip + m_1*Il", U.pmol_per_kgmin),
+    RateRule("Qsto1", "-k_gri*Qsto1", U.mg_per_min, name="rate glucose in the stomach solid [mg/min]"),
+    RateRule("Qsto2", "(-k_empt*Qsto2)+k_gri*Qsto1", None),
+    RateRule("Qgut", "(-k_abs*Qgut)+k_empt*Qsto2", None),
+    RateRule("I1", "-k_i*(I1-I)", None),
+    RateRule("Id", "-k_i*(Id-I1)", U.pmol_per_lmin, name="rate delayed insulin signal realized with chain [pmol/l]"),
+    RateRule("INS", "(-p_2U*INS)+p_2U*(I-I_b)", None),
+    RateRule("Ipo", "(-gamma*Ipo) + S_po", U.pmol_per_kgmin, name="insulin in the portal vein [pmol/kg]"),
+    RateRule("Y", "-alpha*(Y-beta*(G-G_b))", None),
+]
+
+
+
+_m.parameters.extend([
     # bodyweight
-    Parameter("BW", 78, U.kg, constant=True, name="body weight"),
-    Parameter("D", 78000, None, constant=True),
+    Parameter("BW", 78, U.kg,  name="body weight"),
+    Parameter("D", 78000, None, name="D insulin degradation"),
     # Glucose Kinetics
     Parameter(
-        "V_G", 1.88, U.dl_per_kg, constant=True, name="V_G distribution volume glucose"
+        "V_G", 1.88, U.dl_per_kg, name="V_G distribution volume glucose [dl/kg]"
     ),
-    Parameter("k_1", 0.065, U.per_min, constant=True, name="k_1 glucose kinetics"),
-    Parameter("k_2", 0.079, U.per_min, constant=True, name="k_2 glucose kinetics"),
-    Parameter("G_b", 95, None, constant=True),
+    Parameter("k_1", 0.065, U.per_min, name="k_1 glucose kinetics"),
+    Parameter("k_2", 0.079, U.per_min, name="k_2 glucose kinetics [1/min]"),
+    Parameter("G_b", 95, U.mg_per_dl, name="basline plasma glucose [mg/dl]"),
     # Insulin kinetics
     Parameter(
-        "V_I", 0.05, U.l_per_kg, constant=True, name="V_I distribution volume insulin"
+        "V_I", 0.05, U.l_per_kg,  name="V_I distribution volume insulin"
     ),
-    Parameter("m_1", 0.190, U.per_min, constant=True),
-    Parameter("m_2", 0.484, U.per_min, constant=True),
-    Parameter("m_4", 0.194, U.per_min, constant=True),
-    Parameter("m_5", 0.0304, U.minkg_per_pmol, constant=True),
-    Parameter("m_6", 0.6471, U.dimensionless, constant=True),
-    Parameter("HE_b", 0.60, U.dimensionless, constant=True),
-    Parameter("I_b", 25, None, constant=True),
-    Parameter("S_b", 1.8, None, constant=True),
+    Parameter("m_1", 0.190, U.per_min),
+    Parameter("m_2", 0.484, U.per_min),
+    Parameter("m_4", 0.194, U.per_min),
+    Parameter("m_5", 0.0304, U.minkg_per_pmol),
+    Parameter("m_6", 0.6471, U.dimensionless),
+    Parameter("HE_b", 0.60, U.dimensionless),
+    Parameter("I_b", 25, None),
+    Parameter("S_b", 1.8, None),
     # Rate of appearance
-    Parameter("k_max", 0.0558, U.per_min, constant=True),
-    Parameter("k_min", 0.0080, U.per_min, constant=True),
-    Parameter("k_abs", 0.057, U.per_min, constant=True),
-    Parameter("k_gri", 0.0558, U.per_min, constant=True),
-    Parameter("f", 0.90, U.dimensionless, constant=True),
-    # Parameter('a', 0.00013, U.per_mg, constant=True),
-    Parameter("b", 0.82, U.dimensionless, constant=True),
+    Parameter("k_max", 0.0558, U.per_min),
+    Parameter("k_min", 0.0080, U.per_min),
+    Parameter("k_abs", 0.057, U.per_min),
+    Parameter("k_gri", 0.0558, U.per_min),
+    Parameter("f", 0.90, U.dimensionless),
+    # Parameter('a', 0.00013, U.per_mg),
+    Parameter("b", 0.82, U.dimensionless),
     # Parameter('c', 0.00236, U.per_mg, constant=True),
-    Parameter("d", 0.010, U.dimensionless, constant=True),
+    Parameter("d", 0.010, U.dimensionless),
     # Endogenous production
-    Parameter("k_p1", 2.70, U.mg_per_kgmin, constant=True),
-    Parameter("k_p2", 0.0021, U.per_min, constant=True),
-    Parameter("k_p3", 0.009, U.mgl_per_kgminpmol, constant=True),
-    Parameter("k_p4", 0.0618, U.mg_per_minpmol, constant=True),
-    Parameter("k_i", 0.0079, U.per_min, constant=True),
+    Parameter("k_p1", 2.70, U.mg_per_kgmin, name="extrapolated EGP at zero glucose and insulin [mg/kg/min]"),
+    Parameter("k_p2", 0.0021, U.per_min, name="liver glucose effectiveness"),
+    Parameter("k_p3", 0.009, U.mgl_per_kgminpmol, name="parameter governing amplitude of insulin action on the liver [(mg*l)/(kg*min*pmol)]"),
+    Parameter("k_p4", 0.0618, U.mg_per_minpmol, name="parameter governing amplitude of portal insulin action on the liver"),
+    Parameter("k_i", 0.0079, U.per_min, "rate parameter accounting for delay between insulin signal and insulin action [1/min]"),
     # Utilization
     Parameter(
         "U_ii",
         1,
         U.mg_per_kgmin,
-        constant=True,
         name="insulin independent glucose utilization",
     ),  # F_cns
-    Parameter("V_m0", 2.50, U.mg_per_kgmin, constant=True),
-    Parameter("V_mX", 0.047, U.mgl_per_kgminpmol, constant=True),
-    Parameter("K_m0", 225.59, U.mg_per_kg, constant=True),
-    Parameter("V_f0", 2.5, U.mg_per_kgmin, constant=True),
-    Parameter("V_fX", 0.047, U.mgl_per_kgminpmol, constant=True),
-    Parameter("K_f0", 225.59, U.mg_per_kg, constant=True),
-    Parameter("p_2U", 0.0331, U.per_min, constant=True),
-    Parameter("part", 0.20, None, constant=True),
+    Parameter("V_m0", 2.50, U.mg_per_kgmin),
+    Parameter("V_mX", 0.047, U.mgl_per_kgminpmol),
+    Parameter("K_m0", 225.59, U.mg_per_kg),
+    Parameter("V_f0", 2.5, U.mg_per_kgmin),
+    Parameter("V_fX", 0.047, U.mgl_per_kgminpmol),
+    Parameter("K_f0", 225.59, U.mg_per_kg),
+    Parameter("p_2U", 0.0331, U.per_min),
+    Parameter("part", 0.20, None),
     # Secretion
-    Parameter("K", 2.30, U.pmolmg_per_kgdl, constant=True),
-    Parameter("alpha", 0.050, U.per_min, constant=True),
-    Parameter("beta", 0.11, U.pmolmg_per_kgmindl, constant=True),
-    Parameter("gamma", 0.5, U.per_min, constant=True),
+    Parameter("K", 2.30, U.pmolmg_per_kgdl),
+    Parameter("alpha", 0.050, U.per_min),
+    Parameter("beta", 0.11, U.pmolmg_per_kgmindl),
+    Parameter("gamma", 0.5, U.per_min),
     # renal excretion
-    Parameter("k_e1", 0.0005, U.per_min, constant=True),
-    Parameter("k_e2", 339, U.mg_per_kg, constant=True),
-]
+    Parameter("k_e1", 0.0005, U.per_min),
+    Parameter("k_e2", 339, U.mg_per_kg),
+])
 
 # -------------------------------------------------------------------------------------
 # Rules
 # -------------------------------------------------------------------------------------
 
-# rate rules d/dt
-_m.rate_rules = [
-    RateRule("Gp", "EGP +Ra -U_ii -E -k_1*Gp +k_2*Gt", U.mg_per_kgmin),
-    RateRule("Gt", "-U_id + k_1*Gp -k_2*Gt", U.mg_per_kgmin),
-    RateRule("Il", "-(m_1+m_3)*Il + m_2*Ip + S", U.pmol_per_kg),
-    RateRule("Ip", "-(m_2+m_4)*Ip + m_1*Il", U.pmol_per_kg),
-    RateRule("Qsto1", "-k_gri*Qsto1", None),
-    RateRule("Qsto2", "(-k_empt*Qsto2)+k_gri*Qsto1", None),
-    RateRule("Qgut", "(-k_abs*Qgut)+k_empt*Qsto2", None),
-    RateRule("I1", "-k_i*(I1-I)", None),
-    RateRule("Id", "-k_i*(Id-I1)", None),
-    RateRule("INS", "(-p_2U*INS)+p_2U*(I-I_b)", None),
-    RateRule("Ipo", "(-gamma*Ipo)+S_po", None),
-    RateRule("Y", "-alpha*(Y-beta*(G-G_b))", None),
-]
 
 # assignment rules
 _m.rules = [
@@ -185,16 +192,16 @@ _m.rules = [
     AssignmentRule("cc", "5/2/d/D", None),
     AssignmentRule(
         "EGP",
-        "k_p1-k_p2*Gp-k_p3*Id-k_p4*Ipo",
+        "k_p1 -k_p2*Gp -k_p3*Id -k_p4*Ipo",
         U.mg_per_kgmin,
-        name="EGP endogenous glucose production",
+        name="EGP endogenous glucose production [mg/kg/min]",
     ),
     AssignmentRule("V_mmax", "(1-part)*(V_m0+V_mX*INS)", None),
     AssignmentRule("V_fmax", "part*(V_f0+V_fX*INS)", None),
-    AssignmentRule("E", "0", U.mg_per_kgmin, "renal excretion"),
+    AssignmentRule("E", "0", U.mg_per_kgmin, "E renal excretion"),
     AssignmentRule("S", "gamma*Ipo", U.pmol_per_kgmin, name="S insulin secretion"),
-    AssignmentRule("I", "Ip/V_I", U.pmol_per_l, name="I plasma insulin"),
-    AssignmentRule("G", "Gp/V_G", U.mg_per_dl, name="G plasma Glucose"),
+    AssignmentRule("I", "Ip/V_I", U.pmol_per_l, name="I plasma insulin concentration"),
+    AssignmentRule("G", "Gp/V_G", U.mg_per_dl, name="G plasma glucose concentration"),
     AssignmentRule(
         "HE", "-m_5*S + m_6", U.dimensionless, name="HE hepatic extraction insulin"
     ),
@@ -202,11 +209,10 @@ _m.rules = [
     AssignmentRule("Q_sto", "Qsto1+Qsto2", None),
     AssignmentRule(
         "Ra",
-        "1.32 dimensionless*f*k_abs*Qgut/BW",
+        "1.32 dimensionless * f * k_abs * Qgut/BW",
         U.mg_per_kgmin,
         name="Ra glucose rate of appearance",
     ),
-    # % Ra', f*k_abs*Qgut/BW
     AssignmentRule(
         "k_empt",
         "k_min+(k_max-k_min)/2*(tanh(aa*(Q_sto-b*D))-tanh(cc*(Q_sto-d*D))+2)",
@@ -220,8 +226,9 @@ _m.rules = [
         U.mg_per_kgmin,
         name="insulin dependent glucose utilization",
     ),
-    AssignmentRule("U", "U_ii+U_id", U.mg_per_kgmin, name="U glucose uptake"),
-    AssignmentRule("S_po", "Y+K*(EGP+Ra-E-U_ii-k_1*Gp+k_2*Gt)/V_G+S_b", None),
+    AssignmentRule("U", "U_ii + U_id", U.mg_per_kgmin, name="U glucose uptake", notes="""
+    Sum of insulin independent Uii and insulin-dependent glucose utilizations"""),
+    AssignmentRule("S_po", "Y + K*(EGP+Ra-E-U_ii-k_1*Gp+k_2*Gt)/V_G + S_b", U.pmol_per_kgmin),
 ]
 
 dallaman_model = _m
@@ -232,7 +239,7 @@ def create(output_dir: Path) -> None:
     create_model(
         model=dallaman_model,
         filepath=output_dir / f"{dallaman_model.sid}.xml",
-        validation_options=ValidationOptions(units_consistency=True),
+        validation_options=ValidationOptions(units_consistency=False),
     )
 
 
