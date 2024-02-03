@@ -91,8 +91,8 @@ _m.parameters = [
     Parameter("Il", 4.5, U.pmol_per_kg, constant=False, name="insulin mass liver [pmol/kg]"),
     Parameter("Ip", 1.25, U.pmol_per_kg, constant=False, name="insulin mass plasma [pmol/kg]"),
     Parameter("Qsto1", 78000, U.mg, constant=False, name="glucose in the stomach solid [mg]"),
-    Parameter("Qsto2", 0, None, constant=False, name="glucose in the stomach liquid [mg]"),
-    Parameter("Qgut", 0, None, constant=False, name="glucose in the intestine [mg]"),
+    Parameter("Qsto2", 0, U.mg, constant=False, name="glucose in the stomach liquid [mg]"),
+    Parameter("Qgut", 0, U.mg, constant=False, name="glucose in the intestine [mg]"),
     Parameter("I1", 25, None, constant=False),  # I1(0) = Ib
     Parameter("Id", 25, U.pmol_per_l, constant=False, name="delayed insulin [pmol/l]"), # Id(0) = Ib
     Parameter("INS", 0, None, constant=False),
@@ -105,9 +105,9 @@ _m.rate_rules = [
     RateRule("Gt", "-U_id + k_1*Gp -k_2*Gt", U.mg_per_kgmin),
     RateRule("Il", "-(m_1+m_3)*Il + m_2*Ip + S", U.pmol_per_kgmin),
     RateRule("Ip", "-(m_2+m_4)*Ip + m_1*Il", U.pmol_per_kgmin),
-    RateRule("Qsto1", "-k_gri*Qsto1", U.mg_per_min, name="rate glucose in the stomach solid [mg/min]"),
-    RateRule("Qsto2", "(-k_empt*Qsto2)+k_gri*Qsto1", None),
-    RateRule("Qgut", "(-k_abs*Qgut)+k_empt*Qsto2", None),
+    RateRule("Qsto1", "-k_gri * Qsto1", U.mg_per_min, name="rate glucose in the stomach solid [mg/min]"),
+    RateRule("Qsto2", "-k_empt*Qsto2 + k_gri*Qsto1", U.mg_per_min, name="rate glucose in the stomach liquid [mg/min]"),
+    RateRule("Qgut", "-k_abs*Qgut + k_empt*Qsto2", U.mg_per_min, name="rate glucose in the intestine [mg/min]"),
     RateRule("I1", "-k_i*(I1-I)", None),
     RateRule("Id", "-k_i*(Id-I1)", U.pmol_per_lmin, name="rate delayed insulin signal realized with chain [pmol/l]"),
     RateRule("INS", "(-p_2U*INS)+p_2U*(I-I_b)", None),
@@ -118,9 +118,9 @@ _m.rate_rules = [
 
 
 _m.parameters.extend([
-    # bodyweight
-    Parameter("BW", 78, U.kg,  name="body weight"),
-    Parameter("D", 78000, None, name="D insulin degradation"),
+
+    Parameter("BW", 78, U.kg,  name="body weight [kg]"),
+    Parameter("D", 78000, U.mg, name="amount of ingested glucose [mg]"),
     # Glucose Kinetics
     Parameter(
         "V_G", 1.88, U.dl_per_kg, name="V_G distribution volume glucose [dl/kg]"
@@ -143,9 +143,9 @@ _m.parameters.extend([
     # Rate of appearance
     Parameter("k_max", 0.0558, U.per_min),
     Parameter("k_min", 0.0080, U.per_min),
-    Parameter("k_abs", 0.057, U.per_min),
-    Parameter("k_gri", 0.0558, U.per_min),
-    Parameter("f", 0.90, U.dimensionless),
+    Parameter("k_abs", 0.057, U.per_min, name="rate of intestinal absorption"),
+    Parameter("k_gri", 0.0558, U.per_min, name="rate of stomach grinding"),
+    Parameter("f", 0.90, U.dimensionless, name="fraction of intestinal absorption which appears in plasma"),
     # Parameter('a', 0.00013, U.per_mg),
     Parameter("b", 0.82, U.dimensionless),
     # Parameter('c', 0.00236, U.per_mg, constant=True),
@@ -215,8 +215,8 @@ _m.rules = [
     ),
     AssignmentRule(
         "k_empt",
-        "k_min+(k_max-k_min)/2*(tanh(aa*(Q_sto-b*D))-tanh(cc*(Q_sto-d*D))+2)",
-        None,
+        "k_min + (k_max-k_min)/2*(tanh(aa*(Q_sto-b*D)) - tanh(cc*(Q_sto-d*D))+2)",
+        U.per_min, name="rate of gastric emptying"
     ),
     AssignmentRule("U_idm", "V_mmax*Gt/(K_m0+Gt)", U.mg_per_kgmin),
     AssignmentRule("U_idf", "V_fmax*Gt/(K_f0+Gt)", U.mg_per_kgmin),
