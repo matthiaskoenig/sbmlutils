@@ -1,6 +1,5 @@
 """DallaMan2006."""
-# TODO: encode units for model
-# TODO: T2DM simulations (in current version not working)
+
 from pathlib import Path
 
 from sbmlutils.examples import templates
@@ -16,6 +15,7 @@ class U(Units):
     m3 = UnitDefinition("m3", "m^3")
     min = UnitDefinition("min", "min")
     per_min = UnitDefinition("per_min", "1/min")
+    per_mg = UnitDefinition("per_mg", "1/mg")
     l_per_kg = UnitDefinition("l_per_kg", "l/kg")
     dl_per_kg = UnitDefinition("dl_per_kg", "dl/kg")
     mg_per_kg = UnitDefinition("mg_per_kg", "mg/kg")
@@ -25,6 +25,7 @@ class U(Units):
     pmol_per_l = UnitDefinition("pmol_per_l", "pmol/l")
     pmol_per_lmin = UnitDefinition("pmol_per_lmin", "pmol/l/min")
     pmol_per_kgmin = UnitDefinition("pmol_per_kgmin", "pmol/kg/min")
+    pmol_per_kgmin2 = UnitDefinition("pmol_per_kgmin2", "pmol/kg/min^2")
     minkg_per_pmol = UnitDefinition("minkg_per_pmol", "min*kg/pmol")
     mg_per_kgmin = UnitDefinition("mg_per_kgmin", "mg/kg/min")
     mgl_per_kgminpmol = UnitDefinition("mgl_per_kgminpmol", "mg*l/kg/min/pmol")
@@ -97,7 +98,7 @@ _m.parameters = [
     Parameter("Id", 25, U.pmol_per_l, constant=False, name="delayed insulin [pmol/l]"), # Id(0) = Ib
     Parameter("INS", 0, None, constant=False),
     Parameter("Ipo", 3.6, U.pmol_per_kg, constant=False, name="insulin portal vein [pmol/kg]"),
-    Parameter("Y", 0, U.pmol_per_kgmin, constant=False),  # ? unit unclear
+    Parameter("Y", 0, U.pmol_per_kgmin, constant=False, name="Y [pmol/kg/min]"),
 ]
 # rate rules d/dt
 _m.rate_rules = [
@@ -110,9 +111,9 @@ _m.rate_rules = [
     RateRule("Qgut", "-k_abs*Qgut + k_empt*Qsto2", U.mg_per_min, name="rate glucose in the intestine [mg/min]"),
     RateRule("I1", "-k_i*(I1-I)", None),
     RateRule("Id", "-k_i*(Id-I1)", U.pmol_per_lmin, name="rate delayed insulin signal realized with chain [pmol/l]"),
-    RateRule("INS", "(-p_2U*INS)+p_2U*(I-I_b)", None),
+    RateRule("INS", "(-p_2U*INS) + p_2U*(I-I_b)", None),
     RateRule("Ipo", "(-gamma*Ipo) + S_po", U.pmol_per_kgmin, name="insulin in the portal vein [pmol/kg]"),
-    RateRule("Y", "-alpha*(Y-beta*(G-G_b))", None),
+    RateRule("Y", "-alpha*(Y-beta*(G-G_b))", U.pmol_per_kgmin2),
 ]
 
 
@@ -138,8 +139,8 @@ _m.parameters.extend([
     Parameter("m_5", 0.0304, U.minkg_per_pmol),
     Parameter("m_6", 0.6471, U.dimensionless),
     Parameter("HE_b", 0.60, U.dimensionless),
-    Parameter("I_b", 25, None),
-    Parameter("S_b", 1.8, None),
+    Parameter("I_b", 25, U.pmol_per_l),
+    Parameter("S_b", 1.8, U.pmol_per_kgmin),
     # Rate of appearance
     Parameter("k_max", 0.0558, U.per_min),
     Parameter("k_min", 0.0080, U.per_min),
@@ -156,13 +157,7 @@ _m.parameters.extend([
     Parameter("k_p3", 0.009, U.mgl_per_kgminpmol, name="parameter governing amplitude of insulin action on the liver [(mg*l)/(kg*min*pmol)]"),
     Parameter("k_p4", 0.0618, U.mg_per_minpmol, name="parameter governing amplitude of portal insulin action on the liver"),
     Parameter("k_i", 0.0079, U.per_min, "rate parameter accounting for delay between insulin signal and insulin action [1/min]"),
-    # Utilization
-    Parameter(
-        "U_ii",
-        1,
-        U.mg_per_kgmin,
-        name="insulin independent glucose utilization",
-    ),  # F_cns
+    Parameter("F_cns",1, U.mg_per_kgmin, name="U_ii; glucose uptake by the brain and erythrocytes [mg/min/kg]",),  # F_cns
     Parameter("V_m0", 2.50, U.mg_per_kgmin),
     Parameter("V_mX", 0.047, U.mgl_per_kgminpmol),
     Parameter("K_m0", 225.59, U.mg_per_kg),
@@ -170,7 +165,7 @@ _m.parameters.extend([
     Parameter("V_fX", 0.047, U.mgl_per_kgminpmol),
     Parameter("K_f0", 225.59, U.mg_per_kg),
     Parameter("p_2U", 0.0331, U.per_min),
-    Parameter("part", 0.20, None),
+    Parameter("part", 0.20, U.dimensionless),
     # Secretion
     Parameter("K", 2.30, U.pmolmg_per_kgdl),
     Parameter("alpha", 0.050, U.per_min),
@@ -188,16 +183,16 @@ _m.parameters.extend([
 
 # assignment rules
 _m.rules = [
-    AssignmentRule("aa", "5/2/(1-b)/D", None),
-    AssignmentRule("cc", "5/2/d/D", None),
+    AssignmentRule("aa", "5/2/(1-b)/D", U.per_mg),
+    AssignmentRule("cc", "5/2/d/D", U.per_mg),
     AssignmentRule(
         "EGP",
         "k_p1 -k_p2*Gp -k_p3*Id -k_p4*Ipo",
         U.mg_per_kgmin,
         name="EGP endogenous glucose production [mg/kg/min]",
     ),
-    AssignmentRule("V_mmax", "(1-part)*(V_m0+V_mX*INS)", None),
-    AssignmentRule("V_fmax", "part*(V_f0+V_fX*INS)", None),
+    AssignmentRule("V_mmax", "(1-part)*(V_m0+V_mX*INS)", U.mg_per_kgmin),
+    AssignmentRule("V_fmax", "part*(V_f0 + V_fX*INS)", U.mg_per_kgmin),
     AssignmentRule("E", "0", U.mg_per_kgmin, "E renal excretion"),
     AssignmentRule("S", "gamma*Ipo", U.pmol_per_kgmin, name="S insulin secretion"),
     AssignmentRule("I", "Ip/V_I", U.pmol_per_l, name="I plasma insulin concentration"),
@@ -206,7 +201,7 @@ _m.rules = [
         "HE", "-m_5*S + m_6", U.dimensionless, name="HE hepatic extraction insulin"
     ),
     AssignmentRule("m_3", "HE*m_1/(1-HE)", U.per_min),
-    AssignmentRule("Q_sto", "Qsto1+Qsto2", None),
+    AssignmentRule("Q_sto", "Qsto1 + Qsto2", U.mg, name="glucose in the stomach [mg]"),
     AssignmentRule(
         "Ra",
         "1.32 dimensionless * f * k_abs * Qgut/BW",
@@ -226,9 +221,11 @@ _m.rules = [
         U.mg_per_kgmin,
         name="insulin dependent glucose utilization",
     ),
+    AssignmentRule(
+        "U_ii","F_cns", U.mg_per_kgmin, name="insulin independent glucose utilization"),
     AssignmentRule("U", "U_ii + U_id", U.mg_per_kgmin, name="U glucose uptake", notes="""
     Sum of insulin independent Uii and insulin-dependent glucose utilizations"""),
-    AssignmentRule("S_po", "Y + K*(EGP+Ra-E-U_ii-k_1*Gp+k_2*Gt)/V_G + S_b", U.pmol_per_kgmin),
+    AssignmentRule("S_po", "Y + K*(EGP+Ra-E-U_ii-k_1*Gp+k_2*Gt)/V_G + S_b", U.pmol_per_kgmin, name="[pmol/kg/min]"),
 ]
 
 dallaman_model = _m
