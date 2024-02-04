@@ -94,9 +94,9 @@ _m.parameters = [
     Parameter("Qsto1", 78000, U.mg, constant=False, name="glucose in the stomach solid [mg]"),
     Parameter("Qsto2", 0, U.mg, constant=False, name="glucose in the stomach liquid [mg]"),
     Parameter("Qgut", 0, U.mg, constant=False, name="glucose in the intestine [mg]"),
-    Parameter("I1", 25, None, constant=False),  # I1(0) = Ib
+    Parameter("I1", 25, U.pmol_per_l, constant=False),  # I1(0) = Ib
     Parameter("Id", 25, U.pmol_per_l, constant=False, name="delayed insulin [pmol/l]"), # Id(0) = Ib
-    Parameter("INS", 0, None, constant=False),
+    Parameter("INS", 0, U.pmol_per_l, constant=False),
     Parameter("Ipo", 3.6, U.pmol_per_kg, constant=False, name="insulin portal vein [pmol/kg]"),
     Parameter("Y", 0, U.pmol_per_kgmin, constant=False, name="Y [pmol/kg/min]"),
 ]
@@ -109,9 +109,9 @@ _m.rate_rules = [
     RateRule("Qsto1", "-k_gri * Qsto1", U.mg_per_min, name="rate glucose in the stomach solid [mg/min]"),
     RateRule("Qsto2", "-k_empt*Qsto2 + k_gri*Qsto1", U.mg_per_min, name="rate glucose in the stomach liquid [mg/min]"),
     RateRule("Qgut", "-k_abs*Qgut + k_empt*Qsto2", U.mg_per_min, name="rate glucose in the intestine [mg/min]"),
-    RateRule("I1", "-k_i*(I1-I)", None),
+    RateRule("I1", "-k_i*(I1-I)", U.pmol_per_lmin),
     RateRule("Id", "-k_i*(Id-I1)", U.pmol_per_lmin, name="rate delayed insulin signal realized with chain [pmol/l]"),
-    RateRule("INS", "(-p_2U*INS) + p_2U*(I-I_b)", None),
+    RateRule("INS", "(-p_2U*INS) + p_2U*(I-I_b)", U.pmol_per_lmin),
     RateRule("Ipo", "(-gamma*Ipo) + S_po", U.pmol_per_kgmin, name="insulin in the portal vein [pmol/kg]"),
     RateRule("Y", "-alpha*(Y-beta*(G-G_b))", U.pmol_per_kgmin2),
 ]
