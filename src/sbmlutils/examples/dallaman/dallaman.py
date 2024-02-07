@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
 
@@ -32,13 +33,14 @@ class U(Units):
     mg_per_minpmol = UnitDefinition("mg_per_minpmol", "mg/min/pmol")
     pmolmg_per_kgdl = UnitDefinition("pmolmg_per_kgdl", "pmol*mg/kg/dl")
     pmolmg_per_kgmindl = UnitDefinition("pmolmg_per_kgmindl", "pmol*mg/kg/min/dl")
-
+    pmoldl_per_kgmg = UnitDefinition("pmoldl_per_kgmg", "pmol*dl/kg/mg")
+    pmoldl_per_kgminmg = UnitDefinition("pmoldl_per_kgminmg", "pmol*dl/kg/min/mg")
 
 # -------------------------------------------------------------------------------------
 # Model
 # -------------------------------------------------------------------------------------
 _m = Model(
-    sid="DallaMan2006_v5",
+    sid="DallaMan2006",
     name="DallaMan2006",
     notes="""
     <h1>DallaMan2006 - Glucose Insulin System</h1>
@@ -58,7 +60,7 @@ _m = Model(
     <div class="bibo:abstract">
     <p>A simulation model of the glucose-insulin system in the
     postprandial state can be useful in several circumstances, including
-    testing of glucose sensors, insulin infusion algorithms and decision
+    testing of glucose sensors, insulin infusion alg"orithms and decision
     support systems for diabetes. Here, we present a new simulation
     model in normal humans that describes the physiological events
     that occur after a meal, by employing the quantitative knowledge
@@ -113,7 +115,9 @@ _m.rate_rules = [
     RateRule("Id", "-k_i*(Id-I1)", U.pmol_per_lmin, name="rate delayed insulin signal realized with chain [pmol/l]"),
     RateRule("INS", "(-p_2U*INS) + p_2U*(I-I_b)", U.pmol_per_lmin),
     RateRule("Ipo", "(-gamma*Ipo) + S_po", U.pmol_per_kgmin, name="insulin in the portal vein [pmol/kg]"),
-    RateRule("Y", "-alpha*(Y-beta*(G-G_b))", U.pmol_per_kgmin2),
+    RateRule("Y", "- alpha * (Y-beta*(G-G_b))", U.pmol_per_kgmin2), # [1/min] [pmol/kg/min]
+
+    #  beta = (pmol_dl)/(kg*min*mg)     [mg/dl]
 ]
 
 
@@ -138,7 +142,7 @@ _m.parameters.extend([
     Parameter("m_4", 0.194, U.per_min),
     Parameter("m_5", 0.0304, U.minkg_per_pmol),
     Parameter("m_6", 0.6471, U.dimensionless),
-    Parameter("HE_b", 0.60, U.dimensionless),
+    # Parameter("HE_b", 0.60, U.dimensionless),
     Parameter("I_b", 25, U.pmol_per_l),
     Parameter("S_b", 1.8, U.pmol_per_kgmin),
     # Rate of appearance
@@ -156,7 +160,7 @@ _m.parameters.extend([
     Parameter("k_p2", 0.0021, U.per_min, name="liver glucose effectiveness"),
     Parameter("k_p3", 0.009, U.mgl_per_kgminpmol, name="parameter governing amplitude of insulin action on the liver [(mg*l)/(kg*min*pmol)]"),
     Parameter("k_p4", 0.0618, U.mg_per_minpmol, name="parameter governing amplitude of portal insulin action on the liver"),
-    Parameter("k_i", 0.0079, U.per_min, "rate parameter accounting for delay between insulin signal and insulin action [1/min]"),
+    Parameter("k_i", 0.0079, U.per_min, name="rate parameter accounting for delay between insulin signal and insulin action [1/min]"),
     Parameter("F_cns",1, U.mg_per_kgmin, name="U_ii; glucose uptake by the brain and erythrocytes [mg/min/kg]",),  # F_cns
     Parameter("V_m0", 2.50, U.mg_per_kgmin),
     Parameter("V_mX", 0.047, U.mgl_per_kgminpmol),
@@ -167,40 +171,40 @@ _m.parameters.extend([
     Parameter("p_2U", 0.0331, U.per_min),
     Parameter("part", 0.20, U.dimensionless),
     # Secretion
-    Parameter("K", 2.30, U.pmolmg_per_kgdl),
+    Parameter("K", 2.30, U.pmoldl_per_kgmg),
     Parameter("alpha", 0.050, U.per_min),
-    Parameter("beta", 0.11, U.pmolmg_per_kgmindl),
+    Parameter("beta", 0.11, U.pmoldl_per_kgminmg),
     Parameter("gamma", 0.5, U.per_min),
     # renal excretion
-    Parameter("k_e1", 0.0005, U.per_min),
-    Parameter("k_e2", 339, U.mg_per_kg),
+    # Parameter("k_e1", 0.0005, U.per_min),
+    # Parameter("k_e2", 339, U.mg_per_kg),
 ])
 
 # -------------------------------------------------------------------------------------
 # Rules
-# -------------------------------------------------------------------------------------
+# -----------------------------------------------------"--------------------------------
 
 
 # assignment rules
 _m.rules = [
-    AssignmentRule("aa", "5/2/(1-b)/D", U.per_mg),
-    AssignmentRule("cc", "5/2/d/D", U.per_mg),
+    AssignmentRule("aa", "5 dimensionless / 2 dimensionless /(1 dimensionless - b)/D", U.per_mg),
+    AssignmentRule("cc", "5 dimensionless / 2 dimensionless / d / D", U.per_mg),
     AssignmentRule(
         "EGP",
         "k_p1 -k_p2*Gp -k_p3*Id -k_p4*Ipo",
         U.mg_per_kgmin,
         name="EGP endogenous glucose production [mg/kg/min]",
     ),
-    AssignmentRule("V_mmax", "(1-part)*(V_m0+V_mX*INS)", U.mg_per_kgmin),
+    AssignmentRule("V_mmax", "(1 dimensionless - part)*(V_m0+V_mX*INS)", U.mg_per_kgmin),
     AssignmentRule("V_fmax", "part*(V_f0 + V_fX*INS)", U.mg_per_kgmin),
-    AssignmentRule("E", "0", U.mg_per_kgmin, "E renal excretion"),
+    AssignmentRule("E", "0 mg_per_kgmin", U.mg_per_kgmin, name="E renal excretion"),
     AssignmentRule("S", "gamma*Ipo", U.pmol_per_kgmin, name="S insulin secretion"),
     AssignmentRule("I", "Ip/V_I", U.pmol_per_l, name="I plasma insulin concentration"),
     AssignmentRule("G", "Gp/V_G", U.mg_per_dl, name="G plasma glucose concentration"),
     AssignmentRule(
         "HE", "-m_5*S + m_6", U.dimensionless, name="HE hepatic extraction insulin"
     ),
-    AssignmentRule("m_3", "HE*m_1/(1-HE)", U.per_min),
+    AssignmentRule("m_3", "HE * m_1/(1 dimensionless - HE)", U.per_min),
     AssignmentRule("Q_sto", "Qsto1 + Qsto2", U.mg, name="glucose in the stomach [mg]"),
     AssignmentRule(
         "Ra",
@@ -210,7 +214,7 @@ _m.rules = [
     ),
     AssignmentRule(
         "k_empt",
-        "k_min + (k_max-k_min)/2*(tanh(aa*(Q_sto-b*D)) - tanh(cc*(Q_sto-d*D))+2)",
+        "k_min + (k_max-k_min)/2 dimensionless*(tanh(aa*(Q_sto-b*D)) - tanh(cc*(Q_sto-d*D))+2 dimensionless)",
         U.per_min, name="rate of gastric emptying"
     ),
     AssignmentRule("U_idm", "V_mmax*Gt/(K_m0+Gt)", U.mg_per_kgmin),
@@ -225,20 +229,24 @@ _m.rules = [
         "U_ii","F_cns", U.mg_per_kgmin, name="insulin independent glucose utilization"),
     AssignmentRule("U", "U_ii + U_id", U.mg_per_kgmin, name="U glucose uptake", notes="""
     Sum of insulin independent Uii and insulin-dependent glucose utilizations"""),
-    AssignmentRule("S_po", "Y + K*(EGP+Ra-E-U_ii-k_1*Gp+k_2*Gt)/V_G + S_b", U.pmol_per_kgmin, name="[pmol/kg/min]"),
+    AssignmentRule("S_po",
+            "Y + K*(EGP +Ra -E -U_ii -k_1*Gp +k_2*Gt)/V_G + S_b",
+                   U.pmol_per_kgmin, name="[pmol/kg/min]"),
 ]
 
 dallaman_model = _m
 
 
-def create(output_dir: Path) -> None:
+def create(output_dir: Path) -> FactoryResult:
     """Create model."""
-    create_model(
+    return create_model(
         model=dallaman_model,
         filepath=output_dir / f"{dallaman_model.sid}.xml",
-        validation_options=ValidationOptions(units_consistency=False),
+        validation_options=ValidationOptions(units_consistency=True),
+        sbml_level=3, sbml_version=2,
     )
 
 
 if __name__ == "__main__":
-    create(output_dir=Path(__file__).parent / "results")
+    result: FactoryResult = create(output_dir=Path(__file__).parent / "results")
+    visualize_sbml(result.sbml_path)

@@ -1,1 +1,0 @@
-"""DallaMan model."""
