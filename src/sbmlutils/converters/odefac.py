@@ -67,8 +67,18 @@ class SBML2ODE:
         self.y_ast: Dict = {}  # assigned variables
         self.yids_ordered: List[str]  # yids in order of math dependencies
         self.y_units: Dict = {}  # y units
+        self.names: Dict[str, str] = {}
 
+        # create name dictionary
+        sbase: libsbml.SBase
+        for sbase in doc.getListOfAllElements():
+            sid = sbase.getId()
+            if sid and sbase.isSetName():
+                self.names[sid] = sbase.getName()
+
+        # create odes
         self._create_odes()
+
 
     def info(self) -> None:
         """Print information on ODE system to console."""
@@ -573,6 +583,7 @@ class SBML2ODE:
         c = {
             "model": self.doc.getModel(),
             "units": self.units,
+            "names": self.names,
             "xids": sorted(self.dx_ast.keys()),
             "pids": sorted(self.p.keys()),
             "yids": self.yids_ordered,
