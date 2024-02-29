@@ -427,6 +427,16 @@ class SBML2ODE:
         with open(py_file, "w") as f:
             f.write(content)
 
+    def to_tex(self, tex_file: Path) -> None:
+        """Write ODEs to tex/latex."""
+        content = self._render_template(
+            template_file="odefac_template.tex",
+            index_offset=0,
+            replace_symbols=False,
+        )
+        with open(tex_file, "w") as f:
+            f.write(content)
+
     def to_R(self, r_file: Path) -> None:
         """Write ODEs to R."""
         content = self._render_template(
