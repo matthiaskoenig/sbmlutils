@@ -4,40 +4,41 @@
 
 sbmlutils: python utilities for SBML
 ====================================
+|icon1| |icon2| |icon3| |icon4| |icon5| |icon6| |icon7| |icon8| |icon9|
 
-.. image:: https://github.com/matthiaskoenig/sbmlutils/workflows/CI-CD/badge.svg
+.. |icon1| image:: https://github.com/matthiaskoenig/sbmlutils/workflows/CI-CD/badge.svg
    :target: https://github.com/matthiaskoenig/sbmlutils/workflows/CI-CD
    :alt: GitHub Actions CI/CD Status
 
-.. image:: https://img.shields.io/pypi/v/sbmlutils.svg
+.. |icon2| image:: https://img.shields.io/pypi/v/sbmlutils.svg
    :target: https://pypi.org/project/sbmlutils/
    :alt: Current PyPI Version
 
-.. image:: https://img.shields.io/pypi/pyversions/sbmlutils.svg
+.. |icon3| image:: https://img.shields.io/pypi/pyversions/sbmlutils.svg
    :target: https://pypi.org/project/sbmlutils/
    :alt: Supported Python Versions
 
-.. image:: https://img.shields.io/pypi/l/sbmlutils.svg
+.. |icon4| image:: https://img.shields.io/pypi/l/sbmlutils.svg
    :target: http://opensource.org/licenses/LGPL-3.0
    :alt: GNU Lesser General Public License 3
 
-.. image:: https://codecov.io/gh/matthiaskoenig/sbmlutils/branch/develop/graph/badge.svg
+.. |icon5| image:: https://codecov.io/gh/matthiaskoenig/sbmlutils/branch/develop/graph/badge.svg
    :target: https://codecov.io/gh/matthiaskoenig/sbmlutils
    :alt: Codecov
 
-.. image:: https://readthedocs.org/projects/sbmlutils/badge/?version=latest
+.. |icon6| image:: https://readthedocs.org/projects/sbmlutils/badge/?version=latest
    :target: https://sbmlutils.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation Status
 
-.. image:: https://zenodo.org/badge/55952847.svg
+.. |icon7| image:: https://zenodo.org/badge/55952847.svg
    :target: https://zenodo.org/badge/latestdoi/55952847
    :alt: Zenodo DOI
 
-.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+.. |icon8| image:: https://img.shields.io/badge/code%20style-black-000000.svg
    :target: https://github.com/ambv/black
    :alt: Black
 
-.. image:: http://www.mypy-lang.org/static/mypy_badge.svg
+.. |icon9| image:: http://www.mypy-lang.org/static/mypy_badge.svg
    :target: http://mypy-lang.org/
    :alt: mypy
 
