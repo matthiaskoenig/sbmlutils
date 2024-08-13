@@ -10,7 +10,7 @@ if __name__ == "__main__":
         "iri_liver",
         # "pancreas_deepa"
     ]:
-        base_dir = Path(__file__).parent / "odefac_example"
+        base_dir = Path(__file__).parent
         model_path = base_dir / f"{model_id}.xml"
 
         # Create ODE system

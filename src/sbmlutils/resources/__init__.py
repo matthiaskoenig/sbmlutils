@@ -1,6 +1,4 @@
-"""
-Resources for testing
-"""
+"""Resources for testing."""
 from pathlib import Path
 from typing import List
 
@@ -73,7 +71,7 @@ DISTRIB_COMP_FLAT_SBML = RESOURCES_DIR / "examples" / "distrib_comp_flat.xml"
 
 
 def all_distrib_paths() -> List[Path]:
-    """Get distrib paths"""
+    """Get distrib paths."""
 
     distrib_model_ids = (
         [i for i in range(40, 48)]
@@ -180,7 +178,7 @@ BIOMODELS_CURATED_PATH = MODELS_DIR / "biomodels"
 
 
 def sbml_paths_idfn(sbml_path: Path) -> str:
-    """Helper function to inject Path in tests name."""
+    """Inject path in tests name."""
     return sbml_path.name
 
 

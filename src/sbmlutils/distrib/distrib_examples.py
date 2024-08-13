@@ -92,7 +92,7 @@ def distrib_all() -> libsbml.SBMLDocument:
         ast_node = libsbml.parseL3FormulaWithModel(formula, model)
         if ast_node is None:
             raise IOError(f"{formula}, {libsbml.getLastParseL3Error()}")
-        assignment.setMath(ast_node), "setting math"
+        assignment.setMath(ast_node)
 
     return doc
 

@@ -20,7 +20,7 @@ def start_server(path: Path, port: int = 5115) -> None:
     class Handler(http.server.SimpleHTTPRequestHandler):
         def __init__(self, *args, **kwargs):  # type: ignore
             """Initialize handler for requests."""
-            super().__init__(directory=path, *args, **kwargs)
+            super().__init__(directory=str(path), *args, **kwargs)  # noqa: B026
 
     with socketserver.TCPServer(("", port), Handler) as httpd:
         httpd.serve_forever()

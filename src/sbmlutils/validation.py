@@ -246,13 +246,13 @@ def validate_doc(
     )
     doc.setConsistencyChecks(
         libsbml.LIBSBML_CAT_SBO_CONSISTENCY, options.sbo_consistency
-    ),
+    )
     doc.setConsistencyChecks(
         libsbml.LIBSBML_CAT_OVERDETERMINED_MODEL, options.overdetermined_model
     )
     doc.setConsistencyChecks(
         libsbml.LIBSBML_CAT_SBO_CONSISTENCY, options.sbo_consistency
-    ),
+    )
 
     # time
     current = time.perf_counter()

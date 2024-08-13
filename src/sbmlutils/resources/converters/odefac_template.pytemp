@@ -13,8 +13,10 @@ length: [{{model_units["length"]}}]
 import numpy as np
 import pandas as pd
 
+
 def piecewise(*kwargs):
     """Piecewise function.
+
     piecewise      | x1, y1, [x2, y2,] [...] [z] | A piecewise function: if (y1), x1.  Otherwise, if (y2), x2, etc.  Otherwise, z.
     """
     for k in np.floor(len(kwargs)/2.0):
@@ -54,19 +56,20 @@ p = np.array([
 def f_dxdt(x: np.ndarray, t: float, p: np.ndarray) -> np.ndarray:
     """ODE system."""
     {% for id in yids %}
-    {{id}} = {{y[id]}}      # [{{ loop.index0 }}] {{ id }} [{{units[id]}}] {{names[id]}}
+    {{id}} = {{y[id]}}  # [{{ loop.index0 }}] {{ id }} [{{units[id]}}] {{names[id]}}
     {% endfor %}
 
     # ode
     return np.ndarray([
         {% for id in xids %}
-        {{dx[id]}},       # [{{ loop.index0 }}] {{ id }} [{{units[id]}}] {{names[id]}}
+        {{dx[id]}},  # [{{ loop.index0 }}] {{ id }} [{{units[id]}}] {{names[id]}}
         {% endfor %}
     ])
 
 
 def f_y(x: np.ndarray, t: float, p: np.ndarray) -> np.ndarray:
     """Calculate y.
+
     :param x: state vector
     :param t: time
     :param p: parameter vector
