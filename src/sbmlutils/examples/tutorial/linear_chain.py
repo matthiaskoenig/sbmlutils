@@ -18,14 +18,14 @@ model = Model(
     notes="""
     # Linear chain
     Programmatic creation of a linear chain.
-    """ + templates.terms_of_use,
+    """
+    + templates.terms_of_use,
     creators=templates.creators,
     compartments=[
         Compartment(sid="cell", value=1.0),
     ],
     species=[
-        Species(sid="S1", initialConcentration=10.0,
-                compartment="cell"),
+        Species(sid="S1", initialConcentration=10.0, compartment="cell"),
     ],
 )
 for k in range(n_chain):
@@ -38,14 +38,11 @@ for k in range(n_chain):
         ),
     )
     model.parameters.append(
-        Parameter(
-            sid=f"k{k+1}", value=0.1,
-            name=f"rate constant {k+1}"),
+        Parameter(sid=f"k{k+1}", value=0.1, name=f"rate constant {k+1}"),
     )
     model.reactions.append(
         Reaction(
-            sid=f"J{k+1}", equation=f"S{k+1} -> S{k+2}",
-            formula=f"k{k+1} * S{k+1}"
+            sid=f"J{k+1}", equation=f"S{k+1} -> S{k+2}", formula=f"k{k+1} * S{k+1}"
         ),
     )
 

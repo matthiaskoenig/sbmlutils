@@ -108,9 +108,11 @@ model.rate_rules = [
 if __name__ == "__main__":
     from sbmlutils.resources import EXAMPLES_DIR
 
-    results: FactoryResult = create_model(model=model, filepath=EXAMPLES_DIR / f"{model.sid}.xml")
+    results: FactoryResult = create_model(
+        model=model, filepath=EXAMPLES_DIR / f"{model.sid}.xml"
+    )
     factory = odefac.SBML2ODE.from_file(sbml_file=results.sbml_path)
     md_str = factory.to_markdown()
     from rich.markdown import Markdown
-    console.print(Markdown(md_str))
 
+    console.print(Markdown(md_str))

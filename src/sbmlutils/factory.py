@@ -400,7 +400,12 @@ class Sbase:
     def __str__(self) -> str:
         """Get string."""
         field_str = ", ".join(
-            [str(getattr(self, f)) for f in self.fields if getattr(self, f) if f not in {"notes", "annotations"}]
+            [
+                str(getattr(self, f))
+                for f in self.fields
+                if getattr(self, f)
+                if f not in {"notes", "annotations"}
+            ]
         )
         return f"{self.__class__.__name__}({field_str})"
 

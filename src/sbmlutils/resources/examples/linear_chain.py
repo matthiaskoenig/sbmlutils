@@ -17,48 +17,66 @@ import pandas as pd
 # -------------------
 # ids
 # -------------------
-xids = ["S1", "S2", "S3", "S4", ]
-pids = ["cell", "k1", "k2", "k3", ]
-yids = ["J1", "J2", "J3", ]
+xids = [
+    "S1",
+    "S2",
+    "S3",
+    "S4",
+]
+pids = [
+    "cell",
+    "k1",
+    "k2",
+    "k3",
+]
+yids = [
+    "J1",
+    "J2",
+    "J3",
+]
 
 # -------------------
 # initial conditions
 # -------------------
-x0 = np.array([
-    10.0,     # [0] S1 [-/-] cell
-    0.0,     # [1] S2 [-/-] cell
-    0.0,     # [2] S3 [-/-] cell
-    0.0,     # [3] S4 [-/-] cell
-])
+x0 = np.array(
+    [
+        10.0,  # [0] S1 [-/-] cell
+        0.0,  # [1] S2 [-/-] cell
+        0.0,  # [2] S3 [-/-] cell
+        0.0,  # [3] S4 [-/-] cell
+    ]
+)
 
 # -------------------
 # parameters
 # -------------------
-p = np.array([
-    1.0,     # [0] cell [-]
-    0.1,     # [1] k1 [-]
-    0.1,     # [2] k2 [-]
-    0.1,     # [3] k3 [-]
-])
+p = np.array(
+    [
+        1.0,  # [0] cell [-]
+        0.1,  # [1] k1 [-]
+        0.1,  # [2] k2 [-]
+        0.1,  # [3] k3 [-]
+    ]
+)
 
 
 def f_dxdt(x, t, p):
-    """ ODE system """
-    J1 = p[1] * x[0]      # [0] J1 [-/-]
-    J2 = p[2] * x[1]      # [1] J2 [-/-]
-    J3 = p[3] * x[2]      # [2] J3 [-/-]
+    """ODE system"""
+    J1 = p[1] * x[0]  # [0] J1 [-/-]
+    J2 = p[2] * x[1]  # [1] J2 [-/-]
+    J3 = p[3] * x[2]  # [2] J3 [-/-]
 
     # ode
     return [
-        -J1 / p[0],       # [0] S1 [-/-]
-        J1 / p[0] - J2 / p[0],       # [1] S2 [-/-]
-        J2 / p[0] - J3 / p[0],       # [2] S3 [-/-]
-        J3 / p[0],       # [3] S4 [-/-]
+        -J1 / p[0],  # [0] S1 [-/-]
+        J1 / p[0] - J2 / p[0],  # [1] S2 [-/-]
+        J2 / p[0] - J3 / p[0],  # [2] S3 [-/-]
+        J3 / p[0],  # [3] S4 [-/-]
     ]
 
 
 def f_y(x, t, p):
-    """ Calculate y.
+    """Calculate y.
     :param x:
     :param t:
     :param p:
@@ -80,17 +98,17 @@ def f_y(x, t, p):
 
 
 def f_z(X, T, p):
-    """ DataFrame of full timecourse of solution. """
+    """DataFrame of full timecourse of solution."""
     (Nt, Nx) = X.shape
     Ny = len(yids)
     Nz = 1 + Nx + Ny
     columns = ["time"] + xids + yids
     Z = np.empty(shape=(Nt, Nz))
     Z[:, 0] = T
-    Z[:, 1:(Nx+1)] = X
+    Z[:, 1 : (Nx + 1)] = X
     for kt in range(Nt):
         y = f_y(x=X[kt, :], t=T[kt], p=p)
-        Z[kt, (Nx+1):] = y
+        Z[kt, (Nx + 1) :] = y
 
     Z = pd.DataFrame(Z, columns=columns)
     return Z

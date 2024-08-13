@@ -55,7 +55,8 @@ class SBML2ODE:
         self.doc: libsbml.SBMLDocument = doc
 
         self.names: Dict[str, str] = {}
-        self.units: Dict[str, Optional[str]] = {}  # model units
+        self.model_units: Dict[str, Optional[str]] = {}
+        self.units: Dict[str, Optional[str]] = {}
 
         # --- fixed model entities ---
         # p: constants (parameters, compartments, species)
@@ -69,20 +70,16 @@ class SBML2ODE:
         # x: state variables (species, parameters, compartments)
 
         self.x0: Dict = {}  # initial amounts/concentrations
-        self.a_ast: Dict = {}  # initial assignments
         self.dx: Dict = {}
         self.dx_ast: Dict = {}  # state variables x (odes)
-        self.x_units: Dict = {}  # state variables x units
+
         self.x_compartments: Dict = {}  # compartments of species
         self.x_: Set = set()  # species state variables as concentrations
 
         self.p: Dict = {}  # parameters p (constants)
-        self.p_units: Dict = {}  # parameter units
 
         self.y_ast: Dict = {}  # assigned variables
         self.yids_ordered: List[str]  # yids in order of math dependencies
-        self.y_units: Dict = {}  # y units
-
 
         # create name dictionary
         sbase: libsbml.SBase
@@ -94,20 +91,15 @@ class SBML2ODE:
         # create odes
         self._create_odes()
 
-
     def info(self) -> None:
         """Print information on ODE system to console."""
         console.rule(title="ODE System", align="left", style="white")
-        console.print(f"{self.units=}")
+        console.print(f"{self.model_units=}")
         console.print(f"{self.x0=}")
-        console.print(f"{self.x_units=}")
-        console.print(f"{self.a_ast=}")
         console.print(f"{self.dx=}")
         console.print(f"{self.dx_ast=}")
         console.print(f"{self.p=}")
-        console.print(f"{self.p_units=}")
         console.print(f"{self.y_ast=}")
-        console.print(f"{self.y_units=}")
         console.print(f"{self.yids_ordered=}")
 
     @classmethod
@@ -123,22 +115,22 @@ class SBML2ODE:
         # --------------
         # model units
         # --------------
-        self.units["time"] = udef_to_string(
+        self.model_units["time"] = udef_to_string(
             model.getTimeUnits(), model=model, format="str"
         )
-        self.units["substance"] = udef_to_string(
+        self.model_units["substance"] = udef_to_string(
             model.getSubstanceUnits(), model=model, format="str"
         )
-        self.units["length"] = udef_to_string(
+        self.model_units["length"] = udef_to_string(
             model.getLengthUnits(), model=model, format="str"
         )
-        self.units["area"] = udef_to_string(
+        self.model_units["area"] = udef_to_string(
             model.getAreaUnits(), model=model, format="str"
         )
-        self.units["volume"] = udef_to_string(
+        self.model_units["volume"] = udef_to_string(
             model.getVolumeUnits(), model=model, format="str"
         )
-        self.units["extent"] = udef_to_string(
+        self.model_units["extent"] = udef_to_string(
             model.getExtentUnits(), model=model, format="str"
         )
 
@@ -150,7 +142,7 @@ class SBML2ODE:
             pid = parameter.getId()
             value = parameter.getValue()
             self.p[pid] = value
-            self.p_units[pid] = udef_to_string(
+            self.units[pid] = udef_to_string(
                 parameter.getUnits(), model=model, format="str"
             )
 
@@ -163,7 +155,7 @@ class SBML2ODE:
             cid = compartment.getId()
             value = compartment.getSize()
             self.p[cid] = value
-            self.p_units[cid] = udef_to_string(
+            self.units[cid] = udef_to_string(
                 compartment.getUnits(), model=model, format="str"
             )
 
@@ -174,7 +166,6 @@ class SBML2ODE:
         for species in model.getListOfSpecies():
             sid = species.getId()
 
-            # FIXME: handle species with assignment rules
             self.dx_ast[sid] = ""
             # initial condition
             value = None
@@ -196,7 +187,7 @@ class SBML2ODE:
             if not species.getHasOnlySubstanceUnits():
                 compartment = model.getCompartment(species.getCompartment())
                 ustr = f"{ustr}/{udef_to_string(compartment.getUnits(), model=model, format='str')}"
-            self.x_units[sid] = ustr
+            self.units[sid] = ustr
 
             # compartments
             self.x_compartments[sid] = species.getCompartment()
@@ -239,13 +230,13 @@ class SBML2ODE:
                     parameter = model.getParameter(variable)
                     if parameter:
                         self.x0[variable] = parameter.getValue()
-                        self.x_units[variable] = udef_to_string(
+                        self.units[variable] = udef_to_string(
                             parameter.getUnits(), model=model, format="str"
                         )
                     compartment = model.getCompartment(variable)
                     if compartment:
                         self.x0[variable] = compartment.getSize()
-                        self.x_units[variable] = udef_to_string(
+                        self.units[variable] = udef_to_string(
                             compartment.getUnits(), model=model, format="str"
                         )
 
@@ -258,16 +249,14 @@ class SBML2ODE:
                 astnode = as_rule.getMath()
                 self.y_ast[variable] = astnode
 
-                if variable in self.dx_ast:
-                    if variable in self.dx:
-                        del self.dx[variable]
-                        self.y_units[variable] = self.x_units[variable]
-                        del self.x_units[variable]
+                # assignment rule variables are no odes, move to y
+                if variable in self.x0:
+                    del self.x_compartments[variable]
+                    del self.x0[variable]
+                    del self.dx_ast[variable]
 
                 if variable in self.p:
                     del self.p[variable]
-                    self.y_units[variable] = self.p_units[variable]
-                    del self.p_units[variable]
 
         # Process the kinetic laws of reactions
         reaction: libsbml.Reaction
@@ -277,7 +266,7 @@ class SBML2ODE:
                 klaw: libsbml.KineticLaw = reaction.getKineticLaw()
                 astnode = klaw.getMath()
             self.y_ast[rid] = astnode
-            self.y_units[rid] = f"{self.units['extent']}/{self.units['time']}"
+            self.units[rid] = f"{self.model_units['extent']}/{self.model_units['time']}"
 
             # create astnode for dx_ast
             reactant: libsbml.SpeciesReference
@@ -290,6 +279,13 @@ class SBML2ODE:
                 self._add_reaction_formula(
                     model, rid=rid, species_ref=product, sign="+"
                 )
+
+        # cleanup species with no reactions
+        # remove_variables = {k for k, astnode in self.dx_ast.items() if not astnode}
+        # for variable in remove_variables:
+        #     del self.x_compartments[variable]
+        #     del self.x0[variable]
+        #     del self.dx_ast[variable]
 
         # create astnodes for the formula strings
         for key, astnode in self.dx_ast.items():
@@ -432,7 +428,7 @@ class SBML2ODE:
         yids = create_ordered_variables(g)
         return yids
 
-    def to_python(self, py_file: Optional[Path]=None) -> str:
+    def to_python(self, py_file: Optional[Path] = None) -> str:
         """Write ODEs to python."""
         content = self._render_template(
             template_file="odefac_template.pytemp",
@@ -445,7 +441,7 @@ class SBML2ODE:
 
         return content
 
-    def to_tex(self, tex_file: Optional[Path]=None) -> str:
+    def to_tex(self, tex_file: Optional[Path] = None) -> str:
         """Write ODEs to tex/latex."""
         content = self._render_template(
             template_file="odefac_template.tex",
@@ -458,7 +454,7 @@ class SBML2ODE:
 
         return content
 
-    def to_R(self, r_file: Optional[Path]=None) -> str:
+    def to_R(self, r_file: Optional[Path] = None) -> str:
         """Write ODEs to R."""
         content = self._render_template(
             template_file="odefac_template.R",
@@ -471,7 +467,7 @@ class SBML2ODE:
 
         return content
 
-    def to_markdown(self, md_file: Optional[Path]=None) -> str:
+    def to_markdown(self, md_file: Optional[Path] = None) -> str:
         """Write ODEs to markdown."""
         content = self._render_template(
             template_file="odefac_template.md",
@@ -484,7 +480,9 @@ class SBML2ODE:
 
         return content
 
-    def to_custom_template(self, template_file: Path, output_file: Optional[Path]=None) -> str:
+    def to_custom_template(
+        self, template_file: Path, output_file: Optional[Path] = None
+    ) -> str:
         """Write ODEs to custom template."""
         content = self._render_template(
             template_file=template_file.name,
@@ -622,6 +620,7 @@ class SBML2ODE:
         # context
         c = {
             "model": self.doc.getModel(),
+            "model_units": self.model_units,
             "units": self.units,
             "names": self.names,
             "xids": sorted(self.dx_ast.keys()),
@@ -629,12 +628,9 @@ class SBML2ODE:
             "yids": self.yids_ordered,
             # 'rids': sorted(self.r.keys()),
             "x0": self.x0,
-            "x_units": self.x_units,
             "x_compartments": self.x_compartments,
             "p": self.p,
-            "p_units": self.p_units,
             "y": y,
-            "y_units": self.y_units,
             "dx": dx,
             "y_sym": y_sym,
             "dx_sym": dx_sym,
