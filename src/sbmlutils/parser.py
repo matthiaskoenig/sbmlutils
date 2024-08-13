@@ -239,6 +239,7 @@ def sbml_to_model(
                 equation.modifiers.append(modifier.getSpecies())
 
         # formula
+        ast = None
         if r.isSetKineticLaw():
             klaw: libsbml.KineticLaw = r.getKineticLaw()
             ast = klaw.getMath() if klaw.isSetMath() else None

@@ -1221,11 +1221,12 @@ class Species(Sbase):
             replacedBy=replacedBy,
         )
 
-        if (initialAmount is None) and (initialConcentration is None):
-            logger.warning(
-                f"Either initialAmount or initialConcentration should be set "
-                f"for species: `{sid}`."
-            )
+        # overkill for fbc networks
+        # if (initialAmount is None) and (initialConcentration is None):
+        #     logger.warning(
+        #         f"Either initialAmount or initialConcentration should be set "
+        #         f"for species: `{sid}`."
+        #     )
         if initialAmount and initialConcentration:
             raise ValueError(
                 f"Either initialAmount or initialConcentration can be set on "
