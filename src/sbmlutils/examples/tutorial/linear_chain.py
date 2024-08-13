@@ -4,6 +4,7 @@ This demonstrates core SBML functionality in combination with using patterns.
 `sbmlutils` allows to generate patterns of objects by combining loops in combination
 with string patterns. In this example we create a kinetic model of a linear chain.
 """
+from sbmlutils.converters import odefac
 from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
@@ -16,16 +17,15 @@ model = Model(
     sid="linear_chain",
     notes="""
     # Linear chain
-
-    Example model for the programatic creation of a linear chain.
-    """
-    + templates.terms_of_use,
+    Programmatic creation of a linear chain.
+    """ + templates.terms_of_use,
     creators=templates.creators,
     compartments=[
         Compartment(sid="cell", value=1.0),
     ],
     species=[
-        Species(sid="S1", initialConcentration=10.0, compartment="cell"),
+        Species(sid="S1", initialConcentration=10.0,
+                compartment="cell"),
     ],
 )
 for k in range(n_chain):
@@ -38,20 +38,32 @@ for k in range(n_chain):
         ),
     )
     model.parameters.append(
-        Parameter(sid=f"k{k+1}", value=0.1, name=f"rate constant {k+1}"),
+        Parameter(
+            sid=f"k{k+1}", value=0.1,
+            name=f"rate constant {k+1}"),
     )
     model.reactions.append(
         Reaction(
-            sid=f"J{k+1}", equation=f"S{k+1} -> S{k+2}", formula=f"k{k+1} * S{k+1}"
+            sid=f"J{k+1}", equation=f"S{k+1} -> S{k+2}",
+            formula=f"k{k+1} * S{k+1}"
         ),
     )
 
 if __name__ == "__main__":
     from sbmlutils.resources import EXAMPLES_DIR
 
-    factory_results = create_model(
+    results = create_model(
         model=model,
         filepath=EXAMPLES_DIR / f"{model.sid}.xml",
         validation_options=ValidationOptions(units_consistency=False),
     )
-    visualize_sbml(sbml_path=factory_results.sbml_path)
+    # create odes
+    factory = odefac.SBML2ODE.from_file(sbml_file=results.sbml_path)
+    md_path = EXAMPLES_DIR / f"{model.sid}.md"
+    factory.to_markdown(md_file=md_path)
+    py_path = EXAMPLES_DIR / f"{model.sid}.py"
+    factory.to_python(py_file=py_path)
+    r_path = EXAMPLES_DIR / f"{model.sid}.R"
+    factory.to_R(r_file=r_path)
+
+    visualize_sbml(sbml_path=results.sbml_path)

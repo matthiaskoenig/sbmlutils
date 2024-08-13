@@ -3118,6 +3118,7 @@ class Model(Sbase, FrozenClass, BaseModel):
     model_config = ConfigDict(
         extra="allow",
         arbitrary_types_allowed=True,
+        protected_namespaces=(),
     )
 
     sid: str
