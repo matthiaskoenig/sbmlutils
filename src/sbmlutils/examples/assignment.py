@@ -1,4 +1,6 @@
 """AssignmentRule and InitialAssignment example."""
+from sbmlutils.console import console
+from sbmlutils.converters import odefac
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
 
@@ -90,7 +92,7 @@ model.rules = [
         "Cve",
         "A/Vblood",
         U.mg_per_l,
-        name="rule to calulate concentration",
+        name="rule to calculate concentration",
         notes="""
         Assignment rule to calculate the concentration `Cve` in [mg/l] from the
         species `A` and the volume `Vblood`.
@@ -106,4 +108,9 @@ model.rate_rules = [
 if __name__ == "__main__":
     from sbmlutils.resources import EXAMPLES_DIR
 
-    create_model(model=model, filepath=EXAMPLES_DIR / f"{model.sid}.xml")
+    results: FactoryResult = create_model(model=model, filepath=EXAMPLES_DIR / f"{model.sid}.xml")
+    factory = odefac.SBML2ODE.from_file(sbml_file=results.sbml_path)
+    md_str = factory.to_markdown()
+    from rich.markdown import Markdown
+    console.print(Markdown(md_str))
+

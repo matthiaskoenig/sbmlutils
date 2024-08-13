@@ -54,7 +54,20 @@ class SBML2ODE:
         """
         self.doc: libsbml.SBMLDocument = doc
 
+        self.names: Dict[str, str] = {}
         self.units: Dict[str, Optional[str]] = {}  # model units
+
+        # --- fixed model entities ---
+        # p: constants (parameters, compartments, species)
+        # x: initial values (state variables)
+
+        # assignments
+        # p=: assignment rules (species, parameters, compartments)
+        # x0=: initial values
+
+        # kinetics dx/dt
+        # x: state variables (species, parameters, compartments)
+
         self.x0: Dict = {}  # initial amounts/concentrations
         self.a_ast: Dict = {}  # initial assignments
         self.dx: Dict = {}
@@ -62,12 +75,14 @@ class SBML2ODE:
         self.x_units: Dict = {}  # state variables x units
         self.x_compartments: Dict = {}  # compartments of species
         self.x_: Set = set()  # species state variables as concentrations
+
         self.p: Dict = {}  # parameters p (constants)
         self.p_units: Dict = {}  # parameter units
+
         self.y_ast: Dict = {}  # assigned variables
         self.yids_ordered: List[str]  # yids in order of math dependencies
         self.y_units: Dict = {}  # y units
-        self.names: Dict[str, str] = {}
+
 
         # create name dictionary
         sbase: libsbml.SBase
@@ -417,47 +432,59 @@ class SBML2ODE:
         yids = create_ordered_variables(g)
         return yids
 
-    def to_python(self, py_file: Path) -> None:
+    def to_python(self, py_file: Optional[Path]=None) -> str:
         """Write ODEs to python."""
         content = self._render_template(
             template_file="odefac_template.pytemp",
             index_offset=0,
             replace_symbols=True,
         )
-        with open(py_file, "w") as f:
-            f.write(content)
+        if py_file:
+            with open(py_file, "w") as f:
+                f.write(content)
 
-    def to_tex(self, tex_file: Path) -> None:
+        return content
+
+    def to_tex(self, tex_file: Optional[Path]=None) -> str:
         """Write ODEs to tex/latex."""
         content = self._render_template(
             template_file="odefac_template.tex",
             index_offset=0,
             replace_symbols=False,
         )
-        with open(tex_file, "w") as f:
-            f.write(content)
+        if tex_file:
+            with open(tex_file, "w") as f:
+                f.write(content)
 
-    def to_R(self, r_file: Path) -> None:
+        return content
+
+    def to_R(self, r_file: Optional[Path]=None) -> str:
         """Write ODEs to R."""
         content = self._render_template(
             template_file="odefac_template.R",
             index_offset=1,
             replace_symbols=True,
         )
-        with open(r_file, "w") as f:
-            f.write(content)
+        if r_file:
+            with open(r_file, "w") as f:
+                f.write(content)
 
-    def to_markdown(self, md_file: Path) -> None:
+        return content
+
+    def to_markdown(self, md_file: Optional[Path]=None) -> str:
         """Write ODEs to markdown."""
         content = self._render_template(
             template_file="odefac_template.md",
             index_offset=0,
             replace_symbols=False,
         )
-        with open(md_file, "w") as f:
-            f.write(content)
+        if md_file:
+            with open(md_file, "w") as f:
+                f.write(content)
 
-    def to_custom_template(self, output_file: Path, template_file: Path) -> None:
+        return content
+
+    def to_custom_template(self, template_file: Path, output_file: Optional[Path]=None) -> str:
         """Write ODEs to custom template."""
         content = self._render_template(
             template_file=template_file.name,
@@ -465,8 +492,11 @@ class SBML2ODE:
             replace_symbols=False,
             template_dir=template_file.parent,
         )
-        with open(output_file, "w") as f:
-            f.write(content)
+        if output_file:
+            with open(output_file, "w") as f:
+                f.write(content)
+
+        return content
 
     def _render_template(
         self,
