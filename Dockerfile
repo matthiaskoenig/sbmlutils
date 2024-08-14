@@ -11,7 +11,7 @@
 #  docker run -d --name mycontainer -p 80:80 -e MODULE_NAME="sbmlutils.report.api" -e VARIABLE_NAME="api" myimage
 #  docker run -d --name mycontainer -p 80:80 myimage
 # -------------------------------------------------------------------------------------
-FROM tiangolo/uvicorn-gunicorn-fastapi:python3.9
+FROM tiangolo/uvicorn-gunicorn-fastapi:python3.11
 
 # Caching of python requirements
 # COPY ./requirements.txt /code/requirements.txt
@@ -29,7 +29,7 @@ COPY ./LICENSE /code/LICENSE
 WORKDIR /code
 
 # Install sbmlutils
-RUN pip install -e .
+RUN pip install -e . --no-cache-dir --upgrade
 
 ENV MODULE_NAME="sbmlutils.report.api"
 ENV VARIABLE_NAME="api"
