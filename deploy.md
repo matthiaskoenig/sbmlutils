@@ -43,7 +43,3 @@ Pull latest changes
 ```
 ./deploy.sh
 ```
-
-
-
-

@@ -142,7 +142,6 @@ def simulate(sbml_file):
 
 if __name__ == "__main__":
 
-
     # download and unzip all sbml files
     # ode_all = get_models(download=True)
 
