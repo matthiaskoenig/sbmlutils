@@ -1,12 +1,13 @@
-"""Module for interacting with Cytoscape."""
+"""Module for visualiation in Cytoscape."""
 import tempfile
 from pathlib import Path
 from typing import Any, Union
 
-from py2cytoscape.data.cyrest_client import CyRestClient  # type: ignore
-from requests.exceptions import ConnectionError  # type: ignore
+import py4cytoscape as p4c
+from requests.exceptions import RequestException
 
 from sbmlutils import log
+from sbmlutils.console import console
 from sbmlutils.parser import antimony_to_sbml
 
 
@@ -23,18 +24,19 @@ def visualize_antimony(source: Union[Path, str], delete_session: bool = False) -
     visualize_sbml(Path(f_tmp.name), delete_session=delete_session)
 
 
-def visualize_sbml(sbml_path: Path, delete_session: bool = False) -> Any:
+def visualize_sbml(sbml_path: Path, delete_session: bool = False) -> None:
     """Visualize SBML networks in cytoscape."""
+
     try:
-        cy = CyRestClient()
+        console.print(p4c.cytoscape_version_info())
+
         if delete_session:
-            # reset Cytoscape session
-            cy.session.delete()
-        networks = cy.network.create_from(str(sbml_path))
-        return networks
-    except ConnectionError:
+            p4c.session.close_session(save_before_closing=False)
+
+        p4c.networks.import_network_from_file(str(sbml_path))
+
+    except RequestException:
         logger.error(
-            "Could not connect to a running Cytoscape instance. Please "
-            "start a Cytoscape instance before execution."
+            "Could not connect to a running Cytoscape instance. "
+            "Start Cytoscape before running the python script."
         )
-        return None
