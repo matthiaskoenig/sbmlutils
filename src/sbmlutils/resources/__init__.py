@@ -63,6 +63,12 @@ COMP_DEX_KIDNEY = MODELS_DIR / "comp" / "dex_kidney.xml"
 COMP_DEX_BODY_FLAT = MODELS_DIR / "comp" / "dex_body_flat.xml"
 COMP_DEX_BODY = MODELS_DIR / "comp" / "dex_body.xml"
 
+COMP_SPT_LIVER = MODELS_DIR / "comp" / "spt_liver.xml"
+COMP_SPT_INTESTINE = MODELS_DIR / "comp" / "spt_intestine.xml"
+COMP_SPT_KIDNEY = MODELS_DIR / "comp" / "spt_kidney.xml"
+COMP_SPT_BODY_FLAT = MODELS_DIR / "comp" / "spt_body_flat.xml"
+COMP_SPT_BODY = MODELS_DIR / "comp" / "spt_body.xml"
+
 # distrib
 DISTRIB_DISTRIBUTIONS_SBML = RESOURCES_DIR / "examples" / "distrib_distributions.xml"
 DISTRIB_UNCERTAINTIES_SBML = RESOURCES_DIR / "examples" / "distrib_uncertainties.xml"
@@ -151,6 +157,12 @@ API_EXAMPLES_MODEL = [
     COMP_DEX_INTESTINE,
     COMP_DEX_KIDNEY,
     COMP_DEX_LIVER,
+    COMP_SPT_LIVER,
+    COMP_SPT_INTESTINE,
+    COMP_SPT_KIDNEY,
+    COMP_SPT_BODY_FLAT,
+    COMP_SPT_BODY,
+
     DISTRIB_DISTRIBUTIONS_SBML,
     DISTRIB_UNCERTAINTIES_SBML,
     FBC_ECOLI_CORE_SBML,
