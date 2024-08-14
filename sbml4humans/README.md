@@ -14,7 +14,7 @@ Alternatively the backend and frontend can be run directly on the machine. This 
 ### Start backend API (local)
 Create Python virtual environment and install sbml4humans
 ```bash
-mkvirtualenv sbml4humans --python=python3.10
+mkvirtualenv sbml4humans --python=python3.12
 pip install -e .[sbml4humans,development] --upgrade
 ``` 
 

@@ -1,5 +1,8 @@
 """Module for visualiation in Cytoscape."""
+import os
 import tempfile
+os.environ["PY4CYTOSCAPE_DETAIL_LOGGER_DIR"] = str(tempfile.gettempdir())
+
 from pathlib import Path
 from typing import Any, Union
 
