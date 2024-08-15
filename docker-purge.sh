@@ -1,5 +1,5 @@
 # shut down all containers (remove images and volumes)
-docker-compose -f docker-compose-production.yml down --volumes --rmi local
+docker compose -f docker-compose-production.yml down --volumes --rmi local
 # docker-compose -f docker-compose-develop.yml down --volumes --rmi local
 
 # make sure containers are removed (if not running)
