@@ -4,9 +4,13 @@ environment for the SBML4Humans report.
 
 ## Project setup for development
 
-### Start backend API and frontend (docker-compose)
+### Start backend API and frontend (docker compose)
 The simplest setup is to start the frontend and backend via the docker-compose scripts.
 
+```
+sudo docker compose -f docker-compose-develop.yml build --no-cache
+sudo docker compose -f docker-compose-develop.yml up
+```
 
 Alternatively the backend and frontend can be run directly on the machine. This most likely requires updates of the local `node` and `npm` packages.
 
