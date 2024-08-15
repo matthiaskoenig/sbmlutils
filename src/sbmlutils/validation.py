@@ -316,7 +316,7 @@ def _check_consistency(
     if internal_consistency:
         count = doc.checkInternalConsistency()
     else:
-        count = doc.checkConsistency()
+        count = doc.checkConsistencyWithStrictUnits()
 
     if count > 0:
         for i in range(count):
