@@ -1,7 +1,9 @@
 # -------------------------------------------------------------------------------------
 # Container to serve FastAPI backend api from sbmlutils
+# sudo docker build -t fastapi-app .
+# sudo docker run -p 1444:1444 fastapi-app
 # -------------------------------------------------------------------------------------
-FROM python:3.12
+FROM python:3.12-slim
 
 # Add application code to the image
 COPY ./src /code/src
@@ -15,10 +17,6 @@ WORKDIR /code
 
 # Install sbmlutils
 RUN pip install -e . --no-cache-dir --upgrade
-
-#ENV MODULE_NAME="sbmlutils.report.api"
-#ENV VARIABLE_NAME="api"
-#ENV PORT="1444"
 
 EXPOSE 1444
 CMD ["uvicorn", "sbmlutils.report.api:api", "--host", "0.0.0.0", "--port", "1444"]
