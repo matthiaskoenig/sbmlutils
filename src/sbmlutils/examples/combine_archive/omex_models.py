@@ -2,6 +2,7 @@
 
 This demonstrates just the very core SBML functionality.
 """
+
 from pathlib import Path
 from typing import Optional
 
@@ -69,7 +70,7 @@ for k in range(n_cells):
 for k in range(n_cells - 1):
     _m.reactions.append(  # type: ignore
         Reaction(
-            sid=f"J{k}", equation=f"S{k} <-> S{k+1}", formula=f"D * (S{k}-S{k+1})"
+            sid=f"J{k}", equation=f"S{k} <-> S{k + 1}", formula=f"D * (S{k} - S{k + 1})"
         ),
     )
 

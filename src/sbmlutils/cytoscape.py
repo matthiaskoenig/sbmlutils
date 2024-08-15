@@ -1,17 +1,20 @@
 """Module for visualiation in Cytoscape."""
+
 import os
 import tempfile
+
+
 os.environ["PY4CYTOSCAPE_DETAIL_LOGGER_DIR"] = str(tempfile.gettempdir())
 
-from pathlib import Path
-from typing import Any, Union
+from pathlib import Path  # noqa: E402
+from typing import Any, Union  # noqa: E402
 
-import py4cytoscape as p4c
-from requests.exceptions import RequestException
+import py4cytoscape as p4c  # type: ignore  # noqa: E402
+from requests.exceptions import RequestException  # noqa: E402
 
-from sbmlutils import log
-from sbmlutils.console import console
-from sbmlutils.parser import antimony_to_sbml
+from sbmlutils import log  # noqa: E402
+from sbmlutils.console import console  # noqa: E402
+from sbmlutils.parser import antimony_to_sbml  # noqa: E402
 
 
 logger = log.get_logger(__name__)

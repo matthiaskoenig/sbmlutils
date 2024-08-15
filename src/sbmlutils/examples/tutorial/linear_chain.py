@@ -4,6 +4,7 @@ This demonstrates core SBML functionality in combination with using patterns.
 `sbmlutils` allows to generate patterns of objects by combining loops in combination
 with string patterns. In this example we create a kinetic model of a linear chain.
 """
+
 from sbmlutils.converters import odefac
 from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.examples import templates
@@ -34,15 +35,17 @@ for k in range(n_chain):
             sid=f"S{k + 2}",
             initialConcentration=0.0,
             compartment="cell",
-            name=f"Species {k +2}",
+            name=f"Species {k + 2}",
         ),
     )
     model.parameters.append(
-        Parameter(sid=f"k{k+1}", value=0.1, name=f"rate constant {k+1}"),
+        Parameter(sid=f"k{k + 1}", value=0.1, name=f"rate constant {k + 1}"),
     )
     model.reactions.append(
         Reaction(
-            sid=f"J{k+1}", equation=f"S{k+1} -> S{k+2}", formula=f"k{k+1} * S{k+1}"
+            sid=f"J{k + 1}",
+            equation=f"S{k + 1} -> S{k + 2}",
+            formula=f"k{k + 1} * S{k + 1}",
         ),
     )
 

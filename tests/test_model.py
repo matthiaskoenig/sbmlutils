@@ -1,4 +1,5 @@
 """Test model functionality."""
+
 import pytest
 
 from sbmlutils.factory import *

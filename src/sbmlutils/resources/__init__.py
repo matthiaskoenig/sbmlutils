@@ -1,4 +1,5 @@
 """Resources for testing."""
+
 from pathlib import Path
 from typing import List
 
@@ -162,7 +163,6 @@ API_EXAMPLES_MODEL = [
     COMP_SPT_KIDNEY,
     COMP_SPT_BODY_FLAT,
     COMP_SPT_BODY,
-
     DISTRIB_DISTRIBUTIONS_SBML,
     DISTRIB_UNCERTAINTIES_SBML,
     FBC_ECOLI_CORE_SBML,

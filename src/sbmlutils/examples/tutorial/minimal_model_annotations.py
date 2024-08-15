@@ -1,4 +1,5 @@
 """Annotate an existing model."""
+
 from pathlib import Path
 
 from sbmlutils.cytoscape import visualize_sbml

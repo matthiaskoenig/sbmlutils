@@ -1,4 +1,5 @@
 """AssignmentRule and InitialAssignment example."""
+
 from sbmlutils.console import console
 from sbmlutils.converters import odefac
 from sbmlutils.examples import templates

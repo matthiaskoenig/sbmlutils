@@ -1,4 +1,5 @@
 """Utility functions for reading, writing and validating SBML."""
+
 from pathlib import Path
 from typing import Optional, Union
 

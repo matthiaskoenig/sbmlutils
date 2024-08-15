@@ -1,4 +1,5 @@
 """Example models for the sbml4humans API."""
+
 from pathlib import Path
 from typing import List, Optional
 

@@ -1,4 +1,5 @@
 """FBA example with UserDefinedConstraints."""
+
 import numpy as np
 
 from sbmlutils.examples import templates

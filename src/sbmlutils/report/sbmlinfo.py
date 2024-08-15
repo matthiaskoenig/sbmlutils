@@ -3,6 +3,7 @@
 The model dictionary can be used for rendering the HTML report.
 The information can be serialized to JSON for later rendering in web app.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -386,12 +387,16 @@ class SBMLDocumentInfo:
                         "value": upar.getValue() if upar.isSetValue() else None,
                         "units": upar.getUnits() if upar.isSetUnits() else None,
                         "type": upar.getTypeAsString() if upar.isSetType() else None,
-                        "definitionURL": upar.getDefinitionURL()
-                        if upar.isSetDefinitionURL()
-                        else None,
-                        "math": astnode_to_latex(upar.getMath())
-                        if upar.isSetMath()
-                        else None,
+                        "definitionURL": (
+                            upar.getDefinitionURL()
+                            if upar.isSetDefinitionURL()
+                            else None
+                        ),
+                        "math": (
+                            astnode_to_latex(upar.getMath())
+                            if upar.isSetMath()
+                            else None
+                        ),
                     }
 
                     u_dict["uncertaintyParameters"].append(param_dict)
@@ -486,9 +491,9 @@ class SBMLDocumentInfo:
                 {
                     "givenName": c.getGivenName() if c.isSetGivenName() else None,
                     "familyName": c.getFamilyName() if c.isSetFamilyName() else None,
-                    "organization": c.getOrganization()
-                    if c.isSetOrganization()
-                    else None,
+                    "organization": (
+                        c.getOrganization() if c.isSetOrganization() else None
+                    ),
                     "email": c.getEmail() if c.isSetEmail() else None,
                 }
             )
@@ -691,12 +696,16 @@ class SBMLDocumentInfo:
             sfbc = s.getPlugin("fbc")
             d["fbc"] = (
                 {
-                    "formula": sfbc.getChemicalFormula()
-                    if sfbc.isSetChemicalFormula()
-                    else None,
-                    "charge": sfbc.getCharge()
-                    if (sfbc.isSetCharge() and sfbc.getCharge() != 0)
-                    else None,
+                    "formula": (
+                        sfbc.getChemicalFormula()
+                        if sfbc.isSetChemicalFormula()
+                        else None
+                    ),
+                    "charge": (
+                        sfbc.getCharge()
+                        if (sfbc.isSetCharge() and sfbc.getCharge() != 0)
+                        else None
+                    ),
                 }
                 if sfbc
                 else None
@@ -901,9 +910,9 @@ class SBMLDocumentInfo:
         """Resolve species reference."""
         return {
             "species": species.getSpecies() if species.isSetSpecies() else None,
-            "stoichiometry": species.getStoichiometry()
-            if species.isSetStoichiometry()
-            else 1.0,
+            "stoichiometry": (
+                species.getStoichiometry() if species.isSetStoichiometry() else 1.0
+            ),
             "constant": species.getConstant() if species.isSetConstant() else None,
         }
 
@@ -1065,9 +1074,11 @@ class SBMLDocumentInfo:
             )
             if trigger:
                 d["trigger"] = {
-                    "math": astnode_to_latex(trigger.getMath())
-                    if trigger.isSetMath()
-                    else None,
+                    "math": (
+                        astnode_to_latex(trigger.getMath())
+                        if trigger.isSetMath()
+                        else None
+                    ),
                     "initialValue": trigger.initial_value,
                     "persistent": trigger.persistent,
                 }
@@ -1095,9 +1106,9 @@ class SBMLDocumentInfo:
                 assignments.append(
                     {
                         "variable": eva.getVariable() if eva.isSetVariable() else None,
-                        "math": astnode_to_latex(eva.getMath())
-                        if eva.isSetMath()
-                        else None,
+                        "math": (
+                            astnode_to_latex(eva.getMath()) if eva.isSetMath() else None
+                        ),
                     }
                 )
             d["listOfEventAssignments"] = assignments
@@ -1235,9 +1246,9 @@ class SBMLDocumentInfo:
                     part = {
                         "sign": sign,
                         "coefficient": abs(coefficient),
-                        "reaction": f_obj.getReaction()
-                        if f_obj.isSetReaction()
-                        else None,
+                        "reaction": (
+                            f_obj.getReaction() if f_obj.isSetReaction() else None
+                        ),
                     }
                     flux_objectives.append(part)
                 d["fluxObjectives"] = flux_objectives

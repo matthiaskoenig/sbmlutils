@@ -8,6 +8,7 @@ TODO: support coupling with existing models via comp
 The functionality is very useful, but only if this can be applied to existing
 models in a simple manner.
 """
+
 from __future__ import annotations
 
 from pathlib import Path

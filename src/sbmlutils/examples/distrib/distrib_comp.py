@@ -1,4 +1,5 @@
 """Distrib and comp example to check flattening."""
+
 import shutil
 from pathlib import Path
 

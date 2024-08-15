@@ -1,4 +1,5 @@
 """Helpers for model flattening."""
+
 import os
 import time
 from pathlib import Path

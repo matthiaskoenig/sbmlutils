@@ -10,6 +10,7 @@ model components.
 A standard workflow is looking up the components for instance in things like OLS
 ontology lookup service.
 """
+
 import os
 import re
 from pathlib import Path

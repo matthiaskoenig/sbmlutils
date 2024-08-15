@@ -1,4 +1,5 @@
 """Test the creator module."""
+
 from pathlib import Path
 
 import pytest

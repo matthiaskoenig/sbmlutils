@@ -3,6 +3,7 @@
 For latest SBML fbc v3 specification see
 https://github.com/bgoli/sbml-fbc-spec/blob/main/sf_svn/spec/main.pdf
 """
+
 from logging import getLogger
 from pathlib import Path
 

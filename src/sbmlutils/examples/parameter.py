@@ -1,4 +1,5 @@
 """Parameter example."""
+
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
 from sbmlutils.metadata import *

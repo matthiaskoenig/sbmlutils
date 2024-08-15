@@ -1,4 +1,5 @@
 """Tests for the comp package."""
+
 import libsbml
 
 from sbmlutils import comp

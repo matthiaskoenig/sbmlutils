@@ -1,4 +1,5 @@
 """PKPD model for whole-body icg metabolism."""
+
 import os
 
 import numpy as np

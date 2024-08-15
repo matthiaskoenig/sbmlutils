@@ -2,6 +2,7 @@
 
 Model used for testing units namespacing.
 """
+
 from pathlib import Path
 
 from sbmlutils.examples import templates

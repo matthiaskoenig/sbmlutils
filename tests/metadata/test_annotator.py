@@ -1,4 +1,5 @@
 """Test annotation functions and annotating of SBML models."""
+
 import re
 from pathlib import Path
 from typing import Iterable

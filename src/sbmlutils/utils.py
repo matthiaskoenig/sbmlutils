@@ -1,4 +1,5 @@
 """Utility functions."""
+
 import functools
 import hashlib
 import time

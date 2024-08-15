@@ -1,4 +1,5 @@
 """Test SBML validation."""
+
 from pathlib import Path
 
 import pytest

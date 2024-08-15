@@ -1,4 +1,5 @@
 """ICG examples."""
+
 from pathlib import Path
 
 ICG_PATH = Path(__file__).parent

@@ -1,4 +1,5 @@
 """Helpers to work with COPASI files."""
+
 from pathlib import Path
 
 import libsbml

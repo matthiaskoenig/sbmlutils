@@ -1,4 +1,5 @@
 """sbmlutils - Python utilities for SBML."""
+
 from pathlib import Path
 
 __author__ = "Matthias König"

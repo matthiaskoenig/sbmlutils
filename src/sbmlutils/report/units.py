@@ -1,4 +1,5 @@
 """Helper functions for formating and rendering units."""
+
 from typing import Optional, Union
 
 import libsbml

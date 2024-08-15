@@ -4,6 +4,7 @@ Notes can be either written in markdown or HTML.
 Markdown -> HTML conversion is performed using `markdown-it-py` for the conversion.
 No styles for the display are inserted here.
 """
+
 import textwrap
 from enum import Enum
 

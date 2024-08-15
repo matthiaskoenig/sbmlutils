@@ -1,4 +1,5 @@
 """Example model creation."""
+
 from pathlib import Path
 from typing import Any
 

@@ -1,4 +1,5 @@
 """Testing cobra and fbc functionality."""
+
 from pathlib import Path
 
 import pytest

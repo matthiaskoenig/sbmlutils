@@ -1,4 +1,5 @@
 """Rich console for logging."""
+
 from rich import pretty
 from rich.console import Console
 from rich.theme import Theme

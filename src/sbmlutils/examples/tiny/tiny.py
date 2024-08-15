@@ -1,4 +1,5 @@
 """Tiny model example."""
+
 from math import inf
 from pathlib import Path
 

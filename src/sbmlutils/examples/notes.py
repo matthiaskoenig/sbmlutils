@@ -1,4 +1,5 @@
 """Example model with notes."""
+
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
 

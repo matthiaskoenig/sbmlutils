@@ -167,7 +167,7 @@ def _fix_mathit_symbols(tex_str: str) -> str:
     # replace greek symbols
     for symbol in greek_symbols:
         tex_str = tex_str.replace(
-            r"\mathit{" + symbol + "}", r"\mathit{" + f"\{symbol}" + "}"  # noqa: W605
+            r"\mathit{" + symbol + "}", r"\mathit{" + f"\\{symbol}" + "}"  # noqa: W605
         )
 
     return tex_str

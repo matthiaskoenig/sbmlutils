@@ -1,4 +1,5 @@
 """Example demonstrating the interpolation of data."""
+
 import tempfile
 from pathlib import Path
 from typing import Optional

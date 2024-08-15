@@ -39,6 +39,7 @@ Examples of valid equations with variable stoichiometries are:
     'f * acoa =>',
 
 """
+
 from __future__ import annotations
 
 import re

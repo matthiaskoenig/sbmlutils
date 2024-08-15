@@ -1,4 +1,5 @@
 """Example creating composite model."""
+
 from pathlib import Path
 
 from sbmlutils.comp import flatten_sbml
@@ -40,7 +41,7 @@ model.reactions = []
 for k in range(n_cells - 1):
     model.reactions.append(
         Reaction(
-            sid=f"J{k}", equation=f"S{k} <-> S{k+1}", formula=f"D * (S{k}-S{k+1})"
+            sid=f"J{k}", equation=f"S{k} <-> S{k + 1}", formula=f"D * (S{k} - S{k + 1})"
         ),
     )
 

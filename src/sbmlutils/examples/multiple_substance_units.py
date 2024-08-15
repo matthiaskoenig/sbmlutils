@@ -1,4 +1,5 @@
 """Example for substance units."""
+
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
 from sbmlutils.metadata.sbo import *

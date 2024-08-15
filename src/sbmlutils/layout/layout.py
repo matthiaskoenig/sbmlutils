@@ -1,4 +1,5 @@
 """Utilities for the creation and work with layout models."""
+
 from typing import Dict, List, Optional
 
 import libsbml

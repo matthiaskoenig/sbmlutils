@@ -1,4 +1,5 @@
 """Example creating random network."""
+
 import random
 
 from sbmlutils.cytoscape import visualize_sbml
@@ -34,7 +35,7 @@ for k in range(n_links):
 
     model.reactions.append(
         Reaction(
-            sid=f"J{k+1}",
+            sid=f"J{k + 1}",
             equation=f"S{k_source} -> S{k_target}",
             formula=f"k * S{k_source}",
         ),

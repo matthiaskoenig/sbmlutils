@@ -2,6 +2,7 @@
 
 Using rich for output formating.
 """
+
 import logging
 from typing import List
 

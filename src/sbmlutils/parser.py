@@ -4,6 +4,7 @@ FIXME: no support for notes
 FIXME: no support for modelHistory
 
 """
+
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
@@ -168,9 +169,9 @@ def sbml_to_model(
             Compartment(
                 value=c.getSize() if c.isSetSize() else NaN,
                 constant=c.getConstant() if c.isSetConstant() else True,
-                spatialDimensions=c.getSpatialDimensions()
-                if c.isSetSpatialDimensions()
-                else None,
+                spatialDimensions=(
+                    c.getSpatialDimensions() if c.isSetSpatialDimensions() else None
+                ),
                 # unit=p.getUnits(),
                 **parse_sbase_kwargs(c),
             )
@@ -182,16 +183,20 @@ def sbml_to_model(
             Species(
                 compartment=s.getCompartment() if s.isSetCompartment() else None,
                 initialAmount=s.getInitialAmount() if s.isSetInitialAmount() else None,
-                initialConcentration=s.getInitialConcentration()
-                if s.isSetInitialConcentration()
-                else None,
+                initialConcentration=(
+                    s.getInitialConcentration()
+                    if s.isSetInitialConcentration()
+                    else None
+                ),
                 constant=s.getConstant() if s.isSetConstant() else None,
-                hasOnlySubstanceUnits=s.getHasOnlySubstanceUnits()
-                if s.isSetHasOnlySubstanceUnits()
-                else None,
-                boundaryCondition=s.getBoundaryCondition()
-                if s.isSetBoundaryCondition()
-                else None,
+                hasOnlySubstanceUnits=(
+                    s.getHasOnlySubstanceUnits()
+                    if s.isSetHasOnlySubstanceUnits()
+                    else None
+                ),
+                boundaryCondition=(
+                    s.getBoundaryCondition() if s.isSetBoundaryCondition() else None
+                ),
                 # unit=p.getUnits(),
                 **parse_sbase_kwargs(s),
             )
@@ -212,12 +217,14 @@ def sbml_to_model(
             equation.reactants.append(
                 EquationPart(
                     species=reactant.getSpecies() if reactant.isSetSpecies() else None,
-                    stoichiometry=reactant.getStoichiometry()
-                    if reactant.isSetStoichiometry()
-                    else None,
-                    constant=reactant.getConstant()
-                    if reactant.isSetConstant()
-                    else True,
+                    stoichiometry=(
+                        reactant.getStoichiometry()
+                        if reactant.isSetStoichiometry()
+                        else None
+                    ),
+                    constant=(
+                        reactant.getConstant() if reactant.isSetConstant() else True
+                    ),
                     **parse_sbase_kwargs(reactant),
                 )
             )
@@ -226,9 +233,11 @@ def sbml_to_model(
             equation.products.append(
                 EquationPart(
                     species=product.getSpecies() if product.isSetSpecies() else None,
-                    stoichiometry=product.getStoichiometry()
-                    if product.isSetStoichiometry()
-                    else None,
+                    stoichiometry=(
+                        product.getStoichiometry()
+                        if product.isSetStoichiometry()
+                        else None
+                    ),
                     constant=product.getConstant() if product.isSetConstant() else True,
                     **parse_sbase_kwargs(product),
                 )

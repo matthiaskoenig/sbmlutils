@@ -1,4 +1,5 @@
 """Example for model composition via multiple models."""
+
 from pathlib import Path
 
 from sbmlutils.cytoscape import visualize_sbml

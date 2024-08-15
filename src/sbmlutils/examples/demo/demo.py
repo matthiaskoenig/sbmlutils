@@ -1,4 +1,5 @@
 """Demo kinetic network."""
+
 from pathlib import Path
 
 from sbmlutils.examples import templates

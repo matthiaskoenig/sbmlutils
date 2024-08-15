@@ -1,4 +1,5 @@
 """Test equations."""
+
 import pytest
 
 from sbmlutils.reaction_equation import (

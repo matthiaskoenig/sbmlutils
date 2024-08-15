@@ -1,4 +1,5 @@
 """Testing COPASI functionality."""
+
 from pathlib import Path
 
 from sbmlutils.converters import copasi
