@@ -32,6 +32,6 @@ length: [{{model_units["length"]}}]
 
 # odes
 {% for id in xids %}
-d {{ id }}/dt = {{dx[id]}}  # [{{units[id]}}/{{units["time"]}}] {{names[id]}}  
+d {{ id }}/dt = {{dx[id]}}  # [{{units[id]}}/{{model_units["time"]}}] {{names[id]}}  
 {% endfor %}
 ```
