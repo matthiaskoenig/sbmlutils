@@ -2,6 +2,8 @@
 
 import os
 import tempfile
+from dataclasses import dataclass
+from enum import Enum
 
 import pandas as pd
 
@@ -37,9 +39,6 @@ def visualize_sbml(sbml_path: Path, delete_session: bool = False) -> Optional[in
 
     Returns dictionary with "networks" and "views".
     """
-    if sbml_path.suffix != ".xml":
-        console.error(f"SBML path {sbml_path} does not have .xml extension")
-
     try:
         console.print(p4c.cytoscape_version_info())
 
@@ -76,7 +75,7 @@ def read_layout_xml(sbml_path: Path, xml_path: Path) -> pd.DataFrame:
     df.set_index("id", inplace=True)
     return df
 
-def apply_layout(network, layout: pd.DataFrame) -> None:
+def apply_layout(layout: pd.DataFrame, network=None) -> None:
     """Apply layout information from Cytoscape to SBML networks."""
 
     # get SUIDs, sbml_id from node table;
@@ -95,14 +94,55 @@ def apply_layout(network, layout: pd.DataFrame) -> None:
     p4c.set_node_position_bypass(suids, new_x_locations=x_values, new_y_locations=y_values, network=network)
     # p4c.set_node_property_bypass(suids, new_values=x_values, visual_property='NODE_X_LOCATION', network=network)
     # p4c.set_node_property_bypass(suids, new_values=y_values, visual_property='NODE_Y_LOCATION', network=network)
-    p4c.set_current_view(network=network)
+    # positions = p4c.get_node_position()
+    # console.print(f"{positions}")
+
+    # fit content
+    p4c.fit_content()
 
     # remove bypass
     # p4c.clear_node_property_bypass(suids, visual_property='NODE_X_LOCATION', network=network)
     # p4c.clear_node_property_bypass(suids, visual_property='NODE_Y_LOCATION', network=network)
+    # positions = p4c.get_node_position()
+    # console.print(f"{positions}")
 
-    # fit content
-    p4c.fit_content()
+
+class AnnotationShapeType(str, Enum):
+    RECTANGLE = "RECTANGLE"
+    ROUND_RECTANGLE = "ROUND_RECTANGLE"
+
+@dataclass
+class AnnotationShape:
+    type: AnnotationShapeType
+    x_pos: int
+    y_pos: int
+    height: int
+    width: int
+    fill_color: str = "#000000"
+    opacity: int = 100
+    border_thickness: int = 1
+    canvas: str = "background"
+    z_order: int = 0
+
+def add_annotations(annotations, network=None):
+    """Add annotations to the network."""
+
+    for a in annotations:
+        if isinstance(a, AnnotationShape):
+
+            p4c.add_annotation_shape(
+                network=network,
+                type=a.type,
+                x_pos=a.x_pos,
+                y_pos=a.y_pos,
+                height=a.height,
+                width=a.width,
+                fill_color=a.fill_color,
+                opacity=a.opacity,
+                border_thickness=a.border_thickness,
+                canvas=a.canvas,
+                z_order=a.z_order,
+            )
 
 
 
