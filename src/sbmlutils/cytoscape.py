@@ -1,4 +1,7 @@
-"""Module for visualiation in Cytoscape."""
+"""Module for visualiation in Cytoscape.
+
+Supports loading of networks, annotations and storing of images.
+"""
 
 import os
 import tempfile
@@ -59,11 +62,6 @@ def visualize_sbml(sbml_path: Path, delete_session: bool = False) -> Optional[in
             "Start Cytoscape before running the python script."
         )
         return None
-
-
-
-
-
 
 
 def read_layout_xml(sbml_path: Path, xml_path: Path) -> pd.DataFrame:
