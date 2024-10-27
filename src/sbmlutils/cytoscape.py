@@ -121,15 +121,50 @@ class AnnotationShape:
     fill_color: str = "#000000"
     opacity: int = 100
     border_thickness: int = 1
+    border_color: str = "#FFFFFF"
+    border_opacity: int = 100
     canvas: str = "background"
     z_order: int = 0
+
+@dataclass
+class AnnotationText:
+    text: str
+    x_pos: int
+    y_pos: int
+    font_size: int = 12  # Numeric value; default is 12
+    font_family: str = "Arial"  # Font family; default is Arial
+    font_style: str = "bold"   # Font style; default is none
+    color: str = "#000000"""  # hexadecimal color; default is #000000 (black)
+    angle: float = 0  # Angle of text orientation; default is 0.0 (horizontal)
+    canvas: str = "background"
+
+@dataclass
+class AnnotationBoundedText:
+    type: AnnotationShapeType
+    text: str
+    x_pos: int
+    y_pos: int
+    height: int
+    width: int
+    fill_color: str = "#000000"
+    opacity: int = 100
+    border_thickness: int = 1
+    border_color: str = "#FFFFFF"
+    border_opacity: int = 100
+    font_size: int = 12  # Numeric value; default is 12
+    font_family: str = "Arial"  # Font family; default is Arial
+    font_style: str = "bold"   # Font style; default is none
+    color: str = "#000000"""  # hexadecimal color; default is #000000 (black)
+    angle: float = 0  # Angle of text orientation; default is 0.0 (horizontal)
+    canvas: str = "background"
+
+
 
 def add_annotations(annotations, network=None):
     """Add annotations to the network."""
 
     for a in annotations:
         if isinstance(a, AnnotationShape):
-
             p4c.add_annotation_shape(
                 network=network,
                 type=a.type,
@@ -140,10 +175,44 @@ def add_annotations(annotations, network=None):
                 fill_color=a.fill_color,
                 opacity=a.opacity,
                 border_thickness=a.border_thickness,
+                border_color=a.border_color,
+                border_opacity=a.border_opacity,
                 canvas=a.canvas,
                 z_order=a.z_order,
             )
 
+        if isinstance(a, AnnotationText):
+            p4c.add_annotation_text(
+                text=a.text,
+                x_pos=a.x_pos,
+                y_pos=a.y_pos,
+                font_size=a.font_size,
+                font_family=a.font_family,
+                font_style=a.font_style,
+                color=a.color,
+                angle=a.angle,
+                canvas=a.canvas,
+            )
+        if isinstance(a, AnnotationBoundedText):
+            p4c.add_annotation_bounded_text(
+                type=a.type,
+                text=a.text,
+                x_pos=a.x_pos,
+                y_pos=a.y_pos,
+                height=a.height,
+                width=a.width,
+                fill_color=a.fill_color,
+                opacity=a.opacity,
+                border_thickness=a.border_thickness,
+                border_color=a.border_color,
+                border_opacity=a.border_opacity,
+                font_size=a.font_size,
+                font_family=a.font_family,
+                font_style=a.font_style,
+                color=a.color,
+                angle=a.angle,
+                canvas=a.canvas,
+            )
 
 
 if __name__ == "__main__":
