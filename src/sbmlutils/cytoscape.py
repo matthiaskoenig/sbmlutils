@@ -49,12 +49,10 @@ def visualize_sbml(sbml_path: Path, delete_session: bool = False) -> Optional[in
             p4c.session.close_session(save_before_closing=False)
 
         networks_views = p4c.networks.import_network_from_file(str(sbml_path))
-        console.print(f"{networks_views}")
+        # console.print(f"{networks_views}")
         network = networks_views["networks"][1]
         p4c.set_current_view(network=network)  # set the base network
         return network
-
-        return networks_views
 
     except RequestException:
         logger.error(
@@ -78,14 +76,13 @@ def apply_layout(layout: pd.DataFrame, network=None) -> None:
 
     # get SUIDs, sbml_id from node table;
     df_nodes = p4c.get_table_columns(table="node", columns=["sbml id"], network=network)
-    console.print(df_nodes)
     sid2suid = {row["sbml id"]: suid for suid, row in df_nodes.iterrows()}
-    console.print(sid2suid)
 
     # FIXME: necessary to check that all sids exist
     suids = [sid2suid[sid] for sid in layout.index.values]
     x_values = layout["x"].values.tolist()
     y_values = layout["y"].values.tolist()
+    # z_values = layout["z"].values.tolist()
 
     # set positions
     # see: https://github.com/cytoscape/py4cytoscape/issues/144
@@ -211,6 +208,24 @@ def add_annotations(annotations, network=None):
                 angle=a.angle,
                 canvas=a.canvas,
             )
+
+
+def export_image(image_path: Path, format="PNG", fit_content: bool = False, hide_labels: bool = True):
+    """Helper for exporting cytoscape images.
+
+    format (str): Type of image to export, e.g., PNG (default), JPEG, PDF, SVG, PS (PostScript).
+    """
+    if fit_content:
+        p4c.fit_content()
+
+    p4c.export_image(
+        filename=str(image_path),
+        type=format,
+        zoom=400.0,
+        overwrite_file=True,
+        all_graphics_details=True,
+        hide_labels=False,
+    )
 
 
 if __name__ == "__main__":
