@@ -467,6 +467,24 @@ class SBML2ODE:
 
         return content
 
+    def to_julia(self, jl_file: Optional[Path] = None) -> str:
+        """Write ODEs to julia.
+
+        Generated files can be used as an input for DifferentialEquations.jl
+        https://docs.sciml.ai/DiffEqDocs/stable/
+
+        """
+        content = self._render_template(
+            template_file="odefac_template.jl",
+            index_offset=1,
+            replace_symbols=True,
+        )
+        if jl_file:
+            with open(jl_file, "w") as f:
+                f.write(content)
+
+        return content
+
     def to_markdown(self, md_file: Optional[Path] = None) -> str:
         """Write ODEs to markdown."""
         content = self._render_template(
