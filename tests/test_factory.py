@@ -25,7 +25,7 @@ compartment_value_data = [
         {"compartments": 1, "parameters": 0, "initial_assignments": 0, "rules": 0},
     ),
     (
-        np.NaN,
+        np.nan,
         True,
         {"compartments": 1, "parameters": 0, "initial_assignments": 0, "rules": 0},
     ),
@@ -103,7 +103,7 @@ def test_compartment_value(
 parameter_value_data = [
     (1.0, True, {"parameters": 1, "initial_assignments": 0, "rules": 0}),
     (1, True, {"parameters": 1, "initial_assignments": 0, "rules": 0}),
-    (np.NaN, True, {"parameters": 1, "initial_assignments": 0, "rules": 0}),
+    (np.nan, True, {"parameters": 1, "initial_assignments": 0, "rules": 0}),
     ("1.0", True, {"parameters": 1, "initial_assignments": 0, "rules": 0}),
     ("1", True, {"parameters": 1, "initial_assignments": 0, "rules": 0}),
     ("NaN", True, {"parameters": 1, "initial_assignments": 0, "rules": 0}),

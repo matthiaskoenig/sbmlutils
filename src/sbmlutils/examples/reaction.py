@@ -20,7 +20,7 @@ model = Model(
     + templates.terms_of_use,
     creators=templates.creators,
     compartments=[
-        Compartment(sid="c", name="cytosol", value=np.NaN),
+        Compartment(sid="c", name="cytosol", value=np.nan),
     ],
     species=[
         Species(
@@ -102,10 +102,10 @@ model = Model(
             sid="v4",
             equation=ReactionEquation(
                 reactants=[
-                    EquationPart(species="x", stoichiometry=np.NaN, sid="v4_x"),
+                    EquationPart(species="x", stoichiometry=np.nan, sid="v4_x"),
                 ],
                 products=[
-                    EquationPart(species="y", stoichiometry=np.NaN, sid="v4_y"),
+                    EquationPart(species="y", stoichiometry=np.nan, sid="v4_y"),
                 ],
                 reversible=False,
             ),

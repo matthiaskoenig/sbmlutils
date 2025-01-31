@@ -194,9 +194,9 @@ if __name__ == "__main__":
             traceback.print_exc(file=sys.stdout)
             print()
             success = False
-            valid = np.NaN
-            simulates = np.NaN
-            Nall, Nerr, Nwarn = np.NaN, np.NaN, np.NaN
+            valid = np.nan
+            simulates = np.nan
+            Nall, Nerr, Nwarn = np.nan, np.nan, np.nan
 
             Nfail += 1
         results.append([xpp_file, success, valid, simulates, Nall, Nerr, Nwarn])

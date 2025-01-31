@@ -42,7 +42,7 @@ from typing import (
 import libsbml
 import numpy as np
 import xmltodict  # type: ignore
-from numpy import NaN
+from numpy import nan as NaN
 from pint import UndefinedUnitError, UnitRegistry
 from pydantic import BaseModel, ConfigDict
 from pymetadata.core.creator import Creator
@@ -1088,7 +1088,7 @@ class Parameter(ValueWithUnit):
         obj: libsbml.Parameter = model.createParameter()
         self._set_fields(obj, model)
         if self.value is None:
-            obj.setValue(np.NaN)
+            obj.setValue(np.nan)
 
         elif type(self.value) is str:
             try:
@@ -1160,7 +1160,7 @@ class Compartment(ValueWithUnit):
         self._set_fields(obj, model)
 
         if self.value is None:
-            obj.setSize(np.NaN)
+            obj.setSize(np.nan)
         elif type(self.value) is str:
             try:
                 # check if number
