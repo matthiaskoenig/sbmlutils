@@ -49,7 +49,7 @@ model = Model(
     parameters=[
         Parameter(sid="uc1", value=5),
         Parameter(sid="uc2lb", value=2),
-        Parameter(sid="uc2ub", value=np.Inf),
+        Parameter(sid="uc2ub", value=np.inf),
         Parameter(sid="Avar", value=NaN, constant=False),
     ],
     reactions=[
