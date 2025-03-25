@@ -166,9 +166,8 @@ def promote_local_variables(
     props.addOption(
         "promoteLocalParameters", True, "Promotes all Local Parameters to Global ones"
     )
-
-    if doc.convert(props) != libsbml.LIBSBML_OPERATION_SUCCESS:
-        logger.error(f"Promotion of local parameters failed: {doc}")
+    if doc.convert(props) == libsbml.LIBSBML_OPERATION_SUCCESS:
+        logger.info(f"Promotion of local parameters successful: {doc}")
     else:
-        logger.info(f"Promotion of local paramters successful: {doc}")
+        logger.error(f"Promotion of local parameters failed: {doc}")
     return doc
