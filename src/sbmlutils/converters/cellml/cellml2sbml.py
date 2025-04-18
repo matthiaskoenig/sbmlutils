@@ -1,112 +1,54 @@
-"""Converter to cellml.
-https://libcellml.org/
- pip install libcellml
-Tutorials: https://github.com/libcellml/tutorials
+"""Converter from SBML to CellML.
+
+This uses the libcellml library https://libcellml.org/ which can be installed via
+    pip install libcellml
+
+Tutorials and information:
+https://github.com/libcellml/tutorials
 https://github.com/libcellml/jupyter-tutorials
 
-Online simulator: https://opencor.ws/appdev/
+Online opencor JavaScript simulator: https://opencor.ws/appdev/
+The simulator can be installed via:
 
 Opencor: https://github.com/opencor/libopencor
 pip install git+https://github.com/opencor/libopencor.git
 
+FIXME: issues in libopencor
+- [ ] "The linear solver's setup function failed in an unrecoverable manner." for glimeperide kidney.
+- [ ] cannot set start, end, steps on simulation
+- [ ] precompiled python packages
+
 TODO:
-- [ ] MathML serialization
-- [ ] handling inline units
 - [ ] Convert units
-- [ ] Use all glimeperide models as test cases, especially flat model
-- [ ] Handling Events -> Resets
-- [ ] Use SBML test suite models as test cases
+- [ ] Package in separate package
+- [ ] Add tests for functionality
+- [ ] Use SBML test suite models as test cases with simulator
 - [ ] CellML -> SBML converter
 
+Features currently not supported in the sbml2cellml conversion:
+- [ ] UnitDefinitions
+- [ ] InitialAssignments -> would be precalculated, i.e. libroadrunner to calculate initial state.
+- [ ] FunctionDefinitions -> can be supported via inlining the function or addition assignments
+- [ ] Events -> Converted to resets; only subset of syntax supported, currently on support in simulator
 """
 from pathlib import Path
-from typing import Optional
-
 import numpy as np
 
+import libsbml
+import libcellml
 from sbmlutils.console import console
 
-import libsbml
-from sbmlutils.io.sbml import read_sbml
-import libcellml
-from sbmlutils.converters.cellml.cellml_simulator import run_cellml_timecourse
-
-
-
-
-def example_cellml() -> libcellml.Model:
-    """Simple example CellML model.
-
-    # example math
-    # m: mass, [m] = kg
-    # alpha: rate constant, [alpha] = 1/s
-    # dm/dt = alpha * m
-
-    """
-    MATH_ODE = """
-    <math xmlns="http://www.w3.org/1998/Math/MathML">
-        <apply>
-            <eq/>
-            <apply>
-                <diff/>
-                <bvar>
-                    <ci>t</ci>
-                </bvar>
-                <ci>m</ci>
-            </apply>
-            <apply>
-                <times/>
-                <apply>
-                  <minus/>
-                  <ci>alpha</ci>
-                </apply>
-                <ci>m</ci>
-            </apply>
-        </apply>
-    </math>
-    """
-    # create model
-    model_id: str = "test_model"
-    model = libcellml.Model(model_id)
-
-    # add units
-    per_second = libcellml.Units("per_second")
-    per_second.addUnit("second", -1)
-    model.addUnits(per_second)
-
-    # create component (everything is put int a single compartment
-    component = libcellml.Component("component")
-
-    # add equations to component
-    component.setMath(MATH_ODE)
-    model.addComponent(component)
-
-    variable_time = libcellml.Variable("t")
-    variable_time.setUnits("second")
-
-    # parameters and states are variables
-    variable_m = libcellml.Variable("m")
-    variable_m.setUnits("kilogram")
-    variable_m.setInitialValue(10)
-
-    variable_alpha = libcellml.Variable("alpha")
-    variable_alpha.setUnits(per_second)
-    variable_alpha.setInitialValue(0.05)
-
-    for variable in [variable_time, variable_m, variable_alpha, ]:
-        component.addVariable(variable)
-
-    return model
 
 class SBML2CellMLConversionError(IOError):
+    """Definition of parser error."""
     pass
+
 
 def convert_sbml2cellml(sbml_path: Path, verbose: bool = True) -> libcellml.Model:
     """Converter to convert SBML model into CellML.
 
     The verbose flag allows to get additional information during the conversion.
     """
-
     # read SBML model
     doc: libsbml.SBMLDocument = libsbml.readSBMLFromFile(str(sbml_path))
     m_sbml: libsbml.Model = doc.getModel()
@@ -284,8 +226,18 @@ def convert_sbml2cellml(sbml_path: Path, verbose: bool = True) -> libcellml.Mode
     component.setMath(cellml_mathml)
     # console.print(cellml_mathml, style="white")
 
+    event: libsbml.Event
+    for event in m_sbml.getListOfEvents():
+        console.print(f"Event NOT converted: {event}!", style="error")
+
+    assignment: libsbml.InitialAssignment
+    for assignment in m_sbml.getListOfInitialAssignments():
+        console.print(f"InitialAssignment NOT converted: {assignment}!", style="error")
+
     return m_cellml
 
+
+# --- MathML processing ---
 xml_prefix = '<?xml version="1.0" encoding="UTF-8"?>'
 # FIXME: handle via regular expression to be more robust
 mathml_prefixes = [
@@ -355,8 +307,6 @@ def mathml_for_assignment(vid, formula):
     return mathml_str
 
 
-
-
 def write_model_to_string(model: libcellml.Model) -> str:
     """Write CellML model to string."""
     printer = libcellml.Printer()
@@ -400,26 +350,18 @@ def validate_cellml(model: libcellml.Model) -> str:
 
     # print(g.interfaceCode())
     # print(g.implementationCode())
-
+    # console.print("CellML model is valid.", style="success")
     return 0
 
 
 if __name__ == "__main__":
 
-    # example model
-    # cellml_model_path = "test_model.cellml"
-    # model = example_cellml()
-    # validate_cellml(model)
-    # write_model_to_file(model=model, cellml_path=cellml_model_path)
-    # run_cellml_timecourse(cellml_model_path)
-
     # converted model
-    sbml_model_path = "glimepiride_kidney.xml"
-    cellml_model_path = "glimepiride_kidney.cellml"
-    model: libcellml.Model = convert_sbml2cellml(sbml_path=sbml_model_path)
-    validate_cellml(model)
-    write_model_to_file(model=model, cellml_path=cellml_model_path)
-    run_cellml_timecourse(cellml_model_path)
+    sbml_path = Path(__file__).parent / "glimepiride_kidney.xml"
+    cellml_path = sbml_path.parent / f"{sbml_path.stem}.cellml"
+    model: libcellml.Model = convert_sbml2cellml(sbml_path=sbml_path)
+    write_model_to_file(model=model, cellml_path=cellml_path)
+    # run_cellml_timecourse(cellml_model_path)
 
 
 

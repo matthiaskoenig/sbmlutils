@@ -1,3 +1,5 @@
+"""CellML simulator using libopencor."""
+
 from pathlib import Path
 from typing import Any, Tuple
 
@@ -51,7 +53,7 @@ def run_cellml_timecourse(cellml_path: Path, start: float=0, end: float = 100, s
     # Modify the timecourse settings of the simulation
     simulation: libopencor.SedUniformTimeCourse = libopencor.SedUniformTimeCourse(document)
 
-    # FIXME: this is not working at the moment
+    # FIXME: this is not working
     simulation.initial_time = start
     simulation.output_start_time = start
     simulation.output_end_time = end
