@@ -9,6 +9,15 @@ Online simulator: https://opencor.ws/appdev/
 Opencor: https://github.com/opencor/libopencor
 pip install git+https://github.com/opencor/libopencor.git
 
+TODO:
+- [ ] MathML serialization
+- [ ] handling inline units
+- [ ] Convert units
+- [ ] Use all glimeperide models as test cases, especially flat model
+- [ ] Handling Events -> Resets
+- [ ] Use SBML test suite models as test cases
+- [ ] CellML -> SBML converter
+
 """
 from pathlib import Path
 from typing import Optional
@@ -18,6 +27,7 @@ import numpy as np
 from sbmlutils.console import console
 
 import libsbml
+from sbmlutils.io.sbml import read_sbml
 import libcellml
 from sbmlutils.converters.cellml.cellml_simulator import run_cellml_timecourse
 
@@ -88,15 +98,28 @@ def example_cellml() -> libcellml.Model:
 
     return model
 
-def convert_sbml2cellml(sbml_path: Path) -> libcellml.Model:
-    """Converter to convert SBML model into CellML."""
-    from sbmlutils.io.sbml import read_sbml
-    doc: libsbml.SBMLDocument = read_sbml(sbml_path)
+class SBML2CellMLConversionError(IOError):
+    pass
+
+def convert_sbml2cellml(sbml_path: Path, verbose: bool = True) -> libcellml.Model:
+    """Converter to convert SBML model into CellML.
+
+    The verbose flag allows to get additional information during the conversion.
+    """
+
+    # read SBML model
+    doc: libsbml.SBMLDocument = libsbml.readSBMLFromFile(str(sbml_path))
     m_sbml: libsbml.Model = doc.getModel()
-    mid: str = m_sbml.getId()
+    if not m_sbml:
+        raise SBML2CellMLConversionError("No model in SBMLDocument.")
+    mid: str = m_sbml.getId() if m_sbml.isSetId() else Path(sbml_path).stem
+
+    # create empty CellML model
     m_cellml: libcellml.Model = libcellml.Model(mid)
 
-    # dictionary for collecting the math
+    # create component (everything is put int a single compartment
+    component = libcellml.Component("sbml")
+    m_cellml.addComponent(component)
 
     # add units
     # FIXME: support unit definitions
@@ -104,36 +127,47 @@ def convert_sbml2cellml(sbml_path: Path) -> libcellml.Model:
     per_second.addUnit("second", -1)
     m_cellml.addUnits(per_second)
 
-    # create component (everything is put int a single compartment
-    component = libcellml.Component("component")
-    m_cellml.addComponent(component)
+    # add time variable
+    time_name = "time"
+    variable_time = libcellml.Variable(time_name)
+    variable_time.setUnits("dimensionless")  # FIXME: correct units
+    component.addVariable(variable_time)
+
+
+    def process_init_value(sid: str, value: float) -> float:
+        """Handling processing of NaN values.
+
+        These could be precalculated based on the rules."""
+        if np.isnan(value):
+            console.print(f"Initial value is nan: {sid}, setting to 1.0", style="warning")
+            value = 1.0
+        return value
 
     # add compartments
     c: libsbml.Compartment
     cdict: dict[str, float] = {}
     for c in m_sbml.getListOfCompartments():
         cid: str = c.getId()
-        cvalue: float = c.getSize()
+        cvalue: float = process_init_value(cid, c.getSize())
         cdict[cid] = cvalue
         v = libcellml.Variable(cid)
         v.setUnits("dimensionless")  # FIXME
         v.setInitialValue(cvalue)
         component.addVariable(v)
-        console.print(f"'{cid}' variable for 'compartment'")
+        if verbose:
+            console.print(f"'{cid}' variable for 'compartment'")
 
     # add parameters
     p: libsbml.Parameter
     for p in m_sbml.getListOfParameters():
         pid: str = p.getId()
-        pvalue: float = p.getValue()
-        if np.isnan(pvalue):
-            console.print(f"Initial value is nan: {pid}, setting to 1.0", style="warning")
-            pvalue = 1.0
+        pvalue: float = process_init_value(pid, p.getValue())
         v = libcellml.Variable(pid)
         v.setUnits("dimensionless")  # FIXME
         v.setInitialValue(pvalue)
         component.addVariable(v)
-        console.print(f"'{pid}' variable for 'parameter'")
+        if verbose:
+            console.print(f"'{pid}' variable for 'parameter'")
 
     # add species
     s: libsbml.Species
@@ -144,23 +178,19 @@ def convert_sbml2cellml(sbml_path: Path) -> libcellml.Model:
         v = libcellml.Variable(sid)
         v.setUnits("dimensionless")  # FIXME
 
-        if s.getHasOnlySubstanceUnits():
-            # amount
-            species_types[sid] = "amount"
-            if s.isSetInitialAmount():
-                v.setInitialValue(s.getInitialAmount())
-            elif s.isSetInitialConcentration():
-                v.setInitialValue(s.getInitialConcentration() * cdict[cid])
-        else:
-            # concentration
-            species_types[sid] = "concentration"
-            if s.isSetInitialAmount():
-                v.setInitialValue(s.getInitialAmount()/cdict[cid])
-            elif s.isSetInitialConcentration():
-                v.setInitialValue(s.getInitialConcentration())
+        # process initial value
+        species_types[sid] = "amount" if s.getHasOnlySubstanceUnits() else "concentration"
+        if s.isSetInitialAmount():
+            amount = process_init_value(sid, s.getInitialAmount())
+            vinit = amount if s.getHasOnlySubstanceUnits() else amount * cdict[cid]
+        elif s.isSetInitialConcentration():
+            concentration = process_init_value(sid, s.getInitialConcentration())
+            vinit = concentration * cdict[cid] if s.getHasOnlySubstanceUnits() else concentration
+        v.setInitialValue(vinit)
 
         component.addVariable(v)
-        console.print(f"'{sid}' variable for 'species'")
+        if verbose:
+            console.print(f"'{sid}' variable for 'species'")
 
     # collect rules
     arules: dict[str, str] = {}
@@ -211,29 +241,120 @@ def convert_sbml2cellml(sbml_path: Path) -> libcellml.Model:
             reaction_terms_all[sid] = formula_str
         elif species_types[sid] == "concentration":
             cid = m_sbml.getSpecies(sid).getCompartment()
-            reaction_terms_all[sid] = f"1/{cid} * ({formula_str})"
+            reaction_terms_all[sid] = f"1.0 dimensionless/{cid} * ({formula_str})"
     reaction_terms = reaction_terms_all
     del reaction_terms_all
 
     # convert rules and reactions to mathml
+    mathml_parts: list[str] = []
+
     if arules:
         console.rule(f"assignment rules", style="white")
-        for key, formula in arules.items():
-            console.print(f"{key} = {formula}", style="info")
+        for vid, formula in arules.items():
+            mathml_str = mathml_for_assignment(vid=vid, formula=formula)
+            mathml_parts.append(mathml_str)
+            if verbose:
+                console.print(f"{vid} = {formula}", style="info")
+                # console.print(mathml_str)
 
     if rrules:
         console.rule(f"rate rules", style="white")
-        for key, formula in rrules.items():
-            console.print(f"{key} = {formula}", style="info")
+        for vid, formula in rrules.items():
+            mathml_str = mathml_for_diff(vid=vid, formula=formula, ivid=time_name)
+            mathml_parts.append(mathml_str)
+            if verbose:
+                console.print(f"{vid} = {formula}", style="info")
+                # console.print(mathml_str)
 
     if reaction_terms:
         console.rule(f"reactions", style="white")
-        for key, formula in reaction_terms.items():
-            console.print(f"d{ key}/dt = {formula}", style="info")
+        for vid, formula in reaction_terms.items():
+            mathml_str = mathml_for_diff(vid=vid, formula=formula, ivid=time_name)
+            mathml_parts.append(mathml_str)
+            if verbose:
+                console.print(f"d{vid}/dt = {formula}", style="info")
+                # console.print(mathml_str)
 
     console.rule(style="white")
 
+    # combine mathml
+    cellml_mathml = '<math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:cellml="http://www.cellml.org/cellml/2.0#">\n'
+    cellml_mathml += "\n".join(mathml_parts)
+    cellml_mathml += "</math>"
+    component.setMath(cellml_mathml)
+    # console.print(cellml_mathml, style="white")
+
     return m_cellml
+
+xml_prefix = '<?xml version="1.0" encoding="UTF-8"?>'
+# FIXME: handle via regular expression to be more robust
+mathml_prefixes = [
+    '<math xmlns="http://www.w3.org/1998/Math/MathML">',
+    '<math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:sbml="http://www.sbml.org/sbml/level3/version2/core">'
+]
+mathml_suffix = '</math>'
+
+def process_mathml_for_cellml(formula: str):
+    """Process and cleanup Mathml.
+    Removes prefix and suffix from the formula
+
+    """
+    ast: libsbml.ASTNode = libsbml.parseL3Formula(formula)
+    mathml_str = libsbml.writeMathMLToString(ast)
+    # cleanup unnecessary mathml parts
+    mathml_str = mathml_str.replace(xml_prefix, '')
+    for prefix in mathml_prefixes:
+        mathml_str = mathml_str.replace(prefix, '')
+    mathml_str = mathml_str.replace(mathml_suffix, '')
+
+    # handle inline units
+    mathml_str = mathml_str.replace("sbml:units", 'cellml:units')
+
+
+    # cleanup whitespace
+    mathml_str = mathml_str.strip()
+
+
+
+    return mathml_str
+
+
+def mathml_for_diff(vid, formula, ivid:str = "t"):
+    """Create mathml for differential.
+
+    d {vid}/d {ivid} = {formula}
+    """
+    rhs_str = process_mathml_for_cellml(formula)
+    mathml_str = f"""<apply>
+  <eq/>
+  <apply>
+    <diff/>
+    <bvar>
+      <ci>{ivid}</ci>
+    </bvar>
+    <ci>{vid}</ci>
+  </apply>
+  {rhs_str}
+</apply>
+    """
+    return mathml_str
+
+
+def mathml_for_assignment(vid, formula):
+    """Create mathml for assignment.
+
+    {vid} = {formula}
+    """
+    rhs_str = process_mathml_for_cellml(formula)
+    mathml_str = f"""<apply>
+  <eq/>
+  <ci>{vid}</ci>
+  {rhs_str}
+</apply>
+"""
+    return mathml_str
+
+
 
 
 def write_model_to_string(model: libcellml.Model) -> str:
