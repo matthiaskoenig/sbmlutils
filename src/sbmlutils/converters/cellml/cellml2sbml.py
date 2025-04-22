@@ -20,6 +20,7 @@ FIXME: issues in libopencor
 
 TODO:
 - [ ] Convert units
+- [ ] Calculate initial values based on AssignmentRules & InitialAssignments (using libroadrunner)
 - [ ] Package in separate package
 - [ ] Add tests for functionality
 - [ ] Use SBML test suite models as test cases with simulator
@@ -355,13 +356,22 @@ def validate_cellml(model: libcellml.Model) -> str:
 
 
 if __name__ == "__main__":
+    from sbmlutils.converters.cellml.cellml_simulator import run_cellml_timecourse
 
-    # converted model
-    sbml_path = Path(__file__).parent / "glimepiride_kidney.xml"
-    cellml_path = sbml_path.parent / f"{sbml_path.stem}.cellml"
-    model: libcellml.Model = convert_sbml2cellml(sbml_path=sbml_path)
-    write_model_to_file(model=model, cellml_path=cellml_path)
-    # run_cellml_timecourse(cellml_model_path)
+    # converted models
+    model_names = [
+        "glimepiride_kidney",
+        "glimepiride_liver",
+        "glimepiride_intestine",
+        "glimepiride_body",
+        "glimepiride_body_flat",
+    ]
+    for name in model_names:
+        sbml_path = Path(__file__).parent / "models" / f"{name}.xml"
+        cellml_path = sbml_path.parent / f"{sbml_path.stem}.cellml"
+        model: libcellml.Model = convert_sbml2cellml(sbml_path=sbml_path)
+        write_model_to_file(model=model, cellml_path=cellml_path)
+        run_cellml_timecourse(cellml_path)
 
 
 

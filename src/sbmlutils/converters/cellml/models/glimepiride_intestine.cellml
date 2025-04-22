@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<model xmlns="http://www.cellml.org/cellml/2.0#" name="glimepiride_intestine">
+  <units name="per_second">
+    <unit exponent="-1" units="second"/>
+  </units>
+  <component name="sbml">
+    <variable name="time" units="dimensionless"/>
+    <variable name="Vext" units="dimensionless" initial_value="1"/>
+    <variable name="Vlumen" units="dimensionless" initial_value="1"/>
+    <variable name="Vfeces" units="dimensionless" initial_value="1"/>
+    <variable name="Vstomach" units="dimensionless" initial_value="1"/>
+    <variable name="GLIABS_k" units="dimensionless" initial_value="0.015900835518328"/>
+    <variable name="f_absorption" units="dimensionless" initial_value="1"/>
+    <variable name="MREABS_k" units="dimensionless" initial_value="0.0159201837887391"/>
+    <variable name="MEXC_k" units="dimensionless" initial_value="0.000171930078446119"/>
+    <variable name="PODOSE_gli" units="dimensionless" initial_value="0"/>
+    <variable name="Ka_dis_gli" units="dimensionless" initial_value="2"/>
+    <variable name="Mr_gli" units="dimensionless" initial_value="490.616"/>
+    <variable name="mtot_feces" units="dimensionless" initial_value="1"/>
+    <variable name="gli_stomach" units="dimensionless" initial_value="0"/>
+    <variable name="gli_lumen" units="dimensionless" initial_value="0"/>
+    <variable name="gli_ext" units="dimensionless" initial_value="0"/>
+    <variable name="m1_ext" units="dimensionless" initial_value="0"/>
+    <variable name="m2_ext" units="dimensionless" initial_value="0"/>
+    <variable name="m1_lumen" units="dimensionless" initial_value="0"/>
+    <variable name="m2_lumen" units="dimensionless" initial_value="0"/>
+    <variable name="m1_feces" units="dimensionless" initial_value="0"/>
+    <variable name="m2_feces" units="dimensionless" initial_value="0"/>
+    <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:cellml="http://www.cellml.org/cellml/2.0#">
+      <apply>
+        <eq/>
+        <ci>mtot_feces</ci>
+        <apply>
+          <plus/>
+          <ci>m1_feces</ci>
+          <ci>m2_feces</ci>
+        </apply>
+      </apply>
+      <apply>
+        <eq/>
+        <apply>
+          <diff/>
+          <bvar>
+            <ci>time</ci>
+          </bvar>
+          <ci>PODOSE_gli</ci>
+        </apply>
+        <apply>
+          <times/>
+          <apply>
+            <minus/>
+            <ci>dissolution_gli</ci>
+          </apply>
+          <ci>Mr_gli</ci>
+        </apply>
+      </apply>
+      <apply>
+        <eq/>
+        <apply>
+          <diff/>
+          <bvar>
+            <ci>time</ci>
+          </bvar>
+          <ci>gli_lumen</ci>
+        </apply>
+        <apply>
+          <times/>
+          <apply>
+            <divide/>
+            <cn cellml:units="dimensionless">1</cn>
+            <ci>Vlumen</ci>
+          </apply>
+          <apply>
+            <plus/>
+            <apply>
+              <minus/>
+              <apply>
+                <times/>
+                <ci>f_absorption</ci>
+                <ci>GLIABS_k</ci>
+                <ci>Vlumen</ci>
+                <ci>gli_lumen</ci>
+              </apply>
+            </apply>
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <apply>
+                  <divide/>
+                  <ci>Ka_dis_gli</ci>
+                  <cn cellml:units="min_per_hr" type="integer">60</cn>
+                </apply>
+                <ci>PODOSE_gli</ci>
+              </apply>
+              <ci>Mr_gli</ci>
+            </apply>
+          </apply>
+        </apply>
+      </apply>
+      <apply>
+        <eq/>
+        <apply>
+          <diff/>
+          <bvar>
+            <ci>time</ci>
+          </bvar>
+          <ci>gli_ext</ci>
+        </apply>
+        <apply>
+          <times/>
+          <apply>
+            <divide/>
+            <cn cellml:units="dimensionless">1</cn>
+            <ci>Vext</ci>
+          </apply>
+          <ci>f_absorption</ci>
+          <ci>GLIABS_k</ci>
+          <ci>Vlumen</ci>
+          <ci>gli_lumen</ci>
+        </apply>
+      </apply>
+      <apply>
+        <eq/>
+        <apply>
+          <diff/>
+          <bvar>
+            <ci>time</ci>
+          </bvar>
+          <ci>m1_ext</ci>
+        </apply>
+        <apply>
+          <times/>
+          <apply>
+            <divide/>
+            <cn cellml:units="dimensionless">1</cn>
+            <ci>Vext</ci>
+          </apply>
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <ci>MREABS_k</ci>
+              <ci>m1_ext</ci>
+              <ci>Vlumen</ci>
+            </apply>
+          </apply>
+        </apply>
+      </apply>
+      <apply>
+        <eq/>
+        <apply>
+          <diff/>
+          <bvar>
+            <ci>time</ci>
+          </bvar>
+          <ci>m1_lumen</ci>
+        </apply>
+        <apply>
+          <times/>
+          <apply>
+            <divide/>
+            <cn cellml:units="dimensionless">1</cn>
+            <ci>Vlumen</ci>
+          </apply>
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <ci>MREABS_k</ci>
+              <ci>m1_ext</ci>
+              <ci>Vlumen</ci>
+            </apply>
+            <apply>
+              <times/>
+              <ci>MEXC_k</ci>
+              <ci>m1_lumen</ci>
+              <ci>Vlumen</ci>
+            </apply>
+          </apply>
+        </apply>
+      </apply>
+      <apply>
+        <eq/>
+        <apply>
+          <diff/>
+          <bvar>
+            <ci>time</ci>
+          </bvar>
+          <ci>m2_ext</ci>
+        </apply>
+        <apply>
+          <times/>
+          <apply>
+            <divide/>
+            <cn cellml:units="dimensionless">1</cn>
+            <ci>Vext</ci>
+          </apply>
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <ci>MREABS_k</ci>
+              <ci>m2_ext</ci>
+              <ci>Vlumen</ci>
+            </apply>
+          </apply>
+        </apply>
+      </apply>
+      <apply>
+        <eq/>
+        <apply>
+          <diff/>
+          <bvar>
+            <ci>time</ci>
+          </bvar>
+          <ci>m2_lumen</ci>
+        </apply>
+        <apply>
+          <times/>
+          <apply>
+            <divide/>
+            <cn cellml:units="dimensionless">1</cn>
+            <ci>Vlumen</ci>
+          </apply>
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <ci>MREABS_k</ci>
+              <ci>m2_ext</ci>
+              <ci>Vlumen</ci>
+            </apply>
+            <apply>
+              <times/>
+              <ci>MEXC_k</ci>
+              <ci>m2_lumen</ci>
+              <ci>Vlumen</ci>
+            </apply>
+          </apply>
+        </apply>
+      </apply>
+      <apply>
+        <eq/>
+        <apply>
+          <diff/>
+          <bvar>
+            <ci>time</ci>
+          </bvar>
+          <ci>m1_feces</ci>
+        </apply>
+        <apply>
+          <times/>
+          <ci>MEXC_k</ci>
+          <ci>m1_lumen</ci>
+          <ci>Vlumen</ci>
+        </apply>
+      </apply>
+      <apply>
+        <eq/>
+        <apply>
+          <diff/>
+          <bvar>
+            <ci>time</ci>
+          </bvar>
+          <ci>m2_feces</ci>
+        </apply>
+        <apply>
+          <times/>
+          <ci>MEXC_k</ci>
+          <ci>m2_lumen</ci>
+          <ci>Vlumen</ci>
+        </apply>
+      </apply>
+      <apply>
+        <eq/>
+        <apply>
+          <diff/>
+          <bvar>
+            <ci>time</ci>
+          </bvar>
+          <ci>gli_stomach</ci>
+        </apply>
+        <apply>
+          <minus/>
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <apply>
+                <divide/>
+                <ci>Ka_dis_gli</ci>
+                <cn cellml:units="min_per_hr" type="integer">60</cn>
+              </apply>
+              <ci>PODOSE_gli</ci>
+            </apply>
+            <ci>Mr_gli</ci>
+          </apply>
+        </apply>
+      </apply>
+    </math>
+  </component>
+</model>
