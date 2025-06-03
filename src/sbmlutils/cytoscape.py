@@ -1,4 +1,4 @@
-"""Module for visualiation in Cytoscape.
+"""Module for visualization in Cytoscape.
 
 Supports loading of networks, annotations and storing of images.
 """
