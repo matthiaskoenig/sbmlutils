@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<model xmlns="http://www.cellml.org/cellml/2.0#" name="glimepiride_kidney">
+  <units name="per_second">
+    <unit exponent="-1" units="second"/>
+  </units>
+  <component name="sbml">
+    <variable name="time" units="dimensionless"/>
+    <variable name="Vext" units="dimensionless" initial_value="1.5"/>
+    <variable name="Vki" units="dimensionless" initial_value="0.3"/>
+    <variable name="Vurine" units="dimensionless" initial_value="1"/>
+    <variable name="BSA" units="dimensionless" initial_value="1.73"/>
+    <variable name="f_renal_function" units="dimensionless" initial_value="1"/>
+    <variable name="egfr" units="dimensionless" initial_value="1"/>
+    <variable name="crcl" units="dimensionless" initial_value="1"/>
+    <variable name="egfr_healthy" units="dimensionless" initial_value="100"/>
+    <variable name="M1EX_k" units="dimensionless" initial_value="0.148009816248971"/>
+    <variable name="M2EX_k" units="dimensionless" initial_value="0.0984926326381094"/>
+    <variable name="m1_ext" units="dimensionless" initial_value="0"/>
+    <variable name="m1_urine" units="dimensionless" initial_value="0"/>
+    <variable name="m2_ext" units="dimensionless" initial_value="0"/>
+    <variable name="m2_urine" units="dimensionless" initial_value="0"/>
+    <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:cellml="http://www.cellml.org/cellml/2.0#">
+      <apply>
+        <eq/>
+        <ci>egfr</ci>
+        <apply>
+          <times/>
+          <ci>f_renal_function</ci>
+          <ci>egfr_healthy</ci>
+        </apply>
+      </apply>
+      <apply>
+        <eq/>
+        <ci>crcl</ci>
+        <apply>
+          <times/>
+          <apply>
+            <divide/>
+            <apply>
+              <times/>
+              <ci>egfr</ci>
+              <ci>BSA</ci>
+            </apply>
+            <cn cellml:units="dimensionless">1.73</cn>
+          </apply>
+          <cn cellml:units="dimensionless">1.1</cn>
+        </apply>
+      </apply>
+      <apply>
+        <eq/>
+        <apply>
+          <diff/>
+          <bvar>
+            <ci>time</ci>
+          </bvar>
+          <ci>m1_ext</ci>
+        </apply>
+        <apply>
+          <times/>
+          <apply>
+            <divide/>
+            <cn cellml:units="dimensionless">1</cn>
+            <ci>Vext</ci>
+          </apply>
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <ci>f_renal_function</ci>
+              <ci>Vki</ci>
+              <ci>M1EX_k</ci>
+              <ci>m1_ext</ci>
+            </apply>
+          </apply>
+        </apply>
+      </apply>
+      <apply>
+        <eq/>
+        <apply>
+          <diff/>
+          <bvar>
+            <ci>time</ci>
+          </bvar>
+          <ci>m1_urine</ci>
+        </apply>
+        <apply>
+          <times/>
+          <ci>f_renal_function</ci>
+          <ci>Vki</ci>
+          <ci>M1EX_k</ci>
+          <ci>m1_ext</ci>
+        </apply>
+      </apply>
+      <apply>
+        <eq/>
+        <apply>
+          <diff/>
+          <bvar>
+            <ci>time</ci>
+          </bvar>
+          <ci>m2_ext</ci>
+        </apply>
+        <apply>
+          <times/>
+          <apply>
+            <divide/>
+            <cn cellml:units="dimensionless">1</cn>
+            <ci>Vext</ci>
+          </apply>
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <ci>f_renal_function</ci>
+              <ci>Vki</ci>
+              <ci>M2EX_k</ci>
+              <ci>m2_ext</ci>
+            </apply>
+          </apply>
+        </apply>
+      </apply>
+      <apply>
+        <eq/>
+        <apply>
+          <diff/>
+          <bvar>
+            <ci>time</ci>
+          </bvar>
+          <ci>m2_urine</ci>
+        </apply>
+        <apply>
+          <times/>
+          <ci>f_renal_function</ci>
+          <ci>Vki</ci>
+          <ci>M2EX_k</ci>
+          <ci>m2_ext</ci>
+        </apply>
+      </apply>
+    </math>
+  </component>
+</model>

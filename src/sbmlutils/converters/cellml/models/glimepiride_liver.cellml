@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<model xmlns="http://www.cellml.org/cellml/2.0#" name="glimepiride_liver">
+  <units name="per_second">
+    <unit exponent="-1" units="second"/>
+  </units>
+  <component name="sbml">
+    <variable name="time" units="dimensionless"/>
+    <variable name="Vext" units="dimensionless" initial_value="1.5"/>
+    <variable name="Vli" units="dimensionless" initial_value="1.5"/>
+    <variable name="GLIIM_k" units="dimensionless" initial_value="100"/>
+    <variable name="GLI2M1_Vmax" units="dimensionless" initial_value="5.36203611928566e-05"/>
+    <variable name="GLI2M1_Km_gli" units="dimensionless" initial_value="0.00225"/>
+    <variable name="f_cyp2c9" units="dimensionless" initial_value="1"/>
+    <variable name="M1EX_k" units="dimensionless" initial_value="0.0777434597719034"/>
+    <variable name="M12M2_k" units="dimensionless" initial_value="0.014851987496533"/>
+    <variable name="M2EX_k" units="dimensionless" initial_value="99.9981744786616"/>
+    <variable name="gli_ext" units="dimensionless" initial_value="0"/>
+    <variable name="gli" units="dimensionless" initial_value="0"/>
+    <variable name="m1_ext" units="dimensionless" initial_value="0"/>
+    <variable name="m1" units="dimensionless" initial_value="0"/>
+    <variable name="m2_ext" units="dimensionless" initial_value="0"/>
+    <variable name="m2" units="dimensionless" initial_value="0"/>
+    <math xmlns="http://www.w3.org/1998/Math/MathML" xmlns:cellml="http://www.cellml.org/cellml/2.0#">
+      <apply>
+        <eq/>
+        <apply>
+          <diff/>
+          <bvar>
+            <ci>time</ci>
+          </bvar>
+          <ci>gli_ext</ci>
+        </apply>
+        <apply>
+          <times/>
+          <apply>
+            <divide/>
+            <cn cellml:units="dimensionless">1</cn>
+            <ci>Vext</ci>
+          </apply>
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <ci>GLIIM_k</ci>
+              <ci>Vli</ci>
+              <apply>
+                <minus/>
+                <ci>gli_ext</ci>
+                <ci>gli</ci>
+              </apply>
+            </apply>
+          </apply>
+        </apply>
+      </apply>
+      <apply>
+        <eq/>
+        <apply>
+          <diff/>
+          <bvar>
+            <ci>time</ci>
+          </bvar>
+          <ci>gli</ci>
+        </apply>
+        <apply>
+          <times/>
+          <apply>
+            <divide/>
+            <cn cellml:units="dimensionless">1</cn>
+            <ci>Vli</ci>
+          </apply>
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <ci>GLIIM_k</ci>
+              <ci>Vli</ci>
+              <apply>
+                <minus/>
+                <ci>gli_ext</ci>
+                <ci>gli</ci>
+              </apply>
+            </apply>
+            <apply>
+              <divide/>
+              <apply>
+                <times/>
+                <ci>f_cyp2c9</ci>
+                <ci>GLI2M1_Vmax</ci>
+                <ci>Vli</ci>
+                <ci>gli</ci>
+              </apply>
+              <apply>
+                <plus/>
+                <ci>gli</ci>
+                <ci>GLI2M1_Km_gli</ci>
+              </apply>
+            </apply>
+          </apply>
+        </apply>
+      </apply>
+      <apply>
+        <eq/>
+        <apply>
+          <diff/>
+          <bvar>
+            <ci>time</ci>
+          </bvar>
+          <ci>m1</ci>
+        </apply>
+        <apply>
+          <times/>
+          <apply>
+            <divide/>
+            <cn cellml:units="dimensionless">1</cn>
+            <ci>Vli</ci>
+          </apply>
+          <apply>
+            <minus/>
+            <apply>
+              <minus/>
+              <apply>
+                <divide/>
+                <apply>
+                  <times/>
+                  <ci>f_cyp2c9</ci>
+                  <ci>GLI2M1_Vmax</ci>
+                  <ci>Vli</ci>
+                  <ci>gli</ci>
+                </apply>
+                <apply>
+                  <plus/>
+                  <ci>gli</ci>
+                  <ci>GLI2M1_Km_gli</ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <ci>M1EX_k</ci>
+                <ci>Vli</ci>
+                <apply>
+                  <minus/>
+                  <ci>m1</ci>
+                  <ci>m1_ext</ci>
+                </apply>
+              </apply>
+            </apply>
+            <apply>
+              <times/>
+              <ci>M12M2_k</ci>
+              <ci>Vli</ci>
+              <ci>m1</ci>
+            </apply>
+          </apply>
+        </apply>
+      </apply>
+      <apply>
+        <eq/>
+        <apply>
+          <diff/>
+          <bvar>
+            <ci>time</ci>
+          </bvar>
+          <ci>m1_ext</ci>
+        </apply>
+        <apply>
+          <times/>
+          <apply>
+            <divide/>
+            <cn cellml:units="dimensionless">1</cn>
+            <ci>Vext</ci>
+          </apply>
+          <ci>M1EX_k</ci>
+          <ci>Vli</ci>
+          <apply>
+            <minus/>
+            <ci>m1</ci>
+            <ci>m1_ext</ci>
+          </apply>
+        </apply>
+      </apply>
+      <apply>
+        <eq/>
+        <apply>
+          <diff/>
+          <bvar>
+            <ci>time</ci>
+          </bvar>
+          <ci>m2</ci>
+        </apply>
+        <apply>
+          <times/>
+          <apply>
+            <divide/>
+            <cn cellml:units="dimensionless">1</cn>
+            <ci>Vli</ci>
+          </apply>
+          <apply>
+            <minus/>
+            <apply>
+              <times/>
+              <ci>M12M2_k</ci>
+              <ci>Vli</ci>
+              <ci>m1</ci>
+            </apply>
+            <apply>
+              <times/>
+              <ci>M2EX_k</ci>
+              <ci>Vli</ci>
+              <apply>
+                <minus/>
+                <ci>m2</ci>
+                <ci>m2_ext</ci>
+              </apply>
+            </apply>
+          </apply>
+        </apply>
+      </apply>
+      <apply>
+        <eq/>
+        <apply>
+          <diff/>
+          <bvar>
+            <ci>time</ci>
+          </bvar>
+          <ci>m2_ext</ci>
+        </apply>
+        <apply>
+          <times/>
+          <apply>
+            <divide/>
+            <cn cellml:units="dimensionless">1</cn>
+            <ci>Vext</ci>
+          </apply>
+          <ci>M2EX_k</ci>
+          <ci>Vli</ci>
+          <apply>
+            <minus/>
+            <ci>m2</ci>
+            <ci>m2_ext</ci>
+          </apply>
+        </apply>
+      </apply>
+    </math>
+  </component>
+</model>

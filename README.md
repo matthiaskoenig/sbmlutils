@@ -2,48 +2,17 @@
    :align: left
    :alt: sbmlutils logo
 
-sbmlutils: python utilities for SBML
-====================================
-|icon1| |icon2| |icon3| |icon4| |icon5| |icon6| |icon7| |icon8| |icon9|
+![sbmlutils logo](https://github.com/matthiaskoenig/sbmlutils/raw/develop/docs_builder/images/sbmlutils-logo-60.png)
 
-.. |icon1| image:: https://github.com/matthiaskoenig/sbmlutils/workflows/CI-CD/badge.svg
-   :target: https://github.com/matthiaskoenig/sbmlutils/workflows/CI-CD
-   :alt: GitHub Actions CI/CD Status
-
-.. |icon2| image:: https://img.shields.io/pypi/v/sbmlutils.svg
-   :target: https://pypi.org/project/sbmlutils/
-   :alt: Current PyPI Version
-
-.. |icon3| image:: https://img.shields.io/pypi/pyversions/sbmlutils.svg
-   :target: https://pypi.org/project/sbmlutils/
-   :alt: Supported Python Versions
-
-.. |icon4| image:: https://img.shields.io/pypi/l/sbmlutils.svg
-   :target: http://opensource.org/licenses/LGPL-3.0
-   :alt: GNU Lesser General Public License 3
-
-.. |icon5| image:: https://codecov.io/gh/matthiaskoenig/sbmlutils/branch/develop/graph/badge.svg
-   :target: https://codecov.io/gh/matthiaskoenig/sbmlutils
-   :alt: Codecov
-
-.. |icon6| image:: https://readthedocs.org/projects/sbmlutils/badge/?version=latest
-   :target: https://sbmlutils.readthedocs.io/en/latest/?badge=latest
-   :alt: Documentation Status
-
-.. |icon7| image:: https://zenodo.org/badge/55952847.svg
-   :target: https://zenodo.org/badge/latestdoi/55952847
-   :alt: Zenodo DOI
-
-.. |icon8| image:: https://img.shields.io/badge/code%20style-black-000000.svg
-   :target: https://github.com/ambv/black
-   :alt: Black
-
-.. |icon9| image:: http://www.mypy-lang.org/static/mypy_badge.svg
-   :target: http://mypy-lang.org/
-   :alt: mypy
+# sbmlutils: python utilities for SBML
+[![GitHub Actions CI/CD Status](https://github.com/matthiaskoenig/sbmlutils/workflows/CI-CD/badge.svg)](https://github.com/matthiaskoenig/sbmlutils/actions/workflows/main.yml)
+[![Version](https://img.shields.io/pypi/v/sbmlutils.svg)](https://pypi.org/project/sbmlutils/)
+[![Python Versions](https://img.shields.io/pypi/pyversions/sbmlutils.svg)](https://pypi.org/project/sbmlutils/)
+[![MIT License](https://img.shields.io/pypi/l/sbmlutils.svg)](https://opensource.org/licenses/MIT)
+[![DOI](https://zenodo.org/badge/55952847.svg)](https://zenodo.org/badge/latestdoi/55952847)
 
 sbmlutils is a collection of python utilities for working with
-`SBML <http://www.sbml.org>`__ models implemented on top of
+[SBML](http://www.sbml.org) models implemented on top of
 `libsbml <http://sbml.org/Software/libSBML>`__ and other libraries
 with source code available from `https://github.com/matthiaskoenig/sbmlutils <https://github.com/matthiaskoenig/sbmlutils>`__.
 
@@ -76,21 +45,8 @@ get started.
 
 License
 =======
-
-* Source Code: `LGPLv3 <http://opensource.org/licenses/LGPL-3.0>`__
+- Source Code: [MIT](https://opensource.org/license/MIT)
 * Documentation: `CC BY-SA 4.0 <http://creativecommons.org/licenses/by-sa/4.0/>`__
-
-The sbmlutils source is released under both the GPL and LGPL licenses version 2 or
-later. You may choose which license you choose to use the software under.
-
-This program is free software: you can redistribute it and/or modify it under
-the terms of the GNU General Public License or the GNU Lesser General Public
-License as published by the Free Software Foundation, either version 2 of the
-License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 Funding
 =======
