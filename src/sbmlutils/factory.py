@@ -3461,7 +3461,7 @@ class Model(Sbase, FrozenClass, BaseModel):
         units_base_classes: List[Type[Units]] = (
             [model.units] if model.units else [Units]
         )
-        creators = set()
+        creators = dict()  # using a dict to keep order of insertion
         for m2 in models:
             for key, value in m2.__dict__.items():
                 kind = m2._keys.get(key, None)
@@ -3485,7 +3485,7 @@ class Model(Sbase, FrozenClass, BaseModel):
                 elif key == "creators":
                     if m2.creators:
                         for c in m2.creators:
-                            creators.add(c)
+                            creators[c] = None
                 # !everything else is overwritten
                 else:
                     setattr(model, key, value)
