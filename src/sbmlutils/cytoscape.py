@@ -31,7 +31,7 @@ def visualize_antimony(source: Union[Path, str], delete_session: bool = False) -
     """Visualize antimony in cytoscape."""
     sbml_str = antimony_to_sbml(source=source)
     tmp_file = tempfile.NamedTemporaryFile()
-    with open(tmp_file.name, "w") as f_tmp:
+    with open(tmp_file.name, "w", encoding="utf-8") as f_tmp:
         f_tmp.write(sbml_str)
 
     visualize_sbml(Path(f_tmp.name), delete_session=delete_session)

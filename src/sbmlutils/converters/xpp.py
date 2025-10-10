@@ -284,8 +284,7 @@ def xpp2sbml(
     # First iteration to parse relevant lines and get the replacement patterns
     ###########################################################################
     parsed_lines = []
-    # with open(xpp_file, encoding="utf-8") as f:
-    with open(xpp_file) as f:
+    with open(xpp_file, encoding="utf-8") as f:
         lines = f.readlines()
 
         # add info to sbml

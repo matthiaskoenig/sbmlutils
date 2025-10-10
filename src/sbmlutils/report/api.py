@@ -134,7 +134,7 @@ def report_from_url(url: str) -> Dict[Any, Any]:
 
         with tempfile.TemporaryDirectory() as f_tmp:
             path = Path(f_tmp) / "file"
-            with open(path, "w") as f:
+            with open(path, "w", encoding="utf-8") as f:
                 f.write(response.text)
 
             return json_for_omex(path)

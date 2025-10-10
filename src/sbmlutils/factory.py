@@ -3668,7 +3668,7 @@ def create_model(
 
     # print created sbml
     if show_sbml:
-        with open(filepath, "r") as f_sbml:
+        with open(filepath, "r", encoding="utf-8") as f_sbml:
             sbml_str = f_sbml.read()
 
         console.log(sbml_str)
