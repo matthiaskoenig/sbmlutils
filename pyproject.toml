@@ -1,9 +1,93 @@
 [build-system]
-requires = [
-  'setuptools>=40.6.0',
-  'wheel'
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "sbmlutils"
+version = "0.9.0"
+description = "Python utilities for SBML."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+	{name="Matthias König", email="konigmatt@googlemail.com"},
+]
+maintainers = [
+	{name="Matthias König", email="konigmatt@googlemail.com"}
+]
+classifiers = [
+	"Development Status :: 5 - Production/Stable",
+	"Intended Audience :: Science/Research",
+	"License :: OSI Approved :: MIT License",
+	"Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+	"Programming Language :: Python :: Implementation :: CPython",
+	"Topic :: Scientific/Engineering",
+	"Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+keywords = [
+    "SBML",
+    "Systems Biology Markup Language",
+    "COMBINE",
+    "standardization",
+    "computational modeling",
+]
+dependencies = [
+    "pymetadata>=0.5.4",
+	"depinfo",
+	"rich",
+	"lxml",
+	"requests",
+	"jinja2",
+	"xmltodict",
+	"pydantic>2.12",
+
+	"numpy>=2.2.2",
+	"scipy>=1.14",
+	"pandas>=2.2.0",
+    "python-libsbml>=5.20.5",
+	"antimony>=3.0.0",
+	"libroadrunner>=2.8.0",
+	"pint>=0.25",
+
+    "markdown-it-py>=4.0.0",
+	"openpyxl>=3.1.5",
+	"xmlschema>=4.2.0",
+	"matplotlib>=3.10",
+    "setuptools",  # fix for colorbrewer dependency of py4cytoscape
+	"py4cytoscape>=1.12.0",
+
+	"uvicorn>=0.37.0",
+	"fastapi>=0.119.0",
+	"python-multipart>=0.0.20",
+]
+[project.optional-dependencies]
+dev = [
+    "bump-my-version>=1.2.4",
+	"ruff>=0.14.0",
+	"pre-commit>=4.3.0",
+	"mypy>=1.18.2",
+]
+test = [
+    "tox>=4.31.0",
+    "pytest>=8.4.2",
+    "pytest-cov>=7.0.0",
 ]
 
-[tool.black]
-line-length = 88
-python-version = ['py38']
+[project_urls]
+Homepage = "https://github.com/matthiaskoenig/sbmlutils"
+Repository = "https://github.com/matthiaskoenig/sbmlutils"
+Documentation = "https://github.com/matthiaskoenig/sbmlutils"
+Issues = "https://github.com/matthiaskoenig/sbmlutils/issues"
+Download = "https://pypi.org/project/sbmlutils"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sbmlutils"]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.version]
+path = "./src/sbmlutils/__init__.py"
