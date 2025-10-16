@@ -195,12 +195,12 @@ def sbml_to_model(
     for s in model.getListOfSpecies():
         m.species.append(
             Species(
-                compartment=s.getCompartment() if s.isSetCompartment() else "",
-                initialAmount=s.getInitialAmount() if s.isSetInitialAmount() else NaN,
+                compartment=s.getCompartment() if s.isSetCompartment() else None,
+                initialAmount=s.getInitialAmount() if s.isSetInitialAmount() else None,
                 initialConcentration=(
                     s.getInitialConcentration()
                     if s.isSetInitialConcentration()
-                    else NaN
+                    else None
                 ),
                 constant=s.getConstant() if s.isSetConstant() else False,
                 hasOnlySubstanceUnits=(
@@ -229,7 +229,7 @@ def sbml_to_model(
         for reactant in r.getListOfReactants():
             equation.reactants.append(
                 EquationPart(
-                    species=reactant.getSpecies() if reactant.isSetSpecies() else "",
+                    species=reactant.getSpecies() if reactant.isSetSpecies() else None,
                     stoichiometry=(
                         reactant.getStoichiometry()
                         if reactant.isSetStoichiometry()
@@ -245,7 +245,7 @@ def sbml_to_model(
         for product in r.getListOfProducts():
             equation.products.append(
                 EquationPart(
-                    species=product.getSpecies() if product.isSetSpecies() else "",
+                    species=product.getSpecies() if product.isSetSpecies() else None,
                     stoichiometry=(
                         product.getStoichiometry()
                         if product.isSetStoichiometry()
@@ -284,7 +284,7 @@ def sbml_to_model(
         if formula:
             m.assignments.append(
                 InitialAssignment(
-                    symbol=ia.getSymbol() if ia.isSetSymbol() else "",
+                    symbol=ia.getSymbol() if ia.isSetSymbol() else None,
                     value=formula,
                     **parse_sbase_kwargs(ia),
                 )
@@ -300,7 +300,7 @@ def sbml_to_model(
             if typecode == libsbml.SBML_ASSIGNMENT_RULE:
                 m.rules.append(
                     AssignmentRule(
-                        variable=rule.getVariable() if rule.isSetVariable() else "",
+                        variable=rule.getVariable() if rule.isSetVariable() else None,
                         value=formula,
                         **parse_sbase_kwargs(rule),
                     )
@@ -308,7 +308,7 @@ def sbml_to_model(
             elif typecode == libsbml.SBML_RATE_RULE:
                 m.rate_rules.append(
                     RateRule(
-                        variable=rule.getVariable() if rule.isSetVariable() else "",
+                        variable=rule.getVariable() if rule.isSetVariable() else None,
                         value=formula,
                         **parse_sbase_kwargs(rule),
                     )
