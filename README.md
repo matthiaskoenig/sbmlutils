@@ -1,7 +1,3 @@
-.. image:: https://github.com/matthiaskoenig/sbmlutils/raw/develop/docs_builder/images/sbmlutils-logo-60.png
-   :align: left
-   :alt: sbmlutils logo
-
 ![sbmlutils logo](https://github.com/matthiaskoenig/sbmlutils/raw/develop/docs_builder/images/sbmlutils-logo-60.png)
 
 # sbmlutils: python utilities for SBML
