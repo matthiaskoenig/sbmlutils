@@ -23,7 +23,11 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Install Python dev files (Ubuntu only)
-      run: sudo add-apt-repository ppa:deadsnakes/ppa && sudo apt-get update && sudo apt-get install -y python${{ matrix.python-version }}-dev
+      run: |
+           if [ "$RUNNER_OS" == "Linux" ]; then
+               sudo add-apt-repository ppa:deadsnakes/ppa && sudo apt-get update && sudo apt-get install -y python${{ matrix.python-version }}-dev
+           fi
+      shell: bash
 
     - name: Install uv and set the python version
       uses: astral-sh/setup-uv@v5
