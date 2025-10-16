@@ -14,7 +14,7 @@ uv venv --python 3.13
 uv pip install sbmlutils
 ```
 
-# Install dev dependencies:
+# Install development dependencies:
 ```bash
 # install core dependencies
 uv sync
@@ -22,13 +22,12 @@ uv sync
 uv pip install -r pyproject.toml --extra dev
 # install test dependencies
 uv pip install -r pyproject.toml --extra test
-```
-
-## Setup tox testing
-See information on https://github.com/tox-dev/tox-uv
-```bash
+# install tox testing
 uv tool install tox --with tox-uv
 ```
+
+## Testing
+See information on https://github.com/tox-dev/tox-uv
 Run single tox target
 ```bash
 tox r -e py312
