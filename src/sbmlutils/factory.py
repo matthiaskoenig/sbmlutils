@@ -318,7 +318,7 @@ def set_model_history(
 
 
 def _create_history(
-    creators: Iterable[Creator], set_timestamps: bool = False
+    creators: Iterable[Creator], set_timestamps: bool = True
 ) -> libsbml.ModelHistory:
     """Create the model history.
 

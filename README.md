@@ -29,7 +29,7 @@ If you have any questions or issues please [open an issue](https://github.com/ma
 
 ## License
 - Source Code: [MIT](https://opensource.org/license/MIT)
--Documentation: [CC BY-SA 4.0](http://creativecommons.org/licenses/by-sa/4.0/)
+- Documentation: [CC BY-SA 4.0](http://creativecommons.org/licenses/by-sa/4.0/)
 
 ## Installation
 sbmlutils is available from [pypi](https://pypi.python.org/pypi/sbmlutils) and 
@@ -51,8 +51,7 @@ Or via cloning the repository and installing via
     pip install -e .
 ```
 
-Funding
-=======
+## Funding
 Matthias König is supported and by the German Research Foundation (DFG) within the Research Unit Programme FOR 5151 
 "`QuaLiPerF <https://qualiperf.de>`__ (Quantifying Liver Perfusion-Function Relationship in Complex Resection - 
 A Systems Medicine Approach)" by grant number 436883643 and by grant number 
