@@ -300,7 +300,7 @@ class ModelUnits:
 
 
 def set_model_history(
-    sbase: libsbml.SBase, creators: List[Creator], set_timestamps: bool = False
+    sbase: libsbml.SBase, creators: List[Creator], set_timestamps: bool = True
 ) -> None:
     """Set the model history from given creators.
 
