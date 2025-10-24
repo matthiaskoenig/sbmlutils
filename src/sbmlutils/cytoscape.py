@@ -13,9 +13,8 @@ import pandas as pd
 os.environ["PY4CYTOSCAPE_DETAIL_LOGGER_DIR"] = str(tempfile.gettempdir())
 
 from pathlib import Path  # noqa: E402
-from typing import Any, Union, Optional  # noqa: E402
+from typing import Any, Union, Optional, Iterable  # noqa: E402
 
-import libsbml
 import py4cytoscape as p4c  # type: ignore  # noqa: E402
 from requests.exceptions import RequestException  # noqa: E402
 
@@ -31,7 +30,7 @@ def visualize_antimony(source: Union[Path, str], delete_session: bool = False) -
     """Visualize antimony in cytoscape."""
     sbml_str = antimony_to_sbml(source=source)
     tmp_file = tempfile.NamedTemporaryFile()
-    with open(tmp_file.name, "w") as f_tmp:
+    with open(tmp_file.name, "w", encoding="utf-8") as f_tmp:
         f_tmp.write(sbml_str)
 
     visualize_sbml(Path(f_tmp.name), delete_session=delete_session)
@@ -50,7 +49,7 @@ def visualize_sbml(sbml_path: Path, delete_session: bool = False) -> Optional[in
 
         networks_views = p4c.networks.import_network_from_file(str(sbml_path))
         # console.print(f"{networks_views}")
-        network = networks_views["networks"][1]
+        network: Optional[int] = networks_views["networks"][1]
         p4c.set_current_view(network=network)  # set the base network
         return network
 
@@ -66,12 +65,13 @@ def read_layout_xml(sbml_path: Path, xml_path: Path) -> pd.DataFrame:
     """Read own xml layout information form cytoscape."""
     # read positions
     df: pd.DataFrame = pd.read_xml(xml_path, xpath="//boundingBox")
-    df = df[['id', 'xpos', 'ypos']]
+    df = df[["id", "xpos", "ypos"]]
     df.rename(columns={"xpos": "x", "ypos": "y"}, inplace=True)
     df.set_index("id", inplace=True)
     return df
 
-def apply_layout(layout: pd.DataFrame, network=None) -> None:
+
+def apply_layout(layout: pd.DataFrame, network: Optional[int] = None) -> None:
     """Apply layout information from Cytoscape to SBML networks."""
 
     # get SUIDs, sbml_id from node table;
@@ -86,7 +86,9 @@ def apply_layout(layout: pd.DataFrame, network=None) -> None:
 
     # set positions
     # see: https://github.com/cytoscape/py4cytoscape/issues/144
-    p4c.set_node_position_bypass(suids, new_x_locations=x_values, new_y_locations=y_values, network=network)
+    p4c.set_node_position_bypass(
+        suids, new_x_locations=x_values, new_y_locations=y_values, network=network
+    )
     # p4c.set_node_property_bypass(suids, new_values=x_values, visual_property='NODE_X_LOCATION', network=network)
     # p4c.set_node_property_bypass(suids, new_values=y_values, visual_property='NODE_Y_LOCATION', network=network)
     # positions = p4c.get_node_position()
@@ -106,6 +108,7 @@ class AnnotationShapeType(str, Enum):
     RECTANGLE = "RECTANGLE"
     ROUND_RECTANGLE = "ROUND_RECTANGLE"
 
+
 @dataclass
 class AnnotationShape:
     type: AnnotationShapeType
@@ -121,6 +124,7 @@ class AnnotationShape:
     canvas: str = "background"
     z_order: int = 0
 
+
 @dataclass
 class AnnotationText:
     text: str
@@ -128,10 +132,11 @@ class AnnotationText:
     y_pos: int
     font_size: int = 12  # Numeric value; default is 12
     font_family: str = "Arial"  # Font family; default is Arial
-    font_style: str = "bold"   # Font style; default is none
-    color: str = "#000000"""  # hexadecimal color; default is #000000 (black)
+    font_style: str = "bold"  # Font style; default is none
+    color: str = "#000000" ""  # hexadecimal color; default is #000000 (black)
     angle: float = 0  # Angle of text orientation; default is 0.0 (horizontal)
     canvas: str = "background"
+
 
 @dataclass
 class AnnotationBoundedText:
@@ -148,14 +153,13 @@ class AnnotationBoundedText:
     border_opacity: int = 100
     font_size: int = 12  # Numeric value; default is 12
     font_family: str = "Arial"  # Font family; default is Arial
-    font_style: str = "bold"   # Font style; default is none
-    color: str = "#000000"""  # hexadecimal color; default is #000000 (black)
+    font_style: str = "bold"  # Font style; default is none
+    color: str = "#000000" ""  # hexadecimal color; default is #000000 (black)
     angle: float = 0  # Angle of text orientation; default is 0.0 (horizontal)
     canvas: str = "background"
 
 
-
-def add_annotations(annotations, network=None):
+def add_annotations(annotations: Iterable, network: Optional[int] = None) -> None:
     """Add annotations to the network."""
 
     for a in annotations:
@@ -210,7 +214,12 @@ def add_annotations(annotations, network=None):
             )
 
 
-def export_image(image_path: Path, format="PNG", fit_content: bool = False, hide_labels: bool = True):
+def export_image(
+    image_path: Path,
+    format: str = "PNG",
+    fit_content: bool = False,
+    hide_labels: bool = False,
+) -> None:
     """Helper for exporting cytoscape images.
 
     format (str): Type of image to export, e.g., PNG (default), JPEG, PDF, SVG, PS (PostScript).
@@ -224,7 +233,7 @@ def export_image(image_path: Path, format="PNG", fit_content: bool = False, hide
         zoom=400.0,
         overwrite_file=True,
         all_graphics_details=True,
-        hide_labels=False,
+        hide_labels=hide_labels,
     )
 
 
@@ -241,4 +250,3 @@ if __name__ == "__main__":
     # annotations!
 
     # network_views.export_image
-

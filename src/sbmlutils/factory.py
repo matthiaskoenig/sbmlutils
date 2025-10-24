@@ -50,12 +50,16 @@ from pymetadata.core.creator import Creator
 from sbmlutils.console import console
 from sbmlutils.io import write_sbml
 from sbmlutils.log import get_logger
-from sbmlutils.metadata import *
-from sbmlutils.metadata import annotator
+from sbmlutils.metadata import (
+    annotator,
+    BQM,
+    BQB,
+    SBO,
+)
 from sbmlutils.metadata.annotator import Annotation
 from sbmlutils.notes import Notes, NotesFormat
 from sbmlutils.reaction_equation import EquationPart, ReactionEquation
-from sbmlutils.utils import FrozenClass, create_metaid, deprecated
+from sbmlutils.utils import FrozenClass, create_metaid
 from sbmlutils.validation import ValidationOptions, check
 
 
@@ -296,7 +300,7 @@ class ModelUnits:
 
 
 def set_model_history(
-    sbase: libsbml.SBase, creators: List[Creator], set_timestamps: bool = False
+    sbase: libsbml.SBase, creators: List[Creator], set_timestamps: bool = True
 ) -> None:
     """Set the model history from given creators.
 
@@ -314,7 +318,7 @@ def set_model_history(
 
 
 def _create_history(
-    creators: Iterable[Creator], set_timestamps: bool = False
+    creators: Iterable[Creator], set_timestamps: bool = True
 ) -> libsbml.ModelHistory:
     """Create the model history.
 
@@ -1673,7 +1677,7 @@ class Reaction(Sbase):
 
     @staticmethod
     def _process_formula(
-        formula: Optional[Union[Formula, Tuple[str, UnitType], str]]
+        formula: Optional[Union[Formula, Tuple[str, UnitType], str]],
     ) -> Optional[Formula]:
         """Process reaction formula (kinetic law)."""
         if formula is None:
@@ -2123,9 +2127,7 @@ class Uncertainty(Sbase):
                 libsbml.DISTRIB_UNCERTTYPE_STANDARDERROR,
                 libsbml.DISTRIB_UNCERTTYPE_VARIANCE,
             ]:
-                up_p: libsbml.UncertParameter = (
-                    uncertainty.createUncertParameter()
-                )  # type: ignore
+                up_p: libsbml.UncertParameter = uncertainty.createUncertParameter()  # type: ignore
                 up_p.setType(uncertParameter.type)
                 if uncertParameter.value is not None:
                     up_p.setValue(uncertParameter.value)
@@ -3461,7 +3463,7 @@ class Model(Sbase, FrozenClass, BaseModel):
         units_base_classes: List[Type[Units]] = (
             [model.units] if model.units else [Units]
         )
-        creators = dict()  # using a dict to keep order of insertion
+        creators: dict[Creator, Any] = dict()  # using a dict to keep order of insertion
         for m2 in models:
             for key, value in m2.__dict__.items():
                 kind = m2._keys.get(key, None)
@@ -3668,7 +3670,7 @@ def create_model(
 
     # print created sbml
     if show_sbml:
-        with open(filepath, "r") as f_sbml:
+        with open(filepath, "r", encoding="utf-8") as f_sbml:
             sbml_str = f_sbml.read()
 
         console.log(sbml_str)

@@ -3,7 +3,7 @@
 # sudo docker build -t fastapi-app .
 # sudo docker run -p 1444:1444 fastapi-app
 # -------------------------------------------------------------------------------------
-FROM python:3.12-slim
+FROM python:3.13-slim
 
 # Add application code to the image
 COPY ./src /code/src

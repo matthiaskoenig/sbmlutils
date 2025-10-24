@@ -375,7 +375,7 @@ class SBMLDocumentInfo:
         # distrib
         sbml_distrib: libsbml.DistribSBasePlugin = sbase.getPlugin("distrib")
         if sbml_distrib and isinstance(sbml_distrib, libsbml.DistribSBasePlugin):
-            d["uncertainties"] = []
+            uncertainties: list[dict] = []
             for uncertainty in sbml_distrib.getListOfUncertainties():
                 u_dict = SBMLDocumentInfo.sbase_dict(uncertainty)
 
@@ -401,8 +401,8 @@ class SBMLDocumentInfo:
 
                     u_dict["uncertaintyParameters"].append(param_dict)
 
-                d["uncertainties"].append(u_dict)
-
+                uncertainties.append(u_dict)
+            d["uncertainties"] = uncertainties
         return d
 
     def sbaseref_dict(self, sbaseref: libsbml.SBaseRef) -> Dict[str, Any]:
@@ -1265,7 +1265,7 @@ if __name__ == "__main__":
     if not output_dir.exists():
         output_dir.mkdir(parents=True, exist_ok=True)
 
-    from sbmlutils.resources import GLUCOSE_SBML, REPRESSILATOR_SBML
+    from sbmlutils.resources import REPRESSILATOR_SBML
 
     for source in [
         # COMP_ICG_BODY,

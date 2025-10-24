@@ -12,10 +12,24 @@ import antimony
 import libsbml
 from pymetadata.omex import ManifestEntry, Omex
 
-from sbmlutils import RESOURCES_DIR
 from sbmlutils.console import console
-from sbmlutils.factory import *
-from sbmlutils.io.sbml import read_sbml, validate_sbml
+from sbmlutils.factory import (
+    Model,
+    KeyValuePair,
+    Package,
+    Parameter,
+    Compartment,
+    NaN,
+    Species,
+    ReactionEquation,
+    Reaction,
+    InitialAssignment,
+    AssignmentRule,
+    RateRule,
+    AlgebraicRule,
+    create_model,
+)
+from sbmlutils.io.sbml import read_sbml
 from sbmlutils.log import get_logger
 from sbmlutils.metadata import BQB, BQM
 from sbmlutils.reaction_equation import EquationPart
@@ -158,7 +172,7 @@ def sbml_to_model(
             Parameter(
                 value=p.getValue() if p.isSetValue else None,
                 # unit=p.getUnits(),
-                constant=p.getConstant() if p.isSetConstant() else None,
+                constant=p.getConstant() if p.isSetConstant() else True,
                 **d,
             )
         )
@@ -170,7 +184,7 @@ def sbml_to_model(
                 value=c.getSize() if c.isSetSize() else NaN,
                 constant=c.getConstant() if c.isSetConstant() else True,
                 spatialDimensions=(
-                    c.getSpatialDimensions() if c.isSetSpatialDimensions() else None
+                    c.getSpatialDimensions() if c.isSetSpatialDimensions() else 3
                 ),
                 # unit=p.getUnits(),
                 **parse_sbase_kwargs(c),
@@ -188,14 +202,14 @@ def sbml_to_model(
                     if s.isSetInitialConcentration()
                     else None
                 ),
-                constant=s.getConstant() if s.isSetConstant() else None,
+                constant=s.getConstant() if s.isSetConstant() else False,
                 hasOnlySubstanceUnits=(
                     s.getHasOnlySubstanceUnits()
                     if s.isSetHasOnlySubstanceUnits()
-                    else None
+                    else False
                 ),
                 boundaryCondition=(
-                    s.getBoundaryCondition() if s.isSetBoundaryCondition() else None
+                    s.getBoundaryCondition() if s.isSetBoundaryCondition() else False
                 ),
                 # unit=p.getUnits(),
                 **parse_sbase_kwargs(s),
@@ -208,9 +222,8 @@ def sbml_to_model(
     formula: Optional[str]
 
     for r in model.getListOfReactions():
-        # FIXME: better equation support.
         equation = ReactionEquation(
-            reversible=r.getReversible() if r.isSetReversible() else None
+            reversible=r.getReversible() if r.isSetReversible() else True
         )
         reactant: libsbml.SpeciesReference
         for reactant in r.getListOfReactants():
@@ -255,7 +268,12 @@ def sbml_to_model(
         formula = libsbml.formulaToL3String(ast) if ast else None
 
         m.reactions.append(
-            Reaction(equation=equation, formula=formula, **parse_sbase_kwargs(r))
+            Reaction(
+                equation=equation,
+                formula=formula,
+                reversible=r.getReversible() if r.isSetReversible() else None,
+                **parse_sbase_kwargs(r),
+            )
         )
 
     # initial assignment

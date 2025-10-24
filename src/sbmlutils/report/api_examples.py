@@ -1,7 +1,7 @@
 """Example models for the sbml4humans API."""
 
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 import libsbml
 from pydantic import BaseModel, FilePath
@@ -23,7 +23,7 @@ class ExampleMetaData(BaseModel):
     file: FilePath
     name: Optional[str] = None
     description: Optional[str] = None
-    packages: List[str] = []
+    packages: list[str] = []
 
 
 def create_models_metadata(sbml_path: Path) -> ExampleMetaData:
@@ -35,12 +35,10 @@ def create_models_metadata(sbml_path: Path) -> ExampleMetaData:
     if not model:
         raise ValueError(f"Model could not be read for '{sbml_path}'")
 
-    sid: str = model.getId() if model.isSetId() else None
-    if not sid:
-        sid = sbml_path.stem
-    name: str = model.getName() if model.isSetName() else None
-    description: str = model.getNotesString() if model.isSetNotes() else None
-    packages: List[str] = []
+    sid: str = model.getId() if model.isSetId() else sbml_path.stem
+    name: Optional[str] = model.getName() if model.isSetName() else None
+    description: Optional[str] = model.getNotesString() if model.isSetNotes() else None
+    packages: list[str] = []
     for k in range(doc.getNumPlugins()):
         plugin: libsbml.SBMLDocumentPlugin = doc.getPlugin(k)
         packages.append(plugin.getPrefix())
@@ -68,9 +66,9 @@ def create_omex_metadata(omex_path: Path) -> ExampleMetaData:
     )
 
 
-def biomodels_examples() -> List[ExampleMetaData]:
+def biomodels_examples() -> list[ExampleMetaData]:
     """Biomodel examples."""
-    examples: List[ExampleMetaData] = []
+    examples: list[ExampleMetaData] = []
     with console.status("Processing examples ...", spinner="aesthetic"):
         for k in range(1, 50):
             biomodel_id = f"BIOMD0000000{k:0>3}"

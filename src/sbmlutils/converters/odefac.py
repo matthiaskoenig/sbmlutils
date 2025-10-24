@@ -436,7 +436,7 @@ class SBML2ODE:
             replace_symbols=True,
         )
         if py_file:
-            with open(py_file, "w") as f:
+            with open(py_file, "w", encoding="utf-8") as f:
                 f.write(content)
 
         return content
@@ -449,7 +449,7 @@ class SBML2ODE:
             replace_symbols=False,
         )
         if tex_file:
-            with open(tex_file, "w") as f:
+            with open(tex_file, "w", encoding="utf-8") as f:
                 f.write(content)
 
         return content
@@ -462,7 +462,7 @@ class SBML2ODE:
             replace_symbols=True,
         )
         if r_file:
-            with open(r_file, "w") as f:
+            with open(r_file, "w", encoding="utf-8") as f:
                 f.write(content)
 
         return content
@@ -480,7 +480,7 @@ class SBML2ODE:
             replace_symbols=True,
         )
         if jl_file:
-            with open(jl_file, "w") as f:
+            with open(jl_file, "w", encoding="utf-8") as f:
                 f.write(content)
 
         return content
@@ -493,7 +493,7 @@ class SBML2ODE:
             replace_symbols=False,
         )
         if md_file:
-            with open(md_file, "w") as f:
+            with open(md_file, "w", encoding="utf-8") as f:
                 f.write(content)
 
         return content
@@ -509,7 +509,7 @@ class SBML2ODE:
             template_dir=template_file.parent,
         )
         if output_file:
-            with open(output_file, "w") as f:
+            with open(output_file, "w", encoding="utf-8") as f:
                 f.write(content)
 
         return content

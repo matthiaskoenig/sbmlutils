@@ -243,16 +243,13 @@ def validate_doc(
         libsbml.LIBSBML_CAT_MATHML_CONSISTENCY, options.mathml_consistency
     )
     doc.setConsistencyChecks(
-        libsbml.LIBSBML_CAT_UNITS_CONSISTENCY, options.units_consistency
-    )
-    doc.setConsistencyChecks(
-        libsbml.LIBSBML_CAT_SBO_CONSISTENCY, options.sbo_consistency
-    )
-    doc.setConsistencyChecks(
         libsbml.LIBSBML_CAT_OVERDETERMINED_MODEL, options.overdetermined_model
     )
     doc.setConsistencyChecks(
         libsbml.LIBSBML_CAT_SBO_CONSISTENCY, options.sbo_consistency
+    )
+    doc.setConsistencyChecks(
+        libsbml.LIBSBML_CAT_UNITS_CONSISTENCY, options.units_consistency
     )
 
     # time
@@ -264,7 +261,10 @@ def validate_doc(
         results_internal = _check_consistency(doc, internal_consistency=True)
     else:
         results_internal = ValidationResult()
-    results_not_internal = _check_consistency(doc, internal_consistency=False)
+
+    results_not_internal = _check_consistency(
+        doc, internal_consistency=False, units_consistency=options.units_consistency
+    )
 
     # sum up
     vresults = ValidationResult.from_results([results_internal, results_not_internal])
@@ -274,6 +274,14 @@ def validate_doc(
         lines += [
             f"{'validation error(s)':<25}: {vresults.error_count}",
             f"{'validation warnings(s)':<25}: {vresults.warning_count}",
+        ]
+        lines += [
+            f"{'    general':<25}: {options.general_consistency}",
+            f"{'    identifier':<25}: {options.identifier_consistency}",
+            f"{'    mathml':<25}: {options.mathml_consistency}",
+            f"{'    overdetermined':<25}: {options.overdetermined_model}",
+            f"{'    sbo':<25}: {options.sbo_consistency}",
+            f"{'    units':<25}: {options.units_consistency}",
         ]
     lines += [
         f"{'check time (s)':<25}: {time.perf_counter() - current:.3f}",
@@ -303,7 +311,9 @@ def validate_doc(
 
 
 def _check_consistency(
-    doc: libsbml.SBMLDocument, internal_consistency: bool = False
+    doc: libsbml.SBMLDocument,
+    internal_consistency: bool = False,
+    units_consistency: bool = False,
 ) -> ValidationResult:
     """Calculate the type of errors.
 
@@ -316,8 +326,10 @@ def _check_consistency(
     if internal_consistency:
         count = doc.checkInternalConsistency()
     else:
-        # count = doc.checkConsistency()
-        count = doc.checkConsistencyWithStrictUnits()
+        if units_consistency:
+            count = doc.checkConsistencyWithStrictUnits()
+        else:
+            count = doc.checkConsistency()
 
     if count > 0:
         for i in range(count):

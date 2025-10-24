@@ -23,6 +23,6 @@ if __name__ == "__main__":
         factory.to_python(py_file=py_path)
 
         console.rule(style="white")
-        with open(md_path, "r") as f_ode:
+        with open(md_path, "r", encoding="utf-8") as f_ode:
             console.print(str(f_ode.read()).replace("[", r"\["))
         console.rule(style="white")
