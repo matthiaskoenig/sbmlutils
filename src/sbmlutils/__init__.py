@@ -3,7 +3,7 @@
 from pathlib import Path
 
 __author__ = "Matthias König"
-__version__ = "0.9.3"
+__version__ = "0.9.4"
 
 
 program_name = "sbmlutils"
