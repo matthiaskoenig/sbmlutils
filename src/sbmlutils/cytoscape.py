@@ -54,7 +54,7 @@ def visualize_sbml(sbml_path: Path, delete_session: bool = False) -> Optional[in
         return network
 
     except RequestException:
-        logger.error(
+        logger.warning(
             "Could not connect to a running Cytoscape instance. "
             "Start Cytoscape before running the python script."
         )
