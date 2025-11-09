@@ -44,16 +44,9 @@ The latest develop version can be installed via
 pip install git+https://github.com/matthiaskoenig/sbmlutils.git@develop
 ```
 
-Or via cloning the repository and installing via
-```bash
-    git clone https://github.com/matthiaskoenig/sbmlutils.git
-    cd sbmlutils
-    pip install -e .
-```
-
 ## Funding
 Matthias König is supported and by the German Research Foundation (DFG) within the Research Unit Programme FOR 5151 
-"`QuaLiPerF <https://qualiperf.de>`__ (Quantifying Liver Perfusion-Function Relationship in Complex Resection - 
+"QuaLiPerF (Quantifying Liver Perfusion-Function Relationship in Complex Resection - 
 A Systems Medicine Approach)" by grant number 436883643 and by grant number 
 465194077 (Priority Programme SPP 2311, Subproject SimLivA).
 
