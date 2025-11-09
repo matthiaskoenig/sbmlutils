@@ -1,6 +1,5 @@
 import pandas as pd
 
-from sbmlutils.console import console
 from sbmlutils.resources import MODELS_DIR
 from sbmlutils.metadata.validator import validate_sbml_annotations
 

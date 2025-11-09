@@ -491,10 +491,10 @@ def f_dxdt(x, t, p):
     Vve = p[5] * p[28] - (p[28] / (p[21] + p[28])) * p[5] * p[33] * (
         1 - p[28] - p[21]
     )  # [20] Vve
-    Xbreath_co2c13 = x[3] * p[45]  # [21] Xbreath_co2c13
-    Xurine_apap = x[46] * p[44]  # [22] Xurine_apap
-    Xurine_co2c13 = x[47] * p[45]  # [23] Xurine_co2c13
-    Xurine_metc13 = x[48] * p[46]  # [24] Xurine_metc13
+    x[3] * p[45]  # [21] Xbreath_co2c13
+    x[46] * p[44]  # [22] Xurine_apap
+    x[47] * p[45]  # [23] Xurine_co2c13
+    x[48] * p[46]  # [24] Xurine_metc13
     APAPD_CLliv = p[0] * p[43] * Vli * p[29] * 60 / 1000  # [25] APAPD_CLliv
     CYP1A2MET_CLliv = p[11] * p[43] * Vli * p[29] * 60 / 1000  # [26] CYP1A2MET_CLliv
     Car_apap = x[0] / Var  # [27] Car_apap
@@ -551,21 +551,21 @@ def f_dxdt(x, t, p):
     Clu_blood_metc13 = x[31] / Vlu_blood  # [78] Clu_blood_metc13
     Clu_co2c13 = x[32] / Vlu_tissue  # [79] Clu_co2c13
     Clu_metc13 = x[33] / Vlu_tissue  # [80] Clu_metc13
-    Cpl_ve_apap = Cve_apap / p[2]  # [81] Cpl_ve_apap
-    Cpl_ve_co2c13 = Cve_co2c13 / p[3]  # [82] Cpl_ve_co2c13
-    Cpl_ve_metc13 = Cve_metc13 / p[4]  # [83] Cpl_ve_metc13
+    Cve_apap / p[2]  # [81] Cpl_ve_apap
+    Cve_co2c13 / p[3]  # [82] Cpl_ve_co2c13
+    Cve_metc13 / p[4]  # [83] Cpl_ve_metc13
     Csp_apap = x[40] / Vsp_tissue  # [84] Csp_apap
     Csp_blood_apap = x[41] / Vsp_blood  # [85] Csp_blood_apap
     Csp_blood_co2c13 = x[42] / Vsp_blood  # [86] Csp_blood_co2c13
     Csp_blood_metc13 = x[43] / Vsp_blood  # [87] Csp_blood_metc13
     Csp_co2c13 = x[44] / Vsp_tissue  # [88] Csp_co2c13
     Csp_metc13 = x[45] / Vsp_tissue  # [89] Csp_metc13
-    Mar_apap = Car_apap * p[44]  # [90] Mar_apap
-    Mar_co2c13 = Car_co2c13 * p[45]  # [91] Mar_co2c13
-    Mar_metc13 = Car_metc13 * p[46]  # [92] Mar_metc13
-    Mve_apap = Cve_apap * p[44]  # [93] Mve_apap
-    Mve_co2c13 = Cve_co2c13 * p[45]  # [94] Mve_co2c13
-    Mve_metc13 = Cve_metc13 * p[46]  # [95] Mve_metc13
+    Car_apap * p[44]  # [90] Mar_apap
+    Car_co2c13 * p[45]  # [91] Mar_co2c13
+    Car_metc13 * p[46]  # [92] Mar_metc13
+    Cve_apap * p[44]  # [93] Mve_apap
+    Cve_co2c13 * p[45]  # [94] Mve_co2c13
+    Cve_metc13 * p[46]  # [95] Mve_metc13
     P_CO2c12 = (1 / (1 + p[48])) * P_CO2  # [96] P_CO2c12
     Qgu = QC * p[15]  # [97] Qgu
     Qh = QC * p[16]  # [98] Qh
@@ -699,9 +699,9 @@ def f_dxdt(x, t, p):
     import_re_metc13 = (
         p[55] * Vre_tissue * (p[42] * Cre_blood_metc13 - Cre_metc13)
     )  # [182] import_re_metc13
-    DOB = ((P_CO2c13 / P_CO2c12 - p[48]) / p[48]) * 1000  # [183] DOB
-    P_CO2Fc13 = P_CO2c13 / (P_CO2c12 + P_CO2c13)  # [184] P_CO2Fc13
-    P_CO2R = P_CO2c13 / P_CO2c12  # [185] P_CO2R
+    ((P_CO2c13 / P_CO2c12 - p[48]) / p[48]) * 1000  # [183] DOB
+    P_CO2c13 / (P_CO2c12 + P_CO2c13)  # [184] P_CO2Fc13
+    P_CO2c13 / P_CO2c12  # [185] P_CO2R
 
     # ode
     return [

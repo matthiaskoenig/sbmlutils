@@ -7,7 +7,6 @@ import time
 import webbrowser
 from pathlib import Path
 
-from sbmlutils import __version__
 from sbmlutils.log import get_logger
 
 

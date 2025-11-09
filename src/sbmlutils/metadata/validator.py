@@ -35,7 +35,7 @@ def validate_sbml_annotations(source: Union[Path, str]) -> pd.DataFrame:
 
             # console.rule(f"id='{element.id}' | {type(element)} | '{element.name}'", align="left", style="bold white")
             for cvterm in cvterms:
-                qualifier_type = cvterm.getQualifierType()
+                cvterm.getQualifierType()
                 for k in range(cvterm.getNumResources()):
 
                     resource_uri = cvterm.getResourceURI(k)

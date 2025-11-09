@@ -16,6 +16,7 @@ import os
 import sys
 
 import sphinx_rtd_theme
+from sbmlutils import __version__ as release
 
 
 on_rtd = os.environ.get("READTHEDOCS") == "True"
@@ -108,8 +109,6 @@ author = u"Matthias König et al."
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
-
-from sbmlutils import __version__ as release
 
 
 version = ".".join(release.split(".")[:3])

@@ -182,14 +182,14 @@ if __name__ == "__main__":
                 try:
                     simulate(sbml_file)
                     simulates = True
-                except:
+                except Exception:
                     # simulation exception
                     simulates = False
                     print()
                     traceback.print_exc(file=sys.stdout)
                     print()
 
-        except:
+        except Exception:
             print()
             traceback.print_exc(file=sys.stdout)
             print()

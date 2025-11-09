@@ -8,7 +8,7 @@ In build in python are
 """
 
 from math import *
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Optional
 
 import libsbml
 

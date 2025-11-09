@@ -13,11 +13,11 @@ from typing import Any, Dict, Optional, Union
 
 import requests
 import uvicorn
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pymetadata.core.annotation import RDFAnnotation, RDFAnnotationData
 from pymetadata.identifiers.miriam import BQB
-from pymetadata.omex import EntryFormat, Manifest, ManifestEntry, Omex
+from pymetadata.omex import EntryFormat, ManifestEntry, Omex
 
 from sbmlutils import log
 from sbmlutils.console import console

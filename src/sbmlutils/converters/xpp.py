@@ -50,7 +50,7 @@ import libsbml
 
 from sbmlutils import factory as fac
 from sbmlutils.converters import xpp_helpers
-from sbmlutils.factory import Event, Function
+from sbmlutils.factory import Event
 from sbmlutils.io import sbml
 from sbmlutils.notes import NotesFormat
 from sbmlutils.validation import ValidationOptions

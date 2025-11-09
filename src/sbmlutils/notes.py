@@ -12,7 +12,6 @@ import libsbml
 from markdown_it import MarkdownIt
 
 from sbmlutils import log
-from sbmlutils.console import console
 
 
 logger = log.get_logger(__name__)

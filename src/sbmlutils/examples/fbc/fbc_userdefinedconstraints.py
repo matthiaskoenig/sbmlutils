@@ -2,7 +2,6 @@
 
 import numpy as np
 
-from sbmlutils.examples import templates
 from sbmlutils.factory import *
 from sbmlutils.metadata.sbo import *
 from sbmlutils.validation import ValidationOptions

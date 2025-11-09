@@ -1,6 +1,5 @@
 """ICG liver model."""
 
-from pathlib import Path
 
 from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.examples.icg import MODEL_BASE_PATH, annotations, templates

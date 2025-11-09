@@ -12,7 +12,7 @@ models in a simple manner.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 import libsbml
 import pandas as pd

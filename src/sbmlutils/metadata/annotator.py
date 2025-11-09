@@ -14,7 +14,7 @@ ontology lookup service.
 import os
 import re
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Tuple, Union
+from typing import Dict, Iterable, List, Optional, Union
 
 import libsbml
 import pandas as pd

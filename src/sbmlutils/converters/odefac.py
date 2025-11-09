@@ -22,11 +22,10 @@ from __future__ import annotations
 import re
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Dict, List, Optional, Set, Tuple, Union
 
 import jinja2
 import libsbml
-import numpy as np
 
 # template location (for language templates)
 from sbmlutils import RESOURCES_DIR
