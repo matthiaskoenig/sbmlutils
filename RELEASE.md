@@ -10,7 +10,7 @@
 * `git push`
 * test installation in virtualenv from pypi
 ```bash
-uv venv --python 3.13
+uv venv --python 3.14
 uv pip install sbmlutils
 ```
 
