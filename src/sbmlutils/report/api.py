@@ -182,7 +182,7 @@ def json_for_omex(omex_path: Path) -> Dict[str, Any]:
             ),
         )
 
-    content = {"uid": uid, "manifest": omex.manifest.dict(), "reports": {}}
+    content = {"uid": uid, "manifest": omex.manifest.model_dump(), "reports": {}}
 
     # Add report JSON for all SBML files
     entry: ManifestEntry
