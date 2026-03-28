@@ -17,6 +17,9 @@ from sbmlutils.resources import BIOMODELS_CURATED_PATH
 logger = log.get_logger(__name__)
 
 
+BIOMODELS_URL: str = "https://biomodels.org"
+
+
 def download_file(url: str, path: Path) -> Path:
     """Download file from url to path.
 
@@ -40,7 +43,7 @@ def download_biomodel_omex(biomodel_id: str, omex_path: Path) -> Path:
     :returns: path to omex
     Raises :class:`HTTPError`, if one occurred, i.e. if the model does not exist.
     """
-    url = f"https://www.ebi.ac.uk/biomodels/model/download/{biomodel_id}"
+    url = f"{BIOMODELS_URL}/model/download/{biomodel_id}"
     logger.info(f"Download '{url}' -> '{omex_path}'")
     download_file(url, omex_path)
     return omex_path
@@ -107,7 +110,7 @@ def query_curated_biomodels() -> List[str]:
 
     :return List of biomodel identifiers
     """
-    url = "https://www.ebi.ac.uk/biomodels/search?query=curationstatus%3A%22Manually%20curated%22&numResults=1&format=json"
+    url = f"{BIOMODELS_URL}/search?query=curationstatus%3A%22Manually%20curated%22&numResults=1&format=json"
     response = requests.get(url)
     response.raise_for_status()
     json = response.json()
@@ -116,7 +119,7 @@ def query_curated_biomodels() -> List[str]:
     offset = 0
     biomodel_ids = []
     while offset < matches:
-        url = f"https://www.ebi.ac.uk/biomodels/search?query=curationstatus%3A%22Manually%20curated%22&numResults=100&offset={offset}&format=json"
+        url = f"{BIOMODELS_URL}/search?query=curationstatus%3A%22Manually%20curated%22&numResults=100&offset={offset}&format=json"
         logger.info(url)
         response = requests.get(url)
         response.raise_for_status()
@@ -129,12 +132,16 @@ def query_curated_biomodels() -> List[str]:
     return sorted(biomodel_ids)
 
 
-def _create_biomodels_testfiles(output_dir: Path) -> None:
+def _create_biomodels_testfiles(output_dir: Path, caching: bool = True) -> None:
     """Download all curated biomodels and create omex files."""
     # query the
     biomodel_ids = query_curated_biomodels()
     console.print(biomodel_ids)
     for biomodel_id in biomodel_ids:
+        if caching and (output_dir / f"{biomodel_id}.omex").exists():
+            logger.info(f"Skipping cached biomodel '{biomodel_id}'")
+            continue
+
         # download SBML model as omex
         try:
             download_biomodel_sbml(biomodel_id, output_dir, output_format="omex")
@@ -172,4 +179,4 @@ if __name__ == "__main__":
         omex = Omex.from_omex(omex_path)
         console.log(omex)
 
-    _create_biomodels_testfiles(output_dir=BIOMODELS_CURATED_PATH)
+    _create_biomodels_testfiles(output_dir=BIOMODELS_CURATED_PATH, caching=True)
