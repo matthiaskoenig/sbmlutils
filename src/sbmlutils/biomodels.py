@@ -75,7 +75,7 @@ def download_biomodel_sbml(
         if not sbml_entries:
             msg = f"No SBML entries found in archive '{omex_path}'."
             logger.error(msg)
-            raise ValueError(msg)
+            return []
 
         if output_format == "omex":
             omex_out_path = output_dir / f"{biomodel_id}.omex"
