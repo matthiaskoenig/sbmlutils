@@ -608,7 +608,7 @@ class SBML2ODE:
                 if astnode is not None:
                     dx_flat[xid] = astnode.deepCopy()
                 else:
-                    logger.warning(f"No ASTNode for '{xid}'")
+                    logger.warning("No ASTNode for '%s'", xid)
 
             # replacements y_flat
             for yid in reversed(self.yids_ordered):

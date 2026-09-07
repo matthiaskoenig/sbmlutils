@@ -36,7 +36,7 @@ def formula_to_astnode(
     else:
         astnode = libsbml.parseL3Formula(formula)
     if not astnode:
-        logger.error(f"Formula could not be parsed: '{formula}'")
+        logger.error("Formula could not be parsed: '%s'", formula)
         logger.error(libsbml.getLastParseL3Error())
         raise ValueError(
             f"Formula could not be parsed: '{formula}'.\n"

@@ -24,14 +24,15 @@ def check(value: int, message: str) -> bool:
     """
     valid = True
     if value is None:
-        logger.error(f"Error: LibSBML returned a null value trying to <{message}>.")
+        logger.error("Error: LibSBML returned a null value trying to <%s>.", message)
         valid = False
     elif isinstance(value, int):
         if value != libsbml.LIBSBML_OPERATION_SUCCESS:
-            logger.error(f"Error encountered trying to '{message}'.")
+            logger.error("Error encountered trying to '%s'.", message)
             logger.error(
-                f"LibSBML returned error code {value!s}: "
-                f"{libsbml.OperationReturnValue_toString(value).strip()}"
+                "LibSBML returned error code %s: %s",
+                value,
+                libsbml.OperationReturnValue_toString(value).strip(),
             )
             valid = False
 
@@ -148,7 +149,7 @@ if doc2.getNumErrors() > 0:
         err_message = "SBMLDocumentErrors encountered while reading the SBML file."
 
     # log_sbml_errors_for_doc(doc)
-    logger.error(f"`read_sbml` error `{err_message}`")
+    logger.error("`read_sbml` error `%s`", err_message)
     for k in range(doc2.getNumErrors()):
         error: libsbml.SBMLError = doc2.getError(k)
         print(f"Error {k}")

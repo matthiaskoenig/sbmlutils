@@ -15,6 +15,7 @@ import os
 import re
 from collections.abc import Iterable
 from pathlib import Path
+from typing import ClassVar
 
 import libsbml
 import pandas as pd
@@ -89,7 +90,14 @@ class ExternalAnnotation:
     """
 
     # possible columns in annotation file
-    _keys = ["pattern", "sbml_type", "annotation_type", "qualifier", "resource", "name"]
+    _keys: ClassVar[list[str]] = [
+        "pattern",
+        "sbml_type",
+        "annotation_type",
+        "qualifier",
+        "resource",
+        "name",
+    ]
     # allowed SBML types for annotation
     _sbml_types = frozenset(
         [
@@ -211,8 +219,8 @@ class ModelAnnotator:
                     pattern_ids = ModelAnnotator._get_matching_ids(ids, pattern)  # type: ignore
                     if not pattern_ids:
                         logger.warning(
-                            f"No SBML objects found matching SId annotation "
-                            f"pattern: '{pattern}'"
+                            "No SBML objects found matching SId annotation pattern: '%s'",
+                            pattern,
                         )
                     elements = ModelAnnotator._elements_from_ids(
                         self.model, pattern_ids, sbml_type=a.sbml_type
@@ -294,7 +302,7 @@ class ModelAnnotator:
                 if sid == model.getId():
                     e = model
                 else:
-                    logger.warning(f"Element not found for sid: '{sid}'.")
+                    logger.warning("Element not found for sid: '%s'.", sid)
                     continue
             elements.append(e)
         return elements
@@ -387,8 +395,9 @@ class ModelAnnotator:
                 )
                 if not success:
                     logger.error(
-                        f"Could not set biological qualifier '{qualifier}' "
-                        f"for '{sbase}'."
+                        "Could not set biological qualifier '%s' for '%s'.",
+                        qualifier,
+                        sbase,
                     )
             elif qualifier.startswith("BQM"):
                 cv.setQualifierType(libsbml.MODEL_QUALIFIER)
@@ -399,10 +408,10 @@ class ModelAnnotator:
                 )
                 if not success:
                     logger.error(
-                        f"Could not set model qualifier '{qualifier}' for '{sbase}'."
+                        "Could not set model qualifier '%s' for '%s'.", qualifier, sbase
                     )
             else:
-                logger.error(f"Unsupported qualifier: '{qualifier}' for '{sbase}'.")
+                logger.error("Unsupported qualifier: '%s' for '%s'.", qualifier, sbase)
         else:
             msg = (
                 f"qualifier is not a string, but: '{qualifier}' of type "
@@ -413,7 +422,7 @@ class ModelAnnotator:
 
         success = check(cv.addResource(resource), f"Add resource: '{resource}'.")
         if not success:
-            logger.error(f"Could not add resource: {resource} for '{sbase}'.")
+            logger.error("Could not add resource: %s for '%s'.", resource, sbase)
 
         # meta id has to be set
         if not sbase.isSetMetaId():
@@ -423,10 +432,12 @@ class ModelAnnotator:
 
         if not success:
             logger.error(
-                f"Annotation RDF for CVTerm '{cv}' could not be written for '{sbase}'."
+                "Annotation RDF for CVTerm '%s' could not be written for '%s'.",
+                cv,
+                sbase,
             )
             logger.error(libsbml.OperationReturnValue_toString(success))
-            logger.error(f"{sbase}, {qualifier}, {resource}")
+            logger.error("%s, %s, %s", sbase, qualifier, resource)
 
     # --- File IO ---
 
@@ -453,9 +464,10 @@ class ModelAnnotator:
 
         if file_extension != ("." + file_format):
             logger.warning(
-                f"format '{file_format}' not matching file extension "
-                f"'{file_extension}' "
-                f"for file_path '{file_path}'"
+                "format '%s' not matching file extension '%s' for file_path '%s'",
+                file_format,
+                file_extension,
+                file_path,
             )
 
         if file_format == "tsv":

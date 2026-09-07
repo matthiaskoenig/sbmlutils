@@ -55,7 +55,7 @@ def merge_models(
     """
     # necessary to convert models to SBML L3V1
     if isinstance(output_dir, str):
-        logger.warning(f"'output_dir' should be a Path but: '{type(output_dir)}'")
+        logger.warning("'output_dir' should be a Path but: '%s'", type(output_dir))
         output_dir = Path(output_dir)
     if not output_dir.exists():
         raise OSError(f"'output_dir' does not exist: {output_dir}")

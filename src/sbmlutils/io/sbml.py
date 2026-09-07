@@ -41,8 +41,9 @@ def read_sbml(
     else:
         if not isinstance(source, Path):
             logger.error(
-                f"All SBML paths should be of type 'Path', but "
-                f"'{type(source)}' found for: {source}"
+                "All SBML paths should be of type 'Path', but '%s' found for: %s",
+                type(source),
+                source,
             )
             source = Path(source)
 
@@ -62,7 +63,7 @@ def read_sbml(
             err_message = "SBMLDocumentErrors encountered while reading the SBML file."
 
         log_sbml_errors_for_doc(doc)
-        logger.error(f"`read_sbml` error '{source}': {err_message}")
+        logger.error("`read_sbml` error '%s': %s", source, err_message)
 
     if validate:
         validate_doc(
@@ -165,7 +166,7 @@ def promote_local_variables(
         "promoteLocalParameters", True, "Promotes all Local Parameters to Global ones"
     )
     if doc.convert(props) == libsbml.LIBSBML_OPERATION_SUCCESS:
-        logger.info(f"Promotion of local parameters successful: {doc}")
+        logger.info("Promotion of local parameters successful: %s", doc)
     else:
-        logger.error(f"Promotion of local parameters failed: {doc}")
+        logger.error("Promotion of local parameters failed: %s", doc)
     return doc

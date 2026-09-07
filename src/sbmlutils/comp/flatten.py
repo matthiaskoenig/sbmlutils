@@ -104,7 +104,7 @@ def flatten_sbml_doc(
 
     if sbml_flat_path is not None:
         write_sbml(doc, filepath=sbml_flat_path)
-        logger.info(f"Flattened model created: '{sbml_flat_path}'")
+        logger.info("Flattened model created: '%s'", sbml_flat_path)
 
     return doc
 

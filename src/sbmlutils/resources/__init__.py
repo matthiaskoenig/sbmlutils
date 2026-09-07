@@ -1,7 +1,6 @@
 """Resources for testing."""
 
 from pathlib import Path
-from typing import List
 
 from sbmlutils import RESOURCES_DIR
 

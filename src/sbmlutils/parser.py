@@ -49,8 +49,9 @@ def antimony_to_sbml(
     else:
         if not isinstance(source, Path):
             logger.error(
-                f"All antimony paths should be of type 'Path', but "
-                f"'{type(source)}' found for: {source}"
+                "All antimony paths should be of type 'Path', but '%s' found for: %s",
+                type(source),
+                source,
             )
             source = Path(source)
 
@@ -58,7 +59,7 @@ def antimony_to_sbml(
 
     # log errors
     if status != -1:
-        logger.error(f"Antimony status: {status}")
+        logger.error("Antimony status: %s", status)
         logger.error(antimony.getLastError())
         # antimony.getSBMLWarnings()
 

@@ -143,7 +143,7 @@ _m.submodels = [
 ]
 
 for emd in _m.external_model_definitions:
-    logger.info(f"{emd} ({os.path.abspath(emd.source)})")
+    logger.info("%s (%s)", emd, os.path.abspath(emd.source))
 
 
 # -------------------------------------------------------------------------------------------------

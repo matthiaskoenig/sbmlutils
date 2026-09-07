@@ -976,12 +976,8 @@ class SBMLDocumentInfo:
         """
         left = SBMLDocumentInfo._half_equation(reaction.getListOfReactants())
         right = SBMLDocumentInfo._half_equation(reaction.getListOfProducts())
-        if reaction.getReversible():
-            # '<=>'
-            sep = sep_reversible
-        else:
-            # '=>'
-            sep = sep_irreversible
+        # '<=>' for a reversible, '=>' for an irreversible reaction
+        sep = sep_reversible if reaction.getReversible() else sep_irreversible
         if modifiers:
             mods = SBMLDocumentInfo._modifier_equation(reaction.getListOfModifiers())
             if mods is None:

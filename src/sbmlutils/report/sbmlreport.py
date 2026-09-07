@@ -45,8 +45,9 @@ def create_online_report(
     # validate and check arguments
     if not isinstance(sbml_path, Path):
         logger.warning(
-            f"All paths should be of type 'Path', "
-            f"but '{type(sbml_path)}' found for: {sbml_path}"
+            "All paths should be of type 'Path', but '%s' found for: %s",
+            type(sbml_path),
+            sbml_path,
         )
         sbml_path = Path(sbml_path)
 
@@ -68,7 +69,7 @@ def create_online_report(
     url_encoded = url.replace(":", "%253A")
     url_encoded = url_encoded.replace("/", "%252F")
     sbml4humans_url = f"{server}/model_url?url={url_encoded}"
-    logger.info(f"Create report: `{sbml4humans_url}`")
+    logger.info("Create report: `%s`", sbml4humans_url)
 
     # open in browser
     webbrowser.open(sbml4humans_url, new=0)

@@ -29,11 +29,10 @@ logger = log.get_logger(__name__)
 def visualize_antimony(source: Path | str, delete_session: bool = False) -> Any:
     """Visualize antimony in cytoscape."""
     sbml_str = antimony_to_sbml(source=source)
-    tmp_file = tempfile.NamedTemporaryFile()
-    with open(tmp_file.name, "w", encoding="utf-8") as f_tmp:
-        f_tmp.write(sbml_str)
-
-    visualize_sbml(Path(f_tmp.name), delete_session=delete_session)
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        sbml_path = Path(tmp_dir) / "model.xml"
+        sbml_path.write_text(sbml_str, encoding="utf-8")
+        visualize_sbml(sbml_path, delete_session=delete_session)
 
 
 def visualize_sbml(sbml_path: Path, delete_session: bool = False) -> int | None:
@@ -104,12 +103,16 @@ def apply_layout(layout: pd.DataFrame, network: int | None = None) -> None:
 
 
 class AnnotationShapeType(StrEnum):
+    """Shape of an annotation on the cytoscape canvas."""
+
     RECTANGLE = "RECTANGLE"
     ROUND_RECTANGLE = "ROUND_RECTANGLE"
 
 
 @dataclass
 class AnnotationShape:
+    """Shape annotation on the cytoscape canvas."""
+
     type: AnnotationShapeType
     x_pos: int
     y_pos: int
@@ -126,6 +129,8 @@ class AnnotationShape:
 
 @dataclass
 class AnnotationText:
+    """Text annotation on the cytoscape canvas."""
+
     text: str
     x_pos: int
     y_pos: int
@@ -139,6 +144,8 @@ class AnnotationText:
 
 @dataclass
 class AnnotationBoundedText:
+    """Text annotation inside a shape on the cytoscape canvas."""
+
     type: AnnotationShapeType
     text: str
     x_pos: int

@@ -46,8 +46,8 @@ class Notes:
         self.xml: libsbml.XMLNode = libsbml.XMLNode.convertStringToXMLNode(notes_str)
         if self.xml is None:
             logger.error(
-                f"XMLNode could not be generated. Most likely syntax error in \n"
-                f"'{notes_str}'."
+                "XMLNode could not be generated. Most likely syntax error in \n'%s'.",
+                notes_str,
             )
             raise ValueError(f"XMLNode could not be generated for:\n{notes_str}")
 

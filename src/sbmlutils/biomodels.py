@@ -42,7 +42,7 @@ def download_biomodel_omex(biomodel_id: str, omex_path: Path) -> Path:
     Raises :class:`HTTPError`, if one occurred, i.e. if the model does not exist.
     """
     url = f"{BIOMODELS_URL}/model/download/{biomodel_id}"
-    logger.info(f"Download '{url}' -> '{omex_path}'")
+    logger.info("Download '%s' -> '%s'", url, omex_path)
     download_file(url, omex_path)
     return omex_path
 
@@ -89,14 +89,14 @@ def download_biomodel_sbml(
                     ),
                 )
             omex_out.to_omex(omex_out_path)
-            logger.info(f"Save '{omex_path}'")
+            logger.info("Save '%s'", omex_path)
 
         elif output_format == "sbml":
             for sbml_entry in sbml_entries:
                 entry_path = omex.get_path(sbml_entry.location)
                 sbml_path = Path(output_dir) / sbml_entry.location
                 shutil.copyfile(src=entry_path, dst=sbml_path)
-                logger.info(f"Save '{sbml_path}'")
+                logger.info("Save '%s'", sbml_path)
         else:
             raise ValueError(f"Unsupported format: '{output_format}'.")
 
@@ -129,7 +129,7 @@ def query_curated_biomodels() -> list[str]:
         biomodel_ids.extend(ids)
         offset += num_results
 
-    logger.info(f"Retrieved '{len(biomodel_ids)}' identifiers")
+    logger.info("Retrieved '%s' identifiers", len(biomodel_ids))
     return sorted(biomodel_ids)
 
 
@@ -148,7 +148,7 @@ def _create_biomodels_testfiles(
             console.print(f"Download biomodel '{biomodel_id}'", style="blue")
             download_biomodel_sbml(biomodel_id, output_dir, output_format="omex")
         except HTTPError as err:
-            logger.error(f"Could not retrieve OMEX for biomodel: '{biomodel_id}'")
+            logger.error("Could not retrieve OMEX for biomodel: '%s'", biomodel_id)
             logger.error(err)
 
 

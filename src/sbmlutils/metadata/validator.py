@@ -1,3 +1,5 @@
+"""Validation of the annotations of a model against the registry."""
+
 from pathlib import Path
 
 import libsbml

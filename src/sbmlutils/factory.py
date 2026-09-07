@@ -30,7 +30,6 @@ from pathlib import Path
 from typing import (
     Any,
     ClassVar,
-    Optional,
 )
 
 import libsbml
@@ -147,15 +146,14 @@ def create_objects(
     for obj in obj_iter:
         if obj is None:
             logger.error(
-                f"Trying to create None object, "
-                f"check for incorrect terminating ',' on objects: "
-                f"'{sbml_objects}'"
+                "Trying to create None object, check for incorrect terminating ',' on objects: '%s'",
+                sbml_objects,
             )
 
         try:
             sbml_obj: libsbml.SBase = obj.create_sbml(model)
         except Exception as err:
-            logger.error(f"Error creating SBML object '{sbml_obj}'")
+            logger.error("Error creating SBML object '%s'", sbml_obj)
             logger.error(err)
             raise err
         # FIXME: what happens for objects without id?
@@ -177,14 +175,14 @@ def ast_node_from_formula(model: libsbml.Model, formula: str) -> libsbml.ASTNode
 
     ast_node = libsbml.parseL3FormulaWithModel(formula, model)
     if not ast_node:
-        logger.error(f"Formula could not be parsed: '{formula}'")
+        logger.error("Formula could not be parsed: '%s'", formula)
         logger.error(libsbml.getLastParseL3Error())
     return ast_node
 
 
-UnitType = Optional["UnitDefinition"]
+UnitType = "UnitDefinition | None"
 AnnotationsType = list[Annotation | tuple[BQB | BQM, str]]
-OptionalAnnotationsType = Optional[list[Annotation | tuple[BQB | BQM, str]]]
+OptionalAnnotationsType = list[Annotation | tuple[BQB | BQM, str]] | None
 
 
 def set_notes(
@@ -382,7 +380,7 @@ class Sbase:
         self.replacedBy = replacedBy
         self.annotations: AnnotationsType = annotations if annotations else []
 
-    fields = [
+    fields: ClassVar[list[str]] = [
         "sid",
         "name",
         "sboTerm",
@@ -437,12 +435,9 @@ class Sbase:
         if self.sid is not None:
             if not libsbml.SyntaxChecker.isValidSBMLSId(self.sid):
                 logger.error(
-                    f"The id `{self.sid}` is not a valid SBML SId on `{sbase}`. "
-                    f"The SId syntax is defined as:"
-                    f"\tletter ::= 'a'..'z','A'..'Z'"
-                    f"\tdigit  ::= '0'..'9'"
-                    f"\tidChar ::= letter | digit | '_'"
-                    f"\tSId    ::= ( letter | '_' ) idChar*"
+                    "The id `%s` is not a valid SBML SId on `%s`. The SId syntax is defined as:	letter ::= 'a'..'z','A'..'Z'	digit  ::= '0'..'9'	idChar ::= letter | digit | '_'	SId    ::= ( letter | '_' ) idChar*",
+                    self.sid,
+                    sbase,
                 )
             sbase.setId(self.sid)
         if self.name is not None:
@@ -451,7 +446,7 @@ class Sbase:
             if not isinstance(
                 self, (Document, Port, ReplacedBy, ReplacedElement, AssignmentRule)
             ):
-                logger.warning(f"'name' should be set on '{self}'")
+                logger.warning("'name' should be set on '%s'", self)
         if self.sboTerm is not None:
             if isinstance(self.sboTerm, SBO):
                 sbo = self.sboTerm.curie
@@ -476,7 +471,7 @@ class Sbase:
                     Submodel,
                 ),
             ):
-                logger.warning(f"'sboTerm' should be set on '{self}'")
+                logger.warning("'sboTerm' should be set on '%s'", self)
         if self.metaId is not None:
             sbase.setMetaId(self.metaId)
 
@@ -688,7 +683,7 @@ class UnitDefinition(Sbase):
 
     # definition: str = (None,)
 
-    _pint2sbml = {
+    _pint2sbml: ClassVar[dict[str, int]] = {
         "dimensionless": libsbml.UNIT_KIND_DIMENSIONLESS,
         "ampere": libsbml.UNIT_KIND_AMPERE,
         # None: libsbml.UNIT_KIND_BECQUEREL,
@@ -718,7 +713,7 @@ class UnitDefinition(Sbase):
         "watt": libsbml.UNIT_KIND_WATT,
     }
     # see https://github.com/hgrecco/pint/blob/master/pint/default_en.txt
-    _prefixes = {
+    _prefixes: ClassVar[dict[str, float]] = {
         "yocto": 1e-24,
         "zepto": 1e-21,
         "atto": 1e-18,
@@ -923,8 +918,9 @@ class Units:
             except UndefinedUnitError as err:
                 console.print_exception(show_locals=False)
                 logger.error(
-                    f"Unit definition '{unit_definition.definition}' is not valid "
-                    f"pint syntax, {err}."
+                    "Unit definition '%s' is not valid pint syntax, %s.",
+                    unit_definition.definition,
+                    err,
                 )
                 raise err
 
@@ -971,8 +967,10 @@ class ValueWithUnit(Value):
         self.unit = unit
         if self.unit and not isinstance(self.unit, UnitDefinition):
             logger.warning(
-                f"'unit' must be of type UnitDefinition, but '{self.unit}' "
-                f"in '{self}' is '{type(self.unit)}'."
+                "'unit' must be of type UnitDefinition, but '%s' in '%s' is '%s'.",
+                self.unit,
+                self,
+                type(self.unit),
             )
 
     def _set_fields(self, sbase: libsbml.SBase, model: libsbml.Model) -> None:
@@ -1091,7 +1089,7 @@ class Parameter(ValueWithUnit):
                 # check if number
                 value = float(self.value)
                 logger.warning(
-                    f"When setting a numeric value use float not str: '{self}'."
+                    "When setting a numeric value use float not str: '%s'.", self
                 )
                 obj.setValue(value)
             except ValueError:
@@ -1162,7 +1160,7 @@ class Compartment(ValueWithUnit):
                 # check if number
                 value = float(self.value)
                 logger.warning(
-                    f"When setting a numeric value use float not str: '{self}'."
+                    "When setting a numeric value use float not str: '%s'.", self
                 )
                 obj.setSize(value)
             except ValueError:
@@ -1358,8 +1356,9 @@ class InitialAssignment(Value):
         # Check if rule exists
         if model.getInitialAssignmentBySymbol(self.symbol):
             logger.error(
-                f"InitialAssignment for symbol '{self.symbol}' already exists in model: . "
-                f"InitialAssignment will be overwritten '{self.value}'"
+                "InitialAssignment for symbol '%s' already exists in model: . InitialAssignment will be overwritten '%s'",
+                self.symbol,
+                self.value,
             )
 
         obj: libsbml.InitialAssignment = model.createInitialAssignment()
@@ -1406,17 +1405,18 @@ class RuleWithVariable:
         p: libsbml.Parameter = model.getParameter(self.variable)
         if p is not None and p.getConstant() is True:
             logger.warning(
-                f"Parameter affected by AssignmentRule "
-                f"must be 'constant=False', but '{p.getId()}' "
-                f"is 'constant={p.getConstant()}'."
+                "Parameter affected by AssignmentRule must be 'constant=False', but '%s' is 'constant=%s'.",
+                p.getId(),
+                p.getConstant(),
             )
             p.setConstant(False)
 
         # Check if rule exists
         if model.getRuleByVariable(self.variable):
             logger.error(
-                f"Rule with target variable `{self.variable}` already exists in model: . "
-                f"Existing rule will be overwritten with `{self.value}`."
+                "Rule with target variable `%s` already exists in model: . Existing rule will be overwritten with `%s`.",
+                self.variable,
+                self.value,
             )
 
 
@@ -1750,7 +1750,7 @@ class Reaction(Sbase):
             model_fbc: libsbml.FbcModelPlugin = r.getModel().getPlugin("fbc")
             for gp in gps:
                 if not model_fbc.getGeneProduct(gp):
-                    logger.error(f"GeneProduct missing in model: `{gp}`")
+                    logger.error("GeneProduct missing in model: `%s`", gp)
 
             check(
                 gpa.setAssociation(
@@ -1836,8 +1836,8 @@ class Event(Sbase):
         self.assignments = assignments if assignments else {}
         if type(assignments) is not dict:
             logger.warning(
-                f"Event assignment must be dict with sid: assignment, but: "
-                f"'{type(assignments)}'"
+                "Event assignment must be dict with sid: assignment, but: '%s'",
+                type(assignments),
             )
         self.trigger_persistent = trigger_persistent
         self.trigger_initialValue = trigger_initialValue
@@ -2098,8 +2098,9 @@ class Uncertainty(Sbase):
                     )
             else:
                 logger.error(
-                    f"Unsupported type for UncertSpan: '{uncertSpan.type}' "
-                    f"in '{uncertSpan}'."
+                    "Unsupported type for UncertSpan: '%s' in '%s'.",
+                    uncertSpan.type,
+                    uncertSpan,
                 )
 
         uncertParameter: UncertParameter
@@ -2128,8 +2129,9 @@ class Uncertainty(Sbase):
                     )
             else:
                 logger.error(
-                    f"Unsupported type for UncertParameter: "
-                    f"'{uncertParameter.type}' in '{uncertParameter}'."
+                    "Unsupported type for UncertParameter: '%s' in '%s'.",
+                    uncertParameter.type,
+                    uncertParameter,
                 )
 
         # create a distribution uncertainty
@@ -2419,7 +2421,7 @@ class UserDefinedConstraint(Sbase):
 class FluxObjective(Sbase):
     """FluxObjective."""
 
-    fbc_variable_types: set[str] = {
+    fbc_variable_types: ClassVar[set[str]] = {
         libsbml.FBC_VARIABLE_TYPE_LINEAR,
         libsbml.FBC_VARIABLE_TYPE_QUADRATIC,
         libsbml.FBC_VARIABLE_TYPE_INVALID,
@@ -2493,7 +2495,7 @@ class FluxObjective(Sbase):
 class Objective(Sbase):
     """Objective."""
 
-    objective_types: set[str] = {
+    objective_types: ClassVar[set[str]] = {
         libsbml.OBJECTIVE_TYPE_MAXIMIZE,
         libsbml.OBJECTIVE_TYPE_MINIMIZE,
         "maximize",
@@ -3534,7 +3536,7 @@ class Document(Sbase):
 
     def create_sbml(self) -> libsbml.SBMLDocument:
         """Create SBML model."""
-        logger.info(f"Create SBML for model '{self.model.sid}'")
+        logger.info("Create SBML for model '%s'", self.model.sid)
 
         # create core model
         sbmlns = libsbml.SBMLNamespaces(self.sbml_level, self.sbml_version)

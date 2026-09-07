@@ -385,7 +385,7 @@ class Interpolation:
 
         # if parameter exists remove it
         if model.getParameter(pid):
-            logger.warning(f"Model contains parameter: {pid}. Parameter is removed.")
+            logger.warning("Model contains parameter: %s. Parameter is removed.", pid)
             model.removeParameter(pid)
 
         # if assignment rule exists remove it
