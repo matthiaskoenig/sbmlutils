@@ -209,7 +209,6 @@ model.reactions = [
 
 def create(output_dir: Path) -> None:
     """Create model."""
-
     # with annotations
     create_model(
         model=model,

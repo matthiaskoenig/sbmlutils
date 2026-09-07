@@ -1,14 +1,13 @@
 """Helpers for validation and checking of SBML and libsbml operations."""
 
 import time
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable, List, Optional
 
 import libsbml
 
 from sbmlutils.console import console
 from sbmlutils.log import get_logger
-
 
 logger = get_logger(__name__)
 
@@ -31,7 +30,7 @@ def check(value: int, message: str) -> bool:
         if value != libsbml.LIBSBML_OPERATION_SUCCESS:
             logger.error(f"Error encountered trying to '{message}'.")
             logger.error(
-                f"LibSBML returned error code {str(value)}: "
+                f"LibSBML returned error code {value!s}: "
                 f"{libsbml.OperationReturnValue_toString(value).strip()}"
             )
             valid = False
@@ -121,8 +120,8 @@ class ValidationResult:
 
     def __init__(
         self,
-        errors: Optional[List[libsbml.SBMLError]] = None,
-        warnings: Optional[List[libsbml.SBMLError]] = None,
+        errors: list[libsbml.SBMLError] | None = None,
+        warnings: list[libsbml.SBMLError] | None = None,
     ):
         """Initialize ValidationResult."""
         if errors is None:
@@ -180,7 +179,7 @@ def log_sbml_errors_for_doc(doc: libsbml.SBMLDocument) -> None:
         log_sbml_error(error=doc.getError(k))
 
 
-def log_sbml_error(error: libsbml.SBMLError, index: Optional[int] = None) -> None:
+def log_sbml_error(error: libsbml.SBMLError, index: int | None = None) -> None:
     """Log SBMLError."""
     msg, severity = error_string(error=error, index=index)
     if severity == libsbml.LIBSBML_SEV_WARNING:
@@ -191,7 +190,7 @@ def log_sbml_error(error: libsbml.SBMLError, index: Optional[int] = None) -> Non
         logger.info(msg, extra={"markup": True})
 
 
-def error_string(error: libsbml.SBMLError, index: Optional[int] = None) -> tuple:
+def error_string(error: libsbml.SBMLError, index: int | None = None) -> tuple:
     """Get string representation and severity of SBMLError."""
     package: str = error.getPackage()
     if package == "":
@@ -213,8 +212,8 @@ def error_string(error: libsbml.SBMLError, index: Optional[int] = None) -> tuple
 
 def validate_doc(
     doc: libsbml.SBMLDocument,
-    options: Optional[ValidationOptions] = None,
-    title: Optional[str] = None,
+    options: ValidationOptions | None = None,
+    title: str | None = None,
 ) -> ValidationResult:
     """Validate SBMLDocument.
 

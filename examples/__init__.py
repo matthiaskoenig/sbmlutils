@@ -1,19 +1,16 @@
 """Examples for model creation."""
 
 from pathlib import Path
-from examples.dallaman import dallaman
-from examples.demo import demo
-from examples.tiny import tiny
 
 from examples import (
     algebraic_rule,
     annotation,
     assignment,
     compartment_species_reaction,
+    model,
     model_definitions,
     multiple_substance_units,
     notes,
-    model,
     parameter,
     reaction,
     reaction_with_units,
@@ -21,23 +18,25 @@ from examples import (
     unit_definitions,
     units_namespace,
 )
+from examples.dallaman import dallaman
+from examples.demo import demo
 from examples.distrib import (
     distrib_comp,
     distrib_distributions,
     distrib_uncertainties,
 )
-
+from examples.fbc import (
+    fbc_mass_charge,
+    fbc_v2,
+    fbc_v3,
+)
+from examples.tiny import tiny
 from examples.tutorial import (
     linear_chain,
     minimal_model,
     minimal_model_comp,
-    random_network,
     model_composition,
-)
-from examples.fbc import (
-    fbc_v2,
-    fbc_v3,
-    fbc_mass_charge,
+    random_network,
 )
 
 examples_create = [

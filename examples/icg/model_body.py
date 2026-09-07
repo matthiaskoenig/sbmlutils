@@ -1,17 +1,15 @@
 """PKPD model for whole-body icg metabolism."""
 
 import os
-
 from pathlib import Path
 
 import numpy as np
 
-from sbmlutils.cytoscape import visualize_sbml
 from examples.icg import annotations, templates
+from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.factory import *
 from sbmlutils.log import get_logger
 from sbmlutils.metadata import BQB, SBO
-
 
 logger = get_logger(__name__)
 
@@ -255,7 +253,7 @@ _m.compartments = [
 ]
 
 # create plasma and tissue compartments (for correct blood volume)
-for cid in COMPARTMENTS_BODY.keys():
+for cid in COMPARTMENTS_BODY:
     if cid not in ["ar", "ve", "po", "hv", "bi"]:
         _m.compartments.extend(
             [
@@ -1144,7 +1142,7 @@ for sid, sdict in SUBSTANCES_BODY.items():
     # tissue distribution
     # --------------------
     if "ftissue" in sdict and not np.isclose(sdict["ftissue"], 0.0):
-        for cid in COMPARTMENTS_BODY.keys():
+        for cid in COMPARTMENTS_BODY:
             if cid not in ["ve", "ar", "po", "hv", "li", "bi"]:
                 _m.reactions.append(
                     Reaction(
@@ -1389,7 +1387,6 @@ for sid, sdict in SUBSTANCES_BODY.items():
 model_body = _m
 
 if __name__ == "__main__":
-
     results = create_model(
         model=model_body,
         filepath=Path.cwd() / f"{model_body.sid}.xml",

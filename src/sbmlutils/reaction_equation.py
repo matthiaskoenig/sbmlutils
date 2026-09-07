@@ -43,8 +43,9 @@ Examples of valid equations with variable stoichiometries are:
 from __future__ import annotations
 
 import re
+from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import Any, Final, Iterable, List, Optional
+from typing import Any, Final
 
 
 @dataclass
@@ -67,15 +68,15 @@ class EquationPart:
     """
 
     species: str
-    stoichiometry: Optional[float] = None
-    sid: Optional[str] = None
+    stoichiometry: float | None = None
+    sid: str | None = None
     constant: bool = True
-    metaId: Optional[str] = field(default=None, repr=False)
-    sboTerm: Optional[str] = field(default=None, repr=False)
-    name: Optional[str] = field(default=None, repr=False)
-    annotations: Optional[List] = field(default=None, repr=False)
-    notes: Optional[str] = field(default=None, repr=False)
-    keyValuePairs: Optional[List[Any]] = field(default=None, repr=False)
+    metaId: str | None = field(default=None, repr=False)
+    sboTerm: str | None = field(default=None, repr=False)
+    name: str | None = field(default=None, repr=False)
+    annotations: list | None = field(default=None, repr=False)
+    notes: str | None = field(default=None, repr=False)
+    keyValuePairs: list[Any] | None = field(default=None, repr=False)
 
 
 REVERSIBILITY_PATTERN: Final = r"<[-=]>"
@@ -91,21 +92,18 @@ class ReactionEquation:
     class EquationException(Exception):
         """Exception in Equation."""
 
-        pass
-
     def __init__(
         self,
-        reactants: Optional[List[EquationPart]] = None,
-        products: Optional[List[EquationPart]] = None,
-        modifiers: Optional[List[str]] = None,
+        reactants: list[EquationPart] | None = None,
+        products: list[EquationPart] | None = None,
+        modifiers: list[str] | None = None,
         reversible: bool = True,
     ):
         """Initialize equation."""
-
         self.reversible: bool = reversible
-        self.reactants: List[EquationPart] = reactants if reactants else []
-        self.products: List[EquationPart] = products if products else []
-        self.modifiers: List[str] = modifiers if modifiers else []
+        self.reactants: list[EquationPart] = reactants if reactants else []
+        self.products: list[EquationPart] = products if products else []
+        self.modifiers: list[str] = modifiers if modifiers else []
 
     @staticmethod
     def from_str(equation_str: str) -> ReactionEquation:
@@ -169,7 +167,7 @@ class ReactionEquation:
         modifiers = [t.strip() for t in tokens]
         self.modifiers = [t for t in modifiers if len(t) > 0]
 
-    def _parse_half_equation(self, string: str) -> List[EquationPart]:
+    def _parse_half_equation(self, string: str) -> list[EquationPart]:
         """Parse half-equation.
 
         Only '+ supported in equation !, do not use negative stoichiometries.
@@ -243,8 +241,7 @@ class ReactionEquation:
         if modifiers:
             mod = self._to_string_modifiers()
             return " ".join([left, sep, right, mod])
-        else:
-            return " ".join([left, sep, right])
+        return " ".join([left, sep, right])
 
     def info(self) -> None:
         """Print overview of parsed equation."""

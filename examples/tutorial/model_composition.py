@@ -2,12 +2,11 @@
 
 from pathlib import Path
 
-from sbmlutils.cytoscape import visualize_sbml
 from examples.tutorial.minimal_model import model as minimal_model
+from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.factory import *
 from sbmlutils.metadata import BQB
 from sbmlutils.validation import ValidationOptions
-
 
 model = Model(
     sid="model_composition",
@@ -34,6 +33,5 @@ def create(output_dir: Path) -> FactoryResult:
 
 
 if __name__ == "__main__":
-
     fac_result = create(output_dir=Path.cwd())
     visualize_sbml(sbml_path=fac_result.sbml_path)

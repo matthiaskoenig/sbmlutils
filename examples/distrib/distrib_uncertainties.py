@@ -1,6 +1,7 @@
 """Uncertainty example."""
 
 from pathlib import Path
+
 import libsbml
 
 from examples import templates
@@ -67,5 +68,4 @@ model = Model(
 
 
 if __name__ == "__main__":
-
     create_model(model=model, filepath=Path.cwd() / f"{model.sid}.xml")

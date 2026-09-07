@@ -6,12 +6,12 @@ with string patterns. In this example we create a kinetic model of a linear chai
 """
 
 from pathlib import Path
+
+from examples import templates
 from sbmlutils.converters import odefac
 from sbmlutils.cytoscape import visualize_sbml
-from examples import templates
 from sbmlutils.factory import *
 from sbmlutils.validation import ValidationOptions
-
 
 n_chain = 20
 model = Model(
@@ -50,7 +50,6 @@ for k in range(n_chain):
     )
 
 if __name__ == "__main__":
-
     results = create_model(
         model=model,
         filepath=Path.cwd() / f"{model.sid}.xml",

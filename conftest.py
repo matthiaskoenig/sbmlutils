@@ -15,5 +15,4 @@ Two things are set up for the whole test session:
 
 import matplotlib
 
-
 matplotlib.use("Agg", force=True)

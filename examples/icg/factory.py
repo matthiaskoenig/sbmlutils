@@ -1,26 +1,24 @@
 """ICG model factory."""
 
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from pymetadata.omex import EntryFormat, ManifestEntry, Omex
 
+from examples.icg.model_body import model_body
+from examples.icg.model_liver import model as model_liver
 from sbmlutils.comp import flatten_sbml
 from sbmlutils.console import console
 from sbmlutils.cytoscape import visualize_sbml
-from examples.icg.model_body import model_body
-from examples.icg.model_liver import model as model_liver
 from sbmlutils.factory import create_model
 from sbmlutils.log import get_logger
-
 
 logger = get_logger(__name__)
 
 
-def create_models(results_path: Path, create_tissues: bool = True) -> Dict[str, Any]:
+def create_models(results_path: Path, create_tissues: bool = True) -> dict[str, Any]:
     """Create tissue and whole-body model."""
-
-    results: Dict[str, Any] = {}
+    results: dict[str, Any] = {}
     if create_tissues:
         fac_res_liver = create_model(
             model=model_liver,
@@ -74,7 +72,6 @@ def create_models(results_path: Path, create_tissues: bool = True) -> Dict[str, 
 
 
 if __name__ == "__main__":
-
     results = create_models(Path.cwd(), create_tissues=True)
     for k, key in enumerate(results):
         delete_session = True if k == 0 else False

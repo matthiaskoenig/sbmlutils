@@ -22,7 +22,6 @@ from __future__ import annotations
 import re
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple, Union
 
 import jinja2
 import libsbml
@@ -33,7 +32,6 @@ from sbmlutils.console import console
 from sbmlutils.converters.mathml import evaluableMathML
 from sbmlutils.log import get_logger
 from sbmlutils.report.units import udef_to_string
-
 
 logger = get_logger(__file__)
 TEMPLATE_DIR = RESOURCES_DIR / "converters"
@@ -53,9 +51,9 @@ class SBML2ODE:
         """
         self.doc: libsbml.SBMLDocument = doc
 
-        self.names: Dict[str, str] = {}
-        self.model_units: Dict[str, Optional[str]] = {}
-        self.units: Dict[str, Optional[str]] = {}
+        self.names: dict[str, str] = {}
+        self.model_units: dict[str, str | None] = {}
+        self.units: dict[str, str | None] = {}
 
         # --- fixed model entities ---
         # p: constants (parameters, compartments, species)
@@ -68,17 +66,17 @@ class SBML2ODE:
         # kinetics dx/dt
         # x: state variables (species, parameters, compartments)
 
-        self.x0: Dict = {}  # initial amounts/concentrations
-        self.dx: Dict = {}
-        self.dx_ast: Dict = {}  # state variables x (odes)
+        self.x0: dict = {}  # initial amounts/concentrations
+        self.dx: dict = {}
+        self.dx_ast: dict = {}  # state variables x (odes)
 
-        self.x_compartments: Dict = {}  # compartments of species
-        self.x_: Set = set()  # species state variables as concentrations
+        self.x_compartments: dict = {}  # compartments of species
+        self.x_: set = set()  # species state variables as concentrations
 
-        self.p: Dict = {}  # parameters p (constants)
+        self.p: dict = {}  # parameters p (constants)
 
-        self.y_ast: Dict = {}  # assigned variables
-        self.yids_ordered: List[str]  # yids in order of math dependencies
+        self.y_ast: dict = {}  # assigned variables
+        self.yids_ordered: list[str]  # yids in order of math dependencies
 
         # create name dictionary
         sbase: libsbml.SBase
@@ -344,8 +342,8 @@ class SBML2ODE:
 
     @staticmethod
     def dependency_graph(
-        y: Dict[str, Union[libsbml.ASTNode, str]], filtered_ids: Set[str]
-    ) -> Dict[str, Set]:
+        y: dict[str, libsbml.ASTNode | str], filtered_ids: set[str]
+    ) -> dict[str, set]:
         """Create dependency graph from given dictionary.
 
         :param y: { variable: astnode } dictionary
@@ -354,7 +352,7 @@ class SBML2ODE:
         """
 
         def add_dependency_edges(
-            g: Dict[str, Set], variable: str, astnode: libsbml.ASTNode
+            g: dict[str, set], variable: str, astnode: libsbml.ASTNode
         ) -> None:
             """Add the dependency edges to the graph."""
             # handle terminal nodes
@@ -377,24 +375,24 @@ class SBML2ODE:
                 add_dependency_edges(g, variable, child)
 
         # create math dependency graph
-        g: Dict[str, Set] = defaultdict(set)
+        g: dict[str, set] = defaultdict(set)
         for variable, astnode in y.items():
             g[variable] = set()
             add_dependency_edges(g, variable=variable, astnode=astnode)
 
         return g
 
-    def _ordered_yids(self) -> List[str]:
+    def _ordered_yids(self) -> list[str]:
         """Get the order of the yids from the assignment rules."""
-        filtered_ids: Set[str] = set(list(self.p.keys()) + list(self.dx_ast.keys()))
+        filtered_ids: set[str] = set(list(self.p.keys()) + list(self.dx_ast.keys()))
         # console.print(f"{filtered_ids=}")
         # console.print(f"{self.y_ast=}")
-        g: Dict[str, Set] = SBML2ODE.dependency_graph(self.y_ast, filtered_ids)
+        g: dict[str, set] = SBML2ODE.dependency_graph(self.y_ast, filtered_ids)
         # console.print(g)
 
         def create_ordered_variables(
-            g: Dict[str, Set], yids: Optional[List[str]] = None
-        ) -> List[str]:
+            g: dict[str, set], yids: list[str] | None = None
+        ) -> list[str]:
             if yids is None:
                 yids = []
 
@@ -427,7 +425,7 @@ class SBML2ODE:
         yids = create_ordered_variables(g)
         return yids
 
-    def to_python(self, py_file: Optional[Path] = None) -> str:
+    def to_python(self, py_file: Path | None = None) -> str:
         """Write ODEs to python."""
         content = self._render_template(
             template_file="odefac_template.pytemp",
@@ -440,7 +438,7 @@ class SBML2ODE:
 
         return content
 
-    def to_tex(self, tex_file: Optional[Path] = None) -> str:
+    def to_tex(self, tex_file: Path | None = None) -> str:
         """Write ODEs to tex/latex."""
         content = self._render_template(
             template_file="odefac_template.tex",
@@ -453,7 +451,7 @@ class SBML2ODE:
 
         return content
 
-    def to_R(self, r_file: Optional[Path] = None) -> str:
+    def to_R(self, r_file: Path | None = None) -> str:
         """Write ODEs to R."""
         content = self._render_template(
             template_file="odefac_template.R",
@@ -466,7 +464,7 @@ class SBML2ODE:
 
         return content
 
-    def to_julia(self, jl_file: Optional[Path] = None) -> str:
+    def to_julia(self, jl_file: Path | None = None) -> str:
         """Write ODEs to julia.
 
         Generated files can be used as an input for DifferentialEquations.jl
@@ -484,7 +482,7 @@ class SBML2ODE:
 
         return content
 
-    def to_markdown(self, md_file: Optional[Path] = None) -> str:
+    def to_markdown(self, md_file: Path | None = None) -> str:
         """Write ODEs to markdown."""
         content = self._render_template(
             template_file="odefac_template.md",
@@ -498,7 +496,7 @@ class SBML2ODE:
         return content
 
     def to_custom_template(
-        self, template_file: Path, output_file: Optional[Path] = None
+        self, template_file: Path, output_file: Path | None = None
     ) -> str:
         """Write ODEs to custom template."""
         content = self._render_template(
@@ -518,7 +516,7 @@ class SBML2ODE:
         template_file: str = "odefac_template.pytemp",
         index_offset: int = 0,
         replace_symbols: bool = True,
-        template_dir: Optional[Path] = None,
+        template_dir: Path | None = None,
     ) -> str:
         """Render given language template.
 
@@ -540,16 +538,16 @@ class SBML2ODE:
 
         # create formulas
         def to_formula(
-            ast_dict: Dict[str, Union[libsbml.ASTNode, str]],
+            ast_dict: dict[str, libsbml.ASTNode | str],
             replace_symbols: bool = True,
-        ) -> Dict[str, Union[libsbml.ASTNode, str]]:
+        ) -> dict[str, libsbml.ASTNode | str]:
             """Replace all symbols in given astnode dictionary.
 
             :param replace_symbols:
             :param ast_dict:
             :return:
             """
-            d: Dict[str, Union[libsbml.ASTNode, str]] = dict()
+            d: dict[str, libsbml.ASTNode | str] = dict()
 
             for key in ast_dict:
                 astnode = ast_dict[key]
@@ -594,7 +592,7 @@ class SBML2ODE:
         y_sym = to_formula(self.y_ast, replace_symbols=replace_symbols)
         dx_sym = to_formula(self.dx_ast, replace_symbols=replace_symbols)
 
-        def flat_formulas() -> Tuple[Dict, Dict]:
+        def flat_formulas() -> tuple[dict, dict]:
             """Create a flat formula by full replacement.
 
             Uses the order of the dependencies.
@@ -658,16 +656,16 @@ class SBML2ODE:
 
     def _indices(
         self, index_offset: int = 0
-    ) -> Tuple[Dict[str, int], Dict[str, int], Dict[str, int]]:
+    ) -> tuple[dict[str, int], dict[str, int], dict[str, int]]:
         """Get indices of pids, yids and dxids."""
         # replacement dictionaries:
-        pids_idx: Dict[str, int] = {}
+        pids_idx: dict[str, int] = {}
         for k, key in enumerate(sorted(self.p.keys())):
             pids_idx[key] = k + index_offset
-        yids_idx: Dict[str, int] = {}
+        yids_idx: dict[str, int] = {}
         for k, key in enumerate(self.yids_ordered):
             yids_idx[key] = k + index_offset
-        dxids_idx: Dict[str, int] = {}
+        dxids_idx: dict[str, int] = {}
         for k, key in enumerate(sorted(self.dx_ast.keys())):
             dxids_idx[key] = k + index_offset
 

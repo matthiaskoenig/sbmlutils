@@ -7,7 +7,6 @@ from sbmlutils.io.sbml import validate_sbml
 from sbmlutils.resources import TESTDATA_DIR
 from sbmlutils.validation import ValidationOptions
 
-
 model_ids = [
     # "112836_HH-ext",
     # "SkM_AP_KCa",

@@ -77,9 +77,8 @@ DISTRIB_COMP_SBML = RESOURCES_DIR / "examples" / "distrib_comp.xml"
 DISTRIB_COMP_FLAT_SBML = RESOURCES_DIR / "examples" / "distrib_comp_flat.xml"
 
 
-def all_distrib_paths() -> List[Path]:
+def all_distrib_paths() -> list[Path]:
     """Get distrib paths."""
-
     distrib_model_ids = (
         [i for i in range(40, 48)]
         + [49, 50, 51, 52, 56, 65, 69]

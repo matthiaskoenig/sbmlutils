@@ -16,7 +16,6 @@ import pandas as pd
 from sbmlutils.metadata.validator import validate_sbml_annotations
 from sbmlutils.resources import MODELS_DIR
 
-
 if __name__ == "__main__":
     sbml_faure2006 = MODELS_DIR / "qual" / "Faure2006_MammalianCellCycle.sbml"
     results: pd.DataFrame = validate_sbml_annotations(sbml_faure2006)

@@ -4,11 +4,11 @@ This demonstrates just the very core SBML functionality.
 """
 
 from pathlib import Path
+
 from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.factory import *
 from sbmlutils.metadata import SBO
 from sbmlutils.validation import ValidationOptions
-
 
 model = Model(
     sid="minimal_model",
@@ -37,7 +37,6 @@ model = Model(
 )
 
 if __name__ == "__main__":
-
     fac_result = create_model(
         model=model,
         filepath=Path.cwd() / f"{model.sid}.xml",

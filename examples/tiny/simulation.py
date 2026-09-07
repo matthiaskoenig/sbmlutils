@@ -29,7 +29,6 @@ from examples.tiny import tiny
 from sbmlutils.console import console
 from sbmlutils.fbc.cobra import cobra, read_cobra_model
 
-
 logger = logging.getLogger(__name__)
 
 

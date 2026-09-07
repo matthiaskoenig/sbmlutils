@@ -31,7 +31,7 @@ def test_set_model_history() -> None:
     assert h is not None
     assert h.getNumCreators() == 1
     c = h.getCreator(0)
-    assert "Koenig" == c.getFamilyName()
-    assert "Matthias" == c.getGivenName()
-    assert "konigmatt@googlemail.com" == c.getEmail()
-    assert "Test organisation" == c.getOrganization()
+    assert c.getFamilyName() == "Koenig"
+    assert c.getGivenName() == "Matthias"
+    assert c.getEmail() == "konigmatt@googlemail.com"
+    assert c.getOrganization() == "Test organisation"

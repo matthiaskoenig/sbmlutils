@@ -5,7 +5,6 @@ import pytest
 
 from sbmlutils.report import mathml
 
-
 formulas = [
     "1 dimensionless",
     "power(3, 5) / x * glc",

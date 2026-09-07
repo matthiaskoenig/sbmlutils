@@ -4,8 +4,8 @@ from pathlib import Path
 
 import libsbml
 
-from sbmlutils.comp import flatten_sbml
 from examples import templates
+from sbmlutils.comp import flatten_sbml
 from sbmlutils.factory import *
 
 
@@ -70,7 +70,6 @@ model = Model(
 
 def create(output_dir: Path) -> None:
     """Create and flatten model."""
-
     sbml_path = output_dir / f"{model.sid}.xml"
     sbml_path_flat = output_dir / f"{model.sid}_flat.xml"
 
@@ -80,5 +79,4 @@ def create(output_dir: Path) -> None:
 
 
 if __name__ == "__main__":
-
     create(output_dir=Path.cwd())

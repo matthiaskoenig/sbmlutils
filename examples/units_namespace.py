@@ -4,6 +4,7 @@ Model used for testing units namespacing.
 """
 
 from pathlib import Path
+
 from examples import templates
 from sbmlutils.factory import *
 from sbmlutils.metadata import SBO

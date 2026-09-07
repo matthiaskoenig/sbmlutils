@@ -431,7 +431,6 @@ model.layouts = [
 
 def create(output_dir: Path) -> FactoryResult:
     """Create model."""
-
     return create_model(
         model=model,
         filepath=output_dir / f"{model.sid}.xml",

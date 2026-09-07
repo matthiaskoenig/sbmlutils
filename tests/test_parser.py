@@ -1,7 +1,6 @@
 """Test parsing of SBML."""
 
 from pathlib import Path
-from typing import List
 
 import pytest
 from pymetadata.omex import ManifestEntry, Omex
@@ -11,8 +10,7 @@ from sbmlutils.parser import sbml_to_model
 from sbmlutils.resources import BIOMODELS_CURATED_PATH, sbml_paths_idfn
 from sbmlutils.validation import ValidationOptions
 
-
-omex_paths: List[Path] = []
+omex_paths: list[Path] = []
 for k in range(100):
     path: Path = BIOMODELS_CURATED_PATH / f"BIOMD0000000{k:0>3}.omex"
     if path.exists():

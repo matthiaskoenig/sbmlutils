@@ -4,7 +4,6 @@ alp(Vm) = abar / (1 + k1 * exp(-2 * d1 * 96.485 * Vm / 8.313424 / (310)) / c)
 """
 
 import re
-from typing import Dict, List, Optional
 
 import libsbml
 
@@ -16,8 +15,8 @@ def ast_info(ast: libsbml.ASTNode) -> None:
 
 
 def find_names_in_ast(
-    ast: libsbml.ASTNode, names: Optional[List[str]] = None
-) -> List[str]:
+    ast: libsbml.ASTNode, names: list[str] | None = None
+) -> list[str]:
     """Find all names in given astnode.
 
     Names are the variables in the formula.
@@ -41,7 +40,7 @@ def find_names_in_ast(
 
 
 def replace_formula(
-    formula: str, fid: str, old_args: List[str], new_args: List[str]
+    formula: str, fid: str, old_args: list[str], new_args: list[str]
 ) -> str:
     """Replace information in given formula.
 
@@ -52,7 +51,7 @@ def replace_formula(
     :return:
     """
     new_formula = formula
-    pattern = re.compile(r"(?<!\w){}\s*\(.*?\)".format(fid))
+    pattern = re.compile(rf"(?<!\w){fid}\s*\(.*?\)")
 
     for m in pattern.finditer(formula):
         g = formula[m.start() :]
@@ -89,9 +88,9 @@ def _top_bracket_content(s: str) -> str:
     return s[start_idx + 1 : end_idx]
 
 
-def _bracket_stack(s: str) -> Dict[int, int]:
+def _bracket_stack(s: str) -> dict[int, int]:
     """Get bracket stack."""
-    toret: Dict[int, int] = {}
+    toret: dict[int, int] = {}
     pstack = []
     for i, c in enumerate(s):
         if c == "(":

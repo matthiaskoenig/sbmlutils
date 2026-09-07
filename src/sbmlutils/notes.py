@@ -13,7 +13,6 @@ from markdown_it import MarkdownIt
 
 from sbmlutils import log
 
-
 logger = log.get_logger(__name__)
 
 
@@ -29,7 +28,6 @@ class Notes:
 
     def __init__(self, notes: str, format: NotesFormat = NotesFormat.MARKDOWN):
         """Initialize notes object."""
-
         # remove indentation
         md = textwrap.dedent(notes)
 

@@ -2,8 +2,8 @@
 
 from pathlib import Path
 
-from sbmlutils import comp, validation
 from examples.merge_models.merge_models import merge_models_example
+from sbmlutils import comp, validation
 from sbmlutils.io import write_sbml
 from sbmlutils.manipulation import merge
 from sbmlutils.resources import TESTDATA_DIR

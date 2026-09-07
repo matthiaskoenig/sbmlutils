@@ -13,8 +13,8 @@ ontology lookup service.
 
 import os
 import re
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Union
 
 import libsbml
 import pandas as pd
@@ -28,15 +28,13 @@ from sbmlutils.log import get_logger
 
 from ..validation import check
 
-
 logger = get_logger(__name__)
 
 
 def annotate_sbml(
-    source: Union[Path, str], annotations_path: Path, filepath: Path
+    source: Path | str, annotations_path: Path, filepath: Path
 ) -> libsbml.SBMLDocument:
-    """
-    Annotate a given SBML file with the provided annotations.
+    """Annotate a given SBML file with the provided annotations.
 
     :param source: SBML to annotation
     :param annotations_path: external file with annotations
@@ -47,7 +45,7 @@ def annotate_sbml(
 
     # annotate
     if not os.path.exists(str(annotations_path)):
-        raise IOError(f"Annotation file does not exist: {annotations_path}")
+        raise OSError(f"Annotation file does not exist: {annotations_path}")
     external_annotations = ModelAnnotator.read_annotations(
         annotations_path, file_format="*"
     )
@@ -61,7 +59,7 @@ def annotate_sbml(
 
 
 def annotate_sbml_doc(
-    doc: libsbml.SBMLDocument, external_annotations: List["ExternalAnnotation"]
+    doc: libsbml.SBMLDocument, external_annotations: list["ExternalAnnotation"]
 ) -> libsbml.SBMLDocument:
     """Annotates given SBML document using the annotations file.
 
@@ -109,15 +107,15 @@ class ExternalAnnotation:
     )
     _annotation_types = frozenset(["rdf", "formula", "charge"])
 
-    def __init__(self, d: Dict):
+    def __init__(self, d: dict):
         """Initialize ExternalAnnotation."""
         self.d = d
-        self.pattern: Optional[str] = None
-        self.sbml_type: Optional[str] = None
-        self.annotation_type: Optional[str] = None
-        self.qualifier: Optional[Union[BQB, BQM]] = None
-        self.resource: Optional[str] = None
-        self.name: Optional[str] = None
+        self.pattern: str | None = None
+        self.sbml_type: str | None = None
+        self.annotation_type: str | None = None
+        self.qualifier: BQB | BQM | None = None
+        self.resource: str | None = None
+        self.name: str | None = None
 
         for key in self._keys:
             # optional fields
@@ -141,13 +139,13 @@ class ExternalAnnotation:
         self.check()
 
     @staticmethod
-    def _parse_qualifier_str(qualifier: Optional[str]) -> Union[BQB, BQM]:
+    def _parse_qualifier_str(qualifier: str | None) -> BQB | BQM:
         if qualifier is None:
             raise ValueError("Qualifier must be provided.")
 
         if not qualifier.startswith("BQ"):
             raise ValueError(f"Qualifier must start with BQM_ or BQB_: '{qualifier}'")
-        bq: Union[BQB, BQM]
+        bq: BQB | BQM
         if qualifier.startswith("BQM_"):
             bq = BQM[qualifier[4:]]
         elif qualifier.startswith("BQB_"):
@@ -222,7 +220,7 @@ class ModelAnnotator:
 
             self._annotate_elements(elements, a)
 
-    def _get_ids_from_model(self) -> Dict[str, List[str]]:
+    def _get_ids_from_model(self) -> dict[str, list[str]]:
         """Create dictionary of ids for given model for lookup.
 
         :return:
@@ -267,16 +265,15 @@ class ModelAnnotator:
         return id_dict
 
     @staticmethod
-    def _get_matching_ids(ids: Iterable[str], pattern: str) -> List[str]:
+    def _get_matching_ids(ids: Iterable[str], pattern: str) -> list[str]:
         """Ids matching the regular expression."""
         return [s for s in ids if re.match(pattern, s)]
 
     @staticmethod
     def _elements_from_ids(
-        model: libsbml.Model, sbml_ids: Iterable[str], sbml_type: Optional[str] = None
-    ) -> List[libsbml.SBase]:
-        """
-        Get list of SBML elements from given ids.
+        model: libsbml.Model, sbml_ids: Iterable[str], sbml_type: str | None = None
+    ) -> list[libsbml.SBase]:
+        """Get list of SBML elements from given ids.
 
         :param model: SBML model
         :param sbml_ids: SBML SIds
@@ -327,7 +324,7 @@ class ModelAnnotator:
                 # via fbc species plugin, so check that species first
                 if ex_a.sbml_type != "species":
                     logger.error(
-                        "Chemical formula or Charge can only be " "set on species."
+                        "Chemical formula or Charge can only be set on species."
                     )
                 else:
                     s = self.model.getSpecies(e.getId())
@@ -402,8 +399,7 @@ class ModelAnnotator:
                 )
                 if not success:
                     logger.error(
-                        f"Could not set model qualifier '{qualifier}' "
-                        f"for '{sbase}'."
+                        f"Could not set model qualifier '{qualifier}' for '{sbase}'."
                     )
             else:
                 logger.error(f"Unsupported qualifier: '{qualifier}' for '{sbase}'.")
@@ -427,8 +423,7 @@ class ModelAnnotator:
 
         if not success:
             logger.error(
-                f"Annotation RDF for CVTerm '{cv}' could not be written "
-                f"for '{sbase}'."
+                f"Annotation RDF for CVTerm '{cv}' could not be written for '{sbase}'."
             )
             logger.error(libsbml.OperationReturnValue_toString(success))
             logger.error(f"{sbase}, {qualifier}, {resource}")
@@ -451,7 +446,7 @@ class ModelAnnotator:
 
         formats = ["xlsx", "tsv", "csv", "json"]
         if file_format not in formats:
-            raise IOError(
+            raise OSError(
                 f"Annotation format '{file_format}' not in supported formats: "
                 f"'{formats}'"
             )
@@ -478,7 +473,7 @@ class ModelAnnotator:
     @staticmethod
     def read_annotations(
         file_path: Path, file_format: str = "*"
-    ) -> List[ExternalAnnotation]:
+    ) -> list[ExternalAnnotation]:
         """Read annotations from given file into DataFrame.
 
         Supports "xlsx", "tsv", "csv", "json", "*"

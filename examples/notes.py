@@ -1,9 +1,9 @@
 """Example model with notes."""
 
 from pathlib import Path
+
 from examples import templates
 from sbmlutils.factory import *
-
 
 model = Model(
     sid="notes",
@@ -252,7 +252,6 @@ model = Model(
 
 
 if __name__ == "__main__":
-
     create_model(
         model=model,
         filepath=Path.cwd() / f"{model.sid}.xml",

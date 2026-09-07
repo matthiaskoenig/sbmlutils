@@ -10,13 +10,11 @@ see also: https://docs.sympy.org/dev/modules/printing.html#module-sympy.printing
 
 import re
 from functools import lru_cache
-from typing import Optional, Set
 
 import libsbml
 import lxml.etree as ET
 
 from sbmlutils import RESOURCES_DIR, log
-
 
 logger = log.get_logger(__name__)
 
@@ -25,7 +23,7 @@ xslt_pmml2tex = ET.parse(str(RESOURCES_DIR / "xslt" / "xsltml" / "mmltex.xsl"))
 
 
 def formula_to_astnode(
-    formula: str, model: Optional[libsbml.Model] = None
+    formula: str, model: libsbml.Model | None = None
 ) -> libsbml.ASTNode:
     """Convert formula string to ASTNode.
 
@@ -47,7 +45,7 @@ def formula_to_astnode(
     return astnode
 
 
-def formula_to_latex(formula: str, model: Optional[libsbml.Model] = None) -> str:
+def formula_to_latex(formula: str, model: libsbml.Model | None = None) -> str:
     """Convert formula string to latex."""
     astnode = formula_to_astnode(formula, model)
     return astnode_to_latex(astnode)
@@ -73,7 +71,6 @@ def astnode_to_latex(astnode: libsbml.ASTNode) -> str:
 @lru_cache(maxsize=10000)
 def cmathml_to_latex(cmml_str: str) -> str:
     """Content MathML to latex conversion using XSLT transformation."""
-
     # content MathML -> presentation MathML
     cmml_dom = ET.fromstring(cmml_str)
     transform1 = ET.XSLT(xslt_cmml2pmml)
@@ -114,7 +111,7 @@ greek_symbols = [
     "alpha",
     "beta",
     "gamma",
-    "Gamma" "delta",
+    "Gammadelta",
     "Delta",
     "epsilon",
     "zeta",
@@ -126,7 +123,7 @@ greek_symbols = [
     "mu",
     "nu",
     "omicron",
-    "pi" "rho",
+    "pirho",
     "sigma",
     "tau",
     "upsilon",
@@ -167,18 +164,18 @@ def _fix_mathit_symbols(tex_str: str) -> str:
     # replace greek symbols
     for symbol in greek_symbols:
         tex_str = tex_str.replace(
-            r"\mathit{" + symbol + "}", r"\mathit{" + f"\\{symbol}" + "}"  # noqa: W605
+            r"\mathit{" + symbol + "}", r"\mathit{" + f"\\{symbol}" + "}"
         )
 
     return tex_str
 
 
 def _get_variables(
-    astnode: libsbml.ASTNode, variables: Optional[Set[str]] = None
-) -> Set[str]:
+    astnode: libsbml.ASTNode, variables: set[str] | None = None
+) -> set[str]:
     """Get variables from ASTNode."""
     if variables is None:
-        variables: Set[str] = set()  # type: ignore
+        variables: set[str] = set()  # type: ignore
 
     num_children = astnode.getNumChildren()
     if num_children == 0:

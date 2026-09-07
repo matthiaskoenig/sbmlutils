@@ -9,7 +9,6 @@ from pathlib import Path
 
 from sbmlutils.log import get_logger
 
-
 logger = get_logger(__name__)
 
 
@@ -43,7 +42,6 @@ def create_online_report(
 
     :return: None
     """
-
     # validate and check arguments
     if not isinstance(sbml_path, Path):
         logger.warning(
@@ -53,7 +51,7 @@ def create_online_report(
         sbml_path = Path(sbml_path)
 
     if not sbml_path.exists():
-        raise IOError(f"'sbml_path' does not exist: '{sbml_path}'")
+        raise OSError(f"'sbml_path' does not exist: '{sbml_path}'")
 
     # serve files
     daemon = threading.Thread(

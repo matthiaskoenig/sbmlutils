@@ -4,7 +4,6 @@ from datetime import datetime
 
 from sbmlutils.factory import Creator
 
-
 creators = [
     Creator(
         familyName="König",

@@ -8,7 +8,6 @@ from sbmlutils.parser import sbml_to_model
 from sbmlutils.resources import SBML_TESTSUITE_DIR
 from sbmlutils.validation import ValidationOptions
 
-
 sbml_paths = Path(SBML_TESTSUITE_DIR).glob("**/*.xml")
 
 

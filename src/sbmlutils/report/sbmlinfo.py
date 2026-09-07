@@ -10,7 +10,7 @@ import hashlib
 import json
 import pprint
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 import libsbml
 import numpy as np
@@ -21,16 +21,15 @@ from sbmlutils.report.mathml import astnode_to_latex, symbol_to_latex
 from sbmlutils.report.units import udef_to_string
 
 
-def _get_sbase_attribute(sbase: libsbml.SBase, key: str) -> Optional[Any]:
+def _get_sbase_attribute(sbase: libsbml.SBase, key: str) -> Any | None:
     """Get SBase attribute."""
     key = f"{key[0].upper()}{key[1:]}"
     if getattr(sbase, f"isSet{key}")():
         return getattr(sbase, f"get{key}")()
-    else:
-        return None
+    return None
 
 
-def clean_empty(d: Union[Dict, List, str]) -> Union[Dict, List, str]:
+def clean_empty(d: dict | list | str) -> dict | list | str:
     """Remove empty fields from JSON.
 
     Reducing to core information.
@@ -58,7 +57,7 @@ class SBMLDocumentInfo:
         self.info = self.create_info()
 
     @staticmethod
-    def from_sbml(source: Union[Path, str]) -> SBMLDocumentInfo:
+    def from_sbml(source: Path | str) -> SBMLDocumentInfo:
         """Read model info from SBML."""
         doc: libsbml.SBMLDocument = read_sbml(source)
         return SBMLDocumentInfo(doc=doc)
@@ -78,10 +77,9 @@ class SBMLDocumentInfo:
             d = clean_empty(d)  # type: ignore
         return json.dumps(d, indent=indent)
 
-    def create_info(self) -> Dict[str, Any]:
+    def create_info(self) -> dict[str, Any]:
         """Create information dictionary for report rendering."""
-
-        model: Optional[Dict[str, Any]]
+        model: dict[str, Any] | None
         if self.doc.isSetModel():
             model = self.model_dict(self.doc.getModel())
         else:
@@ -96,8 +94,8 @@ class SBMLDocumentInfo:
         return d
 
     def model_dict(
-        self, model: Union[libsbml.Model, libsbml.ModelDefinition]
-    ) -> Dict[str, Any]:
+        self, model: libsbml.Model | libsbml.ModelDefinition
+    ) -> dict[str, Any]:
         """Create information for a given model."""
         assignments = self._create_assignment_map(model=model)
         ports = self._create_port_map(model=model)
@@ -139,9 +137,9 @@ class SBMLDocumentInfo:
 
     def add_compartment_links(
         self,
-        compartments: List[Dict[str, Any]],
-        species: List[Dict[str, Any]],
-        reactions: List[Dict[str, Any]],
+        compartments: list[dict[str, Any]],
+        species: list[dict[str, Any]],
+        reactions: list[dict[str, Any]],
     ) -> None:
         """Add species and reaction links to compartment."""
         c_map = {c["id"]: c for c in compartments}
@@ -158,7 +156,7 @@ class SBMLDocumentInfo:
                 c_map[cid]["reactions"].append(r["pk"])
 
     def add_species_links(
-        self, species: List[Dict[str, Any]], reactions: List[Dict[str, Any]]
+        self, species: list[dict[str, Any]], reactions: list[dict[str, Any]]
     ) -> None:
         """Add reaction links to species."""
         s_map = {s["id"]: s for s in species}
@@ -181,7 +179,7 @@ class SBMLDocumentInfo:
                     s_map[sid]["modifier"].append(r["pk"])
 
     @staticmethod
-    def _sbaseref(sbaseref: libsbml.SBaseRef) -> Optional[Dict]:
+    def _sbaseref(sbaseref: libsbml.SBaseRef) -> dict | None:
         """Format the SBaseRef instance.
 
         Used to figure out the type of the SBaseRef.
@@ -189,25 +187,24 @@ class SBMLDocumentInfo:
         :param sbaseref: SBaseRef instance
         :return: Dictionary containing formatted SBaseRef instance's data
         """
-
         if sbaseref.isSetPortRef():
             return {"type": "port_ref", "value": sbaseref.getPortRef()}
-        elif sbaseref.isSetIdRef():
+        if sbaseref.isSetIdRef():
             return {"type": "id_ref", "value": sbaseref.getIdRef()}
-        elif sbaseref.isSetUnitRef():
+        if sbaseref.isSetUnitRef():
             return {"type": "unit_ref", "value": sbaseref.getUnitRef()}
-        elif sbaseref.isSetMetaIdRef():
+        if sbaseref.isSetMetaIdRef():
             return {"type": "metaId_ref", "value": sbaseref.getMetaIdRef()}
         return None
 
-    def _create_port_map(self, model: libsbml.Model) -> Dict:
+    def _create_port_map(self, model: libsbml.Model) -> dict:
         """Create dictionary of symbols:port for symbols in model.
 
         This allows to lookup port for a given Sbase.
 
         :return: port dictionary for model
         """
-        ports: Dict[str, Dict] = {}
+        ports: dict[str, dict] = {}
         port: libsbml.Port
         comp_model: libsbml.CompModelPlugin = model.getPlugin("comp")
         if comp_model:
@@ -233,14 +230,14 @@ class SBMLDocumentInfo:
 
         return ports
 
-    def _create_assignment_map(self, model: libsbml.Model) -> Dict:
+    def _create_assignment_map(self, model: libsbml.Model) -> dict:
         """Create dictionary of symbols:assignment for symbols in model.
 
         This allows to lookup assignments for a given variable.
 
         :return: assignment dictionary for model
         """
-        assignments: Dict[str, Dict] = {}
+        assignments: dict[str, dict] = {}
 
         initial_assignment: libsbml.InitialAssignment
         for initial_assignment in model.getListOfInitialAssignments():
@@ -293,7 +290,6 @@ class SBMLDocumentInfo:
     @staticmethod
     def _get_pk(sbase: libsbml.SBase) -> str:
         """Calculate primary key."""
-
         if not hasattr(sbase, "pk"):
             pk: str = f"{SBMLDocumentInfo._sbml_type(sbase)}:"
             if sbase.isSetId():
@@ -316,7 +312,7 @@ class SBMLDocumentInfo:
         return str(hashlib.sha1(xml.encode("utf-8")).hexdigest())
 
     @classmethod
-    def sbase_dict(cls, sbase: libsbml.SBase) -> Dict[str, Any]:
+    def sbase_dict(cls, sbase: libsbml.SBase) -> dict[str, Any]:
         """Info dictionary for SBase.
 
         :param sbase: SBase instance for which info dictionary is to be created
@@ -405,7 +401,7 @@ class SBMLDocumentInfo:
             d["uncertainties"] = uncertainties
         return d
 
-    def sbaseref_dict(self, sbaseref: libsbml.SBaseRef) -> Dict[str, Any]:
+    def sbaseref_dict(self, sbaseref: libsbml.SBaseRef) -> dict[str, Any]:
         """Info dictionary for SBaseRef.
 
         :param sbaseref: SBaseRef instance for which information dictionary is created
@@ -425,7 +421,7 @@ class SBMLDocumentInfo:
         return d
 
     @classmethod
-    def cvterms(cls, sbase: libsbml.SBase) -> Optional[List]:
+    def cvterms(cls, sbase: libsbml.SBase) -> list | None:
         """Parse CVTerms information.
 
         :param sbase: SBase instance
@@ -473,12 +469,11 @@ class SBMLDocumentInfo:
         return cvterms
 
     @classmethod
-    def model_history(cls, sbase: libsbml.SBase) -> Optional[Dict]:
+    def model_history(cls, sbase: libsbml.SBase) -> dict | None:
         """Parse model history information.
 
         :return
         """
-
         if sbase.isSetModelHistory():
             history: libsbml.ModelHistory = sbase.getModelHistory()
         else:
@@ -512,7 +507,7 @@ class SBMLDocumentInfo:
             "modifiedDates": modified_dates,
         }
 
-    def document(self, doc: libsbml.SBMLDocument) -> Dict[str, str]:
+    def document(self, doc: libsbml.SBMLDocument) -> dict[str, str]:
         """Info for SBMLDocument.
 
         :param doc: SBMLDocument
@@ -520,10 +515,10 @@ class SBMLDocumentInfo:
         """
         d = self.sbase_dict(doc)
 
-        packages: Dict[str, Any] = {}
+        packages: dict[str, Any] = {}
         packages["document"] = {"level": doc.getLevel(), "version": doc.getVersion()}
 
-        plugins: List[Dict[str, Any]] = []
+        plugins: list[dict[str, Any]] = []
         for k in range(doc.getNumPlugins()):
             plugin: libsbml.SBMLDocumentPlugin = doc.getPlugin(k)
             prefix: str = plugin.getPrefix()
@@ -535,7 +530,7 @@ class SBMLDocumentInfo:
         d["packages"] = packages
         return d
 
-    def model(self, model: libsbml.Model) -> Dict[str, str]:
+    def model(self, model: libsbml.Model) -> dict[str, str]:
         """Info for SBML Model.
 
         :param model: Model
@@ -570,7 +565,7 @@ class SBMLDocumentInfo:
 
         return d
 
-    def function_definitions(self, model: libsbml.Model) -> List:
+    def function_definitions(self, model: libsbml.Model) -> list:
         """Information dictionaries for FunctionDefinitions.
 
         :return: list of info dictionaries for FunctionDefinitions
@@ -585,7 +580,7 @@ class SBMLDocumentInfo:
 
         return func_defs
 
-    def unit_definitions(self, model: libsbml.Model) -> List:
+    def unit_definitions(self, model: libsbml.Model) -> list:
         """Information for UnitDefinitions.
 
         :return: list of info dictionaries for UnitDefinitions
@@ -607,13 +602,12 @@ class SBMLDocumentInfo:
         return unit_defs
 
     def compartments(
-        self, model: libsbml.Model, assignments: Dict[str, Dict[str, str]]
-    ) -> List[Dict]:
+        self, model: libsbml.Model, assignments: dict[str, dict[str, str]]
+    ) -> list[dict]:
         """Information for Compartments.
 
         :return: list of info dictionaries for Compartments
         """
-
         compartments = []
         c: libsbml.Compartment
         for c in model.getListOfCompartments():
@@ -639,13 +633,12 @@ class SBMLDocumentInfo:
         return compartments
 
     def species(
-        self, model: libsbml.Model, assignments: Dict[str, Dict[str, str]]
-    ) -> List[Dict]:
+        self, model: libsbml.Model, assignments: dict[str, dict[str, str]]
+    ) -> list[dict]:
         """Information for Species.
 
         :return: list of info dictionaries for Species
         """
-
         species = []
         s: libsbml.Species
         for s in model.getListOfSpecies():
@@ -716,13 +709,12 @@ class SBMLDocumentInfo:
         return species
 
     def parameters(
-        self, model: libsbml.Model, assignments: Dict[str, Dict[str, str]]
-    ) -> List[Dict]:
+        self, model: libsbml.Model, assignments: dict[str, dict[str, str]]
+    ) -> list[dict]:
         """Information for SBML Parameters.
 
         :return: list of info dictionaries for Reactions
         """
-
         parameters = []
         p: libsbml.Parameter
         for p in model.getListOfParameters():
@@ -755,12 +747,11 @@ class SBMLDocumentInfo:
 
         return parameters
 
-    def initial_assignments(self, model: libsbml.Model) -> List:
+    def initial_assignments(self, model: libsbml.Model) -> list:
         """Information for InitialAssignments.
 
         :return: list of info dictionaries for InitialAssignments
         """
-
         assignments = []
         assignment: libsbml.InitialAssignment
         for assignment in model.getListOfInitialAssignments():
@@ -772,13 +763,12 @@ class SBMLDocumentInfo:
 
         return assignments
 
-    def rules(self, model: libsbml.Model) -> Dict:
+    def rules(self, model: libsbml.Model) -> dict:
         """Information for Rules.
 
         :return: list of info dictionaries for Rules
         """
-
-        rules: Dict[str, List] = {
+        rules: dict[str, list] = {
             "assignmentRules": [],
             "rateRules": [],
             "algebraicRules": [],
@@ -806,19 +796,17 @@ class SBMLDocumentInfo:
         """
         if isinstance(rule, libsbml.AlgebraicRule):
             return "0"
-        elif isinstance(rule, libsbml.AssignmentRule):
+        if isinstance(rule, libsbml.AssignmentRule):
             return rule.variable  # type: ignore
-        elif isinstance(rule, libsbml.RateRule):
+        if isinstance(rule, libsbml.RateRule):
             return f"d {rule.variable}/dt"
-        else:
-            raise TypeError(rule)
+        raise TypeError(rule)
 
-    def constraints(self, model: libsbml.Model) -> List[Dict[str, Any]]:
+    def constraints(self, model: libsbml.Model) -> list[dict[str, Any]]:
         """Information for Constraints.
 
         :return: list of info dictionaries for Constraints
         """
-
         constraints = []
         constraint: libsbml.Constraint
         for constraint in model.getListOfConstraints():
@@ -835,14 +823,13 @@ class SBMLDocumentInfo:
 
         return constraints
 
-    def reactions(self, model: libsbml.Model) -> List[Dict[str, Any]]:
+    def reactions(self, model: libsbml.Model) -> list[dict[str, Any]]:
         """Information dictionaries for ListOfReactions.
 
         :return: list of info dictionaries for Reactions
 
         -- take a look at local parameter once
         """
-
         reactions = []
         r: libsbml.Reaction
         for r in model.getListOfReactions():
@@ -863,7 +850,7 @@ class SBMLDocumentInfo:
                 r.getKineticLaw() if r.isSetKineticLaw() else None
             )
             if klaw:
-                d_law: Dict[str, Any] = {}
+                d_law: dict[str, Any] = {}
                 d_law["math"] = (
                     astnode_to_latex(klaw.getMath()) if klaw.isSetMath() else None
                 )
@@ -906,7 +893,7 @@ class SBMLDocumentInfo:
         return reactions
 
     @staticmethod
-    def _species_reference(species: libsbml.SpeciesReference) -> Dict[str, Any]:
+    def _species_reference(species: libsbml.SpeciesReference) -> dict[str, Any]:
         """Resolve species reference."""
         return {
             "species": species.getSpecies() if species.isSetSpecies() else None,
@@ -919,21 +906,21 @@ class SBMLDocumentInfo:
     @staticmethod
     def _bounds_dict_from_reaction(
         reaction: libsbml.Reaction, model: libsbml.Model
-    ) -> Optional[Dict]:
+    ) -> dict | None:
         """Render string of bounds from the reaction.
 
         :param reaction: SBML reaction instance
         :param model: SBML model instance
         :return: String of bounds extracted from the reaction
         """
-        bounds: Optional[Dict]
+        bounds: dict | None
         rfbc = reaction.getPlugin("fbc")
         if rfbc is not None:
             # get values for bounds
-            lb_id: Optional[str] = None
-            ub_id: Optional[str] = None
-            lb_value: Optional[float] = None
-            ub_value: Optional[float] = None
+            lb_id: str | None = None
+            ub_id: str | None = None
+            lb_value: float | None = None
+            ub_value: float | None = None
             if rfbc.isSetLowerFluxBound():
                 lb_id = rfbc.getLowerFluxBound()
                 lb_p: libsbml.Parameter = model.getParameter(lb_id)
@@ -964,13 +951,12 @@ class SBMLDocumentInfo:
     @staticmethod
     def _gene_product_association_from_reaction(
         reaction: libsbml.Reaction,
-    ) -> Optional[str]:
+    ) -> str | None:
         """Render string representation of the GeneProductAssociation for given reaction.
 
         :param reaction: SBML reaction instance
         :return: string representation of GeneProductAssociation
         """
-
         rfbc = reaction.getPlugin("fbc")
         gpa = (
             str(rfbc.getGeneProductAssociation().getAssociation().toInfix())
@@ -995,7 +981,6 @@ class SBMLDocumentInfo:
         :param modifiers: boolean flag to use modifiers
         :return equation string generated for the reaction
         """
-
         left = SBMLDocumentInfo._half_equation(reaction.getListOfReactants())
         right = SBMLDocumentInfo._half_equation(reaction.getListOfProducts())
         if reaction.getReversible():
@@ -1008,8 +993,7 @@ class SBMLDocumentInfo:
             mods = SBMLDocumentInfo._modifier_equation(reaction.getListOfModifiers())
             if mods is None:
                 return " ".join([left, sep, right])
-            else:
-                return " ".join([left, sep, right, mods])
+            return " ".join([left, sep, right, mods])
         return " ".join([left, sep, right])
 
     @staticmethod
@@ -1052,12 +1036,11 @@ class SBMLDocumentInfo:
             items.append(sd)
         return " + ".join(items)
 
-    def events(self, model: libsbml.Model) -> List[Dict[str, Any]]:
+    def events(self, model: libsbml.Model) -> list[dict[str, Any]]:
         """Information dictionaries for Events.
 
         :return: list of info dictionaries for Events
         """
-
         events = []
         event: libsbml.Event
         for event in model.getListOfEvents():
@@ -1120,13 +1103,13 @@ class SBMLDocumentInfo:
     # ---------------------------------------------------------------------------------
     # comp
     # ---------------------------------------------------------------------------------
-    def model_definitions(self) -> Dict:
+    def model_definitions(self) -> dict:
         """Information for comp:ModelDefinitions.
 
         :return: list of info dictionaries for comp:ModelDefinitions
         """
-        mds: List[Dict[str, Any]] = []
-        emds: List[Dict[str, Any]] = []
+        mds: list[dict[str, Any]] = []
+        emds: list[dict[str, Any]] = []
 
         doc_comp: libsbml.CompSBMLDocumentPlugin = self.doc.getPlugin("comp")
         if doc_comp:
@@ -1141,19 +1124,19 @@ class SBMLDocumentInfo:
                 d_emd["source"] = emd.getSource() if emd.isSetSource() else None
                 emds.append(d_emd)
 
-        d: Dict[str, List] = {
+        d: dict[str, list] = {
             "modelDefinitions": mds,
             "externalModelDefinitions": emds,
         }
 
         return d
 
-    def submodels(self, model: libsbml.Model) -> List[Dict[str, Any]]:
+    def submodels(self, model: libsbml.Model) -> list[dict[str, Any]]:
         """Information dictionaries for comp:Submodels.
 
         :return: list of info dictionaries for comp:Submodels
         """
-        submodels: List[Dict[str, Any]] = []
+        submodels: list[dict[str, Any]] = []
         model_comp = model.getPlugin("comp")
         if model_comp:
             submodel: libsbml.Submodel
@@ -1183,12 +1166,11 @@ class SBMLDocumentInfo:
 
         return submodels
 
-    def ports(self, model: libsbml.Model) -> List:
+    def ports(self, model: libsbml.Model) -> list:
         """Information for comp:Ports.
 
         :return: list of info dictionaries for comp:Ports
         """
-
         model_comp = model.getPlugin("comp")
         ports = []
         if model_comp:
@@ -1202,7 +1184,7 @@ class SBMLDocumentInfo:
     # ---------------------------------------------------------------------------------
     # fbc
     # ---------------------------------------------------------------------------------
-    def gene_products(self, model: libsbml.Model) -> List[Dict[str, Any]]:
+    def gene_products(self, model: libsbml.Model) -> list[dict[str, Any]]:
         """Information dictionaries for GeneProducts.
 
         :return: list of info dictionaries for Reactions
@@ -1221,12 +1203,11 @@ class SBMLDocumentInfo:
 
         return gps
 
-    def objectives(self, model: libsbml.Model) -> List[Dict[str, Any]]:
+    def objectives(self, model: libsbml.Model) -> list[dict[str, Any]]:
         """Information dictionaries for Objectives.
 
         :return: list of info dictionaries for Objectives
         """
-
         objectives = []
         model_fbc: libsbml.FbcModelPlugin = model.getPlugin("fbc")
         if model_fbc:

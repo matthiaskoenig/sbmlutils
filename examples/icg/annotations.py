@@ -2,7 +2,6 @@
 
 from sbmlutils.metadata import BQB
 
-
 compartments = {
     # liver
     "li": [

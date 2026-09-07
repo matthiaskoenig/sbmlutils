@@ -6,7 +6,6 @@ import pytest
 from sbmlutils.factory import UnitDefinition
 from sbmlutils.report.units import udef_to_string
 
-
 testdata_str = [
     ("pmol", "pmol", "pmol"),
     ("hr", "hr", "hr"),
@@ -39,7 +38,7 @@ testdata_latex = [
     ("m3", "meter^3", "m^3"),
     ("m3", "meter^3/second", "\\frac{m^3}{s}"),
     ("mM", "mmole/liter", "\\frac{mmol}{l}"),
-    ("ml_per_s_kg", "ml/s/kg", "\\frac{ml}{s \\cdot kg}"),  # noqa: W605
+    ("ml_per_s_kg", "ml/s/kg", "\\frac{ml}{s \\cdot kg}"),
     ("dimensionless", "dimensionless", "-"),
     ("item", "item", "item"),
 ]

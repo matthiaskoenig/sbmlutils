@@ -2,8 +2,8 @@
 
 from pathlib import Path
 
-from sbmlutils.cytoscape import visualize_sbml
 from examples.icg import annotations, templates
+from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.factory import *
 from sbmlutils.metadata import BQB, SBO
 

@@ -1,10 +1,10 @@
 """FBC example for KeyValuePairs."""
 
 from pathlib import Path
+
 from examples import templates
 from sbmlutils.factory import *
 from sbmlutils.validation import ValidationOptions
-
 
 model = Model(
     "fbc_key_value_pair",
@@ -46,7 +46,6 @@ model = Model(
 )
 
 if __name__ == "__main__":
-
     sbml_path = Path.cwd() / "fbc" / f"{model.sid}.xml"
 
     fac_results = create_model(

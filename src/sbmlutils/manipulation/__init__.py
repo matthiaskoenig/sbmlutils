@@ -8,6 +8,4 @@ For example merging of models or promoting of local parameters.
 
 from sbmlutils.manipulation.merge import merge_models
 
-__all__ = [
-    "merge_models"
-]
+__all__ = ["merge_models"]

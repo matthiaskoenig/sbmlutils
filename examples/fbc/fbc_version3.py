@@ -8,7 +8,6 @@ from logging import getLogger
 
 import libsbml
 
-
 # from sbmlutils.console import console
 logger = getLogger(__name__)
 
@@ -31,7 +30,7 @@ def check(value: int, message: str) -> bool:
         if value != libsbml.LIBSBML_OPERATION_SUCCESS:
             logger.error(f"Error encountered trying to '{message}'.")
             logger.error(
-                f"LibSBML returned error code {str(value)}: "
+                f"LibSBML returned error code {value!s}: "
                 f"{libsbml.OperationReturnValue_toString(value).strip()}"
             )
             valid = False

@@ -3,7 +3,6 @@
 from examples import templates
 from sbmlutils.factory import *
 
-
 creators = [
     Creator(
         familyName="Köller",

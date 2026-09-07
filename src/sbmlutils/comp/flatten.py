@@ -3,7 +3,6 @@
 import os
 import time
 from pathlib import Path
-from typing import Optional
 
 import libsbml
 
@@ -11,7 +10,6 @@ from sbmlutils.console import console
 from sbmlutils.io import read_sbml, write_sbml
 from sbmlutils.log import get_logger
 from sbmlutils.validation import log_sbml_errors_for_doc, validate_doc
-
 
 logger = get_logger(__name__)
 
@@ -49,7 +47,7 @@ def flatten_sbml(
 
 def flatten_sbml_doc(
     doc: libsbml.SBMLDocument,
-    sbml_flat_path: Optional[Path] = None,
+    sbml_flat_path: Path | None = None,
     leave_ports: bool = True,
 ) -> libsbml.SBMLDocument:
     """Flatten SBMLDocument.
@@ -143,36 +141,35 @@ def flatten_external_model_definitions(
         # no ExternalModelDefinitions
         logger.warning("Model does not contain any ExternalModelDefinitions")
         return doc
-    else:
-        emd_ids = []
-        for emd in emd_list:
-            logger.debug(emd)
-            emd_ids.append(emd.getId())
+    emd_ids = []
+    for emd in emd_list:
+        logger.debug(emd)
+        emd_ids.append(emd.getId())
 
-            # get the model definition from the model
-            ref_model = emd.getReferencedModel()
+        # get the model definition from the model
+        ref_model = emd.getReferencedModel()
 
-            ref_doc = ref_model.getSBMLDocument()
-            # print(ref_model)
-            for k in range(ref_doc.getNumPlugins()):
-                plugin = ref_doc.getPlugin(k)
-                # print(k, plugin)
+        ref_doc = ref_model.getSBMLDocument()
+        # print(ref_model)
+        for k in range(ref_doc.getNumPlugins()):
+            plugin = ref_doc.getPlugin(k)
+            # print(k, plugin)
 
-                # enable the package on the main SBMLDocument
-                uri = plugin.getURI()
-                prefix = plugin.getPrefix()
-                doc.enablePackage(uri, prefix, True)
+            # enable the package on the main SBMLDocument
+            uri = plugin.getURI()
+            prefix = plugin.getPrefix()
+            doc.enablePackage(uri, prefix, True)
 
-            # print("\n")
+        # print("\n")
 
-            # add model definition for model
-            md = libsbml.ModelDefinition(ref_model)
-            comp_doc.addModelDefinition(md)
+        # add model definition for model
+        md = libsbml.ModelDefinition(ref_model)
+        comp_doc.addModelDefinition(md)
 
-        # remove the emds afterwards
-        for emd_id in emd_ids:
-            # remove the emd from the model
-            comp_doc.removeExternalModelDefinition(emd_id)
+    # remove the emds afterwards
+    for emd_id in emd_ids:
+        # remove the emd from the model
+        comp_doc.removeExternalModelDefinition(emd_id)
 
     # validate
     if validate:

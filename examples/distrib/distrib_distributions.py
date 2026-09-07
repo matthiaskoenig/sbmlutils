@@ -1,6 +1,7 @@
 """Distrib example demonstrating distributions."""
 
 from pathlib import Path
+
 from examples import templates
 from sbmlutils.factory import *
 from sbmlutils.validation import ValidationOptions
@@ -62,7 +63,6 @@ model.assignments = [
 
 
 if __name__ == "__main__":
-
     create_model(
         model=model,
         filepath=Path.cwd() / f"{model.sid}.xml",

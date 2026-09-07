@@ -1,11 +1,11 @@
 """Load and modify an existing antimony model."""
 
 from pathlib import Path
+
 from sbmlutils.cytoscape import visualize_antimony, visualize_sbml
 from sbmlutils.factory import *
 from sbmlutils.metadata import BQB
 from sbmlutils.parser import antimony_to_model
-
 
 model_antimony: str = """
     model antimony_repressilator

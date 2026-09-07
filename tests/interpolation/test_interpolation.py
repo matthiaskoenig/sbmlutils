@@ -10,7 +10,6 @@ from matplotlib import pyplot as plt
 from examples.interpolation.interpolation import interpolation_example
 from sbmlutils.data import interpolation as ip
 
-
 x = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0]
 y = [0.0, 2.0, 1.0, 1.5, 2.5, 3.5]
 z = [10.0, 5.0, 2.5, 1.25, 0.6, 0.3]
@@ -19,7 +18,6 @@ data1 = pd.DataFrame({"x": x, "y": y, "z": z})
 
 def f_interpolation(method: str, tmp_path: Path) -> None:
     """Create different interpolations."""
-
     tmp_f = tmp_path / "tests.xml"
     interpolation = ip.Interpolation(data=data1, method=method)
     interpolation.write_sbml_to_file(tmp_f)

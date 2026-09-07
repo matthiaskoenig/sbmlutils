@@ -12,21 +12,21 @@ import pandas as pd
 
 os.environ["PY4CYTOSCAPE_DETAIL_LOGGER_DIR"] = str(tempfile.gettempdir())
 
-from pathlib import Path  # noqa: E402
-from typing import Any, Union, Optional, Iterable  # noqa: E402
+from collections.abc import Iterable
+from pathlib import Path
+from typing import Any
 
-import py4cytoscape as p4c  # type: ignore  # noqa: E402
-from requests.exceptions import RequestException  # noqa: E402
+import py4cytoscape as p4c  # type: ignore
+from requests.exceptions import RequestException
 
-from sbmlutils import log  # noqa: E402
-from sbmlutils.console import console  # noqa: E402
-from sbmlutils.parser import antimony_to_sbml  # noqa: E402
-
+from sbmlutils import log
+from sbmlutils.console import console
+from sbmlutils.parser import antimony_to_sbml
 
 logger = log.get_logger(__name__)
 
 
-def visualize_antimony(source: Union[Path, str], delete_session: bool = False) -> Any:
+def visualize_antimony(source: Path | str, delete_session: bool = False) -> Any:
     """Visualize antimony in cytoscape."""
     sbml_str = antimony_to_sbml(source=source)
     tmp_file = tempfile.NamedTemporaryFile()
@@ -36,7 +36,7 @@ def visualize_antimony(source: Union[Path, str], delete_session: bool = False) -
     visualize_sbml(Path(f_tmp.name), delete_session=delete_session)
 
 
-def visualize_sbml(sbml_path: Path, delete_session: bool = False) -> Optional[int]:
+def visualize_sbml(sbml_path: Path, delete_session: bool = False) -> int | None:
     """Visualize SBML networks in cytoscape.
 
     Returns dictionary with "networks" and "views".
@@ -49,7 +49,7 @@ def visualize_sbml(sbml_path: Path, delete_session: bool = False) -> Optional[in
 
         networks_views = p4c.networks.import_network_from_file(str(sbml_path))
         # console.print(f"{networks_views}")
-        network: Optional[int] = networks_views["networks"][1]
+        network: int | None = networks_views["networks"][1]
         p4c.set_current_view(network=network)  # set the base network
         return network
 
@@ -71,9 +71,8 @@ def read_layout_xml(sbml_path: Path, xml_path: Path) -> pd.DataFrame:
     return df
 
 
-def apply_layout(layout: pd.DataFrame, network: Optional[int] = None) -> None:
+def apply_layout(layout: pd.DataFrame, network: int | None = None) -> None:
     """Apply layout information from Cytoscape to SBML networks."""
-
     # get SUIDs, sbml_id from node table;
     df_nodes = p4c.get_table_columns(table="node", columns=["sbml id"], network=network)
     sid2suid = {row["sbml id"]: suid for suid, row in df_nodes.iterrows()}
@@ -133,7 +132,7 @@ class AnnotationText:
     font_size: int = 12  # Numeric value; default is 12
     font_family: str = "Arial"  # Font family; default is Arial
     font_style: str = "bold"  # Font style; default is none
-    color: str = "#000000" ""  # hexadecimal color; default is #000000 (black)
+    color: str = "#000000"  # hexadecimal color; default is #000000 (black)
     angle: float = 0  # Angle of text orientation; default is 0.0 (horizontal)
     canvas: str = "background"
 
@@ -154,14 +153,13 @@ class AnnotationBoundedText:
     font_size: int = 12  # Numeric value; default is 12
     font_family: str = "Arial"  # Font family; default is Arial
     font_style: str = "bold"  # Font style; default is none
-    color: str = "#000000" ""  # hexadecimal color; default is #000000 (black)
+    color: str = "#000000"  # hexadecimal color; default is #000000 (black)
     angle: float = 0  # Angle of text orientation; default is 0.0 (horizontal)
     canvas: str = "background"
 
 
-def add_annotations(annotations: Iterable, network: Optional[int] = None) -> None:
+def add_annotations(annotations: Iterable, network: int | None = None) -> None:
     """Add annotations to the network."""
-
     for a in annotations:
         if isinstance(a, AnnotationShape):
             p4c.add_annotation_shape(

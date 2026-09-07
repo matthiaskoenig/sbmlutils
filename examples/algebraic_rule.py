@@ -1,6 +1,7 @@
 """AlgebraicRule example."""
 
 from pathlib import Path
+
 from examples import templates
 from sbmlutils.factory import *
 

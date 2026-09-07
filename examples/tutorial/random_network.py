@@ -1,12 +1,11 @@
 """Example creating random network."""
 
-from pathlib import Path
 import random
+from pathlib import Path
 
 from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.factory import *
 from sbmlutils.validation import ValidationOptions
-
 
 random.seed(1234)
 n_species = 100

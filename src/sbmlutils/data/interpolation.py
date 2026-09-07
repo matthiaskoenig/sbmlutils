@@ -12,7 +12,6 @@ models in a simple manner.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import List, Optional, Tuple, Union
 
 import libsbml
 import pandas as pd
@@ -20,7 +19,6 @@ import pandas as pd
 from sbmlutils import log
 from sbmlutils.io.sbml import write_sbml
 from sbmlutils.validation import ValidationOptions, validate_doc
-
 
 logger = log.get_logger(__name__)
 
@@ -82,11 +80,11 @@ class Interpolator:
         """Convert to string."""
         s = (
             "--------------------------\n"
-            "Interpolator<{}>\n"
+            f"Interpolator<{self.method}>\n"
             "--------------------------\n"
-            "{}\n"
-            "{}\n"
-            "formula:\n {}\n".format(self.method, self.x, self.y, self.formula())
+            f"{self.x}\n"
+            f"{self.y}\n"
+            f"formula:\n {self.formula()}\n"
         )
         return s
 
@@ -119,16 +117,18 @@ class Interpolator:
         from the spline interpolation.
         """
         # calculate spline coefficients
-        coeffs: List[Tuple[float]] = Interpolator._natural_spline_coeffs(x, y)
+        coeffs: list[tuple[float]] = Interpolator._natural_spline_coeffs(x, y)
 
         # create piecewise terms
-        items: List[str] = []
+        items: list[str] = []
         xid = x.name
         for k in range(len(x) - 1):
             x1 = x.iloc[k]
             x2 = x.iloc[k + 1]
             (a, b, c, d) = coeffs[k]  # type: ignore
-            formula = f"{d}*({xid}-{x1})^3 + {c}*({xid}-{x1})^2 + {b}*({xid}-{x1}) + {a}"  # type: ignore
+            formula = (
+                f"{d}*({xid}-{x1})^3 + {c}*({xid}-{x1})^2 + {b}*({xid}-{x1}) + {a}"  # type: ignore
+            )
             condition = f"{xid} >= {x1} && {xid} <= {x2}"
             s = f"{formula}, {condition}"
             items.append(s)
@@ -138,7 +138,7 @@ class Interpolator:
         return "piecewise({})".format(", ".join(items))
 
     @staticmethod
-    def _natural_spline_coeffs(X: pd.Series, Y: pd.Series) -> List[Tuple[float]]:
+    def _natural_spline_coeffs(X: pd.Series, Y: pd.Series) -> list[tuple[float]]:
         """Calculate natural spline coefficients.
 
         Calculation of coefficients for
@@ -183,7 +183,7 @@ class Interpolator:
             b[j] = (a[j + 1] - a[j]) / h[j] - (h[j] * (c[j + 1] + 2 * c[j])) / 3
             d[j] = (c[j + 1] - c[j]) / (3 * h[j])
         # store coefficients
-        coeffs: List[Tuple[float]] = []
+        coeffs: list[tuple[float]] = []
         for i in range(n):
             coeffs.append((a[i], b[i], c[i], d[i]))  # type: ignore
         return coeffs
@@ -201,7 +201,7 @@ class Interpolator:
             m = (y2 - y1) / (x2 - x1)
             formula = f"{y1} + {m}*({xid}-{x1})"
             condition = f"{xid} >= {x1} && {xid} < {x2}"
-            s = "{}, {}".format(formula, condition)
+            s = f"{formula}, {condition}"
             items.append(s)
         # last value after last {xid}
         s = f"{col2.iloc[len(col1) - 1]}, {xid} >= {col1.iloc[len(col1) - 1]}"
@@ -229,7 +229,7 @@ class Interpolator:
         for k in range(len(col1) - 1):
             condition = f"{xid} >= {col1.iloc[k]} && {xid} < {col1.iloc[k + 1]}"
             formula = f"{col2.iloc[k]}"
-            s = "{}, {}".format(formula, condition)
+            s = f"{formula}, {condition}"
             items.append(s)
 
         # last value after last {xid
@@ -253,7 +253,7 @@ class Interpolation:
         self.model: libsbml.Model = None
         self.data: pd.DataFrame = data
         self.method: str = method
-        self.interpolators: List[Interpolator] = []
+        self.interpolators: list[Interpolator] = []
 
         self.validate_data()
 
@@ -287,14 +287,14 @@ class Interpolation:
 
     @staticmethod
     def from_csv(
-        csv_file: Union[Path, str], method: str = "linear", sep: str = ","
-    ) -> "Interpolation":
+        csv_file: Path | str, method: str = "linear", sep: str = ","
+    ) -> Interpolation:
         """Interpolation object from csv file."""
         data: pd.DataFrame = pd.read_csv(csv_file, sep=sep)
         return Interpolation(data=data, method=method)
 
     @staticmethod
-    def from_tsv(tsv_file: Union[Path, str], method: str = "linear") -> "Interpolation":
+    def from_tsv(tsv_file: Path | str, method: str = "linear") -> Interpolation:
         """Interpolate object from tsv file."""
         return Interpolation.from_csv(csv_file=tsv_file, method=method, sep="\t")
 
@@ -309,7 +309,7 @@ class Interpolation:
         self._create_sbml()
         write_sbml(doc=self.doc, filepath=sbml_out)
 
-    def write_sbml_to_string(self) -> Optional[str]:
+    def write_sbml_to_string(self) -> str | None:
         """Write the SBML file.
 
         :return: SBML str
@@ -343,13 +343,13 @@ class Interpolation:
         self.model = model
 
     @staticmethod
-    def create_interpolators(data: pd.DataFrame, method: str) -> List[Interpolator]:
+    def create_interpolators(data: pd.DataFrame, method: str) -> list[Interpolator]:
         """Create all interpolators for the given data set.
 
         The columns 1, ... (Ncol-1) are interpolated against
         column 0.
         """
-        interpolators: List[Interpolator] = []
+        interpolators: list[Interpolator] = []
         columns = data.columns
         x = data[columns[0]]
         for k in range(1, len(columns)):
@@ -369,7 +369,6 @@ class Interpolation:
         :param model: Model
         :return:
         """
-
         # FIXME: use the sbmlutils structure for addition
 
         # add xid if needed

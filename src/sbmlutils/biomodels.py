@@ -2,8 +2,8 @@
 
 import shutil
 import tempfile
+from collections.abc import Iterable
 from pathlib import Path
-from typing import List, Iterable
 
 import requests
 from pymetadata.omex import EntryFormat, ManifestEntry, Omex
@@ -11,7 +11,6 @@ from requests.exceptions import HTTPError
 
 from sbmlutils import log
 from sbmlutils.console import console
-
 
 logger = log.get_logger(__name__)
 
@@ -50,7 +49,7 @@ def download_biomodel_omex(biomodel_id: str, omex_path: Path) -> Path:
 
 def download_biomodel_sbml(
     biomodel_id: str, output_dir: Path, output_format: str = "sbml"
-) -> List[str]:
+) -> list[str]:
     """Download SBML file for biomodel.
 
     Retrieves the archive from biomodels and gets the SBML files from it.
@@ -104,7 +103,7 @@ def download_biomodel_sbml(
         return [e.location for e in sbml_entries]
 
 
-def query_curated_biomodels() -> List[str]:
+def query_curated_biomodels() -> list[str]:
     """Query the curated biomodels.
 
     :return List of biomodel identifiers

@@ -26,7 +26,6 @@ from matplotlib.pyplot import Axes, Figure
 from sbmlutils.console import console
 from sbmlutils.data import interpolation as ip
 
-
 logger = logging.getLogger(__name__)
 
 #: the measured data, next to this module

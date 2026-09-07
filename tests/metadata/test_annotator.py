@@ -1,8 +1,8 @@
 """Test annotation functions and annotating of SBML models."""
 
 import re
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable
 
 import libsbml
 
@@ -38,12 +38,12 @@ def test_external_annotation() -> None:
     }
 
     ma = ExternalAnnotation(d)
-    assert "id1" == ma.pattern
-    assert "reaction" == ma.sbml_type
-    assert "rdf" == ma.annotation_type
-    assert BQB.IS == ma.qualifier
-    assert "sbo/SBO:0000290" == ma.resource
-    assert "physical compartment" == ma.name
+    assert ma.pattern == "id1"
+    assert ma.sbml_type == "reaction"
+    assert ma.annotation_type == "rdf"
+    assert ma.qualifier == BQB.IS
+    assert ma.resource == "sbo/SBO:0000290"
+    assert ma.name == "physical compartment"
 
 
 def test_model_annotator() -> None:
@@ -91,7 +91,6 @@ def test_model_annotation(tmp_path: Path) -> None:
 
 def test_demo_annotation(tmp_path: Path) -> None:
     """Annotate the demo network."""
-
     tmp_sbml_path = tmp_path / "sbml_annotated.xml"
     annotator.annotate_sbml(
         DEMO_SBML_NO_ANNOTATIONS, DEMO_ANNOTATIONS, filepath=tmp_sbml_path

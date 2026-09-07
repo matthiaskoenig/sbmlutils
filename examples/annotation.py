@@ -5,6 +5,7 @@ other ontologies. Annotations use the functionality from `pymetadata`.
 """
 
 from pathlib import Path
+
 from examples import templates
 from sbmlutils.factory import *
 from sbmlutils.metadata import BQB, SBO

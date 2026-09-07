@@ -6,7 +6,6 @@ a single model.
 
 import os
 from pathlib import Path
-from typing import Dict, Optional
 
 import libsbml
 
@@ -15,18 +14,17 @@ from sbmlutils.comp import comp, flatten_sbml
 from sbmlutils.io import read_sbml, validate_sbml, write_sbml
 from sbmlutils.validation import ValidationOptions
 
-
 logger = log.get_logger(__name__)
 
 
 def merge_models(
-    model_paths: Dict[str, Path],
+    model_paths: dict[str, Path],
     output_dir: Path,
     merged_id: str = "merged",
     flatten: bool = True,
     validate: bool = True,
     validate_input: bool = True,
-    validation_options: Optional[ValidationOptions] = None,
+    validation_options: ValidationOptions | None = None,
     sbml_level: int = 3,
     sbml_version: int = 1,
 ) -> libsbml.SBMLDocument:
@@ -60,11 +58,11 @@ def merge_models(
         logger.warning(f"'output_dir' should be a Path but: '{type(output_dir)}'")
         output_dir = Path(output_dir)
     if not output_dir.exists():
-        raise IOError(f"'output_dir' does not exist: {output_dir}")
+        raise OSError(f"'output_dir' does not exist: {output_dir}")
 
     for model_id, path in model_paths.items():
         if not path.exists():
-            raise IOError(f"Path for SBML file does not exist: {path}")
+            raise OSError(f"Path for SBML file does not exist: {path}")
         if isinstance(path, str):
             path = Path(path)
 
@@ -114,7 +112,7 @@ def merge_models(
 
 
 def _create_merged_doc(
-    model_paths: Dict[str, Path],
+    model_paths: dict[str, Path],
     merged_id: str = "merged",
     sbml_level: int = 3,
     sbml_version: int = 1,

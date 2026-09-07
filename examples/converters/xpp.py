@@ -24,7 +24,6 @@ from matplotlib.pyplot import Figure
 from sbmlutils.converters import xpp
 from sbmlutils.resources import TESTDATA_DIR
 
-
 logger = logging.getLogger(__name__)
 
 #: the packaged ode files, see `sbmlutils.resources`

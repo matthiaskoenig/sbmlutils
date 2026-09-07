@@ -22,6 +22,7 @@ import datetime
 import inspect
 import json
 from collections import namedtuple
+from collections.abc import Iterable
 from copy import deepcopy
 from dataclasses import dataclass
 from enum import Enum
@@ -29,14 +30,7 @@ from pathlib import Path
 from typing import (
     Any,
     ClassVar,
-    Dict,
-    Iterable,
-    List,
     Optional,
-    Set,
-    Tuple,
-    Type,
-    Union,
 )
 
 import libsbml
@@ -51,17 +45,16 @@ from sbmlutils.console import console
 from sbmlutils.io import write_sbml
 from sbmlutils.log import get_logger
 from sbmlutils.metadata import (
-    annotator,
-    BQM,
     BQB,
+    BQM,
     SBO,
+    annotator,
 )
 from sbmlutils.metadata.annotator import Annotation
 from sbmlutils.notes import Notes, NotesFormat
 from sbmlutils.reaction_equation import EquationPart, ReactionEquation
 from sbmlutils.utils import FrozenClass, create_metaid
 from sbmlutils.validation import ValidationOptions, check
-
 
 try:
     from typing import TypedDict
@@ -78,54 +71,54 @@ ureg.define("item = 1 dimensionless")
 # FIXME: make complete import of all DISTRIB constants
 
 __all__ = [
-    "SBML_LEVEL",
-    "SBML_VERSION",
     "PORT_SUFFIX",
     "PORT_UNIT_SUFFIX",
-    "PortType",
-    "ModelUnits",
-    "Units",
-    "Creator",
-    "Compartment",
-    "UnitDefinition",
-    "Function",
-    "Species",
-    "Parameter",
-    "InitialAssignment",
-    "AssignmentRule",
-    "RateRule",
+    "SBML_LEVEL",
+    "SBML_VERSION",
     "AlgebraicRule",
-    "Event",
+    "AssignmentRule",
+    "Compartment",
     "Constraint",
-    "Reaction",
-    "Formula",
-    "ReactionEquation",
+    "Creator",
+    "Deletion",
+    "Document",
+    "Event",
     "ExchangeReaction",
-    "Uncertainty",
+    "ExternalModelDefinition",
+    "FactoryResult",
+    "FluxObjective",
+    "Formula",
+    "Function",
+    "GeneProduct",
+    "InitialAssignment",
+    "KeyValuePair",
+    "Model",
+    "ModelDefinition",
+    "ModelDict",
+    "ModelUnits",
+    "NaN",
+    "Objective",
+    "Package",
+    "Parameter",
+    "Port",
+    "PortType",
+    "RateRule",
+    "Reaction",
+    "ReactionEquation",
+    "ReplacedBy",
+    "ReplacedElement",
+    "Species",
+    "Submodel",
     "UncertParameter",
     "UncertSpan",
-    "UserDefinedConstraintComponent",
-    "UserDefinedConstraint",
-    "FluxObjective",
-    "Objective",
-    "GeneProduct",
-    "KeyValuePair",
-    "ExternalModelDefinition",
-    "ModelDefinition",
-    "Submodel",
-    "Deletion",
-    "ReplacedElement",
-    "ReplacedBy",
-    "Port",
-    "Package",
-    "ModelDict",
-    "Model",
-    "Document",
+    "Uncertainty",
+    "UnitDefinition",
     "UnitType",
-    "NaN",
-    "create_model",
+    "Units",
+    "UserDefinedConstraint",
+    "UserDefinedConstraintComponent",
     "ValidationOptions",
-    "FactoryResult",
+    "create_model",
 ]
 
 
@@ -137,8 +130,8 @@ PREFIX_EXCHANGE_REACTION = "EX_"
 
 
 def create_objects(
-    model: libsbml.Model, obj_iter: List[Any], key: Optional[str] = None
-) -> Dict[str, libsbml.SBase]:
+    model: libsbml.Model, obj_iter: list[Any], key: str | None = None
+) -> dict[str, libsbml.SBase]:
     """Create the objects in the model.
 
     This function calls the respective create_sbml function of all objects
@@ -149,7 +142,7 @@ def create_objects(
     :param key: object key
     :return: dictionary of SBML objects
     """
-    sbml_objects: Dict[str, libsbml.SBase] = {}
+    sbml_objects: dict[str, libsbml.SBase] = {}
 
     for obj in obj_iter:
         if obj is None:
@@ -190,8 +183,8 @@ def ast_node_from_formula(model: libsbml.Model, formula: str) -> libsbml.ASTNode
 
 
 UnitType = Optional["UnitDefinition"]
-AnnotationsType = List[Union[Annotation, Tuple[Union[BQB, BQM], str]]]
-OptionalAnnotationsType = Optional[List[Union[Annotation, Tuple[Union[BQB, BQM], str]]]]
+AnnotationsType = list[Annotation | tuple[BQB | BQM, str]]
+OptionalAnnotationsType = Optional[list[Annotation | tuple[BQB | BQM, str]]]
 
 
 def set_notes(
@@ -241,7 +234,7 @@ class ModelUnits:
         self.volume = volume
 
     @staticmethod
-    def set_model_units(model: libsbml.Model, model_units: "ModelUnits") -> None:
+    def set_model_units(model: libsbml.Model, model_units: ModelUnits) -> None:
         """Set the main units in model from dictionary.
 
         Setting the model units is important for understanding the model
@@ -282,7 +275,7 @@ class ModelUnits:
 
                     continue
 
-                unit: Union[str, UnitDefinition] = getattr(model_units, key)
+                unit: str | UnitDefinition = getattr(model_units, key)
                 uid = UnitDefinition.get_uid_for_unit(unit=unit)
                 # set the values
                 if key == "time":
@@ -300,7 +293,7 @@ class ModelUnits:
 
 
 def set_model_history(
-    sbase: libsbml.SBase, creators: List[Creator], set_timestamps: bool = True
+    sbase: libsbml.SBase, creators: list[Creator], set_timestamps: bool = True
 ) -> None:
     """Set the model history from given creators.
 
@@ -367,16 +360,16 @@ class Sbase:
 
     def __init__(
         self,
-        sid: Optional[str] = None,
-        name: Optional[str] = None,
-        sboTerm: Optional[str] = None,
-        metaId: Optional[str] = None,
+        sid: str | None = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: Optional[str] = None,
-        keyValuePairs: Optional[List[KeyValuePair]] = None,
+        notes: str | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
-        uncertainties: Optional[List[Uncertainty]] = None,
-        replacedBy: Optional[Any] = None,
+        uncertainties: list[Uncertainty] | None = None,
+        replacedBy: Any | None = None,
     ):
         self.sid = sid
         self.name = name
@@ -415,13 +408,13 @@ class Sbase:
         return f"{self.__class__.__name__}({field_str})"
 
     @staticmethod
-    def _process_annotations(annotation_objects: AnnotationsType) -> List[Annotation]:
+    def _process_annotations(annotation_objects: AnnotationsType) -> list[Annotation]:
         """Process annotation information.
 
         Various annotation formats are supported which have to be unified at some
         point. This function is performing the annotation normalization.
         """
-        annotations: List[Annotation] = []
+        annotations: list[Annotation] = []
         if annotation_objects is not None:
             for annotation_obj in annotation_objects:
                 annotation: Annotation
@@ -432,15 +425,15 @@ class Sbase:
                 annotations.append(annotation)
         return annotations
 
-    def get_notes_xml(self) -> Optional[str]:
+    def get_notes_xml(self) -> str | None:
         """Get notes xml string."""
         if self.notes:
-            notes_str: Optional[str] = str(Notes(self.notes).xml)
+            notes_str: str | None = str(Notes(self.notes).xml)
             return notes_str
 
         return None
 
-    def _set_fields(self, sbase: libsbml.SBase, model: Optional[libsbml.Model]) -> None:
+    def _set_fields(self, sbase: libsbml.SBase, model: libsbml.Model | None) -> None:
         if self.sid is not None:
             if not libsbml.SyntaxChecker.isValidSBMLSId(self.sid):
                 logger.error(
@@ -491,7 +484,7 @@ class Sbase:
             set_notes(sbase, self.notes)
 
         # annotation handling
-        processed_annotations: List[Annotation] = []
+        processed_annotations: list[Annotation] = []
         if self.annotations:
             # annotations can have been added after initial processing
             processed_annotations = Sbase._process_annotations(self.annotations)
@@ -522,7 +515,7 @@ class Sbase:
         if self.keyValuePairs is not None:
             self.create_key_value_pairs(sbase)
 
-    def create_port(self, model: libsbml.Model) -> Optional[libsbml.Port]:
+    def create_port(self, model: libsbml.Model) -> libsbml.Port | None:
         """Create port if existing."""
         if self.port is None:
             return None
@@ -563,7 +556,7 @@ class Sbase:
 
     def create_uncertainties(
         self, obj: libsbml.SBase, model: libsbml.Model
-    ) -> Optional[List[libsbml.Uncertainty]]:
+    ) -> list[libsbml.Uncertainty] | None:
         """Create distrib:Uncertainty objects."""
         if not self.uncertainties:
             return None
@@ -577,7 +570,7 @@ class Sbase:
 
     def create_replaced_by(
         self, sbase: libsbml.SBase, model: libsbml.Model
-    ) -> Optional[libsbml.ReplacedBy]:
+    ) -> libsbml.ReplacedBy | None:
         """Create comp:ReplacedBy."""
         if not self.replacedBy:
             return None
@@ -586,12 +579,12 @@ class Sbase:
 
     def create_key_value_pairs(
         self, sbase: libsbml.SBase
-    ) -> Optional[List[libsbml.KeyValuePair]]:
+    ) -> list[libsbml.KeyValuePair] | None:
         """Create fbc:keyValuePair."""
         if not self.keyValuePairs:
             return None
 
-        kvps: List[libsbml.KeyValuePair] = []
+        kvps: list[libsbml.KeyValuePair] = []
         for kvp in self.keyValuePairs:
             kvps.append(kvp.create_sbml(sbase))
         return kvps
@@ -603,21 +596,21 @@ class KeyValuePair(Sbase):
     def __init__(
         self,
         key: str,
-        value: Optional[str],
-        uri: Optional[str],
-        sid: Optional[str] = None,
-        name: Optional[str] = None,
-        sboTerm: Optional[str] = None,
-        metaId: Optional[str] = None,
-        notes: Optional[str] = None,
+        value: str | None,
+        uri: str | None,
+        sid: str | None = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
+        notes: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        keyValuePairs: Optional[List[KeyValuePair]] = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
-        uncertainties: Optional[List[Uncertainty]] = None,
-        replacedBy: Optional[Any] = None,
+        uncertainties: list[Uncertainty] | None = None,
+        replacedBy: Any | None = None,
     ):
         """Create a KeyValuePair."""
-        super(KeyValuePair, self).__init__(
+        super().__init__(
             sid=sid,
             name=name,
             sboTerm=sboTerm,
@@ -657,19 +650,19 @@ class Value(Sbase):
 
     def __init__(
         self,
-        sid: Optional[str],
-        value: Union[str, float],
-        name: Optional[str] = None,
-        sboTerm: Optional[str] = None,
-        metaId: Optional[str] = None,
+        sid: str | None,
+        value: str | float,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: Optional[str] = None,
-        keyValuePairs: Optional[List[KeyValuePair]] = None,
+        notes: str | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
-        uncertainties: Optional[List[Uncertainty]] = None,
-        replacedBy: Optional[Any] = None,
+        uncertainties: list[Uncertainty] | None = None,
+        replacedBy: Any | None = None,
     ):
-        super(Value, self).__init__(
+        super().__init__(
             sid,
             name=name,
             sboTerm=sboTerm,
@@ -684,7 +677,7 @@ class Value(Sbase):
         self.value = value
 
     def _set_fields(self, sbase: libsbml.SBase, model: libsbml.Model) -> None:
-        super(Value, self)._set_fields(sbase, model)
+        super()._set_fields(sbase, model)
 
 
 class UnitDefinition(Sbase):
@@ -751,18 +744,18 @@ class UnitDefinition(Sbase):
     def __init__(
         self,
         sid: str,
-        definition: Optional[str] = None,
-        name: Optional[str] = None,
-        sboTerm: Optional[str] = None,
-        metaId: Optional[str] = None,
+        definition: str | None = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: Optional[str] = None,
-        keyValuePairs: Optional[List[KeyValuePair]] = None,
+        notes: str | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
-        replacedBy: Optional[Any] = None,
+        replacedBy: Any | None = None,
     ):
         """Construct UnitDefinition."""
-        super(UnitDefinition, self).__init__(
+        super().__init__(
             sid=sid,
             name=name,
             sboTerm=sboTerm,
@@ -778,7 +771,7 @@ class UnitDefinition(Sbase):
         if not self.name:
             self.name = self.definition
 
-    def create_sbml(self, model: libsbml.Model) -> Optional[libsbml.UnitDefinition]:
+    def create_sbml(self, model: libsbml.Model) -> libsbml.UnitDefinition | None:
         """Create libsbml.UnitDefinition."""
         if isinstance(self.definition, int):
             # libsbml unit type
@@ -833,7 +826,7 @@ class UnitDefinition(Sbase):
 
     def _set_fields(self, sbase: libsbml.UnitDefinition, model: libsbml.Model) -> None:
         """Set fields on libsbml.UnitDefinition."""
-        super(UnitDefinition, self)._set_fields(sbase, model)
+        super()._set_fields(sbase, model)
 
     @staticmethod
     def _create_unit(
@@ -852,9 +845,9 @@ class UnitDefinition(Sbase):
         return unit
 
     @staticmethod
-    def get_uid_for_unit(unit: Union[UnitDefinition, str]) -> Optional[str]:
+    def get_uid_for_unit(unit: UnitDefinition | str) -> str | None:
         """Get unit id for given definition string."""
-        uid: Optional[str]
+        uid: str | None
         if unit is None:
             uid = None
         elif isinstance(unit, UnitDefinition):
@@ -902,7 +895,7 @@ class Units:
     volt = UnitDefinition("volt", libsbml.UNIT_KIND_VOLT, name="volt")
 
     @classmethod
-    def attributes(cls) -> List[Tuple[str, Union[str, "UnitDefinition"]]]:
+    def attributes(cls) -> list[tuple[str, str | UnitDefinition]]:
         """Get the attributes list."""
         attributes = inspect.getmembers(cls, lambda a: not (inspect.isroutine(a)))
         return [
@@ -912,7 +905,6 @@ class Units:
     @classmethod
     def create_unit_definitions(cls, model: libsbml.Model) -> None:
         """Create the libsbml.UnitDefinitions in the model."""
-
         unit_definition: UnitDefinition
         uid: str
         for uid, definition in cls.attributes():
@@ -951,19 +943,19 @@ class ValueWithUnit(Value):
     def __init__(
         self,
         sid: str,
-        value: Union[str, float],
+        value: str | float,
         unit: UnitType = Units.dimensionless,
-        name: Optional[str] = None,
-        sboTerm: Optional[str] = None,
-        metaId: Optional[str] = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: Optional[str] = None,
-        keyValuePairs: Optional[List[KeyValuePair]] = None,
+        notes: str | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
-        uncertainties: Optional[List[Uncertainty]] = None,
-        replacedBy: Optional[Any] = None,
+        uncertainties: list[Uncertainty] | None = None,
+        replacedBy: Any | None = None,
     ):
-        super(ValueWithUnit, self).__init__(
+        super().__init__(
             sid,
             value,
             name=name,
@@ -984,7 +976,7 @@ class ValueWithUnit(Value):
             )
 
     def _set_fields(self, sbase: libsbml.SBase, model: libsbml.Model) -> None:
-        super(ValueWithUnit, self)._set_fields(sbase, model)
+        super()._set_fields(sbase, model)
         if self.unit is not None:
             if sbase.getTypeCode() in [
                 libsbml.SBML_ASSIGNMENT_RULE,
@@ -1010,18 +1002,18 @@ class Function(Sbase):
         self,
         sid: str,
         value: str,
-        name: Optional[str] = None,
-        sboTerm: Optional[str] = None,
-        metaId: Optional[str] = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: Optional[str] = None,
-        keyValuePairs: Optional[List[KeyValuePair]] = None,
+        notes: str | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
-        uncertainties: Optional[List[Uncertainty]] = None,
-        replacedBy: Optional[Any] = None,
+        uncertainties: list[Uncertainty] | None = None,
+        replacedBy: Any | None = None,
     ):
         """Construct Function."""
-        super(Function, self).__init__(
+        super().__init__(
             sid=sid,
             name=name,
             sboTerm=sboTerm,
@@ -1046,7 +1038,7 @@ class Function(Sbase):
     def _set_fields(
         self, sbase: libsbml.FunctionDefinition, model: libsbml.Model
     ) -> None:
-        super(Function, self)._set_fields(sbase, model)
+        super()._set_fields(sbase, model)
         ast_node = ast_node_from_formula(model, self.formula)
         sbase.setMath(ast_node)
 
@@ -1057,21 +1049,21 @@ class Parameter(ValueWithUnit):
     def __init__(
         self,
         sid: str,
-        value: Optional[Union[str, float]] = None,
+        value: str | float | None = None,
         unit: UnitType = None,
         constant: bool = True,
-        name: Optional[str] = None,
-        sboTerm: Optional[str] = None,
-        metaId: Optional[str] = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: Optional[str] = None,
-        keyValuePairs: Optional[List[KeyValuePair]] = None,
+        notes: str | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
-        uncertainties: Optional[List[Uncertainty]] = None,
-        replacedBy: Optional[Any] = None,
+        uncertainties: list[Uncertainty] | None = None,
+        replacedBy: Any | None = None,
     ):
         """Construct Parameter."""
-        super(Parameter, self).__init__(
+        super().__init__(
             sid=sid,
             value=value,  # type: ignore
             unit=unit,
@@ -1116,7 +1108,7 @@ class Parameter(ValueWithUnit):
 
     def _set_fields(self, sbase: libsbml.Parameter, model: libsbml.Model) -> None:
         """Set fields."""
-        super(Parameter, self)._set_fields(sbase, model)
+        super()._set_fields(sbase, model)
         sbase.setConstant(self.constant)
 
 
@@ -1126,22 +1118,22 @@ class Compartment(ValueWithUnit):
     def __init__(
         self,
         sid: str,
-        value: Union[str, float],
+        value: str | float,
         unit: UnitType = None,
         constant: bool = True,
         spatialDimensions: float = 3,
-        name: Optional[str] = None,
-        sboTerm: Optional[str] = None,
-        metaId: Optional[str] = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: Optional[str] = None,
-        keyValuePairs: Optional[List[KeyValuePair]] = None,
+        notes: str | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
-        uncertainties: Optional[List[Uncertainty]] = None,
-        replacedBy: Optional[Any] = None,
+        uncertainties: list[Uncertainty] | None = None,
+        replacedBy: Any | None = None,
     ):
         """Construct Compartment."""
-        super(Compartment, self).__init__(
+        super().__init__(
             sid=sid,
             value=value,
             unit=unit,
@@ -1186,7 +1178,7 @@ class Compartment(ValueWithUnit):
 
     def _set_fields(self, sbase: libsbml.Compartment, model: libsbml.Model) -> None:
         """Set fields on Compartment."""
-        super(Compartment, self)._set_fields(sbase, model)
+        super()._set_fields(sbase, model)
         sbase.setConstant(self.constant)
         sbase.setSpatialDimensions(self.spatialDimensions)
 
@@ -1198,27 +1190,27 @@ class Species(Sbase):
         self,
         sid: str,
         compartment: str,
-        initialAmount: Optional[float] = None,
-        initialConcentration: Optional[float] = None,
+        initialAmount: float | None = None,
+        initialConcentration: float | None = None,
         substanceUnit: UnitType = None,
         hasOnlySubstanceUnits: bool = False,  # default: concentrations
         constant: bool = False,
         boundaryCondition: bool = False,
-        charge: Optional[float] = None,
-        chemicalFormula: Optional[str] = None,
-        conversionFactor: Optional[str] = None,
-        name: Optional[str] = None,
-        sboTerm: Optional[str] = None,
-        metaId: Optional[str] = None,
+        charge: float | None = None,
+        chemicalFormula: str | None = None,
+        conversionFactor: str | None = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: Optional[str] = None,
-        keyValuePairs: Optional[List[KeyValuePair]] = None,
+        notes: str | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
-        uncertainties: Optional[List[Uncertainty]] = None,
-        replacedBy: Optional[Any] = None,
+        uncertainties: list[Uncertainty] | None = None,
+        replacedBy: Any | None = None,
     ):
         """Construct Species."""
-        super(Species, self).__init__(
+        super().__init__(
             sid=sid,
             name=name,
             sboTerm=sboTerm,
@@ -1262,7 +1254,7 @@ class Species(Sbase):
 
     def _set_fields(self, sbase: libsbml.Species, model: libsbml.Model) -> None:
         """Set fields on libsbml.Species."""
-        super(Species, self)._set_fields(sbase, model)
+        super()._set_fields(sbase, model)
         sbase.setConstant(self.constant)
         if self.compartment is None:
             raise ValueError(f"Compartment cannot be None on Species: '{self}'")
@@ -1312,21 +1304,21 @@ class InitialAssignment(Value):
     def __init__(
         self,
         symbol: str,
-        value: Union[str, float],
+        value: str | float,
         unit: UnitType = Units.dimensionless,
-        sid: Optional[str] = None,
-        name: Optional[str] = None,
-        sboTerm: Optional[str] = None,
-        metaId: Optional[str] = None,
+        sid: str | None = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: Optional[str] = None,
-        keyValuePairs: Optional[List[KeyValuePair]] = None,
+        notes: str | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
-        uncertainties: Optional[List[Uncertainty]] = None,
-        replacedBy: Optional[Any] = None,
+        uncertainties: list[Uncertainty] | None = None,
+        replacedBy: Any | None = None,
     ):
         """Construct InitialAssignment."""
-        super(InitialAssignment, self).__init__(
+        super().__init__(
             sid,
             value,
             name=name,
@@ -1384,10 +1376,10 @@ class RuleWithVariable:
     """Rule."""
 
     variable: str
-    value: Union[str, float]
+    value: str | float
     unit: UnitType
-    sid: Optional[str]
-    name: Optional[str]
+    sid: str | None
+    name: str | None
 
     def check_model_for_rule(self, model: libsbml.Model) -> None:
         """Check model for rule requirements.
@@ -1444,21 +1436,21 @@ class AssignmentRule(ValueWithUnit, RuleWithVariable):
     def __init__(
         self,
         variable: str,
-        value: Union[str, float],
+        value: str | float,
         unit: UnitType = Units.dimensionless,
-        sid: Optional[str] = None,
-        name: Optional[str] = None,
-        sboTerm: Optional[str] = None,
-        metaId: Optional[str] = None,
+        sid: str | None = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: Optional[str] = None,
-        keyValuePairs: Optional[List[KeyValuePair]] = None,
+        notes: str | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
-        uncertainties: Optional[List[Uncertainty]] = None,
-        replacedBy: Optional[Any] = None,
+        uncertainties: list[Uncertainty] | None = None,
+        replacedBy: Any | None = None,
     ):
         """Construct AssignmentRule."""
-        super(AssignmentRule, self).__init__(
+        super().__init__(
             sid=sid if sid else f"AssignmentRule_{variable}",
             value=value,
             unit=unit,
@@ -1496,21 +1488,21 @@ class RateRule(ValueWithUnit, RuleWithVariable):
     def __init__(
         self,
         variable: str,
-        value: Union[str, float],
+        value: str | float,
         unit: UnitType = Units.dimensionless,
-        sid: Optional[str] = None,
-        name: Optional[str] = None,
-        sboTerm: Optional[str] = None,
-        metaId: Optional[str] = None,
+        sid: str | None = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: Optional[str] = None,
-        keyValuePairs: Optional[List[KeyValuePair]] = None,
+        notes: str | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
-        uncertainties: Optional[List[Uncertainty]] = None,
-        replacedBy: Optional[Any] = None,
+        uncertainties: list[Uncertainty] | None = None,
+        replacedBy: Any | None = None,
     ):
         """Construct RateRule."""
-        super(RateRule, self).__init__(
+        super().__init__(
             sid=sid if sid else f"RateRule_{variable}",
             value=value,
             unit=unit,
@@ -1548,20 +1540,20 @@ class AlgebraicRule(ValueWithUnit, RuleWithVariable):
     def __init__(
         self,
         sid: str,
-        value: Union[str, float],
+        value: str | float,
         unit: UnitType = Units.dimensionless,
-        name: Optional[str] = None,
-        sboTerm: Optional[str] = None,
-        metaId: Optional[str] = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: Optional[str] = None,
-        keyValuePairs: Optional[List[KeyValuePair]] = None,
+        notes: str | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
-        uncertainties: Optional[List[Uncertainty]] = None,
-        replacedBy: Optional[Any] = None,
+        uncertainties: list[Uncertainty] | None = None,
+        replacedBy: Any | None = None,
     ):
         """Construct AlgebraicRule."""
-        super(AlgebraicRule, self).__init__(
+        super().__init__(
             sid=sid,
             value=value,
             unit=unit,
@@ -1622,28 +1614,28 @@ class Reaction(Sbase):
     def __init__(
         self,
         sid: str,
-        equation: Union[ReactionEquation, str],
-        formula: Optional[Union[Formula, Tuple[str, UnitType], str]] = None,
-        pars: Optional[List[Parameter]] = None,
-        rules: Optional[List[AssignmentRule]] = None,
-        compartment: Optional[str] = None,
+        equation: ReactionEquation | str,
+        formula: Formula | tuple[str, UnitType] | str | None = None,
+        pars: list[Parameter] | None = None,
+        rules: list[AssignmentRule] | None = None,
+        compartment: str | None = None,
         fast: bool = False,
-        reversible: Optional[bool] = None,
-        lowerFluxBound: Optional[str] = None,
-        upperFluxBound: Optional[str] = None,
-        geneProductAssociation: Optional[str] = None,
-        name: Optional[str] = None,
-        sboTerm: Optional[str] = None,
-        metaId: Optional[str] = None,
+        reversible: bool | None = None,
+        lowerFluxBound: str | None = None,
+        upperFluxBound: str | None = None,
+        geneProductAssociation: str | None = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: Optional[str] = None,
-        keyValuePairs: Optional[List[KeyValuePair]] = None,
+        notes: str | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
-        uncertainties: Optional[List[Uncertainty]] = None,
-        replacedBy: Optional[Any] = None,
+        uncertainties: list[Uncertainty] | None = None,
+        replacedBy: Any | None = None,
     ):
         """Construct Reaction."""
-        super(Reaction, self).__init__(
+        super().__init__(
             sid=sid,
             name=name,
             sboTerm=sboTerm,
@@ -1668,28 +1660,26 @@ class Reaction(Sbase):
         self.geneProductAssociation = geneProductAssociation
 
     @staticmethod
-    def _process_equation(equation: Union[ReactionEquation, str]) -> ReactionEquation:
+    def _process_equation(equation: ReactionEquation | str) -> ReactionEquation:
         """Process reaction equation."""
         if isinstance(equation, ReactionEquation):
             return equation
-        else:
-            return ReactionEquation.from_str(str(equation))
+        return ReactionEquation.from_str(str(equation))
 
     @staticmethod
     def _process_formula(
-        formula: Optional[Union[Formula, Tuple[str, UnitType], str]],
-    ) -> Optional[Formula]:
+        formula: Formula | tuple[str, UnitType] | str | None,
+    ) -> Formula | None:
         """Process reaction formula (kinetic law)."""
         if formula is None:
             return None
-        elif isinstance(formula, Formula):
+        if isinstance(formula, Formula):
             return formula
-        elif isinstance(formula, (tuple, list)):
+        if isinstance(formula, (tuple, list)):
             return Formula(*formula)
-        elif isinstance(formula, str):
+        if isinstance(formula, str):
             return Formula(value=formula, unit=None)
-        else:
-            raise ValueError(f"Unsupported formula: '{formula}'")
+        raise ValueError(f"Unsupported formula: '{formula}'")
 
     def create_sbml(self, model: libsbml.Model) -> libsbml.Reaction:
         """Create Reaction SBML in model."""
@@ -1757,7 +1747,7 @@ class Reaction(Sbase):
                 .replace("or", "")
                 .replace("OR", "")
             )
-            gps: List[str] = [g for g in gpr_clean.split(" ") if g]
+            gps: list[str] = [g for g in gpr_clean.split(" ") if g]
             model_fbc: libsbml.FbcModelPlugin = r.getModel().getPlugin("fbc")
             for gp in gps:
                 if not model_fbc.getGeneProduct(gp):
@@ -1777,7 +1767,7 @@ class Reaction(Sbase):
 
     def _set_fields(self, sbase: libsbml.Reaction, model: libsbml.Model) -> None:
         """Set fields in libsbml.Reaction."""
-        super(Reaction, self)._set_fields(sbase, model)
+        super()._set_fields(sbase, model)
 
         if self.compartment:
             sbase.setCompartment(self.compartment)
@@ -1813,24 +1803,24 @@ class Event(Sbase):
         self,
         sid: str,
         trigger: str,
-        assignments: Optional[Dict[str, Union[str, float]]] = None,
+        assignments: dict[str, str | float] | None = None,
         trigger_persistent: bool = True,
         trigger_initialValue: bool = False,
         useValuesFromTriggerTime: bool = True,
-        priority: Optional[str] = None,
-        delay: Optional[str] = None,
-        name: Optional[str] = None,
-        sboTerm: Optional[str] = None,
-        metaId: Optional[str] = None,
+        priority: str | None = None,
+        delay: str | None = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: Optional[str] = None,
-        keyValuePairs: Optional[List[KeyValuePair]] = None,
+        notes: str | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
-        uncertainties: Optional[List[Uncertainty]] = None,
-        replacedBy: Optional[Any] = None,
+        uncertainties: list[Uncertainty] | None = None,
+        replacedBy: Any | None = None,
     ):
         """Construct Event."""
-        super(Event, self).__init__(
+        super().__init__(
             sid,
             name=name,
             sboTerm=sboTerm,
@@ -1866,7 +1856,7 @@ class Event(Sbase):
 
     def _set_fields(self, sbase: libsbml.Event, model: libsbml.Model) -> None:
         """Set fields in libsbml.Event."""
-        super(Event, self)._set_fields(sbase, model)
+        super()._set_fields(sbase, model)
 
         sbase.setUseValuesFromTriggerTime(True)
         t = sbase.createTrigger()
@@ -1901,7 +1891,7 @@ class Event(Sbase):
         return f"(time >= {t})"
 
     @staticmethod
-    def _assignments_dict(species: List[str], values: List[str]) -> Dict[str, str]:
+    def _assignments_dict(species: list[str], values: list[str]) -> dict[str, str]:
         return dict(zip(species, values))
 
 
@@ -1919,19 +1909,19 @@ class Constraint(Sbase):
         self,
         sid: str,
         math: str,
-        message: Optional[str] = None,
-        name: Optional[str] = None,
-        sboTerm: Optional[str] = None,
-        metaId: Optional[str] = None,
+        message: str | None = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: Optional[str] = None,
-        keyValuePairs: Optional[List[KeyValuePair]] = None,
+        notes: str | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
-        uncertainties: Optional[List[Uncertainty]] = None,
-        replacedBy: Optional[Any] = None,
+        uncertainties: list[Uncertainty] | None = None,
+        replacedBy: Any | None = None,
     ):
         """Constraint constructor."""
-        super(Constraint, self).__init__(
+        super().__init__(
             sid,
             name=name,
             sboTerm=sboTerm,
@@ -1954,7 +1944,7 @@ class Constraint(Sbase):
 
     def _set_fields(self, sbase: libsbml.Constraint, model: libsbml.Model) -> None:
         """Set fields on libsbml.Constraint."""
-        super(Constraint, self)._set_fields(sbase, model)
+        super()._set_fields(sbase, model)
 
         if self.math is not None:
             ast_math = libsbml.parseL3FormulaWithModel(self.math, model)
@@ -1982,8 +1972,8 @@ class UncertParameter:
     def __init__(
         self,
         type: str,
-        value: Optional[float] = None,
-        var: Optional[str] = None,
+        value: float | None = None,
+        var: str | None = None,
         unit: UnitType = None,
     ):
         """Construct UncertParameter."""
@@ -1992,8 +1982,8 @@ class UncertParameter:
                 "Either 'value' or 'var' have to be set in UncertParameter."
             )
         self.type: str = type
-        self.value: Optional[float] = value
-        self.var: Optional[str] = var
+        self.value: float | None = value
+        self.var: str | None = var
         self.unit: UnitType = unit
 
 
@@ -2006,10 +1996,10 @@ class UncertSpan:
     def __init__(
         self,
         type: str,
-        valueLower: Optional[float] = None,
-        varLower: Optional[str] = None,
-        valueUpper: Optional[float] = None,
-        varUpper: Optional[str] = None,
+        valueLower: float | None = None,
+        varLower: str | None = None,
+        valueUpper: float | None = None,
+        varUpper: str | None = None,
         unit: UnitType = None,
     ):
         """Construct UncertSpan."""
@@ -2038,21 +2028,21 @@ class Uncertainty(Sbase):
 
     def __init__(
         self,
-        sid: Optional[str] = None,
-        formula: Optional[str] = None,
-        uncertParameters: Optional[List[UncertParameter]] = None,
-        uncertSpans: Optional[List[UncertSpan]] = None,
-        name: Optional[str] = None,
-        sboTerm: Optional[str] = None,
-        metaId: Optional[str] = None,
+        sid: str | None = None,
+        formula: str | None = None,
+        uncertParameters: list[UncertParameter] | None = None,
+        uncertSpans: list[UncertSpan] | None = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: Optional[str] = None,
-        keyValuePairs: Optional[List[KeyValuePair]] = None,
+        notes: str | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
-        replacedBy: Optional[Any] = None,
+        replacedBy: Any | None = None,
     ):
         """Uncertainty constructor."""
-        super(Uncertainty, self).__init__(
+        super().__init__(
             sid,
             name=name,
             sboTerm=sboTerm,
@@ -2066,10 +2056,10 @@ class Uncertainty(Sbase):
 
         # Object on which the uncertainty is written
         self.formula = formula
-        self.uncertParameters: List[UncertParameter] = (
+        self.uncertParameters: list[UncertParameter] = (
             uncertParameters if uncertParameters else []
         )
-        self.uncertSpans: List[UncertSpan] = uncertSpans if uncertSpans else []
+        self.uncertSpans: list[UncertSpan] = uncertSpans if uncertSpans else []
 
     def create_sbml(
         self, sbase: libsbml.SBase, model: libsbml.Model
@@ -2194,23 +2184,23 @@ class ExchangeReaction(Reaction):
     def __init__(
         self,
         species_id: str,
-        compartment: Optional[str] = None,
+        compartment: str | None = None,
         fast: bool = False,
         reversible: bool = True,
-        lowerFluxBound: Optional[str] = None,
-        upperFluxBound: Optional[str] = None,
-        geneProductAssociation: Optional[str] = None,
-        name: Optional[str] = None,
-        metaId: Optional[str] = None,
+        lowerFluxBound: str | None = None,
+        upperFluxBound: str | None = None,
+        geneProductAssociation: str | None = None,
+        name: str | None = None,
+        metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: Optional[str] = None,
-        keyValuePairs: Optional[List[KeyValuePair]] = None,
+        notes: str | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
-        uncertainties: Optional[List[Uncertainty]] = None,
-        replacedBy: Optional[Any] = None,
+        uncertainties: list[Uncertainty] | None = None,
+        replacedBy: Any | None = None,
     ):
         """Construct ExchangeReaction."""
-        super(ExchangeReaction, self).__init__(
+        super().__init__(
             sid=ExchangeReaction.PREFIX + species_id,
             equation=f"{species_id} ->",
             sboTerm=SBO.EXCHANGE_REACTION,
@@ -2245,19 +2235,19 @@ class GeneProduct(Sbase):
         self,
         sid: str,
         label: str,
-        associatedSpecies: Optional[str] = None,
-        name: Optional[str] = None,
-        sboTerm: Optional[str] = None,
-        metaId: Optional[str] = None,
+        associatedSpecies: str | None = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: Optional[str] = None,
-        keyValuePairs: Optional[List[KeyValuePair]] = None,
+        notes: str | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
-        uncertainties: Optional[List[Uncertainty]] = None,
-        replacedBy: Optional[Any] = None,
+        uncertainties: list[Uncertainty] | None = None,
+        replacedBy: Any | None = None,
     ):
         """Create a GeneProduct."""
-        super(GeneProduct, self).__init__(
+        super().__init__(
             sid=sid,
             name=name,
             sboTerm=sboTerm,
@@ -2292,20 +2282,20 @@ class UserDefinedConstraintComponent(Sbase):
         self,
         coefficient: float,
         variable: str,
-        variableType: Optional[str] = None,
-        sid: Optional[str] = None,
-        name: Optional[str] = None,
-        sboTerm: Optional[str] = None,
-        metaId: Optional[str] = None,
+        variableType: str | None = None,
+        sid: str | None = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: Optional[str] = None,
-        keyValuePairs: Optional[List[KeyValuePair]] = None,
+        notes: str | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
-        uncertainties: Optional[List[Uncertainty]] = None,
-        replacedBy: Optional[Any] = None,
+        uncertainties: list[Uncertainty] | None = None,
+        replacedBy: Any | None = None,
     ):
         """Create a UserDefinedConstraintComponent."""
-        super(UserDefinedConstraintComponent, self).__init__(
+        super().__init__(
             sid=sid,
             name=name,
             sboTerm=sboTerm,
@@ -2363,23 +2353,23 @@ class UserDefinedConstraint(Sbase):
         self,
         lowerBound: str,
         upperBound: str,
-        components: Optional[
-            Union[List[UserDefinedConstraintComponent], Dict[str, float]]
-        ] = None,
+        components: list[UserDefinedConstraintComponent]
+        | dict[str, float]
+        | None = None,
         variableType: str = libsbml.FBC_VARIABLE_TYPE_LINEAR,
-        sid: Optional[str] = None,
-        name: Optional[str] = None,
-        sboTerm: Optional[str] = None,
-        metaId: Optional[str] = None,
+        sid: str | None = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: Optional[str] = None,
-        keyValuePairs: Optional[List[KeyValuePair]] = None,
+        notes: str | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
-        uncertainties: Optional[List[Uncertainty]] = None,
-        replacedBy: Optional[Any] = None,
+        uncertainties: list[Uncertainty] | None = None,
+        replacedBy: Any | None = None,
     ):
         """Create an UserDefinedConstraint."""
-        super(UserDefinedConstraint, self).__init__(
+        super().__init__(
             sid=sid,
             name=name,
             sboTerm=sboTerm,
@@ -2395,7 +2385,7 @@ class UserDefinedConstraint(Sbase):
         self.upperBound = upperBound
 
         # normalize components
-        self.components: List[UserDefinedConstraintComponent] = []
+        self.components: list[UserDefinedConstraintComponent] = []
         if components:
             if isinstance(components, dict):
                 # create FluxObjectives from dict
@@ -2430,7 +2420,7 @@ class UserDefinedConstraint(Sbase):
 class FluxObjective(Sbase):
     """FluxObjective."""
 
-    fbc_variable_types: Set[str] = {
+    fbc_variable_types: set[str] = {
         libsbml.FBC_VARIABLE_TYPE_LINEAR,
         libsbml.FBC_VARIABLE_TYPE_QUADRATIC,
         libsbml.FBC_VARIABLE_TYPE_INVALID,
@@ -2444,19 +2434,19 @@ class FluxObjective(Sbase):
         reaction: str,
         coefficient: float,
         variableType: str,
-        sid: Optional[str] = None,
-        name: Optional[str] = None,
-        sboTerm: Optional[str] = None,
-        metaId: Optional[str] = None,
+        sid: str | None = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: Optional[str] = None,
-        keyValuePairs: Optional[List[KeyValuePair]] = None,
+        notes: str | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
-        uncertainties: Optional[List[Uncertainty]] = None,
-        replacedBy: Optional[Any] = None,
+        uncertainties: list[Uncertainty] | None = None,
+        replacedBy: Any | None = None,
     ):
         """Create a FluxObjective."""
-        super(FluxObjective, self).__init__(
+        super().__init__(
             sid=sid,
             name=name,
             sboTerm=sboTerm,
@@ -2504,7 +2494,7 @@ class FluxObjective(Sbase):
 class Objective(Sbase):
     """Objective."""
 
-    objective_types: Set[str] = {
+    objective_types: set[str] = {
         libsbml.OBJECTIVE_TYPE_MAXIMIZE,
         libsbml.OBJECTIVE_TYPE_MINIMIZE,
         "maximize",
@@ -2518,24 +2508,24 @@ class Objective(Sbase):
         sid: str,
         objectiveType: str = libsbml.OBJECTIVE_TYPE_MAXIMIZE,
         active: bool = True,
-        fluxObjectives: Optional[Union[List[FluxObjective], Dict[str, float]]] = None,
+        fluxObjectives: list[FluxObjective] | dict[str, float] | None = None,
         variableType: str = libsbml.FBC_VARIABLE_TYPE_LINEAR,
-        name: Optional[str] = None,
-        sboTerm: Optional[str] = None,
-        metaId: Optional[str] = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: Optional[str] = None,
-        keyValuePairs: Optional[List[KeyValuePair]] = None,
+        notes: str | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
-        uncertainties: Optional[List[Uncertainty]] = None,
-        replacedBy: Optional[Any] = None,
+        uncertainties: list[Uncertainty] | None = None,
+        replacedBy: Any | None = None,
     ):
         """Create an Objective.
 
         FluxObjectives can either be provided as a list of FluxObjectives or as a
         dictionary with the reaction ids as keys and the coefficients as values.
         """
-        super(Objective, self).__init__(
+        super().__init__(
             sid=sid,
             name=name,
             sboTerm=sboTerm,
@@ -2551,7 +2541,7 @@ class Objective(Sbase):
         self.active = active
 
         # normalize fluxObjectives
-        self.fluxObjectives: List[FluxObjective] = []
+        self.fluxObjectives: list[FluxObjective] = []
         if fluxObjectives:
             if isinstance(fluxObjectives, dict):
                 # create FluxObjectives from dict
@@ -2573,7 +2563,6 @@ class Objective(Sbase):
     @classmethod
     def normalize_objective_type(cls, objective_type: str) -> str:
         """Normalize objective type."""
-
         if objective_type not in Objective.objective_types:
             raise ValueError(
                 f"Unsupported objective type `{objective_type}`. Supported are "
@@ -2608,18 +2597,18 @@ class ModelDefinition(Sbase):
     def __init__(
         self,
         sid: str,
-        name: Optional[str] = None,
-        sboTerm: Optional[str] = None,
-        metaId: Optional[str] = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: Optional[str] = None,
-        keyValuePairs: Optional[List[KeyValuePair]] = None,
-        units: Optional[Type[Units]] = None,
-        compartments: Optional[List[Compartment]] = None,
-        species: Optional[List[Species]] = None,
+        notes: str | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
+        units: type[Units] | None = None,
+        compartments: list[Compartment] | None = None,
+        species: list[Species] | None = None,
     ):
         """Create a ModelDefinition."""
-        super(ModelDefinition, self).__init__(
+        super().__init__(
             sid=sid,
             name=name,
             sboTerm=sboTerm,
@@ -2642,7 +2631,7 @@ class ModelDefinition(Sbase):
 
     def _set_fields(self, sbase: libsbml.ModelDefinition, model: libsbml.Model) -> None:
         """Set fields on ModelDefinition."""
-        super(ModelDefinition, self)._set_fields(sbase, model)
+        super()._set_fields(sbase, model)
         for attr in [
             "externalModelDefinitions",
             "modelDefinitions",
@@ -2684,16 +2673,16 @@ class ExternalModelDefinition(Sbase):
         sid: str,
         source: str,
         modelRef: str,
-        md5: Optional[str] = None,
-        name: Optional[str] = None,
-        sboTerm: Optional[str] = None,
-        metaId: Optional[str] = None,
+        md5: str | None = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: Optional[str] = None,
-        keyValuePairs: Optional[List[KeyValuePair]] = None,
+        notes: str | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
     ):
         """Create an ExternalModelDefinition."""
-        super(ExternalModelDefinition, self).__init__(
+        super().__init__(
             sid=sid,
             name=name,
             sboTerm=sboTerm,
@@ -2718,7 +2707,7 @@ class ExternalModelDefinition(Sbase):
         self, sbase: libsbml.ExternalModelDefinition, model: libsbml.Model
     ) -> None:
         """Set fields on ExternalModelDefinition."""
-        super(ExternalModelDefinition, self)._set_fields(sbase, model)
+        super()._set_fields(sbase, model)
         sbase.setModelRef(self.modelRef)
         sbase.setSource(self.source)
         if self.md5 is not None:
@@ -2731,18 +2720,18 @@ class Submodel(Sbase):
     def __init__(
         self,
         sid: str,
-        modelRef: Optional[str] = None,
-        timeConversionFactor: Optional[str] = None,
-        extentConversionFactor: Optional[str] = None,
-        name: Optional[str] = None,
-        sboTerm: Optional[str] = None,
-        metaId: Optional[str] = None,
+        modelRef: str | None = None,
+        timeConversionFactor: str | None = None,
+        extentConversionFactor: str | None = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: Optional[str] = None,
-        keyValuePairs: Optional[List[KeyValuePair]] = None,
+        notes: str | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
     ):
         """Create a Submodel."""
-        super(Submodel, self).__init__(
+        super().__init__(
             sid=sid,
             name=name,
             sboTerm=sboTerm,
@@ -2770,7 +2759,7 @@ class Submodel(Sbase):
         return submodel
 
     def _set_fields(self, sbase: libsbml.Submodel, model: libsbml.Model) -> None:
-        super(Submodel, self)._set_fields(sbase, model)
+        super()._set_fields(sbase, model)
 
 
 class SbaseRef(Sbase):
@@ -2779,19 +2768,19 @@ class SbaseRef(Sbase):
     def __init__(
         self,
         sid: str,
-        portRef: Optional[str] = None,
-        idRef: Optional[str] = None,
-        unitRef: Optional[str] = None,
-        metaIdRef: Optional[str] = None,
-        name: Optional[str] = None,
-        sboTerm: Optional[str] = None,
-        metaId: Optional[str] = None,
+        portRef: str | None = None,
+        idRef: str | None = None,
+        unitRef: str | None = None,
+        metaIdRef: str | None = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: Optional[str] = None,
-        keyValuePairs: Optional[List[KeyValuePair]] = None,
+        notes: str | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
     ):
         """Create an SBaseRef."""
-        super(SbaseRef, self).__init__(
+        super().__init__(
             sid=sid,
             name=name,
             sboTerm=sboTerm,
@@ -2806,7 +2795,7 @@ class SbaseRef(Sbase):
         self.metaIdRef = metaIdRef
 
     def _set_fields(self, sbase: libsbml.SBaseRef, model: libsbml.Model) -> None:
-        super(SbaseRef, self)._set_fields(sbase, model)
+        super()._set_fields(sbase, model)
 
         sbase.setId(self.sid)
         if self.portRef is not None:
@@ -2828,21 +2817,21 @@ class ReplacedElement(SbaseRef):
         sid: str,
         elementRef: str,
         submodelRef: str,
-        deletion: Optional[str] = None,
-        conversionFactor: Optional[str] = None,
-        portRef: Optional[str] = None,
-        idRef: Optional[str] = None,
-        unitRef: Optional[str] = None,
-        metaIdRef: Optional[str] = None,
-        name: Optional[str] = None,
-        sboTerm: Optional[str] = None,
-        metaId: Optional[str] = None,
+        deletion: str | None = None,
+        conversionFactor: str | None = None,
+        portRef: str | None = None,
+        idRef: str | None = None,
+        unitRef: str | None = None,
+        metaIdRef: str | None = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: Optional[str] = None,
-        keyValuePairs: Optional[List[KeyValuePair]] = None,
+        notes: str | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
     ):
         """Create a ReplacedElement."""
-        super(ReplacedElement, self).__init__(
+        super().__init__(
             sid=sid,
             portRef=portRef,
             idRef=idRef,
@@ -2880,7 +2869,7 @@ class ReplacedElement(SbaseRef):
         return obj
 
     def _set_fields(self, sbase: libsbml.ReplacedElement, model: libsbml.Model) -> None:
-        super(ReplacedElement, self)._set_fields(sbase, model)
+        super()._set_fields(sbase, model)
         sbase.setSubmodelRef(self.submodelRef)
         if self.deletion:
             sbase.setDeletion(self.deletion)
@@ -2896,19 +2885,19 @@ class ReplacedBy(SbaseRef):
         sid: str,
         elementRef: str,
         submodelRef: str,
-        portRef: Optional[str] = None,
-        idRef: Optional[str] = None,
-        unitRef: Optional[str] = None,
-        metaIdRef: Optional[str] = None,
-        name: Optional[str] = None,
-        sboTerm: Optional[str] = None,
-        metaId: Optional[str] = None,
+        portRef: str | None = None,
+        idRef: str | None = None,
+        unitRef: str | None = None,
+        metaIdRef: str | None = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: Optional[str] = None,
-        keyValuePairs: Optional[List[KeyValuePair]] = None,
+        notes: str | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
     ):
         """Create a ReplacedElement."""
-        super(ReplacedBy, self).__init__(
+        super().__init__(
             sid=sid,
             portRef=portRef,
             idRef=idRef,
@@ -2936,7 +2925,7 @@ class ReplacedBy(SbaseRef):
 
     def _set_fields(self, rby: libsbml.ReplacedBy, model: libsbml.Model) -> None:
         """Set fields in ReplacedBy."""
-        super(ReplacedBy, self)._set_fields(rby, model)
+        super()._set_fields(rby, model)
         rby.setSubmodelRef(self.submodelRef)
 
 
@@ -2947,19 +2936,19 @@ class Deletion(SbaseRef):
         self,
         sid: str,
         submodelRef: str,
-        portRef: Optional[str] = None,
-        idRef: Optional[str] = None,
-        unitRef: Optional[str] = None,
-        metaIdRef: Optional[str] = None,
-        name: Optional[str] = None,
-        sboTerm: Optional[str] = None,
-        metaId: Optional[str] = None,
+        portRef: str | None = None,
+        idRef: str | None = None,
+        unitRef: str | None = None,
+        metaIdRef: str | None = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: Optional[str] = None,
-        keyValuePairs: Optional[List[KeyValuePair]] = None,
+        notes: str | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
     ):
         """Initialize Deletion."""
-        super(Deletion, self).__init__(
+        super().__init__(
             sid=sid,
             portRef=portRef,
             idRef=idRef,
@@ -2985,7 +2974,7 @@ class Deletion(SbaseRef):
 
     def _set_fields(self, sbase: libsbml.Deletion, model: libsbml.Model) -> None:
         """Set fields on Deletion."""
-        super(Deletion, self)._set_fields(sbase, model)
+        super()._set_fields(sbase, model)
 
 
 class PortType(str, Enum):
@@ -3008,20 +2997,20 @@ class Port(SbaseRef):
     def __init__(
         self,
         sid: str,
-        portRef: Optional[str] = None,
-        idRef: Optional[str] = None,
-        unitRef: Optional[str] = None,
-        metaIdRef: Optional[str] = None,
-        portType: Optional[PortType] = PortType.PORT,
-        name: Optional[str] = None,
-        sboTerm: Optional[str] = None,
-        metaId: Optional[str] = None,
+        portRef: str | None = None,
+        idRef: str | None = None,
+        unitRef: str | None = None,
+        metaIdRef: str | None = None,
+        portType: PortType | None = PortType.PORT,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: Optional[str] = None,
-        keyValuePairs: Optional[List[KeyValuePair]] = None,
+        notes: str | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
     ):
         """Create a Port."""
-        super(Port, self).__init__(
+        super().__init__(
             sid=sid,
             portRef=portRef,
             idRef=idRef,
@@ -3055,7 +3044,7 @@ class Port(SbaseRef):
 
     def _set_fields(self, sbase: libsbml.Port, model: libsbml.Model) -> None:
         """Set fields on Port."""
-        super(Port, self)._set_fields(sbase, model)
+        super()._set_fields(sbase, model)
 
 
 class Package(str, Enum):
@@ -3083,42 +3072,42 @@ class ModelDict(TypedDict, total=False):
     """
 
     sid: str
-    name: Optional[str]
-    sboTerm: Optional[str]
-    metaId: Optional[str]
+    name: str | None
+    sboTerm: str | None
+    metaId: str | None
     annotations: OptionalAnnotationsType
-    notes: Optional[str]
-    keyValuePairs: Optional[List[KeyValuePair]]
-    packages: Optional[List[Package]]
-    creators: Optional[List[Creator]]
-    model_units: Optional[ModelUnits]
-    objects: Optional[List[Sbase]]
+    notes: str | None
+    keyValuePairs: list[KeyValuePair] | None
+    packages: list[Package] | None
+    creators: list[Creator] | None
+    model_units: ModelUnits | None
+    objects: list[Sbase] | None
 
-    units: Optional[Type[Units]]
-    functions: Optional[List[Function]]
-    compartments: Optional[List[Compartment]]
-    species: Optional[List[Species]]
-    parameters: Optional[List[Parameter]]
-    assignments: Optional[List[InitialAssignment]]
-    rules: Optional[List[AssignmentRule]]
-    rate_rules: Optional[List[RateRule]]
-    algebraic_rules: Optional[List[AlgebraicRule]]
-    reactions: Optional[List[Reaction]]
-    events: Optional[List[Event]]
-    constraints: Optional[List[Constraint]]
+    units: type[Units] | None
+    functions: list[Function] | None
+    compartments: list[Compartment] | None
+    species: list[Species] | None
+    parameters: list[Parameter] | None
+    assignments: list[InitialAssignment] | None
+    rules: list[AssignmentRule] | None
+    rate_rules: list[RateRule] | None
+    algebraic_rules: list[AlgebraicRule] | None
+    reactions: list[Reaction] | None
+    events: list[Event] | None
+    constraints: list[Constraint] | None
     # comp
-    external_model_definitions: Optional[List[ExternalModelDefinition]]
-    model_definitions: Optional[List[ModelDefinition]]
-    submodels: Optional[List[Submodel]]
-    ports: Optional[List[Port]]
-    replaced_elements: Optional[List[ReplacedElement]]
-    deletions: Optional[List[Deletion]]
+    external_model_definitions: list[ExternalModelDefinition] | None
+    model_definitions: list[ModelDefinition] | None
+    submodels: list[Submodel] | None
+    ports: list[Port] | None
+    replaced_elements: list[ReplacedElement] | None
+    deletions: list[Deletion] | None
     # fbc
-    user_defined_constraints: Optional[List[UserDefinedConstraint]]
-    objectives: Optional[List[Objective]]
-    gene_products: Optional[List[GeneProduct]]
+    user_defined_constraints: list[UserDefinedConstraint] | None
+    objectives: list[Objective] | None
+    gene_products: list[GeneProduct] | None
     # layout
-    layouts: Optional[List]
+    layouts: list | None
 
 
 class Model(Sbase, FrozenClass, BaseModel):
@@ -3131,43 +3120,43 @@ class Model(Sbase, FrozenClass, BaseModel):
     )
 
     sid: str
-    name: Optional[str]
-    sboTerm: Optional[str]
-    metaId: Optional[str]
+    name: str | None
+    sboTerm: str | None
+    metaId: str | None
     annotations: AnnotationsType
-    notes: Optional[str]
-    keyValuePairs: Optional[List[KeyValuePair]]
-    port: Optional[Any]
-    packages: List[Package]
-    creators: List[Creator]
-    model_units: Optional[ModelUnits]
-    units: Optional[Type[Units]]
-    functions: List[Function]
-    compartments: List[Compartment]
-    species: List[Species]
-    parameters: List[Parameter]
-    assignments: List[InitialAssignment]
-    rules: List[AssignmentRule]
-    rate_rules: List[RateRule]
-    algebraic_rules: List[AlgebraicRule]
-    reactions: List[Reaction]
-    events: List[Event]
-    constraints: List[Constraint]
+    notes: str | None
+    keyValuePairs: list[KeyValuePair] | None
+    port: Any | None
+    packages: list[Package]
+    creators: list[Creator]
+    model_units: ModelUnits | None
+    units: type[Units] | None
+    functions: list[Function]
+    compartments: list[Compartment]
+    species: list[Species]
+    parameters: list[Parameter]
+    assignments: list[InitialAssignment]
+    rules: list[AssignmentRule]
+    rate_rules: list[RateRule]
+    algebraic_rules: list[AlgebraicRule]
+    reactions: list[Reaction]
+    events: list[Event]
+    constraints: list[Constraint]
     # comp
-    external_model_definitions: List[ExternalModelDefinition]
-    model_definitions: List[ModelDefinition]
-    submodels: List[Submodel]
-    ports: List[Port]
-    replaced_elements: List[ReplacedElement]
-    deletions: List[Deletion]
+    external_model_definitions: list[ExternalModelDefinition]
+    model_definitions: list[ModelDefinition]
+    submodels: list[Submodel]
+    ports: list[Port]
+    replaced_elements: list[ReplacedElement]
+    deletions: list[Deletion]
     # fbc
-    user_defined_constraints: List[UserDefinedConstraint]
-    objectives: List[Objective]
-    gene_products: List[GeneProduct]
+    user_defined_constraints: list[UserDefinedConstraint]
+    objectives: list[Objective]
+    gene_products: list[GeneProduct]
     # layout
-    layouts: Optional[List]
+    layouts: list | None
 
-    _keys: ClassVar[Dict[str, Any]] = {
+    _keys: ClassVar[dict[str, Any]] = {
         "sid": None,
         "name": None,
         "sboTerm": None,
@@ -3203,7 +3192,7 @@ class Model(Sbase, FrozenClass, BaseModel):
         "layouts": list,
     }
 
-    _supported_packages: ClassVar[Set[str]] = {
+    _supported_packages: ClassVar[set[str]] = {
         Package.COMP,
         Package.COMP_V1,
         Package.DISTRIB,
@@ -3223,41 +3212,41 @@ class Model(Sbase, FrozenClass, BaseModel):
     def __init__(
         self,
         sid: str,
-        name: Optional[str] = None,
-        sboTerm: Optional[str] = None,
-        metaId: Optional[str] = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: Optional[str] = None,
-        keyValuePairs: Optional[List[KeyValuePair]] = None,
-        packages: Optional[List[Package]] = None,
-        creators: Optional[List[Creator]] = None,
-        model_units: Optional[ModelUnits] = None,
-        units: Optional[Type[Units]] = None,
-        objects: Optional[List[Sbase]] = None,
-        external_model_definitions: Optional[List[ExternalModelDefinition]] = None,
-        model_definitions: Optional[List[ModelDefinition]] = None,
-        submodels: Optional[List[Submodel]] = None,
-        functions: Optional[List[Function]] = None,
-        compartments: Optional[List[Compartment]] = None,
-        species: Optional[List[Species]] = None,
-        parameters: Optional[List[Parameter]] = None,
-        assignments: Optional[List[InitialAssignment]] = None,
-        rules: Optional[List[AssignmentRule]] = None,
-        rate_rules: Optional[List[RateRule]] = None,
-        algebraic_rules: Optional[List[AlgebraicRule]] = None,
-        reactions: Optional[List[Reaction]] = None,
-        events: Optional[List[Event]] = None,
-        constraints: Optional[List[Constraint]] = None,
-        ports: Optional[List[Port]] = None,
-        replaced_elements: Optional[List[ReplacedElement]] = None,
-        deletions: Optional[List[Deletion]] = None,
-        user_defined_constraints: Optional[List[UserDefinedConstraint]] = None,
-        objectives: Optional[List[Objective]] = None,
-        gene_products: Optional[List[GeneProduct]] = None,
-        layouts: Optional[List] = None,
+        notes: str | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
+        packages: list[Package] | None = None,
+        creators: list[Creator] | None = None,
+        model_units: ModelUnits | None = None,
+        units: type[Units] | None = None,
+        objects: list[Sbase] | None = None,
+        external_model_definitions: list[ExternalModelDefinition] | None = None,
+        model_definitions: list[ModelDefinition] | None = None,
+        submodels: list[Submodel] | None = None,
+        functions: list[Function] | None = None,
+        compartments: list[Compartment] | None = None,
+        species: list[Species] | None = None,
+        parameters: list[Parameter] | None = None,
+        assignments: list[InitialAssignment] | None = None,
+        rules: list[AssignmentRule] | None = None,
+        rate_rules: list[RateRule] | None = None,
+        algebraic_rules: list[AlgebraicRule] | None = None,
+        reactions: list[Reaction] | None = None,
+        events: list[Event] | None = None,
+        constraints: list[Constraint] | None = None,
+        ports: list[Port] | None = None,
+        replaced_elements: list[ReplacedElement] | None = None,
+        deletions: list[Deletion] | None = None,
+        user_defined_constraints: list[UserDefinedConstraint] | None = None,
+        objectives: list[Objective] | None = None,
+        gene_products: list[GeneProduct] | None = None,
+        layouts: list | None = None,
     ):
         """Model constructor."""
-        super(Model, self).__init__(
+        super().__init__(
             sid=sid,
             name=name,
             sboTerm=sboTerm,
@@ -3278,32 +3267,32 @@ class Model(Sbase, FrozenClass, BaseModel):
         )
         self.model_definitions = model_definitions if model_definitions else []
 
-        self.submodels: List[Submodel] = submodels if submodels else []
-        self.functions: List[Function] = functions if functions else []
-        self.compartments: List[Compartment] = compartments if compartments else []
-        self.species: List[Species] = species if species else []
-        self.parameters: List[Parameter] = parameters if parameters else []
-        self.assignments: List[InitialAssignment] = assignments if assignments else []
-        self.rules: List[AssignmentRule] = rules if rules else []
-        self.rate_rules: List[RateRule] = rate_rules if rate_rules else []
-        self.algebraic_rules: List[AlgebraicRule] = (
+        self.submodels: list[Submodel] = submodels if submodels else []
+        self.functions: list[Function] = functions if functions else []
+        self.compartments: list[Compartment] = compartments if compartments else []
+        self.species: list[Species] = species if species else []
+        self.parameters: list[Parameter] = parameters if parameters else []
+        self.assignments: list[InitialAssignment] = assignments if assignments else []
+        self.rules: list[AssignmentRule] = rules if rules else []
+        self.rate_rules: list[RateRule] = rate_rules if rate_rules else []
+        self.algebraic_rules: list[AlgebraicRule] = (
             algebraic_rules if algebraic_rules else []
         )
-        self.reactions: List[Reaction] = reactions if reactions else []
-        self.events: List[Event] = events if events else []
-        self.constraints: List[Constraint] = constraints if constraints else []
-        self.ports: List[Port] = ports if ports else []
-        self.replaced_elements: List[ReplacedElement] = (
+        self.reactions: list[Reaction] = reactions if reactions else []
+        self.events: list[Event] = events if events else []
+        self.constraints: list[Constraint] = constraints if constraints else []
+        self.ports: list[Port] = ports if ports else []
+        self.replaced_elements: list[ReplacedElement] = (
             replaced_elements if replaced_elements else []
         )
-        self.deletions: List[Deletion] = deletions if deletions else []
-        self.user_defined_constraints: List[UserDefinedConstraint] = (
+        self.deletions: list[Deletion] = deletions if deletions else []
+        self.user_defined_constraints: list[UserDefinedConstraint] = (
             user_defined_constraints if user_defined_constraints else []
         )
-        self.objectives: List[Objective] = objectives if objectives else []
-        self.gene_products: List[GeneProduct] = gene_products if gene_products else []
+        self.objectives: list[Objective] = objectives if objectives else []
+        self.gene_products: list[GeneProduct] = gene_products if gene_products else []
 
-        self.layouts: Optional[List] = layouts
+        self.layouts: list | None = layouts
 
         if objects:
             for sbase in objects:
@@ -3405,11 +3394,11 @@ class Model(Sbase, FrozenClass, BaseModel):
         """Create SBML model."""
         return Document(model=self).get_sbml()
 
-    def check_packages(self, packages: Optional[List[Package]]) -> List[Package]:
+    def check_packages(self, packages: list[Package] | None) -> list[Package]:
         """Check that all provided packages are supported."""
         if packages is None:
             packages = []
-        packages_set: Set[Package] = set(packages)
+        packages_set: set[Package] = set(packages)
         for p in packages_set:
             if not isinstance(p, Package):
                 msg = (
@@ -3460,7 +3449,7 @@ class Model(Sbase, FrozenClass, BaseModel):
         if not models:
             raise ValueError("No models are provided.")
         model = Model("template")
-        units_base_classes: List[Type[Units]] = (
+        units_base_classes: list[type[Units]] = (
             [model.units] if model.units else [Units]
         )
         creators: dict[Creator, Any] = dict()  # using a dict to keep order of insertion
@@ -3512,13 +3501,13 @@ class Document(Sbase):
     def __init__(
         self,
         model: Model,
-        sid: Optional[str] = None,
-        name: Optional[str] = None,
-        sboTerm: Optional[str] = None,
-        metaId: Optional[str] = None,
+        sid: str | None = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: Optional[str] = None,
-        keyValuePairs: Optional[List[KeyValuePair]] = None,
+        notes: str | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
         sbml_level: int = SBML_LEVEL,
         sbml_version: int = SBML_VERSION,
     ):
@@ -3605,14 +3594,14 @@ class FactoryResult:
 
 
 def create_model(
-    model: Union[Model, Iterable[Model]],
+    model: Model | Iterable[Model],
     filepath: Path,
     sbml_level: int = SBML_LEVEL,
     sbml_version: int = SBML_VERSION,
     validate: bool = True,
-    validation_options: Optional[ValidationOptions] = None,
+    validation_options: ValidationOptions | None = None,
     show_sbml: bool = False,
-    annotations: Optional[Path] = None,
+    annotations: Path | None = None,
 ) -> FactoryResult:
     """Create SBML model from models.
 
@@ -3670,7 +3659,7 @@ def create_model(
 
     # print created sbml
     if show_sbml:
-        with open(filepath, "r", encoding="utf-8") as f_sbml:
+        with open(filepath, encoding="utf-8") as f_sbml:
             sbml_str = f_sbml.read()
 
         console.log(sbml_str)

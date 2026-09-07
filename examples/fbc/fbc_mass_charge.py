@@ -1,6 +1,7 @@
 """FBC mass and charge example."""
 
 from pathlib import Path
+
 from examples import templates
 from sbmlutils.factory import *
 from sbmlutils.metadata import BQB, SBO
@@ -161,5 +162,4 @@ if model.reactions:
 
 
 if __name__ == "__main__":
-
     create_model(model=model, filepath=Path.cwd() / f"{model.sid}.xml")

@@ -1,20 +1,18 @@
 from pathlib import Path
-from typing import Union
 
 import libsbml
 import pandas as pd
+from pymetadata.core.annotation import RDFAnnotation
 from pymetadata.core.miriam import BQB
 
 from sbmlutils.console import console
 from sbmlutils.io.sbml import read_sbml
 from sbmlutils.log import get_logger
-from pymetadata.core.annotation import RDFAnnotation
-
 
 logger = get_logger(__name__)
 
 
-def validate_sbml_annotations(source: Union[Path, str]) -> pd.DataFrame:
+def validate_sbml_annotations(source: Path | str) -> pd.DataFrame:
     """Validate annotations in a given SBML file.
 
     :param source: SBML to check

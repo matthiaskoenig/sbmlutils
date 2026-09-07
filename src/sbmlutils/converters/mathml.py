@@ -8,7 +8,7 @@ In build in python are
 """
 
 from math import *
-from typing import Any, Dict, Optional
+from typing import Any
 
 import libsbml
 
@@ -42,8 +42,7 @@ def xor(*args: float) -> int:
             foundOne = 1
     if foundZero and foundOne:
         return 1
-    else:
-        return 0
+    return 0
 
 
 def piecewise(*args: float) -> float:
@@ -118,7 +117,7 @@ def f_or(*args):
 """
 
 
-def evaluableMathML(astnode: libsbml.ASTNode, variables: Optional[Dict] = None) -> str:
+def evaluableMathML(astnode: libsbml.ASTNode, variables: dict | None = None) -> str:
     """Create evaluable python formula string from ASTNode."""
     if variables is None:
         variables = {}
@@ -140,7 +139,7 @@ def evaluableMathML(astnode: libsbml.ASTNode, variables: Optional[Dict] = None) 
     return formula
 
 
-def evaluateMathML(astnode: libsbml.ASTNode, variables: Optional[Dict] = None) -> Any:
+def evaluateMathML(astnode: libsbml.ASTNode, variables: dict | None = None) -> Any:
     """Evaluate MathML string with given set of variable and parameter values.
 
     :param astnode: astnode of MathML string

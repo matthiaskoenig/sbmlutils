@@ -44,7 +44,7 @@ import re
 import warnings
 from pathlib import Path
 from pprint import pprint
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import libsbml
 
@@ -54,7 +54,6 @@ from sbmlutils.factory import Event
 from sbmlutils.io import sbml
 from sbmlutils.notes import NotesFormat
 from sbmlutils.validation import ValidationOptions
-
 
 XPP_ODE = "ode"
 XPP_DE = "difference equation"  # x(t+1)=F(x,y,...)
@@ -120,7 +119,7 @@ def escape_string(info: str) -> str:
     return info
 
 
-def parse_keyword(xpp_id: str) -> Optional[str]:
+def parse_keyword(xpp_id: str) -> str | None:
     """Parse the keyword and returns the xpp keyword type.
 
     :param xpp_id:
@@ -134,7 +133,7 @@ def parse_keyword(xpp_id: str) -> Optional[str]:
     return None
 
 
-def parts_from_expression(expression: str) -> List[str]:
+def parts_from_expression(expression: str) -> list[str]:
     """Return the parts of given expression.
 
     The parts can be whitespace or comma separated.
@@ -155,17 +154,16 @@ def parts_from_expression(expression: str) -> List[str]:
     tokens = expression.split("=")
     if len(tokens) == 2:
         return [expression]
-    else:
-        # get the individual parts, i.e. all the assignments
-        # FIXME: bad hack which will break with function definitions
-        expression = expression.replace(" ", ",")
-        expression = expression.replace("\t", ",")
-        parts = [t.strip() for t in expression.split(",")]
-        parts = [p for p in parts if len(p) > 0]
+    # get the individual parts, i.e. all the assignments
+    # FIXME: bad hack which will break with function definitions
+    expression = expression.replace(" ", ",")
+    expression = expression.replace("\t", ",")
+    parts = [t.strip() for t in expression.split(",")]
+    parts = [p for p in parts if len(p) > 0]
     return parts
 
 
-def sid_value_from_part(part: str) -> Tuple[str, str]:
+def sid_value_from_part(part: str) -> tuple[str, str]:
     """Get sid, value tuple from given part of expression.
 
     :param part:
@@ -217,8 +215,8 @@ def xpp2sbml(
         # mod (modulo)
         fac.Function("mod", "lambda(x,y, x % y)", name="modulo"),
     ]
-    function_definitions: List[Dict[str, Any]] = []
-    events: List[Event] = []
+    function_definitions: list[dict[str, Any]] = []
+    events: list[Event] = []
 
     def replace_fdef() -> bool:
         """Replace all arguments within the formula definitions."""
@@ -236,12 +234,10 @@ def xpp2sbml(
                     )
                     if new_formula != formula:
                         function_definitions[i]["formula"] = new_formula
-                        function_definitions[i]["new_args"] = list(
-                            sorted(
-                                set(
-                                    function_definitions[i]["new_args"]
-                                    + function_definitions[k]["new_args"]
-                                )
+                        function_definitions[i]["new_args"] = sorted(
+                            set(
+                                function_definitions[i]["new_args"]
+                                + function_definitions[k]["new_args"]
                             )
                         )
                         changes = True
@@ -396,7 +392,7 @@ def xpp2sbml(
 
     # clean the new arguments
     for fdata in function_definitions:
-        fdata["new_args"] = list(sorted(set(fdata["new_args"])))
+        fdata["new_args"] = sorted(set(fdata["new_args"]))
 
     if debug:
         print("\nREPLACED FUNCTION_DEFINITIONS")
@@ -553,15 +549,11 @@ def xpp2sbml(
                         sign = int(g[0])
                         trigger = g[1]
                         # FIXME: handle sign=-1, sign=0, sign=+1
-                        if sign == -1:
-                            trigger = g[1] + ">= 0"
-                        elif sign == 1:
-                            trigger = g[1] + ">= 0"
-                        elif sign == 0:
+                        if sign == -1 or sign == 1 or sign == 0:
                             trigger = g[1] + ">= 0"
 
                         assignment_parts = [t.strip() for t in g[2].split(";")]
-                        assignments: Dict[str, str] = {}
+                        assignments: dict[str, str] = {}
                         for p in assignment_parts:
                             key, value = p.split("=")
                             assignments[key] = value
@@ -620,7 +612,7 @@ def xpp2sbml(
     )
 
     # create SBML objects
-    objects: List[Any] = list(
+    objects: list[Any] = list(
         itertools.chain(
             parameters,
             initial_assignments,

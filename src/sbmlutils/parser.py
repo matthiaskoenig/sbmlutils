@@ -6,7 +6,7 @@ FIXME: no support for modelHistory
 """
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 import antimony
 import libsbml
@@ -14,19 +14,19 @@ from pymetadata.omex import ManifestEntry, Omex
 
 from sbmlutils.console import console
 from sbmlutils.factory import (
-    Model,
+    AlgebraicRule,
+    AssignmentRule,
+    Compartment,
+    InitialAssignment,
     KeyValuePair,
+    Model,
+    NaN,
     Package,
     Parameter,
-    Compartment,
-    NaN,
-    Species,
-    ReactionEquation,
-    Reaction,
-    InitialAssignment,
-    AssignmentRule,
     RateRule,
-    AlgebraicRule,
+    Reaction,
+    ReactionEquation,
+    Species,
     create_model,
 )
 from sbmlutils.io.sbml import read_sbml
@@ -36,12 +36,11 @@ from sbmlutils.reaction_equation import EquationPart
 from sbmlutils.report.sbmlinfo import SBMLDocumentInfo
 from sbmlutils.validation import ValidationOptions
 
-
 logger = get_logger(__name__)
 
 
 def antimony_to_sbml(
-    source: Union[Path, str],
+    source: Path | str,
 ) -> str:
     """Parse antimony model to SBML string."""
     status: int
@@ -69,10 +68,10 @@ def antimony_to_sbml(
 
 
 def antimony_to_model(
-    source: Union[Path, str],
+    source: Path | str,
     validate: bool = False,
     promote: bool = False,
-    validation_options: Optional[ValidationOptions] = None,
+    validation_options: ValidationOptions | None = None,
 ) -> Model:
     """Parse antimony model."""
     sbml_str = antimony_to_sbml(
@@ -91,10 +90,10 @@ def antimony_to_model(
 
 
 def sbml_to_model(
-    source: Union[Path, str],
+    source: Path | str,
     validate: bool = False,
     promote: bool = False,
-    validation_options: Optional[ValidationOptions] = None,
+    validation_options: ValidationOptions | None = None,
 ) -> Model:
     """Parse SBML model."""
     doc: libsbml.SBMLDocument = read_sbml(
@@ -105,7 +104,7 @@ def sbml_to_model(
     )
     model: libsbml.Model = doc.getModel()
 
-    def parse_sbase_kwargs(sbase: libsbml.SBase) -> Dict[str, Any]:
+    def parse_sbase_kwargs(sbase: libsbml.SBase) -> dict[str, Any]:
         """Parse SBase information in dictionary."""
         d = SBMLDocumentInfo.sbase_dict(sbase)
         kwargs = {
@@ -120,7 +119,7 @@ def sbml_to_model(
         if d["cvterms"]:
             for cvterm in d["cvterms"]:
                 qualifier_str = cvterm["qualifier"]
-                qualifier: Union[BQB, BQM]
+                qualifier: BQB | BQM
                 if qualifier_str.startswith("BQB_"):
                     qualifier = BQB.__getitem__(qualifier_str[4:])
                 elif qualifier_str.startswith("BQM_"):
@@ -138,7 +137,7 @@ def sbml_to_model(
 
         # keyValuePairs
         sbase_fbc: libsbml.FbcSBasePlugin = sbase.getPlugin("fbc")
-        kvps: List[KeyValuePair] = []
+        kvps: list[KeyValuePair] = []
         if sbase_fbc:
             kvp: libsbml.KeyValuePair
             for kvp in sbase_fbc.getListOfKeyValuePairs():
@@ -218,8 +217,8 @@ def sbml_to_model(
 
     # reactions
     r: libsbml.Reaction
-    ast: Optional[libsbml.ASTNode]
-    formula: Optional[str]
+    ast: libsbml.ASTNode | None
+    formula: str | None
 
     for r in model.getListOfReactions():
         equation = ReactionEquation(

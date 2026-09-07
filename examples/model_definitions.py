@@ -1,6 +1,7 @@
 """Multiple model definitions."""
 
 from pathlib import Path
+
 from examples import templates
 from sbmlutils.factory import *
 
@@ -64,7 +65,6 @@ model.model_definitions = [
 ]
 
 if __name__ == "__main__":
-
     create_model(
         model=model,
         filepath=Path.cwd() / f"{model.sid}.xml",

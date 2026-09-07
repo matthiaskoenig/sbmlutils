@@ -16,7 +16,6 @@ from pathlib import Path
 
 import pytest
 
-
 #: the root of the repository, `python -m examples.<module>` is run from here
 REPO_DIR = Path(__file__).parent.parent.parent
 

@@ -4,12 +4,13 @@ import functools
 import hashlib
 import time
 import warnings
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 import libsbml
 
 
-class FrozenClass(object):
+class FrozenClass:
     """FrozenClass.
 
     After freezing no additional attributes can be added.

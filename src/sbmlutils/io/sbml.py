@@ -1,7 +1,6 @@
 """Utility functions for reading, writing and validating SBML."""
 
 from pathlib import Path
-from typing import Optional, Union
 
 import libsbml
 
@@ -13,15 +12,14 @@ from sbmlutils.validation import (
     validate_doc,
 )
 
-
 logger = log.get_logger(__name__)
 
 
 def read_sbml(
-    source: Union[Path, str],
+    source: Path | str,
     promote: bool = False,
     validate: bool = False,
-    validation_options: Optional[ValidationOptions] = None,
+    validation_options: ValidationOptions | None = None,
 ) -> libsbml.SBMLDocument:
     """Read SBMLDocument from given source.
 
@@ -78,12 +76,12 @@ def read_sbml(
 
 def write_sbml(
     doc: libsbml.SBMLDocument,
-    filepath: Optional[Path] = None,
+    filepath: Path | None = None,
     validate: bool = False,
-    validation_options: Optional[ValidationOptions] = None,
-    program_name: Optional[str] = None,
-    program_version: Optional[str] = None,
-) -> Optional[str]:
+    validation_options: ValidationOptions | None = None,
+    program_name: str | None = None,
+    program_version: str | None = None,
+) -> str | None:
     """Write SBMLDocument to file or string.
 
     To write the SBML to string use 'filepath=None', which returns the SBML string.
@@ -106,8 +104,8 @@ def write_sbml(
         writer.setProgramVersion(program_version)
 
     # write file
-    source: Union[str, Path]
-    sbml_str: Optional[str] = None
+    source: str | Path
+    sbml_str: str | None = None
     if filepath is None:
         sbml_str = writer.writeSBMLToString(doc)
         source = str(sbml_str)
@@ -127,9 +125,9 @@ def write_sbml(
 
 
 def validate_sbml(
-    source: Union[str, Path],
-    validation_options: Optional[ValidationOptions] = None,
-    title: Optional[str] = None,
+    source: str | Path,
+    validation_options: ValidationOptions | None = None,
+    title: str | None = None,
 ) -> ValidationResult:
     """Check given SBML source.
 

@@ -8,7 +8,6 @@ from sbmlutils.factory import *
 from sbmlutils.io import read_sbml
 from sbmlutils.validation import ValidationOptions
 
-
 level_version_testdata = [
     (1, 1),
     (1, 2),

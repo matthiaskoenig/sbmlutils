@@ -8,7 +8,6 @@ from sbmlutils.reaction_equation import (
     ReactionEquation,
 )
 
-
 equations = [
     # constant stoichiometry
     "1.0 S1 + 2 S2 => 2.0 P1 + 2 P2 [M1, M2]",

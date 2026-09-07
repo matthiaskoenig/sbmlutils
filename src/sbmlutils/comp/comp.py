@@ -7,13 +7,12 @@ process. But the flattening parts also during the simulation
 of the dynamic FBA models.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import libsbml
 
 import sbmlutils.factory as factory
 from sbmlutils import log
-
 
 logger = log.get_logger(__name__)
 
@@ -48,7 +47,6 @@ def add_submodel_from_emd(
     :param emd:
     :return:
     """
-
     model_ref = emd.getModelRef()
     submodel: libsbml.Submodel = model_comp.createSubmodel()
     submodel.setId(submodel_id)
@@ -60,7 +58,7 @@ def add_submodel_from_emd(
     return submodel
 
 
-def get_submodel_frameworks(doc: libsbml.SBMLDocument) -> Dict[str, Any]:
+def get_submodel_frameworks(doc: libsbml.SBMLDocument) -> dict[str, Any]:
     """Read the SBO terms of the submodels.
 
     These are used to distinguish the different frameworks of the submodels.
@@ -89,13 +87,13 @@ def get_submodel_frameworks(doc: libsbml.SBMLDocument) -> Dict[str, Any]:
 
 def create_ports(
     model: libsbml.Model,
-    portRefs: Optional[Any] = None,
-    idRefs: Optional[Any] = None,
-    unitRefs: Optional[Any] = None,
-    metaIdRefs: Optional[Any] = None,
+    portRefs: Any | None = None,
+    idRefs: Any | None = None,
+    unitRefs: Any | None = None,
+    metaIdRefs: Any | None = None,
     portType: factory.PortType = factory.PortType.PORT,
     suffix: str = factory.PORT_SUFFIX,
-) -> List[factory.Port]:
+) -> list[factory.Port]:
     """Create ports for given model.
 
     Helper function to create port creation.
@@ -142,11 +140,11 @@ def create_ports(
 def _create_port(
     model: libsbml.Model,
     pid: str,
-    name: Optional[str] = None,
-    portRef: Optional[str] = None,
-    idRef: Optional[str] = None,
-    unitRef: Optional[str] = None,
-    metaIdRef: Optional[str] = None,
+    name: str | None = None,
+    portRef: str | None = None,
+    idRef: str | None = None,
+    unitRef: str | None = None,
+    metaIdRef: str | None = None,
     portType: factory.PortType = factory.PortType.PORT,
 ) -> libsbml.Port:
     """Create port in given model."""
@@ -198,7 +196,7 @@ def replace_elements(
     model: libsbml.Model,
     sid: str,
     ref_type: str,
-    replaced_elements: Dict[str, List[str]],
+    replaced_elements: dict[str, list[str]],
 ) -> None:
     """Replace elements in comp.
 
@@ -214,7 +212,7 @@ def replace_elements(
 
 
 def replace_element_in_submodels(
-    model: libsbml.Model, sid: str, ref_type: str, submodels: List[str]
+    model: libsbml.Model, sid: str, ref_type: str, submodels: list[str]
 ) -> libsbml.ReplacedElement:
     """Replace elements submodels with the identical id.
 

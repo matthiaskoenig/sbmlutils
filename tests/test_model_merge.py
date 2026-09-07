@@ -5,7 +5,6 @@ from sbmlutils.factory import *
 
 def test_creator_merge() -> None:
     """Test merging of models with creators."""
-
     c = Creator(
         givenName="Matthias",
         familyName="König",

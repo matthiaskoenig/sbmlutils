@@ -4,15 +4,13 @@ This demonstrates just the very core SBML functionality.
 """
 
 from pathlib import Path
-from typing import Optional
 
 from pymetadata.omex import EntryFormat, ManifestEntry, Omex
 
+from examples.templates import creators, terms_of_use
 from sbmlutils.comp import flatten_sbml
 from sbmlutils.console import console
-from examples.templates import creators, terms_of_use
 from sbmlutils.factory import *
-
 
 # -------------------------------------------------------------------------------------
 model = Model(
@@ -107,9 +105,8 @@ for k in range(n_cells):
 model_comp = _m
 
 
-def create_omex(tmp_dir: Optional[Path] = None) -> None:
+def create_omex(tmp_dir: Path | None = None) -> None:
     """Create omex with models."""
-
     output_dir = tmp_dir if tmp_dir else Path.cwd()
     sbml_path = output_dir / f"{model.sid}.xml"
     sbml_comp_path = output_dir / f"{_m.sid}.xml"

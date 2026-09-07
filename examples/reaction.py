@@ -1,13 +1,13 @@
 """Create reaction example."""
 
 from pathlib import Path
+
 import numpy as np
 
 from examples import templates
 from sbmlutils.factory import *
 from sbmlutils.metadata import SBO
 from sbmlutils.reaction_equation import EquationPart
-
 
 model = Model(
     "reaction",
@@ -121,5 +121,4 @@ model = Model(
 
 
 if __name__ == "__main__":
-
     create_model(model=model, filepath=Path.cwd() / f"{model.sid}.xml")

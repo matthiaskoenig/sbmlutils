@@ -1,12 +1,10 @@
 """cobrapy based helper methods."""
 
 from pathlib import Path
-from typing import Dict
 
 import pandas as pd
 
 from sbmlutils import log
-
 
 try:
     import cobra
@@ -62,7 +60,7 @@ def cobra_reaction_info(cobra_model: "cobra.core.Model") -> pd.DataFrame:
     return df
 
 
-def check_mass_balance(sbml_path: Path) -> Dict:
+def check_mass_balance(sbml_path: Path) -> dict:
     """Check mass and charge balance of the model.
 
     :param sbml_path: Path to SBML file

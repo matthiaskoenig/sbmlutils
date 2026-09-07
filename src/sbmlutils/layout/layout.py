@@ -1,27 +1,24 @@
 """Utilities for the creation and work with layout models."""
 
-from typing import Dict, List, Optional
-
 import libsbml
 
 import sbmlutils.factory as factory
 from sbmlutils.factory import SBML_LEVEL, SBML_VERSION
 
-
 __all__ = [
-    "LAYOUT_VERSION",
-    "LAYOUT_ROLE_SUBSTRATE",
-    "LAYOUT_ROLE_PRODUCT",
-    "LAYOUT_ROLE_SIDESUBSTRATE",
-    "LAYOUT_ROLE_SIDEPRODUCT",
-    "LAYOUT_ROLE_MODIFIER",
     "LAYOUT_ROLE_ACTIVATOR",
     "LAYOUT_ROLE_INHIBITOR",
+    "LAYOUT_ROLE_MODIFIER",
+    "LAYOUT_ROLE_PRODUCT",
+    "LAYOUT_ROLE_SIDEPRODUCT",
+    "LAYOUT_ROLE_SIDESUBSTRATE",
+    "LAYOUT_ROLE_SUBSTRATE",
     "LAYOUT_ROLE_UNDEFINED",
-    "Layout",
-    "SpeciesGlyph",
-    "ReactionGlyph",
+    "LAYOUT_VERSION",
     "CompartmentGlyph",
+    "Layout",
+    "ReactionGlyph",
+    "SpeciesGlyph",
 ]
 
 LAYOUT_VERSION = 1
@@ -49,15 +46,13 @@ class SpeciesGlyph(factory.Sbase):
         w: float = 50,
         h: float = 20,
         d: float = 0,
-        text: Optional[str] = None,
-        name: Optional[str] = None,
-        sboTerm: Optional[str] = None,
-        metaId: Optional[str] = None,
+        text: str | None = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
     ):
         """Construct SpeciesGlyph."""
-        super(SpeciesGlyph, self).__init__(
-            sid=sid, name=name, sboTerm=sboTerm, metaId=metaId
-        )
+        super().__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
         self.species = species
         self.x = x
         self.y = y
@@ -71,7 +66,7 @@ class SpeciesGlyph(factory.Sbase):
         self, obj: libsbml.SpeciesGlyph, layout: libsbml.Layout, model: libsbml.Model
     ) -> None:
         """Set fields."""
-        super(SpeciesGlyph, self)._set_fields(obj, model)
+        super()._set_fields(obj, model)
         obj.setSpeciesId(self.species)
         bb = _create_bounding_box(
             x=self.x,
@@ -112,15 +107,13 @@ class CompartmentGlyph(factory.Sbase):
         w: float = 200,
         h: float = 200,
         d: float = 0,
-        text: Optional[str] = None,
-        name: Optional[str] = None,
-        sboTerm: Optional[str] = None,
-        metaId: Optional[str] = None,
+        text: str | None = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
     ):
         """Construct CompartmentGlyph."""
-        super(CompartmentGlyph, self).__init__(
-            sid=sid, name=name, sboTerm=sboTerm, metaId=metaId
-        )
+        super().__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
         self.compartment = compartment
         self.x = x
         self.y = y
@@ -134,7 +127,7 @@ class CompartmentGlyph(factory.Sbase):
         self, obj: libsbml.SpeciesGlyph, layout: libsbml.Layout, model: libsbml.Model
     ) -> None:
         """Set fields."""
-        super(CompartmentGlyph, self)._set_fields(obj, model)
+        super()._set_fields(obj, model)
         obj.setCompartmentId(self.compartment)
         bb = _create_bounding_box(
             x=self.x,
@@ -171,19 +164,17 @@ class ReactionGlyph(factory.Sbase):
         x: float,
         y: float,
         z: float = 0,
-        species_glyphs: Optional[Dict[str, str]] = None,
+        species_glyphs: dict[str, str] | None = None,
         w: float = 20,
         h: float = 20,
         d: float = 0,
-        text: Optional[str] = None,
-        name: Optional[str] = None,
-        sboTerm: Optional[str] = None,
-        metaId: Optional[str] = None,
+        text: str | None = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
     ):
         """Construct ReactionGlyph."""
-        super(ReactionGlyph, self).__init__(
-            sid=sid, name=name, sboTerm=sboTerm, metaId=metaId
-        )
+        super().__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
         self.reaction: str = reaction
         self.x: float = x
         self.y: float = y
@@ -192,15 +183,15 @@ class ReactionGlyph(factory.Sbase):
         self.height: float = h
         self.depth: float = d
 
-        self.text: Optional[str] = text
-        self.species_glyphs: Dict[str, str] = species_glyphs if species_glyphs else {}
+        self.text: str | None = text
+        self.species_glyphs: dict[str, str] = species_glyphs if species_glyphs else {}
 
         self.layout = None
 
     def _set_glyph_fields(
         self, obj: libsbml.ReactionGlyph, layout: libsbml.Layout, model: libsbml.Model
     ) -> None:
-        super(ReactionGlyph, self)._set_fields(obj, model)
+        super()._set_fields(obj, model)
         self.layout = layout
         obj.setReactionId(self.reaction)
         bb = _create_bounding_box(
@@ -282,7 +273,6 @@ class ReactionGlyph(factory.Sbase):
         :param role:
         :return:
         """
-
         # 1. Find the direction of the reaction (via location of substrates and
         # 2. Orient the curves accordingly (at the bounding box, with all ingoing connecting
         # at same point and all outgoing connecting at same point.
@@ -357,16 +347,16 @@ class Layout(factory.Sbase):
         sid: str,
         width: float,
         height: float,
-        compartment_glyphs: Optional[List[CompartmentGlyph]] = None,
-        species_glyphs: Optional[List[SpeciesGlyph]] = None,
-        reaction_glyphs: Optional[List[ReactionGlyph]] = None,
+        compartment_glyphs: list[CompartmentGlyph] | None = None,
+        species_glyphs: list[SpeciesGlyph] | None = None,
+        reaction_glyphs: list[ReactionGlyph] | None = None,
         depth: int = 0,
-        name: Optional[str] = None,
-        sboTerm: Optional[str] = None,
-        metaId: Optional[str] = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
     ):
         """Create a layout."""
-        super(Layout, self).__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
+        super().__init__(sid=sid, name=name, sboTerm=sboTerm, metaId=metaId)
         self.width = float(width)
         self.height = float(height)
         self.depth = float(depth)
@@ -393,7 +383,7 @@ class Layout(factory.Sbase):
         return layout
 
     def _set_fields(self, sbase: libsbml.Layout, model: libsbml.Model) -> None:
-        super(Layout, self)._set_fields(sbase, model)
+        super()._set_fields(sbase, model)
         dim: libsbml.Dimensions = libsbml.Dimensions(
             SBML_LEVEL,
             SBML_VERSION,

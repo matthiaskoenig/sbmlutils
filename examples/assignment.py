@@ -1,9 +1,10 @@
 """AssignmentRule and InitialAssignment example."""
 
 from pathlib import Path
+
+from examples import templates
 from sbmlutils.console import console
 from sbmlutils.converters import odefac
-from examples import templates
 from sbmlutils.factory import *
 
 
@@ -108,7 +109,6 @@ model.rate_rules = [
 
 
 if __name__ == "__main__":
-
     results: FactoryResult = create_model(
         model=model, filepath=Path.cwd() / f"{model.sid}.xml"
     )

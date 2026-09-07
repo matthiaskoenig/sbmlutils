@@ -4,10 +4,11 @@ This demonstrates just the very core SBML functionality.
 """
 
 from pathlib import Path
+
 import libsbml
 
-from sbmlutils.cytoscape import visualize_sbml
 from examples import templates
+from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.factory import *
 from sbmlutils.metadata import BQB, SBO
 

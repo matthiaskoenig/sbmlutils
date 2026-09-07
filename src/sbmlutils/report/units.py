@@ -1,13 +1,10 @@
 """Helper functions for formating and rendering units."""
 
-from typing import Optional, Union
-
 import libsbml
 import numpy as np
 import pint
 
 from sbmlutils.console import console
-
 
 ureg = pint.UnitRegistry()
 ureg.define("item = dimensionless")
@@ -25,10 +22,10 @@ short_names = {
 
 
 def udef_to_string(
-    udef: Optional[Union[libsbml.UnitDefinition, str]],
-    model: Optional[libsbml.Model] = None,
+    udef: libsbml.UnitDefinition | str | None,
+    model: libsbml.Model | None = None,
     format: str = "latex",
-) -> Optional[str]:
+) -> str | None:
     """Render formatted string for units.
 
     Format can be either 'str' or 'latex'
@@ -49,8 +46,7 @@ def udef_to_string(
         # check for internal unit
         if libsbml.UnitKind_forName(udef) != libsbml.UNIT_KIND_INVALID:
             return short_names.get(udef, udef)
-        else:
-            ud = model.getUnitDefinition(udef)  # type: ignore
+        ud = model.getUnitDefinition(udef)  # type: ignore
     else:
         ud = udef
 

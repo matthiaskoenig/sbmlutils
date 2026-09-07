@@ -6,7 +6,6 @@ from sbmlutils.comp import flatten_sbml
 from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.factory import *
 
-
 n_cells = 5
 # -------------------------------------------------------------------------------------
 model = Model(
@@ -81,7 +80,6 @@ for k in range(n_cells):
 
 def create(output_dir: Path) -> None:
     """Create model."""
-
     # create external model
     from examples.tutorial.minimal_model import model as minimal_model
 
@@ -117,5 +115,4 @@ def create(output_dir: Path) -> None:
 
 
 if __name__ == "__main__":
-
     create(output_dir=Path.cwd())

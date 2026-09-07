@@ -6,7 +6,6 @@ import libsbml
 
 from sbmlutils import log
 
-
 logger = log.get_logger(__name__)
 
 

@@ -1,7 +1,7 @@
 """Testing the factory methods."""
 
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import libsbml
 import numpy as np
@@ -11,7 +11,6 @@ from sbmlutils import factory
 from sbmlutils.factory import *
 from sbmlutils.io import read_sbml
 from sbmlutils.validation import ValidationOptions
-
 
 compartment_value_data = [
     (
@@ -79,7 +78,7 @@ compartment_value_data = [
 
 @pytest.mark.parametrize("value,constant,expected", compartment_value_data)
 def test_compartment_value(
-    value: Any, constant: bool, expected: Dict, tmp_path: Path
+    value: Any, constant: bool, expected: dict, tmp_path: Path
 ) -> None:
     """Test compartment value."""
     m1: ModelDict = {
@@ -118,7 +117,7 @@ parameter_value_data = [
 
 @pytest.mark.parametrize("value,constant,expected", parameter_value_data)
 def test_parameter_value(
-    value: Any, constant: bool, expected: Dict, tmp_path: Path
+    value: Any, constant: bool, expected: dict, tmp_path: Path
 ) -> None:
     """Test parameter value."""
     m1: ModelDict = {

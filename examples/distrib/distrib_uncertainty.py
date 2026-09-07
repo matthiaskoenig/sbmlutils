@@ -17,7 +17,6 @@ import libsbml
 
 from sbmlutils import RESOURCES_DIR
 
-
 logger = logging.getLogger(__name__)
 
 

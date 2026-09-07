@@ -1,6 +1,7 @@
 """FBA example with UserDefinedConstraints."""
 
 from pathlib import Path
+
 import numpy as np
 
 from sbmlutils.factory import *
@@ -79,7 +80,6 @@ model = Model(
 )
 
 if __name__ == "__main__":
-
     fac_results = create_model(
         model=model,
         filepath=Path.cwd() / f"{model.sid}.xml",
