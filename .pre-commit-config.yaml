@@ -4,6 +4,10 @@
 # A commit only checks the changed files; `pre-commit run --all-files` checks
 # the whole repository, which is what a newly added hook should be tried with.
 
+# the packaged models, the fixtures of the tests and the vendored XSLT
+# stylesheets are content, not source: the whitespace hooks leave them alone
+x-resources: &resources '^(src/sbmlutils/resources/|examples/.*\.(xlsx|csv|tsv|txt|xml)$|misc/|presentations/)'
+
 repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: v6.0.0
@@ -24,10 +28,10 @@ repos:
     description: Check for symlinks which do not point to anything
   - id: trailing-whitespace
     description: Trim trailing whitespaces
-    exclude: '\.(xml|sbml|omex|ode|xpp)$'
+    exclude: *resources
   - id: end-of-file-fixer
     description: Fix empty lines at ends of files
-    exclude: '\.(xml|sbml|omex|ode|xpp)$'
+    exclude: *resources
   - id: detect-private-key
     description: Detects the presence of private keys
   - id: check-case-conflict
@@ -35,7 +39,7 @@ repos:
   - id: mixed-line-ending
     description: Normalize mixed line endings
     args: [ --fix=lf ]
-    exclude: '\.(xml|sbml|omex|ode|xpp)$'
+    exclude: *resources
   - id: debug-statements
     description: Check for forgotten breakpoints and debugger imports
 
