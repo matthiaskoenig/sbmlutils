@@ -4,9 +4,15 @@ A reaction network is easier to check as a picture than as XML. `sbmlutils.cytos
 
 ## Requirements
 
-Cytoscape has to be **running** on the machine: the package talks to its CyREST interface through [py4cytoscape](https://py4cytoscape.readthedocs.io). py4cytoscape is a dependency of sbmlutils, Cytoscape is not — download it from [cytoscape.org](https://cytoscape.org). The [cy3sbml](https://github.com/matthiaskoenig/cy3sbml) app reads the SBML, install it from the Cytoscape app store.
+The visualization needs two things which do not come with `sbmlutils`:
 
-If Cytoscape is not reachable, the functions log a warning and return `None`; they do not raise, so a model creation script which visualizes at the end still finishes.
+```bash
+pip install sbmlutils[cytoscape]
+```
+
+installs [py4cytoscape](https://py4cytoscape.readthedocs.io), which talks to the CyREST interface, and Cytoscape itself has to be **running** on the machine — download it from [cytoscape.org](https://cytoscape.org). The [cy3sbml](https://github.com/matthiaskoenig/cy3sbml) app reads the SBML, install it from the Cytoscape app store.
+
+If py4cytoscape is not installed, or Cytoscape is not reachable, the functions log a warning and return `None`; they do not raise, so a model creation script which visualizes at the end still finishes.
 
 ## Visualizing a model
 

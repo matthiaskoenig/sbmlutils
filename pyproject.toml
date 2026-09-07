@@ -36,32 +36,42 @@ keywords = [
 	"computational modeling",
 ]
 dependencies = [
-	# SBML and simulation
-	"python-libsbml>=5.21.0",
-	"antimony>=3.1.1",
-	"libroadrunner>=2.10.0",
-	# annotations and COMBINE archives
+	# SBML
+	"python-libsbml>=5.21.1",
+	"antimony>=3.1.3",
 	"pymetadata>=0.6.0",
 	# data structures, units and output
 	"pydantic>=2.13.5",
-	"pint>=0.25.2",
+	"pint>=0.25.3",
 	"numpy>=2.2.2",
 	"pandas>=2.2.0",
 	"rich>=15.0.0",
 	# model reports, notes and converters
 	"lxml>=6.0.0",
 	"jinja2>=3.1.6",
-	"markdown-it-py>=4.0.0",
+	"markdown-it-py>=4.2.0",
 	"xmltodict>=1.0.2",
 	# annotation spreadsheets, visualization
 	"openpyxl>=3.1.5",
-	"matplotlib>=3.10",
 	"requests>=2.34.2",
-	"py4cytoscape>=1.12.0",
 ]
 
 [project.optional-dependencies]
+# flux balance analysis of a model, see `sbmlutils.fbc.cobra`
+cobra = [
+	"cobra>=0.32.1",
+]
+# visualization of a model in a running Cytoscape, see `sbmlutils.cytoscape`
+cytoscape = [
+	"py4cytoscape>=1.13.0",
+]
+# simulation and plotting; the package itself does neither, the examples do
+examples = [
+	"libroadrunner>=2.10.0",
+	"matplotlib>=3.11.1",
+]
 dev = [
+	"sbmlutils[cytoscape,examples]",
 	"bump-my-version>=1.5.1",
 	"ruff>=0.16.6",
 	"pre-commit>=4.6.2",
@@ -83,6 +93,15 @@ Download = "https://pypi.org/project/sbmlutils"
 
 [tool.hatch.version]
 path = "./src/sbmlutils/__init__.py"
+
+[tool.hatch.build]
+# large test data, only needed from a checkout of the repository: the models of
+# the SBML test suite (56 MB) and the biomodels archives (21 MB), which
+# `sbmlutils.biomodels` downloads
+exclude = [
+    "src/sbmlutils/resources/models/sbml-test-suite-3.4.0",
+    "src/sbmlutils/resources/models/biomodels",
+]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/sbmlutils"]

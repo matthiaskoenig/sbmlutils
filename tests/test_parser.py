@@ -7,12 +7,23 @@ from pymetadata.omex import ManifestEntry, Omex
 
 from sbmlutils.factory import Model, create_model
 from sbmlutils.parser import sbml_to_model
-from sbmlutils.resources import BIOMODELS_CURATED_PATH, sbml_paths_idfn
+from sbmlutils.resources import sbml_paths_idfn
 from sbmlutils.validation import ValidationOptions
+
+#: the biomodels archives are test data of the repository, they are not part of
+#: the distribution, see `[tool.hatch.build]` in `pyproject.toml`
+BIOMODELS_DIR = (
+    Path(__file__).parent.parent
+    / "src"
+    / "sbmlutils"
+    / "resources"
+    / "models"
+    / "biomodels"
+)
 
 omex_paths: list[Path] = []
 for k in range(100):
-    path: Path = BIOMODELS_CURATED_PATH / f"BIOMD0000000{k:0>3}.omex"
+    path: Path = BIOMODELS_DIR / f"BIOMD0000000{k:0>3}.omex"
     if path.exists():
         omex_paths.append(path)
 

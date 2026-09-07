@@ -1,6 +1,12 @@
 """Module for visualization in Cytoscape.
 
 Supports loading of networks, annotations and storing of images.
+
+The visualization talks to a running [Cytoscape](https://cytoscape.org) through
+[py4cytoscape](https://py4cytoscape.readthedocs.io), which is the optional
+`cytoscape` extra (`pip install sbmlutils[cytoscape]`). Without it, and without
+a running Cytoscape, the functions log a warning and do nothing instead of
+raising, so a model creation script which visualizes at the end still finishes.
 """
 
 import logging
@@ -15,15 +21,41 @@ os.environ["PY4CYTOSCAPE_DETAIL_LOGGER_DIR"] = str(tempfile.gettempdir())
 
 from collections.abc import Iterable
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-import py4cytoscape as p4c
 from requests.exceptions import RequestException
 
 from sbmlutils.console import console
 from sbmlutils.parser import antimony_to_sbml
 
+# py4cytoscape is the optional `cytoscape` extra
+if TYPE_CHECKING:
+    import py4cytoscape as p4c
+else:
+    try:
+        import py4cytoscape as p4c
+    except ImportError:
+        p4c = None
+
 logger = logging.getLogger(__name__)
+
+#: what to tell the user when the optional dependency is missing
+_MISSING = (
+    "py4cytoscape is not installed, the visualization is skipped. "
+    "Install it with `pip install sbmlutils[cytoscape]`."
+)
+
+
+def _has_py4cytoscape() -> bool:
+    """Check that py4cytoscape is installed.
+
+    Returns:
+        True if the visualization can run, False after logging what is missing.
+    """
+    if p4c is None:
+        logger.warning(_MISSING)
+        return False
+    return True
 
 
 def visualize_antimony(source: Path | str, delete_session: bool = False) -> Any:
@@ -40,6 +72,9 @@ def visualize_sbml(sbml_path: Path, delete_session: bool = False) -> int | None:
 
     Returns dictionary with "networks" and "views".
     """
+    if not _has_py4cytoscape():
+        return None
+
     try:
         console.print(p4c.cytoscape_version_info())
 
@@ -72,6 +107,9 @@ def read_layout_xml(sbml_path: Path, xml_path: Path) -> pd.DataFrame:
 
 def apply_layout(layout: pd.DataFrame, network: int | None = None) -> None:
     """Apply layout information from Cytoscape to SBML networks."""
+    if not _has_py4cytoscape():
+        return
+
     # get SUIDs, sbml_id from node table;
     df_nodes = p4c.get_table_columns(table="node", columns=["sbml id"], network=network)
     sid2suid = {row["sbml id"]: suid for suid, row in df_nodes.iterrows()}
@@ -167,6 +205,9 @@ class AnnotationBoundedText:
 
 def add_annotations(annotations: Iterable, network: int | None = None) -> None:
     """Add annotations to the network."""
+    if not _has_py4cytoscape():
+        return
+
     for a in annotations:
         if isinstance(a, AnnotationShape):
             p4c.add_annotation_shape(
@@ -229,6 +270,9 @@ def export_image(
 
     format (str): Type of image to export, e.g., PNG (default), JPEG, PDF, SVG, PS (PostScript).
     """
+    if not _has_py4cytoscape():
+        return
+
     if fit_content:
         p4c.fit_content()
 

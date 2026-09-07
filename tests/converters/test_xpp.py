@@ -2,14 +2,17 @@
 
 from pathlib import Path
 
+import pytest
+
 from sbmlutils.converters import xpp
 from sbmlutils.io.sbml import validate_sbml
 from sbmlutils.resources import TESTDATA_DIR
 from sbmlutils.validation import ValidationOptions
 
+#: the packaged ode files, every one of them converts to valid SBML
 model_ids = [
-    # "112836_HH-ext",
-    # "SkM_AP_KCa",
+    "112836_HH-ext",
+    "SkM_AP_KCa",
     "PLoSCompBiol_Fig1",
 ]
 
@@ -28,11 +31,7 @@ def _xpp_check(
     assert vresults.warning_count == Nwarn
 
 
-def test_PLoSCompBiol_Fig1(tmp_path: Path) -> None:
-    """Test model creation."""
-    _xpp_check(tmp_path=tmp_path, ode_id="PLoSCompBiol_Fig1")
-
-
-def test_SkM_AP_KCa(tmp_path: Path) -> None:
-    """Test model creation."""
-    _xpp_check(tmp_path=tmp_path, ode_id="SkM_AP_KCa")
+@pytest.mark.parametrize("ode_id", model_ids)
+def test_xpp2sbml(tmp_path: Path, ode_id: str) -> None:
+    """Every packaged ode file converts to a valid SBML model."""
+    _xpp_check(tmp_path=tmp_path, ode_id=ode_id)

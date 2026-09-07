@@ -39,16 +39,19 @@ pip install git+https://github.com/matthiaskoenig/sbmlutils.git@develop
 
 To work on the repository itself, with the test and documentation tooling, see [Development](development.md).
 
-## Optional dependencies
+## Extras
 
-Two features need packages which are not installed with `sbmlutils`:
+`sbmlutils` reads, writes, annotates and validates models; it neither simulates nor plots, so the packages for that are not installed with it. Three extras add what a specific feature needs:
 
-| feature | package | install |
+| extra | install | what it adds |
 | --- | --- | --- |
-| [cobrapy models](fbc.md#cobrapy) (`sbmlutils.fbc.cobra`) | `cobra` | `pip install sbmlutils[cobra]` |
-| [visualization](visualization.md) (`sbmlutils.cytoscape`) | a running [Cytoscape](https://cytoscape.org) | see the guide |
+| `cytoscape` | `pip install sbmlutils[cytoscape]` | `py4cytoscape` for the [visualization](visualization.md) in a running [Cytoscape](https://cytoscape.org) |
+| `cobra` | `pip install sbmlutils[cobra]` | `cobra` for the [flux balance analysis](fbc.md#cobrapy) of `sbmlutils.fbc.cobra` |
+| `examples` | `pip install sbmlutils[examples]` | `libroadrunner` and `matplotlib`, which the [examples](https://github.com/matthiaskoenig/sbmlutils/tree/develop/examples) simulate and plot with |
 
-`py4cytoscape` itself is a dependency, but it needs a running Cytoscape instance to talk to.
+Several are combined as usual: `pip install sbmlutils[cytoscape,examples]`. The development environment installs `cytoscape` and `examples` with `uv sync --extra dev`, see [Development](development.md).
+
+Without the `cytoscape` extra `sbmlutils.cytoscape` still imports; its functions log a warning and do nothing, just as they do when Cytoscape is not running.
 
 ## Logging
 

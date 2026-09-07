@@ -2,6 +2,8 @@
 
 Runnable examples for sbmlutils. They are **not** part of the package: they are not installed with `pip install sbmlutils`, they are read and run from a checkout of the repository.
 
+The examples simulate with [libroadrunner](https://libroadrunner.org) and plot with matplotlib, which are the `examples` extra of the package (`pip install sbmlutils[examples]`, or `uv sync --extra dev` in a checkout).
+
 Every example is a module of the `examples` package, so it is run from the root of the repository with
 
 ```bash
