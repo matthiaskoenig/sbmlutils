@@ -1010,21 +1010,19 @@ class SBMLDocumentInfo:
         items = []
         sr: libsbml.SpeciesReference
         for sr in speciesList:
-            stoichiometry = sr.getStoichiometry() if sr.isSetStoichiometry() else 1.0
+            # unset stoichiometry is 1.0 in L2 and NaN in L3 (set by an initial
+            # assignment or rule targeting the id of the species reference)
+            stoichiometry: float = sr.getStoichiometry()
             species = sr.getSpecies()
-            if abs(stoichiometry - 1.0) < 1e-8:
+            if np.isnan(stoichiometry):
+                coefficient = sr.getId() if sr.isSetId() else "?"
+                sd = f"{coefficient} {species}"
+            elif abs(stoichiometry - 1.0) < 1e-8:
                 sd = f"{species}"
             elif abs(stoichiometry + 1.0) < 1e-8:
                 sd = f"-{species}"
-            elif stoichiometry >= 0:
-                sd = f"{stoichiometry} {species}"
-            elif stoichiometry < 0:
-                sd = f"-{stoichiometry} {species}"
             else:
-                raise ValueError(
-                    f"Half equation could not be generated: '{sr}' with "
-                    f"stoichiometry: '{stoichiometry}'."
-                )
+                sd = f"{stoichiometry} {species}"
             items.append(sd)
         return " + ".join(items)
 
