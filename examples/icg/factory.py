@@ -74,9 +74,8 @@ def create_models(results_path: Path, create_tissues: bool = True) -> Dict[str, 
 
 
 if __name__ == "__main__":
-    from examples.icg import MODEL_BASE_PATH
 
-    results = create_models(MODEL_BASE_PATH, create_tissues=True)
+    results = create_models(Path.cwd(), create_tissues=True)
     for k, key in enumerate(results):
         delete_session = True if k == 0 else False
         sbml_path = results[key]["path"]

@@ -340,5 +340,5 @@ def create(output_dir: Path) -> FactoryResult:
 
 
 if __name__ == "__main__":
-    result: FactoryResult = create(output_dir=Path(__file__).parent / "results")
+    result: FactoryResult = create(output_dir=Path.cwd())
     visualize_sbml(result.sbml_path)

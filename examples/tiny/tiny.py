@@ -440,9 +440,6 @@ def create(output_dir: Path) -> FactoryResult:
 
 
 if __name__ == "__main__":
-    """
-    The MEMOTE report can be created via
-        memote report snapshot --filename "report.html" path/to/model.xml
-    """
-
-    create(output_dir=Path(__file__).parent / "results")
+    # The MEMOTE report can be created via
+    #   memote report snapshot --filename "report.html" path/to/model.xml
+    create(output_dir=Path.cwd())

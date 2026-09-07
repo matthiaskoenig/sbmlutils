@@ -1,8 +1,21 @@
-"""Example demonstrating the interpolation of data."""
+"""Interpolation of measured pancreas data as an SBML model.
 
+The measured ATP/ADP ratios of `atp_adp_mean.tsv` are interpolated with all
+three methods of `sbmlutils.data.interpolation` and the resulting models are
+simulated with roadrunner.
+
+Run it from the root of the repository:
+
+```bash
+python -m examples.interpolation.pancreas
+```
+
+The figure is written into the current working directory.
+"""
+
+import logging
 import tempfile
 from pathlib import Path
-from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -10,34 +23,48 @@ import roadrunner
 from matplotlib import pyplot as plt
 from matplotlib.pyplot import Axes, Figure
 
-from sbmlutils import log
+from sbmlutils.console import console
 from sbmlutils.data import interpolation as ip
 
 
-logger = log.get_logger(__name__)
+logger = logging.getLogger(__name__)
+
+#: the measured data, next to this module
+DATA_DIR: Path = Path(__file__).parent
 
 
 def interpolate_data(
     data: pd.DataFrame,
     xid: str,
     yid: str,
-    xid_model: Optional[str] = None,
-    yid_model: Optional[str] = None,
-    title: Optional[str] = None,
-) -> None:
-    """Interpolate given data.yid ~ data.xid.
+    xid_model: str | None = None,
+    yid_model: str | None = None,
+    title: str | None = None,
+) -> Figure:
+    """Interpolate `data.yid ~ data.xid` and simulate the interpolation.
 
     Two main use cases:
+
     - interpolate timecourse data (added via a parameter and rule)
     - interpolate data dependencies (added via a parameter and rule)
 
-    TODO: support units in formula creation.
+    Args:
+        data: the measured data
+        xid: column of the independent variable
+        yid: column of the dependent variable
+        xid_model: identifier of the independent variable in the model
+        yid_model: identifier of the dependent variable in the model
+        title: title of the figure
+
+    Returns:
+        The figure with the data points and the simulated interpolations,
+        nothing is shown, so that the example does not open a window when it
+        runs unattended.
     """
     x: np.ndarray = data[xid].values
     y: np.ndarray = data[yid].values
 
     data1 = pd.DataFrame({xid_model: x, yid_model: y})
-    print(data1)
 
     # plot results
     f: Figure
@@ -61,13 +88,12 @@ def interpolate_data(
             tmp_f = Path(tmpdir, "tests.xml")
 
             interpolation = ip.Interpolation(data=data1, method=method)
-            print("-" * 80)
-            print(f"*** {method}: {yid_model} ~ {xid_model}***")
+            console.rule(f"{method}: {yid_model} ~ {xid_model}", style="white")
             interpolators = interpolation.create_interpolators(
                 data=data1, method=method
             )
             for interpolator in interpolators:
-                print(interpolator.formula())
+                console.print(interpolator.formula())
 
             interpolation.write_sbml_to_file(tmp_f)
 
@@ -120,18 +146,21 @@ def interpolate_data(
                 )
 
     ax1.legend()
-    plt.show()
+    return f
 
 
 if __name__ == "__main__":
-    interpolate_data(
-        data=pd.read_csv("atp_adp_mean.tsv", sep="\t"),
+    figure = interpolate_data(
+        data=pd.read_csv(DATA_DIR / "atp_adp_mean.tsv", sep="\t"),
         xid="dose",
         yid="atp_adp",
         xid_model="glc",
         yid_model="atp_adp_total",
         title="Interpolation: atp_adp_mean",
     )
+    figure_path = Path.cwd() / "interpolation_pancreas.png"
+    figure.savefig(figure_path, bbox_inches="tight", dpi=150)
+    logger.info("Figure written to '%s'", figure_path)
 
     # interpolate_data(
     #     data=pd.read_csv("atp_adp_normalized.tsv", sep="\t"),

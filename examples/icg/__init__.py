@@ -1,8 +1,5 @@
-"""ICG examples."""
+"""Whole-body model of indocyanine green (ICG).
 
-from pathlib import Path
-
-ICG_PATH = Path(__file__).parent
-
-MODEL_BASE_PATH = ICG_PATH / "results"
-MODEL_PATH = MODEL_BASE_PATH / "icg_body_flat.xml"
+A physiologically based model of the liver (`model_liver`) which is embedded in
+a whole-body model (`model_body`) with the comp package, see `factory.py`.
+"""

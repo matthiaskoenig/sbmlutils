@@ -2,7 +2,7 @@
 
 import libsbml
 
-from sbmlutils.distrib import distrib_examples, distrib_packages
+from examples.distrib import distrib_packages_examples, distrib_uncertainty
 from sbmlutils.factory import *
 from sbmlutils.metadata import BQB, SBO
 from sbmlutils.validation import ValidationOptions, validate_doc
@@ -18,12 +18,12 @@ class U(Units):
 
 def test_distrib_examples() -> None:
     """Test distrib examples."""
-    distrib_examples.create_examples(tmp=True)
+    distrib_packages_examples.create_examples(tmp=True)
 
 
 def test_add_uncertainty_example() -> None:
     """Test add uncertainty example."""
-    distrib_packages.add_uncertainty_example(tmp=True)
+    distrib_uncertainty.add_uncertainty_example(tmp=True)
 
 
 def check_model(model: Model) -> libsbml.SBMLDocument:

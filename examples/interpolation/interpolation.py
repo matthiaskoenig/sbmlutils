@@ -1,5 +1,20 @@
-"""Example demonstrating the interpolation of data."""
+"""Interpolation of data points as an SBML model.
 
+`sbmlutils.data.interpolation` turns a table of data points into an SBML model
+which evaluates the interpolation, so that the data can be used inside a
+simulation. The example interpolates the same two data series with all three
+methods and simulates the resulting models with roadrunner.
+
+Run it from the root of the repository:
+
+```bash
+python -m examples.interpolation.interpolation
+```
+
+The figure is written into the current working directory.
+"""
+
+import logging
 import tempfile
 from pathlib import Path
 
@@ -8,15 +23,20 @@ import roadrunner
 from matplotlib import pyplot as plt
 from matplotlib.pyplot import Axes, Figure
 
-from sbmlutils import log
 from sbmlutils.data import interpolation as ip
 
 
-logger = log.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
-def interpolation_example() -> None:
-    """Demonstrate interpolation functionality."""
+def interpolation_example() -> Figure:
+    """Interpolate two data series with all interpolation methods.
+
+    Returns:
+        The figure with the data points and the simulated interpolations. The
+        caller closes it or writes it to a file, nothing is shown, so that the
+        example does not open a window when it runs unattended.
+    """
     x = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0]
     y = [0.0, 2.0, 1.0, 1.5, 2.5, 3.5]
     z = [10.0, 5.0, 2.5, 1.25, 0.6, 0.3]
@@ -40,7 +60,7 @@ def interpolation_example() -> None:
         ]
     ):
         with tempfile.TemporaryDirectory() as tmpdir:
-            tmp_f = Path(tmpdir, "tests.xml")
+            tmp_f = Path(tmpdir, "interpolation.xml")
 
             interpolation = ip.Interpolation(data=data1, method=method)
             interpolation.write_sbml_to_file(tmp_f)
@@ -54,8 +74,11 @@ def interpolation_example() -> None:
             )
 
     ax1.legend()
-    plt.show()
+    return f
 
 
 if __name__ == "__main__":
-    interpolation_example()
+    fig = interpolation_example()
+    fig_path = Path.cwd() / "interpolation.png"
+    fig.savefig(fig_path, bbox_inches="tight", dpi=150)
+    logger.info("Figure written to '%s'", fig_path)

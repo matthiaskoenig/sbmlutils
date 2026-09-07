@@ -1,4 +1,14 @@
-"""Code for working with the libsbml distrib package."""
+"""Models which use the elements of the libsbml distrib package.
+
+`create_examples` builds one small SBML document per distrib element
+(uncertainty, distribution, external parameter) and validates it.
+
+Run it from the root of the repository:
+
+```bash
+python -m examples.distrib.distrib_packages_examples
+```
+"""
 
 import tempfile
 

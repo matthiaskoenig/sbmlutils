@@ -1,14 +1,24 @@
-"""Example testing uncertainty with libsbml packages."""
+"""Uncertainty information added to an existing model.
 
+The example reads the packaged *E. coli* core model and adds the uncertainty of
+a parameter with the libsbml distrib package.
+
+Run it from the root of the repository:
+
+```bash
+python -m examples.distrib.distrib_uncertainty
+```
+"""
+
+import logging
 import tempfile
 
 import libsbml
 
 from sbmlutils import RESOURCES_DIR
-from sbmlutils.log import get_logger
 
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def add_uncertainty_example(tmp: bool = False) -> None:

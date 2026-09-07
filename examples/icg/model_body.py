@@ -2,6 +2,8 @@
 
 import os
 
+from pathlib import Path
+
 import numpy as np
 
 from sbmlutils.cytoscape import visualize_sbml
@@ -1387,10 +1389,9 @@ for sid, sdict in SUBSTANCES_BODY.items():
 model_body = _m
 
 if __name__ == "__main__":
-    from examples.icg import MODEL_BASE_PATH
 
     results = create_model(
         model=model_body,
-        filepath=MODEL_BASE_PATH / f"{model_body.sid}.xml",
+        filepath=Path.cwd() / f"{model_body.sid}.xml",
     )
     visualize_sbml(results.sbml_path)

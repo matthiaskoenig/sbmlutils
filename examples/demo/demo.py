@@ -225,4 +225,4 @@ def create(output_dir: Path) -> None:
 
 
 if __name__ == "__main__":
-    create(output_dir=Path(__file__).parent / "results")
+    create(output_dir=Path.cwd())

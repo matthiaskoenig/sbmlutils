@@ -10,9 +10,9 @@ from sbmlutils.resources import TESTDATA_DIR
 from sbmlutils.validation import ValidationOptions
 
 
-def test_merge_models_example() -> None:
+def test_merge_models_example(tmp_path: Path) -> None:
     """Testing the merge model example."""
-    merge_models_example()
+    merge_models_example(output_dir=tmp_path)
 
 
 def test_biomodel_merge(tmp_path: Path) -> None:

@@ -1,38 +1,51 @@
-"""
-Runs ODE and FBA simulation with the model.
+"""ODE and FBA simulation of the tiny model.
 
-memote model report can be generated via:
-memote report snapshot --filename tiny_example_10_memote.html tiny_example_10.xml
+The model is created with `examples.tiny.tiny`, simulated with roadrunner and,
+if cobrapy is installed, optimized as a flux balance model.
 
-Requires the cobra functionality and roadrunner functionality
+Run it from the root of the repository:
+
+```bash
+python -m examples.tiny.simulation
 ```
-pip install libroadrunner cobra
-```
 
+The model and the figure are written into the current working directory. The
+memote report of the model is created with
+
+```bash
+memote report snapshot --filename tiny_example_memote.html tiny_example.xml
+```
 """
 
+import logging
 from pathlib import Path
 
 import pandas as pd
 import roadrunner
-from matplotlib import pylab as plt
+from matplotlib import pyplot as plt
+from matplotlib.pyplot import Figure
 
 from examples.tiny import tiny
-from sbmlutils.fbc.cobra import read_cobra_model
+from sbmlutils.console import console
+from sbmlutils.fbc.cobra import cobra, read_cobra_model
 
 
-def tiny_simulation() -> None:
-    """Analysis of the tiny model.
+logger = logging.getLogger(__name__)
 
-    Creates model and runs simulation.
+
+def tiny_simulation(output_dir: Path) -> Figure:
+    """Create the tiny model and simulate it.
+
+    Args:
+        output_dir: directory the model is written to
+
+    Returns:
+        The figure with the species and reaction time courses, nothing is
+        shown, so that the example does not open a window when it runs
+        unattended.
     """
-    sbml_path: Path = Path(__file__).parent / "results" / f"{tiny.model.sid}.xml"
+    sbml_path = tiny.create(output_dir=output_dir).sbml_path
 
-    # -----------------------------------------------------------------------------
-    # run ode simulation
-    # -----------------------------------------------------------------------------
-
-    tiny_dir = Path(__file__).parent
     r = roadrunner.RoadRunner(str(sbml_path))
     r.timeCourseSelections = (
         ["time"]
@@ -42,10 +55,8 @@ def tiny_simulation() -> None:
         + r.model.getGlobalParameterIds()
     )
     r.timeCourseSelections += [f"[{key}]" for key in r.model.getFloatingSpeciesIds()]
-    # print(r)
     s = r.simulate(0, 400, steps=400)
     df = pd.DataFrame(s, columns=s.colnames)
-    # r.plot()
 
     f, (ax1, ax2) = plt.subplots(nrows=1, ncols=2)
     ax1.set_title("SBML species")
@@ -65,46 +76,49 @@ def tiny_simulation() -> None:
         ax.legend()
         ax.set_xlabel("time [s]")
 
-    plt.show()
-    f.savefig(
-        tiny_dir / "results" / f"{tiny.model.sid}_roadrunner.png",
-        bbox_inches="tight",
-    )
+    if cobra is not None:
+        fba_simulation(sbml_path)
+    else:
+        logger.warning("cobrapy is not installed, the fba simulation is skipped")
 
-    # -----------------------------------------------------------------------------
-    # fba simulation
-    # -----------------------------------------------------------------------------
+    return f
+
+
+def fba_simulation(sbml_path: Path) -> None:
+    """Optimize the model as a flux balance model with cobrapy.
+
+    Args:
+        sbml_path: the SBML model to optimize
+    """
     model = read_cobra_model(sbml_path)
-    print(model)
+    console.print(model)
 
-    # Iterate through the the objects in the model
-    print("Reactions")
-    print("---------")
-    for x in model.reactions:
-        print("%s : %s [%s<->%s]" % (x.id, x.reaction, x.lower_bound, x.upper_bound))
-
-    print("")
-    print("Metabolites")
-    print("-----------")
-    for x in model.metabolites:
-        print(
-            "%9s (%s) : %s, %s, %s"
-            % (x.id, x.compartment, x.formula, x.charge, x.annotation)
+    console.rule("Reactions", style="white")
+    for reaction in model.reactions:
+        console.print(
+            f"{reaction.id} : {reaction.reaction} "
+            f"[{reaction.lower_bound}<->{reaction.upper_bound}]"
         )
 
-    print("")
-    print("Genes")
-    print("-----")
-    for x in model.genes:
-        associated_ids = (i.id for i in x.reactions)
-        print(
-            "%s is associated with reactions: %s"
-            % (x.id, "{" + ", ".join(associated_ids) + "}")
+    console.rule("Metabolites", style="white")
+    for metabolite in model.metabolites:
+        console.print(
+            f"{metabolite.id:>9} ({metabolite.compartment}) : "
+            f"{metabolite.formula}, {metabolite.charge}, {metabolite.annotation}"
         )
 
-    solution = model.optimize()
-    print(solution)
+    console.rule("Genes", style="white")
+    for gene in model.genes:
+        associated_ids = ", ".join(reaction.id for reaction in gene.reactions)
+        console.print(f"{gene.id} is associated with reactions: {{{associated_ids}}}")
+
+    console.rule(style="white")
+    console.print(model.optimize())
 
 
 if __name__ == "__main__":
-    tiny_simulation()
+    output = Path.cwd()
+    figure = tiny_simulation(output_dir=output)
+    figure_path = output / f"{tiny.model.sid}_roadrunner.png"
+    figure.savefig(figure_path, bbox_inches="tight")
+    logger.info("Figure written to '%s'", figure_path)

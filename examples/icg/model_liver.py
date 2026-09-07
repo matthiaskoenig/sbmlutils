@@ -1,7 +1,9 @@
 """ICG liver model."""
 
+from pathlib import Path
+
 from sbmlutils.cytoscape import visualize_sbml
-from examples.icg import MODEL_BASE_PATH, annotations, templates
+from examples.icg import annotations, templates
 from sbmlutils.factory import *
 from sbmlutils.metadata import BQB, SBO
 
@@ -265,5 +267,5 @@ model = _m
 
 
 if __name__ == "__main__":
-    results = create_model(model=model, filepath=MODEL_BASE_PATH / f"{model.sid}.xml")
+    results = create_model(model=model, filepath=Path.cwd() / f"{model.sid}.xml")
     visualize_sbml(results.sbml_path)

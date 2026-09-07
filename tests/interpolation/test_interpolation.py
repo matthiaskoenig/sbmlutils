@@ -5,9 +5,10 @@ from pathlib import Path
 import pandas as pd
 import pytest
 import roadrunner
+from matplotlib import pyplot as plt
 
+from examples.interpolation.interpolation import interpolation_example
 from sbmlutils.data import interpolation as ip
-from sbmlutils.data.interpolation_example import interpolation_example
 
 
 x = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0]
@@ -46,4 +47,6 @@ def test_interpolation(method: str, tmp_path: Path) -> None:
 
 def test_example() -> None:
     """Test the interpolation example."""
-    interpolation_example()
+    figure = interpolation_example()
+    assert figure
+    plt.close(figure)
