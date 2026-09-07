@@ -1,5 +1,6 @@
 """Helpers for model flattening."""
 
+import logging
 import os
 import time
 from pathlib import Path
@@ -8,10 +9,9 @@ import libsbml
 
 from sbmlutils.console import console
 from sbmlutils.io import read_sbml, write_sbml
-from sbmlutils.log import get_logger
 from sbmlutils.validation import log_sbml_errors_for_doc, validate_doc
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def flatten_sbml(

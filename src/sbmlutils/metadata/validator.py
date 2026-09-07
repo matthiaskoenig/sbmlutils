@@ -1,5 +1,6 @@
 """Validation of the annotations of a model against the registry."""
 
+import logging
 from pathlib import Path
 
 import libsbml
@@ -9,9 +10,8 @@ from pymetadata.core.miriam import BQB
 
 from sbmlutils.console import console
 from sbmlutils.io.sbml import read_sbml
-from sbmlutils.log import get_logger
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def validate_sbml_annotations(source: Path | str) -> pd.DataFrame:

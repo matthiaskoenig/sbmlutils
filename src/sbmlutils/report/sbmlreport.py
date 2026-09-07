@@ -1,15 +1,14 @@
 """SBML report using https://sbml4humans.de."""
 
 import http.server
+import logging
 import socketserver
 import threading
 import time
 import webbrowser
 from pathlib import Path
 
-from sbmlutils.log import get_logger
-
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def start_server(path: Path, port: int = 5115) -> None:

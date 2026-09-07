@@ -8,15 +8,16 @@ MathML.
 see also: https://docs.sympy.org/dev/modules/printing.html#module-sympy.printing.mathml
 """
 
+import logging
 import re
 from functools import lru_cache
 
 import libsbml
 import lxml.etree as ET  # ty: ignore[unresolved-import]
 
-from sbmlutils import RESOURCES_DIR, log
+from sbmlutils import RESOURCES_DIR
 
-logger = log.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 xslt_cmml2pmml = ET.parse(str(RESOURCES_DIR / "xslt" / "ctopff.xsl"))
 xslt_pmml2tex = ET.parse(str(RESOURCES_DIR / "xslt" / "xsltml" / "mmltex.xsl"))

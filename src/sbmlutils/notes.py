@@ -5,15 +5,14 @@ Markdown -> HTML conversion is performed using `markdown-it-py` for the conversi
 No styles for the display are inserted here.
 """
 
+import logging
 import textwrap
 from enum import StrEnum
 
 import libsbml
 from markdown_it import MarkdownIt
 
-from sbmlutils import log
-
-logger = log.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class NotesFormat(StrEnum):

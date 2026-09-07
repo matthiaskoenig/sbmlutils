@@ -21,6 +21,7 @@ from __future__ import annotations
 import datetime
 import inspect
 import json
+import logging
 from collections import namedtuple
 from collections.abc import Iterable, Sequence
 from copy import deepcopy
@@ -43,7 +44,6 @@ from pymetadata.core.creator import Creator
 
 from sbmlutils.console import console
 from sbmlutils.io import write_sbml
-from sbmlutils.log import get_logger
 from sbmlutils.metadata import (
     BQB,
     BQM,
@@ -62,7 +62,7 @@ except ImportError:
     from typing_extensions import TypedDict
 
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 ureg = UnitRegistry()
 Q_ = ureg.Quantity

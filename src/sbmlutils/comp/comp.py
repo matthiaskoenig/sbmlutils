@@ -7,14 +7,14 @@ process. But the flattening parts also during the simulation
 of the dynamic FBA models.
 """
 
+import logging
 from typing import Any
 
 import libsbml
 
 import sbmlutils.factory as factory
-from sbmlutils import log
 
-logger = log.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def create_ExternalModelDefinition(

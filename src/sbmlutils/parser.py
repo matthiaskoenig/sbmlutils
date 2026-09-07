@@ -5,6 +5,7 @@ FIXME: no support for modelHistory
 
 """
 
+import logging
 from pathlib import Path
 from typing import Any
 
@@ -30,13 +31,12 @@ from sbmlutils.factory import (
     create_model,
 )
 from sbmlutils.io.sbml import read_sbml
-from sbmlutils.log import get_logger
 from sbmlutils.metadata import BQB, BQM
 from sbmlutils.reaction_equation import EquationPart
 from sbmlutils.report.sbmlinfo import SBMLDocumentInfo
 from sbmlutils.validation import ValidationOptions
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def antimony_to_sbml(

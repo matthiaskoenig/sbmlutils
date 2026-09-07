@@ -1,5 +1,6 @@
 """Utilities for downloading biomodel models."""
 
+import logging
 import shutil
 import tempfile
 from collections.abc import Sequence
@@ -9,10 +10,9 @@ import requests
 from pymetadata.omex import EntryFormat, ManifestEntry, Omex
 from requests.exceptions import HTTPError
 
-from sbmlutils import log
 from sbmlutils.console import console
 
-logger = log.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 BIOMODELS_URL: str = "https://biomodels.org"

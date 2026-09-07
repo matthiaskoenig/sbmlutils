@@ -1,5 +1,6 @@
 """ICG model factory."""
 
+import logging
 from pathlib import Path
 from typing import Any
 
@@ -11,9 +12,8 @@ from sbmlutils.comp import flatten_sbml
 from sbmlutils.console import console
 from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.factory import create_model
-from sbmlutils.log import get_logger
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def create_models(results_path: Path, create_tissues: bool = True) -> dict[str, Any]:

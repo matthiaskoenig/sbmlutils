@@ -19,6 +19,7 @@ The following SBML core constructs are currently NOT supported:
 
 from __future__ import annotations
 
+import logging
 import re
 from collections import defaultdict
 from pathlib import Path
@@ -30,10 +31,9 @@ import libsbml
 from sbmlutils import RESOURCES_DIR
 from sbmlutils.console import console
 from sbmlutils.converters.mathml import evaluableMathML
-from sbmlutils.log import get_logger
 from sbmlutils.report.units import udef_to_string
 
-logger = get_logger(__file__)
+logger = logging.getLogger(__name__)
 TEMPLATE_DIR = RESOURCES_DIR / "converters"
 
 

@@ -11,16 +11,16 @@ models in a simple manner.
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 
 import libsbml
 import pandas as pd
 
-from sbmlutils import log
 from sbmlutils.io.sbml import write_sbml
 from sbmlutils.validation import ValidationOptions, validate_doc
 
-logger = log.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 notes = libsbml.XMLNode.convertStringToXMLNode(

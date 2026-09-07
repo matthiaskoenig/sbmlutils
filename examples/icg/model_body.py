@@ -1,5 +1,6 @@
 """PKPD model for whole-body icg metabolism."""
 
+import logging
 import os
 from pathlib import Path
 from typing import Any
@@ -9,10 +10,9 @@ import numpy as np
 from examples.icg import annotations, templates
 from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.factory import *
-from sbmlutils.log import get_logger
 from sbmlutils.metadata import BQB, SBO
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 # -------------------------------------------------------------------------------------

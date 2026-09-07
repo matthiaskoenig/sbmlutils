@@ -11,6 +11,7 @@ A standard workflow is looking up the components for instance in things like OLS
 ontology lookup service.
 """
 
+import logging
 import os
 import re
 from collections.abc import Iterable
@@ -25,11 +26,10 @@ from pymetadata.core.miriam import BQB, BQM
 from sbmlutils import utils
 from sbmlutils.console import console
 from sbmlutils.io.sbml import read_sbml, write_sbml
-from sbmlutils.log import get_logger
 
 from ..validation import check
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def annotate_sbml(

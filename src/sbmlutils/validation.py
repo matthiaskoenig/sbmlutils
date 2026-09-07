@@ -1,5 +1,6 @@
 """Helpers for validation and checking of SBML and libsbml operations."""
 
+import logging
 import time
 from collections.abc import Iterable
 from dataclasses import dataclass
@@ -7,9 +8,8 @@ from dataclasses import dataclass
 import libsbml
 
 from sbmlutils.console import console
-from sbmlutils.log import get_logger
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def check(value: int, message: str) -> bool:

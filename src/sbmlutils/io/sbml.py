@@ -1,10 +1,10 @@
 """Utility functions for reading, writing and validating SBML."""
 
+import logging
 from pathlib import Path
 
 import libsbml
 
-from sbmlutils import log
 from sbmlutils.validation import (
     ValidationOptions,
     ValidationResult,
@@ -12,7 +12,7 @@ from sbmlutils.validation import (
     validate_doc,
 )
 
-logger = log.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def read_sbml(

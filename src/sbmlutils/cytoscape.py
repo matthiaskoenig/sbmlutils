@@ -3,6 +3,7 @@
 Supports loading of networks, annotations and storing of images.
 """
 
+import logging
 import os
 import tempfile
 from dataclasses import dataclass
@@ -19,11 +20,10 @@ from typing import Any
 import py4cytoscape as p4c
 from requests.exceptions import RequestException
 
-from sbmlutils import log
 from sbmlutils.console import console
 from sbmlutils.parser import antimony_to_sbml
 
-logger = log.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def visualize_antimony(source: Path | str, delete_session: bool = False) -> Any:
