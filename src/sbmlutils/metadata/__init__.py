@@ -8,10 +8,11 @@ are re-exported here, so that a model definition only has to import from
 """
 
 from pymetadata.core.miriam import BQB, BQM
-from pymetadata.ontologies import SBO
+from pymetadata.ontologies import PBPKO, SBO
 
 __all__ = [
     "BQB",
     "BQM",
+    "PBPKO",
     "SBO",
 ]
