@@ -16,7 +16,7 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
 
-import py4cytoscape as p4c  # type: ignore
+import py4cytoscape as p4c
 from requests.exceptions import RequestException
 
 from sbmlutils import log

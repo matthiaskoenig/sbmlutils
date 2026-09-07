@@ -560,7 +560,7 @@ def xpp2sbml(
                             fac.Event(
                                 sid=f"e{len(events)}",
                                 trigger=trigger,
-                                assignments=assignments,  # type: ignore
+                                assignments=assignments,
                             )
                         )
 

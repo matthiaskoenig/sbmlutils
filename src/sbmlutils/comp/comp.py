@@ -162,7 +162,7 @@ def _create_port(
         ref = idRef
     if unitRef is not None:
         # FIXME: this is a bug
-        unit_str = factory.UnitDefinition.get_unit_string(unitRef)  # type: ignore
+        unit_str = factory.UnitDefinition.get_unit_string(unitRef)
         p.setUnitRef(unit_str)
         ref = unit_str
     if metaIdRef is not None:

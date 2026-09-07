@@ -382,7 +382,7 @@ class Layout(factory.Sbase):
 
         return layout
 
-    def _set_fields(self, sbase: libsbml.Layout, model: libsbml.Model) -> None:
+    def _set_fields(self, sbase: libsbml.Layout, model: libsbml.Model | None) -> None:
         super()._set_fields(sbase, model)
         dim: libsbml.Dimensions = libsbml.Dimensions(
             SBML_LEVEL,

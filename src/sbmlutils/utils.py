@@ -54,7 +54,7 @@ def create_hash_id(sbase: libsbml.SBase) -> str:
         # print(f"xml_str -> {xml_node} -> {xml_str}" )
         hash_key = hashlib.md5(xml_str).hexdigest()
     # print(f"-> {hash_key}")
-    return hash_key  # type: ignore
+    return hash_key
 
 
 def timeit(f: Callable) -> Callable:
@@ -89,8 +89,8 @@ def deprecated(f: Callable) -> Callable:
         warnings.warn_explicit(
             f"Call to deprecated function {f.__name__}.",
             category=DeprecationWarning,
-            filename=f.func_code.co_filename,  # type: ignore
-            lineno=f.func_code.co_firstlineno + 1,  # type: ignore
+            filename=f.func_code.co_filename,
+            lineno=f.func_code.co_firstlineno + 1,
         )
         return f(*args, **kwargs)
 

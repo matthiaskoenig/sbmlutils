@@ -16,7 +16,7 @@ def start_server(path: Path, port: int = 5115) -> None:
     """Start a simple webserver serving path on port."""
 
     class Handler(http.server.SimpleHTTPRequestHandler):
-        def __init__(self, *args, **kwargs):  # type: ignore
+        def __init__(self, *args, **kwargs):
             """Initialize handler for requests."""
             super().__init__(directory=str(path), *args, **kwargs)  # noqa: B026
 

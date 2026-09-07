@@ -65,7 +65,7 @@ for k in range(n_cells):
 
 # transport reactions to couple cells
 for k in range(n_cells - 1):
-    _m.reactions.append(  # type: ignore
+    _m.reactions.append(
         Reaction(
             sid=f"J{k}", equation=f"S{k} <-> S{k + 1}", formula=f"D * (S{k} - S{k + 1})"
         ),
@@ -80,8 +80,8 @@ for k in range(n_cells):
             modelRef=f"{_m.sid}",
         ),
     )
-    _m.submodels.append(Submodel(sid=f"submodel{k}", modelRef=f"emd{k}"))  # type: ignore
-    _m.replaced_elements.extend(  # type: ignore
+    _m.submodels.append(Submodel(sid=f"submodel{k}", modelRef=f"emd{k}"))
+    _m.replaced_elements.extend(
         [
             # replace compartments
             ReplacedElement(

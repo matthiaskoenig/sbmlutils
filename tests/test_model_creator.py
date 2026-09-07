@@ -1,6 +1,7 @@
 """Test the creator module."""
 
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -24,7 +25,7 @@ level_version_testdata = [
 @pytest.mark.parametrize("level, version", level_version_testdata)
 def test_sbml_level_version(level: int, version: int, tmp_path: Path) -> None:
     """Test that the various levels and versions of SBML can be generated."""
-    md = {
+    md: dict[str, Any] = {
         "sid": "level_version",
         "compartments": [Compartment(sid="C", value=1.0)],
         "species": [
@@ -47,7 +48,7 @@ def test_sbml_level_version(level: int, version: int, tmp_path: Path) -> None:
     }
 
     results = create_model(
-        model=Model(**md),  # type: ignore
+        model=Model(**md),
         filepath=tmp_path / "model.xml",
         sbml_level=level,
         sbml_version=version,

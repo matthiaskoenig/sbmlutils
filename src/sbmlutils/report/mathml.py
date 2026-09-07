@@ -173,16 +173,16 @@ def _get_variables(
 ) -> set[str]:
     """Get variables from ASTNode."""
     if variables is None:
-        variables: set[str] = set()  # type: ignore
+        variables: set[str] = set()
 
     num_children = astnode.getNumChildren()
     if num_children == 0:
         if astnode.isName():
             name = astnode.getName()
-            variables.add(name)  # type: ignore
+            variables.add(name)
     else:
         for k in range(num_children):
             child: libsbml.ASTNode = astnode.getChild(k)
             _get_variables(child, variables=variables)
 
-    return variables  # type: ignore
+    return variables

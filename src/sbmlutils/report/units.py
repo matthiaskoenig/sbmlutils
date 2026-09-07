@@ -48,7 +48,7 @@ def udef_to_string(
         # check for internal unit
         if libsbml.UnitKind_forName(udef) != libsbml.UNIT_KIND_INVALID:
             return short_names.get(udef, udef)
-        ud = model.getUnitDefinition(udef)  # type: ignore
+        ud = model.getUnitDefinition(udef)
     else:
         ud = udef
 

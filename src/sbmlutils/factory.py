@@ -22,7 +22,7 @@ import datetime
 import inspect
 import json
 from collections import namedtuple
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from copy import deepcopy
 from dataclasses import dataclass
 from enum import StrEnum
@@ -30,11 +30,12 @@ from pathlib import Path
 from typing import (
     Any,
     ClassVar,
+    TypeAlias,
 )
 
 import libsbml
 import numpy as np
-import xmltodict  # type: ignore
+import xmltodict
 from numpy import nan as NaN
 from pint import UndefinedUnitError, UnitRegistry
 from pydantic import BaseModel, ConfigDict
@@ -180,9 +181,14 @@ def ast_node_from_formula(model: libsbml.Model, formula: str) -> libsbml.ASTNode
     return ast_node
 
 
-UnitType = "UnitDefinition | None"
-AnnotationsType = list[Annotation | tuple[BQB | BQM, str]]
-OptionalAnnotationsType = list[Annotation | tuple[BQB | BQM, str]] | None
+UnitType: TypeAlias = "UnitDefinition | None"
+
+#: an annotation is either a full RDF annotation or a `(qualifier, resource)` tuple
+AnnotationType: TypeAlias = "Annotation | tuple[BQB | BQM, str]"
+#: annotations are accepted as any sequence, an `Sbase` stores them as a list, so
+#: that annotations can be appended after the object was created
+AnnotationsType: TypeAlias = "Sequence[AnnotationType]"
+OptionalAnnotationsType: TypeAlias = "Sequence[AnnotationType] | None"
 
 
 def set_notes(
@@ -378,7 +384,9 @@ class Sbase:
         self.port = port
         self.uncertainties = uncertainties
         self.replacedBy = replacedBy
-        self.annotations: AnnotationsType = annotations if annotations else []
+        self.annotations: list[AnnotationType] = (
+            list(annotations) if annotations else []
+        )
 
     fields: ClassVar[list[str]] = [
         "sid",
@@ -419,7 +427,7 @@ class Sbase:
                 if isinstance(annotation_obj, Annotation):
                     annotation = annotation_obj
                 elif isinstance(annotation_obj, (tuple, list, set)):
-                    annotation = Annotation.from_tuple(annotation_obj)  # type: ignore
+                    annotation = Annotation.from_tuple(annotation_obj)
                 annotations.append(annotation)
         return annotations
 
@@ -431,7 +439,15 @@ class Sbase:
 
         return None
 
-    def _set_fields(self, sbase: libsbml.SBase, model: libsbml.Model | None) -> None:
+    def _set_fields(self, sbase: Any, model: libsbml.Model | None) -> None:
+        """Set the fields of the created libsbml object.
+
+        Args:
+            sbase: the libsbml object created by `create_sbml`; every subclass
+                creates exactly one libsbml type and narrows the parameter to
+                it, so the base declares it as `Any`
+            model: the model the object belongs to, `None` for a `Document`
+        """
         if self.sid is not None:
             if not libsbml.SyntaxChecker.isValidSBMLSId(self.sid):
                 logger.error(
@@ -671,7 +687,7 @@ class Value(Sbase):
         )
         self.value = value
 
-    def _set_fields(self, sbase: libsbml.SBase, model: libsbml.Model) -> None:
+    def _set_fields(self, sbase: Any, model: libsbml.Model | None) -> None:
         super()._set_fields(sbase, model)
 
 
@@ -819,7 +835,9 @@ class UnitDefinition(Sbase):
         self.create_port(model)
         return obj
 
-    def _set_fields(self, sbase: libsbml.UnitDefinition, model: libsbml.Model) -> None:
+    def _set_fields(
+        self, sbase: libsbml.UnitDefinition, model: libsbml.Model | None
+    ) -> None:
         """Set fields on libsbml.UnitDefinition."""
         super()._set_fields(sbase, model)
 
@@ -973,7 +991,7 @@ class ValueWithUnit(Value):
                 type(self.unit),
             )
 
-    def _set_fields(self, sbase: libsbml.SBase, model: libsbml.Model) -> None:
+    def _set_fields(self, sbase: Any, model: libsbml.Model | None) -> None:
         super()._set_fields(sbase, model)
         if self.unit is not None:
             if sbase.getTypeCode() in [
@@ -1034,7 +1052,7 @@ class Function(Sbase):
         return fd
 
     def _set_fields(
-        self, sbase: libsbml.FunctionDefinition, model: libsbml.Model
+        self, sbase: libsbml.FunctionDefinition, model: libsbml.Model | None
     ) -> None:
         super()._set_fields(sbase, model)
         ast_node = ast_node_from_formula(model, self.formula)
@@ -1063,7 +1081,7 @@ class Parameter(ValueWithUnit):
         """Construct Parameter."""
         super().__init__(
             sid=sid,
-            value=value,  # type: ignore
+            value=value,
             unit=unit,
             name=name,
             sboTerm=sboTerm,
@@ -1094,9 +1112,9 @@ class Parameter(ValueWithUnit):
                 obj.setValue(value)
             except ValueError:
                 if self.constant:
-                    InitialAssignment(self.sid, self.value).create_sbml(model)  # type: ignore
+                    InitialAssignment(self.sid, self.value).create_sbml(model)
                 else:
-                    AssignmentRule(self.sid, self.value).create_sbml(model)  # type: ignore
+                    AssignmentRule(self.sid, self.value).create_sbml(model)
         else:
             # numerical value
             obj.setValue(float(self.value))
@@ -1104,7 +1122,9 @@ class Parameter(ValueWithUnit):
         self.create_port(model)
         return obj
 
-    def _set_fields(self, sbase: libsbml.Parameter, model: libsbml.Model) -> None:
+    def _set_fields(
+        self, sbase: libsbml.Parameter, model: libsbml.Model | None
+    ) -> None:
         """Set fields."""
         super()._set_fields(sbase, model)
         sbase.setConstant(self.constant)
@@ -1165,16 +1185,18 @@ class Compartment(ValueWithUnit):
                 obj.setSize(value)
             except ValueError:
                 if self.constant:
-                    InitialAssignment(self.sid, self.value).create_sbml(model)  # type: ignore
+                    InitialAssignment(self.sid, self.value).create_sbml(model)
                 else:
-                    AssignmentRule(self.sid, self.value).create_sbml(model)  # type: ignore
+                    AssignmentRule(self.sid, self.value).create_sbml(model)
         else:
             obj.setSize(float(self.value))
 
         self.create_port(model)
         return obj
 
-    def _set_fields(self, sbase: libsbml.Compartment, model: libsbml.Model) -> None:
+    def _set_fields(
+        self, sbase: libsbml.Compartment, model: libsbml.Model | None
+    ) -> None:
         """Set fields on Compartment."""
         super()._set_fields(sbase, model)
         sbase.setConstant(self.constant)
@@ -1250,7 +1272,7 @@ class Species(Sbase):
         self.create_port(model)
         return s
 
-    def _set_fields(self, sbase: libsbml.Species, model: libsbml.Model) -> None:
+    def _set_fields(self, sbase: libsbml.Species, model: libsbml.Model | None) -> None:
         """Set fields on libsbml.Species."""
         super()._set_fields(sbase, model)
         sbase.setConstant(self.constant)
@@ -1764,7 +1786,7 @@ class Reaction(Sbase):
         self.create_port(model)
         return r
 
-    def _set_fields(self, sbase: libsbml.Reaction, model: libsbml.Model) -> None:
+    def _set_fields(self, sbase: libsbml.Reaction, model: libsbml.Model | None) -> None:
         """Set fields in libsbml.Reaction."""
         super()._set_fields(sbase, model)
 
@@ -1853,7 +1875,7 @@ class Event(Sbase):
 
         return event
 
-    def _set_fields(self, sbase: libsbml.Event, model: libsbml.Model) -> None:
+    def _set_fields(self, sbase: libsbml.Event, model: libsbml.Model | None) -> None:
         """Set fields in libsbml.Event."""
         super()._set_fields(sbase, model)
 
@@ -1941,7 +1963,9 @@ class Constraint(Sbase):
         self._set_fields(constraint, model)
         return constraint
 
-    def _set_fields(self, sbase: libsbml.Constraint, model: libsbml.Model) -> None:
+    def _set_fields(
+        self, sbase: libsbml.Constraint, model: libsbml.Model | None
+    ) -> None:
         """Set fields on libsbml.Constraint."""
         super()._set_fields(sbase, model)
 
@@ -2117,7 +2141,7 @@ class Uncertainty(Sbase):
                 libsbml.DISTRIB_UNCERTTYPE_STANDARDERROR,
                 libsbml.DISTRIB_UNCERTTYPE_VARIANCE,
             ]:
-                up_p: libsbml.UncertParameter = uncertainty.createUncertParameter()  # type: ignore
+                up_p: libsbml.UncertParameter = uncertainty.createUncertParameter()
                 up_p.setType(uncertParameter.type)
                 if uncertParameter.value is not None:
                     up_p.setValue(uncertParameter.value)
@@ -2630,7 +2654,9 @@ class ModelDefinition(Sbase):
         self._set_fields(model_definition, model)
         return model_definition
 
-    def _set_fields(self, sbase: libsbml.ModelDefinition, model: libsbml.Model) -> None:
+    def _set_fields(
+        self, sbase: libsbml.ModelDefinition, model: libsbml.Model | None
+    ) -> None:
         """Set fields on ModelDefinition."""
         super()._set_fields(sbase, model)
         for attr in [
@@ -2705,7 +2731,7 @@ class ExternalModelDefinition(Sbase):
         return extdef
 
     def _set_fields(
-        self, sbase: libsbml.ExternalModelDefinition, model: libsbml.Model
+        self, sbase: libsbml.ExternalModelDefinition, model: libsbml.Model | None
     ) -> None:
         """Set fields on ExternalModelDefinition."""
         super()._set_fields(sbase, model)
@@ -2759,7 +2785,7 @@ class Submodel(Sbase):
 
         return submodel
 
-    def _set_fields(self, sbase: libsbml.Submodel, model: libsbml.Model) -> None:
+    def _set_fields(self, sbase: libsbml.Submodel, model: libsbml.Model | None) -> None:
         super()._set_fields(sbase, model)
 
 
@@ -2795,7 +2821,7 @@ class SbaseRef(Sbase):
         self.unitRef = unitRef
         self.metaIdRef = metaIdRef
 
-    def _set_fields(self, sbase: libsbml.SBaseRef, model: libsbml.Model) -> None:
+    def _set_fields(self, sbase: Any, model: libsbml.Model | None) -> None:
         super()._set_fields(sbase, model)
 
         sbase.setId(self.sid)
@@ -2869,7 +2895,9 @@ class ReplacedElement(SbaseRef):
 
         return obj
 
-    def _set_fields(self, sbase: libsbml.ReplacedElement, model: libsbml.Model) -> None:
+    def _set_fields(
+        self, sbase: libsbml.ReplacedElement, model: libsbml.Model | None
+    ) -> None:
         super()._set_fields(sbase, model)
         sbase.setSubmodelRef(self.submodelRef)
         if self.deletion:
@@ -2924,10 +2952,12 @@ class ReplacedBy(SbaseRef):
 
         return rby
 
-    def _set_fields(self, rby: libsbml.ReplacedBy, model: libsbml.Model) -> None:
+    def _set_fields(
+        self, sbase: libsbml.ReplacedBy, model: libsbml.Model | None
+    ) -> None:
         """Set fields in ReplacedBy."""
-        super()._set_fields(rby, model)
-        rby.setSubmodelRef(self.submodelRef)
+        super()._set_fields(sbase, model)
+        sbase.setSubmodelRef(self.submodelRef)
 
 
 class Deletion(SbaseRef):
@@ -2973,7 +3003,7 @@ class Deletion(SbaseRef):
 
         return deletion
 
-    def _set_fields(self, sbase: libsbml.Deletion, model: libsbml.Model) -> None:
+    def _set_fields(self, sbase: libsbml.Deletion, model: libsbml.Model | None) -> None:
         """Set fields on Deletion."""
         super()._set_fields(sbase, model)
 
@@ -3043,7 +3073,7 @@ class Port(SbaseRef):
 
         return p
 
-    def _set_fields(self, sbase: libsbml.Port, model: libsbml.Model) -> None:
+    def _set_fields(self, sbase: libsbml.Port, model: libsbml.Model | None) -> None:
         """Set fields on Port."""
         super()._set_fields(sbase, model)
 
@@ -3518,7 +3548,9 @@ class Document(Sbase):
         self.name = name
         self.sboTerm = sboTerm
         self.metaId = metaId
-        self.annotations: AnnotationsType = annotations if annotations else []
+        self.annotations: list[AnnotationType] = (
+            list(annotations) if annotations else []
+        )
         self.notes = notes
         self.keyValuePairs = keyValuePairs
         self.sbml_level = sbml_level

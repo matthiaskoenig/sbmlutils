@@ -74,7 +74,7 @@ class SBMLDocumentInfo:
         """Serialize to JSON representation."""
         d = self.info
         if strip:
-            d = clean_empty(d)  # type: ignore
+            d = clean_empty(d)
         return json.dumps(d, indent=indent)
 
     def create_info(self) -> dict[str, Any]:
@@ -792,7 +792,7 @@ class SBMLDocumentInfo:
         if isinstance(rule, libsbml.AlgebraicRule):
             return "0"
         if isinstance(rule, libsbml.AssignmentRule):
-            return rule.variable  # type: ignore
+            return rule.variable
         if isinstance(rule, libsbml.RateRule):
             return f"d {rule.variable}/dt"
         raise TypeError(rule)
@@ -995,7 +995,7 @@ class SBMLDocumentInfo:
         if len(modifierList) == 0:
             return ""
         mids = [m.getSpecies() for m in modifierList]
-        return "[" + ", ".join(mids) + "]"  # type: ignore
+        return "[" + ", ".join(mids) + "]"
 
     @staticmethod
     def _half_equation(speciesList: libsbml.ListOfSpecies) -> str:

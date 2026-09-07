@@ -50,7 +50,7 @@ def annotate_sbml(
     external_annotations = ModelAnnotator.read_annotations(
         annotations_path, file_format="*"
     )
-    doc = annotate_sbml_doc(doc, external_annotations)  # type: ignore
+    doc = annotate_sbml_doc(doc, external_annotations)
 
     # write annotated sbml
     write_sbml(doc, filepath=filepath)
@@ -140,7 +140,7 @@ class ExternalAnnotation:
             setattr(self, key, value)
 
         if self.annotation_type == "rdf":
-            self.qualifier = ExternalAnnotation._parse_qualifier_str(self.qualifier)  # type: ignore
+            self.qualifier = ExternalAnnotation._parse_qualifier_str(self.qualifier)
         else:
             self.qualifier = None
 
@@ -212,11 +212,11 @@ class ModelAnnotator:
                 elements = [self.doc]
             else:
                 # lookup of allowed ids for given sbmlutils type
-                ids = self.id_dict.get(a.sbml_type, None)  # type: ignore
+                ids = self.id_dict.get(a.sbml_type, None)
                 elements = []
                 if ids:
                     # find the subset of ids matching the pattern
-                    pattern_ids = ModelAnnotator._get_matching_ids(ids, pattern)  # type: ignore
+                    pattern_ids = ModelAnnotator._get_matching_ids(ids, pattern)
                     if not pattern_ids:
                         logger.warning(
                             "No SBML objects found matching SId annotation pattern: '%s'",
@@ -320,7 +320,7 @@ class ModelAnnotator:
             if ex_a.annotation_type == "rdf":
                 annotation = Annotation(
                     qualifier=ex_a.qualifier,
-                    resource=ex_a.resource,  # type: ignore
+                    resource=ex_a.resource,
                 )
                 ModelAnnotator.annotate_sbase(e, annotation)
 
@@ -347,7 +347,7 @@ class ModelAnnotator:
                         if ex_a.annotation_type == "formula":
                             splugin.setChemicalFormula(ex_a.resource)
                         elif ex_a.annotation_type == "charge":
-                            splugin.setCharge(int(ex_a.resource))  # type: ignore
+                            splugin.setCharge(int(ex_a.resource))
             else:
                 raise ValueError(
                     f"Annotation type not supported: '{ex_a.annotation_type}'"

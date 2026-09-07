@@ -124,9 +124,9 @@ class Interpolator:
         for k in range(len(x) - 1):
             x1 = x.iloc[k]
             x2 = x.iloc[k + 1]
-            (a, b, c, d) = coeffs[k]  # type: ignore
+            (a, b, c, d) = coeffs[k]
             formula = (
-                f"{d}*({xid}-{x1})^3 + {c}*({xid}-{x1})^2 + {b}*({xid}-{x1}) + {a}"  # type: ignore
+                f"{d}*({xid}-{x1})^3 + {c}*({xid}-{x1})^2 + {b}*({xid}-{x1}) + {a}"
             )
             condition = f"{xid} >= {x1} && {xid} <= {x2}"
             s = f"{formula}, {condition}"
@@ -184,7 +184,7 @@ class Interpolator:
         # store coefficients
         coeffs: list[tuple[float]] = []
         for i in range(n):
-            coeffs.append((a[i], b[i], c[i], d[i]))  # type: ignore
+            coeffs.append((a[i], b[i], c[i], d[i]))
         return coeffs
 
     @staticmethod

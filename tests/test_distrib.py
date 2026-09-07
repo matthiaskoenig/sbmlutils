@@ -1,5 +1,7 @@
 """Test distrib functionality."""
 
+from typing import Any
+
 import libsbml
 
 from examples.distrib import distrib_packages_examples, distrib_uncertainty
@@ -45,7 +47,7 @@ def check_model(model: Model) -> libsbml.SBMLDocument:
 
 def test_assign_distribution() -> None:
     """Test assign distribution."""
-    model_dict = {
+    model_dict: dict[str, Any] = {
         "sid": "distrib_assignment",
         "packages": [Package.DISTRIB_V1],
         "model_units": ModelUnits(
@@ -62,13 +64,13 @@ def test_assign_distribution() -> None:
             InitialAssignment("p1", "normal(0 mM, 1 mM)"),
         ],
     }
-    model: Model = Model(**model_dict)  # type: ignore
+    model: Model = Model(**model_dict)
     check_model(model)
 
 
 def test_normal_distribution() -> None:
     """Test normal distribution."""
-    model_dict = {
+    model_dict: dict[str, Any] = {
         "sid": "normal",
         "packages": [Package.DISTRIB_V1],
         "parameters": [
@@ -79,12 +81,12 @@ def test_normal_distribution() -> None:
             InitialAssignment("y", "normal(z, 10)"),
         ],
     }
-    check_model(Model(**model_dict))  # type: ignore
+    check_model(Model(**model_dict))
 
 
 def test_trunctated_normal_distribution() -> None:
     """Test truncated normal distribution."""
-    model_dict = {
+    model_dict: dict[str, Any] = {
         "sid": "truncated_normal",
         "packages": [Package.DISTRIB_V1],
         "parameters": [
@@ -95,12 +97,12 @@ def test_trunctated_normal_distribution() -> None:
             InitialAssignment("y", "normal(z, 10, z-2, z+2)"),
         ],
     }
-    check_model(Model(**model_dict))  # type: ignore
+    check_model(Model(**model_dict))
 
 
 def test_conditional_event() -> None:
     """Test conditional event."""
-    model_dict = {
+    model_dict: dict[str, Any] = {
         "sid": "conditional_events",
         "packages": [Package.DISTRIB_V1],
         "parameters": [Parameter("x", value=1.0, constant=False)],
@@ -123,12 +125,12 @@ def test_conditional_event() -> None:
             ),
         ],
     }
-    check_model(Model(**model_dict))  # type: ignore
+    check_model(Model(**model_dict))
 
 
 def test_overview_distributions() -> None:
     """Test all distributions."""
-    model_dict = {
+    model_dict: dict[str, Any] = {
         "sid": "all_distributions",
         "packages": [Package.DISTRIB_V1],
         "assignments": [
@@ -156,14 +158,14 @@ def test_overview_distributions() -> None:
             InitialAssignment("p_raleigh_2", "rayleigh(0.5, 0, 10)"),
         ],
     }
-    check_model(Model(**model_dict))  # type: ignore
+    check_model(Model(**model_dict))
 
 
 def test_basic_uncertainty_example() -> None:
     """Test basic uncertainty example."""
     import libsbml
 
-    model_dict = {
+    model_dict: dict[str, Any] = {
         "sid": "basic_example_1",
         "packages": [Package.DISTRIB_V1],
         "compartments": [Compartment("C", value=1.0)],
@@ -185,12 +187,12 @@ def test_basic_uncertainty_example() -> None:
             )
         ],
     }
-    check_model(Model(**model_dict))  # type: ignore
+    check_model(Model(**model_dict))
 
 
 def test_multiple_uncertainties() -> None:
     """Test multiple uncertainties."""
-    model_dict = {
+    model_dict: dict[str, Any] = {
         "sid": "multiple_uncertainties",
         "packages": [Package.DISTRIB_V1],
         "model_units": ModelUnits(
@@ -261,7 +263,7 @@ def test_multiple_uncertainties() -> None:
             InitialAssignment("p1", "normal(0 mM, 1 mM)"),
         ],
     }
-    doc: libsbml.SBMLDocument = check_model(Model(**model_dict))  # type: ignore
+    doc: libsbml.SBMLDocument = check_model(Model(**model_dict))
     assert doc
     model: libsbml.Model = doc.getModel()
     assert model
@@ -284,7 +286,7 @@ def test_define_random_variable() -> None:
     """Test definition of random variable."""
     import libsbml
 
-    model_dict = {
+    model_dict: dict[str, Any] = {
         "sid": "random_variable",
         "packages": [Package.DISTRIB_V1],
         "parameters": [
@@ -309,12 +311,12 @@ def test_define_random_variable() -> None:
             ),
         ],
     }
-    check_model(Model(**model_dict))  # type: ignore
+    check_model(Model(**model_dict))
 
 
 def test_parameters_and_spans() -> None:
     """Test parameters and spans."""
-    model_dict = {
+    model_dict: dict[str, Any] = {
         "sid": "parameters_spans",
         "packages": [Package.DISTRIB_V1],
         "parameters": [
@@ -384,12 +386,12 @@ def test_parameters_and_spans() -> None:
             )
         ],
     }
-    check_model(Model(**model_dict))  # type: ignore
+    check_model(Model(**model_dict))
 
 
 def test_sabiork_uncertainty() -> None:
     """Test SabioRK uncertainty."""
-    model_dict = {
+    model_dict: dict[str, Any] = {
         "sid": "sabiork_parameter",
         "packages": [Package.DISTRIB_V1],
         "model_units": ModelUnits(
@@ -452,4 +454,4 @@ def test_sabiork_uncertainty() -> None:
             )
         ],
     }
-    check_model(Model(**model_dict))  # type: ignore
+    check_model(Model(**model_dict))
