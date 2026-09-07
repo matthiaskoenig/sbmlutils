@@ -1,35 +1,62 @@
-# This is run as a precondition to commits, run manually via `pre-commit run`
-
-# When adding new hooks, it may make sense to once run
-# `pre-commit run --all-files` as by default only changed files are checked
+# Checks run before every commit, see `docs/development.md`.
+# Install once per checkout with `pre-commit install`.
+#
+# A commit only checks the changed files; `pre-commit run --all-files` checks
+# the whole repository, which is what a newly added hook should be tried with.
 
 repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v5.0.0
+  rev: v6.0.0
   hooks:
   - id: check-yaml
     description: Check yaml files for parseable syntax
+  - id: check-toml
+    description: Check toml files for parseable syntax
+  - id: check-json
+    description: Check json files for parseable syntax
   - id: check-added-large-files
     description: Prevent large files from being committed
+    # the packaged models and the reference reports of the tests are large
+    args: [ --maxkb=2000 ]
   - id: check-merge-conflict
     description: Check for files that contain merge conflict strings
   - id: check-symlinks
     description: Check for symlinks which do not point to anything
   - id: trailing-whitespace
     description: Trim trailing whitespaces
+    exclude: '\.(xml|sbml|omex|ode|xpp)$'
   - id: end-of-file-fixer
     description: Fix empty lines at ends of files
+    exclude: '\.(xml|sbml|omex|ode|xpp)$'
   - id: detect-private-key
     description: Detects the presence of private keys
+  - id: check-case-conflict
+    description: Check for names which conflict on case insensitive filesystems
+  - id: mixed-line-ending
+    description: Normalize mixed line endings
+    args: [ --fix=lf ]
+    exclude: '\.(xml|sbml|omex|ode|xpp)$'
+  - id: debug-statements
+    description: Check for forgotten breakpoints and debugger imports
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
   # Ruff version.
-  rev: v0.8.6
+  rev: v0.16.6
   hooks:
     # Run the linter.
-    - id: ruff
+    - id: ruff-check
       types_or: [ python, pyi ]
       args: [ --fix ]
     # Run the formatter.
     - id: ruff-format
       types_or: [ python, pyi ]
+
+- repo: https://github.com/astral-sh/ty-pre-commit
+  # ty version.
+  rev: v0.0.78
+  hooks:
+    # Run the type checker on the whole project (see `[tool.ty]` in pyproject.toml).
+    # `--extra dev` syncs the environment with the dev dependencies, so that the
+    # test imports (pytest) resolve.
+    - id: ty
+      args: [ --extra, dev ]

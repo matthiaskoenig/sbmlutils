@@ -2,19 +2,32 @@
 line-length = 88
 indent-width = 4
 
-target-version = "py313"
+# oldest supported version, see `project.requires-python`
+target-version = "py311"
 
 
 [lint]
-# Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
-# Unlike Flake8, Ruff doesn't enable pycodestyle warnings (`W`) or
-# McCabe complexity (`C901`) by default.
-select = ["E4", "E7", "E9", "F"]
-ignore = [
-    "F403",   # star imports
-    "F405",   # star imports
+# Pyflakes (`F`) and a subset of pycodestyle (`E`), plus:
+#   W    pycodestyle warnings
+#   I    import sorting
+#   D    docstrings (google convention, see [lint.pydocstyle])
+#   UP   pyupgrade, keeps the code on current python syntax
+#   B    bugbear, likely bugs and design problems
+#   C4   comprehensions
+#   SIM  simplifications
+#   RET  return statements
+#   G    logging format, lazy `%s` instead of f-strings
+#   PIE  misc lints
+#   RUF  ruff specific rules
+select = [
+    "E4", "E7", "E9", "F", "W", "I", "D", "UP", "B", "C4", "SIM", "RET", "G", "PIE", "RUF",
 ]
-exclude = ["*.ipynb"]
+ignore = [
+    # names such as `König` are not ambiguous unicode, they are german
+    "RUF001",
+    "RUF002",
+    "RUF003",
+]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]
@@ -22,6 +35,14 @@ unfixable = []
 
 # Allow unused variables when underscore-prefixed.
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[lint.per-file-ignores]
+# a model definition is written against the names of `sbmlutils.factory`, which
+# are imported with a star import; this is the documented style of the examples
+"examples/**" = ["F403", "F405"]
+"tests/**" = ["F403", "F405"]
+# the mathml converter evaluates formulas with the functions of `math`
+"src/sbmlutils/converters/mathml.py" = ["F403", "F405"]
 
 [format]
 # Like Black, use double quotes for strings.

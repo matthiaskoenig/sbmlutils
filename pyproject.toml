@@ -5,9 +5,11 @@ build-backend = "hatchling.build"
 [project]
 name = "sbmlutils"
 dynamic = ["version"]
-description = "Python utilities for SBML."
+description = "sbmlutils are python utilities for working with SBML."
 readme = "README.md"
 requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [
 	{name="Matthias König", email="konigmatt@googlemail.com"},
 ]
@@ -17,74 +19,85 @@ maintainers = [
 classifiers = [
 	"Development Status :: 5 - Production/Stable",
 	"Intended Audience :: Science/Research",
-	"License :: OSI Approved :: MIT License",
 	"Operating System :: OS Independent",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Programming Language :: Python :: 3.14",
+	"Programming Language :: Python :: 3.11",
+	"Programming Language :: Python :: 3.12",
+	"Programming Language :: Python :: 3.13",
+	"Programming Language :: Python :: 3.14",
 	"Programming Language :: Python :: Implementation :: CPython",
 	"Topic :: Scientific/Engineering",
 	"Topic :: Scientific/Engineering :: Bio-Informatics",
 ]
 keywords = [
-    "SBML",
-    "Systems Biology Markup Language",
-    "COMBINE",
-    "standardization",
-    "computational modeling",
+	"SBML",
+	"Systems Biology Markup Language",
+	"COMBINE",
+	"standardization",
+	"computational modeling",
 ]
 dependencies = [
-    "pymetadata>=0.6.0",
-	"depinfo",
-	"rich",
-	"lxml",
-	"requests",
-	"jinja2",
-	"xmltodict",
-	"pydantic>=2.12.5",
-
-	"numpy>=2.2.2",
-	"scipy>=1.14",
-	"pandas>=2.2.0",
-    "python-libsbml>=5.21.0",
+	# SBML and simulation
+	"python-libsbml>=5.21.0",
 	"antimony>=3.1.1",
 	"libroadrunner>=2.10.0",
+	# annotations and COMBINE archives
+	"pymetadata>=0.6.0",
+	# data structures, units and output
+	"pydantic>=2.13.5",
 	"pint>=0.25.2",
-
-    "markdown-it-py>=4.0.0",
+	"numpy>=2.2.2",
+	"pandas>=2.2.0",
+	"rich>=15.0.0",
+	# model reports, notes and converters
+	"lxml>=6.0.0",
+	"jinja2>=3.1.6",
+	"markdown-it-py>=4.0.0",
+	"xmltodict>=1.0.2",
+	# annotation spreadsheets, visualization
 	"openpyxl>=3.1.5",
-	"xmlschema>=4.2.0",
 	"matplotlib>=3.10",
-    "setuptools",  # fix for colorbrewer dependency of py4cytoscape
+	"requests>=2.34.2",
 	"py4cytoscape>=1.12.0",
-
 ]
+
 [project.optional-dependencies]
 dev = [
-    "bump-my-version>=1.2.6",
-	"ruff>=0.14.11",
-	"pre-commit>=4.5.1",
-	"mypy>=1.19.1",
-]
-test = [
-    "tox>=4.34.1",
-    "pytest>=9.0.2",
-    "pytest-cov>=7.0.0",
+	"bump-my-version>=1.5.1",
+	"ruff>=0.16.6",
+	"pre-commit>=4.6.2",
+	"ty>=0.0.78",
+	"tox>=4.61.2",
+	"pytest>=9.1.1",
+	"pytest-cov>=7.1.0",
+	"zensical>=0.0.59",
+	"mkdocstrings-python>=2.0.8",
 ]
 
-[project_urls]
-Homepage = "https://github.com/matthiaskoenig/sbmlutils"
+[project.urls]
+Homepage = "https://matthiaskoenig.github.io/sbmlutils"
+Documentation = "https://matthiaskoenig.github.io/sbmlutils"
 Repository = "https://github.com/matthiaskoenig/sbmlutils"
-Documentation = "https://github.com/matthiaskoenig/sbmlutils"
 Issues = "https://github.com/matthiaskoenig/sbmlutils/issues"
+Changelog = "https://github.com/matthiaskoenig/sbmlutils/tree/develop/release-notes"
 Download = "https://pypi.org/project/sbmlutils"
+
+[tool.hatch.version]
+path = "./src/sbmlutils/__init__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/sbmlutils"]
 
-[tool.hatch.metadata]
-allow-direct-references = true
+[tool.pytest.ini_options]
+testpaths = ["tests"]
 
-[tool.hatch.version]
-path = "./src/sbmlutils/__init__.py"
+[tool.ty.environment]
+# first-party modules live in the src layout; the checked python version is
+# inferred from `project.requires-python` (i.e. the oldest supported version)
+root = ["./src"]
+
+[tool.ty.src]
+include = ["src", "tests", "examples"]
+
+[tool.ty.terminal]
+# warnings are failures: keep the codebase free of any diagnostic
+error-on-warning = true

@@ -1,0 +1,87 @@
+name: CI-CD
+
+on:
+  push:
+  workflow_dispatch:
+
+# least privilege by default, the release job raises what it needs
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # superseded branch runs are cancelled, release runs are never cancelled
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
+        # linux covers the full range, windows and macos only the newest version
+        exclude:
+          - os: windows-latest
+            python-version: "3.11"
+          - os: windows-latest
+            python-version: "3.12"
+          - os: windows-latest
+            python-version: "3.13"
+          - os: macos-latest
+            python-version: "3.11"
+          - os: macos-latest
+            python-version: "3.12"
+          - os: macos-latest
+            python-version: "3.13"
+
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        persist-credentials: false
+    - name: Install uv and set the python version
+      # astral-sh/setup-uv publishes no floating major tag beyond v7
+      uses: astral-sh/setup-uv@v10.0.1
+      with:
+        python-version: ${{ matrix.python-version }}
+        enable-cache: true
+    - name: Test with tox
+      run:
+        uvx --with tox-uv tox -e py${{ matrix.python-version }}
+
+  release:
+    needs: test
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: pypi
+      url: https://pypi.org/p/sbmlutils
+    permissions:
+      id-token: write  # trusted publishing to PyPI
+      contents: write  # create the GitHub release
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        persist-credentials: false
+    - name: Install uv
+      uses: astral-sh/setup-uv@v10.0.1
+      with:
+        python-version: "3.14"
+        enable-cache: true
+    - name: Build package
+      run: uvx hatch build
+    - name: Check the package
+      run: uvx twine check dist/*
+    - name: Publish to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        packages-dir: dist
+    - name: Create GitHub release
+      uses: softprops/action-gh-release@v3
+      with:
+        body_path: "release-notes/${{ github.ref_name }}.md"
+        draft: false
+        prerelease: false
