@@ -1,1 +1,0 @@
-"""Van der Pol example."""

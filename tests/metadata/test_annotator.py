@@ -6,7 +6,7 @@ from typing import Iterable
 
 import libsbml
 
-from sbmlutils.examples import annotation as annotation_example
+from examples import annotation as annotation_example
 from sbmlutils.factory import *
 from sbmlutils.io.sbml import read_sbml
 from sbmlutils.metadata import BQB, SBO, annotator
