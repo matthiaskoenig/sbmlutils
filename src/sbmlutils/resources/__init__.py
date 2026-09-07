@@ -167,10 +167,9 @@ API_EXAMPLES_MODEL = [
     COMP_SPT_KIDNEY,
     COMP_SPT_BODY_FLAT,
     COMP_SPT_BODY,
-    DISTRIB_DISTRIBUTIONS_SBML,
-    DISTRIB_UNCERTAINTIES_SBML,
     FBC_ECOLI_CORE_SBML,
     FBC_RECON3D_SBML,
+    # the distrib models are part of the examples
 ] + [EXAMPLES_DIR / f"{eid}.xml" for eid in example_ids]
 
 
