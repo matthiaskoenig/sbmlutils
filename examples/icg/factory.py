@@ -74,7 +74,7 @@ def create_models(results_path: Path, create_tissues: bool = True) -> dict[str, 
 if __name__ == "__main__":
     results = create_models(Path.cwd(), create_tissues=True)
     for k, key in enumerate(results):
-        delete_session = True if k == 0 else False
+        delete_session = k == 0
         sbml_path = results[key]["path"]
         print(sbml_path)
         visualize_sbml(sbml_path=sbml_path, delete_session=delete_session)

@@ -97,13 +97,11 @@ def cmathml_to_latex(cmml_str: str) -> str:
     tex_str = tex_str.replace(r"}.", "}) =")
 
     # cleanup symbols
-    tex_str = _fix_mathit_symbols(tex_str)
+    return _fix_mathit_symbols(tex_str)
 
     # print(tex_str)
     # pmml_bytes = ET.tostring(pmml_dom, pretty_print=True)
     # pmml_str = pmml_bytes.decode("UTF-8")
-
-    return tex_str
 
 
 # symbols replaced in latex

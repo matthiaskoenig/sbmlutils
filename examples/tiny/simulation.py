@@ -46,13 +46,13 @@ def tiny_simulation(output_dir: Path) -> Figure:
     sbml_path = tiny.create(output_dir=output_dir).sbml_path
 
     r = roadrunner.RoadRunner(str(sbml_path))
-    r.timeCourseSelections = (
-        ["time"]
-        + r.model.getBoundarySpeciesIds()
-        + r.model.getFloatingSpeciesIds()
-        + r.model.getReactionIds()
-        + r.model.getGlobalParameterIds()
-    )
+    r.timeCourseSelections = [
+        "time",
+        *r.model.getBoundarySpeciesIds(),
+        *r.model.getFloatingSpeciesIds(),
+        *r.model.getReactionIds(),
+        *r.model.getGlobalParameterIds(),
+    ]
     r.timeCourseSelections += [f"[{key}]" for key in r.model.getFloatingSpeciesIds()]
     s = r.simulate(0, 400, steps=400)
     df = pd.DataFrame(s, columns=s.colnames)

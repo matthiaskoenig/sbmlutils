@@ -26,6 +26,7 @@ def piecewise(*kwargs: Any) -> Any:
             return kwargs[k]
     if len(kwargs) % 2 == 1:
         return kwargs[-1]
+    return None
 
 
 # -------------------
@@ -271,7 +272,7 @@ def f_z(X: np.ndarray, T: np.ndarray, p: np.ndarray) -> np.ndarray:
     (Nt, Nx) = X.shape
     Ny = len(yids)
     Nz = 1 + Nx + Ny
-    columns = ["time"] + xids + yids
+    columns = ["time", *xids, *yids]
     Z = np.empty(shape=(Nt, Nz))
     Z[:, 0] = T
     Z[:, 1 : (Nx + 1)] = X
@@ -279,5 +280,4 @@ def f_z(X: np.ndarray, T: np.ndarray, p: np.ndarray) -> np.ndarray:
         y = f_y(x=X[kt, :], t=T[kt], p=p)
         Z[kt, (Nx + 1) :] = y
 
-    Z = pd.DataFrame(Z, columns=columns)
-    return Z
+    return pd.DataFrame(Z, columns=columns)

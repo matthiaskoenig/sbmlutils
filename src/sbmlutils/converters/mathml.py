@@ -134,9 +134,7 @@ def evaluableMathML(astnode: libsbml.ASTNode, variables: dict | None = None) -> 
     # <replacements>
     formula = formula.replace("&&", "and")
     formula = formula.replace("||", "or")
-    formula = formula.replace("^", "**")
-
-    return formula
+    return formula.replace("^", "**")
 
 
 def evaluateMathML(astnode: libsbml.ASTNode, variables: dict | None = None) -> Any:

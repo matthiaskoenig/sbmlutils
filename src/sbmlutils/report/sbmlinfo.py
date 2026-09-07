@@ -80,18 +80,13 @@ class SBMLDocumentInfo:
     def create_info(self) -> dict[str, Any]:
         """Create information dictionary for report rendering."""
         model: dict[str, Any] | None
-        if self.doc.isSetModel():
-            model = self.model_dict(self.doc.getModel())
-        else:
-            model = None
+        model = self.model_dict(self.doc.getModel()) if self.doc.isSetModel() else None
 
-        d = {
+        return {
             "doc": self.document(doc=self.doc),
             "model": model,
             **self.model_definitions(),
         }
-
-        return d
 
     def model_dict(
         self, model: libsbml.Model | libsbml.ModelDefinition
@@ -284,8 +279,7 @@ class SBMLDocumentInfo:
 
     @staticmethod
     def _sbml_type(sbase: libsbml.SBase) -> str:
-        class_name = str(sbase.__class__)[16:-2]
-        return class_name
+        return str(sbase.__class__)[16:-2]
 
     @staticmethod
     def _get_pk(sbase: libsbml.SBase) -> str:
@@ -463,8 +457,9 @@ class SBMLDocumentInfo:
                     {
                         "qualifier": "BQB_IS",
                         "resources": [f"https://identifiers.org/{sbo}"],
-                    }
-                ] + cvterms
+                    },
+                    *cvterms,
+                ]
 
         return cvterms
 
@@ -958,13 +953,11 @@ class SBMLDocumentInfo:
         :return: string representation of GeneProductAssociation
         """
         rfbc = reaction.getPlugin("fbc")
-        gpa = (
+        return (
             str(rfbc.getGeneProductAssociation().getAssociation().toInfix())
             if (rfbc and rfbc.isSetGeneProductAssociation())
             else None
         )
-
-        return gpa
 
     @staticmethod
     def _equation_from_reaction(
@@ -1220,10 +1213,7 @@ class SBMLDocumentInfo:
                 f_obj: libsbml.FluxObjective
                 for f_obj in objective.getListOfFluxObjectives():
                     coefficient = f_obj.getCoefficient()
-                    if coefficient < 0.0:
-                        sign = "-"
-                    else:
-                        sign = "+"
+                    sign = "-" if coefficient < 0.0 else "+"
                     part = {
                         "sign": sign,
                         "coefficient": abs(coefficient),

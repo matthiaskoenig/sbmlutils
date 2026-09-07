@@ -125,9 +125,9 @@ class ValidationResult:
     ):
         """Initialize ValidationResult."""
         if errors is None:
-            errors = list()
+            errors = []
         if warnings is None:
-            warnings = list()
+            warnings = []
 
         self.errors = errors
         self.warnings = warnings
@@ -150,8 +150,8 @@ class ValidationResult:
     @staticmethod
     def from_results(results: Iterable["ValidationResult"]) -> "ValidationResult":
         """Parse from ValidationResult."""
-        errors = list()
-        warnings = list()
+        errors = []
+        warnings = []
         for vres in results:
             errors.extend(vres.errors)
             warnings.extend(vres.warnings)
@@ -290,10 +290,7 @@ def validate_doc(
     if vresults.is_perfect():
         style = "success"
     else:
-        if vresults.is_valid():
-            style = "warning"
-        else:
-            style = "error"
+        style = "warning" if vresults.is_valid() else "error"
 
     # validation report
     console.print()
@@ -320,8 +317,8 @@ def _check_consistency(
     :param internal_consistency: flag for internal consistency
     :return: ValidationResult
     """
-    errors = list()
-    warnings = list()
+    errors = []
+    warnings = []
     if internal_consistency:
         count = doc.checkInternalConsistency()
     else:

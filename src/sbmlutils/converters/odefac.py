@@ -422,8 +422,7 @@ class SBML2ODE:
             return yids
 
         # create order from dependency graph
-        yids = create_ordered_variables(g)
-        return yids
+        return create_ordered_variables(g)
 
     def to_python(self, py_file: Path | None = None) -> str:
         """Write ODEs to python."""
@@ -534,7 +533,7 @@ class SBML2ODE:
         template = env.get_template(template_file)
 
         # indices for replacements
-        (pids_idx, yids_idx, dxids_idx) = self._indices(index_offset=index_offset)
+        (pids_idx, _yids_idx, dxids_idx) = self._indices(index_offset=index_offset)
 
         # create formulas
         def to_formula(
@@ -547,7 +546,7 @@ class SBML2ODE:
             :param ast_dict:
             :return:
             """
-            d: dict[str, libsbml.ASTNode | str] = dict()
+            d: dict[str, libsbml.ASTNode | str] = {}
 
             for key in ast_dict:
                 astnode = ast_dict[key]
@@ -598,13 +597,13 @@ class SBML2ODE:
             Uses the order of the dependencies.
             """
             # deepcopy the ast dicts for replacements
-            y_flat = dict()
+            y_flat = {}
             for yid in self.yids_ordered:
                 astnode = self.y_ast[yid]
                 y_flat[yid] = astnode.deepCopy()
 
             # deepcopy
-            dx_flat = dict()
+            dx_flat = {}
             for xid, astnode in self.dx_ast.items():
                 if astnode is not None:
                     dx_flat[xid] = astnode.deepCopy()

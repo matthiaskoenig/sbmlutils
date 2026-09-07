@@ -265,8 +265,7 @@ def _get_eplugin_by_sid(model: libsbml.Model, sid: str) -> Any:
     e = model.getElementBySId(sid)
     if not e:
         e = model.getUnitDefinition(sid)
-    eplugin = e.getPlugin("comp")
-    return eplugin
+    return e.getPlugin("comp")
 
 
 def _set_ref(sbaseref: libsbml.SBaseRef, ref_id: str, ref_type: str) -> None:

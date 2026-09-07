@@ -233,10 +233,7 @@ class ReactionEquation:
         """Get string representation of equation."""
         left = self._to_string_side(self.reactants)
         right = self._to_string_side(self.products)
-        if self.reversible:
-            sep = REVERSIBILITY_SEPARATOR
-        else:
-            sep = IRREVERSIBILITY_SEPARATOR
+        sep = REVERSIBILITY_SEPARATOR if self.reversible else IRREVERSIBILITY_SEPARATOR
 
         if modifiers:
             mod = self._to_string_modifiers()

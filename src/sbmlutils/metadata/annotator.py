@@ -225,7 +225,7 @@ class ModelAnnotator:
 
         :return:
         """
-        id_dict = dict()
+        id_dict = {}
         id_dict["model"] = [self.model.getId()]
 
         lof = self.model.getListOfUnitDefinitions()
@@ -440,7 +440,7 @@ class ModelAnnotator:
         :param file_format: annotation file format
         :return: pandas.DataFrame
         """
-        filename, file_extension = os.path.splitext(file_path)
+        _filename, file_extension = os.path.splitext(file_path)
         if file_format == "*":
             file_format = file_extension[1:]  # remove leading dot
 

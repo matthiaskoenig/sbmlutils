@@ -115,8 +115,7 @@ def escape_string(info: str) -> str:
     """Escape string."""
     info = info.replace("<", "&lt;")
     info = info.replace(">", "&gt;")
-    info = info.replace("&", "&amp;")
-    return info
+    return info.replace("&", "&amp;")
 
 
 def parse_keyword(xpp_id: str) -> str | None:
@@ -159,8 +158,7 @@ def parts_from_expression(expression: str) -> list[str]:
     expression = expression.replace(" ", ",")
     expression = expression.replace("\t", ",")
     parts = [t.strip() for t in expression.split(",")]
-    parts = [p for p in parts if len(p) > 0]
-    return parts
+    return [p for p in parts if len(p) > 0]
 
 
 def sid_value_from_part(part: str) -> tuple[str, str]:

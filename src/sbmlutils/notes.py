@@ -6,7 +6,7 @@ No styles for the display are inserted here.
 """
 
 import textwrap
-from enum import Enum
+from enum import StrEnum
 
 import libsbml
 from markdown_it import MarkdownIt
@@ -16,7 +16,7 @@ from sbmlutils import log
 logger = log.get_logger(__name__)
 
 
-class NotesFormat(str, Enum):
+class NotesFormat(StrEnum):
     """Supported formats for Notes."""
 
     MARKDOWN = "markdown"

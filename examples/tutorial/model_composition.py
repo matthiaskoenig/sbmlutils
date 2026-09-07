@@ -23,13 +23,11 @@ model = Model(
 
 def create(output_dir: Path) -> FactoryResult:
     """Create model."""
-    results = create_model(
+    return create_model(
         model=[minimal_model, model],
         filepath=output_dir / f"{model.sid}.xml",
         validation_options=ValidationOptions(units_consistency=False),
     )
-
-    return results
 
 
 if __name__ == "__main__":

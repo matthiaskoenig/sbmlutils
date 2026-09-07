@@ -11,6 +11,7 @@ creators = [
         organization="Humboldt-University Berlin, Institute for Theoretical Biology",
         orcid="",
     ),
-] + templates.creators
+    *templates.creators,
+]
 
 terms_of_use = templates.terms_of_use

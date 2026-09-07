@@ -6,7 +6,7 @@ Supports loading of networks, annotations and storing of images.
 import os
 import tempfile
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 import pandas as pd
 
@@ -103,7 +103,7 @@ def apply_layout(layout: pd.DataFrame, network: int | None = None) -> None:
     # console.print(f"{positions}")
 
 
-class AnnotationShapeType(str, Enum):
+class AnnotationShapeType(StrEnum):
     RECTANGLE = "RECTANGLE"
     ROUND_RECTANGLE = "ROUND_RECTANGLE"
 

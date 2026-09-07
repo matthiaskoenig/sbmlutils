@@ -25,7 +25,7 @@ from collections import namedtuple
 from collections.abc import Iterable
 from copy import deepcopy
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import (
     Any,
@@ -503,7 +503,7 @@ class Sbase:
                     sbo_exists = True
                     continue
             if not sbo_exists:
-                processed_annotations = [sbo_annotation] + processed_annotations
+                processed_annotations = [sbo_annotation, *processed_annotations]
 
         for annotation in processed_annotations:
             annotator.ModelAnnotator.annotate_sbase(sbase=sbase, annotation=annotation)
@@ -785,7 +785,7 @@ class UnitDefinition(Sbase):
 
         if units:
             for k, item in enumerate(units):
-                prefix, unit_name, suffix = ureg.parse_unit_name(item[0])[0]
+                prefix, unit_name, _suffix = ureg.parse_unit_name(item[0])[0]
                 exponent = item[1]
                 # first unit gets the multiplier
                 multiplier = 1.0
@@ -1404,14 +1404,13 @@ class RuleWithVariable:
 
         # Make sure the parameter is const=False
         p: libsbml.Parameter = model.getParameter(self.variable)
-        if p is not None:
-            if p.getConstant() is True:
-                logger.warning(
-                    f"Parameter affected by AssignmentRule "
-                    f"must be 'constant=False', but '{p.getId()}' "
-                    f"is 'constant={p.getConstant()}'."
-                )
-                p.setConstant(False)
+        if p is not None and p.getConstant() is True:
+            logger.warning(
+                f"Parameter affected by AssignmentRule "
+                f"must be 'constant=False', but '{p.getId()}' "
+                f"is 'constant={p.getConstant()}'."
+            )
+            p.setConstant(False)
 
         # Check if rule exists
         if model.getRuleByVariable(self.variable):
@@ -1892,7 +1891,7 @@ class Event(Sbase):
 
     @staticmethod
     def _assignments_dict(species: list[str], values: list[str]) -> dict[str, str]:
-        return dict(zip(species, values))
+        return dict(zip(species, values, strict=False))
 
 
 class Constraint(Sbase):
@@ -2977,7 +2976,7 @@ class Deletion(SbaseRef):
         super()._set_fields(sbase, model)
 
 
-class PortType(str, Enum):
+class PortType(StrEnum):
     """Supported port types."""
 
     PORT = "port"
@@ -3047,7 +3046,7 @@ class Port(SbaseRef):
         super()._set_fields(sbase, model)
 
 
-class Package(str, Enum):
+class Package(StrEnum):
     """Supported/tested packages."""
 
     COMP = "comp"
@@ -3452,7 +3451,7 @@ class Model(Sbase, FrozenClass, BaseModel):
         units_base_classes: list[type[Units]] = (
             [model.units] if model.units else [Units]
         )
-        creators: dict[Creator, Any] = dict()  # using a dict to keep order of insertion
+        creators: dict[Creator, Any] = {}  # using a dict to keep order of insertion
         for m2 in models:
             for key, value in m2.__dict__.items():
                 kind = m2._keys.get(key, None)

@@ -79,11 +79,17 @@ DISTRIB_COMP_FLAT_SBML = RESOURCES_DIR / "examples" / "distrib_comp_flat.xml"
 
 def all_distrib_paths() -> list[Path]:
     """Get distrib paths."""
-    distrib_model_ids = (
-        [i for i in range(40, 48)]
-        + [49, 50, 51, 52, 56, 65, 69]
-        + [i for i in range(69, 104)]
-    )
+    distrib_model_ids = [
+        *list(range(40, 48)),
+        49,
+        50,
+        51,
+        52,
+        56,
+        65,
+        69,
+        *list(range(69, 104)),
+    ]
 
     # FIXME: EXCLUDING FAILING TESTS DUE TO https://github.com/matthiaskoenig/sbmlutils/issues/208
     distrib_model_ids = [
@@ -170,20 +176,18 @@ API_EXAMPLES_MODEL = [
 
 
 # concatenated model paths for uncertainty tests
-ALL_SBML_PATHS = (
-    [
-        BASIC_SBML,
-        DEMO_SBML,
-        GALACTOSE_SINGLECELL_SBML,
-        GLUCOSE_SBML,
-        GZ_SBML,
-        REPRESSILATOR_SBML,
-        VDP_SBML,
-    ]
-    + distrib_paths
-    + dfba_paths
-    + interpolation_paths
-)
+ALL_SBML_PATHS = [
+    BASIC_SBML,
+    DEMO_SBML,
+    GALACTOSE_SINGLECELL_SBML,
+    GLUCOSE_SBML,
+    GZ_SBML,
+    REPRESSILATOR_SBML,
+    VDP_SBML,
+    *distrib_paths,
+    *dfba_paths,
+    *interpolation_paths,
+]
 
 BIOMODELS_CURATED_PATH = MODELS_DIR / "biomodels"
 

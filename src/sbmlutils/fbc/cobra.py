@@ -67,7 +67,7 @@ def check_mass_balance(sbml_path: Path) -> dict:
     :return: Dict of unbalanced reactions
     """
     model = read_cobra_model(sbml_path)
-    mbs = dict()
+    mbs = {}
     for r in model.reactions:
         mb = r.check_mass_balance()
         if len(mb) > 0:
