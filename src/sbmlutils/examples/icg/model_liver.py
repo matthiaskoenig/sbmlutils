@@ -1,10 +1,9 @@
 """ICG liver model."""
 
-
 from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.examples.icg import MODEL_BASE_PATH, annotations, templates
 from sbmlutils.factory import *
-from sbmlutils.metadata import *
+from sbmlutils.metadata import BQB, SBO
 
 
 class U(Units):

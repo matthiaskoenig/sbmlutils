@@ -461,7 +461,7 @@ class Sbase:
                 logger.warning(f"'name' should be set on '{self}'")
         if self.sboTerm is not None:
             if isinstance(self.sboTerm, SBO):
-                sbo = self.sboTerm.value.replace("_", ":")
+                sbo = self.sboTerm.curie
             elif isinstance(self.sboTerm, str):
                 sbo = self.sboTerm.replace("_", ":")
             else:
@@ -540,7 +540,7 @@ class Sbase:
                 p.setId(port_sid)
                 p.setName(f"Port of {self.sid}")
                 p.setMetaId(port_sid)
-                sbo = SBO.PORT.value.replace("_", ":")
+                sbo = SBO.PORT.curie
                 p.setSBOTerm(sbo)
 
                 if isinstance(self, UnitDefinition):

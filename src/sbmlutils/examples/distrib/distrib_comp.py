@@ -7,7 +7,6 @@ import libsbml
 from sbmlutils.comp import flatten_sbml
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
-from sbmlutils.metadata import *
 
 
 class U(Units):

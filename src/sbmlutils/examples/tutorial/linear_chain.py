@@ -9,7 +9,6 @@ from sbmlutils.converters import odefac
 from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
-from sbmlutils.metadata import *
 from sbmlutils.validation import ValidationOptions
 
 

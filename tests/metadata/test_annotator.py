@@ -9,9 +9,8 @@ import libsbml
 from sbmlutils.examples import annotation as annotation_example
 from sbmlutils.factory import *
 from sbmlutils.io.sbml import read_sbml
-from sbmlutils.metadata import SBO, annotator
+from sbmlutils.metadata import BQB, SBO, annotator
 from sbmlutils.metadata.annotator import ExternalAnnotation, ModelAnnotator
-from sbmlutils.metadata.miriam import *
 from sbmlutils.resources import (
     DEMO_ANNOTATIONS,
     DEMO_SBML_NO_ANNOTATIONS,

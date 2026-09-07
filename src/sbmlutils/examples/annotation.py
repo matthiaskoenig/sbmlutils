@@ -6,7 +6,7 @@ other ontologies. Annotations use the functionality from `pymetadata`.
 
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
-from sbmlutils.metadata import *
+from sbmlutils.metadata import BQB, SBO
 from sbmlutils.resources import EXAMPLES_DIR
 
 

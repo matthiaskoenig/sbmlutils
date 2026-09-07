@@ -4,7 +4,7 @@ import numpy as np
 
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
-from sbmlutils.metadata import *
+from sbmlutils.metadata import SBO
 from sbmlutils.reaction_equation import EquationPart
 
 

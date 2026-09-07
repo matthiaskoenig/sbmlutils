@@ -5,7 +5,7 @@ import libsbml
 from sbmlutils import comp
 from sbmlutils.factory import *
 from sbmlutils.factory import PortType, create_objects
-from sbmlutils.metadata.sbo import SBO
+from sbmlutils.metadata import SBO
 
 
 def create_port_doc() -> libsbml.SBMLDocument:

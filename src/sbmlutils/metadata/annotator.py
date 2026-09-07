@@ -19,7 +19,7 @@ from typing import Dict, Iterable, List, Optional, Union
 import libsbml
 import pandas as pd
 from pymetadata.core.annotation import RDFAnnotation as Annotation
-from pymetadata.identifiers.miriam import BQB, BQM
+from pymetadata.core.miriam import BQB, BQM
 
 from sbmlutils import utils
 from sbmlutils.console import console
@@ -314,7 +314,8 @@ class ModelAnnotator:
         for e in elements:
             if ex_a.annotation_type == "rdf":
                 annotation = Annotation(
-                    qualifier=ex_a.qualifier, resource=ex_a.resource  # type: ignore
+                    qualifier=ex_a.qualifier,
+                    resource=ex_a.resource,  # type: ignore
                 )
                 ModelAnnotator.annotate_sbase(e, annotation)
 

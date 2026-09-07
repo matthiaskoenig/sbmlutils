@@ -3,7 +3,7 @@ from typing import Union
 
 import libsbml
 import pandas as pd
-from pymetadata.identifiers.miriam import BQB
+from pymetadata.core.miriam import BQB
 
 from sbmlutils.console import console
 from sbmlutils.io.sbml import read_sbml
@@ -37,15 +37,16 @@ def validate_sbml_annotations(source: Union[Path, str]) -> pd.DataFrame:
             for cvterm in cvterms:
                 cvterm.getQualifierType()
                 for k in range(cvterm.getNumResources()):
-
                     resource_uri = cvterm.getResourceURI(k)
                     # console.print(f"{qualifier_type} | {resource_uri}")
-                    annotation = RDFAnnotation(qualifier=BQB.IS, resource=resource_uri, validate=False)
+                    annotation = RDFAnnotation(
+                        qualifier=BQB.IS, resource=resource_uri, validate=False
+                    )
                     valid: bool = annotation.validate()
                     if not valid:
                         console.print(
                             f"id='{element.id}' | {type(element).__name__} | '{element.name}' | {resource_uri}",
-                            style="warning"
+                            style="warning",
                         )
                         invalid_annotations.append(
                             {
@@ -62,4 +63,3 @@ def validate_sbml_annotations(source: Union[Path, str]) -> pd.DataFrame:
         console.print("Invalid annotations", style="error")
     console.rule(style="white")
     return df
-

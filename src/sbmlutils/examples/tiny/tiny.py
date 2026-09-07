@@ -6,7 +6,7 @@ from pathlib import Path
 import sbmlutils.layout as layout
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
-from sbmlutils.metadata import *
+from sbmlutils.metadata import SBO
 
 
 class U(Units):

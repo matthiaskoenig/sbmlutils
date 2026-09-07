@@ -2,7 +2,7 @@
 
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
-from sbmlutils.metadata import *
+from sbmlutils.metadata import BQB, SBO
 
 
 class U(Units):

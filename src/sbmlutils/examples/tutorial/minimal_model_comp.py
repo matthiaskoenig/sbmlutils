@@ -5,7 +5,6 @@ from pathlib import Path
 from sbmlutils.comp import flatten_sbml
 from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.factory import *
-from sbmlutils.metadata import *
 
 
 n_cells = 5

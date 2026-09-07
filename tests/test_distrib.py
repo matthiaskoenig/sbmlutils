@@ -4,7 +4,7 @@ import libsbml
 
 from sbmlutils.distrib import distrib_examples, distrib_packages
 from sbmlutils.factory import *
-from sbmlutils.metadata import *
+from sbmlutils.metadata import BQB, SBO
 from sbmlutils.validation import ValidationOptions, validate_doc
 
 

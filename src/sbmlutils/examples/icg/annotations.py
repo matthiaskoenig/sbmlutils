@@ -1,6 +1,6 @@
 """Annotations for ICG model."""
 
-from sbmlutils.metadata import *
+from sbmlutils.metadata import BQB
 
 
 compartments = {

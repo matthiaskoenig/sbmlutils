@@ -5,7 +5,7 @@ from pathlib import Path
 from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.examples.tutorial.minimal_model import model as minimal_model
 from sbmlutils.factory import *
-from sbmlutils.metadata import *
+from sbmlutils.metadata import BQB
 from sbmlutils.validation import ValidationOptions
 
 

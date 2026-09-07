@@ -3,10 +3,9 @@
 Model used for testing units namespacing.
 """
 
-
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
-from sbmlutils.metadata import *
+from sbmlutils.metadata import SBO
 from sbmlutils.resources import EXAMPLES_DIR
 
 

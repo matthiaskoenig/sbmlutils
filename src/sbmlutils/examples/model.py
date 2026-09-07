@@ -3,13 +3,12 @@
 This demonstrates just the very core SBML functionality.
 """
 
-
 import libsbml
 
 from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.examples import templates
 from sbmlutils.factory import *
-from sbmlutils.metadata import *
+from sbmlutils.metadata import BQB, SBO
 from sbmlutils.resources import EXAMPLES_DIR
 
 

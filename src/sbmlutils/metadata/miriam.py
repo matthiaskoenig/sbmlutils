@@ -1,12 +1,9 @@
-"""Helper module for working with MIRIAM metadata."""
+"""MIRIAM qualifiers of libsbml.
 
-from pymetadata.identifiers.miriam import BQB, BQM
-
-
-__all__ = [
-    "BQM",
-    "BQB",
-]
+libsbml reports the qualifier of a `CVTerm` as an integer, these maps resolve
+the integers to the names of the qualifiers. The qualifiers used to annotate a
+model are `BQB` and `BQM`, see `sbmlutils.metadata`.
+"""
 
 QualifierType = {
     0: "MODEL_QUALIFIER",

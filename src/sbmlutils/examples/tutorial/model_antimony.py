@@ -2,7 +2,7 @@
 
 from sbmlutils.cytoscape import visualize_antimony, visualize_sbml
 from sbmlutils.factory import *
-from sbmlutils.metadata import *
+from sbmlutils.metadata import BQB
 from sbmlutils.parser import antimony_to_model
 from sbmlutils.resources import EXAMPLES_DIR
 
