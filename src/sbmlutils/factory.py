@@ -794,7 +794,9 @@ class UnitDefinition(Sbase):
 
         # parse the string into pint
         quantity = Q_(self.definition)
-        magnitude, units = quantity.to_tuple()
+        magnitude, units_tuple = quantity.to_tuple()
+        # pint types the units as a fixed length tuple, it is empty for a number
+        units: list[Sequence[Any]] = list(units_tuple)
 
         if units:
             for k, item in enumerate(units):
@@ -3664,12 +3666,12 @@ def create_model(
     if validation_options is None:
         validation_options = ValidationOptions()
 
-    # merge models
+    # merge models (a Model is iterable itself, so it is checked first)
     m: Model
-    if isinstance(model, Iterable):
-        m = Model.merge_models(model)
-    elif isinstance(model, Model):
+    if isinstance(model, Model):
         m = model
+    elif isinstance(model, Iterable):
+        m = Model.merge_models(model)
     else:
         raise ValueError(f"Unsupported `model` type: {type(model)}")
 
