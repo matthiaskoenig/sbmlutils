@@ -1,17 +1,27 @@
-"""cobrapy based helper methods."""
+"""cobrapy based helper methods.
 
+cobrapy is not a dependency of sbmlutils, it is the optional `cobra` extra
+(`pip install sbmlutils[cobra]`). `cobra` is `None` when it is not installed,
+which is what the tests of this module skip on.
+"""
+
+import logging
 from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
 import pandas as pd
 
-from sbmlutils import log
+# cobrapy is the optional `cobra` extra, so it is not installed in the
+# environment the type check runs in
+if TYPE_CHECKING:
+    import cobra  # ty: ignore[unresolved-import]
+else:
+    try:
+        import cobra
+    except ImportError:
+        cobra = None
 
-try:
-    import cobra
-except ImportError:
-    cobra = None
-
-logger = log.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def read_cobra_model(sbml_path: Path) -> "cobra.core.Model":
@@ -32,22 +42,24 @@ def cobra_reaction_info(cobra_model: "cobra.core.Model") -> pd.DataFrame:
     :param cobra_model:
     :return: pandas DataFrame
     """
-    rids = [r.id for r in cobra_model.reactions]
+    rids: list[str] = [r.id for r in cobra_model.reactions]
     df = pd.DataFrame(
         data=None,
-        index=rids,
-        columns=[
-            "lb",
-            "ub",
-            "reversibility",
-            "boundary",
-            "objective_coefficient",
-            "forward_variable",
-            "reverse_variable",
-        ],
+        index=pd.Index(rids),
+        columns=pd.Index(
+            [
+                "lb",
+                "ub",
+                "reversibility",
+                "boundary",
+                "objective_coefficient",
+                "forward_variable",
+                "reverse_variable",
+            ]
+        ),
     )
     for rid in rids:
-        r = cobra_model.reactions.get_by_sid(rid)
+        r = cobra_model.reactions.get_by_id(rid)
         df.loc[rid] = [
             r.lower_bound,
             r.upper_bound,
@@ -60,17 +72,20 @@ def cobra_reaction_info(cobra_model: "cobra.core.Model") -> pd.DataFrame:
     return df
 
 
-def check_mass_balance(sbml_path: Path) -> dict:
+def check_mass_balance(sbml_path: Path) -> dict[str, Any]:
     """Check mass and charge balance of the model.
 
-    :param sbml_path: Path to SBML file
-    :return: Dict of unbalanced reactions
+    Args:
+        sbml_path: path of the SBML model
+
+    Returns:
+        The unbalanced reactions, keyed by reaction id.
     """
     model = read_cobra_model(sbml_path)
-    mbs = {}
+    mbs: dict[str, Any] = {}
     for r in model.reactions:
         mb = r.check_mass_balance()
         if len(mb) > 0:
-            logger.warning(r.id, mb, r.reaction)
-            mbs[r.getId()] = mb
+            logger.warning("Reaction '%s' is unbalanced: %s (%s)", r.id, mb, r.reaction)
+            mbs[r.id] = mb
     return mbs

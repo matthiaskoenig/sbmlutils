@@ -551,7 +551,7 @@ def xpp2sbml(
                             trigger = g[1] + ">= 0"
 
                         assignment_parts = [t.strip() for t in g[2].split(";")]
-                        assignments: dict[str, str] = {}
+                        assignments: dict[str, str | float] = {}
                         for p in assignment_parts:
                             key, value = p.split("=")
                             assignments[key] = value

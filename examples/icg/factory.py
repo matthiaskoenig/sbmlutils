@@ -66,7 +66,7 @@ def create_models(results_path: Path, create_tissues: bool = True) -> dict[str, 
         omex.add_entry(entry_path=info["path"], entry=info["entry"])
     omex.to_omex(omex_path=results_path / "icg_model.omex")
 
-    console.print(omex.manifest.dict())
+    console.print(omex.manifest.model_dump())
 
     return results
 

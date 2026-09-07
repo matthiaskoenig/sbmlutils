@@ -284,16 +284,19 @@ class SBMLDocumentInfo:
     @staticmethod
     def _get_pk(sbase: libsbml.SBase) -> str:
         """Calculate primary key."""
-        if not hasattr(sbase, "pk"):
-            pk: str = f"{SBMLDocumentInfo._sbml_type(sbase)}:"
-            if sbase.isSetId():
-                pk += sbase.getId()
-            elif sbase.isSetMetaId():
-                pk += sbase.getMetaId()
-            else:
-                xml = sbase.toSBML()
-                pk += SBMLDocumentInfo._uuid(xml)
-            sbase.pk = pk
+        if hasattr(sbase, "pk"):
+            return str(sbase.pk)
+
+        pk: str = f"{SBMLDocumentInfo._sbml_type(sbase)}:"
+        if sbase.isSetId():
+            pk += sbase.getId()
+        elif sbase.isSetMetaId():
+            pk += sbase.getMetaId()
+        else:
+            xml = sbase.toSBML()
+            pk += SBMLDocumentInfo._uuid(xml)
+        # the key is cached on the libsbml object, which accepts new attributes
+        sbase.pk = pk  # ty: ignore[invalid-assignment]
 
         return pk
 
@@ -447,8 +450,8 @@ class SBMLDocumentInfo:
         if sbase.isSetSBOTerm():
             sbo = sbase.getSBOTermID()
             sbo_in_cvs: bool = False
-            for cv in cvterms:
-                for resource in cv["resources"]:
+            for cvterm in cvterms:
+                for resource in cvterm["resources"]:
                     if sbo in resource:
                         sbo_in_cvs = True
                         break
@@ -792,9 +795,9 @@ class SBMLDocumentInfo:
         if isinstance(rule, libsbml.AlgebraicRule):
             return "0"
         if isinstance(rule, libsbml.AssignmentRule):
-            return rule.variable
+            return str(rule.getVariable())
         if isinstance(rule, libsbml.RateRule):
-            return f"d {rule.variable}/dt"
+            return f"d {rule.getVariable()}/dt"
         raise TypeError(rule)
 
     def constraints(self, model: libsbml.Model) -> list[dict[str, Any]]:
@@ -841,7 +844,7 @@ class SBMLDocumentInfo:
             d["fast"] = r.getFast() if r.isSetFast() else None
             d["equation"] = self._equation_from_reaction(r)
 
-            klaw: libsbml.KineticLaw = (
+            klaw: libsbml.KineticLaw | None = (
                 r.getKineticLaw() if r.isSetKineticLaw() else None
             )
             if klaw:
@@ -1041,7 +1044,7 @@ class SBMLDocumentInfo:
                 else None
             )
 
-            trigger: libsbml.Trigger = (
+            trigger: libsbml.Trigger | None = (
                 event.getTrigger() if event.isSetTrigger() else None
             )
             if trigger:
@@ -1051,13 +1054,13 @@ class SBMLDocumentInfo:
                         if trigger.isSetMath()
                         else None
                     ),
-                    "initialValue": trigger.initial_value,
-                    "persistent": trigger.persistent,
+                    "initialValue": trigger.getInitialValue(),
+                    "persistent": trigger.getPersistent(),
                 }
             else:
                 d["trigger"] = None
 
-            priority: libsbml.Priority = (
+            priority: libsbml.Priority | None = (
                 event.getPriority() if event.isSetPriority() else None
             )
             if priority:
@@ -1066,7 +1069,9 @@ class SBMLDocumentInfo:
                     if priority.isSetMath()
                     else None
                 )
-            delay: libsbml.Delay = event.getDelay() if event.isSetDelay() else None
+            delay: libsbml.Delay | None = (
+                event.getDelay() if event.isSetDelay() else None
+            )
             if delay:
                 d["delay"] = (
                     astnode_to_latex(delay.getMath()) if delay.isSetMath() else None

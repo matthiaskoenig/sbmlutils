@@ -15,7 +15,7 @@ import os
 import re
 from collections.abc import Iterable
 from pathlib import Path
-from typing import ClassVar
+from typing import Any
 
 import libsbml
 import pandas as pd
@@ -89,15 +89,6 @@ class ExternalAnnotation:
         name
     """
 
-    # possible columns in annotation file
-    _keys: ClassVar[list[str]] = [
-        "pattern",
-        "sbml_type",
-        "annotation_type",
-        "qualifier",
-        "resource",
-        "name",
-    ]
     # allowed SBML types for annotation
     _sbml_types = frozenset(
         [
@@ -115,34 +106,32 @@ class ExternalAnnotation:
     )
     _annotation_types = frozenset(["rdf", "formula", "charge"])
 
-    def __init__(self, d: dict):
-        """Initialize ExternalAnnotation."""
+    def __init__(self, d: dict[str, Any]):
+        """Initialize ExternalAnnotation.
+
+        Args:
+            d: one row of the annotation file, `pattern`, `sbml_type`,
+                `annotation_type` and `resource` are required, `qualifier` and
+                `name` are optional.
+
+        Raises:
+            KeyError: if a required column is missing
+            ValueError: if a value is not one of the supported choices
+        """
         self.d = d
-        self.pattern: str | None = None
-        self.sbml_type: str | None = None
-        self.annotation_type: str | None = None
+        self.pattern: str = str(d["pattern"])
+        self.sbml_type: str = str(d["sbml_type"]).lower()
+        self.annotation_type: str = str(d["annotation_type"]).lower()
+        self.resource: str = str(d["resource"])
+        self.name: str | None = d.get("name") or None
+
+        # only an rdf annotation carries a qualifier
         self.qualifier: BQB | BQM | None = None
-        self.resource: str | None = None
-        self.name: str | None = None
-
-        for key in self._keys:
-            # optional fields
-            if key in ["qualifier", "name"]:
-                value = d.get(key, "")
-            else:
-                # required fields
-                value = d[key]
-                if key in ["sbml_type", "annotation_type"]:
-                    value = value.lower()
-                if key in ["qualifer"]:
-                    value = value.upper()
-
-            setattr(self, key, value)
-
         if self.annotation_type == "rdf":
-            self.qualifier = ExternalAnnotation._parse_qualifier_str(self.qualifier)
-        else:
-            self.qualifier = None
+            qualifier = d.get("qualifier")
+            self.qualifier = ExternalAnnotation._parse_qualifier_str(
+                str(qualifier).upper() if qualifier else None
+            )
 
         self.check()
 
@@ -153,14 +142,9 @@ class ExternalAnnotation:
 
         if not qualifier.startswith("BQ"):
             raise ValueError(f"Qualifier must start with BQM_ or BQB_: '{qualifier}'")
-        bq: BQB | BQM
         if qualifier.startswith("BQM_"):
-            bq = BQM[qualifier[4:]]
-        elif qualifier.startswith("BQB_"):
-            bq = BQB[qualifier[4:]]
-        if bq is None:
-            raise ValueError(f"Qualifier could not be parsed: '{qualifier}'")
-        return bq
+            return BQM[qualifier[4:]]
+        return BQB[qualifier[4:]]
 
     def check(self) -> None:
         """Check for valid choices.
@@ -318,6 +302,8 @@ class ModelAnnotator:
         """
         for e in elements:
             if ex_a.annotation_type == "rdf":
+                if ex_a.qualifier is None:
+                    raise ValueError(f"An rdf annotation needs a qualifier: {ex_a}")
                 annotation = Annotation(
                     qualifier=ex_a.qualifier,
                     resource=ex_a.resource,

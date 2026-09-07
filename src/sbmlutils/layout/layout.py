@@ -124,7 +124,10 @@ class CompartmentGlyph(factory.Sbase):
         self.text = text
 
     def _set_glyph_fields(
-        self, obj: libsbml.SpeciesGlyph, layout: libsbml.Layout, model: libsbml.Model
+        self,
+        obj: libsbml.CompartmentGlyph,
+        layout: libsbml.Layout,
+        model: libsbml.Model,
     ) -> None:
         """Set fields."""
         super()._set_fields(obj, model)
@@ -382,7 +385,7 @@ class Layout(factory.Sbase):
 
         return layout
 
-    def _set_fields(self, sbase: libsbml.Layout, model: libsbml.Model | None) -> None:
+    def _set_fields(self, sbase: libsbml.Layout, model: libsbml.Model) -> None:
         super()._set_fields(sbase, model)
         dim: libsbml.Dimensions = libsbml.Dimensions(
             SBML_LEVEL,

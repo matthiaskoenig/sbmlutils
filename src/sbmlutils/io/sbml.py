@@ -158,7 +158,7 @@ def promote_local_variables(
     """
     model: libsbml.Model = doc.getModel()
     if model.isSetId():
-        model.setId(f"{model.id}{suffix}")
+        model.setId(f"{model.getId()}{suffix}")
 
     # promote local parameters
     props = libsbml.ConversionProperties()

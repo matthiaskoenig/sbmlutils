@@ -55,13 +55,13 @@ def create_online_report(
         raise OSError(f"'sbml_path' does not exist: '{sbml_path}'")
 
     # serve files
+    # the thread is a daemon, so it is killed once the main thread is dead
     daemon = threading.Thread(
         name="daemon_server",
         target=start_server,
         args=(sbml_path.parent, fileserver_port),
+        daemon=True,
     )
-    # Set as a daemon so it will be killed once the main thread is dead.
-    daemon.setDaemon(True)
     daemon.start()
 
     # post file via url to sbml4humans server

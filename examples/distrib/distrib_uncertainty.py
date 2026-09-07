@@ -12,6 +12,7 @@ python -m examples.distrib.distrib_uncertainty
 
 import logging
 import tempfile
+from pathlib import Path
 
 import libsbml
 
@@ -20,8 +21,13 @@ from sbmlutils import RESOURCES_DIR
 logger = logging.getLogger(__name__)
 
 
-def add_uncertainty_example(tmp: bool = False) -> None:
-    """Add uncertainty to a model."""
+def add_uncertainty_example(output_dir: Path | None = None) -> None:
+    """Add the uncertainty of a gene product to the E. coli core model.
+
+    Args:
+        output_dir: directory the model is written to, a temporary directory
+            which is removed afterwards when it is `None`.
+    """
     doc: libsbml.SBMLDocument = libsbml.readSBMLFromFile(
         str(RESOURCES_DIR / "distrib" / "e_coli_core.xml")
     )
@@ -49,14 +55,10 @@ def add_uncertainty_example(tmp: bool = False) -> None:
         logger.error("DistribSBasePlugin not working for fbc:GeneProduct.")
 
     # store model with gene expression data
-    if tmp:
-        with tempfile.NamedTemporaryFile(suffix=".xml") as f_sbml:
-            libsbml.writeSBMLToFile(doc, f_sbml.name)
-    else:
-        libsbml.writeSBMLToFile(
-            doc, str(RESOURCES_DIR / "distrib" / "e_coli_core_expression.xml")
-        )
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        directory = output_dir if output_dir else Path(tmp_dir)
+        libsbml.writeSBMLToFile(doc, str(directory / "e_coli_core_expression.xml"))
 
 
 if __name__ == "__main__":
-    add_uncertainty_example(tmp=False)
+    add_uncertainty_example(output_dir=Path.cwd())

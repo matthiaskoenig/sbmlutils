@@ -129,7 +129,7 @@ component: libsbml.UserDefinedConstraintComponent = (
 )
 component.setCoefficient(10.0)
 component.setVariable("r1")
-component.setVariableType(libsbml.FBC_FBCVARIABLETYPE_LINEAR)
+component.setVariableType(libsbml.FBC_VARIABLE_TYPE_LINEAR)
 
 sbml_str: str = libsbml.writeSBMLToString(doc)
 print("-" * 80)

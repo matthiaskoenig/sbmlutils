@@ -140,7 +140,7 @@ def create_omex(tmp_dir: Path | None = None) -> None:
     omex_path = output_dir / f"{model_comp.sid}.omex"
     omex.to_omex(omex_path)
     console.print(f"OMEX created: {omex_path}")
-    console.print(omex.manifest.dict())
+    console.print(omex.manifest.model_dump())
 
 
 if __name__ == "__main__":

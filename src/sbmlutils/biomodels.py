@@ -2,7 +2,7 @@
 
 import shutil
 import tempfile
-from collections.abc import Iterable
+from collections.abc import Sequence
 from pathlib import Path
 
 import requests
@@ -134,7 +134,7 @@ def query_curated_biomodels() -> list[str]:
 
 
 def _create_biomodels_testfiles(
-    biomodel_ids: Iterable[str], output_dir: Path, caching: bool = True
+    biomodel_ids: Sequence[str], output_dir: Path, caching: bool = True
 ) -> None:
     """Download all curated biomodels and create omex files."""
     console.print(f"Number of models: {len(biomodel_ids)}")

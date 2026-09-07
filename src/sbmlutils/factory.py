@@ -439,14 +439,15 @@ class Sbase:
 
         return None
 
-    def _set_fields(self, sbase: Any, model: libsbml.Model | None) -> None:
+    def _set_fields(self, sbase: Any, model: Any) -> None:
         """Set the fields of the created libsbml object.
 
         Args:
             sbase: the libsbml object created by `create_sbml`; every subclass
                 creates exactly one libsbml type and narrows the parameter to
                 it, so the base declares it as `Any`
-            model: the model the object belongs to, `None` for a `Document`
+            model: the `libsbml.Model` the object belongs to, `None` for a
+                `Document`, which is the only object without a model
         """
         if self.sid is not None:
             if not libsbml.SyntaxChecker.isValidSBMLSId(self.sid):
@@ -531,7 +532,7 @@ class Sbase:
         if self.port is None:
             return None
 
-        p: libsbml.Port = None
+        p: libsbml.Port | None = None
         if isinstance(self.port, bool):
             if self.port is True:
                 # manually create port for the id
@@ -662,7 +663,7 @@ class Value(Sbase):
     def __init__(
         self,
         sid: str | None,
-        value: str | float,
+        value: str | float | None,
         name: str | None = None,
         sboTerm: str | None = None,
         metaId: str | None = None,
@@ -687,7 +688,7 @@ class Value(Sbase):
         )
         self.value = value
 
-    def _set_fields(self, sbase: Any, model: libsbml.Model | None) -> None:
+    def _set_fields(self, sbase: Any, model: libsbml.Model) -> None:
         super()._set_fields(sbase, model)
 
 
@@ -797,7 +798,7 @@ class UnitDefinition(Sbase):
         if units:
             for k, item in enumerate(units):
                 prefix, unit_name, _suffix = ureg.parse_unit_name(item[0])[0]
-                exponent = item[1]
+                exponent = float(item[1])
                 # first unit gets the multiplier
                 multiplier = 1.0
                 if k == 0:
@@ -835,16 +836,14 @@ class UnitDefinition(Sbase):
         self.create_port(model)
         return obj
 
-    def _set_fields(
-        self, sbase: libsbml.UnitDefinition, model: libsbml.Model | None
-    ) -> None:
+    def _set_fields(self, sbase: libsbml.UnitDefinition, model: libsbml.Model) -> None:
         """Set fields on libsbml.UnitDefinition."""
         super()._set_fields(sbase, model)
 
     @staticmethod
     def _create_unit(
         udef: libsbml.UnitDefinition,
-        kind: str,
+        kind: int,
         exponent: float,
         scale: int = 0,
         multiplier: float = 1.0,
@@ -932,7 +931,9 @@ class Units:
                 )
             # create and register libsbml.UnitDefinition in libsbml.Model
             try:
-                _: libsbml.UnitDefinition = unit_definition.create_sbml(model=model)
+                _: libsbml.UnitDefinition | None = unit_definition.create_sbml(
+                    model=model
+                )
             except UndefinedUnitError as err:
                 console.print_exception(show_locals=False)
                 logger.error(
@@ -957,7 +958,7 @@ class ValueWithUnit(Value):
     def __init__(
         self,
         sid: str,
-        value: str | float,
+        value: str | float | None,
         unit: UnitType = Units.dimensionless,
         name: str | None = None,
         sboTerm: str | None = None,
@@ -991,7 +992,7 @@ class ValueWithUnit(Value):
                 type(self.unit),
             )
 
-    def _set_fields(self, sbase: Any, model: libsbml.Model | None) -> None:
+    def _set_fields(self, sbase: Any, model: libsbml.Model) -> None:
         super()._set_fields(sbase, model)
         if self.unit is not None:
             if sbase.getTypeCode() in [
@@ -1052,7 +1053,7 @@ class Function(Sbase):
         return fd
 
     def _set_fields(
-        self, sbase: libsbml.FunctionDefinition, model: libsbml.Model | None
+        self, sbase: libsbml.FunctionDefinition, model: libsbml.Model
     ) -> None:
         super()._set_fields(sbase, model)
         ast_node = ast_node_from_formula(model, self.formula)
@@ -1061,6 +1062,9 @@ class Function(Sbase):
 
 class Parameter(ValueWithUnit):
     """Parameter."""
+
+    #: the identifier is required, unlike on `Sbase`
+    sid: str
 
     def __init__(
         self,
@@ -1122,9 +1126,7 @@ class Parameter(ValueWithUnit):
         self.create_port(model)
         return obj
 
-    def _set_fields(
-        self, sbase: libsbml.Parameter, model: libsbml.Model | None
-    ) -> None:
+    def _set_fields(self, sbase: libsbml.Parameter, model: libsbml.Model) -> None:
         """Set fields."""
         super()._set_fields(sbase, model)
         sbase.setConstant(self.constant)
@@ -1132,6 +1134,9 @@ class Parameter(ValueWithUnit):
 
 class Compartment(ValueWithUnit):
     """Compartment."""
+
+    #: the identifier is required, unlike on `Sbase`
+    sid: str
 
     def __init__(
         self,
@@ -1194,9 +1199,7 @@ class Compartment(ValueWithUnit):
         self.create_port(model)
         return obj
 
-    def _set_fields(
-        self, sbase: libsbml.Compartment, model: libsbml.Model | None
-    ) -> None:
+    def _set_fields(self, sbase: libsbml.Compartment, model: libsbml.Model) -> None:
         """Set fields on Compartment."""
         super()._set_fields(sbase, model)
         sbase.setConstant(self.constant)
@@ -1272,7 +1275,7 @@ class Species(Sbase):
         self.create_port(model)
         return s
 
-    def _set_fields(self, sbase: libsbml.Species, model: libsbml.Model | None) -> None:
+    def _set_fields(self, sbase: libsbml.Species, model: libsbml.Model) -> None:
         """Set fields on libsbml.Species."""
         super()._set_fields(sbase, model)
         sbase.setConstant(self.constant)
@@ -1786,7 +1789,7 @@ class Reaction(Sbase):
         self.create_port(model)
         return r
 
-    def _set_fields(self, sbase: libsbml.Reaction, model: libsbml.Model | None) -> None:
+    def _set_fields(self, sbase: libsbml.Reaction, model: libsbml.Model) -> None:
         """Set fields in libsbml.Reaction."""
         super()._set_fields(sbase, model)
 
@@ -1875,7 +1878,7 @@ class Event(Sbase):
 
         return event
 
-    def _set_fields(self, sbase: libsbml.Event, model: libsbml.Model | None) -> None:
+    def _set_fields(self, sbase: libsbml.Event, model: libsbml.Model) -> None:
         """Set fields in libsbml.Event."""
         super()._set_fields(sbase, model)
 
@@ -1963,9 +1966,7 @@ class Constraint(Sbase):
         self._set_fields(constraint, model)
         return constraint
 
-    def _set_fields(
-        self, sbase: libsbml.Constraint, model: libsbml.Model | None
-    ) -> None:
+    def _set_fields(self, sbase: libsbml.Constraint, model: libsbml.Model) -> None:
         """Set fields on libsbml.Constraint."""
         super()._set_fields(sbase, model)
 
@@ -2654,9 +2655,7 @@ class ModelDefinition(Sbase):
         self._set_fields(model_definition, model)
         return model_definition
 
-    def _set_fields(
-        self, sbase: libsbml.ModelDefinition, model: libsbml.Model | None
-    ) -> None:
+    def _set_fields(self, sbase: libsbml.ModelDefinition, model: libsbml.Model) -> None:
         """Set fields on ModelDefinition."""
         super()._set_fields(sbase, model)
         for attr in [
@@ -2731,7 +2730,7 @@ class ExternalModelDefinition(Sbase):
         return extdef
 
     def _set_fields(
-        self, sbase: libsbml.ExternalModelDefinition, model: libsbml.Model | None
+        self, sbase: libsbml.ExternalModelDefinition, model: libsbml.Model
     ) -> None:
         """Set fields on ExternalModelDefinition."""
         super()._set_fields(sbase, model)
@@ -2785,7 +2784,7 @@ class Submodel(Sbase):
 
         return submodel
 
-    def _set_fields(self, sbase: libsbml.Submodel, model: libsbml.Model | None) -> None:
+    def _set_fields(self, sbase: libsbml.Submodel, model: libsbml.Model) -> None:
         super()._set_fields(sbase, model)
 
 
@@ -2821,7 +2820,7 @@ class SbaseRef(Sbase):
         self.unitRef = unitRef
         self.metaIdRef = metaIdRef
 
-    def _set_fields(self, sbase: Any, model: libsbml.Model | None) -> None:
+    def _set_fields(self, sbase: Any, model: libsbml.Model) -> None:
         super()._set_fields(sbase, model)
 
         sbase.setId(self.sid)
@@ -2895,9 +2894,7 @@ class ReplacedElement(SbaseRef):
 
         return obj
 
-    def _set_fields(
-        self, sbase: libsbml.ReplacedElement, model: libsbml.Model | None
-    ) -> None:
+    def _set_fields(self, sbase: libsbml.ReplacedElement, model: libsbml.Model) -> None:
         super()._set_fields(sbase, model)
         sbase.setSubmodelRef(self.submodelRef)
         if self.deletion:
@@ -2952,9 +2949,7 @@ class ReplacedBy(SbaseRef):
 
         return rby
 
-    def _set_fields(
-        self, sbase: libsbml.ReplacedBy, model: libsbml.Model | None
-    ) -> None:
+    def _set_fields(self, sbase: libsbml.ReplacedBy, model: libsbml.Model) -> None:
         """Set fields in ReplacedBy."""
         super()._set_fields(sbase, model)
         sbase.setSubmodelRef(self.submodelRef)
@@ -3003,7 +2998,7 @@ class Deletion(SbaseRef):
 
         return deletion
 
-    def _set_fields(self, sbase: libsbml.Deletion, model: libsbml.Model | None) -> None:
+    def _set_fields(self, sbase: libsbml.Deletion, model: libsbml.Model) -> None:
         """Set fields on Deletion."""
         super()._set_fields(sbase, model)
 
@@ -3073,7 +3068,7 @@ class Port(SbaseRef):
 
         return p
 
-    def _set_fields(self, sbase: libsbml.Port, model: libsbml.Model | None) -> None:
+    def _set_fields(self, sbase: libsbml.Port, model: libsbml.Model) -> None:
         """Set fields on Port."""
         super()._set_fields(sbase, model)
 
@@ -3555,7 +3550,7 @@ class Document(Sbase):
         self.keyValuePairs = keyValuePairs
         self.sbml_level = sbml_level
         self.sbml_version = sbml_version
-        self.doc: libsbml.SBMLDocument = None
+        self.doc: libsbml.SBMLDocument | None = None
 
         sbmlutils_notes = """
         Created with [https://github.com/matthiaskoenig/sbmlutils](https://github.com/matthiaskoenig/sbmlutils).

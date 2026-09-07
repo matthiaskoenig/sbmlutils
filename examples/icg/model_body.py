@@ -2,6 +2,7 @@
 
 import os
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 
@@ -90,7 +91,8 @@ _m = Model(
     ],
 )
 
-SUBSTANCES_BODY = {
+#: the properties of a substance, the values are heterogeneous
+SUBSTANCES_BODY: dict[str, dict[str, Any]] = {
     "icg": {
         "name": "icg",
         "unit": U.mmole,

@@ -11,10 +11,12 @@ python -m examples.distrib.distrib_packages_examples
 """
 
 import tempfile
+from pathlib import Path
 
 import libsbml
 
-from sbmlutils import RESOURCES_DIR, validation
+from sbmlutils import validation
+from sbmlutils.console import console
 from sbmlutils.validation import check
 
 
@@ -262,31 +264,30 @@ def uncertainty() -> libsbml.SBMLDocument:
     return doc
 
 
-def create_examples(tmp: bool = False) -> None:
-    """Create distrib examples."""
+def create_examples(output_dir: Path | None = None) -> None:
+    """Create the distrib example models.
+
+    Args:
+        output_dir: directory the models are written to, a temporary directory
+            which is removed afterwards when it is `None`.
+    """
     functions = [
         distrib_normal,
         distrib_all,
         uncertainty,
     ]
-    for f_creator in functions:
-        name = f_creator.__name__
-        print(name)
-        # distrib_example1()
-        doc = f_creator()
-        sbml = libsbml.writeSBMLToString(doc)
-        print("-" * 80)
-        print(sbml)
-        print("-" * 80)
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        directory = output_dir if output_dir else Path(tmp_dir)
+        for f_creator in functions:
+            name = f_creator.__name__
+            doc = f_creator()
 
-        if tmp:
-            sbml_path = tempfile.mktemp()
-        else:
-            sbml_path = str(RESOURCES_DIR / "distrib" / f"{name}.xml")
+            console.rule(name, style="white")
+            console.print(libsbml.writeSBMLToString(doc))
 
-        libsbml.writeSBMLToFile(doc, sbml_path)
-        validation.validate_doc(doc)
+            libsbml.writeSBMLToFile(doc, str(directory / f"{name}.xml"))
+            validation.validate_doc(doc)
 
 
 if __name__ == "__main__":
-    create_examples()
+    create_examples(output_dir=Path.cwd())

@@ -352,9 +352,13 @@ class SBML2ODE:
         """
 
         def add_dependency_edges(
-            g: dict[str, set], variable: str, astnode: libsbml.ASTNode
+            g: dict[str, set], variable: str, astnode: libsbml.ASTNode | str
         ) -> None:
             """Add the dependency edges to the graph."""
+            if isinstance(astnode, str):
+                # already a formula, it carries no dependency information
+                return
+
             # handle terminal nodes
             if astnode.getType() == libsbml.AST_NAME:
                 # add to dependency graph if id is not a defined parameter or state variable
@@ -539,14 +543,14 @@ class SBML2ODE:
         def to_formula(
             ast_dict: dict[str, libsbml.ASTNode | str],
             replace_symbols: bool = True,
-        ) -> dict[str, libsbml.ASTNode | str]:
+        ) -> dict[str, libsbml.ASTNode | str | float]:
             """Replace all symbols in given astnode dictionary.
 
             :param replace_symbols:
             :param ast_dict:
             :return:
             """
-            d: dict[str, libsbml.ASTNode | str] = {}
+            d: dict[str, libsbml.ASTNode | str | float] = {}
 
             for key in ast_dict:
                 astnode = ast_dict[key]

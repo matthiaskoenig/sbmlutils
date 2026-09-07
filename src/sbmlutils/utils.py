@@ -1,10 +1,6 @@
 """Utility functions."""
 
-import functools
 import hashlib
-import time
-import warnings
-from collections.abc import Callable
 from typing import Any
 
 import libsbml
@@ -55,43 +51,3 @@ def create_hash_id(sbase: libsbml.SBase) -> str:
         hash_key = hashlib.md5(xml_str).hexdigest()
     # print(f"-> {hash_key}")
     return hash_key
-
-
-def timeit(f: Callable) -> Callable:
-    """Decorate function with timing information.
-
-    :param f: function to time
-    :return:
-    """
-
-    def timed(*args: Any, **kwargs: Any) -> Any:
-        ts = time.time()
-        result = f(*args, **kwargs)
-        te = time.time()
-        print(
-            f"func:{f.__name__!r} args:[{args!r}, {kwargs!r}] took: {te - ts:2.4f} sec"
-        )
-        return result
-
-    return timed
-
-
-def deprecated(f: Callable) -> Callable:
-    """Decorate function as deprecated.
-
-    This is a decorator which can be used to mark functions
-    as deprecated. It will result in a warning being emitted
-    when the function is used.
-    """
-
-    @functools.wraps(f)
-    def new_func(*args: Any, **kwargs: Any) -> Any:
-        warnings.warn_explicit(
-            f"Call to deprecated function {f.__name__}.",
-            category=DeprecationWarning,
-            filename=f.func_code.co_filename,
-            lineno=f.func_code.co_firstlineno + 1,
-        )
-        return f(*args, **kwargs)
-
-    return new_func

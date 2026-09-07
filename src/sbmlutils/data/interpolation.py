@@ -116,7 +116,7 @@ class Interpolator:
         from the spline interpolation.
         """
         # calculate spline coefficients
-        coeffs: list[tuple[float]] = Interpolator._natural_spline_coeffs(x, y)
+        coeffs = Interpolator._natural_spline_coeffs(x, y)
 
         # create piecewise terms
         items: list[str] = []
@@ -137,7 +137,9 @@ class Interpolator:
         return "piecewise({})".format(", ".join(items))
 
     @staticmethod
-    def _natural_spline_coeffs(X: pd.Series, Y: pd.Series) -> list[tuple[float]]:
+    def _natural_spline_coeffs(
+        X: pd.Series, Y: pd.Series
+    ) -> list[tuple[float, float, float, float]]:
         """Calculate natural spline coefficients.
 
         Calculation of coefficients for
@@ -182,7 +184,7 @@ class Interpolator:
             b[j] = (a[j + 1] - a[j]) / h[j] - (h[j] * (c[j + 1] + 2 * c[j])) / 3
             d[j] = (c[j + 1] - c[j]) / (3 * h[j])
         # store coefficients
-        coeffs: list[tuple[float]] = []
+        coeffs: list[tuple[float, float, float, float]] = []
         for i in range(n):
             coeffs.append((a[i], b[i], c[i], d[i]))
         return coeffs
@@ -248,8 +250,8 @@ class Interpolation:
 
     def __init__(self, data: pd.DataFrame, method: str = "linear"):
         """Initialize Interpolation."""
-        self.doc: libsbml.SBMLDocument = None
-        self.model: libsbml.Model = None
+        self.doc: libsbml.SBMLDocument | None = None
+        self.model: libsbml.Model | None = None
         self.data: pd.DataFrame = data
         self.method: str = method
         self.interpolators: list[Interpolator] = []
@@ -305,29 +307,36 @@ class Interpolation:
         :param sbml_out: Path to SBML file
         :return:
         """
-        self._create_sbml()
-        write_sbml(doc=self.doc, filepath=sbml_out)
+        write_sbml(doc=self._create_sbml(), filepath=sbml_out)
 
     def write_sbml_to_string(self) -> str | None:
         """Write the SBML file.
 
         :return: SBML str
         """
-        self._create_sbml()
-        return write_sbml(self.doc, filepath=None)
+        return write_sbml(self._create_sbml(), filepath=None)
 
-    def _create_sbml(self) -> None:
-        """Create the SBMLDocument."""
-        self._init_sbml_model()
+    def _create_sbml(self) -> libsbml.SBMLDocument:
+        """Create the SBMLDocument.
+
+        Returns:
+            The document with the interpolation model.
+        """
+        doc, model = self._init_sbml_model()
         self.interpolators = Interpolation.create_interpolators(self.data, self.method)
         for interpolator in self.interpolators:
-            Interpolation.add_interpolator_to_model(interpolator, self.model)
+            Interpolation.add_interpolator_to_model(interpolator, model)
 
         # validation of SBML document
-        validate_doc(self.doc, options=ValidationOptions(units_consistency=False))
+        validate_doc(doc, options=ValidationOptions(units_consistency=False))
+        return doc
 
-    def _init_sbml_model(self) -> None:
-        """Create and initialize the SBML model."""
+    def _init_sbml_model(self) -> tuple[libsbml.SBMLDocument, libsbml.Model]:
+        """Create and initialize the SBML model.
+
+        Returns:
+            The document and its model.
+        """
         # FIXME: support arbitrary levels and versions
         sbmlns = libsbml.SBMLNamespaces(3, 1)
         sbmlns.addPackageNamespace("comp", 1)
@@ -340,6 +349,7 @@ class Interpolation:
         model.setId(f"Interpolation_{self.method}")
         model.setName(f"Interpolation_{self.method}")
         self.model = model
+        return doc, model
 
     @staticmethod
     def create_interpolators(data: pd.DataFrame, method: str) -> list[Interpolator]:

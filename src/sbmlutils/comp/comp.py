@@ -93,7 +93,7 @@ def create_ports(
     metaIdRefs: Any | None = None,
     portType: factory.PortType = factory.PortType.PORT,
     suffix: str = factory.PORT_SUFFIX,
-) -> list[factory.Port]:
+) -> list[libsbml.Port]:
     """Create ports for given model.
 
     Helper function to create port creation.
@@ -107,7 +107,8 @@ def create_ports(
 
     :return:
     """
-    ports = []
+    ports: list[libsbml.Port] = []
+    data: Any
     if portRefs is not None:
         ptype = "portRef"
         data = portRefs
@@ -120,6 +121,10 @@ def create_ports(
     elif metaIdRefs is not None:
         ptype = "metaIdRef"
         data = metaIdRefs
+    else:
+        raise ValueError(
+            "One of 'portRefs', 'idRefs', 'unitRefs' or 'metaIdRefs' is required."
+        )
 
     # dictionary, port ids are provided
     if isinstance(data, dict):
@@ -161,10 +166,9 @@ def _create_port(
         p.setIdRef(idRef)
         ref = idRef
     if unitRef is not None:
-        # FIXME: this is a bug
-        unit_str = factory.UnitDefinition.get_unit_string(unitRef)
-        p.setUnitRef(unit_str)
-        ref = unit_str
+        # the unit reference is the id of a UnitDefinition of the model
+        p.setUnitRef(unitRef)
+        ref = unitRef
     if metaIdRef is not None:
         p.setMetaIdRef(metaIdRef)
         ref = metaIdRef
@@ -213,7 +217,7 @@ def replace_elements(
 
 def replace_element_in_submodels(
     model: libsbml.Model, sid: str, ref_type: str, submodels: list[str]
-) -> libsbml.ReplacedElement:
+) -> None:
     """Replace elements submodels with the identical id.
 
     For instance to replace all the units in the submodels.

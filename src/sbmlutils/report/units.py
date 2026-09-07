@@ -48,6 +48,10 @@ def udef_to_string(
         # check for internal unit
         if libsbml.UnitKind_forName(udef) != libsbml.UNIT_KIND_INVALID:
             return short_names.get(udef, udef)
+        if model is None:
+            raise ValueError(
+                f"A model is required to resolve the unit definition '{udef}'."
+            )
         ud = model.getUnitDefinition(udef)
     else:
         ud = udef
@@ -143,7 +147,7 @@ if __name__ == "__main__":
     ]:
         ud = UnitDefinition(key, definition=definition)
         # ud = UnitDefinition("item")
-        udef: libsbml.UnitDefinition = ud.create_sbml(model=model)
+        udef: libsbml.UnitDefinition | None = ud.create_sbml(model=model)
 
         console.rule()
         console.print(udef)

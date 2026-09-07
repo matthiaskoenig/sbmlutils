@@ -20,12 +20,12 @@ class U(Units):
 
 def test_distrib_examples() -> None:
     """Test distrib examples."""
-    distrib_packages_examples.create_examples(tmp=True)
+    distrib_packages_examples.create_examples()
 
 
 def test_add_uncertainty_example() -> None:
     """Test add uncertainty example."""
-    distrib_uncertainty.add_uncertainty_example(tmp=True)
+    distrib_uncertainty.add_uncertainty_example()
 
 
 def check_model(model: Model) -> libsbml.SBMLDocument:
