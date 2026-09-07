@@ -1,15 +1,42 @@
-"""Testing the biomodels module."""
+"""Testing the biomodels module.
+
+The tests query the BioModels web service and therefore need network access.
+The service refuses the requests of some hosts, e.g. the GitHub runners, which
+is not a problem of sbmlutils: such a test is skipped instead of failing, see
+`biomodels_available`.
+"""
 
 from pathlib import Path
 
 import pytest
+import requests
 from pymetadata.omex import Omex
-from requests.exceptions import HTTPError
+from requests.exceptions import HTTPError, RequestException
 
-from sbmlutils.biomodels import download_biomodel_omex, download_biomodel_sbml
+from sbmlutils.biomodels import (
+    BIOMODELS_URL,
+    download_biomodel_omex,
+    download_biomodel_sbml,
+)
 
 
-def test_download_biomodel_omex_success(tmp_path: Path) -> None:
+@pytest.fixture(scope="module")
+def biomodels_available() -> None:
+    """Skip the test when the BioModels service does not answer.
+
+    Raises:
+        Skipped: if the service is unreachable or refuses the request.
+    """
+    try:
+        response = requests.get(f"{BIOMODELS_URL}/BIOMD0000000001", timeout=30)
+        response.raise_for_status()
+    except RequestException as err:
+        pytest.skip(f"BioModels is not available: {err}")
+
+
+def test_download_biomodel_omex_success(
+    tmp_path: Path, biomodels_available: None
+) -> None:
     """Download OMEX for existing biomodels."""
     biomodel_id = "BIOMD0000000001"
     omex_path = tmp_path / "tests.omex"
@@ -27,7 +54,9 @@ def test_download_biomodel_omex_failure(tmp_path: Path) -> None:
         download_biomodel_omex(biomodel_id="BIOMDXYZ", omex_path=omex_path)
 
 
-def test_download_biomodel_sbml_sbml_success(tmp_path: Path) -> None:
+def test_download_biomodel_sbml_sbml_success(
+    tmp_path: Path, biomodels_available: None
+) -> None:
     """Download SBML for existing biomodels."""
     biomodel_id = "BIOMD0000000001"
     locations = download_biomodel_sbml(
@@ -40,7 +69,9 @@ def test_download_biomodel_sbml_sbml_success(tmp_path: Path) -> None:
     assert (tmp_path / locations[1]).exists()
 
 
-def test_download_biomodel_sbml_omex_success(tmp_path: Path) -> None:
+def test_download_biomodel_sbml_omex_success(
+    tmp_path: Path, biomodels_available: None
+) -> None:
     """Download SBML for existing biomodels."""
     biomodel_id = "BIOMD0000000001"
     locations = download_biomodel_sbml(
