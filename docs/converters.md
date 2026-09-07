@@ -74,6 +74,8 @@ sbml_str = antimony_to_sbml("J0: S1 -> S2; k1*S1; S1 = 10; S2 = 0; k1 = 0.1")
 model = antimony_to_model("model.ant")
 ```
 
+`sbml_to_antimony` in `sbmlutils.io` converts an SBML file or string back to antimony. `create_model` writes the antimony and the markdown of the ODE system next to the SBML file with `create_antimony=True` and `create_markdown=True`, see [Model creation](creation.md).
+
 ## COPASI
 
 COPASI displays the name of an element, not its id, which makes a model whose elements have no names unreadable in it. `write_ids_to_names` copies the ids into the names:

@@ -43,7 +43,8 @@ from pydantic import BaseModel, ConfigDict
 from pymetadata.core.creator import Creator
 
 from sbmlutils.console import console
-from sbmlutils.io import write_sbml
+from sbmlutils.converters.odefac import SBML2ODE
+from sbmlutils.io import sbml_to_antimony, write_sbml
 from sbmlutils.metadata import (
     BQB,
     BQM,
@@ -3617,6 +3618,8 @@ class FactoryResult:
 
     model: Model
     sbml_path: Path
+    antimony_path: Path | None = None
+    markdown_path: Path | None = None
 
 
 def create_model(
@@ -3628,6 +3631,8 @@ def create_model(
     validation_options: ValidationOptions | None = None,
     show_sbml: bool = False,
     annotations: Path | None = None,
+    create_antimony: bool = False,
+    create_markdown: bool = False,
 ) -> FactoryResult:
     """Create SBML model from models.
 
@@ -3637,6 +3642,11 @@ def create_model(
 
     Additional model annotations can be provided via a file.
 
+    The created SBML can be serialized to additional formats for inspection, which
+    are written next to the SBML file: the antimony serialization of the model
+    (`create_antimony`, `*.ant`) and the markdown overview of the ODE system
+    (`create_markdown`, `*.md`, see `sbmlutils.converters.odefac`).
+
     :param model: Model or iterable of Model instances which are merged in single model
     :param filepath: Path to write the SBML model to
     :param sbml_level: set SBML level for model generation
@@ -3645,6 +3655,8 @@ def create_model(
     :param validation_options: options for model validation
     :param show_sbml: boolean flag to show SBML
     :param annotations: Path to annotations file
+    :param create_antimony: write the antimony serialization to `*.ant`
+    :param create_markdown: write the markdown overview of the ODE system to `*.md`
 
     :return: FactoryResult
     """
@@ -3681,6 +3693,19 @@ def create_model(
             source=filepath, annotations_path=annotations, filepath=filepath
         )
 
+    # additional serializations (from the final file, including the annotations)
+    antimony_path: Path | None = None
+    if create_antimony:
+        antimony_path = filepath.with_suffix(".ant")
+        antimony_path.write_text(sbml_to_antimony(filepath), encoding="utf-8")
+        logger.info("Antimony written to '%s'", antimony_path)
+
+    markdown_path: Path | None = None
+    if create_markdown:
+        markdown_path = filepath.with_suffix(".md")
+        SBML2ODE.from_file(filepath).to_markdown(md_file=markdown_path)
+        logger.info("Markdown written to '%s'", markdown_path)
+
     console.rule(style="white")
 
     # print created sbml
@@ -3691,4 +3716,9 @@ def create_model(
         console.log(sbml_str)
 
     console.rule(style="white")
-    return FactoryResult(sbml_path=filepath, model=m)
+    return FactoryResult(
+        sbml_path=filepath,
+        model=m,
+        antimony_path=antimony_path,
+        markdown_path=markdown_path,
+    )

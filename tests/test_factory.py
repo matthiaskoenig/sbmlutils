@@ -201,3 +201,46 @@ def test_event2() -> None:
     assert e.getId() == "e1"
     assignments = e.getListOfEventAssignments()
     assert len(assignments) == 2
+
+
+def test_create_model_serializations(tmp_path: Path) -> None:
+    """Create the antimony and markdown serialization next to the SBML file."""
+    model = Model(
+        sid="serializations",
+        compartments=[Compartment(sid="c", value=1.0)],
+        species=[Species(sid="S1", initialConcentration=10.0, compartment="c")],
+        parameters=[Parameter(sid="k1", value=0.1)],
+        reactions=[Reaction(sid="J0", equation="S1 -> ", formula="k1 * S1")],
+    )
+    result = create_model(
+        model=model,
+        filepath=tmp_path / "model.xml",
+        validation_options=ValidationOptions(units_consistency=False),
+        create_antimony=True,
+        create_markdown=True,
+    )
+    assert result.antimony_path == tmp_path / "model.ant"
+    assert result.markdown_path == tmp_path / "model.md"
+    ant_str = result.antimony_path.read_text(encoding="utf-8")
+    assert "model" in ant_str
+    assert "J0:" in ant_str
+    md_str = result.markdown_path.read_text(encoding="utf-8")
+    assert "# model: serializations" in md_str
+    assert "k1 = 0.1" in md_str
+
+
+def test_create_model_no_serializations(tmp_path: Path) -> None:
+    """No additional files are written by default."""
+    model = Model(
+        sid="no_serializations",
+        parameters=[Parameter(sid="k1", value=0.1)],
+    )
+    result = create_model(
+        model=model,
+        filepath=tmp_path / "model.xml",
+        validation_options=ValidationOptions(units_consistency=False),
+    )
+    assert result.antimony_path is None
+    assert result.markdown_path is None
+    assert not (tmp_path / "model.ant").exists()
+    assert not (tmp_path / "model.md").exists()

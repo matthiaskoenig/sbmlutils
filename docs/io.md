@@ -69,6 +69,14 @@ model = antimony_to_model("model.ant")
 
 Both accept the antimony as a string or as a path to an `.ant` file.
 
+The other direction, SBML to antimony, is `sbml_to_antimony` in `sbmlutils.io`, which accepts an SBML string or the path to an SBML file. `create_model` writes it next to the SBML file with `create_antimony=True`, see [Model creation](creation.md).
+
+```python
+from sbmlutils.io import sbml_to_antimony
+
+ant_str = sbml_to_antimony(Path("model.xml"))
+```
+
 ## Promoting local parameters
 
 Local parameters of a kinetic law are invisible to most tools. `promote_local_variables` lifts them to the model, with the reaction id as a prefix:
