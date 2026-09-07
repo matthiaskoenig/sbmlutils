@@ -21,25 +21,13 @@ class U(Units):
 model = Model(
     "fbc_user_defined_constraints",
     packages=[Package.FBC_V3],
-    # creators=templates.creators,
-    # notes="""
-    # # Model with fbc version 3
-    # Example creating fbc model with KeyValuePairs.
-    #
-    # The `ListOfKeyValuePairs`, forms the basis of a controlled annotation defined by
-    # the Flux Balance Constraints package. This element defines a structured note or
-    # descriptive list of keys and associated values.
-    # """
-    # + templates.terms_of_use,
-    # units=U,
-    # model_units=ModelUnits(
-    #     time=U.hr,
-    #     extent=U.mmole,
-    #     substance=U.mmole,
-    #     length=U.meter,
-    #     area=U.m2,
-    #     volume=U.liter,
-    # ),
+    notes="""
+    # Model with the user defined constraints of fbc version 3
+
+    A user defined constraint bounds a linear combination of fluxes and
+    variables, i.e., `uc1 <= 1.0 * RGLX - 1.0 * RXLG <= uc1`. The bounds and the
+    coefficients of the combination are parameters of the model.
+    """,
     compartments=[
         Compartment("cell", value=1.0),
     ],
@@ -47,10 +35,16 @@ model = Model(
         Species("S1", initialAmount=NaN, compartment="cell"),
     ],
     parameters=[
+        # bounds of the constraints
         Parameter(sid="uc1", value=5),
         Parameter(sid="uc2lb", value=2),
         Parameter(sid="uc2ub", value=np.inf),
+        # the variable of the second constraint
         Parameter(sid="Avar", value=NaN, constant=False),
+        # coefficients of the components, referenced by the components
+        Parameter(sid="coef_plus_one", value=1.0),
+        Parameter(sid="coef_minus_one", value=-1.0),
+        Parameter(sid="coef_two", value=2.0),
     ],
     reactions=[
         Reaction("RGLX", equation="S1 -> "),
@@ -62,8 +56,8 @@ model = Model(
             lowerBound="uc1",
             upperBound="uc1",
             components={
-                "RGLX": 1.0,
-                "RXLG": -1.0,
+                "RGLX": "coef_plus_one",
+                "RXLG": "coef_minus_one",
             },
             variableType="linear",
         ),
@@ -71,8 +65,8 @@ model = Model(
             lowerBound="uc2lb",
             upperBound="uc2ub",
             components={
-                "Avar": 2.0,
-                "RGDP": -1.0,
+                "Avar": "coef_two",
+                "RGDP": "coef_minus_one",
             },
             variableType="linear",
         ),

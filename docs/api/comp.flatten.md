@@ -1,0 +1,3 @@
+# flatten
+
+::: sbmlutils.comp.flatten

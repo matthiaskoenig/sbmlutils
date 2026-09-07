@@ -1,0 +1,3 @@
+# annotator
+
+::: sbmlutils.metadata.annotator

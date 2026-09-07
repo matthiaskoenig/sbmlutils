@@ -27,6 +27,7 @@ from examples.distrib import (
 )
 from examples.fbc import (
     fbc_mass_charge,
+    fbc_userdefinedconstraints,
     fbc_v2,
     fbc_v3,
 )
@@ -58,6 +59,7 @@ examples_models = [
     fbc_v2,
     fbc_v3,
     fbc_mass_charge,
+    fbc_userdefinedconstraints,
     linear_chain,
     minimal_model,
     model,

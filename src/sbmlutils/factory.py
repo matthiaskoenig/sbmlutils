@@ -154,7 +154,7 @@ def create_objects(
         try:
             sbml_obj: libsbml.SBase = obj.create_sbml(model)
         except Exception as err:
-            logger.error("Error creating SBML object '%s'", sbml_obj)
+            logger.error("Error creating SBML object for '%s'", obj)
             logger.error(err)
             raise err
         # FIXME: what happens for objects without id?
@@ -2306,7 +2306,7 @@ class UserDefinedConstraintComponent(Sbase):
 
     def __init__(
         self,
-        coefficient: float,
+        coefficient: str,
         variable: str,
         variableType: str | None = None,
         sid: str | None = None,
@@ -2379,9 +2379,7 @@ class UserDefinedConstraint(Sbase):
         self,
         lowerBound: str,
         upperBound: str,
-        components: list[UserDefinedConstraintComponent]
-        | dict[str, float]
-        | None = None,
+        components: list[UserDefinedConstraintComponent] | dict[str, str] | None = None,
         variableType: str = libsbml.FBC_VARIABLE_TYPE_LINEAR,
         sid: str | None = None,
         name: str | None = None,

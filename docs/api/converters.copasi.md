@@ -1,0 +1,3 @@
+# copasi
+
+::: sbmlutils.converters.copasi

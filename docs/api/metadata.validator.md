@@ -1,0 +1,3 @@
+# validator
+
+::: sbmlutils.metadata.validator
