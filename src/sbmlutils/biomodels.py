@@ -1,4 +1,11 @@
-"""Utilities for downloading biomodel models."""
+"""Utilities for downloading biomodel models.
+
+The downloads go through the shared session of
+[pymetadata](https://matthiaskoenig.github.io/pymetadata/api/webservices.webservice/),
+which retries the transient error responses (429, 500, 502, 503, 504) with an
+exponential backoff and times out after 30 seconds, so a single hiccup of the
+BioModels service does not fail a download.
+"""
 
 import logging
 import shutil
@@ -6,8 +13,8 @@ import tempfile
 from collections.abc import Sequence
 from pathlib import Path
 
-import requests
 from pymetadata.omex import EntryFormat, ManifestEntry, Omex
+from pymetadata.webservices.webservice import get_session
 from requests.exceptions import HTTPError
 
 from sbmlutils.console import console
@@ -17,17 +24,31 @@ logger = logging.getLogger(__name__)
 
 BIOMODELS_URL: str = "https://biomodels.org"
 
+#: size of the chunks a download is streamed in
+CHUNK_SIZE: int = 1024
+
 
 def download_file(url: str, path: Path) -> Path:
-    """Download file from url to path.
+    """Download a file.
 
-    Raises :class:`HTTPError`, if one occurred.
+    A transient error response is retried, see the module documentation.
+
+    Args:
+        url: url to download from
+        path: file the content is written to
+
+    Returns:
+        The path the content was written to.
+
+    Raises:
+        HTTPError: if the server answered with an error status
+        RequestException: if the server could not be reached
     """
-    with requests.get(url, stream=True) as r:
-        r.raise_for_status()
-        with open(path, "wb") as f:
-            for chunk in r.iter_content(chunk_size=1024):
-                f.write(chunk)
+    with get_session().get(url, stream=True) as response:
+        response.raise_for_status()
+        with open(path, "wb") as f_out:
+            for chunk in response.iter_content(chunk_size=CHUNK_SIZE):
+                f_out.write(chunk)
 
     return path
 
@@ -104,12 +125,20 @@ def download_biomodel_sbml(
 
 
 def query_curated_biomodels() -> list[str]:
-    """Query the curated biomodels.
+    """Query the identifiers of the curated biomodels.
 
-    :return List of biomodel identifiers
+    A transient error response is retried, see the module documentation.
+
+    Returns:
+        The sorted identifiers of the manually curated models.
+
+    Raises:
+        HTTPError: if the server answered with an error status
+        RequestException: if the server could not be reached
     """
+    session = get_session()
     url = f"{BIOMODELS_URL}/search?query=curationstatus%3A%22Manually%20curated%22&numResults=1&format=json"
-    response = requests.get(url)
+    response = session.get(url)
     response.raise_for_status()
     json = response.json()
     console.print(url)
@@ -121,7 +150,7 @@ def query_curated_biomodels() -> list[str]:
     biomodel_ids = []
     while offset < matches:
         url = f"{BIOMODELS_URL}/search?query=curationstatus%3A%22Manually%20curated%22&numResults={num_results}&offset={offset}&format=json"
-        response = requests.get(url)
+        response = session.get(url)
         response.raise_for_status()
         json = response.json()
         ids = [model["id"] for model in json["models"]]
