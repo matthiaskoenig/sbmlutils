@@ -2,7 +2,7 @@
 
 The SBML [fbc](https://sbml.org/documents/specifications/level-3/version-1/fbc/) package turns a reaction network into a constraint based model: every reaction gets a lower and an upper flux bound, an objective says what to optimize, and gene products link reactions to the genes which encode them.
 
-`sbmlutils` supports fbc version 2 and version 3.
+`sbmlutils` supports fbc version 2 and version 3 ([Olivier *et al.* 2026](references.md#sbml-packages)).
 
 ## Flux bounds
 

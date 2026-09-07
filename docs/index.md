@@ -7,7 +7,7 @@
 
 ## Background
 
-SBML is the exchange format for computational models in systems biology, and libsbml is the reference implementation for reading and writing it. Working with libsbml directly is verbose: every element is created on the model, every attribute is set through a setter, and every call returns a status code which has to be checked. A compartment with a unit and an annotation is a dozen statements.
+SBML is the exchange format for computational models in systems biology ([Keating *et al.* 2020](references.md#sbml), [Hucka *et al.* 2019](references.md#sbml)), and libsbml is the reference implementation for reading and writing it. Working with libsbml directly is verbose: every element is created on the model, every attribute is set through a setter, and every call returns a status code which has to be checked. A compartment with a unit and an annotation is a dozen statements.
 
 `sbmlutils` is the layer above it. A model is written as a python object — a `Model` holding `Compartment`, `Species`, `Parameter` and `Reaction` objects — and `create_model` turns that definition into a validated SBML file. The definition is data, so it can be composed, parameterized and generated, and the units, annotations and notes belong to the element they describe instead of being applied afterwards.
 
@@ -27,6 +27,8 @@ Around this core the package collects the tasks which come with SBML models: val
 - **[Converters](converters.md)** — SBML to an ODE system (python, R, julia, markdown, latex), XPP/XPPAUT `.ode` files to SBML, and antimony in both directions.
 - **[Interpolation](interpolation.md)** — a table of data points as an SBML model, with constant, linear and cubic spline interpolation.
 - **[Visualization](visualization.md)** — models rendered as a network in [Cytoscape](https://cytoscape.org).
+
+The specifications behind the language and its packages are cited in [References](references.md).
 
 ## Quickstart
 

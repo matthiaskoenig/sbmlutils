@@ -1,6 +1,6 @@
 # Distributions and uncertainties
 
-A parameter of a model is rarely a single number. It is a mean with a standard deviation, a range from the literature, or a value drawn from a distribution. The SBML [distrib](https://sbml.org/documents/specifications/level-3/version-1/distrib/) package records this next to the value instead of in a comment.
+A parameter of a model is rarely a single number. It is a mean with a standard deviation, a range from the literature, or a value drawn from a distribution. The SBML [distrib](https://sbml.org/documents/specifications/level-3/version-1/distrib/) package records this next to the value instead of in a comment ([Smith *et al.* 2020](references.md#sbml-packages)).
 
 ## Uncertainty on an element
 
