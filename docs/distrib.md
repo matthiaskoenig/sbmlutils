@@ -29,7 +29,9 @@ model = Model(
                 Uncertainty(
                     sid="p1_uncertainty",
                     uncertParameters=[
-                        UncertParameter(type=libsbml.DISTRIB_UNCERTTYPE_MEAN, value=5.0),
+                        UncertParameter(
+                            type=libsbml.DISTRIB_UNCERTTYPE_MEAN, value=5.0
+                        ),
                         UncertParameter(
                             type=libsbml.DISTRIB_UNCERTTYPE_STANDARDDEVIATION, value=0.3
                         ),

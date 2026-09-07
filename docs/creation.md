@@ -38,15 +38,17 @@ model = Model(
     Glucose is taken up and phosphorylated.
     """,
     units=U,
-    model_units=ModelUnits(
-        time=U.min, extent=U.mmole, substance=U.mmole, volume=U.l
-    ),
+    model_units=ModelUnits(time=U.min, extent=U.mmole, substance=U.mmole, volume=U.l),
     compartments=[
         Compartment("cell", value=1.0, unit=U.l, name="cell", constant=True),
     ],
     species=[
-        Species("glc", initialConcentration=5.0, compartment="cell", substanceUnit=U.mmole),
-        Species("g6p", initialConcentration=0.0, compartment="cell", substanceUnit=U.mmole),
+        Species(
+            "glc", initialConcentration=5.0, compartment="cell", substanceUnit=U.mmole
+        ),
+        Species(
+            "g6p", initialConcentration=0.0, compartment="cell", substanceUnit=U.mmole
+        ),
     ],
     parameters=[
         Parameter("Vmax", 1.0, U.mmole_per_min),
@@ -71,7 +73,9 @@ The elements can be passed to the constructor or assigned afterwards, which is u
 
 ```python
 model.species += [
-    Species(f"s{k}", initialConcentration=0.0, compartment="cell", substanceUnit=U.mmole)
+    Species(
+        f"s{k}", initialConcentration=0.0, compartment="cell", substanceUnit=U.mmole
+    )
     for k in range(10)
 ]
 ```
@@ -102,12 +106,12 @@ Every element is an `Sbase` and accepts the attributes every SBML element has: `
 The stoichiometry of a reaction is written as an equation string, which is parsed by `sbmlutils.reaction_equation`:
 
 ```python
-Reaction("R1", equation="2 glc + atp -> g6p + adp")   # stoichiometries
-Reaction("R2", equation="glc <-> g6p")                # reversible, `->` is irreversible
-Reaction("R3", equation="glc -> g6p [enzyme]")        # modifiers in brackets
-Reaction("R4", equation="fS glc -> g6p")              # variable stoichiometry
-Reaction("R5", equation="=> cit")                     # no reactants
-Reaction("R6", equation="acoa =>")                    # no products
+Reaction("R1", equation="2 glc + atp -> g6p + adp")  # stoichiometries
+Reaction("R2", equation="glc <-> g6p")  # reversible, `->` is irreversible
+Reaction("R3", equation="glc -> g6p [enzyme]")  # modifiers in brackets
+Reaction("R4", equation="fS glc -> g6p")  # variable stoichiometry
+Reaction("R5", equation="=> cit")  # no reactants
+Reaction("R6", equation="acoa =>")  # no products
 ```
 
 The rate is given as `formula`, either as a plain string or as a `(formula, unit)` tuple, which is what makes the [unit check](units.md#unit-consistency) meaningful. The full grammar of the equations is documented in `sbmlutils.reaction_equation`.
@@ -119,7 +123,9 @@ SBML packages are activated on the model and their elements are then available:
 ```python
 from sbmlutils.factory import Model, Package
 
-model = Model(sid="example", packages=[Package.COMP_V1, Package.FBC_V3, Package.DISTRIB_V1])
+model = Model(
+    sid="example", packages=[Package.COMP_V1, Package.FBC_V3, Package.DISTRIB_V1]
+)
 ```
 
 | package | guide |
@@ -137,7 +143,9 @@ The layout package needs no entry in `packages`: assigning `model.layouts` with 
 ```python
 from examples import compartments, reactions, species
 
-create_model(model=[compartments.model, species.model, reactions.model], filepath="model.xml")
+create_model(
+    model=[compartments.model, species.model, reactions.model], filepath="model.xml"
+)
 ```
 
 The later model wins where the definitions overlap, which is how a base model is parameterized for a specific case.

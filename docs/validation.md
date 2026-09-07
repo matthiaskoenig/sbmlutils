@@ -22,15 +22,15 @@ Which checks run is configured with `ValidationOptions`:
 from sbmlutils.validation import ValidationOptions
 
 options = ValidationOptions(
-    general_consistency=True,     # the SBML language constructs
+    general_consistency=True,  # the SBML language constructs
     identifier_consistency=True,  # the identifiers used in the model
-    units_consistency=True,       # the units of every quantity and formula
-    mathml_consistency=True,      # the syntax of the MathML
-    sbo_consistency=True,         # the SBO terms
-    overdetermined_model=True,    # whether the model is overdetermined
-    modeling_practice=True,       # style recommendations
-    internal_consistency=True,    # the model as consistent XML
-    log_errors=True,              # log what was found
+    units_consistency=True,  # the units of every quantity and formula
+    mathml_consistency=True,  # the syntax of the MathML
+    sbo_consistency=True,  # the SBO terms
+    overdetermined_model=True,  # whether the model is overdetermined
+    modeling_practice=True,  # style recommendations
+    internal_consistency=True,  # the model as consistent XML
+    log_errors=True,  # log what was found
 )
 ```
 

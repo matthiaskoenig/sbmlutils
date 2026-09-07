@@ -67,8 +67,12 @@ model = Model(
     ),
     compartments=[Compartment("cell", value=1.0, unit=U.litre, name="cell")],
     species=[
-        Species("glc", initialConcentration=5.0, compartment="cell", substanceUnit=U.mmole),
-        Species("g6p", initialConcentration=0.0, compartment="cell", substanceUnit=U.mmole),
+        Species(
+            "glc", initialConcentration=5.0, compartment="cell", substanceUnit=U.mmole
+        ),
+        Species(
+            "g6p", initialConcentration=0.0, compartment="cell", substanceUnit=U.mmole
+        ),
     ],
     parameters=[Parameter("Vmax", 1.0, U.mmole_per_min), Parameter("Km", 0.1, U.mM)],
     reactions=[

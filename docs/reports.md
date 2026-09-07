@@ -17,16 +17,21 @@ print(info.to_json())
 
 The result has one entry per model of the document; the elements of a model are grouped by their SBML type:
 
-```python
-info.info["doc"]                    # the document itself
-info.info["model"]                  # the model, its units, its history and its packages
-info.info["modelDefinitions"]       # the comp model definitions
-info.info["externalModelDefinitions"]
+| key | content |
+| --- | --- |
+| `info.info["doc"]` | the document itself |
+| `info.info["model"]` | the model, its units, its history and its packages |
+| `info.info["modelDefinitions"]` | the comp model definitions |
+| `info.info["externalModelDefinitions"]` | the external model definitions |
 
-info.info["model"]["species"]       # every species with its compartment, units and annotations
-info.info["model"]["reactions"]     # every reaction with its equation, its rate and its modifiers
-info.info["model"]["parameters"]    # ...
-```
+The elements of the model are lists under it, one per SBML type:
+
+| key | content |
+| --- | --- |
+| `info.info["model"]["species"]` | every species with its compartment, units and annotations |
+| `info.info["model"]["reactions"]` | every reaction with its equation, its rate and its modifiers |
+| `info.info["model"]["parameters"]` | every parameter with its value and its unit |
+| `info.info["model"]["compartments"]`, `["rules"]`, `["events"]`, ... | the remaining types |
 
 Every element carries a primary key (`pk`) which identifies it across the document, so the report can link from a reaction to the species it consumes.
 
@@ -54,7 +59,7 @@ formula_to_latex("Vmax * glc / (Km + glc)")
 ```python
 from sbmlutils.report.units import udef_to_string
 
-udef_to_string(udef, format="str")    # 'mmol/min/l'
+udef_to_string(udef, format="str")  # 'mmol/min/l'
 udef_to_string(udef, format="latex")  # '\\frac{mmol}{min \\cdot l}'
 ```
 

@@ -62,7 +62,9 @@ from sbmlutils.factory import Compartment, Parameter, Reaction, Species
 Compartment("cell", value=1.0, unit=U.l)
 Parameter("Vmax", value=1.0, unit=U.mmole_per_min)
 Species("glc", initialConcentration=5.0, compartment="cell", substanceUnit=U.mmole)
-Reaction("R1", equation="glc -> g6p", formula=("Vmax * glc / (Km + glc)", U.mmole_per_min))
+Reaction(
+    "R1", equation="glc -> g6p", formula=("Vmax * glc / (Km + glc)", U.mmole_per_min)
+)
 ```
 
 A reaction formula is a `(formula, unit)` tuple: the unit is the unit of the rate, which is what the unit consistency check compares the formula against.
@@ -90,6 +92,6 @@ Unit errors are reported like any other validation problem, see [Validation](val
 ```python
 from sbmlutils.report.units import udef_to_string
 
-udef_to_string(udef, format="str")    # 'mmol/min/l'
+udef_to_string(udef, format="str")  # 'mmol/min/l'
 udef_to_string(udef, format="latex")  # '\\frac{mmol}{min \\cdot l}'
 ```

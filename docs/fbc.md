@@ -24,8 +24,12 @@ model = Model(sid="fbc_example", packages=[Package.FBC_V3], units=U)
 
 model.parameters = [
     Parameter("zero", 0.0, U.mmole_per_hr, constant=True, sboTerm="SBO:0000612"),
-    Parameter("ub_inf", float("inf"), U.mmole_per_hr, constant=True, sboTerm="SBO:0000612"),
-    Parameter("lb_inf", -float("inf"), U.mmole_per_hr, constant=True, sboTerm="SBO:0000612"),
+    Parameter(
+        "ub_inf", float("inf"), U.mmole_per_hr, constant=True, sboTerm="SBO:0000612"
+    ),
+    Parameter(
+        "lb_inf", -float("inf"), U.mmole_per_hr, constant=True, sboTerm="SBO:0000612"
+    ),
 ]
 
 model.reactions = [
@@ -55,8 +59,12 @@ from sbmlutils.factory import ExchangeReaction
 
 model.reactions.extend(
     [
-        ExchangeReaction(species_id="Glcxt", lowerFluxBound="lb_glc", upperFluxBound="zero"),
-        ExchangeReaction(species_id="X", lowerFluxBound="lb_inf", upperFluxBound="ub_inf"),
+        ExchangeReaction(
+            species_id="Glcxt", lowerFluxBound="lb_glc", upperFluxBound="zero"
+        ),
+        ExchangeReaction(
+            species_id="X", lowerFluxBound="lb_inf", upperFluxBound="ub_inf"
+        ),
     ]
 )
 ```
@@ -127,8 +135,8 @@ fbc version 3 adds constraints over several fluxes at once:
 from sbmlutils.factory import Parameter, UserDefinedConstraint
 
 model.parameters += [
-    Parameter("uc1", 5.0),              # the bound of the constraint
-    Parameter("coef_plus_one", 1.0),    # the coefficients of the components
+    Parameter("uc1", 5.0),  # the bound of the constraint
+    Parameter("coef_plus_one", 1.0),  # the coefficients of the components
     Parameter("coef_minus_one", -1.0),
 ]
 

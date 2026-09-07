@@ -43,8 +43,8 @@ model.replaced_elements = [
     ReplacedElement(
         sid="cell0_RE",
         metaId="cell0_RE",
-        elementRef="cell0",         # the element of this model
-        submodelRef="submodel0",    # the submodel it replaces in
+        elementRef="cell0",  # the element of this model
+        submodelRef="submodel0",  # the submodel it replaces in
         portRef=f"cell{PORT_SUFFIX}",  # the port of the submodel
     ),
 ]
@@ -62,12 +62,18 @@ n_cells = 5
 model = Model(sid="coupled_cells", packages=[Package.COMP_V1])
 model.compartments = [Compartment(sid=f"cell{k}", value=1.0) for k in range(n_cells)]
 model.species = [
-    Species(sid=f"S{k}", initialConcentration=10.0 if k == 0 else 0.0, compartment=f"cell{k}")
+    Species(
+        sid=f"S{k}",
+        initialConcentration=10.0 if k == 0 else 0.0,
+        compartment=f"cell{k}",
+    )
     for k in range(n_cells)
 ]
 model.parameters = [Parameter("D", 0.01)]
 model.reactions = [
-    Reaction(sid=f"J{k}", equation=f"S{k} <-> S{k + 1}", formula=f"D * (S{k} - S{k + 1})")
+    Reaction(
+        sid=f"J{k}", equation=f"S{k} <-> S{k + 1}", formula=f"D * (S{k} - S{k + 1})"
+    )
     for k in range(n_cells - 1)
 ]
 
@@ -75,7 +81,9 @@ model.external_model_definitions = [
     ExternalModelDefinition(sid=f"emd{k}", source="cell.xml", modelRef="cell")
     for k in range(n_cells)
 ]
-model.submodels = [Submodel(sid=f"submodel{k}", modelRef=f"emd{k}") for k in range(n_cells)]
+model.submodels = [
+    Submodel(sid=f"submodel{k}", modelRef=f"emd{k}") for k in range(n_cells)
+]
 model.replaced_elements = [
     ReplacedElement(
         sid=f"S{k}_RE",

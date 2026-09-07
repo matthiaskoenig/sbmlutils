@@ -18,7 +18,7 @@ Compartment(
     name="cytosol",
     sboTerm=SBO.PHYSICAL_COMPARTMENT,
     annotations=[
-        (BQB.IS, "go/GO:0005829"),                       # cytosol
+        (BQB.IS, "go/GO:0005829"),  # cytosol
         (BQB.IS, "https://en.wikipedia.org/wiki/Cytosol"),
     ],
 )
@@ -57,9 +57,9 @@ The systems biology ontology says what role an element plays. The terms come fro
 ```python
 from sbmlutils.metadata import SBO
 
-SBO.SIMPLE_CHEMICAL       # 'SBO_0000247'
-SBO.SIMPLE_CHEMICAL.label # 'simple chemical'
-SBO.SIMPLE_CHEMICAL.curie # 'SBO:0000247'
+SBO.SIMPLE_CHEMICAL  # 'SBO_0000247'
+SBO.SIMPLE_CHEMICAL.label  # 'simple chemical'
+SBO.SIMPLE_CHEMICAL.curie  # 'SBO:0000247'
 ```
 
 An `sboTerm` is written both as the `sboTerm` attribute and as an RDF annotation of the element.
@@ -122,7 +122,9 @@ annotate_sbml(
 ```python
 from sbmlutils.factory import create_model
 
-create_model(model=model, filepath=Path("model.xml"), annotations=Path("annotations.xlsx"))
+create_model(
+    model=model, filepath=Path("model.xml"), annotations=Path("annotations.xlsx")
+)
 ```
 
 ## Validating annotations

@@ -7,8 +7,8 @@
 ```python
 from sbmlutils.io import read_sbml
 
-doc = read_sbml("model.xml")            # a path
-doc = read_sbml(sbml_str)               # an SBML string
+doc = read_sbml("model.xml")  # a path
+doc = read_sbml(sbml_str)  # an SBML string
 doc = read_sbml("https://.../model.xml")  # a URL
 ```
 
