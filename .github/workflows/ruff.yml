@@ -2,17 +2,23 @@ name: ruff
 
 on:
   push:
+    # feature branches are checked through their pull request
+    branches: [develop, main]
+  pull_request:
+    branches: [develop, main]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   ruff:
+    # required by the branch protection, see .github/rulesets/develop.json
+    name: ruff
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

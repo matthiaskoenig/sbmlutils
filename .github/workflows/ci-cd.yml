@@ -2,14 +2,19 @@ name: CI-CD
 
 on:
   push:
+    # feature branches are tested through their pull request, tags release
+    branches: [develop, main]
+    tags: ['*']
+  pull_request:
+    branches: [develop, main]
   workflow_dispatch:
 
-# least privilege by default, the release job raises what it needs
+# least privilege by default, the release and sync jobs raise what they need
 permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   # superseded branch runs are cancelled, release runs are never cancelled
   cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
 
@@ -61,8 +66,24 @@ jobs:
       run:
         uvx --with tox-uv tox -e py${{ matrix.python-version }}
 
-  release:
+  tests:
+    # the one check the branch protection requires; the names of the matrix
+    # jobs change with the matrix, this name does not
+    name: tests
     needs: test
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+    - name: Check the result of the test matrix
+      env:
+        RESULT: ${{ needs.test.result }}
+      run: |
+        echo "test matrix: $RESULT"
+        test "$RESULT" = "success"
+
+  release:
+    needs: tests
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -95,3 +116,20 @@ jobs:
         body_path: "release-notes/${{ github.ref_name }}.md"
         draft: false
         prerelease: false
+
+  sync-main:
+    # main tracks the latest published release, see docs/development.md
+    needs: release
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write  # fast-forward main to the released commit
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        # a shallow clone cannot be pushed to another branch
+        fetch-depth: 0
+    - name: Fast-forward main to the release
+      # no --force: the push fails loudly if it would not be a fast-forward
+      run: git push origin HEAD:main
