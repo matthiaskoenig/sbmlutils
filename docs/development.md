@@ -2,6 +2,57 @@
 
 Contributions are welcome. The repository is [matthiaskoenig/sbmlutils](https://github.com/matthiaskoenig/sbmlutils); development happens against the `develop` branch via pull requests.
 
+## Branch model
+
+Two branches are permanent:
+
+- **`develop`** is the default branch and the branch everything is integrated into. The documentation on [matthiaskoenig.github.io/sbmlutils](https://matthiaskoenig.github.io/sbmlutils) is published from it.
+- **`main`** tracks the latest published release. It is fast-forwarded to the released commit by the `sync-main` job of the `CI-CD` workflow after the package went to pypi, so `main` and the newest version on pypi always agree. Nothing is developed on `main` and nothing is merged into it by hand.
+
+Work happens on short lived branches off `develop`, which GitHub deletes after the merge. Releases are tagged on `develop`, see [Release](#release).
+
+## Pull requests
+
+Neither branch accepts a direct push, every change goes through a pull request against `develop`. This includes the maintainer, there is no bypass.
+
+A pull request can only be merged once the four required checks are green:
+
+| check   | workflow      | content                                                              |
+| ------- | ------------- | -------------------------------------------------------------------- |
+| `tests` | `ci-cd.yml`   | the test matrix, linux, macos and windows with python 3.11 to 3.14    |
+| `ruff`  | `ruff.yml`    | `ruff check` and `ruff format --check`                                |
+| `ty`    | `ty.yml`      | `tox r -e ty`                                                         |
+| `docs`  | `docs.yml`    | the zensical build including the api reference and the agent files    |
+
+`tests` aggregates the test matrix into a single job, so the name of the required check stays the same when the matrix changes.
+
+Further rules of a pull request:
+
+- conversations have to be resolved before the merge
+- an approval is dismissed when new commits are pushed
+- the history stays linear, i.e., a pull request is merged with squash or rebase; merge commits are disabled
+- the maintainer is the code owner of the repository (`.github/CODEOWNERS`) and is requested for review on every pull request. A pull request of a contributor is therefore reviewed and merged by the maintainer, who has the only write access. The rulesets themselves do not require an approval: on a personal repository a ruleset cannot ask for an approval only from somebody else, and requiring one would block the pull requests of the maintainer, who cannot approve their own. Once a second person has write access, a ruleset requiring an approving review of a code owner can be added
+
+[Auto-merge](https://docs.github.com/pull-requests/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/automatically-merging-a-pull-request) is enabled for the repository, so a pull request can be queued and is merged as soon as the checks pass and the required approval is there.
+
+### Repository policies { #repository-policies }
+
+The protection is implemented with [repository rulesets](https://docs.github.com/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets). They are part of the repository in `.github/rulesets/` instead of only living in the web interface, so a change to a policy is reviewed like any other change:
+
+| ruleset                 | applies to | rules                                                                                                                                       |
+| ----------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `develop.json`          | `develop`  | pull request required, the four checks above, resolved conversations, linear history, no force push, no deletion. **No bypass, for anybody.** |
+| `main.json`             | `main`     | linear history, no force push, no deletion, no bypass. The fast-forward of the release workflow needs none, only a force push or a merge commit would be rejected |
+| `tags.json`             | all tags   | a tag cannot be deleted or moved, so a release tag keeps pointing at what was released                                                       |
+
+Changing a policy means changing the json and applying it:
+
+```bash
+.github/rulesets/apply.sh
+```
+
+The script is idempotent: it updates the rulesets which exist and creates the missing ones. It also sets the merge settings of the repository, i.e., auto-merge, delete branch on merge, and squash and rebase as the only merge methods. It needs the [github cli](https://cli.github.com) authenticated as a user with admin permission on the repository.
+
 ## Setup development environment
 
 Development needs [uv](https://docs.astral.sh/uv/) and a checkout of the repository:
@@ -148,18 +199,30 @@ The `documentation` workflow runs both steps, so the files are regenerated with 
 
 ## Release
 
-A release is made from `develop`:
+A release is made from `develop`. Since `develop` only accepts pull requests, the release is prepared on a branch and tagged once that pull request is merged:
 
-1. write the release notes for the version in `release-notes/`
-2. make sure everything passes: `tox run-parallel`, `ruff check`, `tox r -e ty`
-3. check the version bump: `uvx bump-my-version bump [major|minor|patch] --dry-run -vv`
-4. bump the version: `uvx bump-my-version bump [major|minor|patch]`, which updates `src/sbmlutils/__init__.py` and `CITATION.cff`, commits and tags
-5. `git push --tags`, which triggers the release workflow publishing to [pypi](https://pypi.org/project/sbmlutils/), followed by `git push`
-6. test the installation from pypi in a fresh environment:
+1. branch off `develop`: `git switch -c release/x.y.z develop`
+2. write the release notes for the version in `release-notes/x.y.z.md`
+3. make sure everything passes: `tox run-parallel`, `ruff check`, `tox r -e ty`
+4. check the version bump: `uvx bump-my-version bump [major|minor|patch] --dry-run -vv`
+5. bump the version: `uvx bump-my-version bump [major|minor|patch]`, which updates `src/sbmlutils/__init__.py` and `CITATION.cff` and commits. It does not create the tag; a squash or rebase merge would rewrite the commit and leave the tag behind on a commit which is not part of `develop`
+6. push the branch, open the pull request against `develop` and merge it once the checks are green
+7. tag the merged commit on `develop` and push the tag:
+
+    ```bash
+    git switch develop
+    git pull
+    git tag x.y.z
+    git push origin x.y.z
+    ```
+
+    This starts the `CI-CD` workflow, which runs the test matrix, publishes to [pypi](https://pypi.org/project/sbmlutils/), creates the GitHub release from `release-notes/x.y.z.md` and fast-forwards `main` to the tagged commit. Check the version before pushing, a tag cannot be moved or deleted afterwards.
+
+8. test the installation from pypi in a fresh environment:
 
     ```bash
     uv venv --python 3.14
     uv pip install sbmlutils
     ```
 
-7. once Zenodo has archived the release, update the citation information, i.e., `date-released` in `CITATION.cff` and the version, date and version DOI of the release in the citation of `README.md` and `docs/index.md`. `bump-my-version` only updates the version, not the date and the DOI, which are only known after the release
+9. once Zenodo has archived the release, update the citation information, i.e., `date-released` in `CITATION.cff` and the version, date and version DOI of the release in the citation of `README.md` and `docs/index.md`. `bump-my-version` only updates the version, not the date and the DOI, which are only known after the release. These changes go in through a pull request like everything else

@@ -31,7 +31,9 @@ python -m examples.species
 python -m examples.tutorial.minimal_model
 ```
 
-Release steps are in `docs/development.md` (there is no separate `RELEASE.md`); version bumps go through `uvx bump-my-version bump [major|minor|patch]` (updates `src/sbmlutils/__init__.py` and `CITATION.cff`), and pushing the tag triggers the PyPI release workflow.
+`develop` is the default branch and takes every change through a pull request; direct pushes are rejected by the rulesets in `.github/rulesets/` (applied with `.github/rulesets/apply.sh`), which require the `tests`, `ruff`, `ty` and `docs` checks. `main` only tracks the latest release and is fast-forwarded by the `sync-main` job of the release workflow, never by hand.
+
+Release steps are in `docs/development.md` (there is no separate `RELEASE.md`): the release is prepared on a branch, `uvx bump-my-version bump [major|minor|patch]` updates `src/sbmlutils/__init__.py` and `CITATION.cff` and commits without tagging (`tag = false`, a squash merge would rewrite the commit), and the tag is created on `develop` after the pull request was merged, which triggers the PyPI release workflow.
 
 Documentation is [Zensical](https://zensical.org/): markdown sources in `docs/`, configured in `zensical.toml`, built into the gitignored `site/` (`uv run zensical build --clean`, `uv run zensical serve` for the preview). The API reference is rendered from the docstrings by mkdocstrings; a page in `docs/api/` is just `::: sbmlutils.<module>`, so nothing is generated into the repository. `scripts/llms_txt.py` runs after the build and writes the agent facing files (`llms.txt`, `llms-full.txt` and the markdown of every page) into `site/`. The `documentation` workflow runs both and publishes the site from `develop`.
 

@@ -2,18 +2,24 @@ name: documentation
 
 on:
   push:
+    # feature branches are built through their pull request
+    branches: [develop, main]
+  pull_request:
+    branches: [develop, main]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   # never cancel a running deployment, it would leave the site half published
-  group: pages
   cancel-in-progress: false
 
 jobs:
-  build:
+  docs:
+    # required by the branch protection, see .github/rulesets/develop.json
+    name: docs
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -42,7 +48,7 @@ jobs:
           path: site
 
   deploy:
-    needs: build
+    needs: docs
     # only the default branch publishes to https://matthiaskoenig.github.io/sbmlutils
     if: github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
