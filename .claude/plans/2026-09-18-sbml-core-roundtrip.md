@@ -545,7 +545,40 @@ Move the existing body of `create_sbml` into `_create_sbml` unchanged.
 Run: `uv run pytest tests/test_roundtrip.py::test_roundtrip_emits_no_authoring_warnings -v`
 Expected: PASS.
 
-- [ ] **Step 8: Check the `setId` return code**
+- [ ] **Step 8: Write the failing test for rule ids**
+
+Append to `tests/test_factory.py`:
+
+```python
+def test_assignment_rule_keeps_its_id() -> None:
+    """Test that a rule id is written and does not overwrite the variable.
+
+    `libsbml.Rule.setId` aliases the `variable` attribute: it returns -16 and
+    is a no-op, so rule ids were silently lost. `setIdAttribute` is the L3V2
+    accessor which actually sets the id.
+    """
+    doc = libsbml.SBMLDocument(3, 2)
+    model = doc.createModel()
+    parameter = model.createParameter()
+    parameter.setId("S1")
+    parameter.setConstant(False)
+
+    rule = AssignmentRule("S1", value="2 * 3", sid="my_rule")
+    rule.create_sbml(model)
+
+    sbml_rule = model.getRule(0)
+    assert sbml_rule.getVariable() == "S1"
+    assert sbml_rule.getIdAttribute() == "my_rule"
+```
+
+- [ ] **Step 9: Run to verify it fails**
+
+Run: `uv run pytest tests/test_factory.py::test_assignment_rule_keeps_its_id -v`
+Expected: FAIL, the id is empty.
+
+- [ ] **Step 10: Check the `setId` return code and use `setIdAttribute` where `setId` aliases**
+
+`libsbml.Rule`, `libsbml.InitialAssignment` and `libsbml.EventAssignment` alias `setId` to their `variable` / `symbol` attribute. Verified by execution: `setId` returns `-16` and is a no-op on all three, while `setIdAttribute` returns `0` and sets the id.
 
 In `Sbase._set_fields`, change:
 
@@ -556,28 +589,60 @@ In `Sbase._set_fields`, change:
 to:
 
 ```python
-            check(sbase.setId(self.sid), f"Set id '{self.sid}' on {sbase}")
+            # libsbml aliases setId to the variable/symbol attribute on rules,
+            # initial assignments and event assignments, where it is a no-op;
+            # setIdAttribute is the accessor which actually sets the id
+            if sbase.getTypeCode() in _ID_ATTRIBUTE_TYPECODES:
+                check(
+                    sbase.setIdAttribute(self.sid),
+                    f"Set id '{self.sid}' on {sbase}",
+                )
+            else:
+                check(sbase.setId(self.sid), f"Set id '{self.sid}' on {sbase}")
 ```
 
-- [ ] **Step 9: Run the full test suite to see what the check surfaces**
+and add the module-level constant next to the other module constants near the top of `factory.py`:
+
+```python
+#: libsbml types whose `setId` aliases another attribute, so that the id has to
+#: be set through `setIdAttribute`
+_ID_ATTRIBUTE_TYPECODES: frozenset[int] = frozenset(
+    {
+        libsbml.SBML_ASSIGNMENT_RULE,
+        libsbml.SBML_RATE_RULE,
+        libsbml.SBML_ALGEBRAIC_RULE,
+        libsbml.SBML_INITIAL_ASSIGNMENT,
+        libsbml.SBML_EVENT_ASSIGNMENT,
+    }
+)
+```
+
+- [ ] **Step 11: Run the test to verify it passes**
+
+Run: `uv run pytest tests/test_factory.py::test_assignment_rule_keeps_its_id -v`
+Expected: PASS.
+
+- [ ] **Step 12: Run the full test suite**
 
 Run: `uv run pytest -m "not sbml_testsuite" -q 2>&1 | tail -20`
-Expected: the suite still passes. `check()` logs rather than raises, so newly surfaced `setId` failures on `Rule`, `InitialAssignment` and `EventAssignment` appear as log output. Record in the commit message which element types now log. **Do not fix them here**; Task 12 handles rule ids.
+Expected: the suite still passes. `AssignmentRule.__init__` synthesizes `sid = f"AssignmentRule_{variable}"`, so assignment rules now carry that generated id in the output. If a test asserts the absence of a rule id, report it rather than deleting the assertion.
 
-- [ ] **Step 10: Verify and commit**
+- [ ] **Step 13: Verify and commit**
 
 Run: `uv run ruff check && uv run ruff format --check && uvx ty check && uv run pytest -m "not sbml_testsuite" -q`
 
 ```bash
-git add src/sbmlutils/factory.py src/sbmlutils/parser.py tests/test_roundtrip.py
-git commit -m "fix: suppress authoring hints for parsed models and check setId
+git add src/sbmlutils/factory.py src/sbmlutils/parser.py tests/test_roundtrip.py tests/test_factory.py
+git commit -m "fix: suppress authoring hints for parsed models and set ids correctly
 
 The 'name' and 'sboTerm' hints of Sbase._set_fields are for somebody
 writing a model definition; a parsed model has whatever its source file
 had. Re-emitting 194 test suite cases produced 1512 such warnings.
 
-setId was called without checking its return code, which silently
-swallowed the ids of rules, initial assignments and event assignments."
+setId was called without checking its return code. On rules, initial
+assignments and event assignments libsbml aliases setId to the
+variable/symbol attribute, where it returns -16 and does nothing, so
+those ids were silently lost. They are now set through setIdAttribute."
 ```
 
 ---
@@ -702,9 +767,32 @@ and make the body wrapping skip a string which is already a body:
 Run: `uv run pytest tests/test_notes.py -v`
 Expected: all PASS.
 
-- [ ] **Step 6: Normalize notes on `Sbase`**
+- [ ] **Step 6: Normalize notes on `Sbase` and every subclass**
 
-In `factory.py`, in `Sbase.__init__`, add the parameter `notes_format: NotesFormat | None = None` after `notes`, and replace `self.notes = notes` with:
+Every `Sbase` subclass in this codebase enumerates the full `Sbase` parameter list in its own `__init__` and forwards it to `super().__init__`. There are **33** such constructors, found with:
+
+Run: `grep -n "        notes: str | None = None," src/sbmlutils/factory.py`
+
+`notes_format` must be added to **all** of them, not only to `Sbase`. The parser builds every object with `SomeClass(**parse_sbase_kwargs(sbase))`, and once `parse_sbase_kwargs` returns a `notes_format` key (step 8), any constructor missing the parameter raises `TypeError`. Add, in each of the 33 constructors, the parameter immediately after `notes`:
+
+```python
+        notes_format: NotesFormat | None = None,
+```
+
+and in each forwarding `super().__init__(...)` call, the argument immediately after `notes=notes`:
+
+```python
+            notes_format=notes_format,
+```
+
+`ReactionEquation` and `EquationPart` live in `reaction_equation.py` and are not `Sbase` subclasses; add `notes_format: str | None = field(default=None, repr=False)` to the `EquationPart` dataclass only, for symmetry with the fields it already carries.
+
+Verify the count afterwards:
+
+Run: `grep -c "        notes_format: NotesFormat | None = None," src/sbmlutils/factory.py`
+Expected: `33`.
+
+In `Sbase.__init__`, replace `self.notes = notes` with:
 
 ```python
         self.notes_format = notes_format
@@ -1336,10 +1424,12 @@ def test_roundtrip_preserves_unit_definitions(tmp_path: Path) -> None:
     assert m_out.getCompartment(0).getUnits() == m_in.getCompartment(0).getUnits()
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [ ] **Step 2: Run to verify the structural test fails**
 
 Run: `uv run pytest tests/test_roundtrip.py -v -k "units"`
-Expected: FAIL, the round-tripped model has no unit definitions.
+Expected: `test_roundtrip_preserves_unit_definitions` FAILS, the round-tripped model has no unit definitions.
+
+`test_roundtrip_units` is expected to **pass already**: unit definitions do not change roadrunner trajectories, so the simulation comparison cannot detect their loss. Verified by execution on case `00038`, which loses every unit definition today and still compares equal. The parametrized cases are regression guards, and the structural assertion is this task's TDD gate. Do not "fix" the parametrized test to fail.
 
 - [ ] **Step 3: Parse the unit definitions**
 
@@ -2410,23 +2500,34 @@ Expected: FAIL.
 
 - [ ] **Step 3: Type the modifiers**
 
-In `reaction_equation.py`, change the `modifiers` field of `ReactionEquation` from `list[str]` to `list[EquationPart]`, and normalize in `__post_init__` (add one if the dataclass has none):
+`ReactionEquation` is a plain class with an `__init__` (`reaction_equation.py:88`); only `EquationPart` is a dataclass. The normalization therefore goes in `__init__`, **not** in a `__post_init__`, which would never fire.
+
+In `reaction_equation.py`, change the `modifiers` parameter and attribute of `ReactionEquation.__init__` from `list[str]` to accept both, and normalize:
 
 ```python
-    def __post_init__(self) -> None:
-        """Normalize the modifiers to EquationParts.
+    def __init__(
+        self,
+        reactants: list[EquationPart] | None = None,
+        products: list[EquationPart] | None = None,
+        modifiers: list[EquationPart | str] | None = None,
+        reversible: bool = True,
+    ):
+        """Initialize equation.
 
         A modifier may be given as a bare species id, which is the documented
         string syntax, or as a full `EquationPart` carrying its own SBase
-        fields.
+        fields. Both are stored as `EquationPart`.
         """
-        self.modifiers = [
+        self.reversible: bool = reversible
+        self.reactants: list[EquationPart] = reactants if reactants else []
+        self.products: list[EquationPart] = products if products else []
+        self.modifiers: list[EquationPart] = [
             EquationPart(species=modifier) if isinstance(modifier, str) else modifier
-            for modifier in self.modifiers
+            for modifier in (modifiers if modifiers else [])
         ]
 ```
 
-Update `_parse_modifiers` (or wherever `from_str` fills modifiers) to keep producing strings; `__post_init__` converts them.
+Whatever `from_str` uses to fill modifiers keeps producing strings; `__init__` converts them.
 
 Find every consumer:
 
@@ -2715,7 +2816,7 @@ If they fail, comp is required by those paths; in that case add comp only when t
             packages_set.add(Package.COMP_V1)
 ```
 
-Place this in `Model.create_sbml`, not `check_packages`, because the lists are not populated when `check_packages` runs from `__init__`. Reading `Model.__init__` confirms `check_packages` is called before the lists are set.
+Place this in `Model._create_sbml` (the method Task 2 extracted from `create_sbml`), not in `check_packages`, because the lists are not populated when `check_packages` runs from `__init__`. Reading `Model.__init__` confirms `check_packages` is called before the lists are set.
 
 Verify `doc.getPkgVersion` exists in this libsbml version:
 
