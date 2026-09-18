@@ -5,8 +5,10 @@ preserve the simulation behaviour of the model: simulating the original and
 simulating the round-tripped document must give the same trajectories.
 
 The models are the semantic cases of the vendored SBML test suite. They are
-test data of the repository and are not part of the distribution, so they are
-resolved from `sbmlutils.resources.SBML_TESTSUITE_DIR`.
+test data of the repository and are excluded from the distribution, see
+`[tool.hatch.build]` in `pyproject.toml`, so they are resolved from the
+checkout, see `SEMANTIC_DIR`, and never from the installed package: tox
+installs sbmlutils from a wheel, which does not contain them.
 
 Only the l3v2 flavour of each case is round tripped. The round trip writes
 SBML L3V2, so round tripping an L1 or L2 file is a conversion rather than a
@@ -56,8 +58,18 @@ requires_roadrunner = pytest.mark.skipif(
     roadrunner is None, reason="requires libroadrunner"
 )
 
-#: the semantic cases of the vendored SBML test suite
-SEMANTIC_DIR: Path = Path(SBML_TESTSUITE_DIR) / "semantic"
+#: the semantic cases of the vendored SBML test suite, resolved from the
+#: checkout, see the module docstring; `SBML_TESTSUITE_DIR` only names the
+#: directory, it points into the installed package
+SEMANTIC_DIR: Path = (
+    Path(__file__).parent.parent
+    / "src"
+    / "sbmlutils"
+    / "resources"
+    / "models"
+    / Path(SBML_TESTSUITE_DIR).name
+    / "semantic"
+)
 
 #: uniform timecourse the round-trip comparison simulates
 T_END: float = 10.0
@@ -533,6 +545,21 @@ KNOWN_FAILURES: dict[str, str] = {
     "01819": f"{_SHADOWED}: `<pi/>` comes back as the parameter `pi`",
     "01821": f"{_SHADOWED}: the time csymbol comes back as the parameter `time`",
 }
+
+
+def test_sweep_finds_the_test_suite() -> None:
+    """Test that the sweep and the case lists resolve the vendored test suite.
+
+    An empty glob parametrizes the sweep with no case at all, which pytest
+    reports as a single skip, so a sweep which found nothing would pass
+    without testing anything. That happened under tox while the suite was
+    resolved from the installed package, which is a wheel without it.
+    """
+    assert SEMANTIC_DIR.is_dir(), f"the SBML test suite is missing: {SEMANTIC_DIR}"
+    assert len(SWEEP_CASES) == 1690
+    listed = {*NONDETERMINISTIC, *KNOWN_FAILURES}
+    swept = {sbml_path.name[:5] for sbml_path in SWEEP_CASES}
+    assert listed <= swept, f"listed cases which do not exist: {listed - swept}"
 
 
 @requires_roadrunner

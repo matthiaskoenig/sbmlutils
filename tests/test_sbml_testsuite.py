@@ -8,8 +8,20 @@ from sbmlutils.parser import sbml_to_model
 from sbmlutils.resources import SBML_TESTSUITE_DIR
 from sbmlutils.validation import ValidationOptions
 
+#: the vendored SBML test suite is test data of the repository, it is not part
+#: of the distribution, see `[tool.hatch.build]` in `pyproject.toml`, so it is
+#: resolved from the checkout rather than from the installed package
+TESTSUITE_DIR: Path = (
+    Path(__file__).parent.parent
+    / "src"
+    / "sbmlutils"
+    / "resources"
+    / "models"
+    / Path(SBML_TESTSUITE_DIR).name
+)
+
 #: a list, pytest deprecates parametrizing over a generator
-sbml_paths = sorted(Path(SBML_TESTSUITE_DIR).glob("**/*.xml"))
+sbml_paths = sorted(TESTSUITE_DIR.glob("**/*.xml"))
 
 
 def sbml_paths_idfn(sbml_path: Path) -> str:
