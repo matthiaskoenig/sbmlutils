@@ -1891,9 +1891,16 @@ class KineticLaw(Sbase):
 
         Args:
             math: the rate expression, as an SBML L3 formula string
-            unit: the unit of the rate, deprecated in SBML L3
+            unit: the unit of the rate; never written to XML in any
+                level/version this package currently emits (it existed on
+                `libsbml.KineticLaw` only in L1V1, L1V2 and L2V1, and this
+                package never wrote it even then). Kept as python state for a
+                `KineticLaw` parsed from such an old document, since a future
+                write-back needs somewhere to hold it
             local_parameters: the parameters scoped to this kinetic law
-            sid: optional SId, kinetic laws only carry one since SBML L3V2
+            sid: optional SId, kinetic laws only carry one since SBML L3V2;
+                silently not written when the target document is older, see
+                `_set_fields`
             name: optional SBML name
             sboTerm: optional SBO term
             metaId: optional SBML metaid
@@ -1923,6 +1930,32 @@ class KineticLaw(Sbase):
     def __repr__(self) -> str:
         """Get string representation."""
         return f"KineticLaw({self.math})"
+
+    def _set_fields(self, sbase: libsbml.KineticLaw, model: Any) -> None:
+        """Set fields on libsbml.KineticLaw.
+
+        A kinetic law only gained an `id` attribute in SBML L3V2; on any
+        older level/version, including L3V1 (this package's own default),
+        `libsbml.KineticLaw.setId` fails with an "unexpected attribute"
+        error. Rather than let `Sbase._set_fields` attempt and log that
+        error, the id is set only when the document actually being written
+        supports it, checked through `sbase`'s own `getLevel`/`getVersion`
+        rather than the module-level `SBML_LEVEL`/`SBML_VERSION` defaults,
+        so this is correct for whichever document is being written.
+
+        Args:
+            sbase: the libsbml.KineticLaw created by `create_sbml`
+            model: the libsbml.Model the kinetic law belongs to, unused here
+                because `Sbase._set_fields` does not need it either
+        """
+        supports_id = sbase.getLevel() == 3 and sbase.getVersion() >= 2
+        sid = self.sid
+        if sid is not None and not supports_id:
+            self.sid = None
+        try:
+            super()._set_fields(sbase, model)
+        finally:
+            self.sid = sid
 
     def create_sbml(self, reaction: libsbml.Reaction) -> libsbml.KineticLaw:
         """Create the libsbml.KineticLaw on the given reaction.

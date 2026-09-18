@@ -406,3 +406,65 @@ def test_local_parameters_are_local() -> None:
     assert klaw.getNumLocalParameters() == 1
     assert klaw.getLocalParameter(0).getId() == "k"
     assert klaw.getLocalParameter(0).getValue() == 0.5
+
+
+def _create_kinetic_law_reaction(
+    level: int, version: int, sid: str = "kl1"
+) -> tuple[libsbml.SBMLDocument, libsbml.Model]:
+    """Build a one-reaction model at the given SBML level/version.
+
+    Args:
+        level: the SBML level of the document
+        version: the SBML version of the document
+        sid: the id to set on the KineticLaw
+
+    Returns:
+        the created libsbml.SBMLDocument and its libsbml.Model. The document
+        must be kept alive by the caller for as long as the model is used:
+        libsbml.Model is owned by its SBMLDocument, and once the document is
+        garbage collected, the model becomes a dangling reference.
+    """
+    doc = libsbml.SBMLDocument(level, version)
+    model = doc.createModel()
+    model.createCompartment().setId("c")
+    for species_id in ("S1", "S2"):
+        species = model.createSpecies()
+        species.setId(species_id)
+        species.setCompartment("c")
+
+    klaw = KineticLaw(math="S1", sid=sid)
+    reaction = Reaction("r1", "S1 -> S2", formula=klaw)
+    reaction.create_sbml(model)
+    return doc, model
+
+
+def test_kinetic_law_id_not_written_before_l3v2(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that a KineticLaw id is silently skipped below SBML L3V2.
+
+    `libsbml.KineticLaw` only gained an `id` attribute in L3V2; on an older
+    level/version, including this package's own default of L3V1, attempting
+    `setId` fails with an "unexpected attribute" libsbml error. The id must
+    be skipped without logging an error, since the caller cannot fix this by
+    changing anything about the `KineticLaw` itself.
+    """
+    with caplog.at_level("WARNING"):
+        doc, model = _create_kinetic_law_reaction(level=3, version=1)
+
+    klaw = model.getReaction("r1").getKineticLaw()
+    assert not klaw.isSetId()
+    assert not any(record.levelname == "ERROR" for record in caplog.records), [
+        r.message for r in caplog.records if r.levelname == "ERROR"
+    ]
+    del doc
+
+
+def test_kinetic_law_id_written_from_l3v2() -> None:
+    """Test that a KineticLaw id is written from SBML L3V2 onward."""
+    doc, model = _create_kinetic_law_reaction(level=3, version=2)
+
+    klaw = model.getReaction("r1").getKineticLaw()
+    assert klaw.isSetId()
+    assert klaw.getId() == "kl1"
+    del doc
