@@ -20,6 +20,8 @@ from sbmlutils.factory import (
     Function,
     InitialAssignment,
     KeyValuePair,
+    KineticLaw,
+    LocalParameter,
     Model,
     ModelUnits,
     Package,
@@ -381,17 +383,33 @@ def sbml_to_model(
             if modifier.isSetSpecies():
                 equation.modifiers.append(modifier.getSpecies())
 
-        # formula
-        ast = None
+        # kinetic law
+        kinetic_law: KineticLaw | None = None
         if r.isSetKineticLaw():
             klaw: libsbml.KineticLaw = r.getKineticLaw()
             ast = klaw.getMath() if klaw.isSetMath() else None
-        formula = libsbml.formulaToL3String(ast) if ast else None
+            math = libsbml.formulaToL3String(ast) if ast else None
+            if math:
+                local_parameters: list[LocalParameter] = []
+                lp: libsbml.LocalParameter
+                for lp in klaw.getListOfLocalParameters():
+                    local_parameters.append(
+                        LocalParameter(
+                            value=lp.getValue() if lp.isSetValue() else None,
+                            unit=lp.getUnits() if lp.isSetUnits() else None,
+                            **parse_sbase_kwargs(lp),
+                        )
+                    )
+                kinetic_law = KineticLaw(
+                    math=math,
+                    local_parameters=local_parameters,
+                    **parse_sbase_kwargs(klaw),
+                )
 
         m.reactions.append(
             Reaction(
                 equation=equation,
-                formula=formula,
+                formula=kinetic_law,
                 reversible=r.getReversible() if r.isSetReversible() else None,
                 **parse_sbase_kwargs(r),
             )

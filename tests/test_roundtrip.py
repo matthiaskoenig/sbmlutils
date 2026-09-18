@@ -443,3 +443,18 @@ def test_roundtrip_rule_keeps_its_own_id(tmp_path: Path) -> None:
     rt_rule: libsbml.Rule = rt_model.getRule(0)
     assert rt_rule.getIdAttribute() == "realid"
     assert rt_rule.getVariable() == "c"
+
+
+#: cases whose kinetic laws carry local parameters
+CASES_LOCAL_PARAMETERS: list[str] = ["00027", "00057", "00058", "00132"]
+
+
+@requires_roadrunner
+@pytest.mark.parametrize("case", CASES_LOCAL_PARAMETERS)
+def test_roundtrip_local_parameters(case: str, tmp_path: Path) -> None:
+    """Test that local parameters of a kinetic law survive a round trip.
+
+    Dropping them produced libsbml error 10215, `a <ci> element in this
+    context must refer to a model component`.
+    """
+    assert_roundtrip_simulates_equal(testsuite_case(case), tmp_path)
