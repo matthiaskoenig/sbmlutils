@@ -1,7 +1,21 @@
-"""Parse Models in internal model format.
+"""Parse SBML and antimony into the `Model` of `sbmlutils.factory`.
 
-FIXME: no support for modelHistory
+`sbml_to_model` is the inverse of `create_model`. A round trip
+`SBML -> sbml_to_model -> create_model -> SBML` preserves SBML core, see
+https://github.com/matthiaskoenig/sbmlutils/issues/469. It reads the unit
+definitions, the model units and conversionFactor, the function definitions,
+compartments, species and parameters, the reactions with their species
+references, modifiers and kinetic laws with local parameters, the initial
+assignments, rules, events and constraints, and on each of these its id,
+name, metaid, sboTerm, notes, annotations and fbc key-value pairs.
 
+Not read are the model history, and the content of the `fbc`, `distrib`,
+`comp`, `groups` and `layout` packages: flux bounds, objectives and gene
+products, uncertainties, submodels, ports and replacements. The `fbc`,
+`distrib` and `comp` packages a document declares are declared on the model.
+Math is read as an L3 infix string, in which an id named like a MathML
+constant or csymbol (`pi`, `INF`, `NaN`, `time`, `avogadro`) cannot be told
+apart from the constant, so such an id does not round trip.
 """
 
 import logging
@@ -169,10 +183,7 @@ def sbml_to_model(
 
         # model history
         # FIXME: currently not supported consistently, see
-        # https: // github.com / matthiaskoenig / sbmlutils / issues / 416
-
-        # notes
-        # FIXME: support merging of notes, see
+        # https://github.com/matthiaskoenig/sbmlutils/issues/416
 
         # keyValuePairs
         sbase_fbc: libsbml.FbcSBasePlugin = sbase.getPlugin("fbc")
@@ -547,13 +558,8 @@ def sbml_to_model(
             )
         )
 
-    # FIXME:
-    # comp
-    # ports
-    # fbc
-    # groups
-    # distrib
-
+    # the content of the fbc, distrib, comp, groups and layout packages is not
+    # parsed yet, see the module docstring
     return m
 
 

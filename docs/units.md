@@ -2,7 +2,7 @@
 
 Every quantity in a model has a unit, and SBML requires those units to be declared as `UnitDefinition` elements built from base unit kinds, exponents, scales and multipliers. Writing them out by hand is tedious and easy to get wrong.
 
-`sbmlutils` lets you write a unit as the string you would say out loud — `mmole/min/l` — and parses it with [pint](https://pint.readthedocs.io) into the SBML representation.
+`sbmlutils` lets you write a unit as the string you would say out loud, e.g. `mmole/min/l`, and parses it with [pint](https://pint.readthedocs.io) into the SBML representation.
 
 ## Defining units
 
@@ -30,6 +30,33 @@ class U(Units):
 The id of a unit definition must be a valid SBML identifier and must **not** be the name of an SBML base unit kind. `UnitDefinition("litre")` is invalid for that reason; give the definition another id and put the base unit in the expression, e.g. `UnitDefinition("l", "liter")`.
 
 The class is passed to the model as `units=U` and its definitions are written into the SBML model.
+
+## Explicit units
+
+A pint expression compiles into the units SBML stores, but not every unit definition can be written as one. pint folds a prefix into the multiplier: `mmole` is written as `mole` with `multiplier="0.001"` and `scale="0"`, so a definition with `scale="-3"` cannot be reproduced. And some SBML unit kinds, such as `katal`, `becquerel` or `lux`, have no pint expression which maps onto them.
+
+`Unit(kind, exponent, scale, multiplier)` is one `<unit>` of a definition, exactly as SBML stores it: the unit is `multiplier * 10^scale * kind^exponent`, and `kind` is an SBML base unit kind. `UnitDefinition(sid, units=[...])` lists them, and the explicit units take precedence over a pint expression:
+
+```python
+from sbmlutils.factory import Unit, UnitDefinition, Units
+
+
+class U(Units):
+    """Units of the model."""
+
+    mM = UnitDefinition(
+        "mM",
+        units=[
+            Unit("mole", exponent=1, scale=-3),
+            Unit("litre", exponent=-1),
+        ],
+    )
+    substance = UnitDefinition("substance", units=[Unit("mole", scale=-3)])
+```
+
+`exponent`, `scale` and `multiplier` default to `1`, `0` and `1`. A definition with explicit units gets no name from its expression, give it a `name` if it should have one. Unit definitions can also be passed to the model as a plain list, `Model(..., units=[U.mM, U.substance])`, and an element can reference a unit by its id, e.g. `Parameter("c", value=1.0, unit="mM")`.
+
+Write a unit as a pint expression when you author a model by hand: it is short, readable and checked by pint. Use explicit units when the exact SBML representation matters, i.e. a `scale` rather than a `multiplier`, or a unit kind pint cannot express. The explicit form is also what `sbml_to_model` reads from a file, so a model which is read and written back keeps its unit definitions as they were, see [Reading and writing](io.md#round-tripping).
 
 ## The units of the model
 
