@@ -657,7 +657,7 @@ those ids were silently lost. They are now set through setIdAttribute."
 
 **Interfaces:**
 - Consumes: Task 1 helpers.
-- Produces: `sbmlutils.notes.detect_format(notes: str) -> NotesFormat` and `Sbase.__init__(..., notes_format: NotesFormat | None = None)`. `Sbase.notes` holds XHTML after construction.
+- Produces: `sbmlutils.notes.detect_format(notes: str) -> NotesFormat`, `Sbase._process_notes(notes: str | Notes | None) -> str | None`, and `Sbase.__init__(..., notes: str | Notes | None = None)` on all 33 constructors. `Sbase.notes` always holds an XHTML body string after construction.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -767,36 +767,44 @@ and make the body wrapping skip a string which is already a body:
 Run: `uv run pytest tests/test_notes.py -v`
 Expected: all PASS.
 
-- [ ] **Step 6: Normalize notes on `Sbase` and every subclass**
+- [ ] **Step 6: Normalize notes to XHTML at construction**
 
-Every `Sbase` subclass in this codebase enumerates the full `Sbase` parameter list in its own `__init__` and forwards it to `super().__init__`. There are **33** such constructors, found with:
+The notes are normalized **once, in `Sbase.__init__`**, so that `self.notes` always holds an XHTML body string. Nothing downstream has to know which format the author used, `_set_fields` becomes a plain write, and the field annotations, the `_keys` ClassVar and `ModelDict` all stay as they are because `self.notes` is still a `str`.
 
-Run: `grep -n "        notes: str | None = None," src/sbmlutils/factory.py`
+An author who needs to override the detection passes a `Notes` object instead of a string. `Species.__init__` already takes 18 parameters, so widening the type of the parameter that is already there is the right move rather than adding a 19th.
 
-`notes_format` must be added to **all** of them, not only to `Sbase`. The parser builds every object with `SomeClass(**parse_sbase_kwargs(sbase))`, and once `parse_sbase_kwargs` returns a `notes_format` key (step 8), any constructor missing the parameter raises `TypeError`. Add, in each of the 33 constructors, the parameter immediately after `notes`:
+In `factory.py`, in `Sbase.__init__`, change the `notes` parameter annotation to `str | Notes | None = None` and replace `self.notes = notes` with:
 
 ```python
-        notes_format: NotesFormat | None = None,
+        self.notes = Sbase._process_notes(notes)
 ```
 
-and in each forwarding `super().__init__(...)` call, the argument immediately after `notes=notes`:
+Add the static method to `Sbase`:
 
 ```python
-            notes_format=notes_format,
-```
+    @staticmethod
+    def _process_notes(notes: str | Notes | None) -> str | None:
+        """Normalize notes to an XHTML body string.
 
-`ReactionEquation` and `EquationPart` live in `reaction_equation.py` and are not `Sbase` subclasses; add `notes_format: str | None = field(default=None, repr=False)` to the `EquationPart` dataclass only, for symmetry with the fields it already carries.
+        Notes are stored as XHTML so that a round trip is a fixed point:
+        markdown is rendered once here, and notes which came from an SBML
+        document are stored verbatim instead of being run through the
+        markdown renderer, which would mutate them.
 
-Verify the count afterwards:
+        Args:
+            notes: the notes as markdown, as XHTML, or as a `Notes` object
+                which states its format explicitly
 
-Run: `grep -c "        notes_format: NotesFormat | None = None," src/sbmlutils/factory.py`
-Expected: `33`.
-
-In `Sbase.__init__`, replace `self.notes = notes` with:
-
-```python
-        self.notes_format = notes_format
-        self.notes = notes
+        Returns:
+            the XHTML body of the notes, `None` if no notes were given
+        """
+        if notes is None:
+            return None
+        if isinstance(notes, Notes):
+            return str(notes)
+        if not notes.strip():
+            return None
+        return str(Notes(notes, format=detect_format(notes)))
 ```
 
 In `Sbase._set_fields`, replace:
@@ -810,26 +818,45 @@ with:
 
 ```python
         if self.notes is not None and self.notes.strip():
-            notes_format = (
-                self.notes_format
-                if self.notes_format is not None
-                else detect_format(self.notes)
-            )
-            set_notes(sbase, self.notes, format=notes_format)
+            # notes are normalized to xhtml by `Sbase._process_notes`
+            set_notes(sbase, self.notes, format=NotesFormat.HTML)
 ```
 
-Import `detect_format` and `NotesFormat` in `factory.py`.
+Import `Notes`, `NotesFormat` and `detect_format` in `factory.py`.
 
-Add `"notes_format"` to the `Sbase.fields` ClassVar, after `"notes"`.
+- [ ] **Step 7: Widen the `notes` annotation on every subclass**
 
-- [ ] **Step 7: Remove the dead `get_notes_xml`**
+Every `Sbase` subclass enumerates the full `Sbase` parameter list in its own `__init__`. There are **33** constructors annotating `notes: str | None = None`, found with:
+
+Run: `grep -c "        notes: str | None = None," src/sbmlutils/factory.py`
+Expected: `33`.
+
+Replace that annotation in all 33 with:
+
+```python
+        notes: str | Notes | None = None,
+```
+
+This is a single-line change per constructor. The `super().__init__(...)` calls already forward `notes=notes` and need **no** change, because the normalization happens in `Sbase.__init__`.
+
+Verify afterwards:
+
+Run: `grep -c "        notes: str | Notes | None = None," src/sbmlutils/factory.py`
+Expected: `33`.
+
+Run: `grep -c "        notes: str | None = None," src/sbmlutils/factory.py`
+Expected: `0`.
+
+`EquationPart` in `reaction_equation.py` is a dataclass holding the raw notes of a species reference and is not an `Sbase`; leave its `notes: str | None` field as it is.
+
+- [ ] **Step 8: Remove the dead `get_notes_xml`**
 
 Delete `Sbase.get_notes_xml` (`factory.py:435-441`). Verify nothing calls it:
 
 Run: `grep -rn "get_notes_xml" src/ tests/ examples/ docs/`
 Expected: no output.
 
-- [ ] **Step 8: Enable notes in the parser**
+- [ ] **Step 9: Enable notes in the parser**
 
 In `src/sbmlutils/parser.py`, replace the commented-out block:
 
@@ -841,15 +868,15 @@ In `src/sbmlutils/parser.py`, replace the commented-out block:
 with:
 
 ```python
-        # notes are the xhtml of the source document, they are stored verbatim
+        # notes are the xhtml of the source document; `Sbase._process_notes`
+        # detects that and stores them verbatim instead of rendering them
         if d["notes"]:
             kwargs["notes"] = d["notes"]
-            kwargs["notes_format"] = NotesFormat.HTML
 ```
 
 Import `NotesFormat` from `sbmlutils.notes` in `parser.py`. Remove the `FIXME: no support for notes` line from the module docstring.
 
-- [ ] **Step 9: Write the round-trip notes test**
+- [ ] **Step 10: Write the round-trip notes test**
 
 Append to `tests/test_roundtrip.py`:
 
@@ -879,7 +906,7 @@ def test_roundtrip_preserves_notes(tmp_path: Path) -> None:
     assert "<notes>" not in notes_rt[7:], "notes were nested on write"
 ```
 
-- [ ] **Step 10: Run and commit**
+- [ ] **Step 11: Run and commit**
 
 Run: `uv run ruff check && uv run ruff format --check && uvx ty check && uv run pytest -m "not sbml_testsuite" -q`
 
@@ -1746,8 +1773,7 @@ class KineticLaw(Sbase):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
-        notes_format: NotesFormat | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
@@ -1767,7 +1793,6 @@ class KineticLaw(Sbase):
             metaId=metaId,
             annotations=annotations,
             notes=notes,
-            notes_format=notes_format,
             keyValuePairs=keyValuePairs,
             port=port,
             uncertainties=uncertainties,
@@ -2095,8 +2120,7 @@ class EventAssignment(Value):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
-        notes_format: NotesFormat | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
@@ -2116,7 +2140,6 @@ class EventAssignment(Value):
             metaId=metaId,
             annotations=annotations,
             notes=notes,
-            notes_format=notes_format,
             keyValuePairs=keyValuePairs,
             port=port,
             uncertainties=uncertainties,
@@ -2563,19 +2586,14 @@ In `set_speciesref_fields`, after the existing `metaId`/`sboTerm` handling, add:
             if part.name is not None:
                 sref.setName(part.name)
             if part.notes is not None and part.notes.strip():
-                notes_format = (
-                    part.notes_format
-                    if getattr(part, "notes_format", None) is not None
-                    else detect_format(part.notes)
-                )
-                set_notes(sref, part.notes, format=notes_format)
+                set_notes(sref, part.notes, format=detect_format(part.notes))
             for annotation in Sbase._process_annotations(part.annotations or []):
                 annotator.ModelAnnotator.annotate_sbase(
                     sbase=sref, annotation=annotation
                 )
 ```
 
-Read `factory.py:1722-1742` first; `set_speciesref_fields` is a closure inside `Reaction.create_sbml` and `stoichiometry`/`constant` are already handled. Confirm `EquationPart` has `notes_format`; if not, add it to the dataclass in `reaction_equation.py` for symmetry with `Sbase`.
+Read `factory.py:1722-1742` first; `set_speciesref_fields` is a closure inside `Reaction.create_sbml` and `stoichiometry`/`constant` are already handled. `EquationPart` is a dataclass holding the raw notes string of a species reference, so the format is detected here rather than stored on it.
 
 - [ ] **Step 6: Make `Reaction.reversible` live**
 
