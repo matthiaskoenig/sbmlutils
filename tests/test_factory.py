@@ -472,6 +472,37 @@ def test_kinetic_law_id_written_from_l3v2() -> None:
     del doc
 
 
+@pytest.mark.parametrize("version", [1, 2])
+def test_constraint_id_written_from_l3v2(
+    version: int, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that a Constraint id is written from SBML L3V2 on, and only then.
+
+    A constraint, like a kinetic law, only has an `id` attribute from SBML
+    L3V2 on. Below, libsbml's `setId` fails with "unexpected attribute", which
+    `Sbase._set_fields` used to log as an error for every constraint of a
+    model written at the default L3V1, e.g. `examples/model.py`. The caller
+    cannot fix that by changing the constraint, so the id is dropped without
+    an error.
+    """
+    doc = libsbml.SBMLDocument(3, version)
+    model: libsbml.Model = doc.createModel()
+    k: libsbml.Parameter = model.createParameter()
+    k.setId("k")
+    k.setValue(1.0)
+    k.setConstant(True)
+
+    with caplog.at_level("WARNING"):
+        Constraint("c1", formula="k > 0").create_sbml(model)
+
+    constraint: libsbml.Constraint = model.getConstraint(0)
+    assert constraint.isSetMath()
+    assert constraint.isSetId() is (version == 2)
+    assert not any(record.levelname == "ERROR" for record in caplog.records), [
+        r.message for r in caplog.records if r.levelname == "ERROR"
+    ]
+
+
 def test_event_use_values_from_trigger_time_is_honoured() -> None:
     """Test that useValuesFromTriggerTime is written.
 
