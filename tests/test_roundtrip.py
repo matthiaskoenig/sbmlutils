@@ -989,8 +989,8 @@ def _optional_ids(sbml_path: Path) -> list[tuple[str, str, str | None]]:
 
 
 #: cases with an element whose id is optional and not set: an assignment rule
-#: (00029), a rate rule (00031) and an algebraic rule (00039)
-CASES_WITHOUT_IDS: list[str] = ["00029", "00031", "00039"]
+#: (00029), a rate rule (00031), an algebraic rule (00039) and an event (00928)
+CASES_WITHOUT_IDS: list[str] = ["00029", "00031", "00039", "00928"]
 
 
 @pytest.mark.parametrize("case", CASES_WITHOUT_IDS)
@@ -1000,8 +1000,9 @@ def test_roundtrip_invents_no_ids(case: str, tmp_path: Path) -> None:
     The id of a rule or an event is optional. `AssignmentRule` and `RateRule`
     generated one for a rule without an id, which was written from SBML L3V2
     on: 727 assignment rule ids and 619 rate rule ids in the l3v2 cases of the
-    test suite, whose rules have no id. A generated id changes nothing in a
-    simulation, so only a structural comparison sees it.
+    test suite, whose rules have no id. The parser named an event without an
+    id `event<k>`. A generated id changes nothing in a simulation, so only a
+    structural comparison sees it.
     """
     sbml_path = testsuite_case(case)
     source = _optional_ids(sbml_path)

@@ -2372,7 +2372,7 @@ class Event(Sbase):
 
     def __init__(
         self,
-        sid: str,
+        sid: str | None,
         trigger: str,
         assignments: dict[str, str | float] | list[EventAssignment] | None = None,
         trigger_persistent: bool = True,

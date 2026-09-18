@@ -562,6 +562,26 @@ def test_event_use_values_from_trigger_time_is_honoured() -> None:
     assert model.getEvent("e1").getUseValuesFromTriggerTime() is False
 
 
+def test_event_without_id_is_written_without_id() -> None:
+    """Test that an event without an id is written without one.
+
+    The id of an event is optional in SBML. `Event` required it as a `str`, so
+    the parser named an event without an id `event<k>`.
+    """
+    doc = libsbml.SBMLDocument(3, 2)
+    model: libsbml.Model = doc.createModel()
+    p1: libsbml.Parameter = model.createParameter()
+    p1.setId("p1")
+    p1.setValue(0.0)
+    p1.setConstant(False)
+
+    Event(None, trigger="time >= 10", assignments={"p1": 10.0}).create_sbml(model)
+
+    event: libsbml.Event = model.getEvent(0)
+    assert not event.isSetId()
+    assert event.getNumEventAssignments() == 1
+
+
 def test_event_assignments_accept_a_dict() -> None:
     """Test that the dict authoring style still works."""
     event = Event("e1", trigger="time >= 10", assignments={"S1": 5.0})

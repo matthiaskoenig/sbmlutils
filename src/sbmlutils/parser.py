@@ -480,9 +480,8 @@ def sbml_to_model(
                 )
 
     # events
-    k: int
     e: libsbml.Event
-    for k, e in enumerate(model.getListOfEvents()):
+    for e in model.getListOfEvents():
         trigger: libsbml.Trigger | None = e.getTrigger() if e.isSetTrigger() else None
         if trigger is None or not trigger.isSetMath():
             logger.error("Event '%s' has no trigger, it is skipped.", e.getId())
@@ -514,12 +513,6 @@ def sbml_to_model(
         )
 
         event_kwargs = parse_sbase_kwargs(e)
-        if event_kwargs["sid"] is None:
-            # `Event.__init__` requires `sid` as a `str`; the SBML L2/L3
-            # event id is in practice always set, but is formally optional,
-            # so a deterministic fallback stands in for a missing one rather
-            # than raising.
-            event_kwargs["sid"] = f"event{k}"
         m.events.append(
             Event(
                 trigger=libsbml.formulaToL3String(trigger.getMath()),
