@@ -2429,7 +2429,7 @@ In `parser.py`, replace the `# constraints` comment with:
         if formula:
             m.constraints.append(
                 Constraint(
-                    value=formula,
+                    formula=formula,
                     message=(
                         constraint.getMessageString()
                         if constraint.isSetMessage()
@@ -2440,7 +2440,7 @@ In `parser.py`, replace the `# constraints` comment with:
             )
 ```
 
-Import `Constraint`. Confirm the constructor parameter names by reading `factory.py:1935-1965`; the math parameter is `value` and the message parameter is `message`.
+Import `Constraint`. Confirm the constructor parameter names by reading the live `factory.py` rather than trusting this snippet: the math parameter is `formula` (it was renamed from `math` during Task 13, which ran out of order before this task) and the message parameter is `message`.
 
 - [ ] **Step 4: Run to verify it passes**
 
