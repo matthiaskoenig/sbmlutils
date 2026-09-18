@@ -411,9 +411,18 @@ def run_case_isolated(
 
 
 #: a stand-in for the worker, which records a stage and then ends as named by
-#: its first argument: it crashes in native code by reading address 0, which
-#: is a segmentation fault on POSIX and an access violation on Windows, it
-#: hangs, or it exits without an outcome
+#: its first argument: it crashes in native code, it hangs, or it exits
+#: without an outcome.
+#:
+#: The crash differs by platform. On POSIX, reading address 0 through ctypes
+#: is a real segmentation fault, and the process is killed by SIGSEGV. On
+#: Windows it is not: ctypes wraps every foreign call in structured exception
+#: handling and turns the access violation into a python `OSError`, so the
+#: process exits normally with code 1. The Windows worker therefore ends with
+#: exactly the status a native access violation leaves, `0xC0000005`, through
+#: `TerminateProcess`, which is an ordinary call rather than a fault, so there
+#: is nothing for ctypes to intercept. The explicit argtypes keep the 64-bit
+#: process handle from being truncated to a 32-bit int.
 _FAKE_WORKER: str = """
 import ctypes, json, sys, time
 from pathlib import Path
@@ -422,12 +431,18 @@ from pathlib import Path
     json.dumps({"stage": "simulate the round trip", "outcome": None, "detail": ""})
 )
 if sys.argv[1] == "crash":
-    if sys.platform != "win32":
+    if sys.platform == "win32":
+        kernel32 = ctypes.windll.kernel32
+        kernel32.GetCurrentProcess.restype = ctypes.c_void_p
+        kernel32.TerminateProcess.argtypes = [ctypes.c_void_p, ctypes.c_uint]
+        # STATUS_ACCESS_VIOLATION, the exit status of a native segfault
+        kernel32.TerminateProcess(kernel32.GetCurrentProcess(), 0xC0000005)
+    else:
         import resource
 
         # no core dump, which takes seconds and stays on the machine
         resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
-    ctypes.string_at(0)
+        ctypes.string_at(0)
 elif sys.argv[1] == "hang":
     time.sleep(60)
 sys.exit(3)
