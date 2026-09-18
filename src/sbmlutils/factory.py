@@ -94,6 +94,8 @@ __all__ = [
     "GeneProduct",
     "InitialAssignment",
     "KeyValuePair",
+    "KineticLaw",
+    "LocalParameter",
     "Model",
     "ModelDefinition",
     "ModelDict",
@@ -1321,6 +1323,67 @@ class Parameter(ValueWithUnit):
         sbase.setConstant(self.constant)
 
 
+class LocalParameter(ValueWithUnit):
+    """LocalParameter of a KineticLaw.
+
+    A local parameter is scoped to the kinetic law it is defined in, unlike a
+    `Parameter`, which is global to the model.
+    """
+
+    #: the identifier is required, unlike on `Sbase`
+    sid: str
+
+    def __init__(
+        self,
+        sid: str,
+        value: str | float | None = None,
+        unit: UnitType = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
+        annotations: OptionalAnnotationsType = None,
+        notes: str | Notes | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
+        port: Any = None,
+        uncertainties: list[Uncertainty] | None = None,
+        replacedBy: Any | None = None,
+    ):
+        """Construct LocalParameter."""
+        super().__init__(
+            sid=sid,
+            value=value,
+            unit=unit,
+            name=name,
+            sboTerm=sboTerm,
+            metaId=metaId,
+            annotations=annotations,
+            notes=notes,
+            keyValuePairs=keyValuePairs,
+            port=port,
+            uncertainties=uncertainties,
+            replacedBy=replacedBy,
+        )
+
+    def create_sbml(self, klaw: libsbml.KineticLaw) -> libsbml.LocalParameter:
+        """Create the libsbml.LocalParameter in the given kinetic law.
+
+        Args:
+            klaw: the libsbml.KineticLaw the local parameter is created in
+
+        Returns:
+            the created libsbml.LocalParameter
+        """
+        lp: libsbml.LocalParameter = klaw.createLocalParameter()
+        self._set_fields(lp, None)
+        if self.value is not None:
+            check(lp.setValue(float(self.value)), f"Set value on '{self.sid}'")
+        return lp
+
+    def _set_fields(self, sbase: libsbml.LocalParameter, model: Any) -> None:
+        """Set fields on libsbml.LocalParameter."""
+        super()._set_fields(sbase, model)
+
+
 class Compartment(ValueWithUnit):
     """Compartment."""
 
@@ -1796,7 +1859,99 @@ class AlgebraicRule(ValueWithUnit, RuleWithVariable):
         return rule
 
 
+#: deprecated, a kinetic law is a `KineticLaw`; still accepted by
+#: `Reaction._process_formula`
 Formula = namedtuple("Formula", "value unit")
+
+
+class KineticLaw(Sbase):
+    """KineticLaw of a Reaction.
+
+    Corresponds to the information in a `libsbml.KineticLaw`: the rate math,
+    and the local parameters which are scoped to it.
+    """
+
+    def __init__(
+        self,
+        math: str,
+        unit: UnitType = None,
+        local_parameters: list[LocalParameter] | None = None,
+        sid: str | None = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
+        annotations: OptionalAnnotationsType = None,
+        notes: str | Notes | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
+        port: Any = None,
+        uncertainties: list[Uncertainty] | None = None,
+        replacedBy: Any | None = None,
+    ):
+        """Construct a KineticLaw.
+
+        Args:
+            math: the rate expression, as an SBML L3 formula string
+            unit: the unit of the rate, deprecated in SBML L3
+            local_parameters: the parameters scoped to this kinetic law
+            sid: optional SId, kinetic laws only carry one since SBML L3V2
+            name: optional SBML name
+            sboTerm: optional SBO term
+            metaId: optional SBML metaid
+            annotations: optional RDF annotations
+            notes: optional notes, as markdown, XHTML or a `Notes` object
+            keyValuePairs: optional key-value pairs
+            port: optional comp port
+            uncertainties: optional distrib uncertainties
+            replacedBy: optional comp replacement
+        """
+        super().__init__(
+            sid=sid,
+            name=name,
+            sboTerm=sboTerm,
+            metaId=metaId,
+            annotations=annotations,
+            notes=notes,
+            keyValuePairs=keyValuePairs,
+            port=port,
+            uncertainties=uncertainties,
+            replacedBy=replacedBy,
+        )
+        self.math = math
+        self.unit = unit
+        self.local_parameters = local_parameters if local_parameters else []
+
+    def __repr__(self) -> str:
+        """Get string representation."""
+        return f"KineticLaw({self.math})"
+
+    def create_sbml(self, reaction: libsbml.Reaction) -> libsbml.KineticLaw:
+        """Create the libsbml.KineticLaw on the given reaction.
+
+        Args:
+            reaction: the libsbml.Reaction the kinetic law belongs to
+
+        Returns:
+            the created libsbml.KineticLaw
+        """
+        klaw: libsbml.KineticLaw = reaction.createKineticLaw()
+        self._set_fields(klaw, None)
+
+        # local parameters must exist before the math is parsed, so that the
+        # formula parser resolves their ids
+        for local_parameter in self.local_parameters:
+            local_parameter.create_sbml(klaw)
+
+        model: libsbml.Model = reaction.getModel()
+        ast_node = libsbml.parseL3FormulaWithModel(self.math, model)
+        if ast_node is None:
+            logger.error(
+                "Kinetic law math could not be parsed: '%s', %s",
+                self.math,
+                libsbml.getLastParseL3Error(),
+            )
+        else:
+            check(klaw.setMath(ast_node), f"Set math on kinetic law '{self.math}'")
+        return klaw
 
 
 class Reaction(Sbase):
@@ -1833,7 +1988,7 @@ class Reaction(Sbase):
         self,
         sid: str,
         equation: ReactionEquation | str,
-        formula: Formula | tuple[str, UnitType] | str | None = None,
+        formula: KineticLaw | Formula | tuple[str, UnitType] | str | None = None,
         pars: list[Parameter] | None = None,
         rules: list[AssignmentRule] | None = None,
         compartment: str | None = None,
@@ -1886,17 +2041,29 @@ class Reaction(Sbase):
 
     @staticmethod
     def _process_formula(
-        formula: Formula | tuple[str, UnitType] | str | None,
-    ) -> Formula | None:
-        """Process reaction formula (kinetic law)."""
+        formula: KineticLaw | Formula | tuple[str, UnitType] | str | None,
+    ) -> KineticLaw | None:
+        """Process the reaction formula into a KineticLaw.
+
+        Args:
+            formula: a KineticLaw, a `(math, unit)` tuple, a math string, or
+                None
+
+        Returns:
+            the kinetic law of the reaction, None if no formula was given
+
+        Raises:
+            ValueError: if the formula is of an unsupported type
+        """
         if formula is None:
             return None
-        if isinstance(formula, Formula):
+        if isinstance(formula, KineticLaw):
             return formula
-        if isinstance(formula, (tuple, list)):
-            return Formula(*formula)
         if isinstance(formula, str):
-            return Formula(value=formula, unit=None)
+            return KineticLaw(math=formula)
+        if isinstance(formula, (tuple, list)):
+            math, unit = formula
+            return KineticLaw(math=math, unit=unit)
         raise ValueError(f"Unsupported formula: '{formula}'")
 
     def create_sbml(self, model: libsbml.Model) -> libsbml.Reaction:
@@ -1941,8 +2108,8 @@ class Reaction(Sbase):
             mref.setSpecies(modifier)
 
         # kinetics
-        if self.formula:
-            Reaction.set_kinetic_law(model, r, self.formula.value)
+        if self.formula is not None:
+            self.formula.create_sbml(r)
 
         # add fbc bounds
         if self.upperFluxBound or self.lowerFluxBound:
@@ -1993,18 +2160,6 @@ class Reaction(Sbase):
         #    logger.info(f"'compartment' should be set on '{self}'}")
         sbase.setReversible(self.equation.reversible)
         sbase.setFast(self.fast)
-
-    @staticmethod
-    def set_kinetic_law(
-        model: libsbml.Model, reaction: libsbml.Reaction, formula: str
-    ) -> libsbml.KineticLaw:
-        """Set the kinetic law in reaction based on given formula."""
-        law: libsbml.KineticLaw = reaction.createKineticLaw()
-        ast_node = libsbml.parseL3FormulaWithModel(formula, model)
-        if ast_node is None:
-            logger.error(libsbml.getLastParseL3Error())
-        check(law.setMath(ast_node), "set math in kinetic law")
-        return law
 
 
 class Event(Sbase):

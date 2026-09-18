@@ -359,3 +359,50 @@ def test_unit_definition_from_units_writes_no_name() -> None:
     UnitDefinition("substance", units=[Unit("mole")]).create_sbml(model)
 
     assert not model.getUnitDefinition("substance").isSetName()
+
+
+def test_reaction_formula_string_is_a_kinetic_law() -> None:
+    """Test that a formula string is normalized into a KineticLaw."""
+    reaction = Reaction("r1", "S1 -> S2", formula="k1 * S1")
+    assert isinstance(reaction.formula, KineticLaw)
+    assert reaction.formula.math == "k1 * S1"
+    assert reaction.formula.local_parameters == []
+
+
+def test_reaction_formula_tuple_keeps_the_unit() -> None:
+    """Test that the unit of a `(math, unit)` tuple is kept.
+
+    `Formula` parsed the unit and `create_sbml` then used only the math, so
+    the unit was silently dropped.
+    """
+    reaction = Reaction("r1", "S1 -> S2", formula=("k1 * S1", "mole_per_s"))
+    assert isinstance(reaction.formula, KineticLaw)
+    assert reaction.formula.unit == "mole_per_s"
+
+
+def test_local_parameters_are_local() -> None:
+    """Test that local parameters are written into the kinetic law.
+
+    `Reaction.pars` creates global model parameters, which collide when two
+    reactions use the same local parameter id.
+    """
+    doc = libsbml.SBMLDocument(3, 2)
+    model = doc.createModel()
+    model.createCompartment().setId("c")
+    for sid in ("S1", "S2"):
+        species = model.createSpecies()
+        species.setId(sid)
+        species.setCompartment("c")
+
+    reaction = Reaction(
+        "r1",
+        "S1 -> S2",
+        formula=KineticLaw(math="k * S1", local_parameters=[LocalParameter("k", 0.5)]),
+    )
+    reaction.create_sbml(model)
+
+    assert model.getNumParameters() == 0, "a local parameter leaked into the model"
+    klaw = model.getReaction("r1").getKineticLaw()
+    assert klaw.getNumLocalParameters() == 1
+    assert klaw.getLocalParameter(0).getId() == "k"
+    assert klaw.getLocalParameter(0).getValue() == 0.5
