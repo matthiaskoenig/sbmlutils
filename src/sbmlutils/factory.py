@@ -40,7 +40,6 @@ import numpy as np
 import xmltodict
 from numpy import nan as NaN
 from pint import UndefinedUnitError, UnitRegistry
-from pydantic import BaseModel, ConfigDict
 from pymetadata.core.creator import Creator
 
 from sbmlutils.console import console
@@ -736,7 +735,7 @@ class KeyValuePair(Sbase):
         if self.value is not None:
             check(kvp.setValue(self.value), f"Set `value={self.value}` on KeyValuePair")
         if self.uri is not None:
-            check(kvp.setValue(self.value), f"Set `uri={self.uri}` on KeyValuePair")
+            check(kvp.setUri(self.uri), f"Set `uri={self.uri}` on KeyValuePair")
 
         return kvp
 
@@ -2696,7 +2695,7 @@ class Uncertainty(Sbase):
                 if uncertSpan.varLower is not None:
                     up_span.setVarLower(uncertSpan.varLower)
                 if uncertSpan.varUpper is not None:
-                    up_span.setValueLower(uncertSpan.varUpper)
+                    up_span.setVarUpper(uncertSpan.varUpper)
                 if uncertSpan.unit:
                     up_span.setUnits(
                         UnitDefinition.get_uid_for_unit(unit=uncertSpan.unit)
@@ -2727,7 +2726,7 @@ class Uncertainty(Sbase):
                 if uncertParameter.value is not None:
                     up_p.setValue(uncertParameter.value)
                 if uncertParameter.var is not None:
-                    up_p.setValue(uncertParameter.var)
+                    up_p.setVar(uncertParameter.var)
                 if uncertParameter.unit:
                     up_p.setUnits(
                         UnitDefinition.get_uid_for_unit(unit=uncertParameter.unit)
@@ -3715,14 +3714,15 @@ class ModelDict(TypedDict, total=False):
     layouts: list | None
 
 
-class Model(Sbase, FrozenClass, BaseModel):
-    """Model."""
+class Model(Sbase, FrozenClass):
+    """Model.
 
-    model_config = ConfigDict(
-        extra="allow",
-        arbitrary_types_allowed=True,
-        protected_namespaces=(),
-    )
+    The field annotations below document the model structure. `Model` used to
+    declare `pydantic.BaseModel` as a base, but `Model.__init__` never reached
+    `BaseModel.__init__` and `FrozenClass.__setattr__` shadowed pydantic's, so
+    no validation ever ran and `deepcopy`, `==` and `model_dump` raised.
+    `FrozenClass` rejects unknown attributes, which is what the freeze was for.
+    """
 
     sid: str
     name: str | None
@@ -3876,7 +3876,6 @@ class Model(Sbase, FrozenClass, BaseModel):
         self.model_units = model_units
         self.conversionFactor = conversionFactor
         self.units = Model._normalize_units(units)
-        self.units_dict = None
         self.external_model_definitions = (
             external_model_definitions if external_model_definitions else []
         )
