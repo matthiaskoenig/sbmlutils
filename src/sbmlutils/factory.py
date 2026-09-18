@@ -3380,6 +3380,10 @@ class Model(Sbase, FrozenClass, BaseModel):
         "packages": list,
         "creators": None,
         "model_units": None,
+        # `units` is a list on the Model, but it must not be marked as one
+        # here: `merge_models` merges the units in its own branch, deduplicated
+        # by unit id. Marking it a `list` would extend the lists of the merged
+        # models instead and write duplicate unit ids into the merged model.
         "units": None,
         "functions": list,
         "compartments": list,
@@ -3705,17 +3709,29 @@ class Model(Sbase, FrozenClass, BaseModel):
 
     @staticmethod
     def merge_models(models: Iterable[Model]) -> Model:
-        """Merge information from multiple models."""
+        """Merge information from multiple models into a single model.
+
+        The lists of the models are concatenated, the creators and the unit
+        definitions are collected and deduplicated, and every other attribute
+        is taken from the last model which sets it.
+
+        Args:
+            models: the models to merge; a single Model is returned unchanged
+
+        Returns:
+            the merged model
+
+        Raises:
+            ValueError: if no models are provided
+        """
         if isinstance(models, Model):
             return models
         if not models:
             raise ValueError("No models are provided.")
         model = Model("template")
-        # units are collected over all models and deduplicated by their id; the
-        # base units are part of every model
-        udefs: dict[str, UnitDefinition] = {
-            udef.sid: udef for udef in Model._normalize_units(Units) if udef.sid
-        }
+        # units are collected over all models and deduplicated by their id, so
+        # that two models which define the same unit do not write it twice
+        udefs: dict[str, UnitDefinition] = {}
         creators: dict[Creator, Any] = {}  # using a dict to keep order of insertion
         for m2 in models:
             for key, value in m2.__dict__.items():

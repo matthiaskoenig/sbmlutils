@@ -334,3 +334,28 @@ def test_model_units_accepts_units_class() -> None:
 def test_unit_reference_by_id() -> None:
     """Test that a unit can be referenced by its id string."""
     assert UnitDefinition.get_uid_for_unit("mymole") == "mymole"
+
+
+def test_unit_definition_name() -> None:
+    """Test that a name is only derived from a pint definition.
+
+    A pint expression is the readable label of a definition and is used as its
+    name. With explicit units the definition is only the id, and deriving a
+    name from it would invent a name the source never had, which is exactly
+    what a round trip must not do.
+    """
+    assert UnitDefinition("substance", units=[Unit("mole")]).name is None
+    assert UnitDefinition("mM", "mmole/liter").name == "mmole/liter"
+    assert (
+        UnitDefinition("substance", units=[Unit("mole")], name="amount").name
+        == "amount"
+    )
+
+
+def test_unit_definition_from_units_writes_no_name() -> None:
+    """Test that a definition with explicit units writes no name attribute."""
+    doc = libsbml.SBMLDocument(3, 2)
+    model = doc.createModel()
+    UnitDefinition("substance", units=[Unit("mole")]).create_sbml(model)
+
+    assert not model.getUnitDefinition("substance").isSetName()
