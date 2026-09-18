@@ -269,6 +269,46 @@ def test_assignment_rule_keeps_its_id() -> None:
     assert sbml_rule.getIdAttribute() == "my_rule"
 
 
+def test_rule_without_id_is_written_without_id(tmp_path: Path) -> None:
+    """Test that a rule without an id is written without one.
+
+    `AssignmentRule` and `RateRule` used to generate the id
+    `AssignmentRule_<variable>` and `RateRule_<variable>` for a rule without
+    one. `libsbml.Rule.setId` is a no-op, so the generated id was never
+    written, until the ids of rules were set through `setIdAttribute`: then
+    every rule written at SBML L3V2 gained an id which the model definition
+    never had.
+    """
+    model = Model(
+        sid="rules",
+        parameters=[
+            Parameter("p1", 0.0, constant=False),
+            Parameter("p2", 0.0, constant=False),
+        ],
+        rules=[AssignmentRule("p1", "time")],
+        rate_rules=[RateRule("p2", "1.0")],
+    )
+    assert [rule.sid for rule in [*model.rules, *model.rate_rules]] == [None, None]
+
+    create_model(
+        model=model,
+        filepath=tmp_path / "rules.xml",
+        sbml_level=3,
+        sbml_version=2,
+        validation_options=ValidationOptions(units_consistency=False),
+    )
+
+    doc: libsbml.SBMLDocument = read_sbml(tmp_path / "rules.xml")
+    sbml_model: libsbml.Model = doc.getModel()
+    assert sbml_model.getNumRules() == 2
+    rule: libsbml.Rule
+    for rule in sbml_model.getListOfRules():
+        assert not rule.isSetIdAttribute(), (
+            f"the rule of '{rule.getVariable()}' gained the id "
+            f"'{rule.getIdAttribute()}'"
+        )
+
+
 def test_unit_definition_from_units() -> None:
     """Test that a UnitDefinition can be built from explicit units."""
     udef = UnitDefinition(

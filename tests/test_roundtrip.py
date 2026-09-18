@@ -948,6 +948,69 @@ def test_parse_algebraic_rule_without_id() -> None:
     assert model.algebraic_rules[0].sid is None
 
 
+def _optional_ids(sbml_path: Path) -> list[tuple[str, str, str | None]]:
+    """Collect the optional id of every rule and every event of a model.
+
+    libsbml aliases `Rule.getId` to the variable of an assignment or rate
+    rule, so the id of a rule is read with `getIdAttribute`.
+
+    Args:
+        sbml_path: path of the SBML file
+
+    Returns:
+        the element name, the variable or the trigger, and the id of every
+        rule and every event, `None` for an element without an id
+    """
+    import libsbml
+
+    doc: libsbml.SBMLDocument = libsbml.readSBMLFromFile(str(sbml_path))
+    model: libsbml.Model = doc.getModel()
+    ids: list[tuple[str, str, str | None]] = []
+    rule: libsbml.Rule
+    for rule in model.getListOfRules():
+        ids.append(
+            (
+                rule.getElementName(),
+                rule.getVariable(),
+                rule.getIdAttribute() if rule.isSetIdAttribute() else None,
+            )
+        )
+    event: libsbml.Event
+    for event in model.getListOfEvents():
+        trigger = libsbml.formulaToL3String(event.getTrigger().getMath())
+        ids.append(
+            (
+                event.getElementName(),
+                trigger,
+                event.getId() if event.isSetId() else None,
+            )
+        )
+    return ids
+
+
+#: cases with an element whose id is optional and not set: an assignment rule
+#: (00029), a rate rule (00031) and an algebraic rule (00039)
+CASES_WITHOUT_IDS: list[str] = ["00029", "00031", "00039"]
+
+
+@pytest.mark.parametrize("case", CASES_WITHOUT_IDS)
+def test_roundtrip_invents_no_ids(case: str, tmp_path: Path) -> None:
+    """Test that a round trip gives no id to an element which had none.
+
+    The id of a rule or an event is optional. `AssignmentRule` and `RateRule`
+    generated one for a rule without an id, which was written from SBML L3V2
+    on: 727 assignment rule ids and 619 rate rule ids in the l3v2 cases of the
+    test suite, whose rules have no id. A generated id changes nothing in a
+    simulation, so only a structural comparison sees it.
+    """
+    sbml_path = testsuite_case(case)
+    source = _optional_ids(sbml_path)
+    assert source, f"'{case}' has no rule or event, it would not test them"
+    assert all(sid is None for _, _, sid in source), source
+
+    assert _optional_ids(roundtrip_sbml(sbml_path, tmp_path)) == source
+
+
 def test_roundtrip_rule_keeps_its_own_id(tmp_path: Path) -> None:
     """Test that a rule with a real id keeps it and does not collide.
 

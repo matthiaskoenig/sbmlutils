@@ -1173,7 +1173,7 @@ class ValueWithUnit(Value):
 
     def __init__(
         self,
-        sid: str,
+        sid: str | None,
         value: str | float | None,
         unit: UnitType = Units.dimensionless,
         name: str | None = None,
@@ -1757,7 +1757,7 @@ class AssignmentRule(ValueWithUnit, RuleWithVariable):
     ):
         """Construct AssignmentRule."""
         super().__init__(
-            sid=sid if sid else f"AssignmentRule_{variable}",
+            sid=sid,
             value=value,
             unit=unit,
             name=name,
@@ -1809,7 +1809,7 @@ class RateRule(ValueWithUnit, RuleWithVariable):
     ):
         """Construct RateRule."""
         super().__init__(
-            sid=sid if sid else f"RateRule_{variable}",
+            sid=sid,
             value=value,
             unit=unit,
             name=name,
@@ -1845,7 +1845,7 @@ class AlgebraicRule(ValueWithUnit, RuleWithVariable):
 
     def __init__(
         self,
-        sid: str,
+        sid: str | None,
         value: str | float,
         unit: UnitType = Units.dimensionless,
         name: str | None = None,
