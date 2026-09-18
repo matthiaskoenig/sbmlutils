@@ -382,10 +382,15 @@ def sbml_to_model(
                     **parse_sbase_kwargs(product),
                 )
             )
-        modifier: libsbml.SpeciesReference
+        modifier: libsbml.ModifierSpeciesReference
         for modifier in r.getListOfModifiers():
             if modifier.isSetSpecies():
-                equation.modifiers.append(modifier.getSpecies())
+                equation.modifiers.append(
+                    EquationPart(
+                        species=modifier.getSpecies(),
+                        **parse_sbase_kwargs(modifier),
+                    )
+                )
 
         # kinetic law
         kinetic_law: KineticLaw | None = None
@@ -415,6 +420,8 @@ def sbml_to_model(
                 equation=equation,
                 formula=kinetic_law,
                 reversible=r.getReversible() if r.isSetReversible() else None,
+                compartment=r.getCompartment() if r.isSetCompartment() else None,
+                fast=r.getFast() if r.isSetFast() else False,
                 **parse_sbase_kwargs(r),
             )
         )

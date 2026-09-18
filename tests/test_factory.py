@@ -512,3 +512,24 @@ def test_event_assignments_keep_sbase_fields() -> None:
     assert ea.getVariable() == "S1"
     assert ea.getMetaId() == "ea1"
     assert ea.getSBOTermID() == "SBO:0000064"
+
+
+def test_reaction_reversible_overrides_the_equation() -> None:
+    """Test that an explicit `reversible` is honoured.
+
+    `Reaction.reversible` was stored and never read; `_set_fields` used
+    `equation.reversible`, so `Reaction(equation='A => B', reversible=True)`
+    silently emitted `reversible="false"`.
+    """
+    doc = libsbml.SBMLDocument(3, 2)
+    model = doc.createModel()
+    model.createCompartment().setId("c")
+    for sid in ("A", "B"):
+        species = model.createSpecies()
+        species.setId(sid)
+        species.setCompartment("c")
+
+    reaction = Reaction("r1", "A => B", reversible=True)
+    reaction.create_sbml(model)
+
+    assert model.getReaction("r1").getReversible() is True

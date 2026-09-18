@@ -558,3 +558,20 @@ def test_roundtrip_constraint_math_and_message(tmp_path: Path) -> None:
     assert body_node.getName() == "body"
     assert body_node.getNumChildren() == 1
     assert body_node.getChild(0).getName() == "p"
+
+
+#: cases which use modifiers in a reaction
+#: 00039 also carries an algebraic rule, which roadrunner cannot simulate
+#: (see `test_parse_algebraic_rule_without_id`), so it is excluded here even
+#: though it uses a modifier.
+CASES_MODIFIERS: list[str] = ["00063", "00064", "00065"]
+
+#: cases whose reactions have a variable stoichiometry
+CASES_VARIABLE_STOICHIOMETRY: list[str] = ["00969", "00970", "00971"]
+
+
+@requires_roadrunner
+@pytest.mark.parametrize("case", CASES_MODIFIERS + CASES_VARIABLE_STOICHIOMETRY)
+def test_roundtrip_species_references(case: str, tmp_path: Path) -> None:
+    """Test that modifiers and variable stoichiometry survive a round trip."""
+    assert_roundtrip_simulates_equal(testsuite_case(case), tmp_path)

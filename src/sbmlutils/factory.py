@@ -2121,21 +2121,37 @@ class Reaction(Sbase):
         r_fbc: libsbml.FbcReactionPlugin = r.getPlugin("fbc")
 
         def set_speciesref_fields(
-            sref: libsbml.SpeciesReference, part: EquationPart
+            sref: libsbml.SpeciesReference | libsbml.ModifierSpeciesReference,
+            part: EquationPart,
         ) -> None:
-            """Set the fields on the SpeciesReference."""
+            """Set the fields on the SpeciesReference.
+
+            A `libsbml.ModifierSpeciesReference` has no `constant` or
+            `stoichiometry` attribute (only its sibling `SpeciesReference`,
+            used for reactants and products, does), so those two are only
+            set when `sref` actually is one.
+            """
             if part.species is not None:
                 sref.setSpecies(part.species)
             if part.sid is not None:
                 sref.setId(part.sid)
-            if part.constant is not None:
-                sref.setConstant(part.constant)
-            if part.stoichiometry is not None:
-                sref.setStoichiometry(part.stoichiometry)
+            if isinstance(sref, libsbml.SpeciesReference):
+                if part.constant is not None:
+                    sref.setConstant(part.constant)
+                if part.stoichiometry is not None:
+                    sref.setStoichiometry(part.stoichiometry)
             if part.metaId is not None:
                 sref.setMetaId(part.metaId)
             if part.sboTerm is not None:
                 sref.setSBOTerm(part.sboTerm)
+            if part.name is not None:
+                sref.setName(part.name)
+            if part.notes is not None and part.notes.strip():
+                set_notes(sref, part.notes, format=detect_format(part.notes))
+            for annotation in Sbase._process_annotations(part.annotations or []):
+                annotator.ModelAnnotator.annotate_sbase(
+                    sbase=sref, annotation=annotation
+                )
 
         # equation
         for reactant in self.equation.reactants:
@@ -2148,7 +2164,7 @@ class Reaction(Sbase):
 
         for modifier in self.equation.modifiers:
             mref: libsbml.ModifierSpeciesReference = r.createModifier()
-            mref.setSpecies(modifier)
+            set_speciesref_fields(sref=mref, part=modifier)
 
         # kinetics
         if self.formula is not None:
@@ -2201,8 +2217,19 @@ class Reaction(Sbase):
             sbase.setCompartment(self.compartment)
         # else:
         #    logger.info(f"'compartment' should be set on '{self}'}")
-        sbase.setReversible(self.equation.reversible)
-        sbase.setFast(self.fast)
+        reversible = (
+            self.reversible if self.reversible is not None else self.equation.reversible
+        )
+        check(sbase.setReversible(reversible), f"Set reversible on '{self.sid}'")
+
+        # `fast` was removed from SBML in L3V2; `setFast` errors on such a
+        # document, so it is only called when the level/version being
+        # written still supports the attribute.
+        supports_fast = sbase.getLevel() < 3 or (
+            sbase.getLevel() == 3 and sbase.getVersion() < 2
+        )
+        if supports_fast:
+            check(sbase.setFast(self.fast), f"Set fast on '{self.sid}'")
 
 
 class EventAssignment(Value):
