@@ -463,3 +463,98 @@ def test_roundtrip_local_parameters(case: str, tmp_path: Path) -> None:
     context must refer to a model component`.
     """
     assert_roundtrip_simulates_equal(testsuite_case(case), tmp_path)
+
+
+def test_roundtrip_constraints(tmp_path: Path) -> None:
+    """Test that constraints survive a round trip.
+
+    Case 01247 is the only l3v2 semantic case with a `<listOfConstraints>`,
+    and its one `<constraint/>` has neither a `<math>` nor a `<message>`
+    child. A constraint is not simulable by roadrunner, so this is a
+    structural assertion rather than a trajectory comparison, and it also
+    compares the math/message presence rather than only the count, so that a
+    parser which invents or mangles either would still be caught.
+    """
+    import libsbml
+
+    sbml_path = testsuite_case("01247")
+    model = sbml_to_model(sbml_path)
+    roundtrip_path = tmp_path / "roundtrip.xml"
+    create_model(
+        model=model,
+        filepath=roundtrip_path,
+        sbml_level=3,
+        sbml_version=2,
+        validation_options=ValidationOptions(units_consistency=False),
+    )
+
+    m_in = libsbml.readSBMLFromFile(str(sbml_path)).getModel()
+    m_out = libsbml.readSBMLFromFile(str(roundtrip_path)).getModel()
+    assert m_out.getNumConstraints() == m_in.getNumConstraints()
+
+    c_in: libsbml.Constraint = m_in.getConstraint(0)
+    c_out: libsbml.Constraint = m_out.getConstraint(0)
+    assert c_out.isSetMath() == c_in.isSetMath()
+    assert c_out.isSetMessage() == c_in.isSetMessage()
+
+
+def test_roundtrip_constraint_math_and_message(tmp_path: Path) -> None:
+    """Test that a constraint's math and message survive a round trip intact.
+
+    No semantic test-suite case carries a constraint with both a `<math>` and
+    a `<message>`, so this builds one directly with libsbml, following the
+    pattern of `test_roundtrip_rule_keeps_its_own_id`. It also guards against
+    the message-nesting failure mode Task 3 found for notes: libsbml's
+    `Constraint.getMessageString()` returns the message already wrapped in
+    its own `<message>` element, and feeding that string back into
+    `Constraint.setMessage` unchanged would double-wrap it, exactly as an
+    unprocessed `getNotesString()` used to double-wrap notes.
+    """
+    import libsbml
+
+    doc = libsbml.SBMLDocument(3, 2)
+    sbml_model = doc.createModel("m")
+    p: libsbml.Parameter = sbml_model.createParameter()
+    p.setId("p")
+    p.setValue(3.0)
+    p.setConstant(True)
+
+    constraint: libsbml.Constraint = sbml_model.createConstraint()
+    constraint.setId("c1")
+    constraint.setMath(libsbml.parseL3Formula("p > 0"))
+    constraint.setMessage(
+        '<body xmlns="http://www.w3.org/1999/xhtml"><p>p must be positive</p></body>'
+    )
+
+    sbml_path = tmp_path / "source.xml"
+    libsbml.writeSBMLToFile(doc, str(sbml_path))
+
+    model = sbml_to_model(sbml_path)
+    assert len(model.constraints) == 1
+    assert model.constraints[0].formula == "p > 0"
+    assert model.constraints[0].message is not None
+    # the parsed message is `getMessageString()`'s output, which is wrapped
+    # in its own `<message>` element; that element must not appear twice.
+    assert model.constraints[0].message.count("<message") == 1
+
+    roundtrip_path = tmp_path / "roundtrip.xml"
+    create_model(
+        model=model,
+        filepath=roundtrip_path,
+        sbml_level=3,
+        sbml_version=2,
+        validation_options=ValidationOptions(units_consistency=False),
+    )
+
+    rt_model = libsbml.readSBMLFromFile(str(roundtrip_path)).getModel()
+    rt_constraint: libsbml.Constraint = rt_model.getConstraint(0)
+    assert rt_constraint.isSetMath()
+    assert libsbml.formulaToL3String(rt_constraint.getMath()) == "p > 0"
+    assert rt_constraint.isSetMessage()
+    # a nested `<message><message>...` would round trip to two `<p>` children
+    # instead of one.
+    message_node = rt_constraint.getMessage()
+    body_node = message_node.getChild(0)
+    assert body_node.getName() == "body"
+    assert body_node.getNumChildren() == 1
+    assert body_node.getChild(0).getName() == "p"

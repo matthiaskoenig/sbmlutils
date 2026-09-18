@@ -17,6 +17,7 @@ from sbmlutils.factory import (
     AlgebraicRule,
     AssignmentRule,
     Compartment,
+    Constraint,
     Event,
     EventAssignment,
     Function,
@@ -525,6 +526,19 @@ def sbml_to_model(
         )
 
     # constraints
+    constraint: libsbml.Constraint
+    for constraint in model.getListOfConstraints():
+        ast = constraint.getMath() if constraint.isSetMath() else None
+        formula = libsbml.formulaToL3String(ast) if ast else None
+        m.constraints.append(
+            Constraint(
+                formula=formula,
+                message=(
+                    constraint.getMessageString() if constraint.isSetMessage() else None
+                ),
+                **parse_sbase_kwargs(constraint),
+            )
+        )
 
     # FIXME:
     # comp

@@ -2454,7 +2454,7 @@ class Constraint(Sbase):
     def __init__(
         self,
         sid: str,
-        formula: str,
+        formula: str | None = None,
         message: str | None = None,
         name: str | None = None,
         sboTerm: str | None = None,
