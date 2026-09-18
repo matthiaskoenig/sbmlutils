@@ -6,7 +6,7 @@ import libsbml
 import pytest
 
 from sbmlutils.factory import Parameter
-from sbmlutils.notes import Notes
+from sbmlutils.notes import Notes, NotesFormat, detect_format
 
 
 @pytest.mark.parametrize(
@@ -106,3 +106,40 @@ def test_note_sbml(notes: str, expected: str) -> None:
     p_sbml: libsbml.Parameter = p.create_sbml(model=model)
     assert p_sbml
     assert p_sbml.isSetNotes()
+
+
+def test_detect_format_markdown() -> None:
+    """Test that a markdown string is detected as markdown."""
+    assert detect_format("A **glucose** species") == NotesFormat.MARKDOWN
+
+
+def test_detect_format_html() -> None:
+    """Test that an XHTML string is detected as html."""
+    notes = '<body xmlns="http://www.w3.org/1999/xhtml"><p>text</p></body>'
+    assert detect_format(notes) == NotesFormat.HTML
+
+
+def test_detect_format_leading_whitespace() -> None:
+    """Test that leading whitespace does not hide the markup."""
+    notes = '\n  <body xmlns="http://www.w3.org/1999/xhtml"><p>text</p></body>'
+    assert detect_format(notes) == NotesFormat.HTML
+
+
+def test_detect_format_markdown_with_inline_html() -> None:
+    """Test that markdown which merely contains a tag stays markdown.
+
+    Only a string which *starts* with markup is html, so a markdown
+    paragraph using an inline tag is still rendered as markdown.
+    """
+    assert detect_format("see <b>this</b> value") == NotesFormat.MARKDOWN
+
+
+def test_notes_html_is_not_rendered() -> None:
+    """Test that html notes are stored verbatim.
+
+    Markdown rendering mutates plain text, `2*3*4` becomes `2<em>3</em>4`,
+    which must not happen to notes which came from an SBML file.
+    """
+    notes = '<body xmlns="http://www.w3.org/1999/xhtml"><p>2*3*4</p></body>'
+    assert "2*3*4" in str(Notes(notes, format=NotesFormat.HTML))
+    assert "<em>" not in str(Notes(notes, format=NotesFormat.HTML))

@@ -22,11 +22,44 @@ class NotesFormat(StrEnum):
     HTML = "html"
 
 
+def detect_format(notes: str) -> NotesFormat:
+    """Detect whether notes are markdown or XHTML.
+
+    The rule is deliberately structural rather than a heuristic on the
+    content: notes whose first non-whitespace character is `<` and which
+    parse as XML are html, everything else is markdown. A markdown
+    paragraph which merely contains an inline tag therefore stays markdown.
+
+    Args:
+        notes: the notes string
+
+    Returns:
+        `NotesFormat.HTML` for notes which are already markup, else
+        `NotesFormat.MARKDOWN`
+    """
+    stripped = notes.strip()
+    if not stripped.startswith("<"):
+        return NotesFormat.MARKDOWN
+
+    xml: libsbml.XMLNode | None = libsbml.XMLNode.convertStringToXMLNode(
+        f'<body xmlns="http://www.w3.org/1999/xhtml">{stripped}</body>'
+    )
+    return NotesFormat.HTML if xml is not None else NotesFormat.MARKDOWN
+
+
 class Notes:
     """SBML notes."""
 
     def __init__(self, notes: str, format: NotesFormat = NotesFormat.MARKDOWN):
         """Initialize notes object."""
+        # an SBML `<notes>` element wraps the xhtml body, parsing it back in
+        # must not nest a second body inside it
+        stripped = notes.strip()
+        if stripped.startswith("<notes"):
+            start = stripped.find(">") + 1
+            end = stripped.rfind("</notes>")
+            notes = stripped[start:end] if end > start else stripped
+
         # remove indentation
         md = textwrap.dedent(notes)
 
@@ -40,7 +73,10 @@ class Notes:
             raise ValueError(f"Invalid Notes format: '{format}'")
 
         # insert body text with namespace
-        notes_str = f'<body xmlns="http://www.w3.org/1999/xhtml">\n{html}\n</body>'
+        if html.strip().startswith("<body"):
+            notes_str = html.strip()
+        else:
+            notes_str = f'<body xmlns="http://www.w3.org/1999/xhtml">\n{html}\n</body>'
 
         self.xml: libsbml.XMLNode = libsbml.XMLNode.convertStringToXMLNode(notes_str)
         if self.xml is None:

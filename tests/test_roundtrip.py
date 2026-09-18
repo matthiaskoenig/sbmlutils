@@ -187,3 +187,28 @@ def test_roundtrip_emits_no_authoring_warnings(
         if "should be set" in record.getMessage()
     ]
     assert authoring == [], f"round trip emitted authoring warnings: {authoring}"
+
+
+def test_roundtrip_preserves_notes(tmp_path: Path) -> None:
+    """Test that notes survive a round trip unchanged.
+
+    Notes used to be stored as markdown and rendered on write, so notes read
+    from a file came back nested and their text was mutated.
+    """
+    from sbmlutils.io.sbml import read_sbml
+    from sbmlutils.resources import REPRESSILATOR_SBML
+
+    model = sbml_to_model(REPRESSILATOR_SBML)
+    roundtrip_path = tmp_path / "roundtrip.xml"
+    create_model(
+        model=model,
+        filepath=roundtrip_path,
+        sbml_level=3,
+        sbml_version=2,
+        validation_options=ValidationOptions(units_consistency=False),
+    )
+
+    doc_rt = read_sbml(roundtrip_path)
+    notes_rt = doc_rt.getModel().getNotesString()
+    assert notes_rt, "the model lost its notes"
+    assert "<notes>" not in notes_rt[7:], "notes were nested on write"

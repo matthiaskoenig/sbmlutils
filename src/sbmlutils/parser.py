@@ -1,6 +1,5 @@
 """Parse Models in internal model format.
 
-FIXME: no support for notes
 FIXME: no support for modelHistory
 
 """
@@ -152,8 +151,10 @@ def sbml_to_model(
                 )
 
         kwargs["keyValuePairs"] = kvps
-        # if d["notes"]:
-        #     kwargs["notes"] = d["notes"]  # This is an XML string.
+        # notes are the xhtml of the source document; `Sbase._process_notes`
+        # detects that and stores them verbatim instead of rendering them
+        if d["notes"]:
+            kwargs["notes"] = d["notes"]
 
         return kwargs
 

@@ -53,7 +53,7 @@ from sbmlutils.metadata import (
     annotator,
 )
 from sbmlutils.metadata.annotator import Annotation
-from sbmlutils.notes import Notes, NotesFormat
+from sbmlutils.notes import Notes, NotesFormat, detect_format
 from sbmlutils.reaction_equation import EquationPart, ReactionEquation
 from sbmlutils.utils import FrozenClass, create_metaid
 from sbmlutils.validation import ValidationOptions, check
@@ -216,6 +216,25 @@ def set_notes(
     """
     _notes = Notes(notes, format=format)
     check(sbase.setNotes(_notes.xml), message=f"Setting notes on '{sbase}'")
+
+
+def _xhtml_body_content(xhtml: str) -> str:
+    """Extract the inner content of an XHTML notes body.
+
+    Used to merge two already normalized notes fragments, e.g. a user
+    supplied notes body and the `sbmlutils` attribution notes of
+    `Document`, into a single body instead of nesting one body inside
+    another.
+
+    Args:
+        xhtml: an XHTML body string, e.g. `<body xmlns="...">...</body>`
+
+    Returns:
+        the content between the opening and the closing `body` tag
+    """
+    start = xhtml.find(">") + 1
+    end = xhtml.rfind("</body>")
+    return xhtml[start:end]
 
 
 class ModelUnits:
@@ -383,7 +402,7 @@ class Sbase:
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
@@ -393,7 +412,7 @@ class Sbase:
         self.name = name
         self.sboTerm = sboTerm
         self.metaId = metaId
-        self.notes = notes
+        self.notes = Sbase._process_notes(notes)
         self.keyValuePairs = keyValuePairs
         self.port = port
         self.uncertainties = uncertainties
@@ -468,13 +487,29 @@ class Sbase:
                 annotations.append(annotation)
         return annotations
 
-    def get_notes_xml(self) -> str | None:
-        """Get notes xml string."""
-        if self.notes:
-            notes_str: str | None = str(Notes(self.notes).xml)
-            return notes_str
+    @staticmethod
+    def _process_notes(notes: str | Notes | None) -> str | None:
+        """Normalize notes to an XHTML body string.
 
-        return None
+        Notes are stored as XHTML so that a round trip is a fixed point:
+        markdown is rendered once here, and notes which came from an SBML
+        document are stored verbatim instead of being run through the
+        markdown renderer, which would mutate them.
+
+        Args:
+            notes: the notes as markdown, as XHTML, or as a `Notes` object
+                which states its format explicitly
+
+        Returns:
+            the XHTML body of the notes, `None` if no notes were given
+        """
+        if notes is None:
+            return None
+        if isinstance(notes, Notes):
+            return str(notes)
+        if not notes.strip():
+            return None
+        return str(Notes(notes, format=detect_format(notes)))
 
     def _set_fields(self, sbase: Any, model: Any) -> None:
         """Set the fields of the created libsbml object.
@@ -537,7 +572,8 @@ class Sbase:
             sbase.setMetaId(self.metaId)
 
         if self.notes is not None and self.notes.strip():
-            set_notes(sbase, self.notes)
+            # notes are normalized to xhtml by `Sbase._process_notes`
+            set_notes(sbase, self.notes, format=NotesFormat.HTML)
 
         # annotation handling
         processed_annotations: list[Annotation] = []
@@ -658,7 +694,7 @@ class KeyValuePair(Sbase):
         name: str | None = None,
         sboTerm: str | None = None,
         metaId: str | None = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         annotations: OptionalAnnotationsType = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
@@ -712,7 +748,7 @@ class Value(Sbase):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
@@ -805,7 +841,7 @@ class UnitDefinition(Sbase):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         replacedBy: Any | None = None,
@@ -1010,7 +1046,7 @@ class ValueWithUnit(Value):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
@@ -1069,7 +1105,7 @@ class Function(Sbase):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
@@ -1122,7 +1158,7 @@ class Parameter(ValueWithUnit):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
@@ -1195,7 +1231,7 @@ class Compartment(ValueWithUnit):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
@@ -1272,7 +1308,7 @@ class Species(Sbase):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
@@ -1380,7 +1416,7 @@ class InitialAssignment(Value):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
@@ -1513,7 +1549,7 @@ class AssignmentRule(ValueWithUnit, RuleWithVariable):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
@@ -1565,7 +1601,7 @@ class RateRule(ValueWithUnit, RuleWithVariable):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
@@ -1616,7 +1652,7 @@ class AlgebraicRule(ValueWithUnit, RuleWithVariable):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
@@ -1698,7 +1734,7 @@ class Reaction(Sbase):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
@@ -1883,7 +1919,7 @@ class Event(Sbase):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
@@ -1984,7 +2020,7 @@ class Constraint(Sbase):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
@@ -2106,7 +2142,7 @@ class Uncertainty(Sbase):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         replacedBy: Any | None = None,
@@ -2265,7 +2301,7 @@ class ExchangeReaction(Reaction):
         name: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
@@ -2312,7 +2348,7 @@ class GeneProduct(Sbase):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
@@ -2360,7 +2396,7 @@ class UserDefinedConstraintComponent(Sbase):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
@@ -2432,7 +2468,7 @@ class UserDefinedConstraint(Sbase):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
@@ -2509,7 +2545,7 @@ class FluxObjective(Sbase):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
@@ -2584,7 +2620,7 @@ class Objective(Sbase):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
@@ -2671,7 +2707,7 @@ class ModelDefinition(Sbase):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         units: type[Units] | None = None,
         compartments: list[Compartment] | None = None,
@@ -2748,7 +2784,7 @@ class ExternalModelDefinition(Sbase):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
     ):
         """Create an ExternalModelDefinition."""
@@ -2797,7 +2833,7 @@ class Submodel(Sbase):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
     ):
         """Create a Submodel."""
@@ -2846,7 +2882,7 @@ class SbaseRef(Sbase):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
     ):
         """Create an SBaseRef."""
@@ -2897,7 +2933,7 @@ class ReplacedElement(SbaseRef):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
     ):
         """Create a ReplacedElement."""
@@ -2963,7 +2999,7 @@ class ReplacedBy(SbaseRef):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
     ):
         """Create a ReplacedElement."""
@@ -3014,7 +3050,7 @@ class Deletion(SbaseRef):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
     ):
         """Initialize Deletion."""
@@ -3076,7 +3112,7 @@ class Port(SbaseRef):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
     ):
         """Create a Port."""
@@ -3288,7 +3324,7 @@ class Model(Sbase, FrozenClass, BaseModel):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         packages: list[Package] | None = None,
         creators: list[Creator] | None = None,
@@ -3589,7 +3625,7 @@ class Document(Sbase):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         sbml_level: int = SBML_LEVEL,
         sbml_version: int = SBML_VERSION,
@@ -3603,20 +3639,34 @@ class Document(Sbase):
         self.annotations: list[AnnotationType] = (
             list(annotations) if annotations else []
         )
-        self.notes = notes
+        # `Document` does not call `Sbase.__init__` (it has no sboTerm
+        # handling and sets its own fields), so the notes normalization
+        # `Sbase.__init__` otherwise applies is done here explicitly
+        self.notes = Sbase._process_notes(notes)
         self.keyValuePairs = keyValuePairs
         self.sbml_level = sbml_level
         self.sbml_version = sbml_version
         self.doc: libsbml.SBMLDocument | None = None
 
-        sbmlutils_notes = """
+        sbmlutils_notes = Sbase._process_notes(
+            """
         Created with [https://github.com/matthiaskoenig/sbmlutils](https://github.com/matthiaskoenig/sbmlutils).
         [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5525390.svg)](https://doi.org/10.5281/zenodo.5525390)
         """
+        )
+        assert sbmlutils_notes is not None
+
         if self.notes is None:
             self.notes = sbmlutils_notes
         else:
-            self.notes += sbmlutils_notes
+            # both fragments are already xhtml bodies, so appending them
+            # as-is would nest a body inside a body; merge their content
+            self.notes = (
+                '<body xmlns="http://www.w3.org/1999/xhtml">\n'
+                f"{_xhtml_body_content(self.notes)}\n"
+                f"{_xhtml_body_content(sbmlutils_notes)}\n"
+                "</body>"
+            )
 
     def create_sbml(self) -> libsbml.SBMLDocument:
         """Create SBML model."""
