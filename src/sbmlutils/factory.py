@@ -2611,7 +2611,7 @@ class Constraint(Sbase):
     def __init__(
         self,
         sid: str,
-        formula: str | None = None,
+        math: str | None = None,
         message: str | None = None,
         name: str | None = None,
         sboTerm: str | None = None,
@@ -2636,7 +2636,7 @@ class Constraint(Sbase):
             uncertainties=uncertainties,
             replacedBy=replacedBy,
         )
-        self.formula = formula
+        self.math = math
         self.message = message
 
     def create_sbml(self, model: libsbml.Model) -> libsbml.Constraint:
@@ -2649,8 +2649,8 @@ class Constraint(Sbase):
         """Set fields on libsbml.Constraint."""
         super()._set_fields(sbase, model)
 
-        if self.formula is not None:
-            ast_math = libsbml.parseL3FormulaWithModel(self.formula, model)
+        if self.math is not None:
+            ast_math = libsbml.parseL3FormulaWithModel(self.math, model)
             sbase.setMath(ast_math)
         if self.message is not None:
             check(

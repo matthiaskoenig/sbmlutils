@@ -157,8 +157,8 @@ model.reactions = [
     ),
 ]
 model.constraints = [
-    Constraint("J0_lb_constraint", formula="J0 >= J0_lb"),
-    Constraint("J0_ub_constraint", formula="J0 >= J0_ub"),
+    Constraint("J0_lb_constraint", math="J0 >= J0_lb"),
+    Constraint("J0_ub_constraint", math="J0 >= J0_ub"),
 ]
 
 

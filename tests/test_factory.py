@@ -533,7 +533,7 @@ def test_constraint_id_written_from_l3v2(
     k.setConstant(True)
 
     with caplog.at_level("WARNING"):
-        Constraint("c1", formula="k > 0").create_sbml(model)
+        Constraint("c1", math="k > 0").create_sbml(model)
 
     constraint: libsbml.Constraint = model.getConstraint(0)
     assert constraint.isSetMath()

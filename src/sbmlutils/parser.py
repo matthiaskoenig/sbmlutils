@@ -540,10 +540,9 @@ def sbml_to_model(
     constraint: libsbml.Constraint
     for constraint in model.getListOfConstraints():
         ast = constraint.getMath() if constraint.isSetMath() else None
-        formula = libsbml.formulaToL3String(ast) if ast else None
         m.constraints.append(
             Constraint(
-                formula=formula,
+                math=libsbml.formulaToL3String(ast) if ast else None,
                 message=(
                     constraint.getMessageString() if constraint.isSetMessage() else None
                 ),

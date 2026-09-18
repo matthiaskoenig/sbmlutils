@@ -1247,7 +1247,7 @@ def test_roundtrip_constraint_math_and_message(tmp_path: Path) -> None:
 
     model = sbml_to_model(sbml_path)
     assert len(model.constraints) == 1
-    assert model.constraints[0].formula == "p > 0"
+    assert model.constraints[0].math == "p > 0"
     assert model.constraints[0].message is not None
     # the parsed message is `getMessageString()`'s output, which is wrapped
     # in its own `<message>` element; that element must not appear twice.
