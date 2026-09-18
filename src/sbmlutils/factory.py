@@ -230,10 +230,19 @@ def _xhtml_body_content(xhtml: str) -> str:
         xhtml: an XHTML body string, e.g. `<body xmlns="...">...</body>`
 
     Returns:
-        the content between the opening and the closing `body` tag
+        the content between the opening and the closing `body` tag, or an
+        empty string if `xhtml` has no closing `</body>` tag, e.g. a
+        self-closing `<body/>`
     """
-    start = xhtml.find(">") + 1
     end = xhtml.rfind("</body>")
+    if end == -1:
+        logger.warning(
+            "Notes body has no closing '</body>' tag, treating its content "
+            "as empty: '%s'",
+            xhtml,
+        )
+        return ""
+    start = xhtml.find(">") + 1
     return xhtml[start:end]
 
 
