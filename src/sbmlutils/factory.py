@@ -2145,7 +2145,38 @@ class Reaction(Sbase):
             if part.sboTerm is not None:
                 sref.setSBOTerm(part.sboTerm)
             if part.name is not None:
-                sref.setName(part.name)
+                # `SimpleSpeciesReference::setName` (libsbml 5.21.1)
+                # erroneously applies SId syntax validation to `name`,
+                # which SBML L3 defines as a plain `string`, not an `SId`;
+                # `Species.setName`/`Reaction.setName` do not do this.
+                # Verified live: `SpeciesReference.setName('reactant
+                # name')` returns rc=-4 (LIBSBML_INVALID_ATTRIBUTE_VALUE)
+                # and leaves `getName()` empty, while
+                # `SpeciesReference.setName('reactantname')` (no space)
+                # returns rc=0 and is set; `Species.setName('a species
+                # name')` (the control) returns rc=0. This is a libsbml
+                # defect specific to `SimpleSpeciesReference` (the base of
+                # both `SpeciesReference` and `ModifierSpeciesReference`),
+                # not a bug in this package, and there is nothing correct
+                # to do about it here short of mangling the name, which
+                # this deliberately does not do. Logged as a warning
+                # rather than routed through `check()` (which always logs
+                # at error level): the name is unfixable from the caller's
+                # side, and any name containing a space, one of the most
+                # common cases, would otherwise log as an error on every
+                # single reaction.
+                rc = sref.setName(part.name)
+                if rc != libsbml.LIBSBML_OPERATION_SUCCESS:
+                    logger.warning(
+                        "Name '%s' could not be set on species reference "
+                        "for species '%s': rejected by libsbml with code "
+                        "%s (a known SimpleSpeciesReference.setName defect "
+                        "which applies SId syntax validation to the "
+                        "string-typed 'name' attribute).",
+                        part.name,
+                        part.species,
+                        rc,
+                    )
             if part.notes is not None and part.notes.strip():
                 set_notes(sref, part.notes, format=detect_format(part.notes))
             for annotation in Sbase._process_annotations(part.annotations or []):

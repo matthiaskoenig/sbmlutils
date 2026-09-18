@@ -10,6 +10,8 @@ import pytest
 from sbmlutils import factory
 from sbmlutils.factory import *
 from sbmlutils.io import read_sbml
+from sbmlutils.metadata import BQB
+from sbmlutils.reaction_equation import EquationPart
 from sbmlutils.validation import ValidationOptions
 
 compartment_value_data = [
@@ -533,3 +535,115 @@ def test_reaction_reversible_overrides_the_equation() -> None:
     reaction.create_sbml(model)
 
     assert model.getReaction("r1").getReversible() is True
+
+
+def _reaction_test_model() -> tuple[libsbml.SBMLDocument, libsbml.Model]:
+    """Build a minimal L3V2 model with species 'A', 'B' and 'M' for reaction tests."""
+    doc = libsbml.SBMLDocument(3, 2)
+    model = doc.createModel()
+    model.createCompartment().setId("c")
+    for sid in ("A", "B", "M"):
+        species = model.createSpecies()
+        species.setId(sid)
+        species.setCompartment("c")
+    return doc, model
+
+
+def test_reaction_modifier_keeps_sbase_fields() -> None:
+    """Test that a modifier's metaId, sboTerm, name, notes and annotation survive.
+
+    `set_speciesref_fields` used to only set `species`, `sid`, `constant`,
+    `stoichiometry`, `metaId` and `sboTerm` on a species reference; `name`,
+    `notes` and `annotations` were silently dropped, for reactants, products
+    and modifiers alike. This asserts against the actual created
+    `libsbml.ModifierSpeciesReference`, not against the python `EquationPart`
+    it was built from, so it fails if `set_speciesref_fields` stops writing
+    any of these.
+    """
+    _doc, model = _reaction_test_model()
+    equation = ReactionEquation(
+        reactants=[EquationPart(species="A")],
+        products=[EquationPart(species="B")],
+        modifiers=[
+            EquationPart(
+                species="M",
+                metaId="mod1",
+                sboTerm="SBO:0000019",
+                name="modifiername",
+                notes="a modifier",
+                annotations=[(BQB.IS, "uniprot/P35557")],
+            )
+        ],
+    )
+    reaction = Reaction("r1", equation)
+    reaction.create_sbml(model)
+
+    modifier: libsbml.ModifierSpeciesReference = model.getReaction("r1").getModifier(0)
+    assert modifier.getMetaId() == "mod1"
+    assert modifier.getSBOTermID() == "SBO:0000019"
+    assert modifier.getName() == "modifiername"
+    assert "a modifier" in modifier.getNotesString()
+    assert modifier.getNumCVTerms() == 1
+    assert "P35557" in modifier.getCVTerm(0).getResourceURI(0)
+
+
+def test_reaction_reactant_keeps_name_notes_and_annotations() -> None:
+    """Test that a reactant's name, notes and annotation survive, not only its metadata.
+
+    Only `metaId`/`sboTerm`/`constant`/`stoichiometry` were set on a
+    `SpeciesReference` before this task; `name`, `notes` and `annotations`
+    were dropped for reactants and products exactly like for modifiers.
+    """
+    _doc, model = _reaction_test_model()
+    equation = ReactionEquation(
+        reactants=[
+            EquationPart(
+                species="A",
+                name="reactantname",
+                notes="a reactant",
+                annotations=[(BQB.IS, "uniprot/P35557")],
+            )
+        ],
+        products=[EquationPart(species="B")],
+    )
+    reaction = Reaction("r1", equation)
+    reaction.create_sbml(model)
+
+    reactant: libsbml.SpeciesReference = model.getReaction("r1").getReactant(0)
+    assert reactant.getName() == "reactantname"
+    assert "a reactant" in reactant.getNotesString()
+    assert reactant.getNumCVTerms() == 1
+    assert "P35557" in reactant.getCVTerm(0).getResourceURI(0)
+
+
+def test_reaction_speciesref_name_with_space_is_rejected_by_libsbml(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that a space-containing species reference name is silently dropped by libsbml.
+
+    `libsbml.SimpleSpeciesReference.setName` (5.21.1) erroneously applies SId
+    syntax validation to `name`, which SBML defines as a plain `string`, so
+    any name that is not a valid SId, such as one containing a space, is
+    rejected with rc=-4 and never set. This is a libsbml defect, not a bug in
+    this package (see the comment in `set_speciesref_fields`), but it must be
+    surfaced as a warning rather than fail completely silently, and this
+    pins that behaviour with a test rather than leaving it to be
+    rediscovered by surprise.
+    """
+    import logging
+
+    _doc, model = _reaction_test_model()
+    equation = ReactionEquation(
+        reactants=[EquationPart(species="A")],
+        products=[EquationPart(species="B")],
+        modifiers=[EquationPart(species="M", name="a modifier name")],
+    )
+    reaction = Reaction("r1", equation)
+    with caplog.at_level(logging.WARNING, logger="sbmlutils.factory"):
+        reaction.create_sbml(model)
+
+    modifier: libsbml.ModifierSpeciesReference = model.getReaction("r1").getModifier(0)
+    assert modifier.getName() == ""
+    assert "could not be set" in caplog.text, (
+        "the rejected name should be logged, not silently dropped"
+    )

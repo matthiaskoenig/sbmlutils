@@ -575,3 +575,144 @@ CASES_VARIABLE_STOICHIOMETRY: list[str] = ["00969", "00970", "00971"]
 def test_roundtrip_species_references(case: str, tmp_path: Path) -> None:
     """Test that modifiers and variable stoichiometry survive a round trip."""
     assert_roundtrip_simulates_equal(testsuite_case(case), tmp_path)
+
+
+def test_roundtrip_species_reference_metadata(tmp_path: Path) -> None:
+    """Test that a modifier's and reactant's metadata survive both directions.
+
+    None of the vendored test-suite cases carry a modifier with its own id,
+    name, metaId, sboTerm, notes or annotation (case 00063's modifier, for
+    example, is a bare species reference), so
+    `test_roundtrip_species_references` above would pass identically even if
+    `set_speciesref_fields`/`parse_sbase_kwargs` wrote or parsed none of that
+    metadata. This builds a source document with a fully annotated reactant
+    and modifier directly with libsbml, following the pattern of
+    `test_roundtrip_constraint_math_and_message`, and checks both directions:
+    `sbml_to_model` populates the corresponding `EquationPart`, and
+    `create_model` writes it back out to the final SBML.
+
+    The modifier's name is deliberately space-free (`"them1"`): a
+    space-containing name is rejected by libsbml itself for any
+    `SimpleSpeciesReference`, see
+    `test_reaction_speciesref_name_with_space_is_rejected_by_libsbml` in
+    `test_factory.py`, so it would not be a name round trip failure, only a
+    restatement of that separate, already-pinned libsbml limitation.
+    """
+    import libsbml
+
+    doc = libsbml.SBMLDocument(3, 2)
+    sbml_model = doc.createModel("m")
+    c: libsbml.Compartment = sbml_model.createCompartment()
+    c.setId("c")
+    c.setConstant(True)
+    c.setSize(1.0)
+    for sid in ("S1", "S2", "M1"):
+        species: libsbml.Species = sbml_model.createSpecies()
+        species.setId(sid)
+        species.setCompartment("c")
+        species.setConstant(False)
+        species.setBoundaryCondition(False)
+        species.setHasOnlySubstanceUnits(False)
+        species.setInitialAmount(1.0)
+
+    reaction: libsbml.Reaction = sbml_model.createReaction()
+    reaction.setId("r1")
+    reaction.setReversible(False)
+
+    def add_cvterm(sbase: libsbml.SBase, resource: str) -> None:
+        cv = libsbml.CVTerm()
+        cv.setQualifierType(libsbml.BIOLOGICAL_QUALIFIER)
+        cv.setBiologicalQualifierType(libsbml.BQB_IS)
+        cv.addResource(resource)
+        sbase.addCVTerm(cv)
+
+    reactant: libsbml.SpeciesReference = reaction.createReactant()
+    reactant.setSpecies("S1")
+    reactant.setConstant(True)
+    reactant.setStoichiometry(1.0)
+    reactant.setId("reac1")
+    reactant.setMetaId("reac1_meta")
+    reactant.setSBOTerm("SBO:0000010")
+    reactant.setName("reactantname")
+    reactant.setNotes(
+        '<body xmlns="http://www.w3.org/1999/xhtml"><p>a reactant</p></body>'
+    )
+    add_cvterm(reactant, "https://identifiers.org/uniprot/P00001")
+
+    product: libsbml.SpeciesReference = reaction.createProduct()
+    product.setSpecies("S2")
+    product.setConstant(True)
+    product.setStoichiometry(1.0)
+
+    modifier: libsbml.ModifierSpeciesReference = reaction.createModifier()
+    modifier.setSpecies("M1")
+    modifier.setId("mod1")
+    modifier.setMetaId("mod1_meta")
+    modifier.setSBOTerm("SBO:0000019")
+    modifier.setName("them1")
+    modifier.setNotes(
+        '<body xmlns="http://www.w3.org/1999/xhtml"><p>a modifier</p></body>'
+    )
+    add_cvterm(modifier, "https://identifiers.org/uniprot/P35557")
+
+    source_path = tmp_path / "source.xml"
+    libsbml.writeSBMLToFile(doc, str(source_path))
+
+    # direction 1: SBML -> Model
+    model = sbml_to_model(source_path)
+    assert len(model.reactions) == 1
+    equation = model.reactions[0].equation
+    assert len(equation.reactants) == 1
+    assert len(equation.modifiers) == 1
+
+    parsed_reactant = equation.reactants[0]
+    assert parsed_reactant.sid == "reac1"
+    assert parsed_reactant.metaId == "reac1_meta"
+    assert parsed_reactant.sboTerm == "SBO:0000010"
+    assert parsed_reactant.name == "reactantname"
+    assert parsed_reactant.notes is not None
+    assert "a reactant" in parsed_reactant.notes
+    assert parsed_reactant.annotations is not None
+    assert any("P00001" in str(a) for a in parsed_reactant.annotations)
+
+    parsed_modifier = equation.modifiers[0]
+    assert parsed_modifier.species == "M1"
+    assert parsed_modifier.sid == "mod1"
+    assert parsed_modifier.metaId == "mod1_meta"
+    assert parsed_modifier.sboTerm == "SBO:0000019"
+    assert parsed_modifier.name == "them1"
+    assert parsed_modifier.notes is not None
+    assert "a modifier" in parsed_modifier.notes
+    assert parsed_modifier.annotations is not None
+    assert any("P35557" in str(a) for a in parsed_modifier.annotations)
+
+    # direction 2: Model -> SBML
+    roundtrip_path = tmp_path / "roundtrip.xml"
+    create_model(
+        model=model,
+        filepath=roundtrip_path,
+        sbml_level=3,
+        sbml_version=2,
+        validation_options=ValidationOptions(units_consistency=False),
+    )
+
+    rt_model = libsbml.readSBMLFromFile(str(roundtrip_path)).getModel()
+    rt_reaction: libsbml.Reaction = rt_model.getReaction("r1")
+
+    rt_reactant: libsbml.SpeciesReference = rt_reaction.getReactant(0)
+    assert rt_reactant.getId() == "reac1"
+    assert rt_reactant.getMetaId() == "reac1_meta"
+    assert rt_reactant.getSBOTermID() == "SBO:0000010"
+    assert rt_reactant.getName() == "reactantname"
+    assert "a reactant" in rt_reactant.getNotesString()
+    assert rt_reactant.getNumCVTerms() == 1
+    assert "P00001" in rt_reactant.getCVTerm(0).getResourceURI(0)
+
+    rt_modifier: libsbml.ModifierSpeciesReference = rt_reaction.getModifier(0)
+    assert rt_modifier.getId() == "mod1"
+    assert rt_modifier.getMetaId() == "mod1_meta"
+    assert rt_modifier.getSBOTermID() == "SBO:0000019"
+    assert rt_modifier.getName() == "them1"
+    assert "a modifier" in rt_modifier.getNotesString()
+    assert rt_modifier.getNumCVTerms() == 1
+    assert "P35557" in rt_modifier.getCVTerm(0).getResourceURI(0)
