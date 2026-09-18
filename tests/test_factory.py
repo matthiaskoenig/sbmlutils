@@ -265,3 +265,72 @@ def test_assignment_rule_keeps_its_id() -> None:
     sbml_rule = model.getRule(0)
     assert sbml_rule.getVariable() == "S1"
     assert sbml_rule.getIdAttribute() == "my_rule"
+
+
+def test_unit_definition_from_units() -> None:
+    """Test that a UnitDefinition can be built from explicit units."""
+    udef = UnitDefinition(
+        "mM",
+        units=[Unit("mole", 1.0, -3, 1.0), Unit("litre", -1.0, 0, 1.0)],
+        name="millimolar",
+    )
+    assert udef.units is not None
+    assert len(udef.units) == 2
+    assert udef.units[0].kind == "mole"
+    assert udef.units[0].scale == -3
+
+
+def test_unit_definition_preserves_scale() -> None:
+    """Test that an explicit scale survives writing to SBML.
+
+    `create_sbml` used to hardcode `scale = 0`, so a source using
+    `scale="-3" multiplier="1"` came back as `scale="0" multiplier="0.001"`.
+    """
+    doc = libsbml.SBMLDocument(3, 2)
+    model = doc.createModel()
+    udef = UnitDefinition("mM", units=[Unit("mole", 1.0, -3, 1.0)])
+    udef.create_sbml(model)
+
+    sbml_udef = model.getUnitDefinition("mM")
+    assert sbml_udef.getUnit(0).getScale() == -3
+    assert sbml_udef.getUnit(0).getMultiplier() == 1.0
+
+
+def test_unit_definition_non_pint_sid() -> None:
+    """Test that a unit id which pint cannot parse is representable.
+
+    The SBML test suite uses the ids `substance`, `volume` and `time`, and
+    `definition` defaults to `sid`, so these used to raise UndefinedUnitError.
+    """
+    doc = libsbml.SBMLDocument(3, 2)
+    model = doc.createModel()
+    udef = UnitDefinition("substance", units=[Unit("mole", 1.0, 0, 1.0)])
+    udef.create_sbml(model)
+
+    assert model.getUnitDefinition("substance") is not None
+
+
+def test_model_units_accepts_list() -> None:
+    """Test that Model.units accepts a list of UnitDefinitions."""
+    model = Model(
+        "test",
+        units=[UnitDefinition("mM", units=[Unit("mole", 1.0, -3, 1.0)])],
+    )
+    assert isinstance(model.units, list)
+    assert model.units[0].sid == "mM"
+
+
+def test_model_units_accepts_units_class() -> None:
+    """Test that the `class U(Units)` authoring style still works."""
+
+    class U(Units):
+        mM = UnitDefinition("mM", "mmole/liter")
+
+    model = Model("test", units=U)
+    assert isinstance(model.units, list)
+    assert any(udef.sid == "mM" for udef in model.units)
+
+
+def test_unit_reference_by_id() -> None:
+    """Test that a unit can be referenced by its id string."""
+    assert UnitDefinition.get_uid_for_unit("mymole") == "mymole"

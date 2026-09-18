@@ -114,6 +114,7 @@ __all__ = [
     "UncertParameter",
     "UncertSpan",
     "Uncertainty",
+    "Unit",
     "UnitDefinition",
     "UnitType",
     "Units",
@@ -195,7 +196,7 @@ def ast_node_from_formula(model: libsbml.Model, formula: str) -> libsbml.ASTNode
     return ast_node
 
 
-UnitType: TypeAlias = "UnitDefinition | None"
+UnitType: TypeAlias = "UnitDefinition | str | None"
 
 #: an annotation is either a full RDF annotation or a `(qualifier, resource)` tuple
 AnnotationType: TypeAlias = "Annotation | tuple[BQB | BQM, str]"
@@ -765,6 +766,75 @@ class Value(Sbase):
         super()._set_fields(sbase, model)
 
 
+class Unit:
+    """A single unit of a `UnitDefinition`.
+
+    Corresponds to the information in a `libsbml.Unit`, i.e. one factor of a
+    unit definition. An SBML unit is `multiplier * 10^scale * kind^exponent`.
+    """
+
+    def __init__(
+        self,
+        kind: str,
+        exponent: float = 1.0,
+        scale: int = 0,
+        multiplier: float = 1.0,
+    ):
+        """Construct a Unit.
+
+        Args:
+            kind: the SBML unit kind, e.g. `"litre"`
+            exponent: the exponent of the unit
+            scale: the decimal scale of the unit
+            multiplier: the multiplier of the unit
+        """
+        self.kind = kind
+        self.exponent = exponent
+        self.scale = scale
+        self.multiplier = multiplier
+
+    def __repr__(self) -> str:
+        """Get string representation."""
+        return (
+            f"Unit({self.kind}, exponent={self.exponent}, "
+            f"scale={self.scale}, multiplier={self.multiplier})"
+        )
+
+    def __eq__(self, other: object) -> bool:
+        """Compare two units."""
+        if not isinstance(other, Unit):
+            return NotImplemented
+        return (
+            self.kind == other.kind
+            and self.exponent == other.exponent
+            and self.scale == other.scale
+            and self.multiplier == other.multiplier
+        )
+
+    def __hash__(self) -> int:
+        """Get hash of the unit."""
+        return hash((self.kind, self.exponent, self.scale, self.multiplier))
+
+    def create_sbml(self, udef: libsbml.UnitDefinition) -> libsbml.Unit:
+        """Create the libsbml.Unit in the given libsbml.UnitDefinition.
+
+        Args:
+            udef: the libsbml.UnitDefinition the unit is created in
+
+        Returns:
+            the created libsbml.Unit
+        """
+        unit: libsbml.Unit = udef.createUnit()
+        kind: int = libsbml.UnitKind_forName(self.kind)
+        if kind == libsbml.UNIT_KIND_INVALID:
+            logger.error("'%s' is not a valid SBML unit kind.", self.kind)
+        check(unit.setKind(kind), f"Set kind '{self.kind}' on unit")
+        check(unit.setExponent(float(self.exponent)), "Set exponent on unit")
+        check(unit.setScale(int(self.scale)), "Set scale on unit")
+        check(unit.setMultiplier(float(self.multiplier)), "Set multiplier on unit")
+        return unit
+
+
 class UnitDefinition(Sbase):
     """Unit.
 
@@ -830,6 +900,7 @@ class UnitDefinition(Sbase):
         self,
         sid: str,
         definition: str | None = None,
+        units: list[Unit] | None = None,
         name: str | None = None,
         sboTerm: str | None = None,
         metaId: str | None = None,
@@ -839,7 +910,27 @@ class UnitDefinition(Sbase):
         port: Any = None,
         replacedBy: Any | None = None,
     ):
-        """Construct UnitDefinition."""
+        """Construct UnitDefinition.
+
+        A unit definition is either written as a pint expression in
+        `definition`, which is the authoring style, or as the explicit list of
+        `units` it consists of, which is what the parser reads from a file.
+
+        Args:
+            sid: the id of the unit definition
+            definition: the pint expression, e.g. `"mmole/liter"`; defaults to
+                `sid`
+            units: the explicit units of the definition; they take precedence
+                over `definition`
+            name: the name of the unit definition
+            sboTerm: the SBO term of the unit definition
+            metaId: the meta id of the unit definition
+            annotations: the annotations of the unit definition
+            notes: the notes of the unit definition
+            keyValuePairs: the key value pairs of the unit definition
+            port: the port of the unit definition
+            replacedBy: the comp ReplacedBy of the unit definition
+        """
         super().__init__(
             sid=sid,
             name=name,
@@ -852,24 +943,64 @@ class UnitDefinition(Sbase):
             replacedBy=replacedBy,
         )
 
+        self.units = units
         self.definition = definition if definition is not None else sid
-        if not self.name:
+        if not self.name and units is None:
+            # the pint expression is the readable label of the definition; with
+            # explicit units the definition is only the id and would make a
+            # meaningless name
             self.name = self.definition
 
     def create_sbml(self, model: libsbml.Model) -> libsbml.UnitDefinition | None:
-        """Create libsbml.UnitDefinition."""
-        if isinstance(self.definition, int):
-            # libsbml unit type
+        """Create libsbml.UnitDefinition.
+
+        Args:
+            model: the libsbml.Model the unit definition is created in
+
+        Returns:
+            the created libsbml.UnitDefinition, `None` for a base unit kind
+        """
+        if self.units is None and isinstance(self.definition, int):
+            # libsbml unit kind, the unit definition is a base unit
             return None
 
         obj: libsbml.UnitDefinition = model.createUnitDefinition()
 
+        units = self.units if self.units is not None else self._units_from_definition()
+        for unit in units:
+            unit.create_sbml(obj)
+
+        self._set_fields(obj, model)
+        self.create_port(model)
+        return obj
+
+    def _units_from_definition(self) -> list[Unit]:
+        """Compile the pint definition string into explicit units.
+
+        Returns:
+            the units the pint expression of `definition` resolves to
+
+        Raises:
+            UndefinedUnitError: if the expression is not valid pint syntax
+            ValueError: if a unit of the expression has no SBML unit kind
+        """
         # parse the string into pint
-        quantity = Q_(self.definition)
+        try:
+            quantity = Q_(self.definition)
+        except UndefinedUnitError as err:
+            console.print_exception(show_locals=False)
+            logger.error(
+                "Unit definition '%s' is not valid pint syntax, %s.",
+                self.definition,
+                err,
+            )
+            raise err
+
         magnitude, units_tuple = quantity.to_tuple()
         # pint types the units as a fixed length tuple, it is empty for a number
         units: list[Sequence[Any]] = list(units_tuple)
 
+        sbml_units: list[Unit] = []
         if units:
             for k, item in enumerate(units):
                 prefix, unit_name, _suffix = ureg.parse_unit_name(item[0])[0]
@@ -884,13 +1015,14 @@ class UnitDefinition(Sbase):
 
                 multiplier = np.power(multiplier, 1 / abs(exponent))
 
+                # the pint path cannot resolve a scale, it is part of the
+                # multiplier; only a parsed unit definition carries a scale
                 scale = 0
                 # resolve the kind (this is already a unit known by libsbml)
                 kind = self.__class__._pint2sbml.get(unit_name, None)
                 if kind is None:
                     # we have to bring the unit to base units
                     uq = Q_(unit_name).to_base_units()
-                    # console.log("uq:", uq)
                     multiplier = multiplier * uq.magnitude
                     kind = self.__class__._pint2sbml.get(str(uq.units), None)
                     if kind is None:
@@ -901,51 +1033,47 @@ class UnitDefinition(Sbase):
                         logger.error(msg)
                         raise ValueError(msg)
 
-                self._create_unit(obj, kind, exponent, scale, multiplier)
+                sbml_units.append(
+                    Unit(
+                        kind=libsbml.UnitKind_toString(kind),
+                        exponent=exponent,
+                        scale=scale,
+                        multiplier=float(multiplier),
+                    )
+                )
         else:
             # only magnitude (units canceled)
             kind = self.__class__._pint2sbml["dimensionless"]
-            self._create_unit(obj, kind, 1.0, 0, magnitude)
+            sbml_units.append(
+                Unit(
+                    kind=libsbml.UnitKind_toString(kind),
+                    exponent=1.0,
+                    scale=0,
+                    multiplier=float(magnitude),
+                )
+            )
 
-        self._set_fields(obj, model)
-        self.create_port(model)
-        return obj
+        return sbml_units
 
     def _set_fields(self, sbase: libsbml.UnitDefinition, model: libsbml.Model) -> None:
         """Set fields on libsbml.UnitDefinition."""
         super()._set_fields(sbase, model)
 
     @staticmethod
-    def _create_unit(
-        udef: libsbml.UnitDefinition,
-        kind: int,
-        exponent: float,
-        scale: int = 0,
-        multiplier: float = 1.0,
-    ) -> libsbml.Unit:
-        """Create libsbml.Unit."""
-        unit: libsbml.Unit = udef.createUnit()
-        unit.setKind(kind)
-        unit.setExponent(exponent)
-        unit.setScale(scale)
-        unit.setMultiplier(multiplier)
-        return unit
+    def get_uid_for_unit(unit: UnitDefinition | str | None) -> str | None:
+        """Get unit id for the given unit.
 
-    @staticmethod
-    def get_uid_for_unit(unit: UnitDefinition | str) -> str | None:
-        """Get unit id for given definition string."""
-        uid: str | None
+        Args:
+            unit: a UnitDefinition or the id of one
+
+        Returns:
+            the unit id, `None` if no unit was given
+        """
         if unit is None:
-            uid = None
-        elif isinstance(unit, UnitDefinition):
-            uid = unit.sid
-        else:
-            raise ValueError(
-                f"unit must be a 'UnitDefinition', but '{unit}' is "
-                f"'{type(unit)}. Best practise is to use a `class U(Units)` for "
-                f"units definitions."
-            )
-        return uid
+            return None
+        if isinstance(unit, UnitDefinition):
+            return unit.sid
+        return unit
 
 
 class Units:
@@ -991,32 +1119,16 @@ class Units:
 
     @classmethod
     def create_unit_definitions(cls, model: libsbml.Model) -> None:
-        """Create the libsbml.UnitDefinitions in the model."""
-        unit_definition: UnitDefinition
-        uid: str
-        for uid, definition in cls.attributes():
-            if isinstance(definition, str):
-                unit_definition = UnitDefinition(sid=uid, definition=definition)
-            elif isinstance(definition, UnitDefinition):
-                unit_definition = definition
-            else:
-                raise ValueError(
-                    f"Units attributes must be a unit string or UnitDefinition, "
-                    f"but '{type(definition)} for '{definition}'."
-                )
-            # create and register libsbml.UnitDefinition in libsbml.Model
-            try:
-                _: libsbml.UnitDefinition | None = unit_definition.create_sbml(
-                    model=model
-                )
-            except UndefinedUnitError as err:
-                console.print_exception(show_locals=False)
-                logger.error(
-                    "Unit definition '%s' is not valid pint syntax, %s.",
-                    unit_definition.definition,
-                    err,
-                )
-                raise err
+        """Create the libsbml.UnitDefinitions in the model.
+
+        Deprecated, `Model` normalizes its units to a list of
+        `UnitDefinition` and creates them directly.
+
+        Args:
+            model: the libsbml.Model the unit definitions are created in
+        """
+        for udef in Model._normalize_units(cls):
+            udef.create_sbml(model=model)
 
 
 class ValueWithUnit(Value):
@@ -1059,9 +1171,9 @@ class ValueWithUnit(Value):
             replacedBy=replacedBy,
         )
         self.unit = unit
-        if self.unit and not isinstance(self.unit, UnitDefinition):
+        if self.unit is not None and not isinstance(self.unit, (UnitDefinition, str)):
             logger.warning(
-                "'unit' must be of type UnitDefinition, but '%s' in '%s' is '%s'.",
+                "'unit' must be a UnitDefinition or a unit id, but '%s' in '%s' is '%s'.",
                 self.unit,
                 self,
                 type(self.unit),
@@ -3182,7 +3294,7 @@ class ModelDict(TypedDict, total=False):
     model_units: ModelUnits | None
     objects: list[Sbase] | None
 
-    units: type[Units] | None
+    units: type[Units] | list[UnitDefinition] | None
     functions: list[Function] | None
     compartments: list[Compartment] | None
     species: list[Species] | None
@@ -3229,7 +3341,7 @@ class Model(Sbase, FrozenClass, BaseModel):
     packages: list[Package]
     creators: list[Creator]
     model_units: ModelUnits | None
-    units: type[Units] | None
+    units: list[UnitDefinition]
     functions: list[Function]
     compartments: list[Compartment]
     species: list[Species]
@@ -3322,7 +3434,7 @@ class Model(Sbase, FrozenClass, BaseModel):
         packages: list[Package] | None = None,
         creators: list[Creator] | None = None,
         model_units: ModelUnits | None = None,
-        units: type[Units] | None = None,
+        units: type[Units] | list[UnitDefinition] | None = None,
         objects: list[Sbase] | None = None,
         external_model_definitions: list[ExternalModelDefinition] | None = None,
         model_definitions: list[ModelDefinition] | None = None,
@@ -3361,7 +3473,7 @@ class Model(Sbase, FrozenClass, BaseModel):
 
         self.creators = creators if creators else []
         self.model_units = model_units
-        self.units = units if units else Units
+        self.units = Model._normalize_units(units)
         self.units_dict = None
         self.external_model_definitions = (
             external_model_definitions if external_model_definitions else []
@@ -3440,6 +3552,44 @@ class Model(Sbase, FrozenClass, BaseModel):
 
         self._freeze()  # no new attributes after this point
 
+    @staticmethod
+    def _normalize_units(
+        units: type[Units] | list[UnitDefinition] | None,
+    ) -> list[UnitDefinition]:
+        """Normalize the units of a model to a list of UnitDefinitions.
+
+        A model definition declares its units as a `class U(Units)`, which is
+        the documented authoring style; the parser passes a list. Both are
+        stored as a list.
+
+        Args:
+            units: a `Units` subclass, a list of UnitDefinitions, or None
+
+        Returns:
+            the unit definitions of the model
+
+        Raises:
+            ValueError: if an attribute of the `Units` class is neither a unit
+                string nor a UnitDefinition
+        """
+        if units is None:
+            return []
+        if isinstance(units, list):
+            return units
+
+        udefs: list[UnitDefinition] = []
+        for uid, definition in units.attributes():
+            if isinstance(definition, str):
+                udefs.append(UnitDefinition(sid=uid, definition=definition))
+            elif isinstance(definition, UnitDefinition):
+                udefs.append(definition)
+            else:
+                raise ValueError(
+                    f"Units attributes must be a unit string or UnitDefinition, "
+                    f"but '{type(definition)}' for '{definition}'."
+                )
+        return udefs
+
     def create_sbml(self, doc: libsbml.SBMLDocument) -> libsbml.Model:
         """Create Model.
 
@@ -3462,8 +3612,8 @@ class Model(Sbase, FrozenClass, BaseModel):
             set_model_history(model, self.creators)
 
         # units
-        if self.units:
-            self.units.create_unit_definitions(model=model)
+        for udef in self.units:
+            udef.create_sbml(model=model)
 
         # model units
         if self.model_units:
@@ -3561,9 +3711,11 @@ class Model(Sbase, FrozenClass, BaseModel):
         if not models:
             raise ValueError("No models are provided.")
         model = Model("template")
-        units_base_classes: list[type[Units]] = (
-            [model.units] if model.units else [Units]
-        )
+        # units are collected over all models and deduplicated by their id; the
+        # base units are part of every model
+        udefs: dict[str, UnitDefinition] = {
+            udef.sid: udef for udef in Model._normalize_units(Units) if udef.sid
+        }
         creators: dict[Creator, Any] = {}  # using a dict to keep order of insertion
         for m2 in models:
             for key, value in m2.__dict__.items():
@@ -3581,10 +3733,11 @@ class Model(Sbase, FrozenClass, BaseModel):
                         if value:
                             setattr(model, key, deepcopy(value))
 
-                # units are collected and class created dynamically at the end
+                # units are collected and merged at the end
                 elif key == "units":
-                    if m2.units:
-                        units_base_classes.append(m2.units)
+                    for udef in m2.units:
+                        if udef.sid:
+                            udefs[udef.sid] = udef
                 elif key == "creators":
                     if m2.creators:
                         for c in m2.creators:
@@ -3593,15 +3746,7 @@ class Model(Sbase, FrozenClass, BaseModel):
                 else:
                     setattr(model, key, value)
 
-        # Handle merging of units
-        attr_dict = {}
-        for base_class in units_base_classes:
-            for a in base_class.attributes():
-                attr_dict[a[0]] = a[1]
-
-        if units_base_classes:
-            model.units = type("U", (Units,), attr_dict)
-
+        model.units = list(udefs.values())
         model.creators = list(creators)
 
         return model
