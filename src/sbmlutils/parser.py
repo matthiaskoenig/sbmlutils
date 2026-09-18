@@ -225,11 +225,13 @@ def sbml_to_model(
 
         Returns:
             the kwargs accepted by the corresponding `Sbase` subclass, with
-            `sid` removed unless the source really set an id
+            `sid` set from the real id attribute, `None` if the source did
+            not set one. `sid` is a required key even when its value is
+            `None`: `AlgebraicRule.__init__` takes it as a required
+            parameter, so it must not be popped from the kwargs.
         """
         kwargs = parse_sbase_kwargs(sbase)
-        if not sbase.isSetIdAttribute():
-            kwargs.pop("sid", None)
+        kwargs["sid"] = sbase.getIdAttribute() if sbase.isSetIdAttribute() else None
         return kwargs
 
     if not model:

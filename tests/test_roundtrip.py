@@ -345,8 +345,14 @@ def test_roundtrip_core_model_declares_no_fbc(tmp_path: Path) -> None:
 
 
 def test_roundtrip_invents_no_nan(tmp_path: Path) -> None:
-    """Test that an unset size or value is not written as NaN."""
-    model = sbml_to_model(testsuite_case("00001"))
+    """Test that an unset size or value is not written as NaN.
+
+    Case "00001" always had an explicit compartment size, so it never
+    exercised this path; the test passed before the fix just as well as
+    after it. "00048" declares a zero-dimensional compartment with no
+    `size`, which the writer used to fill in as `size="NaN"`.
+    """
+    model = sbml_to_model(testsuite_case("00048"))
     roundtrip_path = tmp_path / "roundtrip.xml"
     create_model(
         model=model,
@@ -374,3 +380,66 @@ CASES_CONVERSION_FACTOR: list[str] = ["00976", "00977"]
 def test_roundtrip_conversion_factor(case: str, tmp_path: Path) -> None:
     """Test that a species conversionFactor survives a round trip."""
     assert_roundtrip_simulates_equal(testsuite_case(case), tmp_path)
+
+
+def test_parse_algebraic_rule_without_id() -> None:
+    """Test that parsing an id-less algebraic rule does not raise.
+
+    `AlgebraicRule.__init__` takes `sid` as a required positional parameter;
+    `parser.py`'s `parse_variable_kwargs` used to pop `sid` from the kwargs
+    whenever the source rule had no id of its own, which is the case for
+    every one of the 109 l3v2 test-suite cases with an `<algebraicRule>`,
+    raising `TypeError: AlgebraicRule.__init__() missing 1 required
+    positional argument: 'sid'` on every one of them. roadrunner cannot
+    simulate algebraic rules, so this only checks that parsing succeeds and
+    that no spurious id was invented.
+    """
+    model = sbml_to_model(testsuite_case("00039"))
+
+    assert len(model.algebraic_rules) == 1
+    assert model.algebraic_rules[0].sid is None
+
+
+def test_roundtrip_rule_keeps_its_own_id(tmp_path: Path) -> None:
+    """Test that a rule with a real id keeps it and does not collide.
+
+    libsbml aliases `Rule.getId`/`isSetId` to the `variable` attribute, so a
+    naive read of `getId()` reports the variable name whether or not the
+    source actually declared an `id`. `parse_variable_kwargs` used to trust
+    that alias, which discarded a rule's real, distinct id and replaced it
+    with the variable name, a `SId` already used by the variable's own
+    element, which libsbml then rejects as a duplicate id (10301) on write.
+    """
+    import libsbml
+
+    doc = libsbml.SBMLDocument(3, 2)
+    sbml_model = doc.createModel("m")
+    c: libsbml.Compartment = sbml_model.createCompartment()
+    c.setId("c")
+    c.setConstant(False)
+    c.setSpatialDimensions(3)
+    c.setSize(1.0)
+    rule: libsbml.AssignmentRule = sbml_model.createAssignmentRule()
+    rule.setIdAttribute("realid")
+    rule.setVariable("c")
+    rule.setMath(libsbml.parseL3Formula("2.0"))
+
+    sbml_path = tmp_path / "source.xml"
+    libsbml.writeSBMLToFile(doc, str(sbml_path))
+
+    model = sbml_to_model(sbml_path)
+    assert model.rules[0].sid == "realid"
+
+    roundtrip_path = tmp_path / "roundtrip.xml"
+    create_model(
+        model=model,
+        filepath=roundtrip_path,
+        sbml_level=3,
+        sbml_version=2,
+        validation_options=ValidationOptions(units_consistency=False),
+    )
+
+    rt_model = libsbml.readSBMLFromFile(str(roundtrip_path)).getModel()
+    rt_rule: libsbml.Rule = rt_model.getRule(0)
+    assert rt_rule.getIdAttribute() == "realid"
+    assert rt_rule.getVariable() == "c"

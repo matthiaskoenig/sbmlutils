@@ -22,7 +22,6 @@ import datetime
 import inspect
 import json
 import logging
-import math
 from collections import namedtuple
 from collections.abc import Iterable, Iterator, Sequence
 from contextlib import contextmanager
@@ -1309,9 +1308,6 @@ class Parameter(ValueWithUnit):
                     InitialAssignment(self.sid, self.value).create_sbml(model)
                 else:
                     AssignmentRule(self.sid, self.value).create_sbml(model)
-        elif isinstance(self.value, float) and math.isnan(self.value):
-            # a NaN sentinel is treated the same as an unset value
-            pass
         else:
             # numerical value
             obj.setValue(float(self.value))
@@ -1387,9 +1383,6 @@ class Compartment(ValueWithUnit):
                     InitialAssignment(self.sid, self.value).create_sbml(model)
                 else:
                     AssignmentRule(self.sid, self.value).create_sbml(model)
-        elif isinstance(self.value, float) and math.isnan(self.value):
-            # a NaN sentinel is treated the same as an unset value
-            pass
         else:
             obj.setSize(float(self.value))
 
@@ -2133,7 +2126,7 @@ class Constraint(Sbase):
     def __init__(
         self,
         sid: str,
-        math: str,
+        formula: str,
         message: str | None = None,
         name: str | None = None,
         sboTerm: str | None = None,
@@ -2158,7 +2151,7 @@ class Constraint(Sbase):
             uncertainties=uncertainties,
             replacedBy=replacedBy,
         )
-        self.math = math
+        self.formula = formula
         self.message = message
 
     def create_sbml(self, model: libsbml.Model) -> libsbml.Constraint:
@@ -2171,8 +2164,8 @@ class Constraint(Sbase):
         """Set fields on libsbml.Constraint."""
         super()._set_fields(sbase, model)
 
-        if self.math is not None:
-            ast_math = libsbml.parseL3FormulaWithModel(self.math, model)
+        if self.formula is not None:
+            ast_math = libsbml.parseL3FormulaWithModel(self.formula, model)
             sbase.setMath(ast_math)
         if self.message is not None:
             check(
@@ -3632,7 +3625,7 @@ class Model(Sbase, FrozenClass, BaseModel):
 
         # history
         if self.creators:
-            set_model_history(model, self.creators, set_timestamps=False)
+            set_model_history(model, self.creators)
 
         # conversion factor
         if self.conversionFactor is not None:
@@ -3728,17 +3721,57 @@ class Model(Sbase, FrozenClass, BaseModel):
                     f"but package '{p}' found."
                 )
 
-        # `Model` authors commonly request a comp port with the `port=True`
-        # shorthand on an individual element (see `Sbase.create_port`) rather
-        # than by populating `ports`/`submodels`/etc., so there is no reliable
-        # way to detect comp usage from the constructor arguments alone;
-        # comp is therefore always declared for a hand-authored model. A
-        # parsed model does not go through this default: `sbmlutils.parser`
-        # overwrites `Model.packages` outright with the packages the source
-        # document actually declared, see `_packages_of_document`.
-        packages_set.add(Package.COMP_V1)
-
         return list(packages_set)
+
+    def _has_comp_content(self) -> bool:
+        """Determine whether writing this model requires the comp package.
+
+        The `submodels`/`ports`/`replaced_elements`/`deletions`/
+        `model_definitions`/`external_model_definitions` lists are the
+        explicit comp constructs, but comp is also engaged by the
+        `port=True`/`Port(...)` and `replacedBy=...` shorthand any
+        `Sbase`-derived element can carry (`Sbase.create_port`,
+        `Sbase.create_replaced_by`), which does not populate `ports` at all.
+        This is checked here, once every element list of the model is
+        populated, rather than defaulted in `check_packages`, which runs
+        from `__init__` before any of them are.
+
+        Returns:
+            True if the model uses a comp construct anywhere
+        """
+        if (
+            self.submodels
+            or self.ports
+            or self.replaced_elements
+            or self.deletions
+            or self.model_definitions
+            or self.external_model_definitions
+        ):
+            return True
+
+        element_lists: list[list[Any]] = [
+            self.units,
+            self.functions,
+            self.compartments,
+            self.species,
+            self.parameters,
+            self.reactions,
+            self.assignments,
+            self.rules,
+            self.rate_rules,
+            self.algebraic_rules,
+            self.events,
+            self.constraints,
+            self.gene_products,
+            self.user_defined_constraints,
+            self.objectives,
+        ]
+        return any(
+            getattr(obj, "port", None) is not None
+            or getattr(obj, "replacedBy", None) is not None
+            for elements in element_lists
+            for obj in elements
+        )
 
     @staticmethod
     def merge_models(models: Iterable[Model]) -> Model:
@@ -3859,11 +3892,20 @@ class Document(Sbase):
         """Create SBML model."""
         logger.info("Create SBML for model '%s'", self.model.sid)
 
+        # the packages actually needed to write this model: comp is added
+        # when the model has comp content the definition did not explicitly
+        # request it for (see `Model._has_comp_content`). This must be
+        # decided before the namespace is built, since libsbml cannot enable
+        # a package on the document after it exists.
+        packages = list(self.model.packages)
+        if self.model._has_comp_content() and Package.COMP_V1 not in packages:
+            packages.append(Package.COMP_V1)
+
         # create core model
         sbmlns = libsbml.SBMLNamespaces(self.sbml_level, self.sbml_version)
 
         # add all the package
-        for package in self.model.packages:
+        for package in packages:
             if package == Package.COMP_V1:
                 sbmlns.addPackageNamespace("comp", 1)
             if package == Package.DISTRIB_V1:
@@ -3879,15 +3921,13 @@ class Document(Sbase):
         # create model
         sbml_model: libsbml.Model = self.model.create_sbml(self.doc)
 
-        if Package.COMP_V1 in self.model.packages:
+        if Package.COMP_V1 in packages:
             self.doc.setPackageRequired("comp", True)
-        if (Package.FBC_V2 in self.model.packages) or (
-            Package.FBC_V3 in self.model.packages
-        ):
+        if (Package.FBC_V2 in packages) or (Package.FBC_V3 in packages):
             self.doc.setPackageRequired("fbc", False)
             fbc_plugin = sbml_model.getPlugin("fbc")
             fbc_plugin.setStrict(False)
-        if Package.DISTRIB_V1 in self.model.packages:
+        if Package.DISTRIB_V1 in packages:
             self.doc.setPackageRequired("distrib", True)
 
         return self.doc
