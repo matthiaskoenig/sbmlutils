@@ -20,6 +20,7 @@ from sbmlutils.factory import (
     InitialAssignment,
     KeyValuePair,
     Model,
+    ModelUnits,
     NaN,
     Package,
     Parameter,
@@ -27,6 +28,8 @@ from sbmlutils.factory import (
     Reaction,
     ReactionEquation,
     Species,
+    Unit,
+    UnitDefinition,
     create_model,
 )
 from sbmlutils.io.sbml import read_sbml
@@ -162,6 +165,21 @@ def sbml_to_model(
 
         return kwargs
 
+    def parse_udef_kwargs(sbase: libsbml.SBase) -> dict[str, Any]:
+        """Parse SBase information of a UnitDefinition.
+
+        A UnitDefinition has no uncertainties, so that key is removed.
+
+        Args:
+            sbase: the libsbml.UnitDefinition to parse
+
+        Returns:
+            the kwargs accepted by `UnitDefinition.__init__`
+        """
+        kwargs = parse_sbase_kwargs(sbase)
+        kwargs.pop("uncertainties", None)
+        return kwargs
+
     if not model:
         logger.error("No model in SBMLDocument.")
 
@@ -172,6 +190,32 @@ def sbml_to_model(
     # FIXME: parse packages
     m.packages = [Package.FBC_V3]
 
+    # unit definitions
+    udef: libsbml.UnitDefinition
+    for udef in model.getListOfUnitDefinitions():
+        units: list[Unit] = []
+        u: libsbml.Unit
+        for u in udef.getListOfUnits():
+            units.append(
+                Unit(
+                    kind=libsbml.UnitKind_toString(u.getKind()),
+                    exponent=u.getExponent() if u.isSetExponent() else 1.0,
+                    scale=u.getScale() if u.isSetScale() else 0,
+                    multiplier=u.getMultiplier() if u.isSetMultiplier() else 1.0,
+                )
+            )
+        m.units.append(UnitDefinition(units=units, **parse_udef_kwargs(udef)))
+
+    # model units
+    m.model_units = ModelUnits(
+        time=model.getTimeUnits() if model.isSetTimeUnits() else None,
+        extent=model.getExtentUnits() if model.isSetExtentUnits() else None,
+        substance=model.getSubstanceUnits() if model.isSetSubstanceUnits() else None,
+        length=model.getLengthUnits() if model.isSetLengthUnits() else None,
+        area=model.getAreaUnits() if model.isSetAreaUnits() else None,
+        volume=model.getVolumeUnits() if model.isSetVolumeUnits() else None,
+    )
+
     p: libsbml.Parameter
     for p in model.getListOfParameters():
         d = parse_sbase_kwargs(p)
@@ -179,7 +223,7 @@ def sbml_to_model(
         m.parameters.append(
             Parameter(
                 value=p.getValue() if p.isSetValue else None,
-                # unit=p.getUnits(),
+                unit=p.getUnits() if p.isSetUnits() else None,
                 constant=p.getConstant() if p.isSetConstant() else True,
                 **d,
             )
@@ -194,7 +238,7 @@ def sbml_to_model(
                 spatialDimensions=(
                     c.getSpatialDimensions() if c.isSetSpatialDimensions() else 3
                 ),
-                # unit=p.getUnits(),
+                unit=c.getUnits() if c.isSetUnits() else None,
                 **parse_sbase_kwargs(c),
             )
         )
@@ -219,7 +263,9 @@ def sbml_to_model(
                 boundaryCondition=(
                     s.getBoundaryCondition() if s.isSetBoundaryCondition() else False
                 ),
-                # unit=p.getUnits(),
+                substanceUnit=(
+                    s.getSubstanceUnits() if s.isSetSubstanceUnits() else None
+                ),
                 **parse_sbase_kwargs(s),
             )
         )

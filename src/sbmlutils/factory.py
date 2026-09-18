@@ -305,20 +305,22 @@ class ModelUnits:
             model_units = ModelUnits(**model_units)
 
         if not model_units:
-            logger.warning(
-                "Model units should be set for a model. These can be stored "
-                "using the 'model_units' on a model definition."
-            )
+            if Sbase._authoring_hints:
+                logger.warning(
+                    "Model units should be set for a model. These can be stored "
+                    "using the 'model_units' on a model definition."
+                )
         else:
             for key in ("time", "extent", "substance", "length", "area", "volume"):
                 if getattr(model_units, key) is None:
-                    msg = f"'{key}' should be set in 'model_units'."
-                    if key in ["time", "extent", "substance", "volume"]:
-                        # strongly recommended fields
-                        logger.warning(msg)
-                    else:
-                        # optional fields
-                        logger.info(msg)
+                    if Sbase._authoring_hints:
+                        msg = f"'{key}' should be set in 'model_units'."
+                        if key in ["time", "extent", "substance", "volume"]:
+                            # strongly recommended fields
+                            logger.warning(msg)
+                        else:
+                            # optional fields
+                            logger.info(msg)
 
                     continue
 

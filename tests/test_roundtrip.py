@@ -270,3 +270,41 @@ def test_roundtrip_invents_no_cvterms(tmp_path: Path) -> None:
     assert cvterm_resource_count(roundtrip_path) == cvterm_resource_count(
         Path(REPRESSILATOR_SBML)
     )
+
+
+#: cases whose round trip depends on unit definitions being preserved
+CASES_UNITS: list[str] = ["00001", "00002", "00003", "00004"]
+
+
+@requires_roadrunner
+@pytest.mark.parametrize("case", CASES_UNITS)
+def test_roundtrip_units(case: str, tmp_path: Path) -> None:
+    """Test that unit definitions and unit references survive a round trip."""
+    assert_roundtrip_simulates_equal(testsuite_case(case), tmp_path)
+
+
+def test_roundtrip_preserves_unit_definitions(tmp_path: Path) -> None:
+    """Test that the listOfUnitDefinitions and the model units are preserved."""
+    import libsbml
+
+    sbml_path = testsuite_case("00038")
+    model = sbml_to_model(sbml_path)
+    roundtrip_path = tmp_path / "roundtrip.xml"
+    create_model(
+        model=model,
+        filepath=roundtrip_path,
+        sbml_level=3,
+        sbml_version=2,
+        validation_options=ValidationOptions(units_consistency=False),
+    )
+
+    m_in = libsbml.readSBMLFromFile(str(sbml_path)).getModel()
+    m_out = libsbml.readSBMLFromFile(str(roundtrip_path)).getModel()
+
+    assert {
+        m_out.getUnitDefinition(k).getId() for k in range(m_out.getNumUnitDefinitions())
+    } == {
+        m_in.getUnitDefinition(k).getId() for k in range(m_in.getNumUnitDefinitions())
+    }
+    assert m_out.getTimeUnits() == m_in.getTimeUnits()
+    assert m_out.getCompartment(0).getUnits() == m_in.getCompartment(0).getUnits()
