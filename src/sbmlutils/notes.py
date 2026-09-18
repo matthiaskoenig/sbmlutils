@@ -73,7 +73,7 @@ class Notes:
             raise ValueError(f"Invalid Notes format: '{format}'")
 
         # insert body text with namespace
-        if html.strip().startswith("<body"):
+        if html.strip().startswith(("<body", "<html")):
             notes_str = html.strip()
         else:
             notes_str = f'<body xmlns="http://www.w3.org/1999/xhtml">\n{html}\n</body>'

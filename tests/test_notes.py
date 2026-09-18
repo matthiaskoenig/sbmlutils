@@ -164,6 +164,36 @@ def test_xhtml_body_content_self_closing_body_logs_warning(
     assert any("</body>" in record.getMessage() for record in caplog.records)
 
 
+#: a complete XHTML document as notes, the form CellDesigner writes
+HTML_NOTES: str = (
+    '<html xmlns="http://www.w3.org/1999/xhtml">'
+    "<head><title>t</title></head>"
+    "<body><p>2*3*4</p></body>"
+    "</html>"
+)
+
+
+def test_notes_html_root_is_kept() -> None:
+    """Test that notes rooted at `<html>` are not wrapped into a body.
+
+    SBML allows a complete XHTML document as notes. Wrapping it into a body
+    nests an `<html>` inside a `<body>`, which is not valid XHTML.
+    """
+    notes = str(Notes(HTML_NOTES, format=NotesFormat.HTML))
+    assert notes.startswith("<html")
+    assert notes.count("<body") == 1
+    assert "<title>t</title>" in notes
+
+
+def test_xhtml_body_content_of_html_root() -> None:
+    """Test that the content of the body of an `<html>` document is found.
+
+    The content used to be sliced from the first `>`, which is the end of
+    the `<html>` tag, so the head and the opening body tag were part of it.
+    """
+    assert _xhtml_body_content(HTML_NOTES) == "<p>2*3*4</p>"
+
+
 def _make_model() -> Model:
     """Create a minimal model for `Document` notes tests.
 
@@ -224,3 +254,24 @@ def test_document_default_notes_are_rendered_html() -> None:
 
     sbml_doc = doc.create_sbml()
     assert sbml_doc.getNumErrors() == 0
+
+
+def test_document_notes_merges_html_root() -> None:
+    """Test that Document merges notes rooted at `<html>` into their body.
+
+    The attribution goes at the end of the body of the notes, which keep
+    their root and their head, rather than a second body nested in them.
+    """
+    doc = Document(
+        model=_make_model(), notes=Notes(HTML_NOTES, format=NotesFormat.HTML)
+    )
+    assert doc.notes is not None
+    assert doc.notes.startswith("<html")
+    assert doc.notes.count("<body") == 1
+    assert "<title>t</title>" in doc.notes
+    assert "2*3*4" in doc.notes
+    assert doc.notes.index("Created with") < doc.notes.index("</body>")
+
+    sbml_doc = doc.create_sbml()
+    assert sbml_doc.getNumErrors() == 0
+    assert sbml_doc.getNotesString().count("<body") == 1

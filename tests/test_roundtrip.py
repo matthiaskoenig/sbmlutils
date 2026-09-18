@@ -29,6 +29,7 @@ end.
 
 import json
 import logging
+import re
 import signal
 import subprocess
 import sys
@@ -618,29 +619,137 @@ def test_roundtrip_emits_no_authoring_warnings(
     assert authoring == [], f"round trip emitted authoring warnings: {authoring}"
 
 
+def _notes_of_elements(sbml_path: Path) -> dict[str, str]:
+    """Collect the notes of the model and of its elements.
+
+    Args:
+        sbml_path: path of the SBML file
+
+    Returns:
+        the notes string of every element which has notes, keyed by the
+        element name and its id
+    """
+    import libsbml
+
+    doc: libsbml.SBMLDocument = libsbml.readSBMLFromFile(str(sbml_path))
+    model: libsbml.Model = doc.getModel()
+    elements: list[libsbml.SBase] = [
+        model,
+        *model.getListOfUnitDefinitions(),
+        *model.getListOfCompartments(),
+        *model.getListOfSpecies(),
+        *model.getListOfParameters(),
+        *model.getListOfRules(),
+        *model.getListOfReactions(),
+        *model.getListOfEvents(),
+    ]
+    return {
+        f"{element.getElementName()} {element.getId()}": element.getNotesString()
+        for element in elements
+        if element.isSetNotes()
+    }
+
+
+def _notes_text(notes: str) -> str:
+    """Get the text of notes, with its whitespace collapsed.
+
+    Args:
+        notes: the notes string, markup included
+
+    Returns:
+        the text of the notes without the markup
+    """
+    return " ".join(re.sub(r"<[^>]*>", " ", notes).split())
+
+
 def test_roundtrip_preserves_notes(tmp_path: Path) -> None:
-    """Test that notes survive a round trip unchanged.
+    """Test that the notes of every element survive a round trip.
 
     Notes used to be stored as markdown and rendered on write, so notes read
-    from a file came back nested and their text was mutated.
+    from a file came back nested and their text was mutated, `2*3*4` became
+    `2<em>3</em>4`. The notes of the repressilator are sequences of `<p>`
+    elements, which are wrapped into a `<body>`, an equivalent form, so the
+    text is compared rather than the markup.
     """
-    from sbmlutils.io.sbml import read_sbml
     from sbmlutils.resources import REPRESSILATOR_SBML
 
-    model = sbml_to_model(REPRESSILATOR_SBML)
-    roundtrip_path = tmp_path / "roundtrip.xml"
-    create_model(
-        model=model,
-        filepath=roundtrip_path,
-        sbml_level=3,
-        sbml_version=2,
-        validation_options=ValidationOptions(units_consistency=False),
-    )
+    source = _notes_of_elements(Path(REPRESSILATOR_SBML))
+    roundtrip = _notes_of_elements(roundtrip_sbml(Path(REPRESSILATOR_SBML), tmp_path))
 
-    doc_rt = read_sbml(roundtrip_path)
-    notes_rt = doc_rt.getModel().getNotesString()
-    assert notes_rt, "the model lost its notes"
-    assert "<notes>" not in notes_rt[7:], "notes were nested on write"
+    assert len(source) > 10, "the repressilator has notes on its elements"
+    assert roundtrip.keys() == source.keys(), "elements lost or gained notes"
+    for key, notes in roundtrip.items():
+        assert notes.count("<notes") == 1, f"notes of '{key}' were nested"
+        assert notes.count("<body") <= 1, f"notes of '{key}' were nested"
+        assert _notes_text(notes) == _notes_text(source[key]), key
+
+
+#: a complete XHTML document as notes, the form CellDesigner writes on every
+#: element and many older BioModels files have
+HTML_NOTES: str = (
+    '<html xmlns="http://www.w3.org/1999/xhtml">'
+    "<head><title>CellDesigner notes</title></head>"
+    "<body><p>2*3*4 and <b>bold</b></p></body>"
+    "</html>"
+)
+
+
+def test_roundtrip_preserves_html_notes(tmp_path: Path) -> None:
+    """Test that notes rooted at `<html>` are a fixed point of the round trip.
+
+    Notes may be a complete XHTML document, a body, or a sequence of block
+    elements. Only a body was kept as it was, so an `<html>` document came
+    back inside a `<body>`, which is not valid XHTML and which libsbml's
+    consistency check does not report.
+    """
+    import libsbml
+
+    doc = libsbml.SBMLDocument(3, 2)
+    sbml_model: libsbml.Model = doc.createModel("m")
+    sbml_model.setNotes(HTML_NOTES)
+    c: libsbml.Compartment = sbml_model.createCompartment()
+    c.setId("c")
+    c.setConstant(True)
+    c.setSize(1.0)
+    c.setNotes(HTML_NOTES)
+    species: libsbml.Species = sbml_model.createSpecies()
+    species.setId("S1")
+    species.setCompartment("c")
+    species.setInitialAmount(1.0)
+    species.setConstant(False)
+    species.setBoundaryCondition(False)
+    species.setHasOnlySubstanceUnits(False)
+    species.setNotes(HTML_NOTES)
+    p: libsbml.Parameter = sbml_model.createParameter()
+    p.setId("k")
+    p.setValue(1.0)
+    p.setConstant(True)
+    p.setNotes(HTML_NOTES)
+    reaction: libsbml.Reaction = sbml_model.createReaction()
+    reaction.setId("r1")
+    reaction.setReversible(False)
+    reactant: libsbml.SpeciesReference = reaction.createReactant()
+    reactant.setSpecies("S1")
+    reactant.setStoichiometry(1.0)
+    reactant.setConstant(True)
+    reaction.createKineticLaw().setMath(libsbml.parseL3Formula("k * S1"))
+    reaction.setNotes(HTML_NOTES)
+
+    source_path = tmp_path / "source.xml"
+    libsbml.writeSBMLToFile(doc, str(source_path))
+    first_dir = tmp_path / "first"
+    first_dir.mkdir()
+    second_dir = tmp_path / "second"
+    second_dir.mkdir()
+    first = roundtrip_sbml(source_path, first_dir)
+    second = roundtrip_sbml(first, second_dir)
+
+    source = _notes_of_elements(source_path)
+    assert len(source) == 5
+    for key, notes in source.items():
+        assert notes.count("<html") == 1, key
+    assert _notes_of_elements(first) == source
+    assert _notes_of_elements(second) == source
 
 
 def test_roundtrip_invents_no_cvterms(tmp_path: Path) -> None:

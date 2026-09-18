@@ -43,7 +43,7 @@ notes = Notes("# Heading\n\nSome *text*.")
 sbase.setNotes(notes.xml)
 ```
 
-`NotesFormat.HTML` passes the string through unchanged when it is already XHTML:
+`NotesFormat.HTML` takes the string as XHTML and does not render it. SBML allows three forms of notes: a `<body>` and a complete XHTML document rooted at `<html>`, the form CellDesigner writes, are kept as they are, and a sequence of elements such as `<p>` is wrapped into a `<body>`:
 
 ```python
 Notes("<p>already xhtml</p>", format=NotesFormat.HTML)

@@ -222,7 +222,7 @@ def set_notes(
 
 
 def _xhtml_body_content(xhtml: str) -> str:
-    """Extract the inner content of an XHTML notes body.
+    """Extract the inner content of the body of XHTML notes.
 
     Used to merge two already normalized notes fragments, e.g. a user
     supplied notes body and the `sbmlutils` attribution notes of
@@ -230,12 +230,43 @@ def _xhtml_body_content(xhtml: str) -> str:
     another.
 
     Args:
-        xhtml: an XHTML body string, e.g. `<body xmlns="...">...</body>`
+        xhtml: XHTML notes, either a body, e.g. `<body xmlns="...">...</body>`,
+            or a complete XHTML document rooted at `<html>`, whose `<body>`
+            holds the content
 
     Returns:
         the content between the opening and the closing `body` tag, or an
         empty string if `xhtml` has no closing `</body>` tag, e.g. a
         self-closing `<body/>`
+    """
+    end = xhtml.rfind("</body>")
+    body = xhtml.find("<body")
+    if end == -1 or body == -1:
+        logger.warning(
+            "Notes have no '<body>' with a closing '</body>' tag, treating "
+            "their content as empty: '%s'",
+            xhtml,
+        )
+        return ""
+    start = xhtml.find(">", body) + 1
+    return xhtml[start:end]
+
+
+def _append_to_xhtml_body(xhtml: str, content: str) -> str:
+    """Append content to the end of the body of XHTML notes.
+
+    The notes keep their root: a body stays a body, and a complete XHTML
+    document rooted at `<html>` keeps its `<head>`.
+
+    Args:
+        xhtml: XHTML notes, either a body or a complete XHTML document rooted
+            at `<html>`
+        content: the XHTML content to append
+
+    Returns:
+        the notes with the content at the end of their body; notes without a
+        closing `</body>` tag, e.g. a self-closing `<body/>`, have no content,
+        they are replaced by a body which holds only the appended content
     """
     end = xhtml.rfind("</body>")
     if end == -1:
@@ -244,9 +275,8 @@ def _xhtml_body_content(xhtml: str) -> str:
             "as empty: '%s'",
             xhtml,
         )
-        return ""
-    start = xhtml.find(">") + 1
-    return xhtml[start:end]
+        return f'<body xmlns="http://www.w3.org/1999/xhtml">\n{content}\n</body>'
+    return f"{xhtml[:end]}\n{content}\n{xhtml[end:]}"
 
 
 class ModelUnits:
@@ -4254,13 +4284,11 @@ class Document(Sbase):
         if self.notes is None:
             self.notes = sbmlutils_notes
         else:
-            # both fragments are already xhtml bodies, so appending them
-            # as-is would nest a body inside a body; merge their content
-            self.notes = (
-                '<body xmlns="http://www.w3.org/1999/xhtml">\n'
-                f"{_xhtml_body_content(self.notes)}\n"
-                f"{_xhtml_body_content(sbmlutils_notes)}\n"
-                "</body>"
+            # both are already xhtml, appending the attribution as it is
+            # would nest a body inside the notes; its content goes into their
+            # body instead, which keeps an `<html>` root with its head
+            self.notes = _append_to_xhtml_body(
+                self.notes, _xhtml_body_content(sbmlutils_notes)
             )
 
     def create_sbml(self) -> libsbml.SBMLDocument:
