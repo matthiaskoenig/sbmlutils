@@ -212,3 +212,61 @@ def test_roundtrip_preserves_notes(tmp_path: Path) -> None:
     notes_rt = doc_rt.getModel().getNotesString()
     assert notes_rt, "the model lost its notes"
     assert "<notes>" not in notes_rt[7:], "notes were nested on write"
+
+
+def test_roundtrip_invents_no_cvterms(tmp_path: Path) -> None:
+    """Test that a round trip adds no annotation which was not in the source.
+
+    `Sbase._set_fields` used to inject an `Annotation(BQB.IS, f"sbo/{sboTerm}")`
+    whenever an sboTerm was set, which duplicated the sboTerm attribute as a
+    CVTerm and forced a metaid onto elements which had none. The same
+    duplication happened a second time on the read side: `sbml_to_model` built
+    an element's annotations from `SBMLDocumentInfo.sbase_dict`, which also
+    synthesizes a `BQB_IS` CVTerm for the sboTerm, a behaviour meant for the
+    sbml4humans report, not for a `Model` which is written back out.
+
+    The count compares CVTerm resources rather than raw CVTerm objects,
+    because `annotator.ModelAnnotator.annotate_sbase` calls libsbml's
+    `addCVTerm`, which merges a new resource into an existing CVTerm of the
+    same qualifier instead of adding a second CVTerm. That merging changes how
+    many CVTerm objects the document has without changing which resources are
+    annotated, so counting objects would fail on a benign re-serialization
+    that invents nothing.
+    """
+    import libsbml
+
+    from sbmlutils.resources import REPRESSILATOR_SBML
+
+    def cvterm_resource_count(sbml_path: Path) -> int:
+        model = libsbml.readSBMLFromFile(str(sbml_path)).getModel()
+
+        def resources_of(sbase: libsbml.SBase) -> int:
+            return sum(
+                sbase.getCVTerm(k).getNumResources()
+                for k in range(sbase.getNumCVTerms())
+            )
+
+        total = resources_of(model)
+        for getter, count in (
+            (model.getSpecies, model.getNumSpecies()),
+            (model.getReaction, model.getNumReactions()),
+            (model.getCompartment, model.getNumCompartments()),
+            (model.getParameter, model.getNumParameters()),
+        ):
+            for k in range(count):
+                total += resources_of(getter(k))
+        return total
+
+    model = sbml_to_model(REPRESSILATOR_SBML)
+    roundtrip_path = tmp_path / "roundtrip.xml"
+    create_model(
+        model=model,
+        filepath=roundtrip_path,
+        sbml_level=3,
+        sbml_version=2,
+        validation_options=ValidationOptions(units_consistency=False),
+    )
+
+    assert cvterm_resource_count(roundtrip_path) == cvterm_resource_count(
+        Path(REPRESSILATOR_SBML)
+    )

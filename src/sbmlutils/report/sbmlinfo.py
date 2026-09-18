@@ -309,10 +309,18 @@ class SBMLDocumentInfo:
         return str(hashlib.sha1(xml.encode("utf-8")).hexdigest())
 
     @classmethod
-    def sbase_dict(cls, sbase: libsbml.SBase) -> dict[str, Any]:
+    def sbase_dict(
+        cls, sbase: libsbml.SBase, include_sbo_cvterm: bool = True
+    ) -> dict[str, Any]:
         """Info dictionary for SBase.
 
         :param sbase: SBase instance for which info dictionary is to be created
+        :param include_sbo_cvterm: whether the returned `cvterms` synthesize a
+            `BQB_IS` entry for the `sboTerm`, for a reader which wants the sboTerm
+            surfaced alongside the real annotations, such as the sbml4humans
+            report. `sbmlutils.parser` reads the real CVTerms only, since it
+            builds a `Model` which is written back out, and the sboTerm is
+            already carried by the `sboTerm` attribute.
         :return info dictionary for item
         """
         pk = cls._get_pk(sbase)
@@ -323,7 +331,7 @@ class SBMLDocumentInfo:
             "metaId": sbase.getMetaId() if sbase.isSetMetaId() else None,
             "name": sbase.getName() if sbase.isSetName() else None,
             "sbo": sbase.getSBOTermID() if sbase.isSetSBOTerm() else None,
-            "cvterms": cls.cvterms(sbase),
+            "cvterms": cls.cvterms(sbase, include_sbo_cvterm=include_sbo_cvterm),
             "history": cls.model_history(sbase),
             "notes": sbase.getNotesString() if sbase.isSetNotes() else None,
         }
@@ -370,7 +378,9 @@ class SBMLDocumentInfo:
         if sbml_distrib and isinstance(sbml_distrib, libsbml.DistribSBasePlugin):
             uncertainties: list[dict] = []
             for uncertainty in sbml_distrib.getListOfUncertainties():
-                u_dict = SBMLDocumentInfo.sbase_dict(uncertainty)
+                u_dict = SBMLDocumentInfo.sbase_dict(
+                    uncertainty, include_sbo_cvterm=include_sbo_cvterm
+                )
 
                 u_dict["uncertaintyParameters"] = []
                 upar: libsbml.UncertParameter
@@ -418,10 +428,15 @@ class SBMLDocumentInfo:
         return d
 
     @classmethod
-    def cvterms(cls, sbase: libsbml.SBase) -> list | None:
+    def cvterms(
+        cls, sbase: libsbml.SBase, include_sbo_cvterm: bool = True
+    ) -> list | None:
         """Parse CVTerms information.
 
         :param sbase: SBase instance
+        :param include_sbo_cvterm: whether a `BQB_IS` entry is synthesized for the
+            `sboTerm` when it is not already among the real CVTerms, see
+            `sbase_dict`
         """
         if not sbase.isSetAnnotation():
             return None
@@ -447,7 +462,7 @@ class SBMLDocumentInfo:
             )
 
         # add SBO term as CVTerm
-        if sbase.isSetSBOTerm():
+        if include_sbo_cvterm and sbase.isSetSBOTerm():
             sbo = sbase.getSBOTermID()
             sbo_in_cvs: bool = False
             for cvterm in cvterms:

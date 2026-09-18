@@ -82,11 +82,15 @@ def test_model_annotation(tmp_path: Path) -> None:
     compartment: libsbml.Compartment = model.getCompartment(0)
     assert compartment
 
+    # the sboTerm attribute is written as an attribute, not duplicated as a
+    # CVTerm, see https://github.com/matthiaskoenig/sbmlutils/issues/469
+    assert compartment.getSBOTermID() == "SBO:0000290"
+
     cvterms: libsbml.CVTermList = compartment.getCVTerms()
     assert compartment.getNumCVTerms() == 1
 
     cv: libsbml.CVTerm = cvterms[0]
-    assert cv.getNumResources() == 2
+    assert cv.getNumResources() == 1
 
 
 def test_demo_annotation(tmp_path: Path) -> None:

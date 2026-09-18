@@ -590,22 +590,6 @@ class Sbase:
             # annotations can have been added after initial processing
             processed_annotations = Sbase._process_annotations(self.annotations)
 
-        if self.sboTerm is not None:
-            sbo_annotation = Annotation(
-                qualifier=BQB.IS, resource=f"sbo/{self.sboTerm.replace('_', ':')}"
-            )
-            # check if SBO annotation exists
-            sbo_exists = False
-            for annotation in processed_annotations:
-                if (
-                    annotation.qualifier == sbo_annotation.qualifier
-                    and annotation.term == sbo_annotation.term
-                ):
-                    sbo_exists = True
-                    continue
-            if not sbo_exists:
-                processed_annotations = [sbo_annotation, *processed_annotations]
-
         for annotation in processed_annotations:
             annotator.ModelAnnotator.annotate_sbase(sbase=sbase, annotation=annotation)
 

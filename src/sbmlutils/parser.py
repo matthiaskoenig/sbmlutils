@@ -106,7 +106,11 @@ def sbml_to_model(
 
     def parse_sbase_kwargs(sbase: libsbml.SBase) -> dict[str, Any]:
         """Parse SBase information in dictionary."""
-        d = SBMLDocumentInfo.sbase_dict(sbase)
+        # the sboTerm is already carried by the `sboTerm` kwarg below; a real
+        # CVTerm must not be synthesized for it, or a round trip would turn the
+        # sboTerm attribute into a duplicated annotation, see
+        # https://github.com/matthiaskoenig/sbmlutils/issues/469
+        d = SBMLDocumentInfo.sbase_dict(sbase, include_sbo_cvterm=False)
         kwargs = {
             "sid": d["id"],
             "name": d["name"],
