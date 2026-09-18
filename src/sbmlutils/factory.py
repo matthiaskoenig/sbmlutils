@@ -436,6 +436,65 @@ def date_now() -> libsbml.Date:
     return libsbml.Date(timestr)
 
 
+def _comp_plugin(sbase: libsbml.SBase, what: str) -> Any:
+    """Get the comp plugin of a libsbml object for a port or a replacement.
+
+    Args:
+        sbase: the libsbml object, the model for a port, the replaced
+            element for a replacement
+        what: the port or the replacement, for the error message
+
+    Returns:
+        the comp plugin of the libsbml object
+
+    Raises:
+        ValueError: if the document does not declare the comp package, which
+            `create_model` does for every model with comp content, see
+            `Model._has_comp_content`
+    """
+    plugin = sbase.getPlugin("comp")
+    if plugin is None:
+        raise ValueError(
+            f"{what} needs the comp package, which the document does not declare."
+        )
+    return plugin
+
+
+def _iter_sbases(value: Any, seen: set[int] | None = None) -> Iterator[Sbase]:
+    """Iterate every `Sbase` reachable from a value, the value included.
+
+    The walk descends into the attributes of every `Sbase` and into lists,
+    tuples, sets and the values of dicts. So it finds an element wherever a
+    model definition nests it: in a list of the model, among the parameters
+    and rules of a reaction, the local parameters of a kinetic law, the
+    assignments of an event or the glyphs of a layout.
+
+    Args:
+        value: the value to walk, e.g. a `Model`
+        seen: the ids of the `Sbase` objects already yielded, which the
+            recursion shares; every `Sbase` is yielded once, which also ends
+            the walk on a cycle
+
+    Yields:
+        every `Sbase` reachable from the value
+    """
+    if seen is None:
+        seen = set()
+    if isinstance(value, Sbase):
+        if id(value) in seen:
+            return
+        seen.add(id(value))
+        yield value
+        for attribute in vars(value).values():
+            yield from _iter_sbases(attribute, seen)
+    elif isinstance(value, (list, tuple, set, frozenset)):
+        for item in value:
+            yield from _iter_sbases(item, seen)
+    elif isinstance(value, dict):
+        for item in value.values():
+            yield from _iter_sbases(item, seen)
+
+
 class Sbase:
     """Base class of all SBML objects."""
 
@@ -661,15 +720,41 @@ class Sbase:
             self.create_key_value_pairs(sbase)
 
     def create_port(self, model: libsbml.Model) -> libsbml.Port | None:
-        """Create port if existing."""
-        if self.port is None:
+        """Create the port of the element, if it has one.
+
+        Args:
+            model: the model the port is created in
+
+        Returns:
+            the port, `None` if the element has no port or no id which the
+            port could reference
+
+        Raises:
+            ValueError: if the document does not declare the comp package
+        """
+        if self.port is None or self.port is False:
+            return None
+
+        references_self = isinstance(self.port, bool) or not (
+            self.port.portRef
+            or self.port.idRef
+            or self.port.unitRef
+            or self.port.metaIdRef
+        )
+        if references_self and self.sid is None:
+            logger.error(
+                "'%s' has no id for its port to reference, no port is created.",
+                self,
+            )
             return None
 
         p: libsbml.Port | None = None
         if isinstance(self.port, bool):
             if self.port is True:
                 # manually create port for the id
-                cmodel = model.getPlugin("comp")
+                cmodel: libsbml.CompModelPlugin = _comp_plugin(
+                    model, f"The port of {type(self).__name__} '{self.sid}'"
+                )
                 p = cmodel.createPort()
                 if isinstance(self, UnitDefinition):
                     port_sid = f"{self.sid}{PORT_UNIT_SUFFIX}"
@@ -687,12 +772,7 @@ class Sbase:
                     p.setIdRef(self.sid)
         else:
             # use the port object
-            if (
-                (not self.port.portRef)
-                and (not self.port.idRef)
-                and (not self.port.unitRef)
-                and (not self.port.metaIdRef)
-            ):
+            if references_self:
                 # if no reference set id reference to current object
                 self.port.idRef = self.sid
             p = self.port.create_sbml(model)
@@ -3540,7 +3620,9 @@ class ReplacedBy(SbaseRef):
         self, sbase: libsbml.SBase, model: libsbml.Model
     ) -> libsbml.ReplacedBy:
         """Create SBML ReplacedBy."""
-        sbase_comp: libsbml.CompSBasePlugin = sbase.getPlugin("comp")
+        sbase_comp: libsbml.CompSBasePlugin = _comp_plugin(
+            sbase, f"The replacedBy of {sbase.getElementName()} '{sbase.getId()}'"
+        )
         rby: libsbml.ReplacedBy = sbase_comp.createReplacedBy()
         self._set_fields(rby, model)
 
@@ -3650,7 +3732,7 @@ class Port(SbaseRef):
 
     def create_sbml(self, model: libsbml.Model) -> libsbml.Port:
         """Create SBML for Port."""
-        cmodel = model.getPlugin("comp")
+        cmodel: libsbml.CompModelPlugin = _comp_plugin(model, f"Port '{self.sid}'")
         p = cmodel.createPort()
         self._set_fields(p, model)
 
@@ -4137,6 +4219,12 @@ class Model(Sbase, FrozenClass):
         `port=True`/`Port(...)` and `replacedBy=...` shorthand any
         `Sbase`-derived element can carry (`Sbase.create_port`,
         `Sbase.create_replaced_by`), which does not populate `ports` at all.
+        Such an element need not be in a list of the model: the parameters
+        and rules of a `Reaction` are written as elements of the model, a
+        `KineticLaw` holds its local parameters, an `Event` its assignments.
+        So every `Sbase` reachable from the model is checked, see
+        `_iter_sbases`, rather than a list of the places an element can be
+        nested in, which would miss the next one.
         This is checked here, once every element list of the model is
         populated, rather than defaulted in `check_packages`, which runs
         from `__init__` before any of them are.
@@ -4154,28 +4242,10 @@ class Model(Sbase, FrozenClass):
         ):
             return True
 
-        element_lists: list[list[Any]] = [
-            self.units,
-            self.functions,
-            self.compartments,
-            self.species,
-            self.parameters,
-            self.reactions,
-            self.assignments,
-            self.rules,
-            self.rate_rules,
-            self.algebraic_rules,
-            self.events,
-            self.constraints,
-            self.gene_products,
-            self.user_defined_constraints,
-            self.objectives,
-        ]
         return any(
-            getattr(obj, "port", None) is not None
-            or getattr(obj, "replacedBy", None) is not None
-            for elements in element_lists
-            for obj in elements
+            getattr(sbase, "port", None) not in (None, False)
+            or bool(getattr(sbase, "replacedBy", None))
+            for sbase in _iter_sbases(self)
         )
 
     @staticmethod
