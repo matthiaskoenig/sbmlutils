@@ -1340,12 +1340,15 @@ class Function(Sbase):
     FunctionDefinitions consist of a lambda expression in the value field, e.g.,
         lambda(x,y, piecewise(x,gt(x,y),y) )  #  definition of minimum function
         lambda(x, sin(x) )
+
+    A value of `None` is a function definition without math, which SBML
+    allows from L3V2 on.
     """
 
     def __init__(
         self,
         sid: str,
-        value: str,
+        value: str | None,
         name: str | None = None,
         sboTerm: str | None = None,
         metaId: str | None = None,
@@ -1383,8 +1386,8 @@ class Function(Sbase):
         self, sbase: libsbml.FunctionDefinition, model: libsbml.Model
     ) -> None:
         super()._set_fields(sbase, model)
-        ast_node = ast_node_from_formula(model, self.formula)
-        sbase.setMath(ast_node)
+        if self.formula is not None:
+            sbase.setMath(ast_node_from_formula(model, self.formula))
 
 
 class Parameter(ValueWithUnit):
@@ -1714,13 +1717,14 @@ class InitialAssignment(Value):
 
     The unit attribute is only for the case where a parameter must be created
     (which has the unit). In case of an initialAssignment of a value the units
-    have to be defined in the math.
+    have to be defined in the math. A value of `None` is an initial assignment
+    without math, which SBML allows from L3V2 on.
     """
 
     def __init__(
         self,
         symbol: str,
-        value: str | float,
+        value: str | float | None,
         unit: UnitType = Units.dimensionless,
         sid: str | None = None,
         name: str | None = None,
@@ -1782,8 +1786,8 @@ class InitialAssignment(Value):
         obj: libsbml.InitialAssignment = model.createInitialAssignment()
         self._set_fields(obj, model)
         obj.setSymbol(self.symbol)
-        ast_node = ast_node_from_formula(model, str(self.value))
-        obj.setMath(ast_node)
+        if self.value is not None:
+            obj.setMath(ast_node_from_formula(model, str(self.value)))
 
         self.create_port(model)
         return obj
@@ -1793,7 +1797,7 @@ class RuleWithVariable:
     """Rule."""
 
     variable: str
-    value: str | float
+    value: str | float | None
     unit: UnitType
     sid: str | None
     name: str | None
@@ -1843,7 +1847,8 @@ class AssignmentRule(ValueWithUnit, RuleWithVariable):
 
     The unit attribute is only for the case where a parameter must be created
     (which has the unit). In case of an initialAssignment of a value the units
-    have to be defined in the math.
+    have to be defined in the math. A value of `None` is a rule without math,
+    which SBML allows from L3V2 on.
     """
 
     def __repr__(self) -> str:
@@ -1853,7 +1858,7 @@ class AssignmentRule(ValueWithUnit, RuleWithVariable):
     def __init__(
         self,
         variable: str,
-        value: str | float,
+        value: str | float | None,
         unit: UnitType = Units.dimensionless,
         sid: str | None = None,
         name: str | None = None,
@@ -1889,14 +1894,17 @@ class AssignmentRule(ValueWithUnit, RuleWithVariable):
         obj: libsbml.AssignmentRule = model.createAssignmentRule()
         self._set_fields(obj, model)
         obj.setVariable(self.variable)
-        ast_node: libsbml.ASTNode = ast_node_from_formula(model, str(self.value))
-        obj.setMath(ast_node)
+        if self.value is not None:
+            obj.setMath(ast_node_from_formula(model, str(self.value)))
         self.create_port(model)
         return obj
 
 
 class RateRule(ValueWithUnit, RuleWithVariable):
-    """RateRule."""
+    """RateRule.
+
+    A value of `None` is a rule without math, which SBML allows from L3V2 on.
+    """
 
     def __repr__(self) -> str:
         """Get string representation."""
@@ -1905,7 +1913,7 @@ class RateRule(ValueWithUnit, RuleWithVariable):
     def __init__(
         self,
         variable: str,
-        value: str | float,
+        value: str | float | None,
         unit: UnitType = Units.dimensionless,
         sid: str | None = None,
         name: str | None = None,
@@ -1941,14 +1949,17 @@ class RateRule(ValueWithUnit, RuleWithVariable):
         obj: libsbml.RateRule = model.createRateRule()
         self._set_fields(obj, model)
         obj.setVariable(self.variable)
-        ast_node: libsbml.ASTNode = ast_node_from_formula(model, str(self.value))
-        obj.setMath(ast_node)
+        if self.value is not None:
+            obj.setMath(ast_node_from_formula(model, str(self.value)))
         self.create_port(model)
         return obj
 
 
 class AlgebraicRule(ValueWithUnit, RuleWithVariable):
-    """AlgebraicRule."""
+    """AlgebraicRule.
+
+    A value of `None` is a rule without math, which SBML allows from L3V2 on.
+    """
 
     def __repr__(self) -> str:
         """Get string representation."""
@@ -1957,7 +1968,7 @@ class AlgebraicRule(ValueWithUnit, RuleWithVariable):
     def __init__(
         self,
         sid: str | None,
-        value: str | float,
+        value: str | float | None,
         unit: UnitType = Units.dimensionless,
         name: str | None = None,
         sboTerm: str | None = None,
@@ -1989,8 +2000,8 @@ class AlgebraicRule(ValueWithUnit, RuleWithVariable):
         """Create AlgebraicRule."""
         rule: libsbml.AlgebraicRule = model.createAlgebraicRule()
         self._set_fields(rule, model)
-        ast_node: libsbml.ASTNode = ast_node_from_formula(model, str(self.value))
-        rule.setMath(ast_node)
+        if self.value is not None:
+            rule.setMath(ast_node_from_formula(model, str(self.value)))
         self.create_port(model)
         return rule
 
@@ -2009,7 +2020,7 @@ class KineticLaw(Sbase):
 
     def __init__(
         self,
-        math: str,
+        math: str | None,
         unit: UnitType = None,
         local_parameters: list[LocalParameter] | None = None,
         sid: str | None = None,
@@ -2026,7 +2037,8 @@ class KineticLaw(Sbase):
         """Construct a KineticLaw.
 
         Args:
-            math: the rate expression, as an SBML L3 formula string
+            math: the rate expression, as an SBML L3 formula string; `None`
+                for a kinetic law without math, which SBML allows from L3V2 on
             unit: the unit of the rate; never written to XML in any
                 level/version this package currently emits (it existed on
                 `libsbml.KineticLaw` only in L1V1, L1V2 and L2V1, and this
@@ -2084,6 +2096,8 @@ class KineticLaw(Sbase):
         for local_parameter in self.local_parameters:
             local_parameter.create_sbml(klaw)
 
+        if self.math is None:
+            return klaw
         model: libsbml.Model = reaction.getModel()
         ast_node = libsbml.parseL3FormulaWithModel(self.math, model)
         if ast_node is None:
@@ -2372,7 +2386,7 @@ class EventAssignment(Value):
     def __init__(
         self,
         variable: str,
-        value: str | float,
+        value: str | float | None,
         sid: str | None = None,
         name: str | None = None,
         sboTerm: str | None = None,
@@ -2388,7 +2402,9 @@ class EventAssignment(Value):
 
         Args:
             variable: the id of the element the assignment applies to
-            value: the assigned expression, as an SBML L3 formula string
+            value: the assigned expression, as an SBML L3 formula string;
+                `None` for an event assignment without math, which SBML allows
+                from L3V2 on
             sid: optional SId; `libsbml.EventAssignment` only gained a real,
                 separate `id` attribute in SBML L3V2, and only from L3V2
                 onward is it distinct from `variable` (see `_set_fields`
@@ -2437,6 +2453,8 @@ class EventAssignment(Value):
         ea: libsbml.EventAssignment = event.createEventAssignment()
         self._set_fields(ea, model)
         check(ea.setVariable(self.variable), f"Set variable '{self.variable}'")
+        if self.value is None:
+            return ea
         ast_node = libsbml.parseL3FormulaWithModel(str(self.value), model)
         if ast_node is None:
             logger.error(
@@ -2479,12 +2497,16 @@ class Event(Sbase):
     Assignments have the format
         sid = value
 
+    The trigger, the priority and the delay are each an SBML L3 formula
+    string. `None` writes no element at all: an event without a priority or a
+    delay, or, from SBML L3V2 on, without a trigger. An empty string writes the
+    element without math, which SBML allows from L3V2 on.
     """
 
     def __init__(
         self,
         sid: str | None,
-        trigger: str,
+        trigger: str | None,
         assignments: dict[str, str | float] | list[EventAssignment] | None = None,
         trigger_persistent: bool = True,
         trigger_initialValue: bool = False,
@@ -2565,26 +2587,26 @@ class Event(Sbase):
             sbase.setUseValuesFromTriggerTime(self.useValuesFromTriggerTime),
             f"Set useValuesFromTriggerTime on '{self.sid}'",
         )
-        t = sbase.createTrigger()
-        t.setInitialValue(
-            self.trigger_initialValue
-        )  # False ! not supported by Copasi -> lame fix via time
-        t.setPersistent(
-            self.trigger_persistent
-        )  # True ! not supported by Copasi -> careful with usage
-
-        ast_trigger = libsbml.parseL3FormulaWithModel(self.trigger, model)
-        t.setMath(ast_trigger)
+        if self.trigger is not None:
+            t: libsbml.Trigger = sbase.createTrigger()
+            t.setInitialValue(
+                self.trigger_initialValue
+            )  # False ! not supported by Copasi -> lame fix via time
+            t.setPersistent(
+                self.trigger_persistent
+            )  # True ! not supported by Copasi -> careful with usage
+            if self.trigger:
+                t.setMath(libsbml.parseL3FormulaWithModel(self.trigger, model))
 
         if self.priority is not None:
-            ast_priority = libsbml.parseL3FormulaWithModel(self.priority, model)
             priority: libsbml.Priority = sbase.createPriority()
-            priority.setMath(ast_priority)
+            if self.priority:
+                priority.setMath(libsbml.parseL3FormulaWithModel(self.priority, model))
 
         if self.delay is not None:
-            ast_delay = libsbml.parseL3FormulaWithModel(self.delay, model)
             delay: libsbml.Delay = sbase.createDelay()
-            delay.setMath(ast_delay)
+            if self.delay:
+                delay.setMath(libsbml.parseL3FormulaWithModel(self.delay, model))
 
         for assignment in self.assignments:
             assignment.create_sbml(sbase, model)

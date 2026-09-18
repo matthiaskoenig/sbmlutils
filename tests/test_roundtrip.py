@@ -1086,7 +1086,11 @@ def _optional_ids(sbml_path: Path) -> list[tuple[str, str, str | None]]:
         )
     event: libsbml.Event
     for event in model.getListOfEvents():
-        trigger = libsbml.formulaToL3String(event.getTrigger().getMath())
+        trigger = (
+            libsbml.formulaToL3String(event.getTrigger().getMath())
+            if event.isSetTrigger() and event.getTrigger().isSetMath()
+            else ""
+        )
         ids.append(
             (
                 event.getElementName(),
@@ -1118,7 +1122,11 @@ def test_roundtrip_invents_no_ids(case: str, tmp_path: Path) -> None:
     assert source, f"'{case}' has no rule or event, it would not test them"
     assert all(sid is None for _, _, sid in source), source
 
-    assert _optional_ids(roundtrip_sbml(sbml_path, tmp_path)) == source
+    # the order of the rules is not preserved, `Model` keeps each kind in a
+    # list of its own
+    assert sorted(_optional_ids(roundtrip_sbml(sbml_path, tmp_path)), key=str) == (
+        sorted(source, key=str)
+    )
 
 
 def test_roundtrip_rule_keeps_its_own_id(tmp_path: Path) -> None:
@@ -1179,6 +1187,137 @@ def test_roundtrip_local_parameters(case: str, tmp_path: Path) -> None:
     context must refer to a model component`.
     """
     assert_roundtrip_simulates_equal(testsuite_case(case), tmp_path)
+
+
+def _elements_with_math(sbml_path: Path) -> list[tuple[str, str, bool]]:
+    """Collect every element of a model which has math, or may have it.
+
+    Args:
+        sbml_path: path of the SBML file
+
+    Returns:
+        the element name, the element it belongs to or assigns, and whether
+        its math is set, of every function definition, initial assignment,
+        rule, kinetic law, constraint, and trigger, priority, delay and
+        event assignment of an event
+    """
+    import libsbml
+
+    doc: libsbml.SBMLDocument = libsbml.readSBMLFromFile(str(sbml_path))
+    model: libsbml.Model = doc.getModel()
+    elements: list[tuple[str, str, bool]] = []
+
+    def add(sbase: Any, key: str) -> None:
+        # any libsbml object with math, `libsbml.SBase` declares no `isSetMath`
+        elements.append((sbase.getElementName(), key, sbase.isSetMath()))
+
+    fd: libsbml.FunctionDefinition
+    for fd in model.getListOfFunctionDefinitions():
+        add(fd, fd.getId())
+    ia: libsbml.InitialAssignment
+    for ia in model.getListOfInitialAssignments():
+        add(ia, ia.getSymbol())
+    rule: libsbml.Rule
+    for rule in model.getListOfRules():
+        add(rule, rule.getVariable())
+    reaction: libsbml.Reaction
+    for reaction in model.getListOfReactions():
+        if reaction.isSetKineticLaw():
+            add(reaction.getKineticLaw(), reaction.getId())
+    event: libsbml.Event
+    for k, event in enumerate(model.getListOfEvents()):
+        key = event.getId() or f"event {k}"
+        if event.isSetTrigger():
+            add(event.getTrigger(), key)
+        if event.isSetPriority():
+            add(event.getPriority(), key)
+        if event.isSetDelay():
+            add(event.getDelay(), key)
+        ea: libsbml.EventAssignment
+        for ea in event.getListOfEventAssignments():
+            add(ea, f"{key} {ea.getVariable()}")
+    constraint: libsbml.Constraint
+    for constraint in model.getListOfConstraints():
+        add(constraint, constraint.getId())
+    return elements
+
+
+#: cases with an element without math, which SBML allows from L3V2 on: an
+#: initial assignment (01234), an assignment rule (01235), a rate rule
+#: (01236), an event assignment (01237), a trigger (01238), an event without a
+#: trigger (01239), a delay (01241), a priority (01242), an algebraic rule
+#: (01244), a constraint (01247) and a function definition (01271)
+CASES_WITHOUT_MATH: list[str] = [
+    "01234", "01235", "01236", "01237", "01238", "01239", "01241", "01242",
+    "01244", "01247", "01271",
+]  # fmt: skip
+
+
+@pytest.mark.parametrize("case", CASES_WITHOUT_MATH)
+def test_roundtrip_preserves_elements_without_math(case: str, tmp_path: Path) -> None:
+    """Test that an element without math survives a round trip without math.
+
+    The parser dropped every element without math, and an event whose
+    trigger had none, with all its assignments. None of them carries
+    semantics, so the simulation sweep passed these cases; only a structural
+    comparison sees the loss.
+    """
+    sbml_path = testsuite_case(case)
+    source = _elements_with_math(sbml_path)
+    if case == "01239":
+        assert all(name != "trigger" for name, _, _ in source), source
+    else:
+        assert not all(is_set for _, _, is_set in source), source
+
+    # the order of the rules is not preserved, `Model` keeps each kind in a
+    # list of its own
+    assert sorted(_elements_with_math(roundtrip_sbml(sbml_path, tmp_path))) == (
+        sorted(source)
+    )
+
+
+def test_roundtrip_preserves_kinetic_law_without_math(tmp_path: Path) -> None:
+    """Test that a kinetic law without math keeps its local parameters.
+
+    No case of the test suite has a kinetic law without math, so the source is
+    built with libsbml. The parser dropped such a kinetic law together with
+    its local parameters.
+    """
+    import libsbml
+
+    doc = libsbml.SBMLDocument(3, 2)
+    sbml_model: libsbml.Model = doc.createModel("m")
+    c: libsbml.Compartment = sbml_model.createCompartment()
+    c.setId("c")
+    c.setConstant(True)
+    c.setSize(1.0)
+    species: libsbml.Species = sbml_model.createSpecies()
+    species.setId("S1")
+    species.setCompartment("c")
+    species.setInitialAmount(1.0)
+    species.setConstant(False)
+    species.setBoundaryCondition(False)
+    species.setHasOnlySubstanceUnits(False)
+    reaction: libsbml.Reaction = sbml_model.createReaction()
+    reaction.setId("r1")
+    reaction.setReversible(False)
+    reactant: libsbml.SpeciesReference = reaction.createReactant()
+    reactant.setSpecies("S1")
+    reactant.setStoichiometry(1.0)
+    reactant.setConstant(True)
+    klaw: libsbml.KineticLaw = reaction.createKineticLaw()
+    lp: libsbml.LocalParameter = klaw.createLocalParameter()
+    lp.setId("k")
+    lp.setValue(0.1)
+
+    sbml_path = tmp_path / "source.xml"
+    libsbml.writeSBMLToFile(doc, str(sbml_path))
+    roundtrip_path = roundtrip_sbml(sbml_path, tmp_path)
+
+    assert _elements_with_math(roundtrip_path) == [("kineticLaw", "r1", False)]
+    rt_doc: libsbml.SBMLDocument = libsbml.readSBMLFromFile(str(roundtrip_path))
+    rt_klaw: libsbml.KineticLaw = rt_doc.getModel().getReaction("r1").getKineticLaw()
+    assert rt_klaw.getLocalParameter(0).getId() == "k"
 
 
 def test_roundtrip_constraints(tmp_path: Path) -> None:

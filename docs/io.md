@@ -67,7 +67,7 @@ create_model(
 )
 ```
 
-The round trip preserves the unit definitions and every unit reference, the function definitions, compartments, species and parameters, the reactions with their species references, modifiers and kinetic laws with local parameters, the initial assignments, rules, events and constraints, and the id, name, metaid, sboTerm, notes and annotations of each of them. Writing a model which was read from a file does not log the authoring hints of `create_model`, such as `'name' should be set`: the model has what its file had.
+The round trip preserves the unit definitions and every unit reference, the function definitions, compartments, species and parameters, the reactions with their species references, modifiers and kinetic laws with local parameters, the initial assignments, rules, events and constraints, and the id, name, metaid, sboTerm, notes and annotations of each of them. An element without math, which SBML allows from L3V2 on, such as a rule, an event assignment, a kinetic law, the trigger, priority or delay of an event, or an event without a trigger, round trips without math. Writing a model which was read from a file does not log the authoring hints of `create_model`, such as `'name' should be set`: the model has what its file had.
 
 ### Measured coverage
 

@@ -7,7 +7,8 @@ definitions, the model units and conversionFactor, the function definitions,
 compartments, species and parameters, the reactions with their species
 references, modifiers and kinetic laws with local parameters, the initial
 assignments, rules, events and constraints, and on each of these its id,
-name, metaid, sboTerm, notes, annotations and fbc key-value pairs.
+name, metaid, sboTerm, notes, annotations and fbc key-value pairs. An element
+without math, which SBML allows from L3V2 on, is read without math.
 
 Not read are the model history, and the content of the `fbc`, `distrib`,
 `comp`, `groups` and `layout` packages: flux bounds, objectives and gene
@@ -136,6 +137,38 @@ def _packages_of_document(doc: libsbml.SBMLDocument) -> list[Package]:
         elif prefix in _PACKAGE_FOR_PREFIX:
             packages.append(_PACKAGE_FOR_PREFIX[prefix])
     return packages
+
+
+def _math(sbase: Any) -> str | None:
+    """Get the math of an element as an SBML L3 formula string.
+
+    Args:
+        sbase: a libsbml object which has math, e.g. a rule
+
+    Returns:
+        the math as an L3 formula string, `None` if the element has no math,
+        which SBML allows from L3V2 on
+    """
+    return libsbml.formulaToL3String(sbase.getMath()) if sbase.isSetMath() else None
+
+
+def _event_math(sbase: Any | None) -> str | None:
+    """Get the math of the trigger, the priority or the delay of an event.
+
+    `Event` holds each of them as a formula string, which distinguishes an
+    element without math from no element at all.
+
+    Args:
+        sbase: the trigger, the priority or the delay, `None` if the event
+            has none
+
+    Returns:
+        `None` if the event has no such element, an empty string if the
+        element has no math, else its math as an L3 formula string
+    """
+    if sbase is None:
+        return None
+    return _math(sbase) or ""
 
 
 def sbml_to_model(
@@ -292,10 +325,7 @@ def sbml_to_model(
     # function definitions
     fd: libsbml.FunctionDefinition
     for fd in model.getListOfFunctionDefinitions():
-        ast = fd.getMath() if fd.isSetMath() else None
-        formula = libsbml.formulaToL3String(ast) if ast else None
-        if formula:
-            m.functions.append(Function(value=formula, **parse_sbase_kwargs(fd)))
+        m.functions.append(Function(value=_math(fd), **parse_sbase_kwargs(fd)))
 
     p: libsbml.Parameter
     for p in model.getListOfParameters():
@@ -356,7 +386,6 @@ def sbml_to_model(
 
     # reactions
     r: libsbml.Reaction
-    ast: libsbml.ASTNode | None
     formula: str | None
 
     for r in model.getListOfReactions():
@@ -407,24 +436,21 @@ def sbml_to_model(
         kinetic_law: KineticLaw | None = None
         if r.isSetKineticLaw():
             klaw: libsbml.KineticLaw = r.getKineticLaw()
-            ast = klaw.getMath() if klaw.isSetMath() else None
-            math = libsbml.formulaToL3String(ast) if ast else None
-            if math:
-                local_parameters: list[LocalParameter] = []
-                lp: libsbml.LocalParameter
-                for lp in klaw.getListOfLocalParameters():
-                    local_parameters.append(
-                        LocalParameter(
-                            value=lp.getValue() if lp.isSetValue() else None,
-                            unit=lp.getUnits() if lp.isSetUnits() else None,
-                            **parse_sbase_kwargs(lp),
-                        )
+            local_parameters: list[LocalParameter] = []
+            lp: libsbml.LocalParameter
+            for lp in klaw.getListOfLocalParameters():
+                local_parameters.append(
+                    LocalParameter(
+                        value=lp.getValue() if lp.isSetValue() else None,
+                        unit=lp.getUnits() if lp.isSetUnits() else None,
+                        **parse_sbase_kwargs(lp),
                     )
-                kinetic_law = KineticLaw(
-                    math=math,
-                    local_parameters=local_parameters,
-                    **parse_sbase_kwargs(klaw),
                 )
+            kinetic_law = KineticLaw(
+                math=_math(klaw),
+                local_parameters=local_parameters,
+                **parse_sbase_kwargs(klaw),
+            )
 
         m.reactions.append(
             Reaction(
@@ -440,109 +466,87 @@ def sbml_to_model(
     # initial assignment
     ia: libsbml.InitialAssignment
     for ia in model.getListOfInitialAssignments():
-        ast = ia.getMath() if ia.isSetMath() else None
-        formula = libsbml.formulaToL3String(ast) if ast else None
-        if formula:
-            m.assignments.append(
-                InitialAssignment(
-                    symbol=ia.getSymbol(),
-                    value=formula,
-                    **parse_variable_kwargs(ia),
-                )
+        m.assignments.append(
+            InitialAssignment(
+                symbol=ia.getSymbol(),
+                value=_math(ia),
+                **parse_variable_kwargs(ia),
             )
+        )
 
     # rules
     rule: libsbml.Rule
     for rule in model.getListOfRules():
-        ast = rule.getMath() if rule.isSetMath() else None
-        formula = libsbml.formulaToL3String(ast) if ast else None
+        formula = _math(rule)
         typecode: int = rule.getTypeCode()
-        if formula:
-            if typecode == libsbml.SBML_ASSIGNMENT_RULE:
-                m.rules.append(
-                    AssignmentRule(
-                        variable=rule.getVariable(),
-                        value=formula,
-                        **parse_variable_kwargs(rule),
-                    )
+        if typecode == libsbml.SBML_ASSIGNMENT_RULE:
+            m.rules.append(
+                AssignmentRule(
+                    variable=rule.getVariable(),
+                    value=formula,
+                    **parse_variable_kwargs(rule),
                 )
-            elif typecode == libsbml.SBML_RATE_RULE:
-                m.rate_rules.append(
-                    RateRule(
-                        variable=rule.getVariable(),
-                        value=formula,
-                        **parse_variable_kwargs(rule),
-                    )
+            )
+        elif typecode == libsbml.SBML_RATE_RULE:
+            m.rate_rules.append(
+                RateRule(
+                    variable=rule.getVariable(),
+                    value=formula,
+                    **parse_variable_kwargs(rule),
                 )
-            elif typecode == libsbml.SBML_ALGEBRAIC_RULE:
-                m.algebraic_rules.append(
-                    AlgebraicRule(value=formula, **parse_variable_kwargs(rule))
-                )
+            )
+        elif typecode == libsbml.SBML_ALGEBRAIC_RULE:
+            m.algebraic_rules.append(
+                AlgebraicRule(value=formula, **parse_variable_kwargs(rule))
+            )
 
     # events
     e: libsbml.Event
     for e in model.getListOfEvents():
         trigger: libsbml.Trigger | None = e.getTrigger() if e.isSetTrigger() else None
-        if trigger is None or not trigger.isSetMath():
-            logger.error("Event '%s' has no trigger, it is skipped.", e.getId())
-            continue
 
         assignments: list[EventAssignment] = []
         ea: libsbml.EventAssignment
         for ea in e.getListOfEventAssignments():
-            ast = ea.getMath() if ea.isSetMath() else None
-            value = libsbml.formulaToL3String(ast) if ast else None
-            if value is not None:
-                assignments.append(
-                    EventAssignment(
-                        variable=ea.getVariable(),
-                        value=value,
-                        **parse_variable_kwargs(ea),
-                    )
+            assignments.append(
+                EventAssignment(
+                    variable=ea.getVariable(),
+                    value=_math(ea),
+                    **parse_variable_kwargs(ea),
                 )
+            )
 
-        priority_ast = (
-            e.getPriority().getMath()
-            if e.isSetPriority() and e.getPriority().isSetMath()
-            else None
-        )
-        delay_ast = (
-            e.getDelay().getMath()
-            if e.isSetDelay() and e.getDelay().isSetMath()
-            else None
-        )
-
-        event_kwargs = parse_sbase_kwargs(e)
         m.events.append(
             Event(
-                trigger=libsbml.formulaToL3String(trigger.getMath()),
+                trigger=_event_math(trigger),
                 assignments=assignments,
                 trigger_persistent=(
-                    trigger.getPersistent() if trigger.isSetPersistent() else True
+                    trigger.getPersistent()
+                    if trigger is not None and trigger.isSetPersistent()
+                    else True
                 ),
                 trigger_initialValue=(
-                    trigger.getInitialValue() if trigger.isSetInitialValue() else True
+                    trigger.getInitialValue()
+                    if trigger is not None and trigger.isSetInitialValue()
+                    else True
                 ),
                 useValuesFromTriggerTime=(
                     e.getUseValuesFromTriggerTime()
                     if e.isSetUseValuesFromTriggerTime()
                     else True
                 ),
-                priority=(
-                    libsbml.formulaToL3String(priority_ast) if priority_ast else None
-                ),
-                delay=libsbml.formulaToL3String(delay_ast) if delay_ast else None,
-                **event_kwargs,
+                priority=_event_math(e.getPriority() if e.isSetPriority() else None),
+                delay=_event_math(e.getDelay() if e.isSetDelay() else None),
+                **parse_sbase_kwargs(e),
             )
         )
 
     # constraints
     constraint: libsbml.Constraint
     for constraint in model.getListOfConstraints():
-        ast = constraint.getMath() if constraint.isSetMath() else None
         m.constraints.append(
             Constraint(
-                math=libsbml.formulaToL3String(ast) if ast else None,
+                math=_math(constraint),
                 message=(
                     constraint.getMessageString() if constraint.isSetMessage() else None
                 ),
