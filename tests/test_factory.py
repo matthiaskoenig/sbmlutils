@@ -244,3 +244,24 @@ def test_create_model_no_serializations(tmp_path: Path) -> None:
     assert result.markdown_path is None
     assert not (tmp_path / "model.ant").exists()
     assert not (tmp_path / "model.md").exists()
+
+
+def test_assignment_rule_keeps_its_id() -> None:
+    """Test that a rule id is written and does not overwrite the variable.
+
+    `libsbml.Rule.setId` aliases the `variable` attribute: it returns -16 and
+    is a no-op, so rule ids were silently lost. `setIdAttribute` is the L3V2
+    accessor which actually sets the id.
+    """
+    doc = libsbml.SBMLDocument(3, 2)
+    model = doc.createModel()
+    parameter = model.createParameter()
+    parameter.setId("S1")
+    parameter.setConstant(False)
+
+    rule = AssignmentRule("S1", value="2 * 3", sid="my_rule")
+    rule.create_sbml(model)
+
+    sbml_rule = model.getRule(0)
+    assert sbml_rule.getVariable() == "S1"
+    assert sbml_rule.getIdAttribute() == "my_rule"

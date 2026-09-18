@@ -13,6 +13,7 @@ environment pull in. It is `None` when it is not installed, which is what
 these tests skip on, following the `cobra` pattern of `sbmlutils.fbc.cobra`.
 """
 
+import logging
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -158,3 +159,31 @@ def test_roundtrip_sweep(sbml_path: Path, tmp_path: Path) -> None:
     deselected in the default test run.
     """
     assert_roundtrip_simulates_equal(sbml_path, tmp_path)
+
+
+def test_roundtrip_emits_no_authoring_warnings(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that round tripping does not warn about authoring style.
+
+    The `name` and `sboTerm` warnings of `Sbase._set_fields` are hints for
+    somebody writing a model definition. A model which came from a file has
+    whatever the file had, so the hints are noise, see
+    https://github.com/matthiaskoenig/sbmlutils/issues/469
+    """
+    model = sbml_to_model(testsuite_case("00001"))
+    with caplog.at_level(logging.WARNING, logger="sbmlutils"):
+        create_model(
+            model=model,
+            filepath=tmp_path / "roundtrip.xml",
+            sbml_level=3,
+            sbml_version=2,
+            validation_options=ValidationOptions(units_consistency=False),
+        )
+
+    authoring = [
+        record.getMessage()
+        for record in caplog.records
+        if "should be set" in record.getMessage()
+    ]
+    assert authoring == [], f"round trip emitted authoring warnings: {authoring}"

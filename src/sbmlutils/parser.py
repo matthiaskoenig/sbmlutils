@@ -161,6 +161,9 @@ def sbml_to_model(
         logger.error("No model in SBMLDocument.")
 
     m = Model(**parse_sbase_kwargs(model))
+    # a parsed model carries whatever the source file had, so the authoring
+    # hints of `Sbase._set_fields` are noise when it is written back out
+    m.parsed = True
     # FIXME: parse packages
     m.packages = [Package.FBC_V3]
 

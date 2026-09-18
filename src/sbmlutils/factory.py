@@ -23,7 +23,8 @@ import inspect
 import json
 import logging
 from collections import namedtuple
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable, Iterator, Sequence
+from contextlib import contextmanager
 from copy import deepcopy
 from dataclasses import dataclass
 from enum import StrEnum
@@ -128,6 +129,18 @@ SBML_VERSION = 1  # default SBML version
 PORT_SUFFIX = "_port"
 PORT_UNIT_SUFFIX = "_unit_port"
 PREFIX_EXCHANGE_REACTION = "EX_"
+
+#: libsbml types whose `setId` aliases another attribute, so that the id has to
+#: be set through `setIdAttribute`
+_ID_ATTRIBUTE_TYPECODES: frozenset[int] = frozenset(
+    {
+        libsbml.SBML_ASSIGNMENT_RULE,
+        libsbml.SBML_RATE_RULE,
+        libsbml.SBML_ALGEBRAIC_RULE,
+        libsbml.SBML_INITIAL_ASSIGNMENT,
+        libsbml.SBML_EVENT_ASSIGNMENT,
+    }
+)
 
 
 def create_objects(
@@ -402,6 +415,29 @@ class Sbase:
         "annotations",
     ]
 
+    #: authoring hints are logged for a hand written model definition, they are
+    #: noise for a model which was parsed from a file, see `Sbase.no_authoring_hints`
+    _authoring_hints: ClassVar[bool] = True
+
+    @staticmethod
+    @contextmanager
+    def no_authoring_hints() -> Iterator[None]:
+        """Suppress the authoring hints of `_set_fields` inside the context.
+
+        The `name` and `sboTerm` hints help somebody writing a model
+        definition. They are noise when a model is written back out after it
+        was parsed from a file, which is what `sbmlutils.parser` does.
+
+        Yields:
+            None
+        """
+        previous = Sbase._authoring_hints
+        Sbase._authoring_hints = False
+        try:
+            yield
+        finally:
+            Sbase._authoring_hints = previous
+
     def __str__(self) -> str:
         """Get string."""
         field_str = ", ".join(
@@ -457,14 +493,22 @@ class Sbase:
                     self.sid,
                     sbase,
                 )
-            sbase.setId(self.sid)
+            # libsbml aliases setId to the variable/symbol attribute on rules,
+            # initial assignments and event assignments, where it is a no-op;
+            # setIdAttribute is the accessor which actually sets the id
+            if sbase.getTypeCode() in _ID_ATTRIBUTE_TYPECODES:
+                check(
+                    sbase.setIdAttribute(self.sid),
+                    f"Set id '{self.sid}' on {sbase}",
+                )
+            else:
+                check(sbase.setId(self.sid), f"Set id '{self.sid}' on {sbase}")
         if self.name is not None:
             sbase.setName(self.name)
-        else:
-            if not isinstance(
-                self, (Document, Port, ReplacedBy, ReplacedElement, AssignmentRule)
-            ):
-                logger.warning("'name' should be set on '%s'", self)
+        elif Sbase._authoring_hints and not isinstance(
+            self, (Document, Port, ReplacedBy, ReplacedElement, AssignmentRule)
+        ):
+            logger.warning("'name' should be set on '%s'", self)
         if self.sboTerm is not None:
             if isinstance(self.sboTerm, SBO):
                 sbo = self.sboTerm.curie
@@ -473,23 +517,22 @@ class Sbase:
             else:
                 sbo = self.sboTerm
             sbase.setSBOTerm(sbo)
-        else:
-            if not isinstance(
-                self,
-                (
-                    Document,
-                    Port,
-                    UnitDefinition,
-                    Model,
-                    ReplacedBy,
-                    ReplacedElement,
-                    AssignmentRule,
-                    RateRule,
-                    ExternalModelDefinition,
-                    Submodel,
-                ),
-            ):
-                logger.warning("'sboTerm' should be set on '%s'", self)
+        elif Sbase._authoring_hints and not isinstance(
+            self,
+            (
+                Document,
+                Port,
+                UnitDefinition,
+                Model,
+                ReplacedBy,
+                ReplacedElement,
+                AssignmentRule,
+                RateRule,
+                ExternalModelDefinition,
+                Submodel,
+            ),
+        ):
+            logger.warning("'sboTerm' should be set on '%s'", self)
         if self.metaId is not None:
             sbase.setMetaId(self.metaId)
 
@@ -3182,6 +3225,7 @@ class Model(Sbase, FrozenClass, BaseModel):
     gene_products: list[GeneProduct]
     # layout
     layouts: list | None
+    parsed: bool
 
     _keys: ClassVar[dict[str, Any]] = {
         "sid": None,
@@ -3217,6 +3261,7 @@ class Model(Sbase, FrozenClass, BaseModel):
         "objectives": list,
         "gene_products": list,
         "layouts": list,
+        "parsed": None,
     }
 
     _supported_packages: ClassVar[set[str]] = {
@@ -3321,6 +3366,10 @@ class Model(Sbase, FrozenClass, BaseModel):
 
         self.layouts: list | None = layouts
 
+        #: `True` when the model was created by `sbmlutils.parser`, which
+        #: suppresses the authoring hints when it is written back out
+        self.parsed = False
+
         if objects:
             for sbase in objects:
                 if isinstance(sbase, Submodel):
@@ -3369,6 +3418,13 @@ class Model(Sbase, FrozenClass, BaseModel):
 
           doc = Document(model=model).create_sbml()
         """
+        if self.parsed:
+            with Sbase.no_authoring_hints():
+                return self._create_sbml(doc)
+        return self._create_sbml(doc)
+
+    def _create_sbml(self, doc: libsbml.SBMLDocument) -> libsbml.Model:
+        """Create the libsbml.Model and all its objects."""
         model: libsbml.Model = doc.createModel()
         self._set_fields(model, model)
 
