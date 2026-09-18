@@ -446,7 +446,7 @@ def test_roundtrip_rule_keeps_its_own_id(tmp_path: Path) -> None:
 
 
 #: cases whose kinetic laws carry local parameters
-CASES_LOCAL_PARAMETERS: list[str] = ["00027", "00057", "00058", "00132"]
+CASES_LOCAL_PARAMETERS: list[str] = ["00027", "00057", "00058", "00132", "00133"]
 
 
 @requires_roadrunner
