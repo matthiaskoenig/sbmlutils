@@ -308,3 +308,18 @@ def test_roundtrip_preserves_unit_definitions(tmp_path: Path) -> None:
     }
     assert m_out.getTimeUnits() == m_in.getTimeUnits()
     assert m_out.getCompartment(0).getUnits() == m_in.getCompartment(0).getUnits()
+
+
+#: cases which use a functionDefinition
+CASES_FUNCTIONS: list[str] = ["00025", "00034", "00035", "00078"]
+
+
+@requires_roadrunner
+@pytest.mark.parametrize("case", CASES_FUNCTIONS)
+def test_roundtrip_function_definitions(case: str, tmp_path: Path) -> None:
+    """Test that function definitions survive a round trip.
+
+    Dropping them produced libsbml error 10214, `a <ci> element in this
+    context must refer to a function definition`, in 48 of 150 cases.
+    """
+    assert_roundtrip_simulates_equal(testsuite_case(case), tmp_path)

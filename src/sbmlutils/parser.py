@@ -17,6 +17,7 @@ from sbmlutils.factory import (
     AlgebraicRule,
     AssignmentRule,
     Compartment,
+    Function,
     InitialAssignment,
     KeyValuePair,
     Model,
@@ -215,6 +216,14 @@ def sbml_to_model(
         area=model.getAreaUnits() if model.isSetAreaUnits() else None,
         volume=model.getVolumeUnits() if model.isSetVolumeUnits() else None,
     )
+
+    # function definitions
+    fd: libsbml.FunctionDefinition
+    for fd in model.getListOfFunctionDefinitions():
+        ast = fd.getMath() if fd.isSetMath() else None
+        formula = libsbml.formulaToL3String(ast) if ast else None
+        if formula:
+            m.functions.append(Function(value=formula, **parse_sbase_kwargs(fd)))
 
     p: libsbml.Parameter
     for p in model.getListOfParameters():
