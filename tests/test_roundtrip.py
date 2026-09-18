@@ -323,3 +323,54 @@ def test_roundtrip_function_definitions(case: str, tmp_path: Path) -> None:
     context must refer to a function definition`, in 48 of 150 cases.
     """
     assert_roundtrip_simulates_equal(testsuite_case(case), tmp_path)
+
+
+def test_roundtrip_core_model_declares_no_fbc(tmp_path: Path) -> None:
+    """Test that a core only model does not gain the fbc package.
+
+    `parser.py` hardcoded `m.packages = [Package.FBC_V3]`, so every parsed
+    model came back declaring xmlns:fbc and fbc:strict.
+    """
+    model = sbml_to_model(testsuite_case("00001"))
+    roundtrip_path = tmp_path / "roundtrip.xml"
+    create_model(
+        model=model,
+        filepath=roundtrip_path,
+        sbml_level=3,
+        sbml_version=2,
+        validation_options=ValidationOptions(units_consistency=False),
+    )
+
+    assert "fbc" not in roundtrip_path.read_text()
+
+
+def test_roundtrip_invents_no_nan(tmp_path: Path) -> None:
+    """Test that an unset size or value is not written as NaN."""
+    model = sbml_to_model(testsuite_case("00001"))
+    roundtrip_path = tmp_path / "roundtrip.xml"
+    create_model(
+        model=model,
+        filepath=roundtrip_path,
+        sbml_level=3,
+        sbml_version=2,
+        validation_options=ValidationOptions(units_consistency=False),
+    )
+
+    assert "NaN" not in roundtrip_path.read_text()
+
+
+#: cases whose species carry a conversionFactor
+#
+# "01000" also declares a conversionFactor but is excluded here: it additionally
+# exercises event priority, persistence and delay plus an avogadro csymbol and a
+# local parameter shadowing a global one, none of which parser.py or factory.py
+# support yet, so it fails the trajectory comparison for reasons unrelated to
+# conversionFactor.
+CASES_CONVERSION_FACTOR: list[str] = ["00976", "00977"]
+
+
+@requires_roadrunner
+@pytest.mark.parametrize("case", CASES_CONVERSION_FACTOR)
+def test_roundtrip_conversion_factor(case: str, tmp_path: Path) -> None:
+    """Test that a species conversionFactor survives a round trip."""
+    assert_roundtrip_simulates_equal(testsuite_case(case), tmp_path)

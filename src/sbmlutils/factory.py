@@ -22,6 +22,7 @@ import datetime
 import inspect
 import json
 import logging
+import math
 from collections import namedtuple
 from collections.abc import Iterable, Iterator, Sequence
 from contextlib import contextmanager
@@ -1293,8 +1294,8 @@ class Parameter(ValueWithUnit):
         obj: libsbml.Parameter = model.createParameter()
         self._set_fields(obj, model)
         if self.value is None:
-            obj.setValue(np.nan)
-
+            # an unset value stays unset, it is not invented as NaN
+            pass
         elif type(self.value) is str:
             try:
                 # check if number
@@ -1308,6 +1309,9 @@ class Parameter(ValueWithUnit):
                     InitialAssignment(self.sid, self.value).create_sbml(model)
                 else:
                     AssignmentRule(self.sid, self.value).create_sbml(model)
+        elif isinstance(self.value, float) and math.isnan(self.value):
+            # a NaN sentinel is treated the same as an unset value
+            pass
         else:
             # numerical value
             obj.setValue(float(self.value))
@@ -1330,10 +1334,10 @@ class Compartment(ValueWithUnit):
     def __init__(
         self,
         sid: str,
-        value: str | float,
+        value: str | float | None,
         unit: UnitType = None,
         constant: bool = True,
-        spatialDimensions: float = 3,
+        spatialDimensions: float | None = None,
         name: str | None = None,
         sboTerm: str | None = None,
         metaId: str | None = None,
@@ -1368,7 +1372,8 @@ class Compartment(ValueWithUnit):
         self._set_fields(obj, model)
 
         if self.value is None:
-            obj.setSize(np.nan)
+            # an unset size stays unset, it is not invented as NaN
+            pass
         elif type(self.value) is str:
             try:
                 # check if number
@@ -1382,6 +1387,9 @@ class Compartment(ValueWithUnit):
                     InitialAssignment(self.sid, self.value).create_sbml(model)
                 else:
                     AssignmentRule(self.sid, self.value).create_sbml(model)
+        elif isinstance(self.value, float) and math.isnan(self.value):
+            # a NaN sentinel is treated the same as an unset value
+            pass
         else:
             obj.setSize(float(self.value))
 
@@ -1392,7 +1400,11 @@ class Compartment(ValueWithUnit):
         """Set fields on Compartment."""
         super()._set_fields(sbase, model)
         sbase.setConstant(self.constant)
-        sbase.setSpatialDimensions(self.spatialDimensions)
+        if self.spatialDimensions is not None:
+            check(
+                sbase.setSpatialDimensions(self.spatialDimensions),
+                f"Set spatialDimensions on '{self.sid}'",
+            )
 
 
 class Species(Sbase):
@@ -2092,8 +2104,8 @@ class Event(Sbase):
             ast_delay = libsbml.parseL3FormulaWithModel(self.delay, model)
             sbase.setDelay(ast_delay)
 
-        for key, math in self.assignments.items():
-            ast_assign = libsbml.parseL3FormulaWithModel(str(math), model)
+        for key, assignment_math in self.assignments.items():
+            ast_assign = libsbml.parseL3FormulaWithModel(str(assignment_math), model)
             ea = sbase.createEventAssignment()
             ea.setVariable(key)
             ea.setMath(ast_assign)
@@ -3294,6 +3306,7 @@ class ModelDict(TypedDict, total=False):
     packages: list[Package] | None
     creators: list[Creator] | None
     model_units: ModelUnits | None
+    conversionFactor: str | None
     objects: list[Sbase] | None
 
     units: type[Units] | list[UnitDefinition] | None
@@ -3343,6 +3356,7 @@ class Model(Sbase, FrozenClass, BaseModel):
     packages: list[Package]
     creators: list[Creator]
     model_units: ModelUnits | None
+    conversionFactor: str | None
     units: list[UnitDefinition]
     functions: list[Function]
     compartments: list[Compartment]
@@ -3382,6 +3396,7 @@ class Model(Sbase, FrozenClass, BaseModel):
         "packages": list,
         "creators": None,
         "model_units": None,
+        "conversionFactor": None,
         # `units` is a list on the Model, but it must not be marked as one
         # here: `merge_models` merges the units in its own branch, deduplicated
         # by unit id. Marking it a `list` would extend the lists of the merged
@@ -3440,6 +3455,7 @@ class Model(Sbase, FrozenClass, BaseModel):
         packages: list[Package] | None = None,
         creators: list[Creator] | None = None,
         model_units: ModelUnits | None = None,
+        conversionFactor: str | None = None,
         units: type[Units] | list[UnitDefinition] | None = None,
         objects: list[Sbase] | None = None,
         external_model_definitions: list[ExternalModelDefinition] | None = None,
@@ -3479,6 +3495,7 @@ class Model(Sbase, FrozenClass, BaseModel):
 
         self.creators = creators if creators else []
         self.model_units = model_units
+        self.conversionFactor = conversionFactor
         self.units = Model._normalize_units(units)
         self.units_dict = None
         self.external_model_definitions = (
@@ -3615,7 +3632,14 @@ class Model(Sbase, FrozenClass, BaseModel):
 
         # history
         if self.creators:
-            set_model_history(model, self.creators)
+            set_model_history(model, self.creators, set_timestamps=False)
+
+        # conversion factor
+        if self.conversionFactor is not None:
+            check(
+                model.setConversionFactor(self.conversionFactor),
+                f"Set conversionFactor on model '{self.sid}'",
+            )
 
         # units
         for udef in self.units:
@@ -3704,7 +3728,14 @@ class Model(Sbase, FrozenClass, BaseModel):
                     f"but package '{p}' found."
                 )
 
-        # add comp as default package
+        # `Model` authors commonly request a comp port with the `port=True`
+        # shorthand on an individual element (see `Sbase.create_port`) rather
+        # than by populating `ports`/`submodels`/etc., so there is no reliable
+        # way to detect comp usage from the constructor arguments alone;
+        # comp is therefore always declared for a hand-authored model. A
+        # parsed model does not go through this default: `sbmlutils.parser`
+        # overwrites `Model.packages` outright with the packages the source
+        # document actually declared, see `_packages_of_document`.
         packages_set.add(Package.COMP_V1)
 
         return list(packages_set)

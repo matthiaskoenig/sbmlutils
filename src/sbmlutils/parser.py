@@ -22,7 +22,6 @@ from sbmlutils.factory import (
     KeyValuePair,
     Model,
     ModelUnits,
-    NaN,
     Package,
     Parameter,
     RateRule,
@@ -91,6 +90,33 @@ def antimony_to_model(
 
 
 # TODO: validation & validation options
+
+#: the package prefix of a document mapped to the `Package` of sbmlutils
+_PACKAGE_FOR_PREFIX: dict[str, Package] = {
+    "comp": Package.COMP_V1,
+    "distrib": Package.DISTRIB_V1,
+}
+
+
+def _packages_of_document(doc: libsbml.SBMLDocument) -> list[Package]:
+    """Determine the SBML packages a document declares.
+
+    Args:
+        doc: the SBMLDocument to inspect
+
+    Returns:
+        the packages of the document which sbmlutils supports
+    """
+    packages: list[Package] = []
+    for k in range(doc.getNumPlugins()):
+        plugin: libsbml.SBasePlugin = doc.getPlugin(k)
+        prefix: str = plugin.getPrefix()
+        if prefix == "fbc":
+            version: int = plugin.getPackageVersion()
+            packages.append(Package.FBC_V3 if version >= 3 else Package.FBC_V2)
+        elif prefix in _PACKAGE_FOR_PREFIX:
+            packages.append(_PACKAGE_FOR_PREFIX[prefix])
+    return packages
 
 
 def sbml_to_model(
@@ -181,6 +207,31 @@ def sbml_to_model(
         kwargs.pop("uncertainties", None)
         return kwargs
 
+    def parse_variable_kwargs(sbase: libsbml.SBase) -> dict[str, Any]:
+        """Parse SBase information of a Rule, InitialAssignment or similar.
+
+        libsbml aliases `getId`/`isSetId` to the `variable`/`symbol` attribute
+        on rules and initial assignments, so `parse_sbase_kwargs`'s `sid` is
+        not the real id: it reports the variable name whether or not the
+        source XML actually carried an id attribute. Passing it through would
+        resurrect it as a real, separately-declared SId on the round trip,
+        which then collides with the variable's own element (a compartment,
+        species or parameter of that same id). `isSetIdAttribute` is the
+        accessor which reflects the actual L3 core `id` attribute.
+
+        Args:
+            sbase: the libsbml Rule, InitialAssignment or AlgebraicRule to
+                parse
+
+        Returns:
+            the kwargs accepted by the corresponding `Sbase` subclass, with
+            `sid` removed unless the source really set an id
+        """
+        kwargs = parse_sbase_kwargs(sbase)
+        if not sbase.isSetIdAttribute():
+            kwargs.pop("sid", None)
+        return kwargs
+
     if not model:
         logger.error("No model in SBMLDocument.")
 
@@ -188,8 +239,10 @@ def sbml_to_model(
     # a parsed model carries whatever the source file had, so the authoring
     # hints of `Sbase._set_fields` are noise when it is written back out
     m.parsed = True
-    # FIXME: parse packages
-    m.packages = [Package.FBC_V3]
+    m.packages = _packages_of_document(doc)
+    m.conversionFactor = (
+        model.getConversionFactor() if model.isSetConversionFactor() else None
+    )
 
     # unit definitions
     udef: libsbml.UnitDefinition
@@ -231,7 +284,7 @@ def sbml_to_model(
         # print(d)
         m.parameters.append(
             Parameter(
-                value=p.getValue() if p.isSetValue else None,
+                value=p.getValue() if p.isSetValue() else None,
                 unit=p.getUnits() if p.isSetUnits() else None,
                 constant=p.getConstant() if p.isSetConstant() else True,
                 **d,
@@ -242,10 +295,10 @@ def sbml_to_model(
     for c in model.getListOfCompartments():
         m.compartments.append(
             Compartment(
-                value=c.getSize() if c.isSetSize() else NaN,
+                value=c.getSize() if c.isSetSize() else None,
                 constant=c.getConstant() if c.isSetConstant() else True,
                 spatialDimensions=(
-                    c.getSpatialDimensions() if c.isSetSpatialDimensions() else 3
+                    c.getSpatialDimensions() if c.isSetSpatialDimensions() else None
                 ),
                 unit=c.getUnits() if c.isSetUnits() else None,
                 **parse_sbase_kwargs(c),
@@ -274,6 +327,9 @@ def sbml_to_model(
                 ),
                 substanceUnit=(
                     s.getSubstanceUnits() if s.isSetSubstanceUnits() else None
+                ),
+                conversionFactor=(
+                    s.getConversionFactor() if s.isSetConversionFactor() else None
                 ),
                 **parse_sbase_kwargs(s),
             )
@@ -349,7 +405,7 @@ def sbml_to_model(
                 InitialAssignment(
                     symbol=ia.getSymbol(),
                     value=formula,
-                    **parse_sbase_kwargs(ia),
+                    **parse_variable_kwargs(ia),
                 )
             )
 
@@ -365,7 +421,7 @@ def sbml_to_model(
                     AssignmentRule(
                         variable=rule.getVariable(),
                         value=formula,
-                        **parse_sbase_kwargs(rule),
+                        **parse_variable_kwargs(rule),
                     )
                 )
             elif typecode == libsbml.SBML_RATE_RULE:
@@ -373,12 +429,12 @@ def sbml_to_model(
                     RateRule(
                         variable=rule.getVariable(),
                         value=formula,
-                        **parse_sbase_kwargs(rule),
+                        **parse_variable_kwargs(rule),
                     )
                 )
             elif typecode == libsbml.SBML_ALGEBRAIC_RULE:
                 m.algebraic_rules.append(
-                    AlgebraicRule(value=formula, **parse_sbase_kwargs(rule))
+                    AlgebraicRule(value=formula, **parse_variable_kwargs(rule))
                 )
 
     # events
