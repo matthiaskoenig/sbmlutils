@@ -1,4 +1,4 @@
-"""Testing the biomodels module."""
+"""Test parsing the models of the SBML test suite."""
 
 from pathlib import Path
 
@@ -8,7 +8,8 @@ from sbmlutils.parser import sbml_to_model
 from sbmlutils.resources import SBML_TESTSUITE_DIR
 from sbmlutils.validation import ValidationOptions
 
-sbml_paths = Path(SBML_TESTSUITE_DIR).glob("**/*.xml")
+#: a list, pytest deprecates parametrizing over a generator
+sbml_paths = sorted(Path(SBML_TESTSUITE_DIR).glob("**/*.xml"))
 
 
 def sbml_paths_idfn(sbml_path: Path) -> str:
