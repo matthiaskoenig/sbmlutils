@@ -85,6 +85,7 @@ __all__ = [
     "Deletion",
     "Document",
     "Event",
+    "EventAssignment",
     "ExchangeReaction",
     "ExternalModelDefinition",
     "FactoryResult",
@@ -555,7 +556,15 @@ class Sbase:
         if self.name is not None:
             sbase.setName(self.name)
         elif Sbase._authoring_hints and not isinstance(
-            self, (Document, Port, ReplacedBy, ReplacedElement, AssignmentRule)
+            self,
+            (
+                Document,
+                Port,
+                ReplacedBy,
+                ReplacedElement,
+                AssignmentRule,
+                EventAssignment,
+            ),
         ):
             logger.warning("'name' should be set on '%s'", self)
         if self.sboTerm is not None:
@@ -579,6 +588,7 @@ class Sbase:
                 RateRule,
                 ExternalModelDefinition,
                 Submodel,
+                EventAssignment,
             ),
         ):
             logger.warning("'sboTerm' should be set on '%s'", self)
@@ -2195,6 +2205,114 @@ class Reaction(Sbase):
         sbase.setFast(self.fast)
 
 
+class EventAssignment(Value):
+    """EventAssignment of an Event.
+
+    Assigns the value of the expression to the variable when the event fires.
+    """
+
+    def __init__(
+        self,
+        variable: str,
+        value: str | float,
+        sid: str | None = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
+        annotations: OptionalAnnotationsType = None,
+        notes: str | Notes | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
+        port: Any = None,
+        uncertainties: list[Uncertainty] | None = None,
+        replacedBy: Any | None = None,
+    ):
+        """Construct an EventAssignment.
+
+        Args:
+            variable: the id of the element the assignment applies to
+            value: the assigned expression, as an SBML L3 formula string
+            sid: optional SId; `libsbml.EventAssignment` only gained a real,
+                separate `id` attribute in SBML L3V2, and only from L3V2
+                onward is it distinct from `variable` (see `_set_fields`
+                docstring for the L3V1 behaviour)
+            name: optional SBML name
+            sboTerm: optional SBO term
+            metaId: optional SBML metaid
+            annotations: optional RDF annotations
+            notes: optional notes, as markdown, XHTML or a `Notes` object
+            keyValuePairs: optional key-value pairs
+            port: optional comp port
+            uncertainties: optional distrib uncertainties
+            replacedBy: optional comp replacement
+        """
+        super().__init__(
+            sid=sid,
+            value=value,
+            name=name,
+            sboTerm=sboTerm,
+            metaId=metaId,
+            annotations=annotations,
+            notes=notes,
+            keyValuePairs=keyValuePairs,
+            port=port,
+            uncertainties=uncertainties,
+            replacedBy=replacedBy,
+        )
+        self.variable = variable
+
+    def __repr__(self) -> str:
+        """Get string representation."""
+        return f"EventAssignment({self.variable} = {self.value})"
+
+    def create_sbml(
+        self, event: libsbml.Event, model: libsbml.Model
+    ) -> libsbml.EventAssignment:
+        """Create the libsbml.EventAssignment on the given event.
+
+        Args:
+            event: the libsbml.Event the assignment belongs to
+            model: the libsbml.Model, used to resolve ids in the expression
+
+        Returns:
+            the created libsbml.EventAssignment
+        """
+        ea: libsbml.EventAssignment = event.createEventAssignment()
+        self._set_fields(ea, model)
+        check(ea.setVariable(self.variable), f"Set variable '{self.variable}'")
+        ast_node = libsbml.parseL3FormulaWithModel(str(self.value), model)
+        if ast_node is None:
+            logger.error(
+                "Event assignment math could not be parsed: '%s', %s",
+                self.value,
+                libsbml.getLastParseL3Error(),
+            )
+        else:
+            check(ea.setMath(ast_node), f"Set math on '{self.variable}'")
+        return ea
+
+    def _set_fields(self, sbase: libsbml.EventAssignment, model: libsbml.Model) -> None:
+        """Set fields on libsbml.EventAssignment.
+
+        No override of the id handling is needed here: `SBML_EVENT_ASSIGNMENT`
+        is already in `Sbase._ID_ATTRIBUTE_TYPECODES`, so `Sbase._set_fields`
+        already routes `self.sid` through `setIdAttribute` rather than
+        `setId`, and `setIdAttribute` never touches `variable`. Verified
+        against live libsbml: on an L3V1 object `setIdAttribute` returns
+        success but writes nothing (`EventAssignment` has no `id` attribute
+        before L3V2, so it is silently dropped, exactly the "silently
+        skipped on an older level/version" behaviour `KineticLaw` documents);
+        on L3V2+ it writes a real, separately-serialized `id` distinct from
+        `variable`. Nulling `self.sid` unconditionally, as an earlier draft
+        of this method did, would have thrown away that L3V2 case for no
+        benefit.
+
+        Args:
+            sbase: the libsbml.EventAssignment created by `create_sbml`
+            model: the libsbml.Model the event assignment belongs to
+        """
+        super()._set_fields(sbase, model)
+
+
 class Event(Sbase):
     """Event.
 
@@ -2209,7 +2327,7 @@ class Event(Sbase):
         self,
         sid: str,
         trigger: str,
-        assignments: dict[str, str | float] | None = None,
+        assignments: dict[str, str | float] | list[EventAssignment] | None = None,
         trigger_persistent: bool = True,
         trigger_initialValue: bool = False,
         useValuesFromTriggerTime: bool = True,
@@ -2240,18 +2358,39 @@ class Event(Sbase):
         )
 
         self.trigger = trigger
-        self.assignments = assignments if assignments else {}
-        if type(assignments) is not dict:
-            logger.warning(
-                "Event assignment must be dict with sid: assignment, but: '%s'",
-                type(assignments),
-            )
+        self.assignments = Event._process_assignments(assignments)
         self.trigger_persistent = trigger_persistent
         self.trigger_initialValue = trigger_initialValue
         self.useValuesFromTriggerTime = useValuesFromTriggerTime
 
         self.priority = priority
         self.delay = delay
+
+    @staticmethod
+    def _process_assignments(
+        assignments: dict[str, str | float] | list[EventAssignment] | None,
+    ) -> list[EventAssignment]:
+        """Normalize the event assignments to a list.
+
+        A model definition writes the assignments as a `{variable:
+        expression}` dict, which is the documented authoring style; the
+        parser passes a list of `EventAssignment`, which carry their own
+        metaId, sboTerm and annotations.
+
+        Args:
+            assignments: the assignments as a dict or a list
+
+        Returns:
+            the event assignments as `EventAssignment` objects
+        """
+        if assignments is None:
+            return []
+        if isinstance(assignments, dict):
+            return [
+                EventAssignment(variable=variable, value=value)
+                for variable, value in assignments.items()
+            ]
+        return list(assignments)
 
     def create_sbml(self, model: libsbml.Model) -> libsbml.Event:
         """Create Event SBML in model."""
@@ -2264,7 +2403,10 @@ class Event(Sbase):
         """Set fields in libsbml.Event."""
         super()._set_fields(sbase, model)
 
-        sbase.setUseValuesFromTriggerTime(True)
+        check(
+            sbase.setUseValuesFromTriggerTime(self.useValuesFromTriggerTime),
+            f"Set useValuesFromTriggerTime on '{self.sid}'",
+        )
         t = sbase.createTrigger()
         t.setInitialValue(
             self.trigger_initialValue
@@ -2283,13 +2425,11 @@ class Event(Sbase):
 
         if self.delay is not None:
             ast_delay = libsbml.parseL3FormulaWithModel(self.delay, model)
-            sbase.setDelay(ast_delay)
+            delay: libsbml.Delay = sbase.createDelay()
+            delay.setMath(ast_delay)
 
-        for key, assignment_math in self.assignments.items():
-            ast_assign = libsbml.parseL3FormulaWithModel(str(assignment_math), model)
-            ea = sbase.createEventAssignment()
-            ea.setVariable(key)
-            ea.setMath(ast_assign)
+        for assignment in self.assignments:
+            assignment.create_sbml(sbase, model)
 
     @staticmethod
     def _trigger_from_time(t: float) -> str:

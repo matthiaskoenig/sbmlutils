@@ -366,19 +366,24 @@ def test_roundtrip_invents_no_nan(tmp_path: Path) -> None:
 
 
 #: cases whose species carry a conversionFactor
-#
-# "01000" also declares a conversionFactor but is excluded here: it additionally
-# exercises event priority, persistence and delay plus an avogadro csymbol and a
-# local parameter shadowing a global one, none of which parser.py or factory.py
-# support yet, so it fails the trajectory comparison for reasons unrelated to
-# conversionFactor.
-CASES_CONVERSION_FACTOR: list[str] = ["00976", "00977"]
+CASES_CONVERSION_FACTOR: list[str] = ["00976", "00977", "01000"]
 
 
 @requires_roadrunner
 @pytest.mark.parametrize("case", CASES_CONVERSION_FACTOR)
 def test_roundtrip_conversion_factor(case: str, tmp_path: Path) -> None:
     """Test that a species conversionFactor survives a round trip."""
+    assert_roundtrip_simulates_equal(testsuite_case(case), tmp_path)
+
+
+#: cases which use events
+CASES_EVENTS: list[str] = ["00026", "00041", "00071", "00072", "00073", "00074"]
+
+
+@requires_roadrunner
+@pytest.mark.parametrize("case", CASES_EVENTS)
+def test_roundtrip_events(case: str, tmp_path: Path) -> None:
+    """Test that events survive a round trip."""
     assert_roundtrip_simulates_equal(testsuite_case(case), tmp_path)
 
 

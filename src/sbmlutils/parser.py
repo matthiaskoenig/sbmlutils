@@ -17,6 +17,8 @@ from sbmlutils.factory import (
     AlgebraicRule,
     AssignmentRule,
     Compartment,
+    Event,
+    EventAssignment,
     Function,
     InitialAssignment,
     KeyValuePair,
@@ -213,17 +215,18 @@ def sbml_to_model(
         """Parse SBase information of a Rule, InitialAssignment or similar.
 
         libsbml aliases `getId`/`isSetId` to the `variable`/`symbol` attribute
-        on rules and initial assignments, so `parse_sbase_kwargs`'s `sid` is
-        not the real id: it reports the variable name whether or not the
-        source XML actually carried an id attribute. Passing it through would
-        resurrect it as a real, separately-declared SId on the round trip,
-        which then collides with the variable's own element (a compartment,
-        species or parameter of that same id). `isSetIdAttribute` is the
-        accessor which reflects the actual L3 core `id` attribute.
+        on rules and initial assignments, and to the `variable` attribute on
+        an event assignment, so `parse_sbase_kwargs`'s `sid` is not the real
+        id: it reports the variable name whether or not the source XML
+        actually carried an id attribute. Passing it through would resurrect
+        it as a real, separately-declared SId on the round trip, which then
+        collides with the variable's own element (a compartment, species or
+        parameter of that same id). `isSetIdAttribute` is the accessor which
+        reflects the actual L3 core `id` attribute.
 
         Args:
-            sbase: the libsbml Rule, InitialAssignment or AlgebraicRule to
-                parse
+            sbase: the libsbml Rule, InitialAssignment, AlgebraicRule or
+                EventAssignment to parse
 
         Returns:
             the kwargs accepted by the corresponding `Sbase` subclass, with
@@ -458,6 +461,69 @@ def sbml_to_model(
                 )
 
     # events
+    k: int
+    e: libsbml.Event
+    for k, e in enumerate(model.getListOfEvents()):
+        trigger: libsbml.Trigger | None = e.getTrigger() if e.isSetTrigger() else None
+        if trigger is None or not trigger.isSetMath():
+            logger.error("Event '%s' has no trigger, it is skipped.", e.getId())
+            continue
+
+        assignments: list[EventAssignment] = []
+        ea: libsbml.EventAssignment
+        for ea in e.getListOfEventAssignments():
+            ast = ea.getMath() if ea.isSetMath() else None
+            value = libsbml.formulaToL3String(ast) if ast else None
+            if value is not None:
+                assignments.append(
+                    EventAssignment(
+                        variable=ea.getVariable(),
+                        value=value,
+                        **parse_variable_kwargs(ea),
+                    )
+                )
+
+        priority_ast = (
+            e.getPriority().getMath()
+            if e.isSetPriority() and e.getPriority().isSetMath()
+            else None
+        )
+        delay_ast = (
+            e.getDelay().getMath()
+            if e.isSetDelay() and e.getDelay().isSetMath()
+            else None
+        )
+
+        event_kwargs = parse_sbase_kwargs(e)
+        if event_kwargs["sid"] is None:
+            # `Event.__init__` requires `sid` as a `str`; the SBML L2/L3
+            # event id is in practice always set, but is formally optional,
+            # so a deterministic fallback stands in for a missing one rather
+            # than raising.
+            event_kwargs["sid"] = f"event{k}"
+        m.events.append(
+            Event(
+                trigger=libsbml.formulaToL3String(trigger.getMath()),
+                assignments=assignments,
+                trigger_persistent=(
+                    trigger.getPersistent() if trigger.isSetPersistent() else True
+                ),
+                trigger_initialValue=(
+                    trigger.getInitialValue() if trigger.isSetInitialValue() else True
+                ),
+                useValuesFromTriggerTime=(
+                    e.getUseValuesFromTriggerTime()
+                    if e.isSetUseValuesFromTriggerTime()
+                    else True
+                ),
+                priority=(
+                    libsbml.formulaToL3String(priority_ast) if priority_ast else None
+                ),
+                delay=libsbml.formulaToL3String(delay_ast) if delay_ast else None,
+                **event_kwargs,
+            )
+        )
+
     # constraints
 
     # FIXME:

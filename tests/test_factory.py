@@ -468,3 +468,47 @@ def test_kinetic_law_id_written_from_l3v2() -> None:
     assert klaw.isSetId()
     assert klaw.getId() == "kl1"
     del doc
+
+
+def test_event_use_values_from_trigger_time_is_honoured() -> None:
+    """Test that useValuesFromTriggerTime is written.
+
+    `_set_fields` called `setUseValuesFromTriggerTime(True)` unconditionally,
+    discarding the constructor argument, which changes simulation results.
+    """
+    doc = libsbml.SBMLDocument(3, 2)
+    model = doc.createModel()
+    event = Event(
+        "e1",
+        trigger="time >= 10",
+        assignments={"S1": 5.0},
+        useValuesFromTriggerTime=False,
+    )
+    event.create_sbml(model)
+
+    assert model.getEvent("e1").getUseValuesFromTriggerTime() is False
+
+
+def test_event_assignments_accept_a_dict() -> None:
+    """Test that the dict authoring style still works."""
+    event = Event("e1", trigger="time >= 10", assignments={"S1": 5.0})
+    assert len(event.assignments) == 1
+    assert event.assignments[0].variable == "S1"
+    assert event.assignments[0].value == 5.0
+
+
+def test_event_assignments_keep_sbase_fields() -> None:
+    """Test that an EventAssignment carries its own metaId and sboTerm."""
+    doc = libsbml.SBMLDocument(3, 2)
+    model = doc.createModel()
+    event = Event(
+        "e1",
+        trigger="time >= 10",
+        assignments=[EventAssignment("S1", 5.0, metaId="ea1", sboTerm="SBO:0000064")],
+    )
+    event.create_sbml(model)
+
+    ea = model.getEvent("e1").getEventAssignment(0)
+    assert ea.getVariable() == "S1"
+    assert ea.getMetaId() == "ea1"
+    assert ea.getSBOTermID() == "SBO:0000064"
