@@ -624,8 +624,19 @@ def _parse_model_body(model: libsbml.Model, m: Model) -> None:
     Args:
         model: the libsbml.Model, or libsbml.ModelDefinition, to parse
         m: the `Model` to populate; already constructed, with its own
-            `Sbase` fields, `parsed`, `packages` and `conversionFactor` set
+            `Sbase` fields set. `packages` is the only field of a model which
+            is not parsed here, since a package is declared on the `<sbml>`
+            element of the document and not on a model, see `sbml_to_model`
     """
+    # a parsed model carries whatever the source file had, so the authoring
+    # hints of `Sbase._set_fields` are noise when it is written back out
+    m.parsed = True
+
+    # conversion factor
+    m.conversionFactor = (
+        model.getConversionFactor() if model.isSetConversionFactor() else None
+    )
+
     # unit definitions
     udef: libsbml.UnitDefinition
     for udef in model.getListOfUnitDefinitions():
@@ -1022,13 +1033,11 @@ def sbml_to_model(
         logger.error("No model in SBMLDocument.")
 
     m = Model(**_drop_uncertainties(_parse_sbase_kwargs(model), model))
-    # a parsed model carries whatever the source file had, so the authoring
-    # hints of `Sbase._set_fields` are noise when it is written back out
-    m.parsed = True
+    # the packages are declared on the `<sbml>` element, so they belong to the
+    # document rather than to one of its models; everything which is per model
+    # is parsed by `_parse_model_body`, which the model definitions of the
+    # document go through as well
     m.packages = _packages_of_document(doc)
-    m.conversionFactor = (
-        model.getConversionFactor() if model.isSetConversionFactor() else None
-    )
 
     _parse_model_body(model, m)
 
