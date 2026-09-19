@@ -948,6 +948,247 @@ def test_nested_elements_log_no_authoring_hints(
     del doc
 
 
+@pytest.mark.parametrize(
+    "flag, value, attribute, getter",
+    [
+        ("trigger_persistent", False, "persistent", "getPersistent"),
+        ("trigger_initialValue", True, "initialValue", "getInitialValue"),
+    ],
+)
+def test_event_trigger_flag_set_after_construction(
+    flag: str, value: bool, attribute: str, getter: str
+) -> None:
+    """Test that a trigger flag set on the event after construction is written.
+
+    `trigger_persistent` and `trigger_initialValue` were attributes of the
+    event in 0.10, which a model definition could set after construction.
+    They read and set the flags of `event.trigger`; a plain attribute would be
+    ignored silently, and the event would fire at a different time.
+    """
+    event = Event("e1", trigger="time >= 10", assignments={"p1": 1.0})
+    setattr(event, flag, value)
+    assert getattr(event, flag) is value
+    assert getattr(event.trigger, attribute) is value
+
+    doc, model = _event_test_model(2)
+    event.create_sbml(model)
+    trigger: libsbml.Trigger = model.getEvent("e1").getTrigger()
+    assert getattr(trigger, getter)() is value
+    del doc
+
+
+def test_event_trigger_flag_set_without_a_trigger_warns(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that a trigger flag set on an event without a trigger is logged.
+
+    There is no trigger the flag could be set on, so it is not applied, and
+    the warning says so instead of letting it vanish.
+    """
+    event = Event("e1", trigger=None)
+    with caplog.at_level("WARNING", logger="sbmlutils.factory"):
+        event.trigger_persistent = False
+        event.trigger_initialValue = True
+
+    assert event.trigger is None
+    assert event.trigger_persistent is None
+    assert event.trigger_initialValue is None
+    assert "trigger_persistent" in caplog.text
+    assert "trigger_initialValue" in caplog.text
+
+
+@pytest.mark.parametrize(
+    "element, value, expected",
+    [
+        ("trigger", "time >= 20", "time >= 20"),
+        ("priority", "2", "2"),
+        ("delay", "3", "3"),
+        ("priority", 2, "2"),
+        ("delay", 3.5, "3.5"),
+    ],
+)
+def test_event_child_assigned_after_construction(
+    element: str, value: str | float, expected: str
+) -> None:
+    """Test that math assigned after construction is normalized and written.
+
+    In 0.10 `event.trigger = "time >= 20"` set a formula string. Assigned
+    after construction, a formula string or a number is normalized into the
+    object as it is by the constructor, rather than failing when the event is
+    written.
+    """
+    event = Event(
+        "e1", trigger="time >= 10", priority="1", delay="2", assignments={"p1": 1.0}
+    )
+    setattr(event, element, value)
+    classes: dict[str, type[factory.Sbase]] = {
+        "trigger": Trigger,
+        "priority": Priority,
+        "delay": Delay,
+    }
+    assert isinstance(getattr(event, element), classes[element])
+
+    doc, model = _event_test_model(2)
+    event.create_sbml(model)
+    child: Any = getattr(model.getEvent("e1"), f"get{element.title()}")()
+    assert libsbml.formulaToL3String(child.getMath()) == expected
+    del doc
+
+
+def test_event_trigger_assigned_after_construction_keeps_its_flags() -> None:
+    """Test that a trigger string assigned after construction keeps the flags.
+
+    In 0.10 the flags were attributes of the event, which a new trigger string
+    did not change, so the `Trigger` created from it takes the `persistent`
+    and `initialValue` of the trigger it replaces.
+    """
+    event = Event(
+        "e1",
+        trigger="time >= 10",
+        trigger_persistent=False,
+        trigger_initialValue=True,
+    )
+    event.trigger = "time >= 20"
+
+    assert isinstance(event.trigger, Trigger)
+    assert event.trigger.math == "time >= 20"
+    assert event.trigger.persistent is False
+    assert event.trigger.initialValue is True
+
+
+@pytest.mark.parametrize(
+    "element, value, cls, math",
+    [
+        ("trigger", 1, Trigger, "1"),
+        ("priority", 1, Priority, "1"),
+        ("delay", 2.5, Delay, "2.5"),
+        ("delay", np.float64(0.5), Delay, "0.5"),
+    ],
+)
+def test_event_numbers_are_normalized(
+    element: str, value: float, cls: type[factory.Sbase], math: str
+) -> None:
+    """Test that a number given for a trigger, priority or delay is math.
+
+    `Delay(5)` worked, `Event(delay=5)` failed when the event was written,
+    since only a string was normalized into the object.
+    """
+    kwargs: dict[str, Any] = {"trigger": "time >= 10", element: value}
+    event = Event("e1", assignments={"p1": 1.0}, **kwargs)
+    child = getattr(event, element)
+    assert isinstance(child, cls)
+    assert child.math == math
+
+    doc, model = _event_test_model(2)
+    event.create_sbml(model)
+    sbml_child: Any = getattr(model.getEvent("e1"), f"get{element.title()}")()
+    assert libsbml.formulaToL3String(sbml_child.getMath()) == math
+    del doc
+
+
+@pytest.mark.parametrize("value", [True, [2.0]], ids=["bool", "list"])
+def test_event_child_of_another_type_raises(value: Any) -> None:
+    """Test that a value which is no math is rejected when it is given.
+
+    A bool in particular is not converted: `str(True)` is the id `True`, not
+    the constant `true`.
+    """
+    with pytest.raises(TypeError, match="delay"):
+        Event("e1", trigger="time >= 10", delay=value)
+
+    event = Event("e1", trigger="time >= 10")
+    with pytest.raises(TypeError, match="delay"):
+        event.delay = value
+
+
+def _l2_event_test_model() -> tuple[libsbml.SBMLDocument, libsbml.Model]:
+    """Build an SBML L2V4 model with the non-constant parameter 'p1'.
+
+    Returns:
+        the document and its model; the caller holds the document for as long
+        as it uses the model
+    """
+    doc = libsbml.SBMLDocument(2, 4)
+    model: libsbml.Model = doc.createModel()
+    p1: libsbml.Parameter = model.createParameter()
+    p1.setId("p1")
+    p1.setValue(0.0)
+    p1.setConstant(False)
+    return doc, model
+
+
+def test_event_written_at_l2_logs_no_error(caplog: pytest.LogCaptureFixture) -> None:
+    """Test that an event written at SBML L2 logs no error.
+
+    The `initialValue` and `persistent` of a trigger only exist from SBML L3
+    on; setting them on an L2 trigger fails, which was logged as four errors
+    for every event, although the caller cannot change anything about it.
+    """
+    doc, model = _l2_event_test_model()
+    with caplog.at_level("WARNING", logger="sbmlutils"):
+        Event(
+            "e1",
+            trigger="time >= 10",
+            delay="2",
+            assignments={"p1": 1.0},
+            name="e1",
+            sboTerm="SBO:0000231",
+        ).create_sbml(model)
+
+    event: libsbml.Event = model.getEvent("e1")
+    assert event.getTrigger().isSetMath()
+    assert event.getDelay().isSetMath()
+    assert not any(record.levelname == "ERROR" for record in caplog.records), [
+        r.getMessage() for r in caplog.records if r.levelname == "ERROR"
+    ]
+    del doc
+
+
+def test_event_priority_at_l2_is_logged_and_not_written(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that a priority written at SBML L2 is logged as an error.
+
+    A priority only exists from SBML L3 on, libsbml creates none on an L2
+    event. Writing one raised an `AttributeError`; it is logged instead, and
+    the rest of the event is written.
+    """
+    doc, model = _l2_event_test_model()
+    with caplog.at_level("ERROR", logger="sbmlutils.factory"):
+        Event(
+            "e1", trigger="time >= 10", priority="1", assignments={"p1": 1.0}
+        ).create_sbml(model)
+
+    event: libsbml.Event = model.getEvent("e1")
+    assert not event.isSetPriority()
+    assert event.getNumEventAssignments() == 1
+    errors = [r.getMessage() for r in caplog.records if r.levelname == "ERROR"]
+    assert len(errors) == 1, errors
+    assert "priority" in errors[0]
+    del doc
+
+
+@pytest.mark.parametrize("formula", ["", "time >="], ids=["empty", "unparsable"])
+def test_formula_which_does_not_parse_logs_one_error(
+    formula: str, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that math which does not parse is logged as a single error.
+
+    `ast_node_from_formula` logged the error of the libsbml parser as a
+    second record, which for an empty formula is empty.
+    """
+    doc, model = _event_test_model(2)
+    with caplog.at_level("ERROR", logger="sbmlutils.factory"):
+        assert factory.ast_node_from_formula(model, formula) is None
+
+    messages = [r.getMessage() for r in caplog.records]
+    assert len(messages) == 1, messages
+    assert f"'{formula}'" in messages[0]
+    if formula:
+        assert "syntax error" in messages[0]
+    del doc
+
+
 def test_constraint_unparsable_math_logs_an_error(
     caplog: pytest.LogCaptureFixture,
 ) -> None:

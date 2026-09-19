@@ -1,6 +1,6 @@
 # Model creation
 
-A model is a python object. `Model` holds the elements of the model — compartments, species, parameters, reactions, rules, events — and `create_model` turns that definition into an SBML file.
+A model is a python object. `Model` holds the elements of the model - compartments, species, parameters, reactions, rules, events - and `create_model` turns that definition into an SBML file.
 
 ## The model definition
 

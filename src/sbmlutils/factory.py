@@ -22,6 +22,7 @@ import datetime
 import inspect
 import json
 import logging
+import numbers
 from collections import namedtuple
 from collections.abc import Iterable, Iterator, Sequence
 from contextlib import contextmanager
@@ -196,8 +197,9 @@ def ast_node_from_formula(model: libsbml.Model, formula: str) -> libsbml.ASTNode
 
     ast_node = libsbml.parseL3FormulaWithModel(formula, model)
     if not ast_node:
-        logger.error("Formula could not be parsed: '%s'", formula)
-        logger.error(libsbml.getLastParseL3Error())
+        # the libsbml parser gives no reason for an empty formula
+        reason: str = libsbml.getLastParseL3Error().strip() or "empty formula"
+        logger.error("Formula could not be parsed: '%s', %s", formula, reason)
     return ast_node
 
 
@@ -2613,17 +2615,27 @@ class Trigger(Sbase):
             model: the libsbml.Model the trigger belongs to
         """
         super()._set_fields(sbase, model)
-        # initialValue False is not supported by Copasi, a condition on time
-        # is the workaround
-        check(
-            sbase.setInitialValue(self.initialValue),
-            f"Set initialValue on trigger '{self.math}'",
-        )
-        # persistent True is not supported by Copasi, careful with its usage
-        check(
-            sbase.setPersistent(self.persistent),
-            f"Set persistent on trigger '{self.math}'",
-        )
+        if sbase.getLevel() < 3:
+            # a trigger has these flags from SBML L3 on, below libsbml rejects
+            # them as unexpected attributes, which the caller cannot change
+            logger.debug(
+                "'trigger' has no initialValue and persistent in SBML L%sV%s, "
+                "they are not written.",
+                sbase.getLevel(),
+                sbase.getVersion(),
+            )
+        else:
+            # initialValue False is not supported by Copasi, a condition on
+            # time is the workaround
+            check(
+                sbase.setInitialValue(self.initialValue),
+                f"Set initialValue on trigger '{self.math}'",
+            )
+            # persistent True is not supported by Copasi, careful with its usage
+            check(
+                sbase.setPersistent(self.persistent),
+                f"Set persistent on trigger '{self.math}'",
+            )
         _set_math(sbase, self.math, model)
 
 
@@ -2688,7 +2700,7 @@ class Priority(Sbase):
 
     def create_sbml(
         self, event: libsbml.Event, model: libsbml.Model
-    ) -> libsbml.Priority:
+    ) -> libsbml.Priority | None:
         """Create the libsbml.Priority on the given event.
 
         Args:
@@ -2696,9 +2708,20 @@ class Priority(Sbase):
             model: the libsbml.Model, used to resolve ids in the math
 
         Returns:
-            the created libsbml.Priority
+            the created libsbml.Priority, `None` below SBML L3, which has no
+            priority; that is logged as an error
         """
-        priority: libsbml.Priority = event.createPriority()
+        priority: libsbml.Priority | None = event.createPriority()
+        if priority is None:
+            logger.error(
+                "An event priority needs SBML L3, the priority '%s' of event "
+                "'%s' is not written in SBML L%sV%s.",
+                self.math,
+                event.getId(),
+                event.getLevel(),
+                event.getVersion(),
+            )
+            return None
         self._set_fields(priority, model)
         return priority
 
@@ -2806,25 +2829,29 @@ class Event(Sbase):
 
     The trigger, the priority and the delay are a `Trigger`, a `Priority` and
     a `Delay`, which carry their own metadata. Each of them is also accepted
-    as a formula string, which is normalized into the object; this is the
-    documented authoring style, e.g.
+    as a formula string or a number, which is normalized into the object;
+    this is the documented authoring style, e.g.
     `Event("e1", trigger="time >= 10", priority="1", delay="2")`. `None`
     writes no element at all: an event without a priority or a delay, or,
     from SBML L3V2 on, without a trigger. An element without math, which SBML
     allows from L3V2 on, is an object whose `math` is `None`, e.g.
     `Trigger(None)`.
+
+    `trigger`, `priority` and `delay` normalize what is assigned to them
+    after construction in the same way. `trigger_persistent` and
+    `trigger_initialValue` read and set the flags of the trigger.
     """
 
     def __init__(
         self,
         sid: str | None,
-        trigger: Trigger | str | None,
+        trigger: Trigger | str | float | None,
         assignments: dict[str, str | float] | list[EventAssignment] | None = None,
         trigger_persistent: bool | None = None,
         trigger_initialValue: bool | None = None,
         useValuesFromTriggerTime: bool = True,
-        priority: Priority | str | None = None,
-        delay: Delay | str | None = None,
+        priority: Priority | str | float | None = None,
+        delay: Delay | str | float | None = None,
         name: str | None = None,
         sboTerm: str | None = None,
         metaId: str | None = None,
@@ -2839,25 +2866,25 @@ class Event(Sbase):
 
         Args:
             sid: optional SId
-            trigger: the trigger, a `Trigger` or the formula string of one;
-                `None` for an event without a trigger, which SBML allows from
-                L3V2 on
+            trigger: the trigger, a `Trigger`, or its math as a formula string
+                or a number; `None` for an event without a trigger, which SBML
+                allows from L3V2 on
             assignments: the event assignments, a list of `EventAssignment`
                 or a `{variable: expression}` dict
             trigger_persistent: the `persistent` of the `Trigger` created from
-                a trigger string, `True` if not given. A `Trigger` keeps its
-                own `persistent`, a different value given here is logged as a
-                warning and not applied
+                math, `True` if not given. A `Trigger` keeps its own
+                `persistent`, a different value given here is logged as a
+                warning and not applied, as is one given without a trigger
             trigger_initialValue: the `initialValue` of the `Trigger` created
-                from a trigger string, `False` if not given. A `Trigger` keeps
-                its own `initialValue`, a different value given here is logged
-                as a warning and not applied
+                from math, `False` if not given. A `Trigger` keeps its own
+                `initialValue`, a different value given here is logged as a
+                warning and not applied, as is one given without a trigger
             useValuesFromTriggerTime: whether the assignments are evaluated
                 when the event fires rather than when it is executed
-            priority: the priority, a `Priority` or the formula string of one;
-                `None` for an event without a priority
-            delay: the delay, a `Delay` or the formula string of one; `None`
-                for an event without a delay
+            priority: the priority, a `Priority`, or its math as a formula
+                string or a number; `None` for an event without a priority
+            delay: the delay, a `Delay`, or its math as a formula string or a
+                number; `None` for an event without a delay
             name: optional SBML name
             sboTerm: optional SBO term
             metaId: optional SBML metaid
@@ -2867,6 +2894,10 @@ class Event(Sbase):
             port: optional comp port
             uncertainties: optional distrib uncertainties
             replacedBy: optional comp replacement
+
+        Raises:
+            TypeError: if the trigger, the priority or the delay is neither
+                the object, nor a formula string, nor a number
         """
         super().__init__(
             sid,
@@ -2881,77 +2912,209 @@ class Event(Sbase):
             replacedBy=replacedBy,
         )
 
-        self.trigger: Trigger | None = Event._process_trigger(
-            sid, trigger, trigger_persistent, trigger_initialValue
-        )
+        self._trigger: Trigger | None = None
+        self._init_trigger(trigger, trigger_persistent, trigger_initialValue)
         self.assignments = Event._process_assignments(assignments)
         self.useValuesFromTriggerTime = useValuesFromTriggerTime
 
-        self.priority: Priority | None = (
-            Priority(math=priority) if isinstance(priority, str) else priority
-        )
-        self.delay: Delay | None = (
-            Delay(math=delay) if isinstance(delay, str) else delay
-        )
+        self._priority: Priority | None = None
+        self.priority = priority
+        self._delay: Delay | None = None
+        self.delay = delay
 
     @staticmethod
-    def _process_trigger(
-        sid: str | None,
-        trigger: Trigger | str | None,
-        persistent: bool | None,
-        initialValue: bool | None,
-    ) -> Trigger | None:
-        """Normalize the trigger of an event into a `Trigger`.
-
-        A trigger string is the documented authoring style; the
-        `trigger_persistent` and `trigger_initialValue` arguments of the event
-        configure the `Trigger` created from it. A `Trigger` carries its own
-        flags, which win over these arguments, so an argument which differs
-        from them is logged as a warning, as is one given for an event without
-        a trigger.
+    def _math(value: object, element: str) -> str:
+        """Convert the math of a trigger, a priority or a delay to a formula.
 
         Args:
-            sid: the id of the event, for the warnings
-            trigger: the trigger, a `Trigger`, the formula string of one, or
-                `None` for an event without a trigger
+            value: the math, a formula string, or a number, which is
+                converted with `str()`
+            element: `"trigger"`, `"priority"` or `"delay"`, for the error
+
+        Returns:
+            the math as a formula string
+
+        Raises:
+            TypeError: if the value is neither a formula string nor a number;
+                a bool is rejected too, `str(True)` is the id `True` rather
+                than the constant `true`
+        """
+        if isinstance(value, str):
+            return value
+        if isinstance(value, numbers.Real) and not isinstance(value, bool):
+            return str(value)
+        raise TypeError(
+            f"The {element} of an event is a {element.title()}, a formula "
+            f"string or a number, not '{value!r}'."
+        )
+
+    def _init_trigger(
+        self,
+        trigger: Trigger | str | float | None,
+        persistent: bool | None,
+        initialValue: bool | None,
+    ) -> None:
+        """Set the trigger and the trigger flags given to the constructor.
+
+        The `trigger_persistent` and `trigger_initialValue` arguments
+        configure the `Trigger` created from math, which is the documented
+        authoring style. A `Trigger` carries its own flags, which win over
+        these arguments, so an argument which differs from them is logged as
+        a warning, as is one given for an event without a trigger.
+
+        Args:
+            trigger: the trigger, a `Trigger`, its math, or `None` for an
+                event without a trigger
             persistent: the `trigger_persistent` argument, `None` if it was
                 not given
             initialValue: the `trigger_initialValue` argument, `None` if it was
                 not given
-
-        Returns:
-            the trigger of the event, `None` for an event without a trigger
         """
-        if isinstance(trigger, str):
-            return Trigger(
-                math=trigger,
-                persistent=True if persistent is None else persistent,
-                initialValue=False if initialValue is None else initialValue,
-            )
+        self.trigger = trigger
+        if not isinstance(trigger, Trigger):
+            # created from math with the default flags, or no trigger, for
+            # which the setters log that a flag is not applied
+            if persistent is not None:
+                self.trigger_persistent = persistent
+            if initialValue is not None:
+                self.trigger_initialValue = initialValue
+            return
 
         for flag, value, attribute in (
             ("trigger_persistent", persistent, "persistent"),
             ("trigger_initialValue", initialValue, "initialValue"),
         ):
-            if value is None:
-                continue
-            if trigger is None:
-                logger.warning(
-                    "Event '%s' has no trigger, '%s=%s' is not applied.",
-                    sid,
-                    flag,
-                    value,
-                )
-            elif value != getattr(trigger, attribute):
+            if value is not None and value != getattr(trigger, attribute):
                 logger.warning(
                     "Event '%s': '%s=%s' is not applied, its Trigger has '%s=%s'.",
-                    sid,
+                    self.sid,
                     flag,
                     value,
                     attribute,
                     getattr(trigger, attribute),
                 )
-        return trigger
+
+    @property
+    def trigger(self) -> Trigger | None:
+        """Get the trigger, `None` for an event without a trigger."""
+        return self._trigger
+
+    @trigger.setter
+    def trigger(self, trigger: Trigger | str | float | None) -> None:
+        """Set the trigger.
+
+        Math is normalized into a `Trigger`, which keeps the `persistent` and
+        `initialValue` of the trigger it replaces, or takes their defaults,
+        `True` and `False`, if the event had no trigger. In 0.10 the flags
+        were attributes of the event, which a new trigger string did not
+        change.
+
+        Args:
+            trigger: the trigger, a `Trigger`, or its math as a formula string
+                or a number; `None` for an event without a trigger
+
+        Raises:
+            TypeError: if the trigger is neither a `Trigger` nor math
+        """
+        if trigger is None or isinstance(trigger, Trigger):
+            self._trigger = trigger
+            return
+        replaced = self._trigger
+        self._trigger = Trigger(
+            math=Event._math(trigger, "trigger"),
+            persistent=True if replaced is None else replaced.persistent,
+            initialValue=False if replaced is None else replaced.initialValue,
+        )
+
+    @property
+    def trigger_persistent(self) -> bool | None:
+        """Get the `persistent` of the trigger, `None` without a trigger."""
+        return None if self._trigger is None else self._trigger.persistent
+
+    @trigger_persistent.setter
+    def trigger_persistent(self, persistent: bool) -> None:
+        """Set the `persistent` of the trigger.
+
+        Args:
+            persistent: the flag; an event without a trigger has nothing to
+                set it on, which is logged as a warning
+        """
+        self._set_trigger_flag("trigger_persistent", "persistent", persistent)
+
+    @property
+    def trigger_initialValue(self) -> bool | None:
+        """Get the `initialValue` of the trigger, `None` without a trigger."""
+        return None if self._trigger is None else self._trigger.initialValue
+
+    @trigger_initialValue.setter
+    def trigger_initialValue(self, initialValue: bool) -> None:
+        """Set the `initialValue` of the trigger.
+
+        Args:
+            initialValue: the flag; an event without a trigger has nothing to
+                set it on, which is logged as a warning
+        """
+        self._set_trigger_flag("trigger_initialValue", "initialValue", initialValue)
+
+    def _set_trigger_flag(self, flag: str, attribute: str, value: bool) -> None:
+        """Set a flag of the trigger, or log that the event has no trigger.
+
+        Args:
+            flag: the name of the flag on the event, for the warning
+            attribute: the name of the flag on the `Trigger`
+            value: the value of the flag
+        """
+        if self._trigger is None:
+            logger.warning(
+                "Event '%s' has no trigger, '%s=%s' is not applied.",
+                self.sid,
+                flag,
+                value,
+            )
+            return
+        setattr(self._trigger, attribute, value)
+
+    @property
+    def priority(self) -> Priority | None:
+        """Get the priority, `None` for an event without a priority."""
+        return self._priority
+
+    @priority.setter
+    def priority(self, priority: Priority | str | float | None) -> None:
+        """Set the priority, math is normalized into a `Priority`.
+
+        Args:
+            priority: the priority, a `Priority`, or its math as a formula
+                string or a number; `None` for an event without a priority
+
+        Raises:
+            TypeError: if the priority is neither a `Priority` nor math
+        """
+        if priority is None or isinstance(priority, Priority):
+            self._priority = priority
+        else:
+            self._priority = Priority(math=Event._math(priority, "priority"))
+
+    @property
+    def delay(self) -> Delay | None:
+        """Get the delay, `None` for an event without a delay."""
+        return self._delay
+
+    @delay.setter
+    def delay(self, delay: Delay | str | float | None) -> None:
+        """Set the delay, math is normalized into a `Delay`.
+
+        Args:
+            delay: the delay, a `Delay`, or its math as a formula string or a
+                number; `None` for an event without a delay
+
+        Raises:
+            TypeError: if the delay is neither a `Delay` nor math
+        """
+        if delay is None or isinstance(delay, Delay):
+            self._delay = delay
+        else:
+            self._delay = Delay(math=Event._math(delay, "delay"))
 
     @staticmethod
     def _process_assignments(

@@ -1361,7 +1361,8 @@ def test_roundtrip_trigger_priority_delay_metadata(tmp_path: Path) -> None:
     event.setUseValuesFromTriggerTime(True)
     trigger: libsbml.Trigger = event.createTrigger()
     trigger.setMath(libsbml.parseL3Formula("time >= 10"))
-    trigger.setInitialValue(False)
+    # the two flags differ, so that a parser which swaps them fails
+    trigger.setInitialValue(True)
     trigger.setPersistent(False)
     priority: libsbml.Priority = event.createPriority()
     priority.setMath(libsbml.parseL3Formula("1"))
@@ -1402,7 +1403,7 @@ def test_roundtrip_trigger_priority_delay_metadata(tmp_path: Path) -> None:
     assert isinstance(parsed.delay, Delay)
     assert parsed.trigger.math == "time >= 10"
     assert parsed.trigger.persistent is False
-    assert parsed.trigger.initialValue is False
+    assert parsed.trigger.initialValue is True
     assert parsed.priority.math == "1"
     assert parsed.delay.math == "2"
     for element, (_, prefix, resource) in zip(
@@ -1431,7 +1432,7 @@ def test_roundtrip_trigger_priority_delay_metadata(tmp_path: Path) -> None:
     rt_trigger: libsbml.Trigger = rt_event.getTrigger()
     assert libsbml.formulaToL3String(rt_trigger.getMath()) == "time >= 10"
     assert rt_trigger.getPersistent() is False
-    assert rt_trigger.getInitialValue() is False
+    assert rt_trigger.getInitialValue() is True
     assert libsbml.formulaToL3String(rt_event.getPriority().getMath()) == "1"
     assert libsbml.formulaToL3String(rt_event.getDelay().getMath()) == "2"
     for rt_child, (_, prefix, resource) in zip(
