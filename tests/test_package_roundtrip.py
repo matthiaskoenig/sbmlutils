@@ -30,6 +30,7 @@ from structural import (
     Normalization,
     Snapshot,
     comparable_document,
+    compares_fbc_strict,
     diff_snapshots,
     roundtrip_document,
     snapshot,
@@ -53,6 +54,7 @@ from sbmlutils.resources import (
     FBC_ECOLI_CORE_SBML,
     FBC_RECON3D_SBML,
 )
+from sbmlutils.validation import ValidationOptions, validate_doc
 
 #: the uncertainties of distrib, with parameters, spans and math
 UNCERTAINTY_SBML: Path = RESOURCES_DIR / "distrib" / "uncertainty.xml"
@@ -890,7 +892,6 @@ def test_fbc_v1_is_compared_as_libsbml_converts_it() -> None:
     side = "lower" if operation == "greaterEqual" else "upper"
     assert bound[f"{side}FluxBound"] == f"fb_{reaction}_{operation}"
     assert bound[f"{side}Value"] == value
-    assert snap[("fbc.strict", "model")] == {"strict": True}
 
 
 def test_roundtrip_document_returns_both_documents(tmp_path: Path) -> None:
@@ -921,28 +922,94 @@ def test_roundtrip_preserves_fbc_strict(tmp_path: Path) -> None:
     assert [d for d in diffs if d.construct == "fbc.strict"] == []
 
 
-@requires_testsuite
-def test_roundtrip_preserves_fbc_v1_implicit_strict(tmp_path: Path) -> None:
-    """Test that an fbc v1 source, which has no `strict` attribute, round trips as strict.
+def _fbc_version(sbml_path: Path) -> int | None:
+    """Get the fbc package version a document declares, as libsbml reads it.
 
-    fbc version 1 has no `fbc:strict` attribute at all, so `isSetStrict()` is
-    `False` on the source; `_packages_of_document` upgrades every fbc v1
-    document to `Package.FBC_V2` on the round trip regardless. Comparing it
-    is done as `tests/structural.py`'s `comparable_document` converts it,
-    and libsbml's own "convert fbc v1 to fbc v2" converter unconditionally
-    sets `fbc:strict="true"` for every fbc v1 document: fbc v1 has no notion
-    of a non-strict model. Reading `strict` as `True` for an fbc v1 source
-    matches that.
+    Args:
+        sbml_path: path of the SBML file
+
+    Returns:
+        the version, `None` for a document which does not declare fbc
     """
-    sbml_path = testsuite_case("01186")
-    doc_in, doc_out = roundtrip_document(sbml_path, tmp_path)
+    doc: libsbml.SBMLDocument = libsbml.readSBMLFromFile(str(sbml_path))
+    plugin: libsbml.SBMLDocumentPlugin | None = doc.getPlugin("fbc")
+    return plugin.getPackageVersion() if plugin is not None else None
 
-    fbc_in: libsbml.FbcModelPlugin = doc_in.getModel().getPlugin("fbc")
-    assert fbc_in.getPackageVersion() == 1
-    assert fbc_in.isSetStrict() is False
 
-    diffs = structural_diff(doc_in, doc_out)
-    assert [d for d in diffs if d.construct == "fbc.strict"] == []
+def fbc_v1_cases() -> list[Path]:
+    """Get every fbc version 1 case of the vendored SBML test suite.
+
+    The cases are not spelled out: every l3v2 case whose header names an fbc namespace is a candidate, and libsbml decides which version each of them declares.
+
+    Returns:
+        the path of every l3v2 case which declares fbc version 1
+    """
+    candidates: list[Path] = []
+    for sbml_path in sorted(SEMANTIC_DIR.glob("*/*-sbml-l3v2.xml")):
+        with sbml_path.open(encoding="utf-8") as f:
+            if "/fbc/version" in f.read(4000):
+                candidates.append(sbml_path)
+    return [path for path in candidates if _fbc_version(path) == 1]
+
+
+@requires_testsuite
+def test_roundtrip_of_every_fbc_v1_case_is_valid_and_not_strict(
+    tmp_path: Path,
+) -> None:
+    """Test that an fbc v1 case round trips to a valid document which is not strict.
+
+    fbc version 1 has no `fbc:strict` attribute, so such a source says nothing about strictness, but libsbml's `convert fbc v1 to fbc v2` converter sets `fbc:strict="true"` on every one of them. Under that claim the `constant="false"` species references these models use are an error, libsbml 2020714, and 11 of the 12 cases are valid as they are and invalid as converted, with 54 errors each. The round trip therefore writes `fbc:strict="false"`, the weakest claim, rather than agreeing with the converter: a round trip must never turn a valid model into an invalid one (ruling T5c).
+    """
+    cases = fbc_v1_cases()
+    assert cases, "no fbc version 1 case in the vendored SBML test suite"
+
+    invalid: list[str] = []
+    strict: list[str] = []
+    for sbml_path in cases:
+        _doc_in, doc_out = roundtrip_document(sbml_path, tmp_path)
+        result = validate_doc(
+            doc_out, options=ValidationOptions(units_consistency=False)
+        )
+        if not result.is_valid():
+            ids = sorted({error.getErrorId() for error in result.errors})
+            invalid.append(f"{sbml_path.name}: {result.error_count} errors {ids}")
+        fbc_out: libsbml.FbcModelPlugin = doc_out.getModel().getPlugin("fbc")
+        if fbc_out.getStrict():
+            strict.append(sbml_path.name)
+
+    assert invalid == []
+    assert strict == []
+
+
+@requires_testsuite
+def test_structural_diff_does_not_compare_fbc_strict_of_an_fbc_v1_source() -> None:
+    """Test that the `fbc:strict` libsbml's converter invents is compared on no side.
+
+    The `fbc:strict="true"` of a converted fbc v1 document is the invention of the converter, not content of the source, so neither side is held to it; for an fbc v2 source the same damage is reported as ever, which the `flip_strict` mutation of `MUTATIONS` covers. Nothing else of an fbc v1 source is skipped, which the damaged flux bound at the end shows.
+    """
+    source = _read(testsuite_case("01186"))
+    converted = comparable_document(source)
+    assert converted is not source
+    plugin: libsbml.FbcModelPlugin = converted.getModel().getPlugin("fbc")
+    assert plugin.getStrict() is True, "the converter invents fbc:strict"
+
+    assert plugin.setStrict(False) == libsbml.LIBSBML_OPERATION_SUCCESS
+
+    assert structural_diff(source, converted) == []
+
+    reaction: libsbml.Reaction = converted.getModel().getReaction("R01")
+    reaction_fbc: libsbml.FbcReactionPlugin = reaction.getPlugin("fbc")
+    assert reaction_fbc.setUpperFluxBound("fb_R02_lessEqual") == (
+        libsbml.LIBSBML_OPERATION_SUCCESS
+    )
+
+    differences = structural_diff(source, converted)
+
+    # the bound of that one reaction, by its id and by the value it points at
+    assert {(d.construct, d.element_id) for d in differences} == {
+        ("fbc.fluxBound", "model/reaction:R01")
+    }
+    assert sorted(d.attribute for d in differences) == ["upperFluxBound", "upperValue"]
 
 
 # ---------------------------------------------------------------------------
@@ -958,7 +1025,7 @@ def fbc_roundtrip(
 ) -> Callable[[Path], Comparison]:
     """Round trip a fixture and compare its fbc content, once per fixture.
 
-    The tests below assert on one construct of a fixture each, and the round trip of `FBC_RECON3D_SBML` takes about ten seconds, so every fixture is round tripped once and its result is cached for the module. `structural_diff` is spelled out as the `diff_snapshots` of two `snapshot`s of two `comparable_document`s, which is its body and what `scripts/package_report.py` does as well, so that the census reads the converted document the comparison reads instead of converting the fixture a third time. The cache holds plain values only: the documents are released when the comparison returns, and a libsbml object does not keep its document alive.
+    The tests below assert on one construct of a fixture each, and the round trip of `FBC_RECON3D_SBML` takes about ten seconds, so every fixture is round tripped once and its result is cached for the module. `structural_diff` is spelled out as the `diff_snapshots` of two `snapshot`s of two `comparable_document`s, including the `compares_fbc_strict` of the source, which is its body and what `scripts/package_report.py` does as well, so that the census reads the converted document the comparison reads instead of converting the fixture a third time. The cache holds plain values only: the documents are released when the comparison returns, and a libsbml object does not keep its document alive.
 
     Args:
         tmp_path_factory: pytest's factory of the directory the round trips write to
@@ -972,9 +1039,11 @@ def fbc_roundtrip(
     def compare(sbml_path: Path) -> Comparison:
         if sbml_path not in cache:
             doc_in, doc_out = roundtrip_document(sbml_path, tmp_path)
+            compare_strict = compares_fbc_strict(doc_in)
             converted_in = comparable_document(doc_in)
             differences = diff_snapshots(
-                snapshot(converted_in), snapshot(comparable_document(doc_out))
+                snapshot(converted_in, compare_strict=compare_strict),
+                snapshot(comparable_document(doc_out), compare_strict=compare_strict),
             )
             cache[sbml_path] = (
                 _expected_constructs(converted_in),

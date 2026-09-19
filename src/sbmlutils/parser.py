@@ -383,21 +383,15 @@ def _parse_model_body(model: libsbml.Model, m: Model) -> None:
     # passed in by `sbml_to_model`: the fbc model plugin attaches to a comp
     # `ModelDefinition` as well, which a later task parses by recursing into
     # this function, so `m.strict` has to be set from whichever plugin this
-    # call was given. fbc version 1 has no `strict` attribute at all
-    # (`isSetStrict()` is always `False`), and `_packages_of_document`
-    # already upgrades it to `Package.FBC_V2` on the round trip, so it is
-    # read here as `True`: fbc version 1 has no notion of a non-strict
-    # model, and libsbml's own "convert fbc v1 to fbc v2" converter sets
-    # `fbc:strict="true"` unconditionally on every v1 document, flux bounds
-    # or not (measured on an otherwise empty model), which is the version
-    # `tests/structural.py` compares a v1 document as, see its module
-    # docstring.
+    # call was given. A model which does not state `strict` leaves `m.strict`
+    # at `None`, which is written as `fbc:strict="false"`, the weakest claim:
+    # that is the case for a document which declared fbc version 1, whose
+    # `strict` `_convert_fbc_v1` unsets again, since claiming `true` for a
+    # model which never said so makes every `constant="false"` species
+    # reference of it an error (libsbml 2020714).
     model_fbc: libsbml.FbcModelPlugin | None = model.getPlugin("fbc")
-    if model_fbc is not None:
-        if model_fbc.isSetStrict():
-            m.strict = model_fbc.getStrict()
-        elif model_fbc.getPackageVersion() == 1:
-            m.strict = True
+    if model_fbc is not None and model_fbc.isSetStrict():
+        m.strict = model_fbc.getStrict()
 
     # fbc gene products, which the associations of the reactions reference by
     # id; `Model._create_sbml` creates them before the reactions, so that
@@ -775,13 +769,21 @@ def _convert_fbc_v1(doc: libsbml.SBMLDocument) -> None:
     fbc version 2 or 3 in any case, so the document is brought to the version
     which is written before it is read, by libsbml's own converter: every
     bound becomes a parameter of the generated id `fb_<reaction>_<operation>`
-    which carries its value, and the model becomes `fbc:strict="true"`, which
-    fbc version 1 has no attribute for. This is the same conversion the
-    structural comparison of the round trip applies, see the docstring of
+    which carries its value. This is the same conversion the structural
+    comparison of the round trip applies, see the docstring of
     `tests/structural.py`.
 
+    The converter also sets `fbc:strict="true"`, which is an attribute fbc
+    version 1 does not have and a claim the source never made. It is unset
+    again on every model of the document, so that the model is read without a
+    `strict` and written as `fbc:strict="false"`: a strict model requires the
+    `constant` attribute of every species reference to be `true`, which turns
+    11 of the 12 fbc version 1 cases of the SBML test suite from valid into
+    invalid, 54 errors of libsbml 2020714 each, and a round trip must not
+    turn a valid model into an invalid one.
+
     The whole document is converted, so a `comp:modelDefinition` of it is read
-    as fbc version 2 as well.
+    as fbc version 2 as well, and its invented `strict` is unset as well.
 
     Args:
         doc: the SBMLDocument to convert, which the caller owns; a document
@@ -799,6 +801,14 @@ def _convert_fbc_v1(doc: libsbml.SBMLDocument) -> None:
     status: int = doc.convert(properties)
     if status != libsbml.LIBSBML_OPERATION_SUCCESS:
         raise ValueError(f"libsbml cannot convert fbc v1 to fbc v2: {status}")
+
+    # every model of the document, which is the model and every comp model
+    # definition; `getListOfAllElements` yields both
+    element: libsbml.SBase
+    for element in doc.getListOfAllElements():
+        element_fbc: libsbml.SBasePlugin | None = element.getPlugin("fbc")
+        if isinstance(element_fbc, libsbml.FbcModelPlugin):
+            element_fbc.unsetStrict()
 
 
 def sbml_to_model(

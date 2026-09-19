@@ -41,6 +41,7 @@ sys.path.insert(0, str(ROOT / "tests"))
 from structural import (  # noqa: E402
     PACKAGES,
     comparable_document,
+    compares_fbc_strict,
     diff_snapshots,
     roundtrip_document,
     snapshot,
@@ -125,7 +126,7 @@ def _write_result(case_dir: Path, result: dict[str, object]) -> None:
 def run_worker(sbml_path: Path, case_dir: Path) -> None:
     """Round trip a case and record what it preserves, in the worker process.
 
-    The stage is recorded before it starts, so that the stage a process was killed in is known. The documents are held until the comparison is done, since libsbml objects do not keep their document alive.
+    The stage is recorded before it starts, so that the stage a process was killed in is known. The documents are held until the comparison is done, since libsbml objects do not keep their document alive. `structural_diff` is spelled out here, since the census of what the case has is the snapshot of the document read; `compares_fbc_strict` is therefore applied by hand, on the document read before it is converted.
 
     Args:
         sbml_path: path of the SBML file to round trip
@@ -134,7 +135,8 @@ def run_worker(sbml_path: Path, case_dir: Path) -> None:
     result: dict[str, object] = {"stage": "read the original", "error": None}
     _write_result(case_dir, result)
     doc_in: libsbml.SBMLDocument = libsbml.readSBMLFromFile(str(sbml_path))
-    before = snapshot(comparable_document(doc_in))
+    compare_strict: bool = compares_fbc_strict(doc_in)
+    before = snapshot(comparable_document(doc_in), compare_strict=compare_strict)
     present: dict[str, list[str]] = defaultdict(list)
     for construct, element_id in before:
         present[construct].append(element_id)
@@ -146,7 +148,7 @@ def run_worker(sbml_path: Path, case_dir: Path) -> None:
         _, doc_out = roundtrip_document(sbml_path, case_dir)
         result["stage"] = "compare"
         _write_result(case_dir, result)
-        after = snapshot(comparable_document(doc_out))
+        after = snapshot(comparable_document(doc_out), compare_strict=compare_strict)
     except Exception as err:
         lines = [line for line in str(err).splitlines() if line.strip()]
         result["error"] = f"{type(err).__name__}: {(lines or [''])[0][:200]}"

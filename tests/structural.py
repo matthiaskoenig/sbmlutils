@@ -8,7 +8,8 @@ This docstring is the comparison policy. The code implements it and nothing else
 
 The round trip writes SBML L3V2 with fbc version 2 or 3, so a document read at another version cannot come back unchanged, only as it reads when converted. Each document is therefore first brought to L3V2 and fbc version 2 or higher, on a copy, by libsbml's own converters, which are the reference for that conversion: the `convert fbc v1 to fbc v2` converter with its default options for fbc version 1, then `setLevelAndVersion(3, 2, strict=False)` for any other level and version. A document already at those versions is compared as it is.
 
-- The fbc v1 conversion turns every `fbc:fluxBound` into a `fbc:lowerFluxBound`/`fbc:upperFluxBound` reference to a new parameter with the generated id `fb_<reaction>_<operation>`, and sets `fbc:strict="true"`. A round trip of an fbc v1 document is expected to reproduce exactly that. The converter drops the `<fbc:fluxBound>` element, and both documents are compared as libsbml converts them, so the `metaid`, the `sboTerm` and the annotation of that element are invisible on both sides: what survives of it is the bound it expresses, `fbc.fluxBound`, and the parameter the conversion generates for it.
+- The fbc v1 conversion turns every `fbc:fluxBound` into a `fbc:lowerFluxBound`/`fbc:upperFluxBound` reference to a new parameter with the generated id `fb_<reaction>_<operation>`. A round trip of an fbc v1 document is expected to reproduce exactly that. The converter drops the `<fbc:fluxBound>` element, and both documents are compared as libsbml converts them, so the `metaid`, the `sboTerm` and the annotation of that element are invisible on both sides: what survives of it is the bound it expresses, `fbc.fluxBound`, and the parameter the conversion generates for it.
+- **`fbc.strict` is not compared when the source document declares fbc v1**, and that is the only thing the fbc v1 conversion is not taken at its word for. fbc v1 has no `strict` attribute, so the source says nothing about it; the converter nevertheless sets `fbc:strict="true"` on every v1 document, flux bounds or not, which is its own invention. It is a claim with consequences: a strict model requires the `constant` attribute of every species reference to be `true`, and 11 of the 12 fbc v1 cases of the SBML test suite are valid as they are and become invalid under it, with 54 errors of libsbml id 2020714 (`SpeciesReferences must be constant when strict`) each. A round trip must not turn a valid model into an invalid one, so it writes `fbc:strict="false"` for such a document, the weakest claim, and this comparison holds neither side to the converter's `true`. Everything else about an fbc v1 document is compared as usual, `fbc.fluxBound` included. This is not a whitelist entry: the whitelist declares two values of a compared attribute the same, whereas this construct is not compared at all for such a source, and it is keyed on the source document rather than on a pair of values. The version has to be read from the source before `comparable_document` converts it, which is what `compares_fbc_strict` is for.
 - The L3V1 to L3V2 conversion removes the `fast` attribute of a reaction, which L3V2 does not have, and changes no package content (measured on every L3V1 fixture of the corpus).
 
 ## Snapshot, construct and element id
@@ -26,7 +27,7 @@ Every construct also compares the metadata of its element, where the element has
 ### fbc
 
 - `fbc.package` (the document): the declared package `version` and `required`.
-- `fbc.strict` (a model): `strict`.
+- `fbc.strict` (a model): `strict`, except for a source which declares fbc v1, see above.
 - `fbc.geneProduct`: `label`, `associatedSpecies`.
 - `fbc.objective`: `type`, and `active`, whether it is the `activeObjective` of the list of objectives.
 - `fbc.fluxObjective` (under its objective): `reaction`, `coefficient`, and the fbc v3 `reaction2` and `variableType`.
@@ -568,6 +569,21 @@ def comparable_document(doc: libsbml.SBMLDocument) -> libsbml.SBMLDocument:
             f"libsbml cannot convert L{doc.getLevel()}V{doc.getVersion()} to L3V2"
         )
     return converted
+
+
+def compares_fbc_strict(doc: libsbml.SBMLDocument) -> bool:
+    """Test whether `fbc.strict` is compared for a round trip of this source document.
+
+    It is not for a source which declares fbc version 1, which has no `strict` attribute: the `fbc:strict="true"` such a document ends up with is the invention of libsbml's converter, see the module docstring. The version has to be read here, from the source, since `comparable_document` converts it away.
+
+    Args:
+        doc: the document read, before it is converted; the caller holds it
+
+    Returns:
+        whether the `fbc.strict` of the two documents is compared
+    """
+    fbc: libsbml.SBMLDocumentPlugin | None = doc.getPlugin("fbc")
+    return fbc is None or fbc.getPackageVersion() != 1
 
 
 def roundtrip_document(
@@ -1159,7 +1175,9 @@ def _visit(snap: Snapshot, element: Any, path: str, model: Any, core: bool) -> N
         _visit(snap, child, child_path, model, core)
 
 
-def _visit_model(snap: Snapshot, model: Any, path: str, core: bool) -> None:
+def _visit_model(
+    snap: Snapshot, model: Any, path: str, core: bool, compare_strict: bool
+) -> None:
     """Record the content of a model or of a model definition.
 
     Args:
@@ -1167,21 +1185,23 @@ def _visit_model(snap: Snapshot, model: Any, path: str, core: bool) -> None:
         model: the model or model definition, whose document is held
         path: the path of the model
         core: whether core content is compared, in a model definition
+        compare_strict: whether `fbc.strict` is recorded, see `snapshot`
     """
     fbc = model.getPlugin("fbc")
-    if fbc is not None and fbc.isSetStrict():
+    if compare_strict and fbc is not None and fbc.isSetStrict():
         _record(snap, "fbc.strict", path, {"strict": fbc.getStrict()})
     for child_path, child in _children(model, path):
         _visit(snap, child, child_path, model, core)
 
 
-def snapshot(doc: libsbml.SBMLDocument) -> Snapshot:
+def snapshot(doc: libsbml.SBMLDocument, compare_strict: bool = True) -> Snapshot:
     """Reduce the package content of a document to plain values, see the module docstring.
 
     The document has to be the one `comparable_document` returns: the walk reads the content of the versions the round trip writes, so the `fbc:fluxBound` elements of an fbc v1 document are never walked and a document of another level is compared against content it cannot have. Both are a mistake of the caller and are refused rather than reported as a missing construct.
 
     Args:
         doc: a document at L3V2 with fbc version 2 or higher, which the caller holds; `structural_diff` passes it through `comparable_document` first
+        compare_strict: whether `fbc.strict` is part of the snapshot; `structural_diff` passes `False` for both documents of a round trip whose source declares fbc v1, whose `fbc:strict` is the invention of the converter, see the module docstring and `compares_fbc_strict`
 
     Returns:
         the attributes of every compared element, by `(construct, element id)`
@@ -1220,7 +1240,7 @@ def snapshot(doc: libsbml.SBMLDocument) -> Snapshot:
 
     model: libsbml.Model | None = doc.getModel()
     if model is not None:
-        _visit_model(snap, model, "model", core=False)
+        _visit_model(snap, model, "model", core=False, compare_strict=compare_strict)
 
     comp: libsbml.CompSBMLDocumentPlugin | None = doc.getPlugin("comp")
     if comp is not None:
@@ -1240,7 +1260,9 @@ def snapshot(doc: libsbml.SBMLDocument) -> Snapshot:
                 path,
                 _attributes(definition, _MODEL_ATTRIBUTES),
             )
-            _visit_model(snap, definition, path, core=True)
+            _visit_model(
+                snap, definition, path, core=True, compare_strict=compare_strict
+            )
     return snap
 
 
@@ -1330,6 +1352,8 @@ def structural_diff(
     Returns:
         every difference in the package content, after applying `WHITELIST`
     """
+    compare_strict = compares_fbc_strict(doc_in)
     return diff_snapshots(
-        snapshot(comparable_document(doc_in)), snapshot(comparable_document(doc_out))
+        snapshot(comparable_document(doc_in), compare_strict=compare_strict),
+        snapshot(comparable_document(doc_out), compare_strict=compare_strict),
     )
