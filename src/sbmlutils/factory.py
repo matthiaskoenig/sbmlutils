@@ -5009,6 +5009,13 @@ class Port(SbaseRef):
     present, must contain one or more Port objects.  All of the Ports
     present in the ListOfPorts collectively define the 'port interface' of
     the Model.
+
+    `portType` is an authoring convenience: a port which states no `sboTerm`
+    is given the SBO term of its port type, `SBO:0000599` for the plain
+    `PortType.PORT` of the default. `portType=None` asks for neither, which is
+    what a port read from a document states: SBML has no port type, the
+    document either carries an sboTerm or it does not, and inventing one would
+    make a round trip of a port without an sboTerm write one.
     """
 
     def __init__(
@@ -5044,19 +5051,32 @@ class Port(SbaseRef):
         )
         self.portType = portType
 
+    #: the SBO term which stands for each port type
+    _SBO_FOR_PORT_TYPE: ClassVar[dict[PortType, SBO]] = {
+        PortType.PORT: SBO.PORT,
+        PortType.INPUT_PORT: SBO.INPUT_PORT,
+        PortType.OUTPUT_PORT: SBO.OUTPUT_PORT,
+    }
+
     def create_sbml(self, model: libsbml.Model) -> libsbml.Port:
-        """Create SBML for Port."""
+        """Create the libsbml.Port in the given model.
+
+        Args:
+            model: the libsbml.Model, or libsbml.ModelDefinition, the port is
+                created in
+
+        Returns:
+            the created libsbml.Port
+
+        Raises:
+            ValueError: if the document does not declare the comp package
+        """
         cmodel: libsbml.CompModelPlugin = _comp_plugin(model, f"Port '{self.sid}'")
         p = cmodel.createPort()
         self._set_fields(p, model)
 
-        if self.sboTerm is None:
-            if self.portType == PortType.PORT:
-                sbo = SBO.PORT
-            elif self.portType == PortType.INPUT_PORT:
-                sbo = SBO.INPUT_PORT
-            elif self.portType == PortType.OUTPUT_PORT:
-                sbo = SBO.OUTPUT_PORT
+        if self.sboTerm is None and self.portType is not None:
+            sbo: SBO = Port._SBO_FOR_PORT_TYPE[self.portType]
             p.setSBOTerm(sbo.value.replace("_", ":"))
 
         return p

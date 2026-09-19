@@ -50,6 +50,7 @@ from sbmlutils.factory import (
     Compartment,
     Constraint,
     Delay,
+    Deletion,
     Event,
     EventAssignment,
     FluxObjective,
@@ -64,11 +65,14 @@ from sbmlutils.factory import (
     Objective,
     Package,
     Parameter,
+    Port,
     Priority,
     RateRule,
     Reaction,
     ReactionEquation,
+    SbaseRef,
     Species,
+    Submodel,
     Trigger,
     Uncertainty,
     UncertParameter,
@@ -276,6 +280,56 @@ def _drop_uncertainties(kwargs: dict[str, Any], sbase: libsbml.SBase) -> dict[st
             sbase.getId() if sbase.isSetId() else "",
         )
     return kwargs
+
+
+def _parse_sbase_ref_kwargs(ref: libsbml.SBaseRef) -> dict[str, Any]:
+    """Parse the references and the metadata of a comp `SBaseRef`.
+
+    These are the kwargs `SbaseRef.__init__` takes and every subclass of it
+    passes on: the four references by which comp names an element, the nested
+    `<comp:sBaseRef>` chain and the `Sbase` fields. None of the subclasses
+    offers `uncertainties`, so they are dropped, loudly, see
+    `_drop_uncertainties`.
+
+    Args:
+        ref: the libsbml.Port, ReplacedElement, ReplacedBy, Deletion or
+            SBaseRef to parse; its document is held by the caller
+
+    Returns:
+        the kwargs accepted by `SbaseRef.__init__`
+    """
+    return {
+        "portRef": ref.getPortRef() if ref.isSetPortRef() else None,
+        "idRef": ref.getIdRef() if ref.isSetIdRef() else None,
+        "unitRef": ref.getUnitRef() if ref.isSetUnitRef() else None,
+        "metaIdRef": ref.getMetaIdRef() if ref.isSetMetaIdRef() else None,
+        "sBaseRef": _parse_nested_sbase_ref(ref),
+        **_drop_uncertainties(_parse_sbase_kwargs(ref), ref),
+    }
+
+
+def _parse_nested_sbase_ref(ref: libsbml.SBaseRef) -> SbaseRef | None:
+    """Parse the nested `<comp:sBaseRef>` chain of a comp reference.
+
+    A port, a deletion, a replaced element, a replaced by and an `sBaseRef`
+    itself can hold one `<comp:sBaseRef>` child, which continues the reference
+    into a submodel of the element referenced, to arbitrary depth. Every level
+    is a plain `SbaseRef`: a nested level is written as a `<comp:sBaseRef>`
+    whatever it references from, and it carries none of the attributes which
+    make a level a port, a deletion or a replacement.
+
+    Args:
+        ref: the libsbml comp reference whose chain is read; its document is
+            held by the caller
+
+    Returns:
+        the next level of the chain, with the rest of the chain below it,
+        `None` for a reference which ends here
+    """
+    if not ref.isSetSBaseRef():
+        return None
+    nested: libsbml.SBaseRef = ref.getSBaseRef()
+    return SbaseRef(**_parse_sbase_ref_kwargs(nested))
 
 
 def _parse_uncertainties(sbase: libsbml.SBase) -> list[Uncertainty]:
@@ -608,6 +662,78 @@ def _parse_fbc_model(model_fbc: libsbml.FbcModelPlugin, m: Model) -> None:
         )
 
 
+def _parse_comp_model(model_comp: libsbml.CompModelPlugin, m: Model) -> None:
+    """Parse the comp content of a model itself into an already constructed `Model`.
+
+    This is what the comp plugin of a model carries: its submodels, with the
+    deletions of each, and its ports. A model definition holds submodels and
+    ports of its own, and it is a `libsbml.Model` like any other, so the
+    recursion of `_parse_model_body` reads them with this function too.
+
+    The replaced elements and the `<comp:replacedBy>` of an element belong to
+    that element rather than to the model and are read where it is, see
+    `_parse_replaced_elements` and `_parse_replaced_by`; the model definitions
+    and external model definitions of a document are children of its `<sbml>`
+    element and are read by `_parse_comp_document`.
+
+    Args:
+        model_comp: the comp plugin of a libsbml.Model or libsbml.ModelDefinition
+        m: the `Model` to populate
+    """
+    submodel: libsbml.Submodel
+    for submodel in model_comp.getListOfSubmodels():
+        m.submodels.append(
+            Submodel(
+                # `comp:modelRef` is required on a submodel; a submodel which
+                # states none is read without one and reported by
+                # `Submodel.create_sbml` when the document is written
+                modelRef=(submodel.getModelRef() if submodel.isSetModelRef() else None),
+                timeConversionFactor=(
+                    submodel.getTimeConversionFactor()
+                    if submodel.isSetTimeConversionFactor()
+                    else None
+                ),
+                extentConversionFactor=(
+                    submodel.getExtentConversionFactor()
+                    if submodel.isSetExtentConversionFactor()
+                    else None
+                ),
+                **_drop_uncertainties(_parse_sbase_kwargs(submodel), submodel),
+            )
+        )
+
+        # SBML puts a deletion under the submodel it deletes from;
+        # `Model.deletions` holds it with the id of that submodel instead,
+        # which `Deletion.create_sbml` puts it back under
+        deletion: libsbml.Deletion
+        for deletion in submodel.getListOfDeletions():
+            m.deletions.append(
+                Deletion(
+                    submodelRef=submodel.getId(),
+                    **_parse_sbase_ref_kwargs(deletion),
+                )
+            )
+
+    # a port is read into the `ports` of the model, which is the one of the
+    # two ways `sbmlutils.factory` writes a port that keeps the port's own id,
+    # name, metaId, sboTerm, notes and annotations and its position in the
+    # `<comp:listOfPorts>`. The `port=` shorthand of an element is the other
+    # one; it is not used here, so no port is written twice, and it is not
+    # offered by every element a port can reference anyway.
+    port: libsbml.Port
+    for port in model_comp.getListOfPorts():
+        m.ports.append(
+            Port(
+                # the port states its sboTerm or it has none: `Port.create_sbml`
+                # invents the SBO term of the port type for a port which
+                # states neither, which is an authoring convenience and not
+                # what a document said
+                portType=None,
+                **_parse_sbase_ref_kwargs(port),
+            )
+        )
+
+
 def _parse_model_body(model: libsbml.Model, m: Model) -> None:
     """Parse the body of a model into an already constructed `Model`.
 
@@ -936,8 +1062,14 @@ def _parse_model_body(model: libsbml.Model, m: Model) -> None:
     if model_fbc is not None:
         _parse_fbc_model(model_fbc, m)
 
-    # the content of the distrib, comp, groups and layout packages is not
-    # parsed yet, see the module docstring
+    # comp, on the plugin of this `model` as well: a model definition holds
+    # submodels and ports of its own
+    model_comp: libsbml.CompModelPlugin | None = model.getPlugin("comp")
+    if model_comp is not None:
+        _parse_comp_model(model_comp, m)
+
+    # the content of the groups and layout packages is not parsed, see the
+    # module docstring
 
 
 def _convert_fbc_v1(doc: libsbml.SBMLDocument) -> None:

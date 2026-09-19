@@ -55,6 +55,7 @@ from sbmlutils.factory import (
 )
 from sbmlutils.resources import (
     COMP_ICG_BODY,
+    COMP_ICG_BODY_FLAT,
     DISTRIB_COMP_FLAT_SBML,
     DISTRIB_COMP_SBML,
     DISTRIB_DISTRIBUTIONS_SBML,
@@ -2473,7 +2474,7 @@ def test_roundtrip_preserves_the_whole_distrib_content(
 
     Between them the fixtures carry every distrib construct: `UNCERTAINTY_SBML` has six uncertainties with every type of uncert parameter and span, a definitionURL, math and a nested `listOfUncertParameters`, `ECOLI_EXPRESSION_SBML` has one on a gene product, `MODEL_SBML` one on a compartment, and the three files of distributions use the csymbols of distrib in the math of core elements. Each is asserted to have the constructs first, so preserving them cannot mean that the fixture has none, and every difference is asserted, not only the ones of the named constructs, so a distrib construct the round trip *adds* fails it too.
 
-    `DISTRIB_COMP_SBML` is missing from the list on purpose: it is the same model as `DISTRIB_COMP_FLAT_SBML` with a comp port, whose round trip is not complete yet, see `test_roundtrip_of_a_distrib_comp_model_loses_only_its_port`.
+    `DISTRIB_COMP_SBML` is missing from the list on purpose: it is the same model as `DISTRIB_COMP_FLAT_SBML` with a comp port, and it is asserted with both of its packages in `test_roundtrip_of_a_distrib_comp_model_keeps_both_packages`.
     """
     counts, differences = package_roundtrip(sbml_path)
     assert [c for c in constructs if not counts[c]] == [], (
@@ -2484,28 +2485,22 @@ def test_roundtrip_preserves_the_whole_distrib_content(
     assert [str(d) for d in differences if d.package == "distrib"] == []
 
 
-def test_roundtrip_of_a_distrib_comp_model_loses_only_its_port(
+def test_roundtrip_of_a_distrib_comp_model_keeps_both_packages(
     package_roundtrip: Callable[[Path], Comparison],
 ) -> None:
-    """Test that the uncertainty of a model which also uses comp survives.
+    """Test that the uncertainty and the port of one model both survive.
 
     `DISTRIB_COMP_SBML` carries its uncertainty on a parameter which is also
     the target of a comp port, so it is the one fixture where the two packages
-    meet. Its distrib content round trips; what is lost is the port, which is
-    the whole comp content of this model, since `sbml_to_model` does not read
-    the comp package yet. That is asserted exactly, construct by construct, so
-    that the task which adds the comp parser removes this test rather than
-    finding it green by accident.
+    meet. Both round trip, and every difference of the fixture is asserted, not
+    only those of one package.
     """
     counts, differences = package_roundtrip(DISTRIB_COMP_SBML)
     assert counts["distrib.uncertainty"] == 1
     assert counts["distrib.uncertParameter"] == 4
     assert counts["comp.port"] == 1
 
-    assert [str(d) for d in differences if d.package == "distrib"] == []
-    assert [(d.construct, d.attribute, d.after) for d in differences] == [
-        ("comp.port", ELEMENT, ABSENT)
-    ]
+    assert [str(d) for d in differences] == []
 
 
 def _span_first_sbml(tmp_path: Path) -> Path:
@@ -2678,3 +2673,90 @@ def test_roundtrip_keeps_an_uncert_parameter_without_a_type(tmp_path: Path) -> N
     )
     assert written.getNumUncertParameters() == 2
     assert not written.getUncertParameter(0).isSetType()
+
+
+# ---------------------------------------------------------------------------
+# the comp round trip
+# ---------------------------------------------------------------------------
+def _comp_differences(differences: list[Difference]) -> list[str]:
+    """Get the comp differences of a round trip, as lines.
+
+    Every construct of comp is prefixed `comp.`, the core elements of a model definition included (`comp.modelDefinition.species`), so the package of the construct is the whole filter, see `Difference.package`.
+
+    Args:
+        differences: the differences of a round trip, of every package
+
+    Returns:
+        one line per comp difference, in the order of the differences
+    """
+    return [str(d) for d in differences if d.package == "comp"]
+
+
+def test_roundtrip_preserves_the_submodels_of_icg_body(
+    package_roundtrip: Callable[[Path], Comparison],
+) -> None:
+    """Test that the submodel of `COMP_ICG_BODY` survives a round trip.
+
+    The model is a whole-body PBPK model whose liver is a submodel of an external model definition, so it has exactly one `<comp:submodel>`, with an id and a name.
+    """
+    counts, _ = package_roundtrip(COMP_ICG_BODY)
+    assert counts["comp.submodel"] == 1
+
+    _assert_preserved(package_roundtrip(COMP_ICG_BODY), "comp.submodel")
+
+
+@requires_testsuite
+def test_roundtrip_preserves_the_deletions_of_a_submodel(
+    package_roundtrip: Callable[[Path], Comparison],
+) -> None:
+    """Test that the deletions of a submodel survive a round trip.
+
+    SBML puts a `<comp:deletion>` under the submodel it deletes from; `Model.deletions` holds it with the id of that submodel instead, which is what `Deletion.create_sbml` resolves it against. Case 01157 deletes by `metaIdRef`, case 01166 by `idRef` and its deletion carries an id of its own.
+    """
+    for case in ("01157", "01166"):
+        comparison = package_roundtrip(testsuite_case(case))
+        assert comparison[0]["comp.deletion"], f"case {case} has no deletion"
+        _assert_preserved(comparison, "comp.deletion", "comp.submodel")
+
+
+def test_roundtrip_preserves_the_ports_of_icg_body(
+    package_roundtrip: Callable[[Path], Comparison],
+) -> None:
+    """Test that the 16 ports of `COMP_ICG_BODY` survive a round trip.
+
+    Every port has an id, a name, a metaid and an sboTerm of its own, and each references a parameter or a species of the model by `idRef`.
+    """
+    counts, _ = package_roundtrip(COMP_ICG_BODY)
+    assert counts["comp.port"] == 16
+
+    _assert_preserved(package_roundtrip(COMP_ICG_BODY), "comp.port")
+
+
+def test_roundtrip_writes_each_port_exactly_once(tmp_path: Path) -> None:
+    """Test that a port read is written once, not once per way of writing it.
+
+    `sbmlutils.factory` writes a port from the `ports` of the model and from the `port=True`/`port=Port(...)` shorthand of the element it references, and an element which carried both would be given two ports. The parser reads a port into the `ports` of the model only: the list keeps the port's own id, name, metaid, sboTerm and order, and it does not depend on the referenced element accepting a `port=` keyword, which many do not.
+    """
+    doc_in, doc_out = roundtrip_document(COMP_ICG_BODY, tmp_path)
+    comp_in: libsbml.CompModelPlugin = doc_in.getModel().getPlugin("comp")
+    assert comp_in.getNumPorts() == 16
+
+    comp_out: libsbml.CompModelPlugin = doc_out.getModel().getPlugin("comp")
+
+    assert comp_out.getNumPorts() == 16
+    assert [comp_out.getPort(k).getId() for k in range(16)] == [
+        comp_in.getPort(k).getId() for k in range(16)
+    ]
+
+
+def test_roundtrip_of_a_flat_model_gains_no_comp_content(
+    package_roundtrip: Callable[[Path], Comparison],
+) -> None:
+    """Test that a model without comp does not gain comp content.
+
+    `COMP_ICG_BODY_FLAT` is `COMP_ICG_BODY` with its submodel resolved into it: it declares no comp package and has no comp element at all, and the round trip of it must write none either.
+    """
+    counts, differences = package_roundtrip(COMP_ICG_BODY_FLAT)
+    assert [construct for construct in counts if construct.startswith("comp.")] == []
+
+    assert _comp_differences(differences) == []
