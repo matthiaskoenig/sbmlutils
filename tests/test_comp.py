@@ -167,7 +167,7 @@ def test_comp_is_declared_only_for_comp_content(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize(
-    "reaction, port_sid, id_ref",
+    "reaction, port_sid, reference, target",
     [
         (
             Reaction(
@@ -177,6 +177,7 @@ def test_comp_is_declared_only_for_comp_content(tmp_path: Path) -> None:
                 pars=[Parameter("k", 1.0, port=True)],
             ),
             "k_port",
+            "idRef",
             "k",
         ),
         (
@@ -185,16 +186,21 @@ def test_comp_is_declared_only_for_comp_content(tmp_path: Path) -> None:
                 "S1 -> S2",
                 formula="k * S1",
                 pars=[Parameter("k", 1.0, constant=False)],
-                rules=[AssignmentRule("k", "2.0", sid="rule_k", port=True)],
+                rules=[
+                    AssignmentRule(
+                        "k", "2.0", sid="rule_k", metaId="meta_rule_k", port=True
+                    )
+                ],
             ),
-            "rule_k_port",
-            "rule_k",
+            "meta_rule_k_port",
+            "metaIdRef",
+            "meta_rule_k",
         ),
     ],
     ids=["parameter", "rule"],
 )
 def test_port_in_a_reaction_declares_comp(
-    reaction: Reaction, port_sid: str, id_ref: str, tmp_path: Path
+    reaction: Reaction, port_sid: str, reference: str, target: str, tmp_path: Path
 ) -> None:
     """Test that a port on a parameter or a rule of a reaction declares comp.
 
@@ -202,12 +208,14 @@ def test_port_in_a_reaction_declares_comp(
     model. Comp used to be declared on every model; since it is declared only
     for comp content, a port inside a reaction was not found, and writing the
     port raised an `AttributeError` on the missing comp plugin.
+
+    A port names a rule by its metaid, not by its id, see
+    `Sbase._port_reference`.
     """
     doc = _write(_reaction_model("nested_port", reaction), tmp_path)
 
     assert doc.isPackageEnabled("comp")
-    comp_model: libsbml.CompModelPlugin = doc.getModel().getPlugin("comp")
-    assert comp_model.getPort(port_sid).getIdRef() == id_ref
+    assert _ports(doc.getModel()) == {port_sid: (reference, target)}
 
 
 def test_port_in_a_kinetic_law_declares_comp() -> None:
@@ -2307,8 +2315,36 @@ _UNWRITABLE_PORTS: list[Any] = [
             ),
         ),
         "AssignmentRule",
-        "id",
+        # a port names a rule by its metaid; this rule states neither
+        "metaId",
         id="rule-without-an-id",
+    ),
+    pytest.param(
+        lambda: _reaction_model(
+            "rule_with_an_id_and_no_metaid",
+            Reaction(
+                "r1",
+                "S1 -> S2",
+                name="reaction",
+                formula="k * S1",
+                pars=[Parameter("k", 1.0, name="k", constant=False)],
+                rules=[AssignmentRule("k", "2.0", sid="rule_k", port=True)],
+            ),
+        ),
+        "AssignmentRule",
+        "metaId",
+        id="rule-with-an-id-and-no-metaid",
+    ),
+    pytest.param(
+        lambda: Model(
+            sid="initial_assignment_without_a_metaid",
+            name="a port on an initial assignment which states no metaid",
+            parameters=[Parameter("k", None, name="k")],
+            assignments=[InitialAssignment("k", 2.0, sid="ia1", name="ia1", port=True)],
+        ),
+        "InitialAssignment",
+        "metaId",
+        id="initial-assignment-without-a-metaid",
     ),
 ]
 
@@ -2430,20 +2466,38 @@ _WRITABLE_PORTS: list[Any] = [
     ),
     pytest.param(
         lambda: _reaction_model(
-            "rule_with_an_id",
+            "rule_with_a_metaid",
             Reaction(
                 "r1",
                 "S1 -> S2",
                 name="reaction",
                 formula="k * S1",
                 pars=[Parameter("k", 1.0, name="k", constant=False)],
-                rules=[AssignmentRule("k", "2.0", sid="rule_k", port=True)],
+                rules=[
+                    AssignmentRule(
+                        "k", "2.0", sid="rule_k", metaId="meta_rule_k", port=True
+                    )
+                ],
             ),
         ),
-        {"rule_k_port": ("idRef", "rule_k")},
-        # `Model.getElementBySId` does not answer with a rule, see the test
-        [1020702],
-        id="rule-with-an-id",
+        {"meta_rule_k_port": ("metaIdRef", "meta_rule_k")},
+        [],
+        id="rule-with-a-metaid",
+    ),
+    pytest.param(
+        lambda: Model(
+            sid="initial_assignment_with_a_metaid",
+            name="a port on an initial assignment",
+            parameters=[Parameter("k", None, name="k")],
+            assignments=[
+                InitialAssignment(
+                    "k", 2.0, sid="ia1", name="ia1", metaId="meta_ia1", port=True
+                )
+            ],
+        ),
+        {"meta_ia1_port": ("metaIdRef", "meta_ia1")},
+        [],
+        id="initial-assignment-with-a-metaid",
     ),
 ]
 
@@ -2458,12 +2512,11 @@ def test_the_same_port_is_written_once_the_element_states_its_name(
 ) -> None:
     """Test the positive control of every element which reported a lost port.
 
-    The port of the rule is written and does not validate: libsbml resolves a
-    `comp:idRef` with `Model.getElementBySId`, which answers with neither a
-    rule nor an initial assignment (measured with libsbml 5.21.2), so such a
-    port is rejected with 1020702. That is how a rule's port has always been
-    written, it is a pair of its own and it is pinned here rather than
-    changed.
+    A rule and an initial assignment are named by their metaid, like a local
+    parameter and an event assignment: libsbml resolves a `comp:idRef` with
+    `Model.getElementBySId`, which answers with none of the four (measured
+    with libsbml 5.21.2), so a port which named a rule by its id was rejected
+    with 1020702. Every port here validates.
     """
     model = build()
     with caplog.at_level(logging.ERROR, logger="sbmlutils.factory"):

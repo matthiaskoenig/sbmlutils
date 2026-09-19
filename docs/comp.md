@@ -21,6 +21,8 @@ A model declares the comp package when it has comp content: a `port` or a `repla
 
 The port of an element gets the id of the element plus `PORT_SUFFIX` (`_port`), so the port of `cell` is `cell_port`. A unit port uses `PORT_UNIT_SUFFIX` (`_unit_port`). A `Port` object is created explicitly when the id or the reference has to be different.
 
+A port names most elements by their id (`comp:idRef`), a unit definition by `comp:unitRef`, and an initial assignment, a rule, an event assignment and a local parameter by their metaid (`comp:metaIdRef`): libsbml resolves a `comp:idRef` with `Model.getElementBySId`, which answers with none of those four. Such an element needs a `metaId` for its port, which its port is then named after; an element without one is reported and gets no port.
+
 ## Submodels
 
 A submodel refers to a model definition, which is either inside the same file (`ModelDefinition`) or in another file (`ExternalModelDefinition`):

@@ -707,12 +707,19 @@ class Sbase:
     #: references nothing itself. `idRef` names the element by its id, which
     #: comp resolves with `libsbml.Model.getElementBySId`; `unitRef` is for a
     #: `UnitDefinition`, whose ids live in a namespace of their own; and
-    #: `metaIdRef` names the element by its metaid, which is how an
-    #: `EventAssignment` and a `LocalParameter` are named: measured with
-    #: libsbml 5.21.2, `getElementBySId` answers with neither of the two, so a
-    #: port naming an event assignment by `comp:idRef` is rejected (libsbml
-    #: 1020702) and one naming a local parameter that way makes the flattened
-    #: model invalid (1090105), while `comp:metaIdRef` to either validates.
+    #: `metaIdRef` names the element by its metaid.
+    #:
+    #: Measured with libsbml 5.21.2, on an SBML L3V2 document built with
+    #: libsbml alone, `getElementBySId` answers with every element type this
+    #: module can put a port on **except** an `InitialAssignment`, an
+    #: `AssignmentRule`, a `RateRule`, an `AlgebraicRule`, an
+    #: `EventAssignment`, a `LocalParameter` and a `UnitDefinition`, although
+    #: each of them carries its id in the written XML. A port which names one
+    #: of the first five by `comp:idRef` is rejected with libsbml 1020702
+    #: ("The 'comp:idRef' attribute must be the 'id' of a model element") and
+    #: one which names a local parameter or a unit definition that way makes
+    #: the flat model invalid (1090105); `comp:metaIdRef` to any of them
+    #: validates, and a unit definition has `comp:unitRef` of its own.
     _port_reference: ClassVar[Literal["idRef", "unitRef", "metaIdRef"]] = "idRef"
 
     #: authoring hints are logged for a hand written model definition, they are
@@ -2394,7 +2401,14 @@ class InitialAssignment(Value):
     (which has the unit). In case of an initialAssignment of a value the units
     have to be defined in the math. A value of `None` is an initial assignment
     without math, which SBML allows from L3V2 on.
+
+    A `<comp:port>` names an initial assignment by its metaid, see
+    `Sbase._port_reference`.
     """
+
+    #: `libsbml.Model.getElementBySId` does not answer with an initial
+    #: assignment, see `Sbase._port_reference`
+    _port_reference: ClassVar[Literal["idRef", "unitRef", "metaIdRef"]] = "metaIdRef"
 
     def __init__(
         self,
@@ -2524,7 +2538,13 @@ class AssignmentRule(ValueWithUnit, RuleWithVariable):
     (which has the unit). In case of an initialAssignment of a value the units
     have to be defined in the math. A value of `None` is a rule without math,
     which SBML allows from L3V2 on.
+
+    A `<comp:port>` names a rule by its metaid, see `Sbase._port_reference`.
     """
+
+    #: `libsbml.Model.getElementBySId` does not answer with a rule, see
+    #: `Sbase._port_reference`
+    _port_reference: ClassVar[Literal["idRef", "unitRef", "metaIdRef"]] = "metaIdRef"
 
     def __repr__(self) -> str:
         """Get string representation."""
@@ -2581,7 +2601,13 @@ class RateRule(ValueWithUnit, RuleWithVariable):
     """RateRule.
 
     A value of `None` is a rule without math, which SBML allows from L3V2 on.
+
+    A `<comp:port>` names a rule by its metaid, see `Sbase._port_reference`.
     """
+
+    #: `libsbml.Model.getElementBySId` does not answer with a rule, see
+    #: `Sbase._port_reference`
+    _port_reference: ClassVar[Literal["idRef", "unitRef", "metaIdRef"]] = "metaIdRef"
 
     def __repr__(self) -> str:
         """Get string representation."""
@@ -2638,7 +2664,13 @@ class AlgebraicRule(ValueWithUnit, RuleWithVariable):
     """AlgebraicRule.
 
     A value of `None` is a rule without math, which SBML allows from L3V2 on.
+
+    A `<comp:port>` names a rule by its metaid, see `Sbase._port_reference`.
     """
+
+    #: `libsbml.Model.getElementBySId` does not answer with a rule, see
+    #: `Sbase._port_reference`
+    _port_reference: ClassVar[Literal["idRef", "unitRef", "metaIdRef"]] = "metaIdRef"
 
     def __repr__(self) -> str:
         """Get string representation."""
