@@ -365,6 +365,7 @@ The survey measured which `set*` calls in `factory.py` can fail and which cannot
 - [ ] **Step 2: For each, determine by execution whether it can fail** on the inputs `factory.py` can pass it. Record the list in the commit message.
 - [ ] **Step 3: Wrap only the ones that can fail** in `check(...)` with a message naming the element. Wrapping calls that cannot fail adds noise without value.
 - [ ] **Step 4: For a representative sample of the wrapped calls, a failing test** that passes a value libsbml rejects and asserts an ERROR is logged.
+- [ ] **Step 4b: Two swallowed failures found by the fbc work (ruling T7a), each reproduced end to end and with a failing test first.** (1) `create_model` reports `valid: TRUE` for a file it never wrote when the parent directory of `filepath` is missing: a write which fails must surface as an error (decide from the live `write_sbml`/`create_model` code whether the directory is created or the failure raised, and keep 'validation reports, it never blocks' intact: that sentence is about validation, not about a file which does not exist). (2) A key-value pair in an fbc v2 document writes an empty `<keyValuePair/>` plus two `check()` errors, which is how the old key-value-pair fixture got its three empty elements: key-value pairs are fbc v3, so in a v2 document one clear error names the element and the version and no element is written.
 - [ ] **Step 5: Verify and commit.** tox, lint, 148/148.
 
 ---

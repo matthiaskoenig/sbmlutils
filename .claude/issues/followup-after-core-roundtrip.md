@@ -151,3 +151,7 @@ Measured with pymetadata 0.6.2 (package branch, Task 1 fix round). sbmlutils gua
 - **A hyphenated prefix cannot be read back:** `urn:miriam:ec-code:1.1.1.1` becomes `https://identifiers.org/ec-code:1.1.1.1`, which keeps collection and term, but the compact pattern of pymetadata does not match a hyphen in the prefix, so parsing the result again fails and sbmlutils writes the URN as given (0 uses in the corpus).
 
 The invariant which separates a canonicalization from a loss: `resource_normalized` is an `http(s)://` URL and parsing it again yields the same collection and term.
+
+## 11. libsbml: the key-value pairs of a species reference are written and never read back
+
+Measured with python-libsbml 5.21.2 alone, no sbmlutils involved (package branch, fbc fixes). The fbc version 3 `listOfKeyValuePairs` of a `<speciesReference>` is written into the document, and reading that document again gives a species reference without any key-value pair; on a `<modifierSpeciesReference>` the same round trip works. sbmlutils writes the pairs of reactants, products and modifiers from 0.12.0 on, so a reactant or product pair is write-only for every libsbml reader, and the structural comparison cannot see it. A test pins the behaviour so that a fixed libsbml is noticed. To report upstream at [sbmlteam/libsbml](https://github.com/sbmlteam/libsbml).
