@@ -2,7 +2,7 @@
 
 A round trip of the fbc, distrib and comp packages is checked by `structural_diff` of `tests/structural.py`, since simulation and validation are both blind to these packages, see its docstring for the comparison policy. A comparison which reports nothing on a damaged document is blind as well, so these tests prove it sees each kind of loss: they damage one construct in a copy of a real fixture and assert that exactly that construct is reported, and they assert that an undamaged document is reported as unchanged.
 
-They never assert what `sbml_to_model` loses today. Those losses are removed one by one by the tasks which follow, and a test pinned to them would break with every fix. The losses of the current parser are measured by `scripts/package_report.py` instead. A loss which is not going to be removed is the one exception: it is pinned by a test of its own, which spells out exactly how much is lost and fails as soon as one element more goes missing. There is one, the `sboTerm` of the `and` and `or` nodes of a gene product association, see `test_roundtrip_loses_only_the_sboterm_of_an_association_node`.
+They never assert what `sbml_to_model` loses today. Those losses are removed one by one by the tasks which follow, and a test pinned to them would break with every fix. The losses of the current parser are measured by `scripts/package_report.py` instead. A loss which is not going to be removed is pinned by a test of its own, which spells out exactly how much is lost and fails as soon as one element more goes missing: the `sboTerm` of the `and` and `or` nodes of a gene product association, which `Reaction.geneProductAssociation` has no place for, see `test_roundtrip_loses_only_the_sboterm_of_an_association_node`.
 
 The cases of the SBML test suite are resolved from the checkout, see `tests/test_roundtrip.py`, since the installed package does not contain them.
 """
@@ -30,6 +30,7 @@ from structural import (
     Difference,
     Normalization,
     Snapshot,
+    _charge,
     comparable_document,
     diff_snapshots,
     roundtrip_document,
@@ -1286,12 +1287,9 @@ def _charges(doc: libsbml.SBMLDocument) -> list[float | None]:
     species: libsbml.Species
     for species in doc.getModel().getListOfSpecies():
         plugin: libsbml.FbcSpeciesPlugin = species.getPlugin("fbc")
-        if not plugin.isSetCharge():
-            charges.append(None)
-        elif plugin.getPackageVersion() >= 3:
-            charges.append(float(plugin.getChargeAsDouble()))
-        else:
-            charges.append(float(plugin.getCharge()))
+        # the fbc version decides which of the two getters carries the charge,
+        # which is what the comparison reads it with
+        charges.append(_charge(plugin) if plugin.isSetCharge() else None)
     return charges
 
 
@@ -1613,7 +1611,12 @@ def test_roundtrip_preserves_key_value_pairs_of_a_species_reference(
     assert _written_keys(sbml_path) == {"reactant-key", "product-key", "modifier-key"}
 
     doc_in, doc_out = roundtrip_document(sbml_path, tmp_path)
-    assert _expected_constructs(comparable_document(doc_in))["fbc.keyValuePair"] == 1
+    assert _expected_constructs(comparable_document(doc_in))["fbc.keyValuePair"] == 1, (
+        "libsbml reads the key-value pairs of the modifier only, see "
+        "`test_libsbml_reads_the_key_value_pairs_of_a_modifier_only`; a count "
+        "of 3 means the defect is fixed, so compare all three pairs here and "
+        "drop the test of the defect"
+    )
 
     diffs = [d for d in structural_diff(doc_in, doc_out) if d.package == "fbc"]
 
@@ -1689,7 +1692,12 @@ def test_libsbml_reads_the_key_value_pairs_of_a_modifier_only(tmp_path: Path) ->
     modifier_plugin: libsbml.FbcSBasePlugin = reaction_again.getModifier(0).getPlugin(
         "fbc"
     )
-    assert reactant_plugin.getNumKeyValuePairs() == 0
+    assert reactant_plugin.getNumKeyValuePairs() == 0, (
+        "libsbml reads the key-value pairs of a species reference now, so the "
+        "defect this test pins is fixed: delete this test and compare all "
+        "three pairs in "
+        "`test_roundtrip_preserves_key_value_pairs_of_a_species_reference`"
+    )
     assert modifier_plugin.getNumKeyValuePairs() == 1
 
 
