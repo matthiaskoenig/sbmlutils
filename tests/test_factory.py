@@ -2077,3 +2077,23 @@ def test_package_namespaces_do_not_depend_on_the_hash_seed() -> None:
         assert tag.startswith("<sbml "), (seed, process.stderr)
         assert _NAMESPACE_PREFIX.findall(tag) == ["comp", "distrib", "fbc"], tag
     assert tags["0"] == tags["1"], tags
+
+
+@pytest.mark.parametrize("field", ["keyValuePairs"])
+def test_document_does_not_offer_key_value_pairs(field: str) -> None:
+    """Test that a document refuses the key-value pairs it cannot write.
+
+    fbc version 3 gives a `<fbc:keyValuePair>` to every `SBase`, but libsbml
+    5.21.2 attaches an `FbcSBMLDocumentPlugin` to the `<sbml>` element, which
+    has no key-value-pair accessor at all: the pairs of a document could not
+    be written (`create_sbml` failed with an `AttributeError` on the plugin)
+    and a `<listOfKeyValuePairs>` written into the XML of an `<sbml>` element
+    by hand is read without an error and is invisible afterwards. The keyword
+    is passed through a mapping, the way the same check is made in
+    `tests/test_distrib.py`: spelling it out is a type error, which is the
+    point of the test.
+    """
+    model = Model(sid="document_key_value_pairs", name="a model")
+    kwargs: dict[str, Any] = {field: None}
+    with pytest.raises(TypeError, match=field):
+        Document(model=model, **kwargs)

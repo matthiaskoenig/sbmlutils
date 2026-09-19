@@ -6209,7 +6209,16 @@ Model._keys = _derive_model_keys()
 
 
 class Document(Sbase):
-    """Document."""
+    """The SBML document a model is written into.
+
+    `keyValuePairs` are not offered. fbc version 3 gives a
+    `<fbc:keyValuePair>` to every `SBase`, but libsbml 5.21.2 attaches an
+    `FbcSBMLDocumentPlugin` to the `<sbml>` element, which has no
+    key-value-pair accessor at all: writing the pairs of a document failed
+    with an `AttributeError` on the plugin, and a `<listOfKeyValuePairs>`
+    written into the XML of an `<sbml>` element by hand is read without an
+    error and is invisible afterwards.
+    """
 
     def __init__(
         self,
@@ -6220,7 +6229,6 @@ class Document(Sbase):
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
         notes: str | Notes | None = None,
-        keyValuePairs: list[KeyValuePair] | None = None,
         sbml_level: int = SBML_LEVEL,
         sbml_version: int = SBML_VERSION,
     ):
@@ -6234,7 +6242,6 @@ class Document(Sbase):
             metaId: the meta id of the document
             annotations: the annotations of the document
             notes: the notes of the document
-            keyValuePairs: the fbc key value pairs of the document
             sbml_level: the SBML level to write
             sbml_version: the SBML version to write
 
@@ -6262,7 +6269,7 @@ class Document(Sbase):
         # handling and sets its own fields), so the notes normalization
         # `Sbase.__init__` otherwise applies is done here explicitly
         self.notes = Sbase._process_notes(notes)
-        self.keyValuePairs = keyValuePairs
+        self.keyValuePairs = None
         self.sbml_level = sbml_level
         self.sbml_version = sbml_version
         self.doc: libsbml.SBMLDocument | None = None
