@@ -247,12 +247,17 @@ def _parse_sbase_kwargs(sbase: libsbml.SBase) -> dict[str, Any]:
     if sbase_fbc:
         kvp: libsbml.KeyValuePair
         for kvp in sbase_fbc.getListOfKeyValuePairs():
+            kvp_kwargs = _drop_unwritable(_parse_sbase_kwargs(kvp), kvp)
+            # libsbml writes no nested `<fbc:listOfKeyValuePairs>` inside a
+            # `<fbc:keyValuePair>` and reads none, so a `KeyValuePair` does
+            # not offer `keyValuePairs`; the list read here is always empty
+            kvp_kwargs.pop("keyValuePairs")
             kvps.append(
                 KeyValuePair(
                     key=kvp.getKey(),
                     value=kvp.getValue(),
                     uri=kvp.getUri() if kvp.isSetUri() else None,
-                    **_drop_unwritable(_parse_sbase_kwargs(kvp), kvp),
+                    **kvp_kwargs,
                 )
             )
 

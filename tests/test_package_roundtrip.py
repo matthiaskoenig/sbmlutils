@@ -3412,3 +3412,129 @@ def test_roundtrip_of_an_l3v1_comp_model_validates_at_its_own_version(
 
     assert errors[1] == []
     assert errors[2] == [1020304, 1020615]
+
+
+def _key_value_pair_metadata_model() -> Model:
+    """Get a model whose key-value pair states every field it can carry.
+
+    `KeyValuePair.create_sbml` wrote the `key`, the `value` and the `uri` and
+    never called `Sbase._set_fields`, so the id, name, metaid, sboTerm, notes
+    and annotations of a pair were accepted and dropped. An fbc version 3
+    `<fbc:keyValuePair>` carries all six, writes them and reads them back
+    (measured with libsbml 5.21.2).
+
+    Returns:
+        the model definition
+    """
+    return Model(
+        sid="key_value_pair_metadata",
+        packages=[Package.FBC_V3],
+        strict=False,
+        parameters=[
+            Parameter(
+                sid="k",
+                value=1.0,
+                keyValuePairs=[
+                    KeyValuePair(
+                        key="kind",
+                        value="test",
+                        uri="https://example.org/keys",
+                        sid="kvp1",
+                        name="a key value pair",
+                        metaId="meta_kvp1",
+                        sboTerm="SBO:0000002",
+                        notes=(
+                            '<body xmlns="http://www.w3.org/1999/xhtml">'
+                            "<p>a note of the pair</p></body>"
+                        ),
+                        annotations=[
+                            (BQB.IS, "https://identifiers.org/chebi/CHEBI:15377")
+                        ],
+                    )
+                ],
+            )
+        ],
+    )
+
+
+def _key_value_pair_metadata_sbml(tmp_path: Path) -> Path:
+    """Write the key-value pair fixture as SBML L3V2.
+
+    libsbml writes the `id` and the `name` of a `<fbc:keyValuePair>` into an
+    L3V1 document as it does into an L3V2 one, but reads them back only from
+    L3V2 (measured with libsbml 5.21.2), so the fixture is written at the
+    level and version the round trip writes.
+
+    Args:
+        tmp_path: the directory the file is written to
+
+    Returns:
+        the path of the written SBML file
+    """
+    model = _key_value_pair_metadata_model()
+    sbml_path = tmp_path / f"{model.sid}.xml"
+    create_model(
+        model=model,
+        filepath=sbml_path,
+        sbml_level=3,
+        sbml_version=2,
+        validate=False,
+    )
+    return sbml_path
+
+
+def _key_value_pair(doc: libsbml.SBMLDocument) -> libsbml.KeyValuePair:
+    """Get the single key-value pair of the parameter `k`.
+
+    Args:
+        doc: the document, which the caller holds
+
+    Returns:
+        the key-value pair of the parameter
+    """
+    plugin: libsbml.FbcSBasePlugin = doc.getModel().getParameter("k").getPlugin("fbc")
+    return plugin.getKeyValuePair(0)
+
+
+def test_key_value_pair_writes_every_field_it_can_carry(tmp_path: Path) -> None:
+    """Test that the metadata of a key-value pair is written, not only its key."""
+    sbml_path = _key_value_pair_metadata_sbml(tmp_path)
+    doc = _read(sbml_path)
+
+    pair = _key_value_pair(doc)
+    assert (
+        pair.getKey(),
+        pair.getValue(),
+        pair.getUri(),
+        pair.getIdAttribute(),
+        pair.getName(),
+        pair.getMetaId(),
+        pair.getSBOTermID(),
+    ) == (
+        "kind",
+        "test",
+        "https://example.org/keys",
+        "kvp1",
+        "a key value pair",
+        "meta_kvp1",
+        "SBO:0000002",
+    )
+    assert "a note of the pair" in pair.getNotesString()
+    assert pair.getNumCVTerms() == 1
+
+
+def test_roundtrip_preserves_the_metadata_of_a_key_value_pair(tmp_path: Path) -> None:
+    """Test that the whole key-value pair survives a round trip.
+
+    `structural_diff` compares the `key`, `value` and `uri` of a pair and the
+    metadata of every element which has its own, so it sees each of the six
+    fields.
+    """
+    sbml_path = _key_value_pair_metadata_sbml(tmp_path)
+    doc_in, doc_out = roundtrip_document(sbml_path, tmp_path)
+    assert _expected_constructs(comparable_document(doc_in))["fbc.keyValuePair"] == 1
+
+    diffs = [d for d in structural_diff(doc_in, doc_out) if d.package == "fbc"]
+
+    assert [str(d) for d in diffs] == []
+    assert _key_value_pair(doc_out).getName() == "a key value pair"

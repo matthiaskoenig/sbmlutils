@@ -2057,3 +2057,53 @@ def test_replaced_by_is_not_offered_where_it_cannot_be_written(
     """
     with pytest.raises(TypeError, match="replacedBy"):
         cls(replacedBy=None, **kwargs)
+
+
+@pytest.mark.parametrize("field", ["uncertainties", "keyValuePairs"])
+def test_key_value_pair_does_not_offer_what_libsbml_drops(field: str) -> None:
+    """Test that a key-value pair offers neither of the two fields it loses.
+
+    libsbml writes neither a `<distrib:listOfUncertainties>` nor a nested
+    `<fbc:listOfKeyValuePairs>` inside a `<fbc:keyValuePair>`: both are
+    created on the plugin without an error and are gone from the written
+    XML (measured with libsbml 5.21.2).
+    """
+    with pytest.raises(TypeError, match=field):
+        KeyValuePair(key="k", value="v", uri=None, **{field: None})
+
+
+def test_port_of_a_key_value_pair_is_written(tmp_path: Path) -> None:
+    """Test that a key-value pair writes the port it accepts.
+
+    A `<fbc:keyValuePair>` is the target of a `<comp:port>` like any other
+    element: libsbml resolves its `fbc:id` with `Model.getElementBySId` and
+    the document validates (measured with libsbml 5.21.2). The pair is
+    written from `Sbase._set_fields` of the element it belongs to, which
+    passes the model down for it.
+    """
+    model = Model(
+        sid="key_value_pair_port",
+        name="a port on a key-value pair",
+        packages=[Package.COMP_V1, Package.FBC_V3],
+        parameters=[
+            Parameter(
+                "k",
+                1.0,
+                name="k",
+                keyValuePairs=[
+                    KeyValuePair(
+                        key="kind",
+                        value="test",
+                        uri="https://example.org",
+                        sid="kvp1",
+                        port=True,
+                    )
+                ],
+            )
+        ],
+    )
+    doc = _write(model, tmp_path, validate=False)
+
+    assert _ports(doc.getModel()) == {"kvp1_port": ("idRef", "kvp1")}
+    result = validate_doc(doc, options=ValidationOptions(units_consistency=False))
+    assert [error.getErrorId() for error in result.errors] == []

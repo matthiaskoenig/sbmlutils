@@ -742,6 +742,9 @@ class Sbase:
                 ReplacedElement,
                 AssignmentRule,
                 EventAssignment,
+                # identified by its key and its value; an fbc version 2
+                # document cannot carry its name at all
+                KeyValuePair,
                 # created from a formula string in the authoring style, which
                 # has no place for their name or sboTerm
                 KineticLaw,
@@ -777,6 +780,7 @@ class Sbase:
                 ExternalModelDefinition,
                 Submodel,
                 EventAssignment,
+                KeyValuePair,
                 KineticLaw,
                 Trigger,
                 Priority,
@@ -807,9 +811,9 @@ class Sbase:
             self.create_replaced_by(sbase, model)
 
         if self.keyValuePairs is not None:
-            self.create_key_value_pairs(sbase)
+            self.create_key_value_pairs(sbase, model)
 
-    def create_port(self, model: libsbml.Model) -> libsbml.Port | None:
+    def create_port(self, model: libsbml.Model | None) -> libsbml.Port | None:
         """Create the port of the element, if it has one.
 
         A port which references nothing of its own is made to reference this
@@ -818,16 +822,24 @@ class Sbase:
         cannot be referenced and gets no port, which is reported.
 
         Args:
-            model: the model the port is created in
+            model: the model the port is created in; `None` for an element
+                which is written without one, which is reported, since a port
+                lives in the `<comp:listOfPorts>` of a model
 
         Returns:
-            the port, `None` if the element has no port or no name which the
-            port could reference
+            the port, `None` if the element has no port, no model to create it
+            in or no name which the port could reference
 
         Raises:
             ValueError: if the document does not declare the comp package
         """
         if self.port is None or self.port is False:
+            return None
+        if model is None:
+            logger.error(
+                "'%s' is written without a model, its port is not created.",
+                self,
+            )
             return None
 
         reference = self._port_reference
@@ -912,20 +924,53 @@ class Sbase:
         return self.replacedBy.create_sbml(sbase, model)
 
     def create_key_value_pairs(
-        self, sbase: libsbml.SBase
+        self, sbase: libsbml.SBase, model: libsbml.Model | None
     ) -> list[libsbml.KeyValuePair] | None:
-        """Create fbc:keyValuePair."""
+        """Create the fbc:keyValuePair elements of the element.
+
+        Args:
+            sbase: the libsbml object the pairs are created on
+            model: the `libsbml.Model` the element belongs to, which the port
+                of a pair is created in; `None` for an element written
+                without one
+
+        Returns:
+            the created pairs, `None` if the element has none
+        """
         if not self.keyValuePairs:
             return None
 
         kvps: list[libsbml.KeyValuePair] = []
         for kvp in self.keyValuePairs:
-            kvps.append(kvp.create_sbml(sbase))
+            kvps.append(kvp.create_sbml(sbase, model))
         return kvps
 
 
 class KeyValuePair(Sbase):
-    """KeyValuePair."""
+    """A key-value pair of fbc version 3, which every element can carry.
+
+    An fbc version 3 `<fbc:keyValuePair>` carries its `key`, `value` and
+    `uri` and, like every other `SBase`, an id, a name, a metaid, an sboTerm,
+    notes and annotations; all of them are written and the document
+    validates. Measured with libsbml 5.21.2, on a document built with libsbml
+    alone, two of them survive a re-read only in part:
+
+    - the `id` and the `name` are read back from an SBML **L3V2** document
+      and not from an L3V1 one, although libsbml writes them into both,
+    - a pair in an **fbc version 2** document keeps only the metaid, the
+      sboTerm, the notes and the annotation: libsbml writes no `key`,
+      `value`, `uri`, `id` or `name` there, and `setId`/`setName` answer with
+      `LIBSBML_UNEXPECTED_ATTRIBUTE`, which `check()` reports.
+
+    Both are properties of libsbml's reader, not of the document: what is
+    written is in the file either way.
+
+    Neither `uncertainties` nor a nested list of `keyValuePairs` is offered:
+    libsbml creates both on the plugins of a `<fbc:keyValuePair>` without an
+    error and writes neither into the XML. A `replacedBy` is not offered
+    either, since libsbml attaches no `CompSBasePlugin` to the element, see
+    `sbmlutils.parser._drop_replaced_by`.
+    """
 
     def __init__(
         self,
@@ -938,11 +983,22 @@ class KeyValuePair(Sbase):
         metaId: str | None = None,
         notes: str | Notes | None = None,
         annotations: OptionalAnnotationsType = None,
-        keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
-        uncertainties: list[Uncertainty] | None = None,
     ):
-        """Create a KeyValuePair."""
+        """Create a KeyValuePair.
+
+        Args:
+            key: the key of the pair, which is required
+            value: the value of the pair
+            uri: the URI which defines the meaning of the key
+            sid: optional SId, written as `fbc:id`
+            name: optional SBML name, written as `fbc:name`
+            sboTerm: optional SBO term
+            metaId: optional SBML metaid
+            notes: optional notes, as markdown, XHTML or a `Notes` object
+            annotations: optional RDF annotations
+            port: optional comp port, which names the pair by its id
+        """
         super().__init__(
             sid=sid,
             name=name,
@@ -950,20 +1006,35 @@ class KeyValuePair(Sbase):
             metaId=metaId,
             annotations=annotations,
             notes=notes,
-            keyValuePairs=keyValuePairs,
             port=port,
-            uncertainties=uncertainties,
         )
         self.key = key
         self.value = value
         self.uri = uri
 
-    def create_sbml(self, sbase: libsbml.SBase) -> libsbml.KeyValuePair:
-        """Create KeyValuePair on object."""
+    def create_sbml(
+        self, sbase: libsbml.SBase, model: libsbml.Model | None = None
+    ) -> libsbml.KeyValuePair:
+        """Create the libsbml.KeyValuePair on the given element.
+
+        Args:
+            sbase: the libsbml object the pair is created on
+            model: the libsbml.Model the element belongs to, which the port of
+                the pair is created in. It has to be handed down, since
+                libsbml answers `getModel()` of an element inside a
+                `<comp:modelDefinition>` with the model of the *document*, see
+                `Model._fill_sbml`. `None` is for a caller which writes a pair
+                without a model, which is reported if the pair has a port
+
+        Returns:
+            the created libsbml.KeyValuePair
+        """
         sbase_fbc: libsbml.FbcSBasePlugin = sbase.getPlugin("fbc")
         kvp_list: libsbml.ListOfKeyValuePairs = sbase_fbc.getListOfKeyValuePairs()
         kvp_list.setXmlns("http://sbml.org/fbc/keyvaluepair")
         kvp: libsbml.KeyValuePair = kvp_list.createKeyValuePair()
+        self._set_fields(kvp, model)
+        self.create_port(model)
         check(kvp.setKey(self.key), "Set Key on KeyValuePair")
         if self.value is not None:
             check(kvp.setValue(self.value), f"Set `value={self.value}` on KeyValuePair")
@@ -2570,7 +2641,7 @@ class Reaction(Sbase):
                     sbase=sref, annotation=annotation
                 )
             for key_value_pair in part.keyValuePairs or []:
-                key_value_pair.create_sbml(sref)
+                key_value_pair.create_sbml(sref, model)
 
         # equation
         for reactant in self.equation.reactants:
