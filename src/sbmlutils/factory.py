@@ -231,6 +231,71 @@ def ast_node_from_formula(model: libsbml.Model, formula: str) -> libsbml.ASTNode
     return ast_node
 
 
+def _sbml_flavour(sbase: Any) -> str:
+    """Name the SBML level, version and package an object is written in.
+
+    Args:
+        sbase: the libsbml object, or the libsbml plugin, the attribute was
+            set on; both answer `getLevel`, `getVersion`, `getPackageName`
+            and `getPackageVersion`
+
+    Returns:
+        the flavour as a phrase, e.g. `SBML L3V1` for an element of the core
+        and `fbc version 2 of an SBML L3V1 document` for one of a package
+    """
+    level: int = sbase.getLevel()
+    version: int = sbase.getVersion()
+    package: str = sbase.getPackageName()
+    if package and package != "core":
+        return (
+            f"{package} version {sbase.getPackageVersion()} of an "
+            f"SBML L{level}V{version} document"
+        )
+    return f"SBML L{level}V{version}"
+
+
+def _check_attribute(
+    status: int, sbase: Any, attribute: str, value: Any, element: Any
+) -> bool:
+    """Report an attribute which libsbml did not write, naming the element.
+
+    A libsbml setter answers with a status code instead of raising, so an
+    attribute which could not be written is lost in silence unless the status
+    is looked at. `LIBSBML_UNEXPECTED_ATTRIBUTE` gets a message of its own:
+    the document has no such attribute at all, which no value can fix, and
+    the reason is the SBML level and version of the document, or the version
+    of the package the element belongs to. Every other status, an invalid
+    value above all, goes through `check`.
+
+    Both messages are built in the failure branch, so that a document which
+    is written without a loss pays nothing for the report.
+
+    Args:
+        status: the status code the libsbml setter answered with
+        sbase: the libsbml object, or plugin, the attribute was set on, which
+            states the level, the version and the package version it has to
+            fit, see `_sbml_flavour`
+        attribute: the name of the SBML attribute, e.g. `compartment`
+        value: the value which was to be written
+        element: the model element the attribute belongs to
+
+    Returns:
+        `True` if the attribute was written, `False` if it was not
+    """
+    if status == libsbml.LIBSBML_OPERATION_SUCCESS:
+        return True
+    if status == libsbml.LIBSBML_UNEXPECTED_ATTRIBUTE:
+        logger.error(
+            "The %s '%s' of '%s' is not written: %s has no such attribute.",
+            attribute,
+            value,
+            element,
+            _sbml_flavour(sbase),
+        )
+        return False
+    return check(status, f"Set {attribute} '{value}' on '{element}'")
+
+
 def _set_math(sbase: Any, math: str | None, model: libsbml.Model) -> None:
     """Set a formula as the math of an element.
 
@@ -411,19 +476,20 @@ class ModelUnits:
 
                 unit: str | UnitDefinition = getattr(model_units, key)
                 uid = UnitDefinition.get_uid_for_unit(unit=unit)
-                # set the values
-                if key == "time":
-                    model.setTimeUnits(uid)
-                elif key == "extent":
-                    model.setExtentUnits(uid)
-                elif key == "substance":
-                    model.setSubstanceUnits(uid)
-                elif key == "length":
-                    model.setLengthUnits(uid)
-                elif key == "area":
-                    model.setAreaUnits(uid)
-                elif key == "volume":
-                    model.setVolumeUnits(uid)
+                # set the values; the six unit attributes of a model are SBML
+                # L3 only, and below L3 every one of them answers
+                # `LIBSBML_UNEXPECTED_ATTRIBUTE`
+                setter = {
+                    "time": model.setTimeUnits,
+                    "extent": model.setExtentUnits,
+                    "substance": model.setSubstanceUnits,
+                    "length": model.setLengthUnits,
+                    "area": model.setAreaUnits,
+                    "volume": model.setVolumeUnits,
+                }[key]
+                _check_attribute(
+                    setter(uid), model, f"{key} unit", uid, f"Model({model.getId()})"
+                )
 
 
 def set_model_history(
@@ -437,7 +503,12 @@ def set_model_history(
     :return:
     """
     if not sbase.isSetMetaId():
-        sbase.setMetaId(create_metaid(sbase=sbase))
+        # a model history is attached to the metaid of the model, so a
+        # document which has no metaid at all (SBML L1) cannot carry one
+        metaid = create_metaid(sbase=sbase)
+        _check_attribute(
+            sbase.setMetaId(metaid), sbase, "metaId", metaid, sbase.getElementName()
+        )
 
     # create and set model history
     h = _create_history(creators=creators, set_timestamps=set_timestamps)
@@ -773,7 +844,7 @@ class Sbase:
                 else:
                     check(status, f"Set id '{self.sid}' on {sbase}")
         if self.name is not None:
-            sbase.setName(self.name)
+            _check_attribute(sbase.setName(self.name), sbase, "name", self.name, self)
         elif Sbase._authoring_hints.get() and not isinstance(
             self,
             (
@@ -806,7 +877,7 @@ class Sbase:
                 sbo = self.sboTerm.replace("_", ":")
             else:
                 sbo = self.sboTerm
-            sbase.setSBOTerm(sbo)
+            _check_attribute(sbase.setSBOTerm(sbo), sbase, "sboTerm", sbo, self)
         elif Sbase._authoring_hints.get() and not isinstance(
             self,
             (
@@ -832,7 +903,9 @@ class Sbase:
         ):
             logger.warning("'sboTerm' should be set on '%s'", self)
         if self.metaId is not None:
-            sbase.setMetaId(self.metaId)
+            _check_attribute(
+                sbase.setMetaId(self.metaId), sbase, "metaId", self.metaId, self
+            )
 
         if self.notes is not None and self.notes.strip():
             # notes are normalized to xhtml by `Sbase._process_notes`
@@ -882,6 +955,32 @@ class Sbase:
         target = self._port_target()
         return "" if target is None else f"{target}{suffix}"
 
+    def _port_references_self(self) -> bool:
+        """Say whether the port of this element has to be made to name it.
+
+        The `port=True` shorthand and a `Port` object which names nothing of
+        its own are both made to reference this element, by the reference
+        `_port_reference` names for the class; a `Port` which carries a
+        reference of its own keeps it. Both `_port_loss` and `create_port`
+        ask this, which is why it is one predicate.
+
+        Returns:
+            `True` if the port references this element, `False` if it carries
+            a reference of its own
+
+        Raises:
+            AttributeError: if the element has no port at all; both callers
+                answer that case before they ask
+        """
+        if isinstance(self.port, bool):
+            return True
+        return not (
+            self.port.portRef
+            or self.port.idRef
+            or self.port.unitRef
+            or self.port.metaIdRef
+        )
+
     def _port_loss(self, in_model: bool) -> str | None:
         """Say why the port of this element cannot be written, if it cannot.
 
@@ -924,13 +1023,7 @@ class Sbase:
                 f"written without the model its port would live in. Put it on "
                 f"an element of the model to give it a port."
             )
-        references_self = isinstance(self.port, bool) or not (
-            self.port.portRef
-            or self.port.idRef
-            or self.port.unitRef
-            or self.port.metaIdRef
-        )
-        if not references_self:
+        if not self._port_references_self():
             return None
         if self._port_target() is None:
             name = "metaId" if self._port_reference == "metaIdRef" else "id"
@@ -990,13 +1083,6 @@ class Sbase:
         # the unit definitions of the model
         target: str | None = self._port_target()
 
-        references_self = isinstance(self.port, bool) or not (
-            self.port.portRef
-            or self.port.idRef
-            or self.port.unitRef
-            or self.port.metaIdRef
-        )
-
         p: libsbml.Port | None = None
         if isinstance(self.port, bool):
             if self.port is True:
@@ -1015,15 +1101,19 @@ class Sbase:
                 sbo = SBO.PORT.curie
                 p.setSBOTerm(sbo)
 
-                if reference == "unitRef":
-                    p.setUnitRef(target)
-                elif reference == "metaIdRef":
-                    p.setMetaIdRef(target)
-                else:
-                    p.setIdRef(target)
+                # the id, the name, the metaid and the sboTerm of the port are
+                # derived and cannot fail: `_port_loss` has checked that the
+                # derived id is a valid SId, the name is never empty and the
+                # sboTerm is a constant. The reference is the caller's value
+                setter = {
+                    "unitRef": p.setUnitRef,
+                    "metaIdRef": p.setMetaIdRef,
+                    "idRef": p.setIdRef,
+                }[reference]
+                _check_attribute(setter(target), p, reference, target, self)
         else:
             # use the port object
-            if references_self:
+            if self._port_references_self():
                 # if no reference set the reference of this class to it
                 if reference == "unitRef":
                     self.port.unitRef = target
@@ -1833,7 +1923,9 @@ class Parameter(ValueWithUnit):
     def _set_fields(self, sbase: libsbml.Parameter, model: libsbml.Model) -> None:
         """Set fields."""
         super()._set_fields(sbase, model)
-        sbase.setConstant(self.constant)
+        _check_attribute(
+            sbase.setConstant(self.constant), sbase, "constant", self.constant, self
+        )
 
 
 class LocalParameter(ValueWithUnit):
@@ -2012,7 +2104,9 @@ class Compartment(ValueWithUnit):
     def _set_fields(self, sbase: libsbml.Compartment, model: libsbml.Model) -> None:
         """Set fields on Compartment."""
         super()._set_fields(sbase, model)
-        sbase.setConstant(self.constant)
+        _check_attribute(
+            sbase.setConstant(self.constant), sbase, "constant", self.constant, self
+        )
         if self.spatialDimensions is not None:
             check(
                 sbase.setSpatialDimensions(self.spatialDimensions),
@@ -2093,28 +2187,73 @@ class Species(Sbase):
     def _set_fields(self, sbase: libsbml.Species, model: libsbml.Model) -> None:
         """Set fields on libsbml.Species."""
         super()._set_fields(sbase, model)
-        sbase.setConstant(self.constant)
+        _check_attribute(
+            sbase.setConstant(self.constant), sbase, "constant", self.constant, self
+        )
         if self.compartment is None:
             raise ValueError(f"Compartment cannot be None on Species: '{self}'")
-        sbase.setCompartment(self.compartment)
-        sbase.setBoundaryCondition(self.boundaryCondition)
-        sbase.setHasOnlySubstanceUnits(self.hasOnlySubstanceUnits)
+        _check_attribute(
+            sbase.setCompartment(self.compartment),
+            sbase,
+            "compartment",
+            self.compartment,
+            self,
+        )
+        _check_attribute(
+            sbase.setBoundaryCondition(self.boundaryCondition),
+            sbase,
+            "boundaryCondition",
+            self.boundaryCondition,
+            self,
+        )
+        _check_attribute(
+            sbase.setHasOnlySubstanceUnits(self.hasOnlySubstanceUnits),
+            sbase,
+            "hasOnlySubstanceUnits",
+            self.hasOnlySubstanceUnits,
+            self,
+        )
 
-        sbase.setSubstanceUnits(model.getSubstanceUnits())
-        if self.substanceUnits is not None:
-            sbase.setSubstanceUnits(
-                UnitDefinition.get_uid_for_unit(unit=self.substanceUnits)
-            )
-        else:
-            # Fallback to model units
-            sbase.setSubstanceUnits(model.getSubstanceUnits())
+        # the substance unit of the species, which falls back to the one of
+        # the model; the model's is set only here, not first and then again,
+        # which would report the same loss twice
+        substance_units: str | None = (
+            UnitDefinition.get_uid_for_unit(unit=self.substanceUnits)
+            if self.substanceUnits is not None
+            else model.getSubstanceUnits()
+        )
+        _check_attribute(
+            sbase.setSubstanceUnits(substance_units),
+            sbase,
+            "substanceUnits",
+            substance_units,
+            self,
+        )
 
         if self.initialAmount is not None:
-            sbase.setInitialAmount(self.initialAmount)
+            _check_attribute(
+                sbase.setInitialAmount(self.initialAmount),
+                sbase,
+                "initialAmount",
+                self.initialAmount,
+                self,
+            )
         if self.initialConcentration is not None:
-            sbase.setInitialConcentration(self.initialConcentration)
+            _check_attribute(
+                sbase.setInitialConcentration(self.initialConcentration),
+                sbase,
+                "initialConcentration",
+                self.initialConcentration,
+                self,
+            )
         if self.conversionFactor is not None:
-            sbase.setConversionFactor(self.conversionFactor)
+            _check_attribute(
+                sbase.setConversionFactor(self.conversionFactor),
+                sbase,
+                "conversionFactor",
+                self.conversionFactor,
+                self,
+            )
 
         # fbc
         if (self.charge is not None) or (self.chemicalFormula is not None):
@@ -2128,7 +2267,13 @@ class Species(Sbase):
                 if self.charge is not None:
                     self._set_charge(obj_fbc)
                 if self.chemicalFormula is not None:
-                    obj_fbc.setChemicalFormula(self.chemicalFormula)
+                    _check_attribute(
+                        obj_fbc.setChemicalFormula(self.chemicalFormula),
+                        obj_fbc,
+                        "chemicalFormula",
+                        self.chemicalFormula,
+                        self,
+                    )
 
     def _set_charge(self, species_fbc: libsbml.FbcSpeciesPlugin) -> None:
         """Set the fbc charge as the fbc version of the document writes it.
@@ -2246,7 +2391,7 @@ class InitialAssignment(Value):
 
         obj: libsbml.InitialAssignment = model.createInitialAssignment()
         self._set_fields(obj, model)
-        obj.setSymbol(self.symbol)
+        _check_attribute(obj.setSymbol(self.symbol), obj, "symbol", self.symbol, self)
         if self.value is not None:
             obj.setMath(ast_node_from_formula(model, str(self.value)))
 
@@ -2292,7 +2437,7 @@ class RuleWithVariable:
                 p.getId(),
                 p.getConstant(),
             )
-            p.setConstant(False)
+            _check_attribute(p.setConstant(False), p, "constant", False, p.getId())
 
         # Check if rule exists
         if model.getRuleByVariable(self.variable):
@@ -2354,7 +2499,9 @@ class AssignmentRule(ValueWithUnit, RuleWithVariable):
         self.check_model_for_rule(model)
         obj: libsbml.AssignmentRule = model.createAssignmentRule()
         self._set_fields(obj, model)
-        obj.setVariable(self.variable)
+        _check_attribute(
+            obj.setVariable(self.variable), obj, "variable", self.variable, self
+        )
         if self.value is not None:
             obj.setMath(ast_node_from_formula(model, str(self.value)))
         self.create_port(model)
@@ -2409,7 +2556,9 @@ class RateRule(ValueWithUnit, RuleWithVariable):
         self.check_model_for_rule(model)
         obj: libsbml.RateRule = model.createRateRule()
         self._set_fields(obj, model)
-        obj.setVariable(self.variable)
+        _check_attribute(
+            obj.setVariable(self.variable), obj, "variable", self.variable, self
+        )
         if self.value is not None:
             obj.setMath(ast_node_from_formula(model, str(self.value)))
         self.create_port(model)
@@ -2755,18 +2904,34 @@ class Reaction(Sbase):
             written for all three roles alike.
             """
             if part.species is not None:
-                sref.setSpecies(part.species)
+                _check_attribute(
+                    sref.setSpecies(part.species), sref, "species", part.species, part
+                )
             if part.sid is not None:
-                sref.setId(part.sid)
+                _check_attribute(sref.setId(part.sid), sref, "id", part.sid, part)
             if isinstance(sref, libsbml.SpeciesReference):
                 if part.constant is not None:
-                    sref.setConstant(part.constant)
+                    _check_attribute(
+                        sref.setConstant(part.constant),
+                        sref,
+                        "constant",
+                        part.constant,
+                        part,
+                    )
                 if part.stoichiometry is not None:
+                    # a stoichiometry is a plain double, which libsbml accepts
+                    # at every level and version
                     sref.setStoichiometry(part.stoichiometry)
             if part.metaId is not None:
-                sref.setMetaId(part.metaId)
+                _check_attribute(
+                    sref.setMetaId(part.metaId), sref, "metaId", part.metaId, part
+                )
             if part.sboTerm is not None:
-                sref.setSBOTerm(part.sboTerm)
+                # unlike `Sbase._set_fields`, an `EquationPart` states its
+                # sboTerm as the string it is written as, `SBO:0000011`
+                _check_attribute(
+                    sref.setSBOTerm(part.sboTerm), sref, "sboTerm", part.sboTerm, part
+                )
             if part.name is not None:
                 # `SimpleSpeciesReference::setName` (libsbml 5.21.1)
                 # erroneously applies SId syntax validation to `name`,
@@ -2829,9 +2994,21 @@ class Reaction(Sbase):
         # add fbc bounds
         if self.upperFluxBound or self.lowerFluxBound:
             if self.upperFluxBound:
-                r_fbc.setUpperFluxBound(self.upperFluxBound)
+                _check_attribute(
+                    r_fbc.setUpperFluxBound(self.upperFluxBound),
+                    r_fbc,
+                    "upperFluxBound",
+                    self.upperFluxBound,
+                    self,
+                )
             if self.lowerFluxBound:
-                r_fbc.setLowerFluxBound(self.lowerFluxBound)
+                _check_attribute(
+                    r_fbc.setLowerFluxBound(self.lowerFluxBound),
+                    r_fbc,
+                    "lowerFluxBound",
+                    self.lowerFluxBound,
+                    self,
+                )
 
         # add gpa
         if self.geneProductAssociation:
@@ -2867,7 +3044,14 @@ class Reaction(Sbase):
         super()._set_fields(sbase, model)
 
         if self.compartment:
-            sbase.setCompartment(self.compartment)
+            # the compartment of a reaction is SBML L3 only
+            _check_attribute(
+                sbase.setCompartment(self.compartment),
+                sbase,
+                "compartment",
+                self.compartment,
+                self,
+            )
         # else:
         #    logger.info(f"'compartment' should be set on '{self}'}")
         reversible = (
@@ -4553,9 +4737,16 @@ class GeneProduct(Sbase):
 
         self.create_port(model)
 
+        # the label is a plain string which libsbml accepts in every form
         gene_product.setLabel(self.label)
         if self.associatedSpecies:
-            gene_product.setAssociatedSpecies(self.associatedSpecies)
+            _check_attribute(
+                gene_product.setAssociatedSpecies(self.associatedSpecies),
+                gene_product,
+                "associatedSpecies",
+                self.associatedSpecies,
+                self,
+            )
 
         return gene_product
 
@@ -4723,8 +4914,23 @@ class UserDefinedConstraint(Sbase):
         udc: libsbml.UserDefinedConstraint = model_fbc.createUserDefinedConstraint()
         self._set_fields(udc, model)
         self.create_port(model)
-        udc.setUpperBound(self.upperBound)
-        udc.setLowerBound(self.lowerBound)
+        # an `<fbc:userDefinedConstraint>` is fbc version 3; in an fbc
+        # version 2 document libsbml creates the element and refuses every
+        # attribute of it with `LIBSBML_UNEXPECTED_ATTRIBUTE`
+        _check_attribute(
+            udc.setUpperBound(self.upperBound),
+            udc,
+            "upperBound",
+            self.upperBound,
+            self,
+        )
+        _check_attribute(
+            udc.setLowerBound(self.lowerBound),
+            udc,
+            "lowerBound",
+            self.lowerBound,
+            self,
+        )
         for component in self.components:
             component.create_sbml(constraint=udc, model=model)
 
@@ -4826,10 +5032,24 @@ class FluxObjective(Sbase):
         self._set_fields(flux_objective, model)
         self.create_port(model)
 
-        flux_objective.setReaction(self.reaction)
+        _check_attribute(
+            flux_objective.setReaction(self.reaction),
+            flux_objective,
+            "reaction",
+            self.reaction,
+            self,
+        )
+        # a coefficient is a plain double, which libsbml accepts in every form
         flux_objective.setCoefficient(self.coefficient)
         if self.variableType is not None:
-            flux_objective.setVariableType(self.variableType)
+            # `fbc:variableType` is fbc version 3
+            _check_attribute(
+                flux_objective.setVariableType(self.variableType),
+                flux_objective,
+                "variableType",
+                self.variableType,
+                self,
+            )
 
         return flux_objective
 
@@ -4941,9 +5161,17 @@ class Objective(Sbase):
         objective: libsbml.Objective = model_fbc.createObjective()
         self._set_fields(objective, model)
         self.create_port(model)
+        # `Objective.normalize_objective_type` refuses every type which is
+        # not one libsbml knows, so this cannot fail
         objective.setType(self.objectiveType)
         if self.active:
-            model_fbc.setActiveObjectiveId(self.sid)
+            _check_attribute(
+                model_fbc.setActiveObjectiveId(self.sid),
+                model_fbc,
+                "activeObjective",
+                self.sid,
+                self,
+            )
         for flux_objective in self.fluxObjectives:
             flux_objective.create_sbml(objective=objective, model=model)
 
@@ -4993,7 +5221,11 @@ class ExternalModelDefinition(Sbase):
     ) -> None:
         """Set fields on ExternalModelDefinition."""
         super()._set_fields(sbase, model)
-        sbase.setModelRef(self.modelRef)
+        _check_attribute(
+            sbase.setModelRef(self.modelRef), sbase, "modelRef", self.modelRef, self
+        )
+        # the source and the md5 are plain strings, which libsbml accepts in
+        # every form
         sbase.setSource(self.source)
         if self.md5 is not None:
             sbase.setMd5(self.md5)
@@ -5050,11 +5282,29 @@ class Submodel(Sbase):
                 self.sid,
             )
         else:
-            submodel.setModelRef(self.modelRef)
+            _check_attribute(
+                submodel.setModelRef(self.modelRef),
+                submodel,
+                "modelRef",
+                self.modelRef,
+                self,
+            )
         if self.timeConversionFactor:
-            submodel.setTimeConversionFactor(self.timeConversionFactor)
+            _check_attribute(
+                submodel.setTimeConversionFactor(self.timeConversionFactor),
+                submodel,
+                "timeConversionFactor",
+                self.timeConversionFactor,
+                self,
+            )
         if self.extentConversionFactor:
-            submodel.setExtentConversionFactor(self.extentConversionFactor)
+            _check_attribute(
+                submodel.setExtentConversionFactor(self.extentConversionFactor),
+                submodel,
+                "extentConversionFactor",
+                self.extentConversionFactor,
+                self,
+            )
 
         return submodel
 
@@ -5143,15 +5393,31 @@ class SbaseRef(Sbase):
         """
         super()._set_fields(sbase, model)
 
+        # exactly one of the four references is written. `<comp:port>` is the
+        # one of them which cannot carry a `comp:portRef`: libsbml answers
+        # `Port.setPortRef` with `LIBSBML_OPERATION_FAILED` whatever the
+        # value, since comp does not let a port reference another port
         if self.portRef is not None:
-            sbase.setPortRef(self.portRef)
+            _check_attribute(
+                sbase.setPortRef(self.portRef), sbase, "portRef", self.portRef, self
+            )
         if self.idRef is not None:
-            sbase.setIdRef(self.idRef)
+            _check_attribute(
+                sbase.setIdRef(self.idRef), sbase, "idRef", self.idRef, self
+            )
         if self.unitRef is not None:
             unit_str = UnitDefinition.get_uid_for_unit(unit=self.unitRef)
-            sbase.setUnitRef(unit_str)
+            _check_attribute(
+                sbase.setUnitRef(unit_str), sbase, "unitRef", unit_str, self
+            )
         if self.metaIdRef is not None:
-            sbase.setMetaIdRef(self.metaIdRef)
+            _check_attribute(
+                sbase.setMetaIdRef(self.metaIdRef),
+                sbase,
+                "metaIdRef",
+                self.metaIdRef,
+                self,
+            )
         if self.sBaseRef is not None:
             nested: libsbml.SBaseRef = sbase.createSBaseRef()
             # written through the base class explicitly rather than through
@@ -5279,11 +5545,25 @@ class ReplacedElement(SbaseRef):
 
     def _set_fields(self, sbase: libsbml.ReplacedElement, model: libsbml.Model) -> None:
         super()._set_fields(sbase, model)
-        sbase.setSubmodelRef(self.submodelRef)
+        _check_attribute(
+            sbase.setSubmodelRef(self.submodelRef),
+            sbase,
+            "submodelRef",
+            self.submodelRef,
+            self,
+        )
         if self.deletion:
-            sbase.setDeletion(self.deletion)
+            _check_attribute(
+                sbase.setDeletion(self.deletion), sbase, "deletion", self.deletion, self
+            )
         if self.conversionFactor:
-            sbase.setConversionFactor(self.conversionFactor)
+            _check_attribute(
+                sbase.setConversionFactor(self.conversionFactor),
+                sbase,
+                "conversionFactor",
+                self.conversionFactor,
+                self,
+            )
 
 
 class ReplacedBy(SbaseRef):
@@ -5339,7 +5619,13 @@ class ReplacedBy(SbaseRef):
     def _set_fields(self, sbase: libsbml.ReplacedBy, model: libsbml.Model) -> None:
         """Set fields in ReplacedBy."""
         super()._set_fields(sbase, model)
-        sbase.setSubmodelRef(self.submodelRef)
+        _check_attribute(
+            sbase.setSubmodelRef(self.submodelRef),
+            sbase,
+            "submodelRef",
+            self.submodelRef,
+            self,
+        )
 
 
 class Deletion(SbaseRef):
@@ -5498,6 +5784,20 @@ class Package(StrEnum):
     FBC = "fbc"
     FBC_V2 = "fbc-v2"
     FBC_V3 = "fbc-v3"
+
+
+#: the libsbml package namespace of every `Package`, as `(name, package
+#: version)`. The members which name no version map to the namespace `Model`
+#: normalizes them to, see `Model.check_packages`.
+_PACKAGE_NAMESPACES: dict[Package, tuple[str, int]] = {
+    Package.COMP: ("comp", 1),
+    Package.COMP_V1: ("comp", 1),
+    Package.DISTRIB: ("distrib", 1),
+    Package.DISTRIB_V1: ("distrib", 1),
+    Package.FBC: ("fbc", 3),
+    Package.FBC_V2: ("fbc", 2),
+    Package.FBC_V3: ("fbc", 3),
+}
 
 
 def packages_in_canonical_order(packages: Iterable[Package]) -> list[Package]:
@@ -6549,16 +6849,20 @@ class Document(Sbase):
         # create core model
         sbmlns = libsbml.SBMLNamespaces(self.sbml_level, self.sbml_version)
 
-        # add all the package
+        # add all the package; a package namespace can only be added to an
+        # SBML L3 document, libsbml answers with
+        # `LIBSBML_INVALID_ATTRIBUTE_VALUE` below it and the document is
+        # written without the package
+        declared: list[Package] = []
         for package in packages:
-            if package == Package.COMP_V1:
-                sbmlns.addPackageNamespace("comp", 1)
-            if package == Package.DISTRIB_V1:
-                sbmlns.addPackageNamespace("distrib", 1)
-            if package == Package.FBC_V2:
-                sbmlns.addPackageNamespace("fbc", 2)
-            if package == Package.FBC_V3:
-                sbmlns.addPackageNamespace("fbc", 3)
+            name, package_version = _PACKAGE_NAMESPACES[package]
+            if check(
+                sbmlns.addPackageNamespace(name, package_version),
+                f"Declare the package '{package.value}' on an "
+                f"SBML L{self.sbml_level}V{self.sbml_version} document",
+            ):
+                declared.append(package)
+        packages = declared
 
         self.doc = libsbml.SBMLDocument(sbmlns)
         self._set_fields(self.doc, None)
@@ -6567,9 +6871,15 @@ class Document(Sbase):
         sbml_model: libsbml.Model = self.model.create_sbml(self.doc)
 
         if Package.COMP_V1 in packages:
-            self.doc.setPackageRequired("comp", True)
+            check(
+                self.doc.setPackageRequired("comp", True),
+                "Set comp:required on the document",
+            )
         if (Package.FBC_V2 in packages) or (Package.FBC_V3 in packages):
-            self.doc.setPackageRequired("fbc", False)
+            check(
+                self.doc.setPackageRequired("fbc", False),
+                "Set fbc:required on the document",
+            )
             fbc_plugin: libsbml.FbcModelPlugin = sbml_model.getPlugin("fbc")
             # `Model.strict` is `None` for a model which never set it, which
             # keeps today's default of writing `fbc:strict="false"`, see the
@@ -6580,7 +6890,10 @@ class Document(Sbase):
                 f"Set fbc:strict on model '{self.model.sid}'",
             )
         if Package.DISTRIB_V1 in packages:
-            self.doc.setPackageRequired("distrib", True)
+            check(
+                self.doc.setPackageRequired("distrib", True),
+                "Set distrib:required on the document",
+            )
 
         return self.doc
 

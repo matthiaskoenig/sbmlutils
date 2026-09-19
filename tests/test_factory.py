@@ -2097,3 +2097,252 @@ def test_document_does_not_offer_key_value_pairs(field: str) -> None:
     kwargs: dict[str, Any] = {field: None}
     with pytest.raises(TypeError, match=field):
         Document(model=model, **kwargs)
+
+
+def _minimal_content() -> dict[str, Any]:
+    """Get the content of a model which writes at every SBML level and version.
+
+    Returns:
+        the keyword arguments of a `Model`
+    """
+    return {
+        "compartments": [Compartment("c", 1.0, name="compartment")],
+        "species": [
+            Species("S1", compartment="c", initialAmount=1.0, name="S1"),
+        ],
+    }
+
+
+#: one case per kind of libsbml failure the survey of the unwrapped setters
+#: found, as `(build, level, version, fragments of the one error)`. Every case
+#: is a value which `factory.py` passes on to libsbml unchanged and which
+#: libsbml refuses with a status code, so that the attribute was dropped in
+#: silence before it was wrapped.
+_SWALLOWED_ATTRIBUTES: list[Any] = [
+    pytest.param(
+        lambda: Model(
+            sid="invalid_sid",
+            name="a model",
+            compartments=[Compartment("c", 1.0, name="compartment")],
+            species=[
+                Species("S1", compartment="not an sid", initialAmount=1.0, name="S1")
+            ],
+        ),
+        3,
+        1,
+        ["compartment", "not an sid", "Species(S1"],
+        id="invalid-sid",
+    ),
+    pytest.param(
+        lambda: Model(
+            sid="invalid_sbo_term",
+            name="a model",
+            parameters=[Parameter("p1", 1.0, name="p1", sboTerm="not an sbo term")],
+            **_minimal_content(),
+        ),
+        3,
+        1,
+        ["sboTerm", "not an sbo term", "Parameter(p1"],
+        id="invalid-sbo-term",
+    ),
+    pytest.param(
+        lambda: Model(
+            sid="invalid_metaid",
+            name="a model",
+            parameters=[Parameter("p1", 1.0, name="p1", metaId="meta id")],
+            **_minimal_content(),
+        ),
+        3,
+        1,
+        ["metaId", "meta id", "Parameter(p1"],
+        id="invalid-metaid",
+    ),
+    pytest.param(
+        lambda: Model(
+            sid="invalid_unit_id",
+            name="a model",
+            model_units=ModelUnits(
+                time="not an sid",
+                extent=Units.mole,
+                substance=Units.mole,
+                volume=Units.litre,
+            ),
+            **_minimal_content(),
+        ),
+        3,
+        1,
+        ["time unit", "not an sid", "Model(invalid_unit_id)"],
+        id="invalid-unit-id",
+    ),
+    pytest.param(
+        lambda: Model(
+            sid="attribute_of_a_later_level",
+            name="a model",
+            parameters=[Parameter("p1", 1.0, name="p1")],
+            compartments=[Compartment("c", 1.0, name="compartment")],
+            species=[
+                Species(
+                    "S1",
+                    compartment="c",
+                    initialAmount=1.0,
+                    name="S1",
+                    conversionFactor="p1",
+                )
+            ],
+        ),
+        2,
+        4,
+        ["conversionFactor", "p1", "Species(S1", "SBML L2V4 has no such attribute"],
+        id="attribute-of-a-later-level",
+    ),
+    pytest.param(
+        lambda: Model(
+            sid="attribute_of_a_later_package_version",
+            name="a model",
+            packages=[Package.FBC_V2],
+            objectives=[
+                Objective(
+                    sid="obj1",
+                    name="objective",
+                    objectiveType="maximize",
+                    fluxObjectives={"R1": 1.0},
+                )
+            ],
+            reactions=[Reaction("R1", "S1 ->", name="reaction")],
+            **_minimal_content(),
+        ),
+        3,
+        1,
+        ["variableType", "fbc version 2", "has no such attribute"],
+        id="attribute-of-a-later-package-version",
+    ),
+    pytest.param(
+        lambda: Model(
+            sid="value_outside_an_enumeration",
+            name="a model",
+            packages=[Package.FBC_V3],
+            objectives=[
+                Objective(
+                    sid="obj1",
+                    name="objective",
+                    objectiveType="maximize",
+                    fluxObjectives=[
+                        FluxObjective(
+                            reaction="R1",
+                            coefficient=1.0,
+                            name="flux objective",
+                            variableType="invalid",
+                        )
+                    ],
+                )
+            ],
+            reactions=[Reaction("R1", "S1 ->", name="reaction")],
+            **_minimal_content(),
+        ),
+        3,
+        1,
+        ["variableType", "FluxObjective("],
+        id="value-outside-an-enumeration",
+    ),
+    pytest.param(
+        lambda: Model(
+            sid="invalid_chemical_formula",
+            name="a model",
+            packages=[Package.FBC_V3],
+            compartments=[Compartment("c", 1.0, name="compartment")],
+            species=[
+                Species(
+                    "S1",
+                    compartment="c",
+                    initialAmount=1.0,
+                    name="S1",
+                    chemicalFormula="not a formula",
+                )
+            ],
+        ),
+        3,
+        1,
+        ["chemicalFormula", "not a formula", "Species(S1"],
+        id="invalid-chemical-formula",
+    ),
+    pytest.param(
+        lambda: Model(
+            sid="reference_the_element_cannot_carry",
+            name="a model",
+            packages=[Package.COMP_V1],
+            ports=[Port(sid="p1_port", name="a port", portRef="another_port")],
+            parameters=[Parameter("p1", 1.0, name="p1")],
+            **_minimal_content(),
+        ),
+        3,
+        1,
+        ["portRef", "another_port", "Port(p1_port"],
+        id="reference-the-element-cannot-carry",
+    ),
+    pytest.param(
+        lambda: Model(
+            sid="package_of_a_later_level",
+            name="a model",
+            packages=[Package.COMP_V1],
+            **_minimal_content(),
+        ),
+        2,
+        4,
+        ["comp-v1", "SBML L2V4"],
+        id="package-of-a-later-level",
+    ),
+]
+
+
+@pytest.mark.parametrize("build, level, version, fragments", _SWALLOWED_ATTRIBUTES)
+def test_attribute_libsbml_refuses_is_reported(
+    build: Callable[[], Model],
+    level: int,
+    version: int,
+    fragments: list[str],
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that an attribute libsbml refuses to write is reported once.
+
+    A libsbml setter answers with a status code instead of raising, so an
+    attribute it refuses used to be dropped in silence: the model definition
+    asked for it, the written document did not carry it and validated. Every
+    case here is one kind of refusal the survey of `factory.py` found: an
+    invalid SId, an invalid SBO term, an invalid metaid, an invalid unit id,
+    an attribute the SBML level and version does not have, an attribute the
+    package version does not have, a value outside an enumeration, an invalid
+    chemical formula, a reference the element cannot carry, and a package the
+    SBML level cannot declare.
+
+    The document is written either way, which the file on disk shows.
+    """
+    model = build()
+    sbml_path = tmp_path / f"{model.sid}.xml"
+    with caplog.at_level(logging.ERROR, logger="sbmlutils"):
+        create_model(
+            model=model,
+            filepath=sbml_path,
+            sbml_level=level,
+            sbml_version=version,
+            validate=False,
+        )
+
+    # `check` logs the status code as a record of its own, which belongs to
+    # the report before it rather than being a report of its own
+    errors = [
+        record.getMessage()
+        for record in caplog.records
+        if record.levelno >= logging.ERROR
+        and not record.getMessage().startswith("LibSBML returned error code")
+    ]
+    assert len(errors) == 1, errors
+    for fragment in fragments:
+        assert fragment in errors[0], errors[0]
+
+    # the rest of the document is written all the same
+    assert sbml_path.exists()
+    doc: libsbml.SBMLDocument = read_sbml(source=sbml_path, validate=False)
+    sbml_model: libsbml.Model = doc.getModel()
+    assert sbml_model.getId() == model.sid
+    assert sbml_model.getNumCompartments() == 1
