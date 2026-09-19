@@ -5413,8 +5413,31 @@ class Model(Sbase, FrozenClass):
         return self._create_sbml(doc)
 
     def _create_sbml(self, doc: libsbml.SBMLDocument) -> libsbml.Model:
-        """Create the libsbml.Model and all its objects."""
+        """Create the libsbml.Model of this model on the document and fill it.
+
+        Args:
+            doc: the libsbml.SBMLDocument the model is created on
+
+        Returns:
+            the created and filled libsbml.Model
+        """
         model: libsbml.Model = doc.createModel()
+        self._fill_sbml(model)
+        return model
+
+    def _fill_sbml(self, model: libsbml.Model) -> None:
+        """Write the content of this model into the libsbml model created for it.
+
+        Filling a libsbml model is separated from creating it, because the two
+        kinds of model this module writes are created differently but hold the
+        same content: the model of a document is created on the document with
+        `createModel`, a `ModelDefinition` is created on the comp plugin of the
+        document, and both are filled from here.
+
+        Args:
+            model: the created libsbml.Model, or the libsbml.ModelDefinition
+                created for a `ModelDefinition`, which subclasses it
+        """
         self._set_fields(model, model)
 
         # history
@@ -5466,8 +5489,6 @@ class Model(Sbase, FrozenClass):
                 objects = getattr(self, attr)
                 if objects:
                     create_objects(model, obj_iter=objects, key=attr)
-
-        return model
 
     def get_sbml(self) -> str:
         """Create SBML model."""
