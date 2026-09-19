@@ -91,7 +91,7 @@ Reported upstream to libsbml; see "Decisions already taken". Numbering is kept s
 
 The original version of this section said that `delay.setMath()`, `priority.setMath()` and the trigger's `setMath`, `setInitialValue` and `setPersistent` should be wrapped in `check()`. **That diagnosis was wrong.** Measured, those calls cannot fail: they return success even when given `None`. The real defects are:
 
-- **Six `parseL3FormulaWithModel` call sites skip the `None` check** that `ast_node_from_formula` does, so a formula that fails to parse is passed on as `None` without an error. They are in `factory.py` near `KineticLaw.create_sbml`, `Event._set_fields` (trigger, priority and delay) and `EventAssignment.create_sbml`; the survey lists the exact lines.
+- **Six `parseL3FormulaWithModel` call sites skipped the `None` check** that `ast_node_from_formula` does, so a formula that failed to parse was passed on as `None` without an error. Resolved: the core branch added the check to `KineticLaw.create_sbml` and `EventAssignment.create_sbml`, and `fix/event-trigger-priority-delay` routes the trigger, priority and delay of an event and the math of a `Constraint` through `ast_node_from_formula`, which logs the error.
 - **105 of the 136 `set*` calls in `factory.py` are unchecked.** The survey lists exactly which of them can fail and which cannot. Wrapping only the ones that can fail is worth doing; wrapping all of them adds noise without value.
 - **An unparsable function definition is dropped without a log line** in `parser.py`, unlike `ast_node_from_formula`, which logs. No current test-suite case reaches it.
 - **The port-without-id error message** reads `'AssignmentRule(True)'` instead of naming the variable.

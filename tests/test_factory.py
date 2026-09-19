@@ -948,6 +948,25 @@ def test_nested_elements_log_no_authoring_hints(
     del doc
 
 
+def test_constraint_unparsable_math_logs_an_error(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that constraint math which does not parse is logged as an error.
+
+    `Constraint` passed the result of `parseL3FormulaWithModel` to `setMath`
+    without checking it, so math which did not parse became a constraint
+    without math, silently, unlike every other element with math.
+    """
+    doc, model = _event_test_model(2)
+    with caplog.at_level("ERROR", logger="sbmlutils.factory"):
+        Constraint("c1", math="p1 >").create_sbml(model)
+
+    errors = [r.getMessage() for r in caplog.records if r.levelname == "ERROR"]
+    assert any("'p1 >'" in message for message in errors), errors
+    assert not model.getConstraint(0).isSetMath()
+    del doc
+
+
 def test_reaction_reversible_overrides_the_equation() -> None:
     """Test that an explicit `reversible` is honoured.
 

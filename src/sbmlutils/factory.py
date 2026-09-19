@@ -3065,9 +3065,7 @@ class Constraint(Sbase):
         """Set fields on libsbml.Constraint."""
         super()._set_fields(sbase, model)
 
-        if self.math is not None:
-            ast_math = libsbml.parseL3FormulaWithModel(self.math, model)
-            sbase.setMath(ast_math)
+        _set_math(sbase, self.math, model)
         if self.message is not None:
             check(
                 sbase.setMessage(self.message),
