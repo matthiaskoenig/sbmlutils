@@ -2,7 +2,7 @@
 
 A round trip of the fbc, distrib and comp packages is checked by `structural_diff` of `tests/structural.py`, since simulation and validation are both blind to these packages, see its docstring for the comparison policy. A comparison which reports nothing on a damaged document is blind as well, so these tests prove it sees each kind of loss: they damage one construct in a copy of a real fixture and assert that exactly that construct is reported, and they assert that an undamaged document is reported as unchanged.
 
-They never assert what `sbml_to_model` loses today. Those losses are removed one by one by the tasks which follow, and a test pinned to them would break with every fix. The losses of the current parser are measured by `scripts/package_report.py` instead.
+They never assert what `sbml_to_model` loses today. Those losses are removed one by one by the tasks which follow, and a test pinned to them would break with every fix. The losses of the current parser are measured by `scripts/package_report.py` instead. A loss which is not going to be removed is the one exception: it is pinned by a test of its own, which spells out exactly how much is lost and fails as soon as one element more goes missing. There is one, the `sboTerm` of the `and` and `or` nodes of a gene product association, see `test_roundtrip_loses_only_the_sboterm_of_an_association_node`.
 
 The cases of the SBML test suite are resolved from the checkout, see `tests/test_roundtrip.py`, since the installed package does not contain them.
 """
@@ -65,6 +65,8 @@ from sbmlutils.validation import ValidationOptions, validate_doc
 UNCERTAINTY_SBML: Path = RESOURCES_DIR / "distrib" / "uncertainty.xml"
 #: the distributions of distrib, as csymbols in the math of initial assignments
 DISTRIB_ALL_SBML: Path = RESOURCES_DIR / "distrib" / "distrib_all.xml"
+#: gene product associations whose `and` and `or` nodes carry an sboTerm
+ECOLI_CORE_DISTRIB_SBML: Path = RESOURCES_DIR / "distrib" / "e_coli_core.xml"
 #: gene product associations whose `and` and `or` nodes carry an sboTerm, and an
 #: uncertainty
 ECOLI_EXPRESSION_SBML: Path = RESOURCES_DIR / "distrib" / "e_coli_core_expression.xml"
@@ -1085,6 +1087,66 @@ def test_roundtrip_preserves_gene_products(
         "fbc.geneProduct",
         "fbc.geneProductAssociation",
     )
+
+
+#: the sboTerm an `and` and an `or` node of a gene product association carries
+#: in the two e_coli_core fixtures of `resources/distrib`; each of the two
+#: restates the operator of the node it sits on, SBO:0000173 is `and` and
+#: SBO:0000174 is `or`
+ASSOCIATION_NODE_SBO: dict[str, str] = {"and": "SBO:0000173", "or": "SBO:0000174"}
+
+
+@pytest.mark.parametrize(
+    "sbml_path",
+    [ECOLI_CORE_DISTRIB_SBML, ECOLI_EXPRESSION_SBML],
+    ids=fixture_idfn,
+)
+def test_roundtrip_loses_only_the_sboterm_of_an_association_node(
+    sbml_path: Path, tmp_path: Path
+) -> None:
+    """Test that a round trip loses no more of an association than the sboTerm of a node.
+
+    `Reaction.geneProductAssociation` holds an association as the infix string
+    of its gene product ids, and a string cannot hold what a node of the
+    association carries: `tests/structural.py` therefore compares the metadata
+    of every `and`, `or` and `geneProductRef` node as `nodes`, apart from the
+    string. The two e_coli_core fixtures of `resources/distrib` are the only
+    documents of the corpus whose nodes carry any, and this is the loss that
+    is left; it is not whitelisted, it is pinned here.
+
+    What is lost has to stay exactly this: an `sboTerm` on an `and` or an `or`
+    node which restates the operator of that node, so the infix string loses
+    nothing which is not derivable from it. Any other metadata on a node - a
+    metaid, an annotation, notes, another term, or anything at all on a
+    `geneProductRef` - would be a real loss and fails this test, and so does a
+    changed association string, which is asserted literally rather than left
+    to the whitelist.
+    """
+    doc_in, doc_out = roundtrip_document(sbml_path, tmp_path)
+    census = _expected_constructs(comparable_document(doc_in))
+    assert census["fbc.geneProductAssociation"] == 69
+
+    differences = [d for d in structural_diff(doc_in, doc_out) if d.package == "fbc"]
+
+    assert {(d.construct, d.attribute) for d in differences} == {
+        ("fbc.geneProductAssociation", "nodes")
+    }
+    assert len(differences) == 42
+    kinds: Counter[str] = Counter()
+    for difference in differences:
+        reaction_id = difference.element_id.removeprefix("model/reaction:")
+        assert _association(doc_in, reaction_id) == _association(doc_out, reaction_id)
+        assert difference.after == (), difference
+        assert isinstance(difference.before, tuple)
+        for element, gene_product, metadata in difference.before:
+            sid, name, meta_id, sbo_term, cvterms, notes = metadata
+            assert element in ASSOCIATION_NODE_SBO, difference
+            assert sbo_term == ASSOCIATION_NODE_SBO[element], difference
+            assert (sid, name, meta_id, cvterms, notes) == (None, None, None, (), None)
+            assert gene_product == "", difference
+            kinds[element] += 1
+
+    assert kinds == Counter({"or": 32, "and": 22})
 
 
 def test_roundtrip_preserves_objectives(
