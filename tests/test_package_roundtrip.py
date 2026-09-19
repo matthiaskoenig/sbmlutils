@@ -53,6 +53,7 @@ from sbmlutils.factory import (
     Species,
     create_model,
 )
+from sbmlutils.parser import sbml_to_model
 from sbmlutils.resources import (
     COMP_ICG_BODY,
     COMP_ICG_BODY_FLAT,
@@ -2760,3 +2761,62 @@ def test_roundtrip_of_a_flat_model_gains_no_comp_content(
     assert [construct for construct in counts if construct.startswith("comp.")] == []
 
     assert _comp_differences(differences) == []
+
+
+#: cases of the SBML test suite whose replacements exercise a shape of their
+#: own, with the constructs each of them has to preserve
+REPLACEMENT_CASES: list[tuple[str, tuple[str, ...]]] = [
+    # an sBaseRef chain of two levels under a replaced element
+    ("01132", ("comp.replacedElement", "comp.sBaseRef")),
+    # the same chain, and a replacedBy which continues into a submodel too
+    ("01133", ("comp.replacedElement", "comp.replacedBy", "comp.sBaseRef")),
+    ("01134", ("comp.replacedElement", "comp.replacedBy", "comp.sBaseRef")),
+    # a replaced element with a conversion factor
+    ("01137", ("comp.replacedElement", "comp.submodel")),
+    # a replaced element which names a deletion of its submodel, and the only
+    # deletion of the suite with an id of its own
+    ("01166", ("comp.replacedElement", "comp.deletion")),
+]
+
+
+@requires_testsuite
+@pytest.mark.parametrize(
+    "case, constructs", REPLACEMENT_CASES, ids=[case for case, _ in REPLACEMENT_CASES]
+)
+def test_roundtrip_preserves_replacements_and_their_sbaseref_chain(
+    case: str,
+    constructs: tuple[str, ...],
+    package_roundtrip: Callable[[Path], Comparison],
+) -> None:
+    """Test that a replaced element, a replacedBy and their nested chain survive.
+
+    A `<comp:replacedElement>` and a `<comp:replacedBy>` sit on the element they replace, and either can continue its reference into a submodel of the submodel it names, through a nested `<comp:sBaseRef>` of arbitrary depth. Each level is compared under the level above it, in order, see the docstring of `tests/structural.py`, so a chain which comes back one level short is a difference.
+    """
+    comparison = package_roundtrip(testsuite_case(case))
+    missing = [c for c in constructs if not comparison[0][c]]
+    assert missing == [], f"case {case} has none of {missing}"
+
+    _assert_preserved(comparison, *constructs)
+
+
+@requires_testsuite
+def test_parser_reports_a_replaced_element_of_an_element_without_an_id(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that the one replacement the data model cannot express is reported.
+
+    `sbmlutils.factory` holds a replaced element in the `replaced_elements` of the model, where it names the element it replaces in `elementRef`, and `ReplacedElement.create_sbml` looks that id up in the model it writes into. An element without an id cannot be named that way, and cases 01150 and 01163 of the SBML test suite each put a `<comp:replacedElement>` on a rate rule which carries a metaid and no id. Such a replacement is lost, and a loss which is not reported is a silent one: the parser names the element it sat on and drops it, as it does for an uncertainty which cannot be written back.
+    """
+    with caplog.at_level(logging.ERROR, logger="sbmlutils.parser"):
+        model = sbml_to_model(testsuite_case("01150"))
+
+    lost = [
+        record.getMessage()
+        for record in caplog.records
+        if "replacedElement" in record.getMessage()
+    ]
+    assert len(lost) == 1, caplog.records
+    assert "rateRule" in lost[0]
+    assert "p8_raterule" in lost[0]
+    # the replaced element of the parameter `p8`, which has an id, is kept
+    assert [r.elementRef for r in model.replaced_elements] == ["p8"]

@@ -70,6 +70,8 @@ from sbmlutils.factory import (
     RateRule,
     Reaction,
     ReactionEquation,
+    ReplacedBy,
+    ReplacedElement,
     SbaseRef,
     Species,
     Submodel,
@@ -233,7 +235,7 @@ def _parse_sbase_kwargs(sbase: libsbml.SBase) -> dict[str, Any]:
                     key=kvp.getKey(),
                     value=kvp.getValue(),
                     uri=kvp.getUri() if kvp.isSetUri() else None,
-                    **_drop_uncertainties(_parse_sbase_kwargs(kvp), kvp),
+                    **_drop_unwritable(_parse_sbase_kwargs(kvp), kvp),
                 )
             )
 
@@ -245,6 +247,10 @@ def _parse_sbase_kwargs(sbase: libsbml.SBase) -> dict[str, Any]:
 
     # distrib uncertainties, which every element can carry
     kwargs["uncertainties"] = _parse_uncertainties(sbase)
+
+    # the comp replacedBy of the element, which comp puts on the element it
+    # replaces and `Sbase.replacedBy` holds there as well
+    kwargs["replacedBy"] = _parse_replaced_by(sbase)
 
     return kwargs
 
@@ -282,6 +288,151 @@ def _drop_uncertainties(kwargs: dict[str, Any], sbase: libsbml.SBase) -> dict[st
     return kwargs
 
 
+def _drop_replaced_by(kwargs: dict[str, Any], sbase: libsbml.SBase) -> dict[str, Any]:
+    """Drop the comp replacedBy of an element which cannot carry one, loudly.
+
+    comp allows a `<comp:replacedBy>` on every SBML element and libsbml reads
+    it from every element, but not every element of `sbmlutils.factory` can
+    write one back: a `Model`, a species reference (`EquationPart`), an
+    `UncertParameter`, an `UncertSpan` and the comp references themselves
+    (`Port`, `ReplacedElement`, `ReplacedBy`, `Deletion`, `SbaseRef`,
+    `Submodel`, `ExternalModelDefinition`) have no `replacedBy` field at all,
+    a `KeyValuePair` is written without `Sbase._set_fields`, and a
+    `LocalParameter` and a `KineticLaw` are written without the
+    `libsbml.Model` which `Sbase.create_replaced_by` needs. Passing it on
+    would raise a `TypeError` in the constructor or lose it silently in the
+    writer, so it is dropped here, where the element is known and the loss can
+    be reported. No document of the corpus carries one on such an element: the
+    31 replacements of the corpus sit on a species, a compartment, a parameter
+    or a reaction, see
+    https://github.com/matthiaskoenig/sbmlutils/issues/469.
+
+    Args:
+        kwargs: the kwargs of the element, as `_parse_sbase_kwargs` built them
+        sbase: the libsbml element they were parsed from
+
+    Returns:
+        the kwargs without `replacedBy`
+    """
+    replaced_by: ReplacedBy | None = kwargs.pop("replacedBy", None)
+    if replaced_by is not None:
+        logger.error(
+            "The replacedBy of the %s '%s' is lost: the element of sbmlutils "
+            "cannot carry one.",
+            sbase.getElementName(),
+            sbase.getId() if sbase.isSetId() else "",
+        )
+    return kwargs
+
+
+def _drop_unwritable(kwargs: dict[str, Any], sbase: libsbml.SBase) -> dict[str, Any]:
+    """Drop both fields of an element which can write back neither of them.
+
+    `_parse_sbase_kwargs` reads the distrib uncertainties and the comp
+    replacedBy of every element, and most elements which cannot write one of
+    them back cannot write the other either, so the two drops are applied
+    together here. `_drop_uncertainties` and `_drop_replaced_by` say which
+    elements those are and why; they are used on their own for the two which
+    can write one but not the other, a `UnitDefinition` and an `Uncertainty`,
+    each of which carries a replacedBy and no uncertainties.
+
+    Args:
+        kwargs: the kwargs of the element, as `_parse_sbase_kwargs` built them
+        sbase: the libsbml element they were parsed from
+
+    Returns:
+        the kwargs without `uncertainties` and without `replacedBy`
+    """
+    return _drop_replaced_by(_drop_uncertainties(kwargs, sbase), sbase)
+
+
+def _parse_replaced_by(sbase: libsbml.SBase) -> ReplacedBy | None:
+    """Parse the `<comp:replacedBy>` of an element.
+
+    comp puts the replacement of an element on the element itself, which is
+    where `Sbase.replacedBy` holds it and `Sbase.create_replaced_by` writes it
+    back from, so the element it belongs to is the element it is read on.
+
+    Args:
+        sbase: the libsbml element, whose document is held by the caller
+
+    Returns:
+        the `ReplacedBy` of the element, `None` for an element without one and
+        for a document without comp
+    """
+    comp: libsbml.SBasePlugin | None = sbase.getPlugin("comp")
+    if not isinstance(comp, libsbml.CompSBasePlugin) or not comp.isSetReplacedBy():
+        return None
+    replaced_by: libsbml.ReplacedBy = comp.getReplacedBy()
+    return ReplacedBy(
+        # the element the replacement sits on. `ReplacedBy.create_sbml` is
+        # handed that element rather than looking it up, so this only names
+        # it, and an element without an id is written all the same
+        elementRef=sbase.getIdAttribute() if sbase.isSetIdAttribute() else "",
+        # `comp:submodelRef` is required; `getSubmodelRef` answers the empty
+        # string for a document which states none, which the writer passes to
+        # libsbml, which leaves the attribute unset again
+        submodelRef=replaced_by.getSubmodelRef(),
+        **_parse_sbase_ref_kwargs(replaced_by),
+    )
+
+
+def _parse_replaced_elements(model: libsbml.Model, m: Model) -> None:
+    """Parse the comp replaced elements of the elements of a model.
+
+    comp puts a `<comp:replacedElement>` on the element it replaces and
+    libsbml reads it from the comp plugin of that element.
+    `sbmlutils.factory` holds them in the `replaced_elements` of the model
+    instead, each naming its element in `elementRef`, which
+    `ReplacedElement.create_sbml` resolves against the model it writes into.
+    An element without an id cannot be named that way, so a replaced element
+    of one is lost, which is reported rather than dropped silently: two cases
+    of the SBML test suite put one on a rate rule which carries a metaid and
+    no id, see https://github.com/matthiaskoenig/sbmlutils/issues/469.
+
+    The model itself is not walked: `getListOfAllElements` yields the elements
+    of a model and not the model, and `ReplacedElement.create_sbml` resolves
+    an `elementRef` by `getElementBySId`, which does not answer with the model
+    either. No document of the corpus puts a replaced element on a model.
+
+    Args:
+        model: the libsbml.Model, or libsbml.ModelDefinition, to read
+        m: the `Model` to populate
+    """
+    element: libsbml.SBase
+    for element in model.getListOfAllElements():
+        comp: libsbml.SBasePlugin | None = element.getPlugin("comp")
+        if not isinstance(comp, libsbml.CompSBasePlugin):
+            continue
+        replaced: libsbml.ReplacedElement
+        for replaced in comp.getListOfReplacedElements() or ():
+            if not element.isSetIdAttribute():
+                logger.error(
+                    "The replacedElement of the %s '%s' is lost: sbmlutils "
+                    "names the element of a replacedElement by its id, which "
+                    "this element does not have.",
+                    element.getElementName(),
+                    element.getMetaId() if element.isSetMetaId() else "",
+                )
+                continue
+            m.replaced_elements.append(
+                ReplacedElement(
+                    elementRef=element.getIdAttribute(),
+                    # required, see `_parse_replaced_by` on the empty string
+                    submodelRef=replaced.getSubmodelRef(),
+                    deletion=(
+                        replaced.getDeletion() if replaced.isSetDeletion() else None
+                    ),
+                    conversionFactor=(
+                        replaced.getConversionFactor()
+                        if replaced.isSetConversionFactor()
+                        else None
+                    ),
+                    **_parse_sbase_ref_kwargs(replaced),
+                )
+            )
+
+
 def _parse_sbase_ref_kwargs(ref: libsbml.SBaseRef) -> dict[str, Any]:
     """Parse the references and the metadata of a comp `SBaseRef`.
 
@@ -304,7 +455,7 @@ def _parse_sbase_ref_kwargs(ref: libsbml.SBaseRef) -> dict[str, Any]:
         "unitRef": ref.getUnitRef() if ref.isSetUnitRef() else None,
         "metaIdRef": ref.getMetaIdRef() if ref.isSetMetaIdRef() else None,
         "sBaseRef": _parse_nested_sbase_ref(ref),
-        **_drop_uncertainties(_parse_sbase_kwargs(ref), ref),
+        **_drop_unwritable(_parse_sbase_kwargs(ref), ref),
     }
 
 
@@ -396,7 +547,7 @@ def _parse_uncert_child(
         "uncertParameters": [
             _parse_uncert_child(nested) for nested in child.getListOfUncertParameters()
         ],
-        **_drop_uncertainties(_parse_sbase_kwargs(child), child),
+        **_drop_unwritable(_parse_sbase_kwargs(child), child),
     }
     if isinstance(child, libsbml.UncertSpan):
         return UncertSpan(
@@ -698,7 +849,7 @@ def _parse_comp_model(model_comp: libsbml.CompModelPlugin, m: Model) -> None:
                     if submodel.isSetExtentConversionFactor()
                     else None
                 ),
-                **_drop_uncertainties(_parse_sbase_kwargs(submodel), submodel),
+                **_drop_unwritable(_parse_sbase_kwargs(submodel), submodel),
             )
         )
 
@@ -886,7 +1037,7 @@ def _parse_model_body(model: libsbml.Model, m: Model) -> None:
                     constant=(
                         reactant.getConstant() if reactant.isSetConstant() else True
                     ),
-                    **_drop_uncertainties(_parse_sbase_kwargs(reactant), reactant),
+                    **_drop_unwritable(_parse_sbase_kwargs(reactant), reactant),
                 )
             )
             product: libsbml.SpeciesReference
@@ -900,7 +1051,7 @@ def _parse_model_body(model: libsbml.Model, m: Model) -> None:
                         else None
                     ),
                     constant=product.getConstant() if product.isSetConstant() else True,
-                    **_drop_uncertainties(_parse_sbase_kwargs(product), product),
+                    **_drop_unwritable(_parse_sbase_kwargs(product), product),
                 )
             )
         modifier: libsbml.ModifierSpeciesReference
@@ -909,7 +1060,7 @@ def _parse_model_body(model: libsbml.Model, m: Model) -> None:
                 equation.modifiers.append(
                     EquationPart(
                         species=modifier.getSpecies(),
-                        **_drop_uncertainties(_parse_sbase_kwargs(modifier), modifier),
+                        **_drop_unwritable(_parse_sbase_kwargs(modifier), modifier),
                     )
                 )
 
@@ -924,13 +1075,13 @@ def _parse_model_body(model: libsbml.Model, m: Model) -> None:
                     LocalParameter(
                         value=lp.getValue() if lp.isSetValue() else None,
                         unit=lp.getUnits() if lp.isSetUnits() else None,
-                        **_drop_uncertainties(_parse_sbase_kwargs(lp), lp),
+                        **_drop_unwritable(_parse_sbase_kwargs(lp), lp),
                     )
                 )
             kinetic_law = KineticLaw(
                 math=_math(klaw),
                 local_parameters=local_parameters,
-                **_drop_uncertainties(_parse_sbase_kwargs(klaw), klaw),
+                **_drop_unwritable(_parse_sbase_kwargs(klaw), klaw),
             )
 
         m.reactions.append(
@@ -1067,6 +1218,7 @@ def _parse_model_body(model: libsbml.Model, m: Model) -> None:
     model_comp: libsbml.CompModelPlugin | None = model.getPlugin("comp")
     if model_comp is not None:
         _parse_comp_model(model_comp, m)
+        _parse_replaced_elements(model, m)
 
     # the content of the groups and layout packages is not parsed, see the
     # module docstring
@@ -1164,7 +1316,7 @@ def sbml_to_model(
     if not model:
         logger.error("No model in SBMLDocument.")
 
-    m = Model(**_drop_uncertainties(_parse_sbase_kwargs(model), model))
+    m = Model(**_drop_unwritable(_parse_sbase_kwargs(model), model))
     # the packages are declared on the `<sbml>` element, so they belong to the
     # document rather than to one of its models; everything which is per model
     # is parsed by `_parse_model_body`, which the model definitions of the
