@@ -3,6 +3,7 @@
 import logging
 import os
 import re
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -1819,10 +1820,14 @@ def _ports(model: libsbml.Model) -> dict[str, tuple[str, str]]:
             document is held by the caller
 
     Returns:
-        the reference each port names its element by, and the name it uses
+        the reference each port names its element by, and the name it uses;
+        empty for a document which does not declare comp
     """
-    comp_model: libsbml.CompModelPlugin = model.getPlugin("comp")
+    comp_model: libsbml.CompModelPlugin | None = model.getPlugin("comp")
     ports: dict[str, tuple[str, str]] = {}
+    if comp_model is None:
+        # the document does not declare comp, so it has no port at all
+        return ports
     for k in range(comp_model.getNumPorts()):
         port: libsbml.Port = comp_model.getPort(k)
         for reference, is_set, get in [
@@ -2107,3 +2112,317 @@ def test_port_of_a_key_value_pair_is_written(tmp_path: Path) -> None:
     assert _ports(doc.getModel()) == {"kvp1_port": ("idRef", "kvp1")}
     result = validate_doc(doc, options=ValidationOptions(units_consistency=False))
     assert [error.getErrorId() for error in result.errors] == []
+
+
+def _uncert_child_pair_model(sid: str, child: UncertParameter | UncertSpan) -> Model:
+    """Get a model whose only comp construct is a port on a nested key-value pair.
+
+    The key-value pair sits on a child of an uncertainty, which
+    `_UncertChild._set_fields` writes without the `libsbml.Model` its port
+    would live in.
+
+    Args:
+        sid: the id of the model
+        child: the uncert parameter or span which holds the pair
+
+    Returns:
+        the model
+    """
+    return Model(
+        sid=sid,
+        name="a port on a key-value pair of an uncert child",
+        packages=[Package.DISTRIB_V1, Package.FBC_V3],
+        parameters=[
+            Parameter(
+                "p1",
+                1.0,
+                name="p1",
+                uncertainties=[Uncertainty(sid="unc1", uncertParameters=[child])],
+            )
+        ],
+    )
+
+
+def _pair(sid: str) -> KeyValuePair:
+    """Get a key-value pair which asks for a port.
+
+    Args:
+        sid: the id of the pair, which its port would reference it by
+
+    Returns:
+        the key-value pair
+    """
+    return KeyValuePair(key="kind", value="test", uri=None, sid=sid, port=True)
+
+
+#: a model whose only comp construct is a port which cannot be written, with
+#: the text the single report about it has to contain
+_UNWRITABLE_PORTS: list[Any] = [
+    pytest.param(
+        lambda: _uncert_child_pair_model(
+            "pair_of_an_uncert_parameter",
+            UncertParameter(
+                type=libsbml.DISTRIB_UNCERTTYPE_MEAN,
+                value=1.0,
+                keyValuePairs=[_pair("kvp_in_parameter")],
+            ),
+        ),
+        "KeyValuePair",
+        "uncert parameter",
+        id="pair-of-an-uncert-parameter",
+    ),
+    pytest.param(
+        lambda: _uncert_child_pair_model(
+            "pair_of_an_uncert_span",
+            UncertSpan(
+                type=libsbml.DISTRIB_UNCERTTYPE_RANGE,
+                valueLower=0.0,
+                valueUpper=1.0,
+                keyValuePairs=[_pair("kvp_in_span")],
+            ),
+        ),
+        "KeyValuePair",
+        "uncert parameter",
+        id="pair-of-an-uncert-span",
+    ),
+    pytest.param(
+        lambda: Model(
+            sid="pair_of_a_nested_sbaseref",
+            name="a port on a key-value pair of a nested sBaseRef",
+            packages=[Package.COMP_V1, Package.FBC_V3],
+            model_definitions=[
+                ModelDefinition(
+                    sid="md1",
+                    name="a model definition",
+                    compartments=[Compartment("cmd", 1.0, name="compartment")],
+                )
+            ],
+            submodels=[Submodel(sid="sub1", modelRef="md1", name="submodel")],
+            ports=[
+                Port(
+                    sid="p_outer",
+                    idRef="sub1",
+                    sBaseRef=SbaseRef(
+                        sid="nested",
+                        idRef="cmd",
+                        keyValuePairs=[_pair("kvp_in_sbaseref")],
+                    ),
+                )
+            ],
+        ),
+        "KeyValuePair",
+        "<comp:sBaseRef>",
+        id="pair-of-a-nested-sbaseref",
+    ),
+    pytest.param(
+        lambda: _reaction_model(
+            "local_parameter_without_a_metaid",
+            Reaction(
+                "r1",
+                "S1 -> S2",
+                name="reaction",
+                formula=KineticLaw(
+                    math="kf * S1",
+                    sid="klaw1",
+                    local_parameters=[LocalParameter("kf", 1.0, name="kf", port=True)],
+                ),
+            ),
+        ),
+        "LocalParameter",
+        "metaId",
+        id="local-parameter-without-a-metaid",
+    ),
+    pytest.param(
+        lambda: _event_model(
+            "event_assignment_without_a_metaid",
+            Event(
+                "e1",
+                name="event",
+                trigger="time >= 10",
+                assignments=[EventAssignment("p1", "1.0", sid="ea1", port=True)],
+            ),
+        ),
+        "EventAssignment",
+        "metaId",
+        id="event-assignment-without-a-metaid",
+    ),
+    pytest.param(
+        lambda: _reaction_model(
+            "rule_without_an_id",
+            Reaction(
+                "r1",
+                "S1 -> S2",
+                name="reaction",
+                formula="k * S1",
+                pars=[Parameter("k", 1.0, name="k", constant=False)],
+                rules=[AssignmentRule("k", "2.0", port=True)],
+            ),
+        ),
+        "AssignmentRule",
+        "id",
+        id="rule-without-an-id",
+    ),
+]
+
+
+@pytest.mark.parametrize("build, element, reason", _UNWRITABLE_PORTS)
+def test_a_port_which_cannot_be_written_declares_no_comp(
+    build: Callable[[], Model],
+    element: str,
+    reason: str,
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that a port which is not written leaves no empty comp namespace.
+
+    `Model._has_comp_content` used to see the `port` field alone, so a model
+    whose only comp construct was a port which no writer could produce
+    declared the comp package and wrote no `<comp:port>` at all. The writer
+    and the package detection now ask the same predicate,
+    `Sbase._port_loss`, and the writer reports the port exactly once.
+
+    The model definition case declares comp for its model definition, which
+    is real comp content; every other case declares nothing.
+    """
+    model = build()
+    with caplog.at_level(logging.ERROR, logger="sbmlutils.factory"):
+        doc = _write(model, tmp_path, validate=False)
+
+    sbml = (tmp_path / f"{model.sid}.xml").read_text(encoding="utf-8")
+    # no port was written for the element; the ports the model asked for
+    # itself, which is the one the nested `sBaseRef` hangs from, are written
+    assert set(_ports(doc.getModel())) == {port.sid for port in model.ports}
+    if not model.ports and not model.model_definitions:
+        assert "xmlns:comp" not in sbml
+        assert "comp:required" not in sbml
+
+    reports = [
+        record.getMessage()
+        for record in caplog.records
+        if "port of" in record.getMessage()
+    ]
+    assert len(reports) == 1, reports
+    assert element in reports[0]
+    assert reason in reports[0]
+
+
+def test_a_port_which_cannot_be_written_keeps_other_comp_content(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that comp stays declared when the model has comp content of its own.
+
+    A port which cannot be written is not comp content, but it does not take
+    the comp content next to it away either.
+    """
+    model = _reaction_model(
+        "unwritable_port_next_to_a_port",
+        Reaction(
+            "r1",
+            "S1 -> S2",
+            name="reaction",
+            formula=KineticLaw(
+                math="kf * S1",
+                sid="klaw1",
+                port=True,
+                local_parameters=[LocalParameter("kf", 1.0, name="kf", port=True)],
+            ),
+        ),
+    )
+    with caplog.at_level(logging.ERROR, logger="sbmlutils.factory"):
+        doc = _write(model, tmp_path, validate=False)
+
+    assert doc.isPackageEnabled("comp")
+    assert _ports(doc.getModel()) == {"klaw1_port": ("idRef", "klaw1")}
+    assert len([r for r in caplog.records if "port of" in r.getMessage()]) == 1
+
+
+#: the same models with the name their port needs, which makes the port
+#: writable; the model definition case cannot be repaired, a key-value pair
+#: nested in a `<comp:sBaseRef>` is written without a model whatever it states
+_WRITABLE_PORTS: list[Any] = [
+    pytest.param(
+        lambda: _reaction_model(
+            "local_parameter_with_a_metaid",
+            Reaction(
+                "r1",
+                "S1 -> S2",
+                name="reaction",
+                formula=KineticLaw(
+                    math="kf * S1",
+                    sid="klaw1",
+                    local_parameters=[
+                        LocalParameter(
+                            "kf", 1.0, name="kf", metaId="meta_kf", port=True
+                        )
+                    ],
+                ),
+            ),
+        ),
+        {"kf_port": ("metaIdRef", "meta_kf")},
+        [],
+        id="local-parameter-with-a-metaid",
+    ),
+    pytest.param(
+        lambda: _event_model(
+            "event_assignment_with_a_metaid",
+            Event(
+                "e1",
+                name="event",
+                trigger="time >= 10",
+                assignments=[
+                    EventAssignment(
+                        "p1", "1.0", sid="ea1", metaId="meta_ea1", port=True
+                    )
+                ],
+            ),
+        ),
+        {"ea1_port": ("metaIdRef", "meta_ea1")},
+        [],
+        id="event-assignment-with-a-metaid",
+    ),
+    pytest.param(
+        lambda: _reaction_model(
+            "rule_with_an_id",
+            Reaction(
+                "r1",
+                "S1 -> S2",
+                name="reaction",
+                formula="k * S1",
+                pars=[Parameter("k", 1.0, name="k", constant=False)],
+                rules=[AssignmentRule("k", "2.0", sid="rule_k", port=True)],
+            ),
+        ),
+        {"rule_k_port": ("idRef", "rule_k")},
+        # `Model.getElementBySId` does not answer with a rule, see the test
+        [1020702],
+        id="rule-with-an-id",
+    ),
+]
+
+
+@pytest.mark.parametrize("build, ports, errors", _WRITABLE_PORTS)
+def test_the_same_port_is_written_once_the_element_states_its_name(
+    build: Callable[[], Model],
+    ports: dict[str, tuple[str, str]],
+    errors: list[int],
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test the positive control of every element which reported a lost port.
+
+    The port of the rule is written and does not validate: libsbml resolves a
+    `comp:idRef` with `Model.getElementBySId`, which answers with neither a
+    rule nor an initial assignment (measured with libsbml 5.21.2), so such a
+    port is rejected with 1020702. That is how a rule's port has always been
+    written, it is a pair of its own and it is pinned here rather than
+    changed.
+    """
+    model = build()
+    with caplog.at_level(logging.ERROR, logger="sbmlutils.factory"):
+        doc = _write(model, tmp_path, validate=False)
+
+    assert doc.isPackageEnabled("comp")
+    assert _ports(doc.getModel()) == ports
+    assert [r.getMessage() for r in caplog.records if "port of" in r.getMessage()] == []
+    result = validate_doc(doc, options=ValidationOptions(units_consistency=False))
+    assert [error.getErrorId() for error in result.errors] == errors

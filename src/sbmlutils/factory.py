@@ -513,8 +513,10 @@ def _comp_plugin(sbase: libsbml.SBase, what: str) -> Any:
     return plugin
 
 
-def _iter_sbases(value: Any, seen: set[int] | None = None) -> Iterator[Sbase]:
-    """Iterate every `Sbase` reachable from a value, the value included.
+def _iter_sbases_with_model(
+    value: Any, in_model: bool = True, seen: set[int] | None = None
+) -> Iterator[tuple[Sbase, bool]]:
+    """Iterate every `Sbase` reachable from a value with how it is written.
 
     The walk descends into the attributes of every `Sbase` and into lists,
     tuples, sets and the values of dicts. So it finds an element wherever a
@@ -522,14 +524,31 @@ def _iter_sbases(value: Any, seen: set[int] | None = None) -> Iterator[Sbase]:
     and rules of a reaction, the local parameters of a kinetic law, the
     assignments of an event or the glyphs of a layout.
 
+    It also carries **whether the element is written with the
+    `libsbml.Model`** of the document, which is what its port needs: the port
+    of an element lives in the `<comp:listOfPorts>` of a model, so an element
+    written without one cannot have a port at all. Two places write an
+    element without the model, which is where the flag turns over:
+
+    - everything below an `UncertParameter` or an `UncertSpan`, since
+      `_UncertChild._set_fields` hands `None` down,
+    - everything below the nested `sBaseRef` of a comp reference, since
+      `SbaseRef._set_fields` hands `None` down for it.
+
+    The walk yields every `Sbase` once, so an element which is reachable both
+    ways keeps the first answer, which is the one that wrote it.
+
     Args:
         value: the value to walk, e.g. a `Model`
+        in_model: whether the value and everything below it is written with
+            the `libsbml.Model`; `True` for a whole model
         seen: the ids of the `Sbase` objects already yielded, which the
             recursion shares; every `Sbase` is yielded once, which also ends
             the walk on a cycle
 
     Yields:
-        every `Sbase` reachable from the value
+        every `Sbase` reachable from the value, with whether it is written
+        with the model
     """
     if seen is None:
         seen = set()
@@ -537,15 +556,37 @@ def _iter_sbases(value: Any, seen: set[int] | None = None) -> Iterator[Sbase]:
         if id(value) in seen:
             return
         seen.add(id(value))
-        yield value
-        for attribute in vars(value).values():
-            yield from _iter_sbases(attribute, seen)
+        yield value, in_model
+        # the children of an uncert parameter or span are written without the
+        # model, whatever wrote the child itself
+        below = in_model and not isinstance(value, _UncertChild)
+        for name, attribute in vars(value).items():
+            nested = below and not (isinstance(value, SbaseRef) and name == "sBaseRef")
+            yield from _iter_sbases_with_model(attribute, nested, seen)
     elif isinstance(value, (list, tuple, set, frozenset)):
         for item in value:
-            yield from _iter_sbases(item, seen)
+            yield from _iter_sbases_with_model(item, in_model, seen)
     elif isinstance(value, dict):
         for item in value.values():
-            yield from _iter_sbases(item, seen)
+            yield from _iter_sbases_with_model(item, in_model, seen)
+
+
+def _iter_sbases(value: Any, seen: set[int] | None = None) -> Iterator[Sbase]:
+    """Iterate every `Sbase` reachable from a value, the value included.
+
+    The walk of `_iter_sbases_with_model` without the flag, for a caller
+    which only needs the elements.
+
+    Args:
+        value: the value to walk, e.g. a `Model`
+        seen: the ids of the `Sbase` objects already yielded, which the
+            recursion shares
+
+    Yields:
+        every `Sbase` reachable from the value
+    """
+    for sbase, _ in _iter_sbases_with_model(value, seen=seen):
+        yield sbase
 
 
 class Sbase:
@@ -813,22 +854,97 @@ class Sbase:
         if self.keyValuePairs is not None:
             self.create_key_value_pairs(sbase, model)
 
+    def _port_target(self) -> str | None:
+        """Get the name a port references this element by, if it has one.
+
+        Returns:
+            the id of the element for `idRef` and `unitRef`, its metaid for
+            `metaIdRef`, `None` if the element does not state it
+        """
+        return self.metaId if self._port_reference == "metaIdRef" else self.sid
+
+    def _port_id(self) -> str:
+        """Get the id the `port=True` shorthand gives the port of this element.
+
+        Returns:
+            the id, which is also the metaid of the port; the empty string
+            for an element with no name a port can reference
+        """
+        suffix = PORT_UNIT_SUFFIX if self._port_reference == "unitRef" else PORT_SUFFIX
+        target = self._port_target()
+        if target is None:
+            return ""
+        return f"{self.sid if self.sid is not None else target}{suffix}"
+
+    def _port_loss(self, in_model: bool) -> str | None:
+        """Say why the port of this element cannot be written, if it cannot.
+
+        The one predicate which decides whether a port is written. Both users
+        ask it: `create_port`, which reports the reason and writes nothing,
+        and `Model._has_comp_content`, which does not count such a port as
+        comp content, so that a model whose only comp construct is a port
+        which cannot be written declares no comp package and leaves no empty
+        comp namespace behind.
+
+        Two things stop a port from being written:
+
+        - the element is written without the `libsbml.Model` its port would
+          live in, which is what happens to a key-value pair nested in an
+          uncert parameter, an uncert span or a `<comp:sBaseRef>`,
+        - the port references the element itself and the element does not
+          state the name that reference needs, an id or a metaid.
+
+        Args:
+            in_model: whether the element is written with the
+                `libsbml.Model`, see `_iter_sbases_with_model`
+
+        Returns:
+            the reason, as a sentence which names the element and says what to
+            do about it, `None` if the port can be written
+        """
+        if self.port is None or self.port is False:
+            return None
+        what = f"The port of {type(self).__name__} '{self.sid}'"
+        if not in_model:
+            return (
+                f"{what} is not created: the element is nested in an uncert "
+                f"parameter, an uncert span or a <comp:sBaseRef> and is "
+                f"written without the model its port would live in. Put it on "
+                f"an element of the model to give it a port."
+            )
+        references_self = isinstance(self.port, bool) or not (
+            self.port.portRef
+            or self.port.idRef
+            or self.port.unitRef
+            or self.port.metaIdRef
+        )
+        if not references_self:
+            return None
+        if self._port_target() is None:
+            name = "metaId" if self._port_reference == "metaIdRef" else "id"
+            return (
+                f"{what} is not created: a port references this element by its "
+                f"{name}, which it does not state. Give it a {name}, or give "
+                f"the port a reference of its own."
+            )
+        return None
+
     def create_port(self, model: libsbml.Model | None) -> libsbml.Port | None:
         """Create the port of the element, if it has one.
 
         A port which references nothing of its own is made to reference this
         element, by the reference `_port_reference` names for the class: its
-        id, its unit id or its metaid. An element which has no such name
-        cannot be referenced and gets no port, which is reported.
+        id, its unit id or its metaid. A port which cannot be written is
+        reported here, once, and `Model._has_comp_content` asks the same
+        predicate so that it does not declare comp for it, see `_port_loss`.
 
         Args:
             model: the model the port is created in; `None` for an element
-                which is written without one, which is reported, since a port
-                lives in the `<comp:listOfPorts>` of a model
+                which is written without one
 
         Returns:
-            the port, `None` if the element has no port, no model to create it
-            in or no name which the port could reference
+            the port, `None` if the element has no port or if the port cannot
+            be written
 
         Raises:
             ValueError: if the document does not declare the comp package
@@ -836,17 +952,22 @@ class Sbase:
         if self.port is None or self.port is False:
             return None
         if model is None:
-            logger.error(
-                "'%s' is written without a model, its port is not created.",
-                self,
-            )
+            # the element is written without a model, which `_port_loss`
+            # states as one of its three reasons
+            logger.error("%s", self._port_loss(False))
+            return None
+        loss = self._port_loss(True)
+        if loss is not None:
+            logger.error("%s", loss)
             return None
 
+        # the element is written with a model, states the name its port
+        # references it by, and that name gives a valid port id
         reference = self._port_reference
         # the name the port references this element by; `unitRef` names a
         # unit definition by its id like `idRef` does, in the namespace of
         # the unit definitions of the model
-        target: str | None = self.metaId if reference == "metaIdRef" else self.sid
+        target: str | None = self._port_target()
 
         references_self = isinstance(self.port, bool) or not (
             self.port.portRef
@@ -854,13 +975,6 @@ class Sbase:
             or self.port.unitRef
             or self.port.metaIdRef
         )
-        if references_self and target is None:
-            logger.error(
-                "'%s' has no %s for its port to reference, no port is created.",
-                self,
-                "metaid" if reference == "metaIdRef" else "id",
-            )
-            return None
 
         p: libsbml.Port | None = None
         if isinstance(self.port, bool):
@@ -870,11 +984,11 @@ class Sbase:
                     model, f"The port of {type(self).__name__} '{self.sid}'"
                 )
                 p = cmodel.createPort()
-                suffix = PORT_UNIT_SUFFIX if reference == "unitRef" else PORT_SUFFIX
-                # the id of the element where it has one, so that the port of
-                # an element named by its metaid is still named after it
-                port_sid = f"{self.sid if self.sid is not None else target}{suffix}"
+                port_sid = self._port_id()
                 p.setId(port_sid)
+                # the name says which element the port belongs to, which is
+                # its id where it has one, even when the port references it
+                # by its metaid
                 p.setName(f"Port of {self.sid if self.sid is not None else target}")
                 p.setMetaId(port_sid)
                 sbo = SBO.PORT.curie
@@ -989,6 +1103,16 @@ class KeyValuePair(Sbase):
     error and writes neither into the XML. A `replacedBy` is not offered
     either, since libsbml attaches no `CompSBasePlugin` to the element, see
     `sbmlutils.parser._drop_replaced_by`.
+
+    **A pair which is nested in an `UncertParameter`, an `UncertSpan` or in
+    the `sBaseRef` of a comp reference gets no port.** Those three are
+    written without the `libsbml.Model` a `<comp:listOfPorts>` lives in, so
+    there is nowhere to create it; the port is reported and the document does
+    not declare comp for it, see `Sbase._port_loss`. Measured with libsbml
+    5.21.2, a pair nested in an uncert parameter cannot be the target of a
+    port at all (`Model.getElementBySId` does not answer with it and the
+    document fails with 1090105), while one nested in a `<comp:sBaseRef>` is
+    resolvable; this package writes a port for neither.
     """
 
     def __init__(
@@ -1016,7 +1140,9 @@ class KeyValuePair(Sbase):
             metaId: optional SBML metaid
             notes: optional notes, as markdown, XHTML or a `Notes` object
             annotations: optional RDF annotations
-            port: optional comp port, which names the pair by its id
+            port: optional comp port, which names the pair by its id; a
+                pair nested in an uncert parameter, an uncert span or a
+                `<comp:sBaseRef>` gets none, see the class docstring
         """
         super().__init__(
             sid=sid,
@@ -5920,11 +6046,17 @@ class Model(Sbase, FrozenClass):
         and rules of a `Reaction` are written as elements of the model, a
         `KineticLaw` holds its local parameters, an `Event` its assignments.
         So every `Sbase` reachable from the model is checked, see
-        `_iter_sbases`, rather than a list of the places an element can be
-        nested in, which would miss the next one.
+        `_iter_sbases_with_model`, rather than a list of the places an element
+        can be nested in, which would miss the next one.
         This is checked here, once every element list of the model is
         populated, rather than defaulted in `check_packages`, which runs
         from `__init__` before any of them are.
+
+        **A port which cannot be written is not comp content.** Whether it
+        can is decided by `Sbase._port_loss`, the same predicate the writer
+        asks, so that a model whose only comp construct is such a port
+        declares no comp package instead of leaving an empty comp namespace
+        behind. The writer reports the port, once; this only counts.
 
         Returns:
             True if the model uses a comp construct anywhere
@@ -5940,9 +6072,12 @@ class Model(Sbase, FrozenClass):
             return True
 
         return any(
-            getattr(sbase, "port", None) not in (None, False)
+            (
+                getattr(sbase, "port", None) not in (None, False)
+                and sbase._port_loss(in_model) is None
+            )
             or bool(getattr(sbase, "replacedBy", None))
-            for sbase in _iter_sbases(self)
+            for sbase, in_model in _iter_sbases_with_model(self)
         )
 
     def _required_packages(self) -> set[Package]:
