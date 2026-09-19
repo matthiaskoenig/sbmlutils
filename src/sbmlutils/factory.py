@@ -36,6 +36,7 @@ from types import UnionType
 from typing import (
     Any,
     ClassVar,
+    Literal,
     TypeAlias,
     Union,
     get_args,
@@ -589,6 +590,19 @@ class Sbase:
         "annotations",
     ]
 
+    #: the reference a `<comp:port>` names an element of this class by, which
+    #: `create_port` fills in for `port=True` and for a `Port` which
+    #: references nothing itself. `idRef` names the element by its id, which
+    #: comp resolves with `libsbml.Model.getElementBySId`; `unitRef` is for a
+    #: `UnitDefinition`, whose ids live in a namespace of their own; and
+    #: `metaIdRef` names the element by its metaid, which is how an
+    #: `EventAssignment` and a `LocalParameter` are named: measured with
+    #: libsbml 5.21.2, `getElementBySId` answers with neither of the two, so a
+    #: port naming an event assignment by `comp:idRef` is rejected (libsbml
+    #: 1020702) and one naming a local parameter that way makes the flattened
+    #: model invalid (1090105), while `comp:metaIdRef` to either validates.
+    _port_reference: ClassVar[Literal["idRef", "unitRef", "metaIdRef"]] = "idRef"
+
     #: authoring hints are logged for a hand written model definition, they are
     #: noise for a model which was parsed from a file, see
     #: `Sbase.no_authoring_hints`. A `ContextVar` rather than a class attribute:
@@ -798,11 +812,16 @@ class Sbase:
     def create_port(self, model: libsbml.Model) -> libsbml.Port | None:
         """Create the port of the element, if it has one.
 
+        A port which references nothing of its own is made to reference this
+        element, by the reference `_port_reference` names for the class: its
+        id, its unit id or its metaid. An element which has no such name
+        cannot be referenced and gets no port, which is reported.
+
         Args:
             model: the model the port is created in
 
         Returns:
-            the port, `None` if the element has no port or no id which the
+            the port, `None` if the element has no port or no name which the
             port could reference
 
         Raises:
@@ -811,46 +830,60 @@ class Sbase:
         if self.port is None or self.port is False:
             return None
 
+        reference = self._port_reference
+        # the name the port references this element by; `unitRef` names a
+        # unit definition by its id like `idRef` does, in the namespace of
+        # the unit definitions of the model
+        target: str | None = self.metaId if reference == "metaIdRef" else self.sid
+
         references_self = isinstance(self.port, bool) or not (
             self.port.portRef
             or self.port.idRef
             or self.port.unitRef
             or self.port.metaIdRef
         )
-        if references_self and self.sid is None:
+        if references_self and target is None:
             logger.error(
-                "'%s' has no id for its port to reference, no port is created.",
+                "'%s' has no %s for its port to reference, no port is created.",
                 self,
+                "metaid" if reference == "metaIdRef" else "id",
             )
             return None
 
         p: libsbml.Port | None = None
         if isinstance(self.port, bool):
             if self.port is True:
-                # manually create port for the id
+                # manually create port for this element
                 cmodel: libsbml.CompModelPlugin = _comp_plugin(
                     model, f"The port of {type(self).__name__} '{self.sid}'"
                 )
                 p = cmodel.createPort()
-                if isinstance(self, UnitDefinition):
-                    port_sid = f"{self.sid}{PORT_UNIT_SUFFIX}"
-                else:
-                    port_sid = f"{self.sid}{PORT_SUFFIX}"
+                suffix = PORT_UNIT_SUFFIX if reference == "unitRef" else PORT_SUFFIX
+                # the id of the element where it has one, so that the port of
+                # an element named by its metaid is still named after it
+                port_sid = f"{self.sid if self.sid is not None else target}{suffix}"
                 p.setId(port_sid)
-                p.setName(f"Port of {self.sid}")
+                p.setName(f"Port of {self.sid if self.sid is not None else target}")
                 p.setMetaId(port_sid)
                 sbo = SBO.PORT.curie
                 p.setSBOTerm(sbo)
 
-                if isinstance(self, UnitDefinition):
-                    p.setUnitRef(self.sid)
+                if reference == "unitRef":
+                    p.setUnitRef(target)
+                elif reference == "metaIdRef":
+                    p.setMetaIdRef(target)
                 else:
-                    p.setIdRef(self.sid)
+                    p.setIdRef(target)
         else:
             # use the port object
             if references_self:
-                # if no reference set id reference to current object
-                self.port.idRef = self.sid
+                # if no reference set the reference of this class to it
+                if reference == "unitRef":
+                    self.port.unitRef = target
+                elif reference == "metaIdRef":
+                    self.port.metaIdRef = target
+                else:
+                    self.port.idRef = target
             p = self.port.create_sbml(model)
 
         return p
@@ -1057,6 +1090,10 @@ class UnitDefinition(Sbase):
     """
 
     # definition: str = (None,)
+
+    #: the unit definitions of a model live in a namespace of their own, which
+    #: comp names by `comp:unitRef`, see `Sbase._port_reference`
+    _port_reference: ClassVar[Literal["idRef", "unitRef", "metaIdRef"]] = "unitRef"
 
     _pint2sbml: ClassVar[dict[str, int]] = {
         "dimensionless": libsbml.UNIT_KIND_DIMENSIONLESS,
@@ -1568,11 +1605,18 @@ class LocalParameter(ValueWithUnit):
     """LocalParameter of a KineticLaw.
 
     A local parameter is scoped to the kinetic law it is defined in, unlike a
-    `Parameter`, which is global to the model.
+    `Parameter`, which is global to the model. Its id is scoped with it:
+    `libsbml.Model.getElementBySId`, which comp resolves a `comp:idRef` with,
+    does not answer with a local parameter, so a `<comp:port>` names one by
+    its metaid, see `Sbase._port_reference`.
     """
 
     #: the identifier is required, unlike on `Sbase`
     sid: str
+
+    #: the id of a local parameter is scoped to its kinetic law, see the
+    #: class docstring
+    _port_reference: ClassVar[Literal["idRef", "unitRef", "metaIdRef"]] = "metaIdRef"
 
     def __init__(
         self,
@@ -1589,7 +1633,24 @@ class LocalParameter(ValueWithUnit):
         uncertainties: list[Uncertainty] | None = None,
         replacedBy: Any | None = None,
     ):
-        """Construct LocalParameter."""
+        """Construct LocalParameter.
+
+        Args:
+            sid: the SId of the local parameter, which is required
+            value: the value of the local parameter
+            unit: the unit of the value
+            name: optional SBML name
+            sboTerm: optional SBO term
+            metaId: optional SBML metaid, which a `<comp:port>` of the local
+                parameter references it by
+            annotations: optional RDF annotations
+            notes: optional notes, as markdown, XHTML or a `Notes` object
+            keyValuePairs: optional key-value pairs
+            port: optional comp port, which names the local parameter by its
+                metaid
+            uncertainties: optional distrib uncertainties
+            replacedBy: optional comp replacement
+        """
         super().__init__(
             sid=sid,
             value=value,
@@ -1605,17 +1666,30 @@ class LocalParameter(ValueWithUnit):
             replacedBy=replacedBy,
         )
 
-    def create_sbml(self, klaw: libsbml.KineticLaw) -> libsbml.LocalParameter:
+    def create_sbml(
+        self, klaw: libsbml.KineticLaw, model: libsbml.Model | None = None
+    ) -> libsbml.LocalParameter:
         """Create the libsbml.LocalParameter in the given kinetic law.
 
         Args:
             klaw: the libsbml.KineticLaw the local parameter is created in
+            model: the libsbml.Model the kinetic law is created in, which
+                the port of the local parameter is created in. It has to be
+                handed down, since libsbml answers
+                `klaw.getModel()` with the model of the *document* for a
+                kinetic law inside a `<comp:modelDefinition>`, see
+                `Model._fill_sbml`. `None` falls back to that lookup, for a
+                caller which creates a local parameter in a kinetic law of the
+                model of a document, where the two are the same model
 
         Returns:
             the created libsbml.LocalParameter
         """
+        if model is None:
+            model = klaw.getModel()
         lp: libsbml.LocalParameter = klaw.createLocalParameter()
         self._set_fields(lp, None)
+        self.create_port(model)
         if self.value is not None:
             check(lp.setValue(float(self.value)), f"Set value on '{self.sid}'")
         return lp
@@ -2232,7 +2306,9 @@ class KineticLaw(Sbase):
         Args:
             reaction: the libsbml.Reaction the kinetic law belongs to
             model: the libsbml.Model the reaction is created in, which the
-                math is parsed against. It has to be handed down, since
+                math is parsed against and which the port of the kinetic law
+                and of its local parameters is created in. It has to be
+                handed down, since
                 libsbml answers `reaction.getModel()` with the model of the
                 *document* for a reaction inside a `<comp:modelDefinition>`,
                 see `Model._fill_sbml`. `None` falls back to that lookup, for
@@ -2242,18 +2318,19 @@ class KineticLaw(Sbase):
         Returns:
             the created libsbml.KineticLaw
         """
+        if model is None:
+            model = reaction.getModel()
         klaw: libsbml.KineticLaw = reaction.createKineticLaw()
         self._set_fields(klaw, None)
+        self.create_port(model)
 
         # local parameters must exist before the math is parsed, so that the
         # formula parser resolves their ids
         for local_parameter in self.local_parameters:
-            local_parameter.create_sbml(klaw)
+            local_parameter.create_sbml(klaw, model)
 
         if self.math is None:
             return klaw
-        if model is None:
-            model = reaction.getModel()
         ast_node = libsbml.parseL3FormulaWithModel(self.math, model)
         if ast_node is None:
             logger.error(
@@ -2641,6 +2718,7 @@ class EventAssignment(Value):
         """
         ea: libsbml.EventAssignment = event.createEventAssignment()
         self._set_fields(ea, model)
+        self.create_port(model)
         check(ea.setVariable(self.variable), f"Set variable '{self.variable}'")
         if self.value is None:
             return ea
@@ -2654,6 +2732,11 @@ class EventAssignment(Value):
         else:
             check(ea.setMath(ast_node), f"Set math on '{self.variable}'")
         return ea
+
+    #: `libsbml.Model.getElementBySId`, which comp resolves a `comp:idRef`
+    #: with, does not answer with an event assignment, so a port names one by
+    #: its metaid, see `Sbase._port_reference`
+    _port_reference: ClassVar[Literal["idRef", "unitRef", "metaIdRef"]] = "metaIdRef"
 
     def _set_fields(self, sbase: libsbml.EventAssignment, model: libsbml.Model) -> None:
         """Set fields on libsbml.EventAssignment.
@@ -2760,6 +2843,7 @@ class Trigger(Sbase):
         """
         trigger: libsbml.Trigger = event.createTrigger()
         self._set_fields(trigger, model)
+        self.create_port(model)
         return trigger
 
     def _set_fields(self, sbase: libsbml.Trigger, model: libsbml.Model) -> None:
@@ -2878,6 +2962,7 @@ class Priority(Sbase):
             )
             return None
         self._set_fields(priority, model)
+        self.create_port(model)
         return priority
 
     def _set_fields(self, sbase: libsbml.Priority, model: libsbml.Model) -> None:
@@ -2961,6 +3046,7 @@ class Delay(Sbase):
         """
         delay: libsbml.Delay = event.createDelay()
         self._set_fields(delay, model)
+        self.create_port(model)
         return delay
 
     def _set_fields(self, sbase: libsbml.Delay, model: libsbml.Model) -> None:
@@ -3301,6 +3387,7 @@ class Event(Sbase):
         """Create Event SBML in model."""
         event: libsbml.Event = model.createEvent()
         self._set_fields(event, model)
+        self.create_port(model)
 
         return event
 
@@ -3377,6 +3464,7 @@ class Constraint(Sbase):
         """Create Constraint SBML in model."""
         constraint: libsbml.Constraint = model.createConstraint()
         self._set_fields(constraint, model)
+        self.create_port(model)
         return constraint
 
     def _set_fields(self, sbase: libsbml.Constraint, model: libsbml.Model) -> None:
@@ -4107,6 +4195,7 @@ class Uncertainty(Sbase):
         uncertainty: libsbml.Uncertainty = sbase_distrib.createUncertainty()
 
         self._set_fields(uncertainty, model)
+        self.create_port(model)
 
         child: UncertParameter | UncertSpan
         for child in self.uncertParameters:
@@ -4218,6 +4307,8 @@ class GeneProduct(Sbase):
         gene_product: libsbml.GeneProduct = model_fbc.createGeneProduct()
         self._set_fields(gene_product, model=model)
 
+        self.create_port(model)
+
         gene_product.setLabel(self.label)
         if self.associatedSpecies:
             gene_product.setAssociatedSpecies(self.associatedSpecies)
@@ -4292,9 +4383,10 @@ class UserDefinedConstraintComponent(Sbase):
         component: libsbml.UserDefinedConstraintComponent = (
             constraint.createUserDefinedConstraintComponent()
         )
-        self._set_fields(
-            component, model if model is not None else constraint.getModel()
-        )
+        if model is None:
+            model = constraint.getModel()
+        self._set_fields(component, model)
+        self.create_port(model)
 
         check(component.setVariable(self.variable), f"set variable `{self.variable}`")
         check(
@@ -4382,6 +4474,7 @@ class UserDefinedConstraint(Sbase):
         model_fbc: libsbml.FbcModelPlugin = model.getPlugin("fbc")
         udc: libsbml.UserDefinedConstraint = model_fbc.createUserDefinedConstraint()
         self._set_fields(udc, model)
+        self.create_port(model)
         udc.setUpperBound(self.upperBound)
         udc.setLowerBound(self.lowerBound)
         for component in self.components:
@@ -4478,9 +4571,10 @@ class FluxObjective(Sbase):
             the created libsbml.FluxObjective
         """
         flux_objective: libsbml.FluxObjective = objective.createFluxObjective()
-        self._set_fields(
-            flux_objective, model if model is not None else objective.getModel()
-        )
+        if model is None:
+            model = objective.getModel()
+        self._set_fields(flux_objective, model)
+        self.create_port(model)
 
         flux_objective.setReaction(self.reaction)
         flux_objective.setCoefficient(self.coefficient)
@@ -4594,6 +4688,7 @@ class Objective(Sbase):
         model_fbc: libsbml.FbcModelPlugin = model.getPlugin("fbc")
         objective: libsbml.Objective = model_fbc.createObjective()
         self._set_fields(objective, model)
+        self.create_port(model)
         objective.setType(self.objectiveType)
         if self.active:
             model_fbc.setActiveObjectiveId(self.sid)

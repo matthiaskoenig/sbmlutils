@@ -8,7 +8,7 @@ from typing import Any
 
 import libsbml
 import pytest
-from structural import snapshot
+from structural import roundtrip_document, snapshot, structural_diff
 from test_roundtrip import requires_testsuite, testsuite_case
 
 from sbmlutils import comp
@@ -1666,3 +1666,260 @@ def test_a_model_definition_id_which_collides_is_reported(tmp_path: Path) -> Non
     assert doc.getPlugin("comp").getNumModelDefinitions() == 2
     result = validate_doc(doc, options=ValidationOptions(units_consistency=False))
     assert {error.getErrorId() for error in result.errors} == {1010302}
+
+
+def _nested_port_content() -> dict[str, Any]:
+    """Get the content of a model whose nested elements each carry a port.
+
+    Every element here lives inside another element rather than in a list of
+    the model, or is an element of a package: the kinetic law of a reaction
+    with its local parameter, the trigger, priority, delay and assignment of
+    an event, an uncertainty and a key-value pair of a parameter, and the
+    fbc objectives and user-defined constraints with their children. A
+    constraint and an event are in a list of the model, but neither wrote its
+    port either.
+
+    The elements whose port names them by their metaid, a local parameter and
+    an event assignment, carry one; see `Sbase._port_reference`.
+
+    Returns:
+        the keyword arguments of a `Model` or a `ModelDefinition`
+    """
+    return {
+        "compartments": [Compartment("c", 1.0, name="compartment")],
+        "species": [
+            Species("S1", compartment="c", initialConcentration=1.0, name="S1"),
+            Species("S2", compartment="c", initialConcentration=0.0, name="S2"),
+        ],
+        "parameters": [
+            Parameter("k", 1.0, name="k"),
+            Parameter("lb", -1000.0, name="lower bound"),
+            Parameter("ub", 1000.0, name="upper bound"),
+            Parameter("p1", 0.0, constant=False, name="p1"),
+            Parameter(
+                "p2",
+                2.0,
+                name="p2",
+                uncertainties=[
+                    Uncertainty(
+                        sid="unc1",
+                        name="uncertainty",
+                        port=True,
+                        uncertParameters=[
+                            UncertParameter(
+                                type=libsbml.DISTRIB_UNCERTTYPE_STANDARDDEVIATION,
+                                value=0.1,
+                            )
+                        ],
+                    )
+                ],
+            ),
+        ],
+        "reactions": [
+            Reaction(
+                "r1",
+                "S1 -> S2",
+                name="reaction",
+                formula=KineticLaw(
+                    math="kf * S1",
+                    sid="klaw1",
+                    port=True,
+                    local_parameters=[
+                        LocalParameter(
+                            "kf", 1.0, name="kf", metaId="meta_kf", port=True
+                        )
+                    ],
+                ),
+            )
+        ],
+        "events": [
+            Event(
+                "e1",
+                name="event",
+                port=True,
+                trigger=Trigger("time >= 10", sid="t1", port=True),
+                priority=Priority("1", sid="pr1", port=True),
+                delay=Delay("2", sid="d1", port=True),
+                assignments=[
+                    EventAssignment(
+                        "p1", "1.0", sid="ea1", metaId="meta_ea1", port=True
+                    )
+                ],
+            )
+        ],
+        "constraints": [
+            Constraint("con1", math="p1 >= 0", name="constraint", port=True)
+        ],
+        "gene_products": [GeneProduct("gp1", label="gp1", name="gene", port=True)],
+        "objectives": [
+            Objective(
+                "obj1",
+                name="objective",
+                port=True,
+                fluxObjectives=[
+                    FluxObjective(
+                        reaction="r1",
+                        coefficient=1.0,
+                        sid="fo1",
+                        name="flux objective",
+                        port=True,
+                    )
+                ],
+            )
+        ],
+        "user_defined_constraints": [
+            UserDefinedConstraint(
+                sid="udc1",
+                name="user defined constraint",
+                lowerBound="lb",
+                upperBound="ub",
+                port=True,
+                components=[
+                    UserDefinedConstraintComponent(
+                        variable="r1",
+                        coefficient="k",
+                        sid="udcc1",
+                        name="component",
+                        port=True,
+                    )
+                ],
+            )
+        ],
+    }
+
+
+#: the port every element of `_nested_port_content` is expected to be given,
+#: as `port id -> (reference, target)`
+_NESTED_PORTS: dict[str, tuple[str, str]] = {
+    "klaw1_port": ("idRef", "klaw1"),
+    "kf_port": ("metaIdRef", "meta_kf"),
+    "e1_port": ("idRef", "e1"),
+    "t1_port": ("idRef", "t1"),
+    "pr1_port": ("idRef", "pr1"),
+    "d1_port": ("idRef", "d1"),
+    "ea1_port": ("metaIdRef", "meta_ea1"),
+    "con1_port": ("idRef", "con1"),
+    "gp1_port": ("idRef", "gp1"),
+    "obj1_port": ("idRef", "obj1"),
+    "fo1_port": ("idRef", "fo1"),
+    "udc1_port": ("idRef", "udc1"),
+    "udcc1_port": ("idRef", "udcc1"),
+    "unc1_port": ("idRef", "unc1"),
+}
+
+
+def _ports(model: libsbml.Model) -> dict[str, tuple[str, str]]:
+    """Read the ports of a model as `port id -> (reference, target)`.
+
+    Args:
+        model: the libsbml.Model, or libsbml.ModelDefinition, to read; its
+            document is held by the caller
+
+    Returns:
+        the reference each port names its element by, and the name it uses
+    """
+    comp_model: libsbml.CompModelPlugin = model.getPlugin("comp")
+    ports: dict[str, tuple[str, str]] = {}
+    for k in range(comp_model.getNumPorts()):
+        port: libsbml.Port = comp_model.getPort(k)
+        for reference, is_set, get in [
+            ("portRef", port.isSetPortRef, port.getPortRef),
+            ("idRef", port.isSetIdRef, port.getIdRef),
+            ("unitRef", port.isSetUnitRef, port.getUnitRef),
+            ("metaIdRef", port.isSetMetaIdRef, port.getMetaIdRef),
+        ]:
+            if is_set():
+                ports[port.getId()] = (reference, get())
+    return ports
+
+
+def test_port_of_a_nested_element_is_written(tmp_path: Path) -> None:
+    """Test that every element which can be the target of a port gets one.
+
+    A kinetic law, a local parameter, an event with its trigger, priority,
+    delay and assignments, a constraint, an uncertainty, a key-value pair and
+    the fbc gene products, objectives, flux objectives, user-defined
+    constraints and their components used to accept a `port` which nothing
+    wrote, while the document declared comp for it all the same.
+    """
+    model = Model(
+        sid="nested_ports",
+        name="ports on nested elements",
+        packages=[Package.COMP_V1, Package.DISTRIB_V1, Package.FBC_V3],
+        **_nested_port_content(),
+    )
+    doc = _write(model, tmp_path, validate=False)
+
+    assert _ports(doc.getModel()) == _NESTED_PORTS
+
+
+def test_port_of_a_nested_element_of_a_model_definition_is_written(
+    tmp_path: Path,
+) -> None:
+    """Test that such a port is written into the model definition it belongs to.
+
+    libsbml answers `getModel()` of an element inside a
+    `<comp:modelDefinition>` with the model of the document, so a port
+    created from that lookup would land on the main model.
+    """
+    model = Model(
+        sid="nested_ports_in_a_model_definition",
+        name="ports on the nested elements of a model definition",
+        packages=[Package.COMP_V1],
+        model_definitions=[
+            ModelDefinition(
+                sid="md1", name="a model definition", **_nested_port_content()
+            )
+        ],
+    )
+    doc = _write(model, tmp_path, validate=False)
+
+    assert _ports(doc.getModel()) == {}
+    doc_comp: libsbml.CompSBMLDocumentPlugin = doc.getPlugin("comp")
+    assert _ports(doc_comp.getModelDefinition("md1")) == _NESTED_PORTS
+
+
+def test_document_with_a_port_on_a_nested_element_validates(tmp_path: Path) -> None:
+    """Test that the ports written for the nested elements validate.
+
+    A port names its element by `comp:idRef`, except a local parameter and an
+    event assignment, which it names by `comp:metaIdRef`: libsbml resolves a
+    `comp:idRef` with `Model.getElementBySId`, which answers with neither of
+    the two, so a port naming them by their id is rejected (1020702) or makes
+    the flattened model invalid (1090105).
+    """
+    model = Model(
+        sid="nested_ports_validate",
+        name="ports on nested elements",
+        packages=[Package.COMP_V1, Package.DISTRIB_V1, Package.FBC_V3],
+        **_nested_port_content(),
+    )
+    doc = _write(model, tmp_path, validate=False)
+
+    assert len(_ports(doc.getModel())) == len(_NESTED_PORTS)
+    result = validate_doc(doc, options=ValidationOptions(units_consistency=False))
+    assert [
+        (error.getErrorId(), error.getShortMessage()) for error in result.errors
+    ] == []
+
+
+def test_roundtrip_keeps_the_port_of_a_nested_element(tmp_path: Path) -> None:
+    """Test that the ports of the nested elements survive a round trip.
+
+    The parser reads every `<comp:port>` into `Model.ports`, so a port whose
+    element is written by the `port=` shorthand comes back as a `Port` of the
+    model and must be written unchanged, its reference included.
+    """
+    model = Model(
+        sid="nested_ports_roundtrip",
+        name="ports on nested elements",
+        packages=[Package.COMP_V1, Package.DISTRIB_V1, Package.FBC_V3],
+        **_nested_port_content(),
+    )
+    sbml_path = tmp_path / f"{model.sid}.xml"
+    create_model(model=model, filepath=sbml_path, validate=False)
+
+    doc_in, doc_out = roundtrip_document(sbml_path, tmp_path)
+
+    assert _ports(doc_in.getModel()) == _NESTED_PORTS
+    assert [str(d) for d in structural_diff(doc_in, doc_out)] == []
