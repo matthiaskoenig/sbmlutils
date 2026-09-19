@@ -317,6 +317,11 @@ def _parse_uncert_child(
     subclass of `UncertParameter` in the same list: there is no getter of its
     own for it, so the class of the object read is what tells the two apart.
 
+    An element which states no `distrib:type` is read with `type=None` and
+    written without one: SBML requires the attribute, libsbml reads and writes
+    an element without it, and a round trip must not invent a type nor drop
+    the element.
+
     Args:
         child: the libsbml.UncertParameter, which is a libsbml.UncertSpan for
             a span; its document is held by the caller

@@ -3402,7 +3402,7 @@ class _UncertChild(Sbase):
 
     def __init__(
         self,
-        type: int,
+        type: int | None,
         unit: UnitType = None,
         definitionURL: str | None = None,
         math: str | None = None,
@@ -3418,7 +3418,9 @@ class _UncertChild(Sbase):
         """Construct the fields an uncert parameter and an uncert span share.
 
         Args:
-            type: the kind of the value, a `libsbml.DISTRIB_UNCERTTYPE_*`
+            type: the kind of the value, a `libsbml.DISTRIB_UNCERTTYPE_*`;
+                `None` for an element which states no `distrib:type`, which
+                SBML requires and libsbml reads and writes without
             unit: the unit of the value
             definitionURL: the URL which defines the distribution or the
                 external parameter the element stands for, e.g. a term of
@@ -3447,7 +3449,7 @@ class _UncertChild(Sbase):
             notes=notes,
             keyValuePairs=keyValuePairs,
         )
-        self.type: int = type
+        self.type: int | None = type
         self.unit: UnitType = unit
         self.definitionURL: str | None = definitionURL
         self.math: str | None = math
@@ -3508,10 +3510,16 @@ class _UncertChild(Sbase):
         distrib at all, is reported and the element is not written, since
         libsbml would write an element SBML does not define.
 
+        An element which states no type at all is written as it is: SBML
+        requires a `distrib:type` and libsbml reads an element without one,
+        which the round trip of such a document has to write back as it was.
+        The missing attribute is reported by the validation of the written
+        document, as it is for the document it was read from.
+
         Returns:
             whether the element is written
         """
-        if self.type in self._types:
+        if self.type is None or self.type in self._types:
             return True
         logger.error(
             "Unsupported type for %s: '%s' in '%s'.",
@@ -3539,7 +3547,8 @@ class _UncertChild(Sbase):
                 is attached to its parent already.
         """
         super()._set_fields(sbase, model)
-        check(sbase.setType(self.type), f"Set type '{self.type}' on {sbase}")
+        if self.type is not None:
+            check(sbase.setType(self.type), f"Set type '{self.type}' on {sbase}")
         if self.definitionURL is not None:
             check(
                 sbase.setDefinitionURL(self.definitionURL),
@@ -3587,7 +3596,7 @@ class UncertParameter(_UncertChild):
 
     def __init__(
         self,
-        type: int,
+        type: int | None,
         value: float | None = None,
         var: str | None = None,
         unit: UnitType = None,
@@ -3605,7 +3614,8 @@ class UncertParameter(_UncertChild):
         """Construct UncertParameter.
 
         Args:
-            type: the kind of the value, a `libsbml.DISTRIB_UNCERTTYPE_*`
+            type: the kind of the value, a `libsbml.DISTRIB_UNCERTTYPE_*`,
+                `None` for an element without one, see `_UncertChild`
             value: the numerical value
             var: the id of the element which holds the value, an alternative
                 to `value`
@@ -3708,7 +3718,7 @@ class UncertSpan(_UncertChild):
 
     def __init__(
         self,
-        type: int,
+        type: int | None,
         valueLower: float | None = None,
         varLower: str | None = None,
         valueUpper: float | None = None,
@@ -3728,7 +3738,8 @@ class UncertSpan(_UncertChild):
         """Construct UncertSpan.
 
         Args:
-            type: the kind of the interval, a `libsbml.DISTRIB_UNCERTTYPE_*`
+            type: the kind of the interval, a `libsbml.DISTRIB_UNCERTTYPE_*`,
+                `None` for an element without one, see `_UncertChild`
             valueLower: the numerical value of the lower bound
             varLower: the id of the element which holds the lower bound, an
                 alternative to `valueLower`

@@ -1366,3 +1366,31 @@ def test_uncertainty_of_an_unparsable_formula_is_reported(
     ]
     assert len(errors) == 1, errors
     assert "could not be parsed" in errors[0] and "normal(" in errors[0]
+
+
+def test_uncert_child_without_a_type_is_written_without_one() -> None:
+    """Test that an element which states no type is written without one.
+
+    SBML requires a `distrib:type` of an uncert parameter, but libsbml reads
+    and writes an element without one, so a document which has one has to be
+    expressible: the type is `None` then and no `distrib:type` is written,
+    which is what the source said. Writing the element with a type it never
+    had, or dropping it, would both change the document.
+    """
+    doc = _uncertainty_document(
+        Uncertainty(
+            uncertParameters=[
+                UncertParameter(type=None, value=3.0),
+                UncertSpan(type=None, valueLower=1.0, valueUpper=5.0),
+            ]
+        )
+    )
+
+    parameter, span = _children(doc)
+    # libsbml tells the two apart by the element it reads, not by the type
+    assert parameter.getElementName() == "uncertParameter"
+    assert isinstance(span, libsbml.UncertSpan)
+    assert not parameter.isSetType()
+    assert not span.isSetType()
+    assert parameter.getValue() == 3.0
+    assert span.getValueLower() == 1.0

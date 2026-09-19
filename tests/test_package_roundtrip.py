@@ -2609,3 +2609,64 @@ def test_roundtrip_keeps_the_notes_of_an_uncertainty(tmp_path: Path) -> None:
     )
     assert "measured in 2021" in written.getNotesString()
     assert "min and max" in written.getUncertParameter(0).getNotesString()
+
+
+def _typeless_sbml(tmp_path: Path) -> Path:
+    """Write a document whose uncert parameter and span state no type.
+
+    SBML requires a `distrib:type`, so no fixture of the repository leaves it
+    out and this document is built with libsbml alone; libsbml writes it,
+    reads it back and reports the missing attribute as an error of the
+    document, on both sides of the round trip.
+
+    Args:
+        tmp_path: the directory the file is written to
+
+    Returns:
+        the path of the written SBML file
+    """
+    ns: libsbml.SBMLNamespaces = libsbml.SBMLNamespaces(3, 2)
+    ns.addPackageNamespace("distrib", 1)
+    doc: libsbml.SBMLDocument = libsbml.SBMLDocument(ns)
+    doc.setPackageRequired("distrib", True)
+    model: libsbml.Model = doc.createModel()
+    model.setId("uncert_parameter_without_a_type")
+    parameter: libsbml.Parameter = model.createParameter()
+    parameter.setId("p1")
+    parameter.setValue(5.0)
+    parameter.setConstant(True)
+    uncertainty: libsbml.Uncertainty = parameter.getPlugin(
+        "distrib"
+    ).createUncertainty()
+    typeless: libsbml.UncertParameter = uncertainty.createUncertParameter()
+    typeless.setValue(3.0)
+    span: libsbml.UncertSpan = uncertainty.createUncertSpan()
+    span.setValueLower(1.0)
+    span.setValueUpper(5.0)
+
+    sbml_path = tmp_path / "uncert_parameter_without_a_type.xml"
+    assert libsbml.writeSBMLToFile(doc, str(sbml_path))
+    return sbml_path
+
+
+def test_roundtrip_keeps_an_uncert_parameter_without_a_type(tmp_path: Path) -> None:
+    """Test that an element which states no type round trips as it is.
+
+    `distrib:type` is required on an uncert parameter and libsbml reads an
+    element without it all the same. Such an element is as much of the
+    document as any other: a round trip which drops it, or which invents a
+    type for it, changes the document, and the comparison sees both.
+    """
+    sbml_path = _typeless_sbml(tmp_path)
+    doc_in, doc_out = roundtrip_document(sbml_path, tmp_path)
+    uncertainty: libsbml.Uncertainty = (
+        doc_in.getModel().getParameter("p1").getPlugin("distrib").getUncertainty(0)
+    )
+    assert not uncertainty.getUncertParameter(0).isSetType()
+
+    assert [str(d) for d in structural_diff(doc_in, doc_out)] == []
+    written: libsbml.Uncertainty = (
+        doc_out.getModel().getParameter("p1").getPlugin("distrib").getUncertainty(0)
+    )
+    assert written.getNumUncertParameters() == 2
+    assert not written.getUncertParameter(0).isSetType()
