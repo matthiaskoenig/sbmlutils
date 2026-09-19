@@ -18,7 +18,8 @@ pytest                                        # all tests
 pytest tests/test_factory.py                  # single file
 pytest tests/test_factory.py::test_model_units  # single test
 tox r -e py3.14                               # single tox env (py3.11-3.14 available)
-tox run-parallel                              # full matrix + ty
+tox r -e cobra                                # the tests which need cobrapy, on python 3.14
+tox run-parallel                              # full matrix + ty + cobra
 
 # lint / format / types
 ruff check
@@ -62,6 +63,6 @@ Documentation is [Zensical](https://zensical.org/): markdown sources in `docs/`,
 - Every module, class and function carries full type annotations and a docstring. New docstrings are google style, older ones still use the `:param:` form.
 - `examples/` at the top level holds the runnable examples, they are not part of the package and are run as modules (`python -m examples.species`). A model definition imports the names of `sbmlutils.factory` with a star import, which is the documented style, so `F403`/`F405` are ignored for `examples/` and `tests/`. An example writes into the current working directory and never opens a window: a plotting example saves its figure to a file, and the `conftest.py` at the root selects the `Agg` backend for the test session.
 - Test fixtures and the packaged models live in `src/sbmlutils/resources/`; `resources/__init__.py` names them. `API_EXAMPLES_MODEL` and `API_EXAMPLES_OMEX` are used by the sbml4humans api. The SBML test suite and the biomodels archives under `resources/models/` are 77 MB of test data and are excluded from the distribution, see `[tool.hatch.build]` in `pyproject.toml`, so a test which reads them resolves them from the repository (`tests/test_parser.py`) rather than from the installed package.
-- An optional dependency is imported behind `if TYPE_CHECKING: ... else: try/except ImportError`, with `None` as the fallback the code checks, see `fbc/cobra.py` and `cytoscape.py`. The tox `ty` environment installs the `cytoscape` and `examples` extras so those imports resolve for the type check; `cobra` is deliberately not installed, which is why its import carries a `# ty: ignore[unresolved-import]`.
+- An optional dependency is imported behind `if TYPE_CHECKING: ... else: try/except ImportError`, with `None` as the fallback the code checks, see `fbc/cobra.py` and `cytoscape.py`. The tox `ty` environment installs the `cytoscape` and `examples` extras so those imports resolve for the type check; `cobra` is deliberately not installed, which is why its import carries a `# ty: ignore[unresolved-import]`. A test which needs an optional dependency skips without it, so the tox `cobra` environment, pinned to python 3.14 and part of `envlist`, is what runs the tests which need cobrapy (`tests/test_package_semantics.py` and `tests/fbc/test_cobra.py`); they would otherwise skip everywhere and verify nothing.
 - Markdown carries no hard line wraps: a paragraph, a list item or a table row is a single line and the wrapping is left to the editor. Code fences, headings and the rows of badges keep their line structure.
 - Release notes go in `release-notes/` as part of a release commit.
