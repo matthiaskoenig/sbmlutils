@@ -406,7 +406,7 @@ def test_the_comp_cases_and_their_classes_are_found() -> None:
 def test_the_default_comp_subset_covers_every_judgeable_construct() -> None:
     """Test that the cases of the default run carry every comp construct of the sweep.
 
-    The whole sweep takes about 175 s against the 1.3 s of the structural sweep over the same cases, so it runs behind the `sbml_testsuite` marker and the default run judges `COMP_SUBSET` and `COMP_ICG_BODY`. That is only representative as long as those carry every comp construct the other cases have. The single exception is `COMP_UNJUDGEABLE_CONSTRUCT`: an algebraic rule in a model definition, which only class (b) cases have, since roadrunner cannot simulate a flat model with one.
+    The whole sweep takes about 110 s against the 1.3 s of the structural sweep over the same cases, so it runs behind the `sbml_testsuite` marker and the default run judges `COMP_SUBSET` and `COMP_ICG_BODY`. That is only representative as long as those carry every comp construct the other cases have. The single exception is `COMP_UNJUDGEABLE_CONSTRUCT`: an algebraic rule in a model definition, which only class (b) cases have, since roadrunner cannot simulate a flat model with one.
     """
     covered: set[str] = _comp_constructs(COMP_ICG_BODY)
     for case in COMP_SUBSET:
@@ -424,10 +424,10 @@ def test_comp_semantics_of_icg_body(tmp_path: Path) -> None:
 
     The model is a whole-body PBPK model whose liver is a submodel of an external model definition, the one model of the repository with a `comp:source` to another file. The flattened original is asserted to hold the content of that submodel first, so that an agreement cannot mean that nothing was resolved.
     """
-    roundtrip_path = roundtrip_comp_document(COMP_ICG_BODY, tmp_path)
     assert [source.name for source in external_sources(COMP_ICG_BODY)] == [
         "icg_liver.xml"
     ]
+    roundtrip_path = roundtrip_comp_document(COMP_ICG_BODY, tmp_path)
 
     comparison = comp_semantic_diff(COMP_ICG_BODY, roundtrip_path, tmp_path)
 
@@ -471,11 +471,15 @@ def test_comp_semantics_of_every_case(sbml_path: Path, tmp_path: Path) -> None:
     found, detail = judgement(result)
 
     assert found == expected, f"class ({found}) instead of ({expected}): {detail}"
-    reason = COMP_NOT_JUDGEABLE.get(case) or COMP_DEFECTS.get(case)
-    if reason is not None:
-        kind = reason.split(":")[0]
+    if case in COMP_NOT_JUDGEABLE:
+        kind = COMP_NOT_JUDGEABLE[case].split(":")[0]
         assert detail.startswith(f"the original {kind}"), (
-            f"'{case}' is class ({found}) for another reason than '{kind}': {detail}"
+            f"'{case}' is class (b) for another reason than '{kind}': {detail}"
+        )
+    elif case in COMP_DEFECTS:
+        kind = COMP_DEFECTS[case].split(":")[0]
+        assert kind in detail, (
+            f"'{case}' is class (c) for another reason than '{kind}': {detail}"
         )
 
 
@@ -503,9 +507,10 @@ def _drop_replaced_element(sid: str) -> Callable[[libsbml.SBMLDocument], None]:
 
 #: a damage of the comp content of a round-tripped document, the part of the
 #: difference the comparison has to report, and what the damage means. Each is
-#: applied to the round trip of `COMP_ICG_BODY`; the three replaced elements
-#: named here are the ones whose loss changes the flat model, the other three
-#: replace a value of the liver submodel with the same value.
+#: applied to the round trip of `COMP_ICG_BODY`, which has one submodel and six
+#: replaced elements; the two named here are of the three whose loss changes
+#: the flat model, the other three replace a value of the liver submodel with
+#: the value it has anyway and are inert.
 COMP_DAMAGES: list[tuple[str, Callable[[libsbml.SBMLDocument], None], str]] = [
     (
         "drop the submodel",
@@ -805,7 +810,7 @@ def comparable_file(sbml_path: Path, out_dir: Path) -> Path:
         out_dir: directory the converted document is written to
 
     Returns:
-        the path of the document to compare against, which is a copy of the source when it needs no conversion
+        the path of the document to compare against, which is the source written again where it needs no conversion
     """
     doc: libsbml.SBMLDocument = libsbml.readSBMLFromFile(str(sbml_path))
     reference_path = out_dir / "reference.xml"
@@ -897,14 +902,16 @@ FBC_CASES: list[Path] = fbc_cases()
 #: will not build a linear problem from.
 FBC_NOT_LOADABLE: dict[str, str] = {
     "01617": (
-        "does not load: the lower flux bound of R16 is above its upper bound, 10 > 1"
+        "does not load: the lower flux bound of R01 is above its upper bound, "
+        "`fb_0` is 10 and `fb_1` is 1"
     ),
     "01618": (
-        "does not load: the upper flux bound parameter of R16 has no value, so "
-        "the bound is NaN"
+        "does not load: the upper flux bound parameter `fb_1000` of R16 has no "
+        "value, so the bound is NaN"
     ),
     "01619": (
-        "does not load: the lower flux bound of R16 is above its upper bound, 0 > -3"
+        "does not load: the lower flux bound of R16 is above its upper bound, "
+        "`fb_0` is 0 and `fb_inf` is -3"
     ),
     "01620": (
         "does not load: the flux bound parameter `fb_0` of R16 is not constant, "
@@ -957,11 +964,15 @@ def test_fbc_semantics_of_every_case(sbml_path: Path, tmp_path: Path) -> None:
     found, detail = fbc_judgement(sbml_path, tmp_path)
 
     assert found == expected, f"class ({found}) instead of ({expected}): {detail}"
-    reason = FBC_NOT_LOADABLE.get(case) or FBC_DEFECTS.get(case)
-    if reason is not None:
-        kind = reason.split(":")[0]
+    if case in FBC_NOT_LOADABLE:
+        kind = FBC_NOT_LOADABLE[case].split(":")[0]
         assert detail.startswith(kind), (
-            f"'{case}' is class ({found}) for another reason than '{kind}': {detail}"
+            f"'{case}' is class (b) for another reason than '{kind}': {detail}"
+        )
+    elif case in FBC_DEFECTS:
+        kind = FBC_DEFECTS[case].split(":")[0]
+        assert kind in detail, (
+            f"'{case}' is class (c) for another reason than '{kind}': {detail}"
         )
 
 
