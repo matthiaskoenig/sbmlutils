@@ -3783,6 +3783,36 @@ class UncertSpan(_UncertChild):
             or super()._states_a_value()
         )
 
+    def _check_states_a_value(self) -> None:
+        """Report every bound of the span which is not stated.
+
+        A span states an interval, so each of its two bounds needs either a
+        value or the variable it is read from. The check of `_UncertChild`
+        only sees whether the element states anything at all, which a span
+        with one bound does; both are named here instead, which is what the
+        constructor refused before an element of every document libsbml reads
+        had to be expressible.
+
+        A span which states its interval as math, as the definitionURL of an
+        external distribution or as uncert parameters of its own needs neither
+        bound, and nothing is reported for it.
+        """
+        if not Sbase._authoring_hints.get() or super()._states_a_value():
+            return
+        for bound, value, var in (
+            ("lower", self.valueLower, self.varLower),
+            ("upper", self.valueUpper, self.varUpper),
+        ):
+            if value is None and var is None:
+                logger.error(
+                    "The %s bound of '%s' is not stated: neither 'value%s' nor "
+                    "'var%s' is set.",
+                    bound,
+                    self,
+                    bound.capitalize(),
+                    bound.capitalize(),
+                )
+
     def create_sbml(
         self, parent: libsbml.Uncertainty | libsbml.UncertParameter
     ) -> libsbml.UncertSpan | None:

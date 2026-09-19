@@ -1,6 +1,7 @@
 """Test distrib functionality."""
 
 import logging
+from pathlib import Path
 from typing import Any
 
 import libsbml
@@ -14,7 +15,25 @@ from examples.distrib import (
 )
 from sbmlutils.factory import *
 from sbmlutils.metadata import BQB, SBO
+from sbmlutils.parser import sbml_to_model
+from sbmlutils.resources import (
+    DISTRIB_COMP_FLAT_SBML,
+    DISTRIB_COMP_SBML,
+    DISTRIB_UNCERTAINTIES_SBML,
+    EXAMPLES_DIR,
+    RESOURCES_DIR,
+)
 from sbmlutils.validation import ValidationOptions, validate_doc
+
+#: every fixture of the repository which carries an uncertainty
+DISTRIB_FIXTURES: list[Path] = [
+    RESOURCES_DIR / "distrib" / "uncertainty.xml",
+    RESOURCES_DIR / "distrib" / "e_coli_core_expression.xml",
+    DISTRIB_UNCERTAINTIES_SBML,
+    DISTRIB_COMP_SBML,
+    DISTRIB_COMP_FLAT_SBML,
+    EXAMPLES_DIR / "model.xml",
+]
 
 
 class U(Units):
@@ -1108,19 +1127,104 @@ def test_uncert_parameter_without_a_value_is_reported(
     assert len(errors) == 1, caplog.records
 
 
-def test_uncert_span_without_a_bound_is_reported(
+def _bound_errors(caplog: pytest.LogCaptureFixture) -> list[str]:
+    """Get the messages about a bound of a span which is not stated.
+
+    Args:
+        caplog: the captured records of `sbmlutils.factory`
+
+    Returns:
+        every message which reports a bound
+    """
+    return [
+        record.getMessage()
+        for record in caplog.records
+        if "bound of" in record.getMessage()
+    ]
+
+
+@pytest.mark.parametrize(
+    "kwargs, missing",
+    [
+        ({}, ["lower", "upper"]),
+        ({"valueLower": 1.0}, ["upper"]),
+        ({"varLower": "p2"}, ["upper"]),
+        ({"valueUpper": 9.0}, ["lower"]),
+        ({"varUpper": "p2"}, ["lower"]),
+    ],
+)
+def test_uncert_span_reports_every_bound_it_does_not_state(
+    kwargs: dict[str, Any], missing: list[str], caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that each bound a span does not state is reported on its own.
+
+    A span states an interval, so it needs a lower and an upper bound, each
+    as a value or as the variable it is read from. A span with one bound was
+    refused by the constructor before the round trip needed every document
+    libsbml reads to be expressible, and then went unreported: the check of
+    the data model only sees whether an element states anything at all.
+    """
+    with caplog.at_level(logging.ERROR, logger="sbmlutils.factory"):
+        UncertSpan(type=libsbml.DISTRIB_UNCERTTYPE_RANGE, **kwargs)
+
+    errors = _bound_errors(caplog)
+    assert len(errors) == len(missing), caplog.records
+    for bound, message in zip(missing, errors, strict=True):
+        assert f"The {bound} bound of" in message
+        assert f"value{bound.capitalize()}" in message
+        assert f"var{bound.capitalize()}" in message
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"valueLower": 1.0, "valueUpper": 9.0},
+        {"varLower": "p2", "varUpper": "p3"},
+        {"math": "normal(1, 2)"},
+        {"definitionURL": "http://purl.obolibrary.org/obo/STATO_0000035"},
+        {
+            "uncertParameters": [
+                UncertParameter(
+                    type=libsbml.DISTRIB_UNCERTTYPE_EXTERNALPARAMETER, value=0.4
+                )
+            ]
+        },
+    ],
+)
+def test_uncert_span_which_states_its_interval_is_not_reported(
+    kwargs: dict[str, Any], caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that a span which states its interval otherwise is not reported.
+
+    Both bounds, math, the definitionURL of an external distribution and the
+    uncert parameters of one each state what the interval is, so none of them
+    is a span with a bound missing.
+    """
+    with caplog.at_level(logging.ERROR, logger="sbmlutils.factory"):
+        UncertSpan(type=libsbml.DISTRIB_UNCERTTYPE_RANGE, **kwargs)
+
+    assert _bound_errors(caplog) == []
+
+
+def test_distrib_fixtures_report_no_missing_bound(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Test that a span which states neither of its bounds is reported."""
-    with caplog.at_level(logging.ERROR, logger="sbmlutils.factory"):
-        UncertSpan(type=libsbml.DISTRIB_UNCERTTYPE_RANGE)
+    """Test that no uncertainty of the repository is reported by these checks.
 
-    errors = [
+    A check which fires on the documents of the repository is noise, so every
+    fixture which carries an uncertainty is parsed, which builds every span
+    and every uncert parameter of it.
+    """
+    with caplog.at_level(logging.ERROR, logger="sbmlutils.factory"):
+        for sbml_path in DISTRIB_FIXTURES:
+            sbml_to_model(sbml_path)
+
+    assert _bound_errors(caplog) == []
+    assert [
         record.getMessage()
         for record in caplog.records
         if "states nothing about the value" in record.getMessage()
-    ]
-    assert len(errors) == 1, caplog.records
+    ] == []
 
 
 @pytest.mark.parametrize(
