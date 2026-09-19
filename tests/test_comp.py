@@ -680,7 +680,9 @@ def _model_definition_with_every_element() -> ModelDefinition:
     )
 
 
-def test_model_definition_writes_every_element_type(tmp_path: Path) -> None:
+def test_model_definition_writes_every_element_type(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
     """Test that a model definition writes every element type a model holds.
 
     A `ModelDefinition` is a `Model`: everything a model can hold is written
@@ -693,7 +695,16 @@ def test_model_definition_writes_every_element_type(tmp_path: Path) -> None:
         parameters=[Parameter("k_top", 1.0, name="parameter of the main model")],
         model_definitions=[_model_definition_with_every_element()],
     )
-    doc = _write(model, tmp_path)
+    with caplog.at_level(logging.ERROR, logger="sbmlutils"):
+        doc = _write(model, tmp_path)
+
+    # the gene product the association names is looked up in the model
+    # definition, which holds it, and not in the model of the document
+    assert not [
+        record
+        for record in caplog.records
+        if "GeneProduct missing" in record.getMessage()
+    ]
 
     doc_comp: libsbml.CompSBMLDocumentPlugin = doc.getPlugin("comp")
     md: libsbml.ModelDefinition = doc_comp.getModelDefinition("md1")
