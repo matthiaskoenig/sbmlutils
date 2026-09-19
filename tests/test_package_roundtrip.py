@@ -2901,18 +2901,46 @@ def test_roundtrip_preserves_the_whole_content_of_a_model_definition(
         assert _comp_differences(differences) == [], case
 
 
+def _comp_of_definitions(doc: libsbml.SBMLDocument) -> list[tuple[int, int]]:
+    """Count the submodels and the ports inside each model definition of a document.
+
+    The count is read from the comp plugin of the model definition itself, not from the comp content of the document, which is what separates a submodel of a `<comp:modelDefinition>` from one of the `<model>`.
+
+    Args:
+        doc: a document which declares comp, which the caller has to hold
+
+    Returns:
+        the number of submodels and the number of ports of every model definition, in document order
+    """
+    comp: libsbml.CompSBMLDocumentPlugin = doc.getPlugin("comp")
+    counts: list[tuple[int, int]] = []
+    for k in range(comp.getNumModelDefinitions()):
+        definition_comp: libsbml.CompModelPlugin = comp.getModelDefinition(k).getPlugin(
+            "comp"
+        )
+        counts.append(
+            (definition_comp.getNumSubmodels(), definition_comp.getNumPorts())
+        )
+    return counts
+
+
 @requires_testsuite
+@pytest.mark.parametrize(
+    "case, expected",
+    [("01153", [(0, 1), (1, 1)]), ("01166", [(0, 7), (0, 4)])],
+)
 def test_roundtrip_preserves_the_submodels_and_ports_of_a_model_definition(
-    package_roundtrip: Callable[[Path], Comparison],
+    case: str, expected: list[tuple[int, int]], tmp_path: Path
 ) -> None:
     """Test that the comp content of a model definition survives too.
 
-    A model definition holds submodels and ports of its own, which the recursion into `_parse_model_body` reads with the same parser as those of the model of the document. Case 01153 nests a submodel inside a model definition, case 01166 gives its model definitions ports.
+    A model definition holds submodels and ports of its own, which the recursion into `_parse_model_body` reads with the same parser as those of the model of the document. Case 01153 nests a submodel in the second of its two model definitions and gives each of them a port, case 01166 gives its two model definitions seven and four ports. They are counted on the model definitions themselves, before and after, so that comp content of the *model* of the document cannot stand in for them, and the round trip is asserted to change no comp content at all besides.
     """
-    for case in ("01153", "01166"):
-        comparison = package_roundtrip(testsuite_case(case))
-        assert comparison[0]["comp.modelDefinition"], f"case {case} has none"
-        assert _comp_differences(comparison[1]) == [], case
+    doc_in, doc_out = roundtrip_document(testsuite_case(case), tmp_path)
+    assert _comp_of_definitions(doc_in) == expected
+
+    assert _comp_of_definitions(doc_out) == expected
+    assert _comp_differences(structural_diff(doc_in, doc_out)) == []
 
 
 #: five external model definitions, one per submodel
