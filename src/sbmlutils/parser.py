@@ -417,7 +417,9 @@ def _parse_replaced_by(sbase: libsbml.SBase) -> ReplacedBy | None:
     )
 
 
-def _replaced_element_ref(model: libsbml.Model, element: libsbml.SBase) -> str | None:
+def _replaced_element_ref(
+    model: libsbml.Model, element: libsbml.SBase, count: int
+) -> str | None:
     """Name the element of a replaced element, or report why it cannot be named.
 
     `ReplacedElement.create_sbml` resolves `elementRef` against the model it
@@ -442,18 +444,21 @@ def _replaced_element_ref(model: libsbml.Model, element: libsbml.SBase) -> str |
             is read from and will be written into. It is the model passed
             down, never `element.getModel()`, which answers with the model of
             the document for an element inside a `<comp:modelDefinition>`
-        element: the libsbml element the replacement sits on
+        element: the libsbml element the replacements sit on
+        count: how many replaced elements sit on it, which the report names,
+            since every one of them is lost together
 
     Returns:
-        the `elementRef` of the replacement, `None` if it has no unambiguous
-        one, in which case the loss was reported
+        the `elementRef` of the replacements, `None` if the element has no
+        unambiguous one, in which case the loss was reported
     """
     element_ref: str = _element_ref(element)
     if not element_ref:
         logger.error(
-            "The replacedElement of a %s is lost: sbmlutils names the element "
-            "of a replacedElement by its id or its metaid, and this element "
-            "has neither.",
+            "The %s replacedElement(s) of a %s are lost: sbmlutils names the "
+            "element of a replacedElement by its id or its metaid, and this "
+            "element has neither.",
+            count,
             element.getElementName(),
         )
         return None
@@ -464,10 +469,11 @@ def _replaced_element_ref(model: libsbml.Model, element: libsbml.SBase) -> str |
     ) or model.getUnitDefinition(element_ref)
     if shadowing is not None:
         logger.error(
-            "The replacedElement of the %s with the metaid '%s' is lost: "
-            "sbmlutils names an element without an id by its metaid, and this "
-            "metaid is the id of the %s of the same model, which the "
+            "The %s replacedElement(s) of the %s with the metaid '%s' are "
+            "lost: sbmlutils names an element without an id by its metaid, "
+            "and this metaid is the id of the %s of the same model, which the "
             "replacement would be written into instead.",
+            count,
             element.getElementName(),
             element_ref,
             shadowing.getElementName(),
@@ -505,11 +511,16 @@ def _parse_replaced_elements(model: libsbml.Model, m: Model) -> None:
         # added and answers `getListOfReplacedElements()` with `None` for an
         # element which has none, measured with libsbml 5.21.2, which
         # `tests/structural.py` handles the same way in `_items`
-        for k in range(comp.getNumReplacedElements()):
+        count: int = comp.getNumReplacedElements()
+        if not count:
+            continue
+        # the name of the element is the same for every replacement on it, so
+        # it is looked up, and a loss reported, once per element
+        element_ref: str | None = _replaced_element_ref(model, element, count)
+        if element_ref is None:
+            continue
+        for k in range(count):
             replaced: libsbml.ReplacedElement = comp.getReplacedElement(k)
-            element_ref: str | None = _replaced_element_ref(model, element)
-            if element_ref is None:
-                continue
             m.replaced_elements.append(
                 ReplacedElement(
                     elementRef=element_ref,
