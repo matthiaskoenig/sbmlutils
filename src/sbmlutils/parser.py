@@ -10,11 +10,12 @@ assignments, rules, events with their trigger, priority, delay and event
 assignments, and constraints, and on each of these its id, name, metaid,
 sboTerm, notes, annotations and fbc key-value pairs. An element without math,
 which SBML allows from L3V2 on, is read without math. It also reads
-`fbc:strict` of the model.
+`fbc:strict` of the model, its gene products and the gene product association
+of a reaction, as an infix string of gene product ids.
 
 Not read are the model history, and the rest of the content of the `fbc`,
-`distrib`, `comp`, `groups` and `layout` packages: flux bounds, objectives and
-gene products, uncertainties, submodels, ports and replacements. The `fbc`,
+`distrib`, `comp`, `groups` and `layout` packages: flux bounds, objectives,
+uncertainties, submodels, ports and replacements. The `fbc`,
 `distrib` and `comp` packages a document declares are declared on the model.
 Math is read as an L3 infix string, in which an id named like a MathML
 constant or csymbol (`pi`, `INF`, `NaN`, `time`, `avogadro`) cannot be told
@@ -39,6 +40,7 @@ from sbmlutils.factory import (
     Event,
     EventAssignment,
     Function,
+    GeneProduct,
     InitialAssignment,
     KeyValuePair,
     KineticLaw,
@@ -265,13 +267,43 @@ def _parse_variable_kwargs(sbase: libsbml.SBase) -> dict[str, Any]:
     return kwargs
 
 
+def _gene_product_association(reaction: libsbml.Reaction) -> str | None:
+    """Get the gene product association of a reaction as an infix string of ids.
+
+    `Reaction.geneProductAssociation` holds the association as an infix string
+    which `Reaction.create_sbml` writes with `setAssociation(infix,
+    usingId=True, addMissingGP=False)`, so the string has to name the gene
+    products by their id. `FbcAssociation.toInfix(usingId=True)` is the
+    accessor of that side; `toInfix()` writes the labels, which are the gene
+    names and neither unique nor resolvable as an id.
+
+    Args:
+        reaction: the libsbml.Reaction to read the association of
+
+    Returns:
+        the association as an infix string of gene product ids, `None` if the
+        reaction has no association, or one without an `and`, `or` or
+        `geneProductRef` child
+    """
+    reaction_fbc: libsbml.FbcReactionPlugin | None = reaction.getPlugin("fbc")
+    if reaction_fbc is None or not reaction_fbc.isSetGeneProductAssociation():
+        return None
+    gpa: libsbml.GeneProductAssociation = reaction_fbc.getGeneProductAssociation()
+    if not gpa.isSetAssociation():
+        return None
+    association: libsbml.FbcAssociation = gpa.getAssociation()
+    infix: str = association.toInfix(True)
+    return infix
+
+
 def _parse_model_body(model: libsbml.Model, m: Model) -> None:
     """Parse the body of a model into an already constructed `Model`.
 
     Populates `m` with everything `sbml_to_model` parses from `model`: unit
     definitions, model units, function definitions, compartments, species,
     parameters, reactions with kinetic laws, initial assignments, rules,
-    events, constraints and `fbc:strict`. `model` can be any `libsbml.Model`,
+    events, constraints, `fbc:strict`, the gene products of the model and the
+    gene product association of a reaction. `model` can be any `libsbml.Model`,
     including a `libsbml.ModelDefinition`, which subclasses it, so the comp
     package can recurse into a model definition with the same parser.
 
@@ -299,6 +331,24 @@ def _parse_model_body(model: libsbml.Model, m: Model) -> None:
             m.strict = model_fbc.getStrict()
         elif model_fbc.getPackageVersion() == 1:
             m.strict = True
+
+    # fbc gene products, which the associations of the reactions reference by
+    # id; `Model._create_sbml` creates them before the reactions, so that
+    # `Reaction.geneProductAssociation` resolves every id it names
+    if model_fbc is not None:
+        gene_product: libsbml.GeneProduct
+        for gene_product in model_fbc.getListOfGeneProducts():
+            m.gene_products.append(
+                GeneProduct(
+                    label=gene_product.getLabel(),
+                    associatedSpecies=(
+                        gene_product.getAssociatedSpecies()
+                        if gene_product.isSetAssociatedSpecies()
+                        else None
+                    ),
+                    **_parse_sbase_kwargs(gene_product),
+                )
+            )
 
     # unit definitions
     udef: libsbml.UnitDefinition
@@ -469,6 +519,7 @@ def _parse_model_body(model: libsbml.Model, m: Model) -> None:
                 reversible=r.getReversible() if r.isSetReversible() else None,
                 compartment=r.getCompartment() if r.isSetCompartment() else None,
                 fast=r.getFast() if r.isSetFast() else False,
+                geneProductAssociation=_gene_product_association(r),
                 **_parse_sbase_kwargs(r),
             )
         )

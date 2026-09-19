@@ -905,6 +905,75 @@ def test_roundtrip_preserves_fbc_v1_implicit_strict(tmp_path: Path) -> None:
 
 
 # ---------------------------------------------------------------------------
+# the fbc round trip
+# ---------------------------------------------------------------------------
+#: the construct census of a fixture and the fbc differences of its round trip
+Comparison = tuple[Counter[str], list[Difference]]
+
+
+@pytest.fixture(scope="module")
+def fbc_roundtrip(
+    tmp_path_factory: pytest.TempPathFactory,
+) -> Callable[[Path], Comparison]:
+    """Round trip a fixture and compare its fbc content, once per fixture.
+
+    The tests below assert on one construct of a fixture each, and the round trip of `FBC_RECON3D_SBML` takes about ten seconds, so every fixture is round tripped once and its result is cached for the module. The cache holds plain values only: the documents are released when the comparison returns, and a libsbml object does not keep its document alive.
+
+    Args:
+        tmp_path_factory: pytest's factory of the directory the round trips write to
+
+    Returns:
+        a function which round trips an SBML file and returns how many elements of every construct libsbml reads from it, counted independently of `snapshot`, and every difference of its fbc content
+    """
+    tmp_path = tmp_path_factory.mktemp("fbc-roundtrip")
+    cache: dict[Path, Comparison] = {}
+
+    def compare(sbml_path: Path) -> Comparison:
+        if sbml_path not in cache:
+            doc_in, doc_out = roundtrip_document(sbml_path, tmp_path)
+            cache[sbml_path] = (
+                _expected_constructs(comparable_document(doc_in)),
+                [d for d in structural_diff(doc_in, doc_out) if d.package == "fbc"],
+            )
+        return cache[sbml_path]
+
+    return compare
+
+
+def _assert_preserved(comparison: Comparison, *constructs: str) -> None:
+    """Assert that a fixture has each construct and that the round trip changes none.
+
+    Args:
+        comparison: the census and the differences of a fixture, see `fbc_roundtrip`
+        constructs: the constructs which have to be preserved
+    """
+    counts, differences = comparison
+    assert [c for c in constructs if not counts[c]] == [], (
+        f"the fixture has none of these constructs, so preserving them says "
+        f"nothing: {[c for c in constructs if not counts[c]]}"
+    )
+    assert [str(d) for d in differences if d.construct in constructs] == []
+
+
+def test_roundtrip_preserves_gene_products(
+    fbc_roundtrip: Callable[[Path], Comparison],
+) -> None:
+    """Test that the gene products of a model and its associations survive a round trip.
+
+    `FBC_ECOLI_CORE_SBML` has 137 gene products, every one of them annotated, and 69 reactions with a gene product association.
+    """
+    counts, _ = fbc_roundtrip(FBC_ECOLI_CORE_SBML)
+    assert counts["fbc.geneProduct"] == 137
+    assert counts["fbc.geneProductAssociation"] == 69
+
+    _assert_preserved(
+        fbc_roundtrip(FBC_ECOLI_CORE_SBML),
+        "fbc.geneProduct",
+        "fbc.geneProductAssociation",
+    )
+
+
+# ---------------------------------------------------------------------------
 # the whitelist, ruling R5
 # ---------------------------------------------------------------------------
 def _normalization(name: str) -> Normalization:
