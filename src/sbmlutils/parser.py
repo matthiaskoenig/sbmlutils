@@ -15,10 +15,15 @@ objectives, the gene product association of a reaction, as an infix string of
 gene product ids, its flux bounds, the charge and chemical formula of a
 species, and the user-defined constraints of the model with their components.
 A document which declares fbc version 1 is converted to fbc version 2 before
-it is read, see `_convert_fbc_v1`.
+it is read, see `_convert_fbc_v1`. Of `distrib` it reads the uncertainties of
+every element, with their uncert parameters and spans in the order of the
+document, and on each of those its type, value, variable, bounds, unit,
+definitionURL, math and the uncert parameters of an external distribution, see
+`_parse_uncertainties`.
 
-Not read are the model history, the content of the `distrib`, `comp`, `groups`
-and `layout` packages, i.e. uncertainties, submodels, ports and replacements,
+Not read are the model history, the content of the `comp`, `groups` and
+`layout` packages, i.e. submodels, ports and replacements, an uncertainty on
+an element which cannot carry one, which is reported (`_drop_uncertainties`),
 and of `fbc` the metadata of a gene product association and of the `and`, `or`
 and `geneProductRef` nodes of its association, which the infix string has no
 place for, and the fbc version 3 `reaction2` of a flux objective and
@@ -65,6 +70,9 @@ from sbmlutils.factory import (
     ReactionEquation,
     Species,
     Trigger,
+    Uncertainty,
+    UncertParameter,
+    UncertSpan,
     Unit,
     UnitDefinition,
     UserDefinedConstraint,
@@ -221,7 +229,7 @@ def _parse_sbase_kwargs(sbase: libsbml.SBase) -> dict[str, Any]:
                     key=kvp.getKey(),
                     value=kvp.getValue(),
                     uri=kvp.getUri() if kvp.isSetUri() else None,
-                    **_parse_sbase_kwargs(kvp),
+                    **_drop_uncertainties(_parse_sbase_kwargs(kvp), kvp),
                 )
             )
 
@@ -231,7 +239,119 @@ def _parse_sbase_kwargs(sbase: libsbml.SBase) -> dict[str, Any]:
     if d["notes"]:
         kwargs["notes"] = d["notes"]
 
+    # distrib uncertainties, which every element can carry
+    kwargs["uncertainties"] = _parse_uncertainties(sbase)
+
     return kwargs
+
+
+def _drop_uncertainties(kwargs: dict[str, Any], sbase: libsbml.SBase) -> dict[str, Any]:
+    """Drop the uncertainties of an element which cannot carry them, loudly.
+
+    Every SBML element can carry uncertainties and libsbml reads them from
+    every element, but not every element of `sbmlutils.factory` can write them
+    back: a `Model`, a `UnitDefinition`, a species reference (`EquationPart`),
+    a `KeyValuePair`, an `Uncertainty` and the children of one have no
+    `uncertainties` field at all, and a `LocalParameter` and a `KineticLaw`
+    are written without the `libsbml.Model` which `Sbase.create_uncertainties`
+    needs. Passing them on would lose them silently in the writer, so they are
+    dropped here, where the element is known and the loss can be reported. No
+    document of the corpus carries one, see
+    https://github.com/matthiaskoenig/sbmlutils/issues/469.
+
+    Args:
+        kwargs: the kwargs of the element, as `_parse_sbase_kwargs` built them
+        sbase: the libsbml element they were parsed from
+
+    Returns:
+        the kwargs without `uncertainties`
+    """
+    uncertainties: list[Uncertainty] = kwargs.pop("uncertainties", [])
+    if uncertainties:
+        logger.error(
+            "The %s uncertainties of the %s '%s' are lost: the element of "
+            "sbmlutils cannot carry them.",
+            len(uncertainties),
+            sbase.getElementName(),
+            sbase.getId() if sbase.isSetId() else "",
+        )
+    return kwargs
+
+
+def _parse_uncertainties(sbase: libsbml.SBase) -> list[Uncertainty]:
+    """Parse the distrib uncertainties of an element.
+
+    Args:
+        sbase: the libsbml element, whose document is held by the caller
+
+    Returns:
+        the uncertainties of the element, in document order; an empty list for
+        an element without any and for a document without distrib
+    """
+    distrib: libsbml.SBasePlugin | None = sbase.getPlugin("distrib")
+    if distrib is None or not isinstance(distrib, libsbml.DistribSBasePlugin):
+        return []
+
+    uncertainties: list[Uncertainty] = []
+    uncertainty: libsbml.Uncertainty
+    for uncertainty in distrib.getListOfUncertainties():
+        uncertainties.append(
+            Uncertainty(
+                uncertParameters=[
+                    _parse_uncert_child(child)
+                    for child in uncertainty.getListOfUncertParameters()
+                ],
+                **_drop_uncertainties(_parse_sbase_kwargs(uncertainty), uncertainty),
+            )
+        )
+    return uncertainties
+
+
+def _parse_uncert_child(
+    child: libsbml.UncertParameter,
+) -> UncertParameter | UncertSpan:
+    """Parse one element of a `distrib:listOfUncertParameters`.
+
+    The list holds `distrib:uncertParameter` and `distrib:uncertSpan`
+    elements in one order, and libsbml reads a span as the `UncertSpan`
+    subclass of `UncertParameter` in the same list: there is no getter of its
+    own for it, so the class of the object read is what tells the two apart.
+
+    Args:
+        child: the libsbml.UncertParameter, which is a libsbml.UncertSpan for
+            a span; its document is held by the caller
+
+    Returns:
+        the `UncertSpan` of a span, the `UncertParameter` of a parameter, with
+        the uncert parameters of its own
+    """
+    kwargs: dict[str, Any] = {
+        "type": child.getType() if child.isSetType() else None,
+        "unit": child.getUnits() if child.isSetUnits() else None,
+        "definitionURL": (
+            child.getDefinitionURL() if child.isSetDefinitionURL() else None
+        ),
+        "math": _math(child),
+        # the parameters of an external distribution, which SBML nests in an
+        # uncert parameter
+        "uncertParameters": [
+            _parse_uncert_child(nested) for nested in child.getListOfUncertParameters()
+        ],
+        **_drop_uncertainties(_parse_sbase_kwargs(child), child),
+    }
+    if isinstance(child, libsbml.UncertSpan):
+        return UncertSpan(
+            valueLower=child.getValueLower() if child.isSetValueLower() else None,
+            varLower=child.getVarLower() if child.isSetVarLower() else None,
+            valueUpper=child.getValueUpper() if child.isSetValueUpper() else None,
+            varUpper=child.getVarUpper() if child.isSetVarUpper() else None,
+            **kwargs,
+        )
+    return UncertParameter(
+        value=child.getValue() if child.isSetValue() else None,
+        var=child.getVar() if child.isSetVar() else None,
+        **kwargs,
+    )
 
 
 def _parse_udef_kwargs(sbase: libsbml.SBase) -> dict[str, Any]:
@@ -245,9 +365,7 @@ def _parse_udef_kwargs(sbase: libsbml.SBase) -> dict[str, Any]:
     Returns:
         the kwargs accepted by `UnitDefinition.__init__`
     """
-    kwargs = _parse_sbase_kwargs(sbase)
-    kwargs.pop("uncertainties", None)
-    return kwargs
+    return _drop_uncertainties(_parse_sbase_kwargs(sbase), sbase)
 
 
 def _parse_variable_kwargs(sbase: libsbml.SBase) -> dict[str, Any]:
@@ -626,7 +744,7 @@ def _parse_model_body(model: libsbml.Model, m: Model) -> None:
                     constant=(
                         reactant.getConstant() if reactant.isSetConstant() else True
                     ),
-                    **_parse_sbase_kwargs(reactant),
+                    **_drop_uncertainties(_parse_sbase_kwargs(reactant), reactant),
                 )
             )
             product: libsbml.SpeciesReference
@@ -640,7 +758,7 @@ def _parse_model_body(model: libsbml.Model, m: Model) -> None:
                         else None
                     ),
                     constant=product.getConstant() if product.isSetConstant() else True,
-                    **_parse_sbase_kwargs(product),
+                    **_drop_uncertainties(_parse_sbase_kwargs(product), product),
                 )
             )
         modifier: libsbml.ModifierSpeciesReference
@@ -649,7 +767,7 @@ def _parse_model_body(model: libsbml.Model, m: Model) -> None:
                 equation.modifiers.append(
                     EquationPart(
                         species=modifier.getSpecies(),
-                        **_parse_sbase_kwargs(modifier),
+                        **_drop_uncertainties(_parse_sbase_kwargs(modifier), modifier),
                     )
                 )
 
@@ -664,13 +782,13 @@ def _parse_model_body(model: libsbml.Model, m: Model) -> None:
                     LocalParameter(
                         value=lp.getValue() if lp.isSetValue() else None,
                         unit=lp.getUnits() if lp.isSetUnits() else None,
-                        **_parse_sbase_kwargs(lp),
+                        **_drop_uncertainties(_parse_sbase_kwargs(lp), lp),
                     )
                 )
             kinetic_law = KineticLaw(
                 math=_math(klaw),
                 local_parameters=local_parameters,
-                **_parse_sbase_kwargs(klaw),
+                **_drop_uncertainties(_parse_sbase_kwargs(klaw), klaw),
             )
 
         m.reactions.append(
@@ -898,7 +1016,7 @@ def sbml_to_model(
     if not model:
         logger.error("No model in SBMLDocument.")
 
-    m = Model(**_parse_sbase_kwargs(model))
+    m = Model(**_drop_uncertainties(_parse_sbase_kwargs(model), model))
     # a parsed model carries whatever the source file had, so the authoring
     # hints of `Sbase._set_fields` are noise when it is written back out
     m.parsed = True

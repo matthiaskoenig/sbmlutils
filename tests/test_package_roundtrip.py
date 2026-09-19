@@ -56,6 +56,10 @@ from sbmlutils.factory import (
 )
 from sbmlutils.resources import (
     COMP_ICG_BODY,
+    DISTRIB_COMP_FLAT_SBML,
+    DISTRIB_COMP_SBML,
+    DISTRIB_DISTRIBUTIONS_SBML,
+    DISTRIB_UNCERTAINTIES_SBML,
     EXAMPLES_DIR,
     FBC_ECOLI_CORE_SBML,
     FBC_RECON3D_SBML,
@@ -75,6 +79,10 @@ ECOLI_EXPRESSION_SBML: Path = RESOURCES_DIR / "distrib" / "e_coli_core_expressio
 FBC_UDC_SBML: Path = EXAMPLES_DIR / "fbc_user_defined_constraints.xml"
 #: the key-value pairs of fbc version 3, on a parameter
 FBC_KVP_SBML: Path = EXAMPLES_DIR / "fbc" / "fbc_key_value_pair.xml"
+#: one distribution of distrib, as a csymbol in the math of an assignment rule
+DISTRIB_NORMAL_SBML: Path = RESOURCES_DIR / "distrib" / "distrib_normal.xml"
+#: an uncertainty on a compartment, beside fbc and comp content
+MODEL_SBML: Path = EXAMPLES_DIR / "model.xml"
 
 
 #: the source of a fixture: an SBML file, or a model definition built on demand
@@ -1008,17 +1016,17 @@ def test_structural_diff_does_not_compare_fbc_strict_of_an_fbc_v1_source() -> No
 
 
 # ---------------------------------------------------------------------------
-# the fbc round trip
+# the package round trip
 # ---------------------------------------------------------------------------
-#: the construct census of a fixture and the fbc differences of its round trip
+#: the construct census of a fixture and the package differences of its round trip
 Comparison = tuple[Counter[str], list[Difference]]
 
 
 @pytest.fixture(scope="module")
-def fbc_roundtrip(
+def package_roundtrip(
     tmp_path_factory: pytest.TempPathFactory,
 ) -> Callable[[Path], Comparison]:
-    """Round trip a fixture and compare its fbc content, once per fixture.
+    """Round trip a fixture and compare its package content, once per fixture.
 
     The tests below assert on one construct of a fixture each, and the round trip of `FBC_RECON3D_SBML` takes about ten seconds, so every fixture is round tripped once and its result is cached for the module. The differences come from `snapshots`, which is the comparison policy, and the census which proves a fixture has a construct is an independent recount of the same document. The cache holds plain values only: the documents are released when the comparison returns, and a libsbml object does not keep its document alive.
 
@@ -1026,18 +1034,17 @@ def fbc_roundtrip(
         tmp_path_factory: pytest's factory of the directory the round trips write to
 
     Returns:
-        a function which round trips an SBML file and returns how many elements of every construct libsbml reads from it, counted independently of `snapshot`, and every difference of its fbc content
+        a function which round trips an SBML file and returns how many elements of every construct libsbml reads from it, counted independently of `snapshot`, and every difference of its package content, of every package; a test which is about one package filters by it, and `_assert_preserved` filters by construct
     """
-    tmp_path = tmp_path_factory.mktemp("fbc-roundtrip")
+    tmp_path = tmp_path_factory.mktemp("package-roundtrip")
     cache: dict[Path, Comparison] = {}
 
     def compare(sbml_path: Path) -> Comparison:
         if sbml_path not in cache:
             doc_in, doc_out = roundtrip_document(sbml_path, tmp_path)
-            differences = diff_snapshots(*snapshots(doc_in, doc_out))
             cache[sbml_path] = (
                 _expected_constructs(comparable_document(doc_in)),
-                [d for d in differences if d.package == "fbc"],
+                diff_snapshots(*snapshots(doc_in, doc_out)),
             )
         return cache[sbml_path]
 
@@ -1048,7 +1055,7 @@ def _assert_preserved(comparison: Comparison, *constructs: str) -> None:
     """Assert that a fixture has each construct and that the round trip changes none.
 
     Args:
-        comparison: the census and the differences of a fixture, see `fbc_roundtrip`
+        comparison: the census and the differences of a fixture, see `package_roundtrip`
         constructs: the constructs which have to be preserved
     """
     counts, differences = comparison
@@ -1060,18 +1067,18 @@ def _assert_preserved(comparison: Comparison, *constructs: str) -> None:
 
 
 def test_roundtrip_preserves_gene_products(
-    fbc_roundtrip: Callable[[Path], Comparison],
+    package_roundtrip: Callable[[Path], Comparison],
 ) -> None:
     """Test that the gene products of a model and its associations survive a round trip.
 
     `FBC_ECOLI_CORE_SBML` has 137 gene products, every one of them annotated, and 69 reactions with a gene product association.
     """
-    counts, _ = fbc_roundtrip(FBC_ECOLI_CORE_SBML)
+    counts, _ = package_roundtrip(FBC_ECOLI_CORE_SBML)
     assert counts["fbc.geneProduct"] == 137
     assert counts["fbc.geneProductAssociation"] == 69
 
     _assert_preserved(
-        fbc_roundtrip(FBC_ECOLI_CORE_SBML),
+        package_roundtrip(FBC_ECOLI_CORE_SBML),
         "fbc.geneProduct",
         "fbc.geneProductAssociation",
     )
@@ -1138,18 +1145,18 @@ def test_roundtrip_loses_only_the_sboterm_of_an_association_node(
 
 
 def test_roundtrip_preserves_objectives(
-    fbc_roundtrip: Callable[[Path], Comparison],
+    package_roundtrip: Callable[[Path], Comparison],
 ) -> None:
     """Test that the objective of a model and its flux objectives survive a round trip.
 
     `FBC_ECOLI_CORE_SBML` maximizes the biomass reaction, which is the one thing an FBA model is run for.
     """
-    counts, _ = fbc_roundtrip(FBC_ECOLI_CORE_SBML)
+    counts, _ = package_roundtrip(FBC_ECOLI_CORE_SBML)
     assert counts["fbc.objective"] == 1
     assert counts["fbc.fluxObjective"] == 1
 
     _assert_preserved(
-        fbc_roundtrip(FBC_ECOLI_CORE_SBML), "fbc.objective", "fbc.fluxObjective"
+        package_roundtrip(FBC_ECOLI_CORE_SBML), "fbc.objective", "fbc.fluxObjective"
     )
 
 
@@ -1204,19 +1211,19 @@ def test_roundtrip_keeps_the_active_objective(
 
 
 def test_roundtrip_preserves_bounds_charge_and_formula(
-    fbc_roundtrip: Callable[[Path], Comparison],
+    package_roundtrip: Callable[[Path], Comparison],
 ) -> None:
     """Test that the flux bounds, charges and chemical formulas of a model survive.
 
     The flux bounds of `FBC_ECOLI_CORE_SBML` are what makes its flux space finite; 72 of its 72 species carry a charge and a chemical formula.
     """
-    counts, _ = fbc_roundtrip(FBC_ECOLI_CORE_SBML)
+    counts, _ = package_roundtrip(FBC_ECOLI_CORE_SBML)
     assert counts["fbc.fluxBound"] == 95
     assert counts["fbc.charge"] == 72
     assert counts["fbc.chemicalFormula"] == 72
 
     _assert_preserved(
-        fbc_roundtrip(FBC_ECOLI_CORE_SBML),
+        package_roundtrip(FBC_ECOLI_CORE_SBML),
         "fbc.fluxBound",
         "fbc.charge",
         "fbc.chemicalFormula",
@@ -1370,7 +1377,7 @@ def test_roundtrip_keeps_a_reaction_with_one_flux_bound(tmp_path: Path) -> None:
 
 @requires_testsuite
 def test_roundtrip_preserves_fbc_v1_flux_bounds(
-    fbc_roundtrip: Callable[[Path], Comparison],
+    package_roundtrip: Callable[[Path], Comparison],
 ) -> None:
     """Test that the flux bounds of an fbc version 1 document survive a round trip.
 
@@ -1382,25 +1389,25 @@ def test_roundtrip_preserves_fbc_v1_flux_bounds(
     assert fbc_v1.getPackageVersion() == 1
     assert fbc_v1.getNumFluxBounds() == 52
 
-    counts, _ = fbc_roundtrip(sbml_path)
+    counts, _ = package_roundtrip(sbml_path)
     assert counts["fbc.fluxBound"] == 26
 
-    _assert_preserved(fbc_roundtrip(sbml_path), "fbc.fluxBound")
+    _assert_preserved(package_roundtrip(sbml_path), "fbc.fluxBound")
 
 
 def test_roundtrip_preserves_user_defined_constraints(
-    fbc_roundtrip: Callable[[Path], Comparison],
+    package_roundtrip: Callable[[Path], Comparison],
 ) -> None:
     """Test that the user-defined constraints of a model survive a round trip.
 
     A user-defined constraint is an fbc version 3 constraint which is not implied by the stoichiometry of the network; `FBC_UDC_SBML` is the only fixture of the repository which has any.
     """
-    counts, _ = fbc_roundtrip(FBC_UDC_SBML)
+    counts, _ = package_roundtrip(FBC_UDC_SBML)
     assert counts["fbc.userDefinedConstraint"] == 2
     assert counts["fbc.userDefinedConstraintComponent"] == 4
 
     _assert_preserved(
-        fbc_roundtrip(FBC_UDC_SBML),
+        package_roundtrip(FBC_UDC_SBML),
         "fbc.userDefinedConstraint",
         "fbc.userDefinedConstraintComponent",
     )
@@ -1752,16 +1759,16 @@ FBC_FIXTURES: list[tuple[Path, tuple[str, ...]]] = [
 def test_roundtrip_preserves_the_whole_fbc_content(
     sbml_path: Path,
     constructs: tuple[str, ...],
-    fbc_roundtrip: Callable[[Path], Comparison],
+    package_roundtrip: Callable[[Path], Comparison],
 ) -> None:
     """Test that a round trip of an fbc fixture changes no fbc content at all.
 
-    Between them the three fixtures carry every fbc construct the parser reads: `FBC_RECON3D_SBML` is the largest model of the repository with 2248 gene products, 10600 flux bounds and 5835 charges, and `FBC_UDC_SBML` is the only one with user-defined constraints. This asserts on every difference, not on the named constructs only, so a construct the round trip *adds* fails it too.
+    Between them the three fixtures carry every fbc construct the parser reads: `FBC_RECON3D_SBML` is the largest model of the repository with 2248 gene products, 10600 flux bounds and 5835 charges, and `FBC_UDC_SBML` is the only one with user-defined constraints. This asserts on every fbc difference, not on the named constructs only, so an fbc construct the round trip *adds* fails it too.
     """
-    counts, differences = fbc_roundtrip(sbml_path)
+    counts, differences = package_roundtrip(sbml_path)
     assert [c for c in constructs if not counts[c]] == []
 
-    assert [str(d) for d in differences] == []
+    assert [str(d) for d in differences if d.package == "fbc"] == []
 
 
 # ---------------------------------------------------------------------------
@@ -2401,3 +2408,204 @@ def test_difference_names_its_package() -> None:
 
     assert difference.package == "comp"
     assert "comp.modelDefinition.species" in str(difference)
+
+
+# ---------------------------------------------------------------------------
+# the distrib round trip
+# ---------------------------------------------------------------------------
+#: every distrib fixture of the repository, with the constructs it has to
+#: contain; the list is every file of `resources/distrib` and
+#: `resources/examples` which libsbml reads an uncertainty or a distrib
+#: csymbol from
+DISTRIB_FIXTURES: list[tuple[Path, tuple[str, ...]]] = [
+    # six uncertainties on one parameter, between them every uncert parameter
+    # and span type, a definitionURL, math and a nested listOfUncertParameters
+    (
+        UNCERTAINTY_SBML,
+        ("distrib.package", "distrib.uncertainty", "distrib.uncertParameter"),
+    ),
+    # an uncertainty on an fbc gene product
+    (
+        ECOLI_EXPRESSION_SBML,
+        ("distrib.package", "distrib.uncertainty", "distrib.uncertParameter"),
+    ),
+    # an uncertainty written from a model definition, with a span, two
+    # parameters and the distribution of a `formula`
+    (
+        DISTRIB_UNCERTAINTIES_SBML,
+        ("distrib.package", "distrib.uncertainty", "distrib.uncertParameter"),
+    ),
+    (
+        DISTRIB_COMP_FLAT_SBML,
+        ("distrib.package", "distrib.uncertainty", "distrib.uncertParameter"),
+    ),
+    # an uncertainty on a compartment of a model which also uses fbc
+    (
+        MODEL_SBML,
+        ("distrib.package", "distrib.uncertainty", "distrib.uncertParameter"),
+    ),
+    # the distributions of distrib in the math of core elements
+    (DISTRIB_ALL_SBML, ("distrib.package", "distrib.csymbol")),
+    (DISTRIB_NORMAL_SBML, ("distrib.package", "distrib.csymbol")),
+    (DISTRIB_DISTRIBUTIONS_SBML, ("distrib.package", "distrib.csymbol")),
+]
+
+
+@pytest.mark.parametrize(
+    "sbml_path, constructs",
+    DISTRIB_FIXTURES,
+    ids=[sbml_path.name for sbml_path, _ in DISTRIB_FIXTURES],
+)
+def test_roundtrip_preserves_the_whole_distrib_content(
+    sbml_path: Path,
+    constructs: tuple[str, ...],
+    package_roundtrip: Callable[[Path], Comparison],
+) -> None:
+    """Test that a round trip of a distrib fixture changes no distrib content at all.
+
+    Between them the fixtures carry every distrib construct: `UNCERTAINTY_SBML` has six uncertainties with every type of uncert parameter and span, a definitionURL, math and a nested `listOfUncertParameters`, `ECOLI_EXPRESSION_SBML` has one on a gene product, `MODEL_SBML` one on a compartment, and the three files of distributions use the csymbols of distrib in the math of core elements. Each is asserted to have the constructs first, so preserving them cannot mean that the fixture has none, and every difference is asserted, not only the ones of the named constructs, so a distrib construct the round trip *adds* fails it too.
+
+    `DISTRIB_COMP_SBML` is missing from the list on purpose: it is the same model as `DISTRIB_COMP_FLAT_SBML` with a comp port, whose round trip is not complete yet, see `test_roundtrip_of_a_distrib_comp_model_loses_only_its_port`.
+    """
+    counts, differences = package_roundtrip(sbml_path)
+    assert [c for c in constructs if not counts[c]] == [], (
+        f"the fixture has none of these constructs, so preserving them says "
+        f"nothing: {[c for c in constructs if not counts[c]]}"
+    )
+
+    assert [str(d) for d in differences if d.package == "distrib"] == []
+
+
+def test_roundtrip_of_a_distrib_comp_model_loses_only_its_port(
+    package_roundtrip: Callable[[Path], Comparison],
+) -> None:
+    """Test that the uncertainty of a model which also uses comp survives.
+
+    `DISTRIB_COMP_SBML` carries its uncertainty on a parameter which is also
+    the target of a comp port, so it is the one fixture where the two packages
+    meet. Its distrib content round trips; what is lost is the port, which is
+    the whole comp content of this model, since `sbml_to_model` does not read
+    the comp package yet. That is asserted exactly, construct by construct, so
+    that the task which adds the comp parser removes this test rather than
+    finding it green by accident.
+    """
+    counts, differences = package_roundtrip(DISTRIB_COMP_SBML)
+    assert counts["distrib.uncertainty"] == 1
+    assert counts["distrib.uncertParameter"] == 4
+    assert counts["comp.port"] == 1
+
+    assert [str(d) for d in differences if d.package == "distrib"] == []
+    assert [(d.construct, d.attribute, d.after) for d in differences] == [
+        ("comp.port", ELEMENT, ABSENT)
+    ]
+
+
+def _span_first_sbml(tmp_path: Path) -> Path:
+    """Write a document whose uncertainty lists a span before a parameter.
+
+    No fixture of the repository lists the children of an uncertainty in every
+    order, and the order is what carries the meaning of the list, so this one
+    is built with libsbml alone: a span, a parameter and a second span, on a
+    parameter of the model.
+
+    Args:
+        tmp_path: the directory the file is written to
+
+    Returns:
+        the path of the written SBML file
+    """
+    ns: libsbml.SBMLNamespaces = libsbml.SBMLNamespaces(3, 2)
+    ns.addPackageNamespace("distrib", 1)
+    doc: libsbml.SBMLDocument = libsbml.SBMLDocument(ns)
+    doc.setPackageRequired("distrib", True)
+    model: libsbml.Model = doc.createModel()
+    model.setId("span_before_parameter")
+    parameter: libsbml.Parameter = model.createParameter()
+    parameter.setId("p1")
+    parameter.setValue(5.0)
+    parameter.setConstant(True)
+    plugin: libsbml.DistribSBasePlugin = parameter.getPlugin("distrib")
+    uncertainty: libsbml.Uncertainty = plugin.createUncertainty()
+
+    span: libsbml.UncertSpan = uncertainty.createUncertSpan()
+    span.setType(libsbml.DISTRIB_UNCERTTYPE_RANGE)
+    span.setValueLower(2.0)
+    span.setValueUpper(8.0)
+    mean: libsbml.UncertParameter = uncertainty.createUncertParameter()
+    mean.setType(libsbml.DISTRIB_UNCERTTYPE_MEAN)
+    mean.setValue(5.0)
+    interval: libsbml.UncertSpan = uncertainty.createUncertSpan()
+    interval.setType(libsbml.DISTRIB_UNCERTTYPE_CONFIDENCEINTERVAL)
+    interval.setValueLower(4.0)
+    interval.setValueUpper(6.0)
+
+    sbml_path = tmp_path / "span_before_parameter.xml"
+    assert libsbml.writeSBMLToFile(doc, str(sbml_path))
+    return sbml_path
+
+
+def _child_elements(doc: libsbml.SBMLDocument) -> list[str]:
+    """Name the children of the first uncertainty of the parameter `p1`.
+
+    Args:
+        doc: a document written by `_span_first_sbml`, which the caller holds
+
+    Returns:
+        `uncertParameter` or `uncertSpan` for every child, in document order
+    """
+    uncertainty: libsbml.Uncertainty = (
+        doc.getModel().getParameter("p1").getPlugin("distrib").getUncertainty(0)
+    )
+    return [
+        uncertainty.getUncertParameter(k).getElementName()
+        for k in range(uncertainty.getNumUncertParameters())
+    ]
+
+
+def test_roundtrip_keeps_a_span_before_a_parameter(tmp_path: Path) -> None:
+    """Test that the order of the children of an uncertainty survives.
+
+    SBML holds the parameters and the spans of an uncertainty in one list, in
+    which the position of an element is its only identity: distrib gives
+    neither an id nor a reference to match them by, which is why
+    `tests/structural.py` compares them in document order. The writer wrote
+    every span before every parameter, so an uncertainty which lists them the
+    other way round came back reordered.
+    """
+    sbml_path = _span_first_sbml(tmp_path)
+    doc_in, doc_out = roundtrip_document(sbml_path, tmp_path)
+    assert _child_elements(doc_in) == ["uncertSpan", "uncertParameter", "uncertSpan"]
+
+    assert _child_elements(doc_out) == ["uncertSpan", "uncertParameter", "uncertSpan"]
+    assert [str(d) for d in structural_diff(doc_in, doc_out)] == []
+
+
+def test_roundtrip_keeps_the_notes_of_an_uncertainty(tmp_path: Path) -> None:
+    """Test that the notes of an uncertainty and of its children survive.
+
+    The factory renders notes through markdown, and a round trip of notes
+    which are already xhtml has to leave them as they are; no uncertainty of
+    the repository carries notes, so the case is built here. Notes are
+    compared as libsbml serializes them, see the docstring of
+    `tests/structural.py`, and nothing about them is whitelisted.
+    """
+    sbml_path = _span_first_sbml(tmp_path)
+    doc: libsbml.SBMLDocument = _read(sbml_path)
+    uncertainty: libsbml.Uncertainty = (
+        doc.getModel().getParameter("p1").getPlugin("distrib").getUncertainty(0)
+    )
+    note = '<body xmlns="http://www.w3.org/1999/xhtml"><p>%s</p></body>'
+    assert uncertainty.setNotes(note % "measured in 2021") == 0
+    assert uncertainty.getUncertParameter(0).setNotes(note % "min and max") == 0
+    assert uncertainty.getUncertParameter(1).setNotes(note % "of three runs") == 0
+    sbml_path = tmp_path / "notes_on_an_uncertainty.xml"
+    assert libsbml.writeSBMLToFile(doc, str(sbml_path))
+
+    doc_in, doc_out = roundtrip_document(sbml_path, tmp_path)
+
+    assert [str(d) for d in structural_diff(doc_in, doc_out)] == []
+    written: libsbml.Uncertainty = (
+        doc_out.getModel().getParameter("p1").getPlugin("distrib").getUncertainty(0)
+    )
+    assert "measured in 2021" in written.getNotesString()
+    assert "min and max" in written.getUncertParameter(0).getNotesString()
