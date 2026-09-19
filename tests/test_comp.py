@@ -106,12 +106,14 @@ def test_create_ports_list() -> None:
     assert comp_model.getPort("tests") is None
 
 
-def _write(model: Model, tmp_path: Path) -> libsbml.SBMLDocument:
+def _write(model: Model, tmp_path: Path, validate: bool = True) -> libsbml.SBMLDocument:
     """Write a model at SBML L3V2 and read it back.
 
     Args:
         model: the model to write
         tmp_path: the directory the SBML is written to
+        validate: whether the written document is validated, which a test
+            about what is written rather than about validity turns off
 
     Returns:
         the document which was written
@@ -121,6 +123,7 @@ def _write(model: Model, tmp_path: Path) -> libsbml.SBMLDocument:
         filepath=tmp_path / f"{model.sid}.xml",
         sbml_level=3,
         sbml_version=2,
+        validate=validate,
         validation_options=ValidationOptions(units_consistency=False),
     )
     return read_sbml(tmp_path / f"{model.sid}.xml")
@@ -1085,3 +1088,249 @@ def test_a_model_definition_keeps_the_fbc_version_of_the_document(
 
     fbc_plugin: libsbml.SBMLDocumentPlugin = doc.getPlugin("fbc")
     assert fbc_plugin.getPackageVersion() == 2
+
+
+def _mathml(sbase: Any) -> str:
+    """Get the MathML of an element which carries math, on one line.
+
+    Args:
+        sbase: the libsbml object whose `getMath()` is written out
+
+    Returns:
+        the MathML string with its whitespace collapsed
+    """
+    return " ".join(libsbml.writeMathMLToString(sbase.getMath()).split())
+
+
+def _uncertainty_math(sbase: libsbml.SBase, key: str) -> dict[str, str]:
+    """Get the MathML of the uncert parameters of the uncertainties of an element.
+
+    Args:
+        sbase: the libsbml object the uncertainties are written on
+        key: the prefix of the keys of the returned map
+
+    Returns:
+        the MathML of every uncert parameter which carries math
+    """
+    math: dict[str, str] = {}
+    plugin: libsbml.DistribSBasePlugin | None = sbase.getPlugin("distrib")
+    if plugin is None:
+        return math
+    for index in range(plugin.getNumUncertainties()):
+        uncertainty: libsbml.Uncertainty = plugin.getUncertainty(index)
+        for child_index in range(uncertainty.getNumUncertParameters()):
+            child: libsbml.UncertParameter = uncertainty.getUncertParameter(child_index)
+            if child.isSetMath():
+                math[f"{key} uncertainty {index}.{child_index}"] = _mathml(child)
+    return math
+
+
+def _math_of_model(model: libsbml.Model) -> dict[str, str]:
+    """Get the MathML of every element of a model which carries math.
+
+    Args:
+        model: the libsbml.Model, or the libsbml.ModelDefinition which
+            subclasses it, to walk
+
+    Returns:
+        the MathML by a key which names the element but not the model, so
+        that the map of a model and the map of a model definition of the same
+        content can be compared
+    """
+    math: dict[str, str] = {}
+    for function in model.getListOfFunctionDefinitions():
+        math[f"function {function.getId()}"] = _mathml(function)
+    for assignment in model.getListOfInitialAssignments():
+        math[f"initialAssignment {assignment.getSymbol()}"] = _mathml(assignment)
+    for rule in model.getListOfRules():
+        math[f"rule {rule.getIdAttribute() or rule.getVariable()}"] = _mathml(rule)
+    for constraint in model.getListOfConstraints():
+        math[f"constraint {constraint.getIdAttribute()}"] = _mathml(constraint)
+    for reaction in model.getListOfReactions():
+        if reaction.isSetKineticLaw():
+            math[f"kineticLaw {reaction.getId()}"] = _mathml(reaction.getKineticLaw())
+    for event in model.getListOfEvents():
+        if event.isSetTrigger():
+            math[f"trigger {event.getId()}"] = _mathml(event.getTrigger())
+        if event.isSetPriority():
+            math[f"priority {event.getId()}"] = _mathml(event.getPriority())
+        if event.isSetDelay():
+            math[f"delay {event.getId()}"] = _mathml(event.getDelay())
+        for event_assignment in event.getListOfEventAssignments():
+            math[f"eventAssignment {event_assignment.getVariable()}"] = _mathml(
+                event_assignment
+            )
+    for parameter in model.getListOfParameters():
+        math.update(_uncertainty_math(parameter, f"parameter {parameter.getId()}"))
+
+    model_fbc: libsbml.FbcModelPlugin | None = model.getPlugin("fbc")
+    if model_fbc is not None:
+        for objective in model_fbc.getListOfObjectives():
+            for flux_objective in objective.getListOfFluxObjectives():
+                math.update(
+                    _uncertainty_math(
+                        flux_objective, f"fluxObjective {flux_objective.getId()}"
+                    )
+                )
+        for udc in model_fbc.getListOfUserDefinedConstraints():
+            for component in udc.getListOfUserDefinedConstraintComponents():
+                math.update(
+                    _uncertainty_math(component, f"component {component.getId()}")
+                )
+    return math
+
+
+def _math_against_time_kwargs(sid: str) -> dict[str, Any]:
+    """Build the content of a model whose math everywhere names its own parameters.
+
+    `time` and `avogadro` are SBML csymbols unless the model which the
+    formula is parsed against declares a parameter of that name, so the
+    written MathML says which model libsbml resolved the math against.
+
+    Args:
+        sid: the id of the model
+
+    Returns:
+        the keyword arguments of a `Model` or a `ModelDefinition`; `packages`
+        is not among them, a model definition does not take it
+    """
+    return {
+        "sid": sid,
+        "name": "math which names a parameter called time",
+        "compartments": [Compartment("c", 1.0, name="cell")],
+        "species": [
+            Species("S1", compartment="c", initialConcentration=1.0, name="S1")
+        ],
+        "parameters": [
+            Parameter("time", 2.0, name="a parameter called time"),
+            Parameter("avogadro", 3.0, name="a parameter called avogadro"),
+            Parameter("p_assigned", 0.0, constant=False, name="assigned"),
+            Parameter("p_rate", 0.0, constant=False, name="integrated"),
+            Parameter("p_algebraic", 0.0, constant=False, name="algebraic"),
+            Parameter("p_initial", None, name="initially assigned"),
+            Parameter(
+                "p_uncertain",
+                1.0,
+                name="uncertain",
+                uncertainties=[
+                    Uncertainty(sid="unc_p", formula="normal(time, avogadro)")
+                ],
+            ),
+        ],
+        "functions": [Function("f_time", "lambda(x, x * time)", name="function")],
+        "assignments": [
+            InitialAssignment("p_initial", "time + avogadro", name="initial")
+        ],
+        "rules": [AssignmentRule("p_assigned", "time * 2")],
+        "rate_rules": [RateRule("p_rate", "avogadro", name="rate rule")],
+        "algebraic_rules": [
+            AlgebraicRule("alg1", "p_algebraic - time", name="algebraic")
+        ],
+        "reactions": [
+            Reaction(
+                "r1",
+                "S1 ->",
+                formula="time * S1 * avogadro",
+                name="degradation",
+            )
+        ],
+        "events": [
+            Event(
+                "e1",
+                trigger="time >= 10",
+                priority="avogadro",
+                delay="time",
+                assignments={"p_assigned": "time * avogadro"},
+                name="event",
+            )
+        ],
+        "constraints": [Constraint("con1", math="time > 0", name="constraint")],
+        "objectives": [
+            Objective(
+                "obj1",
+                objectiveType="maximize",
+                active=True,
+                name="objective",
+                fluxObjectives=[
+                    FluxObjective(
+                        reaction="r1",
+                        coefficient=1.0,
+                        sid="fo1",
+                        name="flux objective",
+                        uncertainties=[
+                            Uncertainty(sid="unc_fo", formula="normal(time, avogadro)")
+                        ],
+                    )
+                ],
+            )
+        ],
+        "user_defined_constraints": [
+            UserDefinedConstraint(
+                sid="udc1",
+                name="user defined constraint",
+                lowerBound="time",
+                upperBound="avogadro",
+                components=[
+                    UserDefinedConstraintComponent(
+                        sid="udcc1",
+                        name="component",
+                        variable="p_assigned",
+                        coefficient="time",
+                        variableType="linear",
+                        uncertainties=[
+                            Uncertainty(
+                                sid="unc_udcc", formula="normal(time, avogadro)"
+                            )
+                        ],
+                    )
+                ],
+            )
+        ],
+    }
+
+
+def test_math_of_a_model_definition_is_parsed_against_it(tmp_path: Path) -> None:
+    """Test that the math of a model definition resolves its own ids.
+
+    libsbml answers `getModel()` of an element inside a `<comp:modelDefinition>`
+    with the model of the *document*, so an element writer which reaches for
+    the model that way parses the math of a model definition against the
+    wrong model. It is silent: `time` and `avogadro` are written as the SBML
+    csymbol instead of as a reference to the parameter of that name, and the
+    document validates. The same content is written here as the model of a
+    document and as a model definition; both must write the same math.
+    """
+    top = Model(
+        packages=[Package.FBC_V3, Package.DISTRIB_V1],
+        **_math_against_time_kwargs("math_top"),
+    )
+    doc_top = _write(top, tmp_path, validate=False)
+
+    main = Model(
+        sid="math_main",
+        name="a main model without a parameter called time",
+        packages=[Package.COMP_V1, Package.FBC_V3, Package.DISTRIB_V1],
+        parameters=[Parameter("k_top", 1.0, name="parameter of the main model")],
+        model_definitions=[ModelDefinition(**_math_against_time_kwargs("math_md"))],
+    )
+    doc_md = _write(main, tmp_path, validate=False)
+
+    math_top = _math_of_model(doc_top.getModel())
+    math_md = _math_of_model(doc_md.getPlugin("comp").getModelDefinition("math_md"))
+
+    # not vacuous: every element type which carries math is in the map
+    assert len(math_top) == 14, sorted(math_top)
+    assert math_md == math_top
+
+    # and both are right, not just equal: the parameters of the model, not
+    # the csymbols of the same name. The function definition is the one
+    # element which names the csymbol, in a model definition and in the model
+    # of a document alike: it is created before the parameters of the model
+    # exist (the creation order of `Model._fill_sbml`), and a function
+    # definition may not reference a parameter of the model in SBML anyway.
+    for key, mathml in math_md.items():
+        if key == "function f_time":
+            assert "symbols/time" in mathml
+            continue
+        assert "symbols/time" not in mathml, key
+        assert "symbols/avogadro" not in mathml, key

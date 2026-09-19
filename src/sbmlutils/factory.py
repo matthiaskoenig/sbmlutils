@@ -2205,11 +2205,20 @@ class KineticLaw(Sbase):
         """Get string representation."""
         return f"KineticLaw({self.math})"
 
-    def create_sbml(self, reaction: libsbml.Reaction) -> libsbml.KineticLaw:
+    def create_sbml(
+        self, reaction: libsbml.Reaction, model: libsbml.Model | None = None
+    ) -> libsbml.KineticLaw:
         """Create the libsbml.KineticLaw on the given reaction.
 
         Args:
             reaction: the libsbml.Reaction the kinetic law belongs to
+            model: the libsbml.Model the reaction is created in, which the
+                math is parsed against. It has to be handed down, since
+                libsbml answers `reaction.getModel()` with the model of the
+                *document* for a reaction inside a `<comp:modelDefinition>`,
+                see `Model._fill_sbml`. `None` falls back to that lookup, for
+                a caller which creates a kinetic law on a reaction of the
+                model of a document, where the two are the same model
 
         Returns:
             the created libsbml.KineticLaw
@@ -2224,7 +2233,8 @@ class KineticLaw(Sbase):
 
         if self.math is None:
             return klaw
-        model: libsbml.Model = reaction.getModel()
+        if model is None:
+            model = reaction.getModel()
         ast_node = libsbml.parseL3FormulaWithModel(self.math, model)
         if ast_node is None:
             logger.error(
@@ -2476,7 +2486,7 @@ class Reaction(Sbase):
 
         # kinetics
         if self.formula is not None:
-            self.formula.create_sbml(r)
+            self.formula.create_sbml(r, model)
 
         # add fbc bounds
         if self.upperFluxBound or self.lowerFluxBound:
@@ -3545,13 +3555,17 @@ class _UncertChild(Sbase):
         Args:
             sbase: the libsbml.UncertParameter or libsbml.UncertSpan created
                 by `create_sbml`
-            model: `None`, a child of an uncertainty is written without the
-                model, which is what keeps `Sbase._set_fields` from descending
-                into the `uncertainties` and the comp fields of an element.
-                The math is parsed with the model of the created object, which
-                is attached to its parent already.
+            model: the libsbml.Model the uncertainty is created in, which the
+                math of the child is parsed against; `None` falls back to the
+                model of the created object, which is attached to its parent
+                already. It is handed down rather than looked up, since
+                libsbml answers that lookup with the model of the *document*
+                for an element inside a `<comp:modelDefinition>`, see
+                `Model._fill_sbml`. It is never passed on to
+                `Sbase._set_fields`, which is what keeps it from descending
+                into the `uncertainties` and the comp fields of a child.
         """
-        super()._set_fields(sbase, model)
+        super()._set_fields(sbase, None)
         if self.type is not None:
             check(sbase.setType(self.type), f"Set type '{self.type}' on {sbase}")
         if self.definitionURL is not None:
@@ -3559,14 +3573,14 @@ class _UncertChild(Sbase):
                 sbase.setDefinitionURL(self.definitionURL),
                 f"Set definitionURL '{self.definitionURL}' on {sbase}",
             )
-        _set_math(sbase, self.math, sbase.getModel())
+        _set_math(sbase, self.math, model if model is not None else sbase.getModel())
         if self.unit:
             uid = UnitDefinition.get_uid_for_unit(unit=self.unit)
             check(sbase.setUnits(uid), f"Set unit '{uid}' on {sbase}")
 
         child: UncertParameter | UncertSpan
         for child in self.uncertParameters:
-            child.create_sbml(sbase)
+            child.create_sbml(sbase, model)
 
 
 class UncertParameter(_UncertChild):
@@ -3668,13 +3682,17 @@ class UncertParameter(_UncertChild):
         )
 
     def create_sbml(
-        self, parent: libsbml.Uncertainty | libsbml.UncertParameter
+        self,
+        parent: libsbml.Uncertainty | libsbml.UncertParameter,
+        model: libsbml.Model | None = None,
     ) -> libsbml.UncertParameter | None:
         """Create the libsbml.UncertParameter in the given parent.
 
         Args:
             parent: the libsbml.Uncertainty or libsbml.UncertParameter the
                 parameter is created in
+            model: the libsbml.Model the uncertainty is created in, which the
+                math is parsed against, see `_UncertChild._set_fields`
 
         Returns:
             the created libsbml.UncertParameter, `None` for a parameter whose
@@ -3683,7 +3701,7 @@ class UncertParameter(_UncertChild):
         if not self._supports_type():
             return None
         up: libsbml.UncertParameter = parent.createUncertParameter()
-        self._set_fields(up, None)
+        self._set_fields(up, model)
         return up
 
     def _set_fields(self, sbase: libsbml.UncertParameter, model: Any) -> None:
@@ -3691,7 +3709,8 @@ class UncertParameter(_UncertChild):
 
         Args:
             sbase: the libsbml.UncertParameter created by `create_sbml`
-            model: `None`, see `_UncertChild._set_fields`
+            model: the model the math is parsed against, see
+                `_UncertChild._set_fields`
         """
         super()._set_fields(sbase, model)
         if self.value is not None:
@@ -3834,13 +3853,17 @@ class UncertSpan(_UncertChild):
                 )
 
     def create_sbml(
-        self, parent: libsbml.Uncertainty | libsbml.UncertParameter
+        self,
+        parent: libsbml.Uncertainty | libsbml.UncertParameter,
+        model: libsbml.Model | None = None,
     ) -> libsbml.UncertSpan | None:
         """Create the libsbml.UncertSpan in the given parent.
 
         Args:
             parent: the libsbml.Uncertainty or libsbml.UncertParameter the
                 span is created in
+            model: the libsbml.Model the uncertainty is created in, which the
+                math is parsed against, see `_UncertChild._set_fields`
 
         Returns:
             the created libsbml.UncertSpan, `None` for a span whose type SBML
@@ -3849,7 +3872,7 @@ class UncertSpan(_UncertChild):
         if not self._supports_type():
             return None
         span: libsbml.UncertSpan = parent.createUncertSpan()
-        self._set_fields(span, None)
+        self._set_fields(span, model)
         return span
 
     def _set_fields(self, sbase: libsbml.UncertSpan, model: Any) -> None:
@@ -3857,7 +3880,8 @@ class UncertSpan(_UncertChild):
 
         Args:
             sbase: the libsbml.UncertSpan created by `create_sbml`
-            model: `None`, see `_UncertChild._set_fields`
+            model: the model the math is parsed against, see
+                `_UncertChild._set_fields`
         """
         super()._set_fields(sbase, model)
         if self.valueLower is not None:
@@ -4067,7 +4091,7 @@ class Uncertainty(Sbase):
 
         child: UncertParameter | UncertSpan
         for child in self.uncertParameters:
-            child.create_sbml(uncertainty)
+            child.create_sbml(uncertainty, model)
 
         return uncertainty
 
@@ -4226,13 +4250,32 @@ class UserDefinedConstraintComponent(Sbase):
         )
 
     def create_sbml(
-        self, constraint: libsbml.UserDefinedConstraint
+        self,
+        constraint: libsbml.UserDefinedConstraint,
+        model: libsbml.Model | None = None,
     ) -> libsbml.UserDefinedConstraintComponent:
-        """Create Objective."""
+        """Create the libsbml.UserDefinedConstraintComponent in the constraint.
+
+        Args:
+            constraint: the libsbml.UserDefinedConstraint the component
+                belongs to
+            model: the libsbml.Model the constraint is created in, which the
+                fields of the component are written with. It has to be handed
+                down, since libsbml answers `constraint.getModel()` with the
+                model of the *document* for a constraint inside a
+                `<comp:modelDefinition>`, see `Model._fill_sbml`. `None` falls
+                back to that lookup, for a caller which creates a component in
+                a constraint of the model of a document
+
+        Returns:
+            the created libsbml.UserDefinedConstraintComponent
+        """
         component: libsbml.UserDefinedConstraintComponent = (
             constraint.createUserDefinedConstraintComponent()
         )
-        self._set_fields(component, model=constraint.getModel())
+        self._set_fields(
+            component, model if model is not None else constraint.getModel()
+        )
 
         check(component.setVariable(self.variable), f"set variable `{self.variable}`")
         check(
@@ -4323,7 +4366,7 @@ class UserDefinedConstraint(Sbase):
         udc.setUpperBound(self.upperBound)
         udc.setLowerBound(self.lowerBound)
         for component in self.components:
-            component.create_sbml(constraint=udc)
+            component.create_sbml(constraint=udc, model=model)
 
         return udc
 
@@ -4397,10 +4440,28 @@ class FluxObjective(Sbase):
             variable_type = libsbml.FBC_VARIABLE_TYPE_INVALID
         return variable_type
 
-    def create_sbml(self, objective: libsbml.Objective) -> libsbml.FluxObjective:
-        """Create Objective."""
+    def create_sbml(
+        self, objective: libsbml.Objective, model: libsbml.Model | None = None
+    ) -> libsbml.FluxObjective:
+        """Create the libsbml.FluxObjective in the objective.
+
+        Args:
+            objective: the libsbml.Objective the flux objective belongs to
+            model: the libsbml.Model the objective is created in, which the
+                fields of the flux objective are written with. It has to be
+                handed down, since libsbml answers `objective.getModel()` with
+                the model of the *document* for an objective inside a
+                `<comp:modelDefinition>`, see `Model._fill_sbml`. `None` falls
+                back to that lookup, for a caller which creates a flux
+                objective in an objective of the model of a document
+
+        Returns:
+            the created libsbml.FluxObjective
+        """
         flux_objective: libsbml.FluxObjective = objective.createFluxObjective()
-        self._set_fields(flux_objective, model=objective.getModel())
+        self._set_fields(
+            flux_objective, model if model is not None else objective.getModel()
+        )
 
         flux_objective.setReaction(self.reaction)
         flux_objective.setCoefficient(self.coefficient)
@@ -4518,7 +4579,7 @@ class Objective(Sbase):
         if self.active:
             model_fbc.setActiveObjectiveId(self.sid)
         for flux_objective in self.fluxObjectives:
-            flux_objective.create_sbml(objective=objective)
+            flux_objective.create_sbml(objective=objective, model=model)
 
         return objective
 
@@ -5368,6 +5429,18 @@ class Model(Sbase, FrozenClass):
         same content: the model of a document is created on the document with
         `createModel`, a `ModelDefinition` is created on the comp plugin of the
         document, and both are filled from here.
+
+        **Everything created here is handed the model it is created in.** An
+        element writer must not reach for its model itself: libsbml answers
+        `getModel()` of an element inside a `<comp:modelDefinition>` with the
+        model of the *document*, not with the model definition the element
+        belongs to (measured with libsbml 5.21.2). Math parsed against that
+        model resolves the ids of the wrong model, silently: a `time`
+        parameter of the model definition is written as the SBML csymbol, and
+        the document validates. So a new element type which creates something
+        of its own passes the model on, as `Reaction` does to its
+        `KineticLaw`, `Uncertainty` to its children, `Objective` to its flux
+        objectives and `UserDefinedConstraint` to its components.
 
         Args:
             model: the created libsbml.Model, or the libsbml.ModelDefinition
