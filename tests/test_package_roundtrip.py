@@ -2929,6 +2929,116 @@ def test_parser_names_a_replaced_element_by_an_unambiguous_metaid(
     assert [r.elementRef for r in model.replaced_elements] == ["rule_meta"]
 
 
+def _replaced_by_sbml(tmp_path: Path) -> Path:
+    """Write a document with a `<comp:replacedBy>` on the elements which lose it.
+
+    comp allows a `<comp:replacedBy>` on every SBML element, and libsbml writes and reads one back on a `<speciesReference>`, a `<localParameter>` and a `<kineticLaw>` as it does on a species, which is measured by reading the document this writes: all four carry one here. `EquationPart` has no `replacedBy` field, and a `LocalParameter` and a `KineticLaw` are written without the `libsbml.Model` which `Sbase.create_replaced_by` needs, so the first three are the elements of this document whose replacement `_drop_replaced_by` drops; the species is the control which keeps it. No document of the repository has one on such an element, so this one is built with libsbml alone.
+
+    Args:
+        tmp_path: the directory the file is written to
+
+    Returns:
+        the path of the written SBML file
+    """
+    ns: libsbml.SBMLNamespaces = libsbml.SBMLNamespaces(3, 2)
+    ns.addPackageNamespace("comp", 1)
+    doc: libsbml.SBMLDocument = libsbml.SBMLDocument(ns)
+    doc.setPackageRequired("comp", True)
+    model: libsbml.Model = doc.createModel()
+    model.setId("replaced_by_on_every_element")
+    compartment: libsbml.Compartment = model.createCompartment()
+    compartment.setId("c")
+    compartment.setSize(1.0)
+    compartment.setSpatialDimensions(3)
+    compartment.setConstant(True)
+    species: libsbml.Species = model.createSpecies()
+    species.setId("S1")
+    species.setCompartment("c")
+    species.setInitialConcentration(1.0)
+    species.setHasOnlySubstanceUnits(False)
+    species.setBoundaryCondition(False)
+    species.setConstant(False)
+    reaction: libsbml.Reaction = model.createReaction()
+    reaction.setId("R1")
+    reaction.setReversible(False)
+    reactant: libsbml.SpeciesReference = reaction.createReactant()
+    reactant.setId("sr1")
+    reactant.setSpecies("S1")
+    reactant.setStoichiometry(1.0)
+    reactant.setConstant(True)
+    kinetic_law: libsbml.KineticLaw = reaction.createKineticLaw()
+    kinetic_law.setMath(libsbml.parseL3Formula("k1 * S1"))
+    local: libsbml.LocalParameter = kinetic_law.createLocalParameter()
+    local.setId("k1")
+    local.setValue(0.1)
+    comp: libsbml.CompModelPlugin = model.getPlugin("comp")
+    submodel: libsbml.Submodel = comp.createSubmodel()
+    submodel.setId("sub1")
+    submodel.setModelRef("md1")
+    for element in (species, reactant, kinetic_law, local):
+        replaced_by: libsbml.ReplacedBy = element.getPlugin("comp").createReplacedBy()
+        replaced_by.setSubmodelRef("sub1")
+        replaced_by.setIdRef("inner")
+    doc_comp: libsbml.CompSBMLDocumentPlugin = doc.getPlugin("comp")
+    definition: libsbml.ModelDefinition = doc_comp.createModelDefinition()
+    definition.setId("md1")
+    inner: libsbml.Parameter = definition.createParameter()
+    inner.setId("inner")
+    inner.setValue(10.0)
+    inner.setConstant(True)
+
+    sbml_path = tmp_path / "replaced_by_on_every_element.xml"
+    assert libsbml.writeSBMLToFile(doc, str(sbml_path))
+    return sbml_path
+
+
+def test_parser_reports_a_replaced_by_it_cannot_write(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that a replacedBy on an element which cannot carry one is reported.
+
+    comp allows a `<comp:replacedBy>` on every element and the parser reads it from every element, but a species reference is an `EquationPart` with no field for it, and a local parameter and a kinetic law are written without the `libsbml.Model` which `Sbase.create_replaced_by` needs, so those three would lose it in the writer without a word. `_drop_replaced_by` drops it where the element is known and names it instead. The species of the same document keeps its replacedBy, so the test says what is dropped and not merely that something is.
+    """
+    sbml_path = _replaced_by_sbml(tmp_path)
+    doc: libsbml.SBMLDocument = _read(sbml_path)
+    carried = [
+        element.getElementName()
+        for element in doc.getModel().getListOfAllElements()
+        if isinstance(element.getPlugin("comp"), libsbml.CompSBasePlugin)
+        and element.getPlugin("comp").isSetReplacedBy()
+    ]
+    assert sorted(carried) == [
+        "kineticLaw",
+        "localParameter",
+        "species",
+        "speciesReference",
+    ]
+
+    with caplog.at_level(logging.ERROR, logger="sbmlutils.parser"):
+        model = sbml_to_model(sbml_path)
+
+    dropped = [
+        record.getMessage()
+        for record in caplog.records
+        if "replacedBy" in record.getMessage()
+    ]
+    assert len(dropped) == 3, caplog.records
+    assert sorted(message.split("'")[0].split()[-1] for message in dropped) == [
+        "kineticLaw",
+        "localParameter",
+        "speciesReference",
+    ]
+    # the species of the same document keeps its replacedBy, and none of the
+    # three elements which lost theirs carries one into the writer
+    assert model.species[0].replacedBy is not None
+    reactant = model.reactions[0].equation.reactants[0]
+    assert not hasattr(reactant, "replacedBy")
+    kinetic_law = model.reactions[0].formula
+    assert kinetic_law is not None
+    assert kinetic_law.replacedBy is None
+    assert kinetic_law.local_parameters[0].replacedBy is None
+
+
 #: the only fixture of the repository with a `<comp:modelDefinition>`
 MODEL_DEFINITIONS_SBML: Path = EXAMPLES_DIR / "model_definitions.xml"
 
