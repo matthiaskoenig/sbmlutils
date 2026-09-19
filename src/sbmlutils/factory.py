@@ -6812,9 +6812,7 @@ class Model(Sbase, FrozenClass):
                     f"{type(self).__name__} '{self.sid}': {reason}"
                 )
 
-    def _has_comp_content(
-        self, level: int = SBML_LEVEL, version: int = SBML_VERSION
-    ) -> bool:
+    def _has_comp_content(self, level: int, version: int) -> bool:
         """Determine whether writing this model requires the comp package.
 
         The `submodels`/`ports`/`replaced_elements`/`deletions`/
@@ -6842,7 +6840,10 @@ class Model(Sbase, FrozenClass):
         written, so both are handed over, see `Sbase._port_reference_for`.
 
         Args:
-            level: the SBML level of the document being written
+            level: the SBML level of the document being written, which is
+                required: the answer depends on it and a caller which does
+                not say which document it means would get the answer for a
+                different one
             version: the SBML version of the document being written
 
         Returns:
@@ -6867,9 +6868,7 @@ class Model(Sbase, FrozenClass):
             for sbase, in_model in _iter_sbases_with_model(self)
         )
 
-    def _required_packages(
-        self, level: int = SBML_LEVEL, version: int = SBML_VERSION
-    ) -> set[Package]:
+    def _required_packages(self, level: int, version: int) -> set[Package]:
         """Determine the packages the content of this model requires.
 
         The model of a document declares the packages of the document itself,
@@ -6882,7 +6881,8 @@ class Model(Sbase, FrozenClass):
 
         Args:
             level: the SBML level of the document being written, which a port
-                decides by how it names its element
+                decides by how it names its element; required for the same
+                reason as in `_has_comp_content`
             version: the SBML version of the document being written
 
         Returns:

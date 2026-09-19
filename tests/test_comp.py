@@ -239,10 +239,12 @@ def test_port_in_a_kinetic_law_declares_comp() -> None:
             ),
         ),
     )
-    assert model._has_comp_content()
+    # the answer depends on the document, so it is asked for one: SBML
+    # L3V1, which `create_model` writes by default
+    assert model._has_comp_content(3, 1)
     assert not _reaction_model(
         "plain", Reaction("r1", "S1 -> S2", formula="k * S1")
-    )._has_comp_content()
+    )._has_comp_content(3, 1)
 
 
 def _event_model(sid: str, event: Event) -> Model:
@@ -288,10 +290,10 @@ def test_port_on_an_event_child_is_comp_content(kwargs: dict[str, Any]) -> None:
     `Sbase._port_id_needs_l3v2`.
     """
     event = Event("e1", assignments={"p1": 1.0}, **kwargs)
-    assert _event_model("event_child_port", event)._has_comp_content()
+    assert _event_model("event_child_port", event)._has_comp_content(3, 1)
     assert not _event_model(
         "plain", Event("e1", trigger="time >= 10", priority="1", delay="2")
-    )._has_comp_content()
+    )._has_comp_content(3, 1)
 
 
 def test_replaced_by_on_a_trigger_is_written() -> None:
