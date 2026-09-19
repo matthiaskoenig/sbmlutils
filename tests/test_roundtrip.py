@@ -517,7 +517,7 @@ NONDETERMINISTIC: dict[str, str] = dict.fromkeys(
     "events with the same or no priority trigger at once, their order is random",
 )  # fmt: skip
 
-#: the comp cases which fail: each declares a `<comp:externalModelDefinition>`
+#: the cases which fail: each declares a `<comp:externalModelDefinition>`
 #: whose `comp:source` names a sibling file of the case, and the round trip
 #: preserves that reference rather than resolving it, as a reference is
 #: preserved. `roundtrip_sbml` writes into `tmp_path`, where the file the
@@ -526,7 +526,7 @@ NONDETERMINISTIC: dict[str, str] = dict.fromkeys(
 #: Every other comp case round trips and simulates since `sbml_to_model` reads
 #: the comp package, see https://github.com/matthiaskoenig/sbmlutils/issues/469.
 # fmt: off
-CASES_COMP: list[str] = [
+CASES_EXTERNAL_MODEL: list[str] = [
     "01165", "01167", "01168", "01471", "01472", "01473", "01475", "01476",
     "01477", "01778",
 ]
@@ -542,7 +542,7 @@ _SHADOWED = "an id shadows a MathML constant in the L3 infix math"
 #: https://github.com/matthiaskoenig/sbmlutils/issues/469
 KNOWN_FAILURES: dict[str, str] = {
     **dict.fromkeys(
-        CASES_COMP,
+        CASES_EXTERNAL_MODEL,
         "the external model definition it references is not next to the "
         "round trip, which preserves the reference rather than resolving it",
     ),

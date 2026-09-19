@@ -33,8 +33,8 @@ Not read are the model history, the content of the `groups` and `layout`
 packages, an uncertainty on an element which cannot carry one and a
 `<comp:replacedBy>` on an element which cannot carry one, both of which are
 reported (`_drop_uncertainties`, `_drop_replaced_by`), a
-`<comp:replacedElement>` of an element without an id, which
-`sbmlutils.factory` has no way to name and which is reported
+`<comp:replacedElement>` of an element which has neither an id nor a metaid,
+which `sbmlutils.factory` has no way to name and which is reported
 (`_parse_replaced_elements`), the `comp:substanceConversionFactor` libsbml
 reads on a submodel although comp version 1 does not define it, and of `fbc`
 the metadata of a gene product association and of the `and`, `or` and
@@ -913,11 +913,12 @@ def _parse_model_body(model: libsbml.Model, m: Model) -> None:
     definitions, model units, function definitions, compartments, species,
     parameters, reactions with kinetic laws, initial assignments, rules,
     events and constraints, with the gene product association and the flux
-    bounds of a reaction and the charge and chemical formula of a species, and
-    the fbc content of the model itself, see `_parse_fbc_model`. `model` can
-    be any `libsbml.Model`, including a `libsbml.ModelDefinition`, which
-    subclasses it, so the comp package can recurse into a model definition
-    with the same parser.
+    bounds of a reaction and the charge and chemical formula of a species, the
+    fbc content of the model itself, see `_parse_fbc_model`, and its comp
+    content, see `_parse_comp_model` and `_parse_replaced_elements`. `model`
+    can be any `libsbml.Model`, including a `libsbml.ModelDefinition`, which
+    subclasses it, which is how `_parse_comp_document` reads a model
+    definition with this same parser.
 
     Args:
         model: the libsbml.Model, or libsbml.ModelDefinition, to parse

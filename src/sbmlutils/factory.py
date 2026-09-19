@@ -5058,6 +5058,13 @@ class Port(SbaseRef):
     make a round trip of a port without an sboTerm write one.
     """
 
+    #: the SBO term which stands for each port type
+    _SBO_FOR_PORT_TYPE: ClassVar[dict[PortType, SBO]] = {
+        PortType.PORT: SBO.PORT,
+        PortType.INPUT_PORT: SBO.INPUT_PORT,
+        PortType.OUTPUT_PORT: SBO.OUTPUT_PORT,
+    }
+
     def __init__(
         self,
         sid: str,
@@ -5090,13 +5097,6 @@ class Port(SbaseRef):
             sBaseRef=sBaseRef,
         )
         self.portType = portType
-
-    #: the SBO term which stands for each port type
-    _SBO_FOR_PORT_TYPE: ClassVar[dict[PortType, SBO]] = {
-        PortType.PORT: SBO.PORT,
-        PortType.INPUT_PORT: SBO.INPUT_PORT,
-        PortType.OUTPUT_PORT: SBO.OUTPUT_PORT,
-    }
 
     def create_sbml(self, model: libsbml.Model) -> libsbml.Port:
         """Create the libsbml.Port in the given model.
