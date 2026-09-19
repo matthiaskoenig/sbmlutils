@@ -1319,6 +1319,72 @@ def test_constraint_unparsable_math_logs_an_error(
     del doc
 
 
+@pytest.mark.parametrize(
+    "model, formula",
+    [
+        (
+            Model(
+                "kinetic_law",
+                compartments=[Compartment("c", 1.0)],
+                species=[
+                    Species("A", compartment="c", initialAmount=1.0),
+                    Species("B", compartment="c", initialAmount=0.0),
+                ],
+                reactions=[Reaction("r1", "A => B", formula="A >")],
+            ),
+            "A >",
+        ),
+        (
+            Model(
+                "event_assignment",
+                parameters=[Parameter("p1", value=0.0, constant=False)],
+                events=[Event("e1", trigger="time >= 10", assignments={"p1": "p1 >"})],
+            ),
+            "p1 >",
+        ),
+        (
+            Model(
+                "uncertainty",
+                packages=[Package.DISTRIB_V1],
+                parameters=[
+                    Parameter(
+                        "p1",
+                        value=1.0,
+                        uncertainties=[Uncertainty(formula="normal(")],
+                    )
+                ],
+            ),
+            "normal(",
+        ),
+    ],
+    ids=["KineticLaw", "EventAssignment", "Uncertainty"],
+)
+def test_unparsable_math_is_logged_at_every_formula_call_site(
+    model: Model, formula: str, tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that every formula which does not parse is reported as an error.
+
+    `libsbml.parseL3FormulaWithModel` returns `None` for math which does not
+    parse, and `libsbml.SBase.setMath(None)` leaves the element without math
+    without failing. Each of the places which parses math on its own rather
+    than through `ast_node_from_formula` must therefore check the result, so
+    that math which does not parse is never dropped silently.
+    """
+    with caplog.at_level(logging.ERROR, logger="sbmlutils.factory"):
+        create_model(
+            model=model,
+            filepath=tmp_path / "model.xml",
+            validation_options=ValidationOptions(units_consistency=False),
+        )
+
+    errors = [
+        record.getMessage()
+        for record in caplog.records
+        if record.levelname == "ERROR" and record.name == "sbmlutils.factory"
+    ]
+    assert any(formula in message for message in errors), errors
+
+
 def test_reaction_reversible_overrides_the_equation() -> None:
     """Test that an explicit `reversible` is honoured.
 
