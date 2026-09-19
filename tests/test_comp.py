@@ -968,3 +968,109 @@ def test_submodel_instantiates_a_model_definition(tmp_path: Path) -> None:
     )
     assert unit_definition is not None
     assert model_flat.getParameter("sub1__k").getUnits() == "sub1__per_min"
+
+
+def test_document_declares_the_packages_its_model_definitions_need(
+    tmp_path: Path,
+) -> None:
+    """Test that the document declares what the content of a model definition needs.
+
+    A model definition is a model of its own but has no way to declare a
+    package: a package is declared on the `<sbml>` element, which is written
+    from the packages of the model of the document. So the document looks
+    into its model definitions, the way it declares comp for a model which
+    uses a comp construct without asking for the package.
+    """
+    model = Model(
+        sid="model_definition_packages",
+        packages=[Package.COMP_V1],
+        parameters=[Parameter("k_top", 1.0, name="parameter of the main model")],
+        model_definitions=[
+            ModelDefinition(
+                sid="md_fbc",
+                name="model definition which needs fbc",
+                gene_products=[GeneProduct("g1", label="G1", name="gene 1")],
+            ),
+            ModelDefinition(
+                sid="md_distrib",
+                name="model definition which needs distrib",
+                parameters=[
+                    Parameter(
+                        "k",
+                        1.0,
+                        name="uncertain parameter",
+                        uncertainties=[Uncertainty(sid="unc", formula="normal(1, 1)")],
+                    )
+                ],
+            ),
+        ],
+    )
+    doc = _write(model, tmp_path)
+
+    assert doc.isPackageEnabled("comp")
+    assert doc.isPackageEnabled("fbc")
+    assert doc.isPackageEnabled("distrib")
+
+    doc_comp: libsbml.CompSBMLDocumentPlugin = doc.getPlugin("comp")
+    md_fbc: libsbml.FbcModelPlugin = doc_comp.getModelDefinition("md_fbc").getPlugin(
+        "fbc"
+    )
+    assert md_fbc.getGeneProduct("g1").getLabel() == "G1"
+    parameter: libsbml.Parameter = doc_comp.getModelDefinition(
+        "md_distrib"
+    ).getParameter("k")
+    parameter_distrib: libsbml.DistribSBasePlugin = parameter.getPlugin("distrib")
+    assert parameter_distrib.getNumUncertainties() == 1
+
+
+def test_a_plain_model_definition_declares_no_further_package(tmp_path: Path) -> None:
+    """Test that a model definition without package content declares none.
+
+    The document declares the packages the content of its model definitions
+    needs, and nothing beyond that: a model definition of plain core content
+    leaves the document with comp alone.
+    """
+    model = Model(
+        sid="model_definition_core_only",
+        packages=[Package.COMP_V1],
+        parameters=[Parameter("k_top", 1.0, name="parameter of the main model")],
+        model_definitions=[
+            ModelDefinition(
+                sid="md_core",
+                name="model definition of core content",
+                compartments=[Compartment("c", 1.0, name="cell")],
+                parameters=[Parameter("k", 1.0, name="rate constant")],
+            )
+        ],
+    )
+    doc = _write(model, tmp_path)
+
+    assert doc.isPackageEnabled("comp")
+    assert not doc.isPackageEnabled("fbc")
+    assert not doc.isPackageEnabled("distrib")
+
+
+def test_a_model_definition_keeps_the_fbc_version_of_the_document(
+    tmp_path: Path,
+) -> None:
+    """Test that a model definition does not add a second version of fbc.
+
+    The content of a model definition says that it needs fbc, not which
+    version of it: a document which already declares one keeps it.
+    """
+    model = Model(
+        sid="model_definition_fbc_v2",
+        packages=[Package.COMP_V1, Package.FBC_V2],
+        parameters=[Parameter("k_top", 1.0, name="parameter of the main model")],
+        model_definitions=[
+            ModelDefinition(
+                sid="md_fbc_v2",
+                name="model definition which needs fbc",
+                gene_products=[GeneProduct("g1", label="G1", name="gene 1")],
+            )
+        ],
+    )
+    doc = _write(model, tmp_path)
+
+    fbc_plugin: libsbml.SBMLDocumentPlugin = doc.getPlugin("fbc")
+    assert fbc_plugin.getPackageVersion() == 2

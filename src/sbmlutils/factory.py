@@ -5557,6 +5557,53 @@ class Model(Sbase, FrozenClass):
             for sbase in _iter_sbases(self)
         )
 
+    def _required_packages(self) -> set[Package]:
+        """Determine the packages the content of this model requires.
+
+        The model of a document declares the packages of the document itself,
+        but a model definition has no way to declare one: a package is
+        declared on the `<sbml>` element. So the document reads off the
+        content of its model definitions which packages they need, see
+        `Document._create_sbml`. Every `Sbase` reachable from the model is
+        walked, see `_iter_sbases`, rather than a list of the places an
+        element can be nested in, which would miss the next one.
+
+        Returns:
+            the packages the content of this model requires, at the version
+            this module writes; fbc content contributes `Package.FBC_V3`,
+            since the content says that it is fbc content and not which
+            version of fbc writes it
+        """
+        packages: set[Package] = set()
+        if self._has_comp_content():
+            packages.add(Package.COMP_V1)
+
+        for sbase in _iter_sbases(self):
+            if getattr(sbase, "uncertainties", None):
+                packages.add(Package.DISTRIB_V1)
+            if (
+                # the key-value pairs of fbc version 3, which any element can
+                # carry, and the three fbc lists of a model
+                getattr(sbase, "keyValuePairs", None)
+                or isinstance(sbase, (GeneProduct, Objective, UserDefinedConstraint))
+                # the fbc attributes of a species and of a reaction
+                or (
+                    isinstance(sbase, Species)
+                    and (sbase.charge is not None or sbase.chemicalFormula is not None)
+                )
+                or (
+                    isinstance(sbase, Reaction)
+                    and (
+                        sbase.lowerFluxBound
+                        or sbase.upperFluxBound
+                        or sbase.geneProductAssociation
+                    )
+                )
+            ):
+                packages.add(Package.FBC_V3)
+
+        return packages
+
     @staticmethod
     def merge_models(models: Iterable[Model]) -> Model:
         """Merge information from multiple models into a single model.
@@ -5893,15 +5940,34 @@ class Document(Sbase):
 
         # the packages actually needed to write this model: comp is added
         # when the model has comp content the definition did not explicitly
-        # request it for (see `Model._has_comp_content`). This must be
-        # decided before the namespace is built, since libsbml cannot enable
-        # a package on the document after it exists.
+        # request it for (see `Model._has_comp_content`), and so is whatever
+        # the content of a model definition of the document needs, which is a
+        # model of its own but has no place to declare a package (see
+        # `Model._required_packages`). This must be decided before the
+        # namespace is built, since libsbml cannot enable a package on the
+        # document after it exists.
         packages = list(self.model.packages)
-        if self.model._has_comp_content() and Package.COMP_V1 not in packages:
-            # in the canonical order, so that a model which engages comp
-            # through the shorthand declares it where a model which asks for
-            # it declares it, see `packages_in_canonical_order`
-            packages = packages_in_canonical_order([*packages, Package.COMP_V1])
+        required: set[Package] = set()
+        if self.model._has_comp_content():
+            required.add(Package.COMP_V1)
+        for model_definition in self.model.model_definitions:
+            required |= model_definition._required_packages()
+
+        if Package.COMP_V1 in required and Package.COMP_V1 not in packages:
+            packages.append(Package.COMP_V1)
+        if Package.DISTRIB_V1 in required and Package.DISTRIB_V1 not in packages:
+            packages.append(Package.DISTRIB_V1)
+        if Package.FBC_V3 in required and not (
+            Package.FBC_V2 in packages or Package.FBC_V3 in packages
+        ):
+            # the content only says that it needs fbc, so the version is the
+            # one `Package.FBC` normalizes to; a document which already
+            # declares a version of fbc keeps it
+            packages.append(Package.FBC_V3)
+        # in the canonical order, so that a model which engages a package
+        # through its content declares it where a model which asks for it
+        # declares it, see `packages_in_canonical_order`
+        packages = packages_in_canonical_order(packages)
 
         # create core model
         sbmlns = libsbml.SBMLNamespaces(self.sbml_level, self.sbml_version)
