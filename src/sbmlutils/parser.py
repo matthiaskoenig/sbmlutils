@@ -361,6 +361,31 @@ def _drop_unwritable(kwargs: dict[str, Any], sbase: libsbml.SBase) -> dict[str, 
     return _drop_replaced_by(_drop_uncertainties(kwargs, sbase), sbase)
 
 
+def _element_ref(sbase: libsbml.SBase) -> str:
+    """Name an element the way the `elementRef` of a comp replacement names it.
+
+    `ReplacedElement.elementRef` and `ReplacedBy.elementRef` both hold the
+    element a replacement belongs to, so both are read the same way here: the
+    id of the element, its metaid where it has no id, which a rule, an initial
+    assignment, an event assignment and a kinetic law below SBML L3V2 do not,
+    and the empty string for an element which has neither.
+
+    Args:
+        sbase: the libsbml element a replacement sits on, whose document is
+            held by the caller
+
+    Returns:
+        the id, the metaid, or the empty string
+    """
+    if sbase.isSetIdAttribute():
+        element_id: str = sbase.getIdAttribute()
+        return element_id
+    if sbase.isSetMetaId():
+        meta_id: str = sbase.getMetaId()
+        return meta_id
+    return ""
+
+
 def _parse_replaced_by(sbase: libsbml.SBase) -> ReplacedBy | None:
     """Parse the `<comp:replacedBy>` of an element.
 
@@ -381,9 +406,9 @@ def _parse_replaced_by(sbase: libsbml.SBase) -> ReplacedBy | None:
     replaced_by: libsbml.ReplacedBy = comp.getReplacedBy()
     return ReplacedBy(
         # the element the replacement sits on. `ReplacedBy.create_sbml` is
-        # handed that element rather than looking it up, so this only names
-        # it, and an element without an id is written all the same
-        elementRef=sbase.getIdAttribute() if sbase.isSetIdAttribute() else "",
+        # handed that element rather than resolving this, so an element which
+        # `_element_ref` cannot name is written all the same
+        elementRef=_element_ref(sbase),
         # `comp:submodelRef` is required; `getSubmodelRef` answers the empty
         # string for a document which states none, which the writer passes to
         # libsbml, which leaves the attribute unset again
@@ -392,20 +417,74 @@ def _parse_replaced_by(sbase: libsbml.SBase) -> ReplacedBy | None:
     )
 
 
+def _replaced_element_ref(model: libsbml.Model, element: libsbml.SBase) -> str | None:
+    """Name the element of a replaced element, or report why it cannot be named.
+
+    `ReplacedElement.create_sbml` resolves `elementRef` against the model it
+    writes into, in this order: the id of an element, the id of a unit
+    definition, which lives in a namespace of its own, and the metaid of an
+    element. Two elements cannot be named in it, and each is a loss which is
+    reported here rather than left to the writer:
+
+    - an element which has neither an id nor a metaid, which SBML allows of a
+      rule, an initial assignment, an event assignment and a kinetic law,
+    - an element whose metaid is the id of another element or of a unit
+      definition of the same model, since the writer resolves both before it
+      tries a metaid and would put the replacement into that other element,
+      silently and wrongly.
+
+    Neither occurs in the corpus: of its 343 replaced elements 341 sit on an
+    element with an id and 2 on a rate rule whose metaid names nothing else,
+    see https://github.com/matthiaskoenig/sbmlutils/issues/469.
+
+    Args:
+        model: the libsbml.Model, or libsbml.ModelDefinition, the replacement
+            is read from and will be written into. It is the model passed
+            down, never `element.getModel()`, which answers with the model of
+            the document for an element inside a `<comp:modelDefinition>`
+        element: the libsbml element the replacement sits on
+
+    Returns:
+        the `elementRef` of the replacement, `None` if it has no unambiguous
+        one, in which case the loss was reported
+    """
+    element_ref: str = _element_ref(element)
+    if not element_ref:
+        logger.error(
+            "The replacedElement of a %s is lost: sbmlutils names the element "
+            "of a replacedElement by its id or its metaid, and this element "
+            "has neither.",
+            element.getElementName(),
+        )
+        return None
+    if element.isSetIdAttribute():
+        return element_ref
+    shadowing: libsbml.SBase | None = model.getElementBySId(
+        element_ref
+    ) or model.getUnitDefinition(element_ref)
+    if shadowing is not None:
+        logger.error(
+            "The replacedElement of the %s with the metaid '%s' is lost: "
+            "sbmlutils names an element without an id by its metaid, and this "
+            "metaid is the id of the %s of the same model, which the "
+            "replacement would be written into instead.",
+            element.getElementName(),
+            element_ref,
+            shadowing.getElementName(),
+        )
+        return None
+    return element_ref
+
+
 def _parse_replaced_elements(model: libsbml.Model, m: Model) -> None:
     """Parse the comp replaced elements of the elements of a model.
 
     comp puts a `<comp:replacedElement>` on the element it replaces and
     libsbml reads it from the comp plugin of that element.
     `sbmlutils.factory` holds them in the `replaced_elements` of the model
-    instead, each naming its element in `elementRef`, which
-    `ReplacedElement.create_sbml` resolves against the model it writes into,
-    by id or, for an element which has no id, by metaid. An element which has
-    neither cannot be named at all, so a replaced element of one is lost,
-    which is reported rather than dropped silently. No document of the corpus
-    has one: of its 343 replaced elements, 341 sit on an element with an id
-    and 2 on a rate rule with a metaid, see
-    https://github.com/matthiaskoenig/sbmlutils/issues/469.
+    instead, each naming its element in `elementRef`, see
+    `_replaced_element_ref` for how that name is found and for the two
+    elements which cannot be named in it.
 
     The model itself is not walked: `getListOfAllElements` yields the elements
     of a model and not the model, and `ReplacedElement.create_sbml` resolves
@@ -421,20 +500,15 @@ def _parse_replaced_elements(model: libsbml.Model, m: Model) -> None:
         comp: libsbml.SBasePlugin | None = element.getPlugin("comp")
         if not isinstance(comp, libsbml.CompSBasePlugin):
             continue
-        replaced: libsbml.ReplacedElement
-        for replaced in comp.getListOfReplacedElements() or ():
-            element_ref: str | None = None
-            if element.isSetIdAttribute():
-                element_ref = element.getIdAttribute()
-            elif element.isSetMetaId():
-                element_ref = element.getMetaId()
+        # counted rather than iterated: libsbml creates the
+        # `<comp:listOfReplacedElements>` only when its first element is
+        # added and answers `getListOfReplacedElements()` with `None` for an
+        # element which has none, measured with libsbml 5.21.2, which
+        # `tests/structural.py` handles the same way in `_items`
+        for k in range(comp.getNumReplacedElements()):
+            replaced: libsbml.ReplacedElement = comp.getReplacedElement(k)
+            element_ref: str | None = _replaced_element_ref(model, element)
             if element_ref is None:
-                logger.error(
-                    "The replacedElement of a %s is lost: sbmlutils names the "
-                    "element of a replacedElement by its id or its metaid, "
-                    "and this element has neither.",
-                    element.getElementName(),
-                )
                 continue
             m.replaced_elements.append(
                 ReplacedElement(

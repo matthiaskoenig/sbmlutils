@@ -2801,13 +2801,21 @@ def test_roundtrip_preserves_a_replaced_element_of_an_element_without_an_id(
         assert _comp_differences(comparison[1]) == [], case
 
 
-def _metaid_less_sbml(tmp_path: Path) -> Path:
-    """Write a document whose replaced element sits on an element without any name.
+def _rule_replacement_sbml(
+    tmp_path: Path,
+    name: str,
+    rule_metaid: str | None = None,
+    unit_id: str | None = None,
+) -> Path:
+    """Write a document whose replaced element sits on a rate rule.
 
-    A rate rule of SBML L3V2 need carry neither an id nor a metaid, and comp puts a `<comp:replacedElement>` on any element. No document of the repository or of the SBML test suite has one, so this one is built with libsbml alone.
+    A rule of SBML L3V2 need carry neither an id nor a metaid, and comp puts a `<comp:replacedElement>` on any element, so the id `elementRef` names such an element by is its metaid, if it has one. No document of the repository has one at all, so these are built with libsbml alone.
 
     Args:
         tmp_path: the directory the file is written to
+        name: the id of the model and the stem of the file
+        rule_metaid: the metaid of the rate rule, `None` for a rule with no metaid and no id
+        unit_id: the id of a unit definition to add to the model, `None` for a model without one
 
     Returns:
         the path of the written SBML file
@@ -2817,7 +2825,15 @@ def _metaid_less_sbml(tmp_path: Path) -> Path:
     doc: libsbml.SBMLDocument = libsbml.SBMLDocument(ns)
     doc.setPackageRequired("comp", True)
     model: libsbml.Model = doc.createModel()
-    model.setId("a_rule_without_a_name")
+    model.setId(name)
+    if unit_id is not None:
+        udef: libsbml.UnitDefinition = model.createUnitDefinition()
+        udef.setId(unit_id)
+        unit: libsbml.Unit = udef.createUnit()
+        unit.setKind(libsbml.UNIT_KIND_SECOND)
+        unit.setExponent(1.0)
+        unit.setScale(0)
+        unit.setMultiplier(1.0)
     parameter: libsbml.Parameter = model.createParameter()
     parameter.setId("p1")
     parameter.setValue(1.0)
@@ -2825,6 +2841,8 @@ def _metaid_less_sbml(tmp_path: Path) -> Path:
     rule: libsbml.RateRule = model.createRateRule()
     rule.setVariable("p1")
     rule.setMath(libsbml.parseL3Formula("3"))
+    if rule_metaid is not None:
+        rule.setMetaId(rule_metaid)
     comp: libsbml.CompModelPlugin = model.getPlugin("comp")
     submodel: libsbml.Submodel = comp.createSubmodel()
     submodel.setId("sub1")
@@ -2840,19 +2858,44 @@ def _metaid_less_sbml(tmp_path: Path) -> Path:
     inner.setValue(10.0)
     inner.setConstant(False)
 
-    sbml_path = tmp_path / "a_rule_without_a_name.xml"
+    sbml_path = tmp_path / f"{name}.xml"
     assert libsbml.writeSBMLToFile(doc, str(sbml_path))
     return sbml_path
 
 
-def test_parser_reports_a_replaced_element_it_cannot_name(
-    tmp_path: Path, caplog: pytest.LogCaptureFixture
-) -> None:
-    """Test that the one replacement the data model cannot express is reported.
+#: the documents whose `<comp:replacedElement>` sits on a rate rule which
+#: `elementRef` cannot name, with the metaid of that rule and the unit
+#: definition the model has, and the part of the report which says why
+UNNAMEABLE: list[tuple[str, str | None, str | None, str]] = [
+    # no id and no metaid: nothing to name it by at all
+    ("a_rule_without_a_name", None, None, "has neither"),
+    # a metaid which is the id of a parameter: `ReplacedElement.create_sbml`
+    # resolves an SId first, so this would attach the replacement to `p1`
+    ("a_rule_whose_metaid_is_an_id", "p1", None, "is the id of"),
+    # a metaid which is the id of a unit definition, which `create_sbml`
+    # resolves next, before it tries a metaid
+    ("a_rule_whose_metaid_is_a_unit", "u1", "u1", "is the id of"),
+]
 
-    `elementRef` names the element a replacement sits on by its id or, for an element which has none, by its metaid. An element which has neither cannot be named at all, so such a replacement is lost, and a loss which is not reported is a silent one: the parser names the kind of element it sat on and drops it, as it does for an uncertainty which cannot be written back.
+
+@pytest.mark.parametrize(
+    "name, rule_metaid, unit_id, reason",
+    UNNAMEABLE,
+    ids=[name for name, _, _, _ in UNNAMEABLE],
+)
+def test_parser_reports_a_replaced_element_it_cannot_name(
+    name: str,
+    rule_metaid: str | None,
+    unit_id: str | None,
+    reason: str,
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that a replacement whose element cannot be named is reported and dropped.
+
+    `elementRef` names the element a replacement sits on, and `ReplacedElement.create_sbml` resolves it as the id of an element, then as the id of a unit definition, then as a metaid. An element which has neither an id nor a metaid cannot be named at all; an element whose metaid is the id of another element or of a unit definition would be named ambiguously, and the replacement would be written into that other element, silently and wrongly. Both are losses, and a loss which is not reported is a silent one: the parser names the kind of element it sat on and drops the replacement, as it does for an uncertainty which cannot be written back.
     """
-    sbml_path = _metaid_less_sbml(tmp_path)
+    sbml_path = _rule_replacement_sbml(tmp_path, name, rule_metaid, unit_id)
 
     with caplog.at_level(logging.ERROR, logger="sbmlutils.parser"):
         model = sbml_to_model(sbml_path)
@@ -2864,7 +2907,26 @@ def test_parser_reports_a_replaced_element_it_cannot_name(
     ]
     assert len(lost) == 1, caplog.records
     assert "rateRule" in lost[0]
+    assert reason in lost[0]
+    if rule_metaid is not None:
+        assert rule_metaid in lost[0]
     assert model.replaced_elements == []
+
+
+def test_parser_names_a_replaced_element_by_an_unambiguous_metaid(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that a metaid which names nothing else is used and reported about.
+
+    The counterpart of the three losses above, and the shape the two cases of the SBML test suite have: a rate rule whose metaid is the id of no element and of no unit definition names that rule unambiguously, so the replacement is kept and nothing is reported.
+    """
+    sbml_path = _rule_replacement_sbml(tmp_path, "a_rule_with_a_metaid", "rule_meta")
+
+    with caplog.at_level(logging.ERROR, logger="sbmlutils.parser"):
+        model = sbml_to_model(sbml_path)
+
+    assert [record.getMessage() for record in caplog.records] == []
+    assert [r.elementRef for r in model.replaced_elements] == ["rule_meta"]
 
 
 #: the only fixture of the repository with a `<comp:modelDefinition>`

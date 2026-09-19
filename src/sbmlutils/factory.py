@@ -4841,6 +4841,17 @@ class ReplacedElement(SbaseRef):
     id at all, as its metaid. An SBML rule, an initial assignment, an event
     assignment and a kinetic law have an id only from SBML L3V2 on, and the
     SBML test suite replaces a rate rule which carries a metaid and no id.
+
+    **The resolution order is the id of an element, then the id of a unit
+    definition, then a metaid**, and it is not disambiguated: an element id
+    and a unit definition id live in different namespaces, and a metaid in a
+    third, so one string can name three different elements of one model, and
+    the first of the three wins. A caller which names an element by its metaid
+    is responsible for that metaid being the id of nothing else in the same
+    model; `sbmlutils.parser` uses a metaid only for an element which has no
+    id and reports the replacement as a loss instead of writing it when the
+    metaid is the id of an element or of a unit definition of the same model,
+    see `_replaced_element_ref`.
     """
 
     def __init__(
