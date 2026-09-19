@@ -517,25 +517,18 @@ NONDETERMINISTIC: dict[str, str] = dict.fromkeys(
     "events with the same or no priority trigger at once, their order is random",
 )  # fmt: skip
 
-#: the comp cases which fail: `sbml_to_model` drops the submodels,
-#: replacements, deletions and ports, so the model roadrunner flattens loses
-#: their content. Every one declares a `comp:submodel`, and every one passes
-#: when the original is flattened with libsbml before the round trip.
+#: the comp cases which fail: each declares a `<comp:externalModelDefinition>`
+#: whose `comp:source` names a sibling file of the case, and the round trip
+#: preserves that reference rather than resolving it, as a reference is
+#: preserved. `roundtrip_sbml` writes into `tmp_path`, where the file the
+#: source names is not, so roadrunner cannot flatten the model it writes;
+#: every one of them loads once the file is next to it.
+#: Every other comp case round trips and simulates since `sbml_to_model` reads
+#: the comp package, see https://github.com/matthiaskoenig/sbmlutils/issues/469.
 # fmt: off
 CASES_COMP: list[str] = [
-    "01126", "01127", "01128", "01129", "01130", "01131", "01132", "01133",
-    "01134", "01135", "01136", "01137", "01138", "01139", "01140", "01143",
-    "01144", "01145", "01146", "01147", "01152", "01153", "01154", "01155",
-    "01156", "01157", "01158", "01159", "01160", "01161", "01164", "01165",
-    "01167", "01168", "01169", "01170", "01171", "01172", "01175", "01177",
-    "01178", "01179", "01180", "01181", "01182", "01183", "01344", "01345",
-    "01346", "01347", "01348", "01349", "01351", "01352", "01353", "01354",
-    "01355", "01356", "01357", "01358", "01360", "01361", "01362", "01363",
-    "01364", "01365", "01366", "01367", "01369", "01370", "01371", "01372",
-    "01373", "01374", "01375", "01376", "01378", "01379", "01380", "01381",
-    "01382", "01383", "01384", "01385", "01387", "01388", "01390", "01391",
-    "01392", "01393", "01394", "01467", "01468", "01469", "01470", "01471",
-    "01472", "01473", "01474", "01475", "01476", "01477", "01778",
+    "01165", "01167", "01168", "01471", "01472", "01473", "01475", "01476",
+    "01477", "01778",
 ]
 # fmt: on
 
@@ -548,7 +541,11 @@ _SHADOWED = "an id shadows a MathML constant in the L3 infix math"
 #: cases which do not round trip yet, with the reason, see
 #: https://github.com/matthiaskoenig/sbmlutils/issues/469
 KNOWN_FAILURES: dict[str, str] = {
-    **dict.fromkeys(CASES_COMP, "comp is not round tripped, it is out of scope"),
+    **dict.fromkeys(
+        CASES_COMP,
+        "the external model definition it references is not next to the "
+        "round trip, which preserves the reference rather than resolving it",
+    ),
     "01760": (
         f"{_SHADOWED}: the local parameter `avogadro` comes back as the "
         "avogadro csymbol, local parameters are not in scope of the parser"

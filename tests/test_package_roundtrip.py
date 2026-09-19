@@ -2787,15 +2787,74 @@ def test_roundtrip_preserves_replacements_and_their_sbaseref_chain(
 
 
 @requires_testsuite
-def test_parser_reports_a_replaced_element_of_an_element_without_an_id(
-    caplog: pytest.LogCaptureFixture,
+def test_roundtrip_preserves_a_replaced_element_of_an_element_without_an_id(
+    package_roundtrip: Callable[[Path], Comparison],
+) -> None:
+    """Test that a replacement of an element which has only a metaid survives.
+
+    `sbmlutils.factory` holds a replaced element in the `replaced_elements` of the model, where it names the element it replaces in `elementRef`, which `ReplacedElement.create_sbml` resolves against the model it writes into. A rule, an initial assignment, an event assignment and a kinetic law have an id only from SBML L3V2 on, and cases 01150 and 01163 of the SBML test suite each put a `<comp:replacedElement>` on a rate rule which carries a metaid and no id, so `elementRef` names such an element by its metaid.
+    """
+    for case in ("01150", "01163"):
+        comparison = package_roundtrip(testsuite_case(case))
+        assert comparison[0]["comp.replacedElement"] == 2, case
+        assert _comp_differences(comparison[1]) == [], case
+
+
+def _metaid_less_sbml(tmp_path: Path) -> Path:
+    """Write a document whose replaced element sits on an element without any name.
+
+    A rate rule of SBML L3V2 need carry neither an id nor a metaid, and comp puts a `<comp:replacedElement>` on any element. No document of the repository or of the SBML test suite has one, so this one is built with libsbml alone.
+
+    Args:
+        tmp_path: the directory the file is written to
+
+    Returns:
+        the path of the written SBML file
+    """
+    ns: libsbml.SBMLNamespaces = libsbml.SBMLNamespaces(3, 2)
+    ns.addPackageNamespace("comp", 1)
+    doc: libsbml.SBMLDocument = libsbml.SBMLDocument(ns)
+    doc.setPackageRequired("comp", True)
+    model: libsbml.Model = doc.createModel()
+    model.setId("a_rule_without_a_name")
+    parameter: libsbml.Parameter = model.createParameter()
+    parameter.setId("p1")
+    parameter.setValue(1.0)
+    parameter.setConstant(False)
+    rule: libsbml.RateRule = model.createRateRule()
+    rule.setVariable("p1")
+    rule.setMath(libsbml.parseL3Formula("3"))
+    comp: libsbml.CompModelPlugin = model.getPlugin("comp")
+    submodel: libsbml.Submodel = comp.createSubmodel()
+    submodel.setId("sub1")
+    submodel.setModelRef("md1")
+    replaced: libsbml.ReplacedElement = rule.getPlugin("comp").createReplacedElement()
+    replaced.setSubmodelRef("sub1")
+    replaced.setIdRef("p10")
+    doc_comp: libsbml.CompSBMLDocumentPlugin = doc.getPlugin("comp")
+    definition: libsbml.ModelDefinition = doc_comp.createModelDefinition()
+    definition.setId("md1")
+    inner: libsbml.Parameter = definition.createParameter()
+    inner.setId("p10")
+    inner.setValue(10.0)
+    inner.setConstant(False)
+
+    sbml_path = tmp_path / "a_rule_without_a_name.xml"
+    assert libsbml.writeSBMLToFile(doc, str(sbml_path))
+    return sbml_path
+
+
+def test_parser_reports_a_replaced_element_it_cannot_name(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
 ) -> None:
     """Test that the one replacement the data model cannot express is reported.
 
-    `sbmlutils.factory` holds a replaced element in the `replaced_elements` of the model, where it names the element it replaces in `elementRef`, and `ReplacedElement.create_sbml` looks that id up in the model it writes into. An element without an id cannot be named that way, and cases 01150 and 01163 of the SBML test suite each put a `<comp:replacedElement>` on a rate rule which carries a metaid and no id. Such a replacement is lost, and a loss which is not reported is a silent one: the parser names the element it sat on and drops it, as it does for an uncertainty which cannot be written back.
+    `elementRef` names the element a replacement sits on by its id or, for an element which has none, by its metaid. An element which has neither cannot be named at all, so such a replacement is lost, and a loss which is not reported is a silent one: the parser names the kind of element it sat on and drops it, as it does for an uncertainty which cannot be written back.
     """
+    sbml_path = _metaid_less_sbml(tmp_path)
+
     with caplog.at_level(logging.ERROR, logger="sbmlutils.parser"):
-        model = sbml_to_model(testsuite_case("01150"))
+        model = sbml_to_model(sbml_path)
 
     lost = [
         record.getMessage()
@@ -2804,9 +2863,7 @@ def test_parser_reports_a_replaced_element_of_an_element_without_an_id(
     ]
     assert len(lost) == 1, caplog.records
     assert "rateRule" in lost[0]
-    assert "p8_raterule" in lost[0]
-    # the replaced element of the parameter `p8`, which has an id, is kept
-    assert [r.elementRef for r in model.replaced_elements] == ["p8"]
+    assert model.replaced_elements == []
 
 
 #: the only fixture of the repository with a `<comp:modelDefinition>`
@@ -3056,16 +3113,10 @@ def comp_cases() -> list[Path]:
 COMP_CASES: list[Path] = comp_cases()
 
 #: the comp differences a case of the SBML test suite keeps, by construct and
-#: count, with the reason. Everything else of every comp case round trips.
-COMP_REMAINING: dict[str, dict[str, int]] = {
-    # the `<comp:replacedElement>` of a rate rule which carries a metaid and
-    # no id: `sbmlutils.factory` names the element a replaced element sits on
-    # by its id, so a replacement of an element without one cannot be
-    # expressed, see
-    # `test_parser_reports_a_replaced_element_of_an_element_without_an_id`
-    "01150": {"comp.replacedElement": 1},
-    "01163": {"comp.replacedElement": 1},
-}
+#: count, with the reason. Every comp case of the suite round trips with its
+#: whole comp content, so this is empty; a case which loses something belongs
+#: here with the reason rather than being skipped.
+COMP_REMAINING: dict[str, dict[str, int]] = {}
 
 
 @requires_testsuite

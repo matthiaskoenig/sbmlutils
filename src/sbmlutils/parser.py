@@ -399,16 +399,18 @@ def _parse_replaced_elements(model: libsbml.Model, m: Model) -> None:
     libsbml reads it from the comp plugin of that element.
     `sbmlutils.factory` holds them in the `replaced_elements` of the model
     instead, each naming its element in `elementRef`, which
-    `ReplacedElement.create_sbml` resolves against the model it writes into.
-    An element without an id cannot be named that way, so a replaced element
-    of one is lost, which is reported rather than dropped silently: two cases
-    of the SBML test suite put one on a rate rule which carries a metaid and
-    no id, see https://github.com/matthiaskoenig/sbmlutils/issues/469.
+    `ReplacedElement.create_sbml` resolves against the model it writes into,
+    by id or, for an element which has no id, by metaid. An element which has
+    neither cannot be named at all, so a replaced element of one is lost,
+    which is reported rather than dropped silently. No document of the corpus
+    has one: SBML requires a metaid of every element an annotation or a comp
+    replacement refers to, see
+    https://github.com/matthiaskoenig/sbmlutils/issues/469.
 
     The model itself is not walked: `getListOfAllElements` yields the elements
     of a model and not the model, and `ReplacedElement.create_sbml` resolves
-    an `elementRef` by `getElementBySId`, which does not answer with the model
-    either. No document of the corpus puts a replaced element on a model.
+    an `elementRef` against the elements of the model, never the model itself.
+    No document of the corpus puts a replaced element on a model.
 
     Args:
         model: the libsbml.Model, or libsbml.ModelDefinition, to read
@@ -421,18 +423,22 @@ def _parse_replaced_elements(model: libsbml.Model, m: Model) -> None:
             continue
         replaced: libsbml.ReplacedElement
         for replaced in comp.getListOfReplacedElements() or ():
-            if not element.isSetIdAttribute():
+            element_ref: str | None = None
+            if element.isSetIdAttribute():
+                element_ref = element.getIdAttribute()
+            elif element.isSetMetaId():
+                element_ref = element.getMetaId()
+            if element_ref is None:
                 logger.error(
-                    "The replacedElement of the %s '%s' is lost: sbmlutils "
-                    "names the element of a replacedElement by its id, which "
-                    "this element does not have.",
+                    "The replacedElement of a %s is lost: sbmlutils names the "
+                    "element of a replacedElement by its id or its metaid, "
+                    "and this element has neither.",
                     element.getElementName(),
-                    element.getMetaId() if element.isSetMetaId() else "",
                 )
                 continue
             m.replaced_elements.append(
                 ReplacedElement(
-                    elementRef=element.getIdAttribute(),
+                    elementRef=element_ref,
                     # required, see `_parse_replaced_by` on the empty string
                     submodelRef=replaced.getSubmodelRef(),
                     deletion=(

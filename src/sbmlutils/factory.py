@@ -4829,7 +4829,19 @@ class SbaseRef(Sbase):
 
 
 class ReplacedElement(SbaseRef):
-    """ReplacedElement."""
+    """ReplacedElement.
+
+    comp writes a `<comp:replacedElement>` inside the element it replaces,
+    and `Model.replaced_elements` holds it next to that element instead, with
+    `elementRef` naming it. `elementRef` is therefore a pointer inside
+    sbmlutils, it is not written into the document: `create_sbml` resolves it
+    against the model the replacement is written in, as the id of an element,
+    of a unit definition, which lives in a namespace of its own and which
+    `getElementBySId` does not answer with, or, for an element which has no
+    id at all, as its metaid. An SBML rule, an initial assignment, an event
+    assignment and a kinetic law have an id only from SBML L3V2 on, and the
+    SBML test suite replaces a rate rule which carries a metaid and no id.
+    """
 
     def __init__(
         self,
@@ -4871,17 +4883,35 @@ class ReplacedElement(SbaseRef):
         self.conversionFactor = conversionFactor
 
     def create_sbml(self, model: libsbml.Model) -> libsbml.ReplacedElement:
-        """Create SBML ReplacedElement."""
-        # resolve port element
+        """Create the libsbml.ReplacedElement inside the element it replaces.
+
+        Args:
+            model: the libsbml.Model, or libsbml.ModelDefinition, the
+                replacement is written in, which `elementRef` is resolved
+                against
+
+        Returns:
+            the created libsbml.ReplacedElement
+
+        Raises:
+            ValueError: if `elementRef` names no element of the model
+        """
+        # resolve the element the replacement is written into, see the class
+        # docstring on the three things `elementRef` can name
         e = model.getElementBySId(self.elementRef)
         if not e:
-            # fallback to units (only working if no name shadowing)
+            # a unit definition lives in a namespace of its own, which
+            # `getElementBySId` does not search (this shadows an element of
+            # the same id, which SBML allows)
             e = model.getUnitDefinition(self.elementRef)
-            if not e:
-                raise ValueError(
-                    f"Neither SBML element nor UnitDefinition found for elementRef: "
-                    f"'{self.elementRef}' in '{self}'"
-                )
+        if not e:
+            # an element which has no id at all is named by its metaid
+            e = model.getElementByMetaId(self.elementRef)
+        if not e:
+            raise ValueError(
+                f"No SBML element, UnitDefinition or metaid found for "
+                f"elementRef: '{self.elementRef}' in '{self}'"
+            )
 
         eplugin = e.getPlugin("comp")
         obj = eplugin.createReplacedElement()
