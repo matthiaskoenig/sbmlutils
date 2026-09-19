@@ -4728,14 +4728,24 @@ class SbaseRef(Sbase):
 
     `sid` is set on every level (`Sbase._set_fields` sets it through the
     generic `id` SBase core added in SBML L3V2), but libsbml's comp writer
-    does not serialize that generic `id`/`name` on any `SBaseRef`,
-    `ReplacedElement`, `ReplacedBy` or `Deletion`, nested or not: measured
-    with libsbml 5.21.2, `isSetIdAttribute()` is `True` right after
-    `_set_fields`, and `False` once the document is written and read back.
-    `metaId`, `sboTerm`, notes and annotations are unaffected (they predate
-    L3V2 and are written normally); `Port.sid` is unaffected too, since a
-    port's `id`/`name` are required package attributes of `comp:Port`
-    itself, not the generic core one.
+    does not serialize that generic `id`/`name` on a `ReplacedElement`, a
+    `ReplacedBy` or a nested `<comp:sBaseRef>`: measured with libsbml 5.21.2,
+    `isSetIdAttribute()` is `True` right after `_set_fields`, and `False` once
+    the document is written and read back. `metaId`, `sboTerm`, notes and
+    annotations are unaffected (they predate L3V2 and are written normally),
+    and so are the `sid` and `name` of a `Port` and of a `Deletion`, since
+    comp gives both elements an `id` and a `name` of their own, written as the
+    package attributes `comp:id` and `comp:name`.
+
+    A `Port`, a `ReplacedElement` or a `ReplacedBy` is a convenient, already
+    available `SbaseRef` which a caller may reuse for a nested level, and
+    whichever class builds it, a nested level is written as a plain
+    `<comp:sBaseRef>`, see `_set_fields`. So a `Port` reused as one drops its
+    `portType`, its `sid` and its `name`, and a `ReplacedElement` or a
+    `ReplacedBy` reused as one drops its `submodelRef`, and a
+    `ReplacedElement` also its `deletion` and its `conversionFactor`: none of
+    those attributes exists on a `<comp:sBaseRef>`. `sbmlutils.parser` builds
+    every nested level as a plain `SbaseRef`.
     """
 
     def __init__(

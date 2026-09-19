@@ -19,17 +19,30 @@ it is read, see `_convert_fbc_v1`. Of `distrib` it reads the uncertainties of
 every element, with their uncert parameters and spans in the order of the
 document, and on each of those its type, value, variable, bounds, unit,
 definitionURL, math and the uncert parameters of an external distribution, see
-`_parse_uncertainties`.
+`_parse_uncertainties`. Of `comp` it reads the submodels of a model with their
+deletions, its ports, the replaced elements and the `replacedBy` of every
+element, each with the whole nested `sBaseRef` chain below it, and the model
+definitions and external model definitions of the document; a model definition
+is read by recursing into `_parse_model_body`, so everything of every package
+inside it is read as it is for the model of the document. An external model
+definition is preserved as the reference it is, `source`, `modelRef` and `md5`:
+the file it names is not opened and its content is not resolved into the
+document.
 
-Not read are the model history, the content of the `comp`, `groups` and
-`layout` packages, i.e. submodels, ports and replacements, an uncertainty on
-an element which cannot carry one, which is reported (`_drop_uncertainties`),
-and of `fbc` the metadata of a gene product association and of the `and`, `or`
-and `geneProductRef` nodes of its association, which the infix string has no
-place for, and the fbc version 3 `reaction2` of a flux objective and
-`variable2` of a user-defined constraint component, which the factory has no
-field for. The `fbc`, `distrib` and `comp` packages a document declares are
-declared on the model.
+Not read are the model history, the content of the `groups` and `layout`
+packages, an uncertainty on an element which cannot carry one and a
+`<comp:replacedBy>` on an element which cannot carry one, both of which are
+reported (`_drop_uncertainties`, `_drop_replaced_by`), a
+`<comp:replacedElement>` of an element without an id, which
+`sbmlutils.factory` has no way to name and which is reported
+(`_parse_replaced_elements`), the `comp:substanceConversionFactor` libsbml
+reads on a submodel although comp version 1 does not define it, and of `fbc`
+the metadata of a gene product association and of the `and`, `or` and
+`geneProductRef` nodes of its association, which the infix string has no place
+for, and the fbc version 3 `reaction2` of a flux objective and `variable2` of
+a user-defined constraint component, which the factory has no field for. The
+`fbc`, `distrib` and `comp` packages a document declares are declared on the
+model.
 Math is read as an L3 infix string, in which an id named like a MathML
 constant or csymbol (`pi`, `INF`, `NaN`, `time`, `avogadro`) cannot be told
 apart from the constant, so such an id does not round trip.

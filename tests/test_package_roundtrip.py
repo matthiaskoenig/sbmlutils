@@ -3021,3 +3021,88 @@ def test_roundtrip_of_a_flat_model_gains_no_comp_content(
     assert [construct for construct in counts if construct.startswith("comp.")] == []
 
     assert _comp_differences(differences) == []
+
+
+def _declares_comp(sbml_path: Path) -> bool:
+    """Test whether libsbml reads a document as declaring the comp package.
+
+    Args:
+        sbml_path: path of the SBML file
+
+    Returns:
+        whether the document declares comp
+    """
+    doc: libsbml.SBMLDocument = libsbml.readSBMLFromFile(str(sbml_path))
+    return doc.getPlugin("comp") is not None
+
+
+def comp_cases() -> list[Path]:
+    """Get every comp case of the vendored SBML test suite.
+
+    The cases are not spelled out, as in `fbc_v1_cases`: every l3v2 case whose header names the comp namespace is a candidate, and libsbml decides which of them declares the package.
+
+    Returns:
+        the path of every l3v2 case which declares comp, by case
+    """
+    candidates: list[Path] = []
+    for sbml_path in sorted(SEMANTIC_DIR.glob("*/*-sbml-l3v2.xml")):
+        with sbml_path.open(encoding="utf-8") as f:
+            if "/comp/version" in f.read(4000):
+                candidates.append(sbml_path)
+    return [path for path in candidates if _declares_comp(path)]
+
+
+#: every comp case of the vendored SBML test suite, empty without the suite
+COMP_CASES: list[Path] = comp_cases()
+
+#: the comp differences a case of the SBML test suite keeps, by construct and
+#: count, with the reason. Everything else of every comp case round trips.
+COMP_REMAINING: dict[str, dict[str, int]] = {
+    # the `<comp:replacedElement>` of a rate rule which carries a metaid and
+    # no id: `sbmlutils.factory` names the element a replaced element sits on
+    # by its id, so a replacement of an element without one cannot be
+    # expressed, see
+    # `test_parser_reports_a_replaced_element_of_an_element_without_an_id`
+    "01150": {"comp.replacedElement": 1},
+    "01163": {"comp.replacedElement": 1},
+}
+
+
+@requires_testsuite
+def test_the_comp_cases_of_the_suite_are_found() -> None:
+    """Test that the sweep below is parametrized with the comp cases.
+
+    An empty parametrization is a single skip, so a sweep which found no case would pass without testing anything.
+    """
+    assert len(COMP_CASES) >= 100
+    assert {path.name[:5] for path in COMP_CASES} >= {"01124", "01132", "01778"}
+    assert set(COMP_REMAINING) <= {path.name[:5] for path in COMP_CASES}
+
+
+@requires_testsuite
+@pytest.mark.parametrize("sbml_path", COMP_CASES, ids=fixture_idfn)
+def test_roundtrip_preserves_the_comp_content_of_every_case(
+    sbml_path: Path, tmp_path: Path
+) -> None:
+    """Test that a round trip of a comp case of the SBML test suite loses no comp content.
+
+    Every case is asserted to have comp content first, so preserving it cannot mean that the case has none, and every comp difference is asserted by construct and count, so content the round trip adds fails the case too. A case which cannot be preserved completely is not skipped: what remains of it is named in `COMP_REMAINING` with the reason.
+    """
+    doc_in, doc_out = roundtrip_document(sbml_path, tmp_path)
+    counts = _expected_constructs(comparable_document(doc_in))
+    comp_constructs = {
+        construct: count
+        for construct, count in counts.items()
+        if construct.startswith("comp.") and construct != "comp.package"
+    }
+    assert comp_constructs, f"'{sbml_path.name}' has no comp content"
+
+    remaining = Counter(
+        d.construct
+        for d in diff_snapshots(*snapshots(doc_in, doc_out))
+        if d.package == "comp"
+    )
+
+    assert dict(remaining) == COMP_REMAINING.get(sbml_path.name[:5], {}), (
+        _comp_differences(structural_diff(doc_in, doc_out))
+    )
