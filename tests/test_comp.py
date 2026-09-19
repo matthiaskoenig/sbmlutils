@@ -2,6 +2,7 @@
 
 import logging
 import os
+import re
 from pathlib import Path
 from typing import Any
 
@@ -14,6 +15,7 @@ from sbmlutils import comp
 from sbmlutils.factory import *
 from sbmlutils.factory import PortType, SbaseRef, create_objects
 from sbmlutils.io import read_sbml
+from sbmlutils.layout import Layout, SpeciesGlyph
 from sbmlutils.metadata import SBO
 from sbmlutils.validation import ValidationOptions, validate_doc
 
@@ -821,7 +823,10 @@ def test_model_definition_rejects_document_level_fields(
     definition is constructed and when it is written, since the lists of a
     model are commonly populated by assignment afterwards.
     """
-    with pytest.raises(ValueError, match=field):
+    # the message of the check which must fire, not just the field name: a
+    # `ValueError` of `check_packages` would name `packages` as well
+    message = f"'{field}' is not supported on ModelDefinition 'md1'"
+    with pytest.raises(ValueError, match=re.escape(message)):
         ModelDefinition(sid="md1", name="model definition", **{field: value})
 
     model_definition = ModelDefinition(sid="md1", name="model definition")
@@ -831,7 +836,7 @@ def test_model_definition_rejects_document_level_fields(
         packages=[Package.COMP_V1],
         model_definitions=[model_definition],
     )
-    with pytest.raises(ValueError, match=field):
+    with pytest.raises(ValueError, match=re.escape(message)):
         create_model(
             model=model,
             filepath=tmp_path / "rejected_field.xml",
@@ -1024,6 +1029,14 @@ def test_document_declares_the_packages_its_model_definitions_need(
     assert doc.isPackageEnabled("comp")
     assert doc.isPackageEnabled("fbc")
     assert doc.isPackageEnabled("distrib")
+
+    # the main model gains the `fbc:strict` of a model which declares fbc,
+    # although it asked for neither: fbc requires the attribute on a model
+    # which carries the fbc plugin, and a document whose model has no
+    # `fbc:strict` is reported by libsbml with the error 2020209
+    main_fbc: libsbml.FbcModelPlugin = doc.getModel().getPlugin("fbc")
+    assert main_fbc.isSetStrict()
+    assert main_fbc.getStrict() is False
 
     doc_comp: libsbml.CompSBMLDocumentPlugin = doc.getPlugin("comp")
     md_fbc: libsbml.FbcModelPlugin = doc_comp.getModelDefinition("md_fbc").getPlugin(
@@ -1336,6 +1349,194 @@ def test_math_of_a_model_definition_is_parsed_against_it(tmp_path: Path) -> None
         assert "symbols/avogadro" not in mathml, key
 
 
+def test_model_definition_writes_its_comp_and_package_content(tmp_path: Path) -> None:
+    """Test the constructs the class docstring of `ModelDefinition` claims.
+
+    A model definition carries its own comp content (a submodel, ports, a
+    replaced element, a replaced by, a deletion), its model history, its
+    key-value pairs and a layout, all through the plugins libsbml attaches to
+    a `<comp:modelDefinition>`.
+    """
+    model = Model(
+        sid="model_definition_constructs",
+        name="a model with a model definition which uses every plugin",
+        packages=[Package.COMP_V1],
+        parameters=[Parameter("k_top", 1.0, name="parameter of the main model")],
+        model_definitions=[
+            ModelDefinition(
+                sid="md_inner",
+                name="the inner model definition",
+                parameters=[Parameter("k_inner", 1.0, name="inner parameter")],
+                compartments=[Compartment("c", 1.0, name="inner cell")],
+            ),
+            ModelDefinition(
+                sid="md_full",
+                name="a model definition with comp content",
+                keyValuePairs=[
+                    KeyValuePair(key="kind", value="test", uri="https://example.org")
+                ],
+                creators=[
+                    Creator(
+                        familyName="König",
+                        givenName="Matthias",
+                        email="koenigmx@hu-berlin.de",
+                        organization="Humboldt-University Berlin",
+                    )
+                ],
+                compartments=[Compartment("c", 1.0, name="cell", port=True)],
+                species=[
+                    Species(
+                        "S1",
+                        compartment="c",
+                        initialConcentration=1.0,
+                        name="S1",
+                        replacedBy=ReplacedBy(
+                            sid="rby", elementRef="S1", submodelRef="sub_inner"
+                        ),
+                    )
+                ],
+                parameters=[Parameter("k", 1.0, name="rate constant")],
+                submodels=[Submodel(sid="sub_inner", modelRef="md_inner")],
+                ports=[Port(sid="k_port", idRef="k", name="port of k")],
+                replaced_elements=[
+                    ReplacedElement(
+                        sid="re1", elementRef="c", submodelRef="sub_inner", idRef="c"
+                    )
+                ],
+                deletions=[
+                    Deletion(sid="del1", submodelRef="sub_inner", idRef="k_inner")
+                ],
+                layouts=[
+                    Layout(
+                        sid="layout1",
+                        width=100.0,
+                        height=100.0,
+                        species_glyphs=[
+                            SpeciesGlyph(
+                                "glyph_S1", species="S1", x=1.0, y=1.0, text="S1"
+                            )
+                        ],
+                    )
+                ],
+            ),
+        ],
+    )
+    doc = _write(model, tmp_path)
+
+    doc_comp: libsbml.CompSBMLDocumentPlugin = doc.getPlugin("comp")
+    md: libsbml.ModelDefinition = doc_comp.getModelDefinition("md_full")
+    md_comp: libsbml.CompModelPlugin = md.getPlugin("comp")
+
+    assert md_comp.getNumSubmodels() == 1
+    assert md_comp.getSubmodel("sub_inner").getModelRef() == "md_inner"
+    # the explicit port and the one of the `port=True` compartment
+    assert {
+        md_comp.getPort(index).getId() for index in range(md_comp.getNumPorts())
+    } == {
+        "k_port",
+        "c_port",
+    }
+    assert md_comp.getSubmodel("sub_inner").getNumDeletions() == 1
+    assert md_comp.getSubmodel("sub_inner").getDeletion(0).getIdRef() == "k_inner"
+
+    compartment_comp: libsbml.CompSBasePlugin = md.getCompartment("c").getPlugin("comp")
+    assert compartment_comp.getNumReplacedElements() == 1
+    assert compartment_comp.getReplacedElement(0).getSubmodelRef() == "sub_inner"
+    species_comp: libsbml.CompSBasePlugin = md.getSpecies("S1").getPlugin("comp")
+    assert species_comp.isSetReplacedBy()
+    assert species_comp.getReplacedBy().getSubmodelRef() == "sub_inner"
+
+    assert md.isSetModelHistory()
+    assert md.getModelHistory().getCreator(0).getFamilyName() == "König"
+
+    md_fbc: libsbml.FbcModelPlugin = md.getPlugin("fbc")
+    assert md_fbc.getNumKeyValuePairs() == 1
+    assert md_fbc.getKeyValuePair(0).getKey() == "kind"
+
+    md_layout: libsbml.LayoutModelPlugin = md.getPlugin("layout")
+    assert md_layout.getNumLayouts() == 1
+    assert md_layout.getLayout(0).getNumSpeciesGlyphs() == 1
+
+    # none of it landed on the model of the document
+    main_comp: libsbml.CompModelPlugin = doc.getModel().getPlugin("comp")
+    assert main_comp.getNumPorts() == 0
+    assert main_comp.getNumSubmodels() == 0
+
+
+def test_a_model_definition_can_instantiate_another_one(tmp_path: Path) -> None:
+    """Test a submodel of a model definition which names another one.
+
+    The document holds two model definitions, the main model instantiates the
+    first and the first instantiates the second; flattening resolves both
+    levels.
+    """
+    model = Model(
+        sid="nested_model_definitions",
+        name="a model of nested model definitions",
+        packages=[Package.COMP_V1],
+        submodels=[Submodel(sid="outer", modelRef="md_outer", name="outer submodel")],
+        model_definitions=[
+            ModelDefinition(
+                sid="md_inner",
+                name="the inner model definition",
+                compartments=[Compartment("c", 1.0, name="inner cell")],
+                parameters=[Parameter("k_inner", 3.0, name="inner parameter")],
+            ),
+            ModelDefinition(
+                sid="md_outer",
+                name="the outer model definition",
+                compartments=[Compartment("c", 1.0, name="outer cell")],
+                parameters=[Parameter("k_outer", 2.0, name="outer parameter")],
+                submodels=[
+                    Submodel(sid="inner", modelRef="md_inner", name="inner submodel")
+                ],
+            ),
+        ],
+    )
+    sbml_path = tmp_path / "nested_model_definitions.xml"
+    create_model(
+        model=model,
+        filepath=sbml_path,
+        sbml_level=3,
+        sbml_version=2,
+        validation_options=ValidationOptions(units_consistency=False),
+    )
+
+    flat_path = tmp_path / "nested_model_definitions_flat.xml"
+    working_dir = os.getcwd()
+    try:
+        comp.flatten_sbml(sbml_path=sbml_path, sbml_flat_path=flat_path)
+    finally:
+        os.chdir(working_dir)
+
+    doc_flat = read_sbml(flat_path)
+    model_flat: libsbml.Model = doc_flat.getModel()
+    ids = {element.getId() for element in model_flat.getListOfAllElements()}
+    assert "outer__k_outer" in ids
+    assert "outer__inner__k_inner" in ids
+
+
+def test_an_empty_model_definition_is_written(tmp_path: Path) -> None:
+    """Test that a model definition without content is written and validates."""
+    model = Model(
+        sid="empty_model_definition",
+        name="a model with an empty model definition",
+        packages=[Package.COMP_V1],
+        parameters=[Parameter("k_top", 1.0, "dimensionless", name="parameter")],
+        model_definitions=[ModelDefinition(sid="md_empty", name="nothing in here")],
+    )
+    doc = _write(model, tmp_path)
+
+    doc_comp: libsbml.CompSBMLDocumentPlugin = doc.getPlugin("comp")
+    md: libsbml.ModelDefinition = doc_comp.getModelDefinition("md_empty")
+    assert md is not None
+    assert md.getName() == "nothing in here"
+    assert md.getListOfAllElements().getSize() == 0
+
+    result = validate_doc(doc, options=ValidationOptions())
+    assert result.errors == []
+
+
 def test_strict_of_a_model_definition_is_reported_once(
     tmp_path: Path, caplog: pytest.LogCaptureFixture
 ) -> None:
@@ -1425,3 +1626,43 @@ def test_a_model_definition_cannot_be_written_as_a_document(tmp_path: Path) -> N
         )
     with pytest.raises(ValueError, match="not the model of a document"):
         model_definition.get_sbml()
+
+
+def test_a_model_definition_id_which_collides_is_reported(tmp_path: Path) -> None:
+    """Test a model definition whose id collides with another model.
+
+    comp requires the id of a model definition to be unique among the models
+    of the document. libsbml writes the document either way, so `create_model`
+    writes it and validation reports it (libsbml 1010302), the same as for
+    any other invalid document this package writes.
+    """
+    with_main_model = Model(
+        sid="collides_with_the_main_model",
+        name="a model whose model definition takes its id",
+        packages=[Package.COMP_V1],
+        parameters=[Parameter("k_top", 1.0, name="parameter of the main model")],
+        model_definitions=[
+            ModelDefinition(
+                sid="collides_with_the_main_model",
+                name="the same id as the model of the document",
+            )
+        ],
+    )
+    doc = _write(with_main_model, tmp_path)
+    result = validate_doc(doc, options=ValidationOptions(units_consistency=False))
+    assert {error.getErrorId() for error in result.errors} == {1010302}
+
+    with_each_other = Model(
+        sid="model_definitions_collide",
+        name="a model with two model definitions of one id",
+        packages=[Package.COMP_V1],
+        parameters=[Parameter("k_top", 1.0, name="parameter of the main model")],
+        model_definitions=[
+            ModelDefinition(sid="md", name="the first"),
+            ModelDefinition(sid="md", name="the second"),
+        ],
+    )
+    doc = _write(with_each_other, tmp_path)
+    assert doc.getPlugin("comp").getNumModelDefinitions() == 2
+    result = validate_doc(doc, options=ValidationOptions(units_consistency=False))
+    assert {error.getErrorId() for error in result.errors} == {1010302}
