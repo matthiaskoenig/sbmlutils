@@ -377,6 +377,42 @@ def test_model_units_accepts_units_class() -> None:
     assert any(udef.sid == "mM" for udef in model.units)
 
 
+def test_model_units_hint_names_the_missing_unit_lazily(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test the hint for a model unit which is not set.
+
+    A strongly recommended unit warns, an optional one informs, and the key
+    is a log argument rather than part of the message, so that every hint
+    reaches a handler under one message template. `set_model_units` built the
+    message with an f-string, which loses the template.
+    """
+    model = Model(
+        "model_units",
+        model_units=ModelUnits(
+            substance=Units.mole, extent=Units.mole, volume=Units.litre
+        ),
+    )
+    with caplog.at_level(logging.INFO, logger="sbmlutils.factory"):
+        create_model(
+            model=model,
+            filepath=tmp_path / "model.xml",
+            validation_options=ValidationOptions(units_consistency=False),
+        )
+
+    hints = {
+        record.args[0]: (record.levelname, record.msg)
+        for record in caplog.records
+        if isinstance(record.args, tuple)
+        and "should be set in 'model_units'" in record.msg
+    }
+    assert hints == {
+        "time": ("WARNING", "'%s' should be set in 'model_units'."),
+        "length": ("INFO", "'%s' should be set in 'model_units'."),
+        "area": ("INFO", "'%s' should be set in 'model_units'."),
+    }, caplog.text
+
+
 def test_unit_reference_by_id() -> None:
     """Test that a unit can be referenced by its id string."""
     assert UnitDefinition.get_uid_for_unit("mymole") == "mymole"
