@@ -1,6 +1,7 @@
 """Tests for the comp package."""
 
 import logging
+import os
 from pathlib import Path
 from typing import Any
 
@@ -573,3 +574,397 @@ def test_nested_sbaseref_chain_matches_test_suite_case_01132(tmp_path: Path) -> 
         assert key in source_snapshot, f"the source does not carry {key}"
         assert key in built_snapshot, f"the written chain does not carry {key}"
         assert source_snapshot[key] == built_snapshot[key]
+
+
+class U(Units):
+    """Units of the model definitions below."""
+
+    min = UnitDefinition("min")
+    mmole = UnitDefinition("mmole")
+    per_min = UnitDefinition("per_min", "1/min")
+    mmole_per_min = UnitDefinition("mmole_per_min", "mmole/min")
+
+
+def _model_definition_with_every_element() -> ModelDefinition:
+    """Build a model definition which holds one element of every type a model has.
+
+    Returns:
+        the model definition, which `test_model_definition_writes_every_element_type`
+        writes and reads back
+    """
+    return ModelDefinition(
+        sid="md1",
+        name="model definition 1",
+        sboTerm=SBO.CONTINUOUS_FRAMEWORK,
+        units=U,
+        model_units=ModelUnits(
+            time=U.min,
+            extent=U.mmole,
+            substance=U.mmole,
+            volume=U.litre,
+        ),
+        conversionFactor="cf",
+        creators=[
+            Creator(
+                familyName="König",
+                givenName="Matthias",
+                email="koenigmx@hu-berlin.de",
+                organization="Humboldt-University Berlin",
+            )
+        ],
+        functions=[Function("f_double", "lambda(x, 2*x)", name="double")],
+        compartments=[Compartment("c", 1.0, unit=U.litre, name="cell")],
+        species=[
+            Species(
+                "S1",
+                compartment="c",
+                initialConcentration=1.0,
+                substanceUnit=U.mmole,
+                name="S1",
+                charge=-1.0,
+                chemicalFormula="C6H12O6",
+            )
+        ],
+        parameters=[
+            Parameter("cf", 1.0, U.dimensionless, name="conversion factor"),
+            Parameter("k", 1.0, U.per_min, name="rate constant"),
+            Parameter(
+                "p_assigned", 0.0, U.dimensionless, constant=False, name="assigned"
+            ),
+            Parameter(
+                "p_rate", 0.0, U.dimensionless, constant=False, name="integrated"
+            ),
+            Parameter(
+                "p_algebraic", 0.0, U.dimensionless, constant=False, name="algebraic"
+            ),
+            Parameter("p_initial", None, U.dimensionless, name="initially assigned"),
+        ],
+        assignments=[
+            InitialAssignment("p_initial", "k * 2", U.dimensionless, name="initial")
+        ],
+        rules=[AssignmentRule("p_assigned", "k * 3", U.dimensionless)],
+        rate_rules=[RateRule("p_rate", "k", U.dimensionless, name="rate rule")],
+        algebraic_rules=[
+            AlgebraicRule("alg1", "p_algebraic - k", U.dimensionless, name="algebraic")
+        ],
+        reactions=[
+            Reaction(
+                "r1",
+                "S1 ->",
+                formula=("k * S1 * c", U.mmole_per_min),
+                name="degradation",
+                geneProductAssociation="g1",
+            )
+        ],
+        events=[
+            Event("e1", trigger="time >= 10", assignments={"k": 5.0}, name="event")
+        ],
+        constraints=[
+            Constraint(
+                "con1",
+                math="k > 0",
+                message='<body xmlns="http://www.w3.org/1999/xhtml">k &gt; 0</body>',
+                name="constraint",
+            )
+        ],
+        gene_products=[GeneProduct("g1", label="G1", name="gene 1")],
+        objectives=[
+            Objective(
+                "obj1",
+                objectiveType="maximize",
+                active=True,
+                fluxObjectives={"r1": 1.0},
+                name="objective",
+            )
+        ],
+    )
+
+
+def test_model_definition_writes_every_element_type(tmp_path: Path) -> None:
+    """Test that a model definition writes every element type a model holds.
+
+    A `ModelDefinition` is a `Model`: everything a model can hold is written
+    into the `<comp:modelDefinition>`, its unit definitions included. Only
+    compartments and species could be passed at all before.
+    """
+    model = Model(
+        sid="model_definition_elements",
+        packages=[Package.COMP_V1, Package.FBC_V3],
+        parameters=[Parameter("k_top", 1.0, name="parameter of the main model")],
+        model_definitions=[_model_definition_with_every_element()],
+    )
+    doc = _write(model, tmp_path)
+
+    doc_comp: libsbml.CompSBMLDocumentPlugin = doc.getPlugin("comp")
+    md: libsbml.ModelDefinition = doc_comp.getModelDefinition("md1")
+    assert md is not None
+    assert md.getName() == "model definition 1"
+
+    # units and model units
+    assert md.getUnitDefinition("mmole_per_min") is not None
+    assert md.getUnitDefinition("per_min") is not None
+    assert md.getTimeUnits() == "min"
+    assert md.getExtentUnits() == "mmole"
+    assert md.getSubstanceUnits() == "mmole"
+    assert md.getVolumeUnits() == "litre"
+    assert md.getConversionFactor() == "cf"
+    assert md.isSetModelHistory()
+
+    # core content
+    assert md.getFunctionDefinition("f_double") is not None
+    assert md.getCompartment("c") is not None
+    assert md.getSpecies("S1") is not None
+    assert md.getNumParameters() == 6
+    assert md.getNumInitialAssignments() == 1
+    assert md.getNumRules() == 3
+    assert md.getRule("p_assigned").getTypeCode() == libsbml.SBML_ASSIGNMENT_RULE
+    assert md.getRule("p_rate").getTypeCode() == libsbml.SBML_RATE_RULE
+    assert md.getNumConstraints() == 1
+    assert md.getReaction("r1") is not None
+    assert md.getEvent("e1") is not None
+    algebraic = [
+        rule
+        for rule in md.getListOfRules()
+        if rule.getTypeCode() == libsbml.SBML_ALGEBRAIC_RULE
+    ]
+    assert len(algebraic) == 1
+
+    # fbc content
+    md_fbc: libsbml.FbcModelPlugin = md.getPlugin("fbc")
+    assert md_fbc.getGeneProduct("g1") is not None
+    assert md_fbc.getObjective("obj1") is not None
+    assert md_fbc.getActiveObjectiveId() == "obj1"
+    reaction_fbc: libsbml.FbcReactionPlugin = md.getReaction("r1").getPlugin("fbc")
+    assert reaction_fbc.getGeneProductAssociation() is not None
+    species_fbc: libsbml.FbcSpeciesPlugin = md.getSpecies("S1").getPlugin("fbc")
+    assert species_fbc.getChemicalFormula() == "C6H12O6"
+
+
+def test_model_definition_units_are_written(tmp_path: Path) -> None:
+    """Test that the unit definitions of a model definition are written.
+
+    The `units` of a model definition were commented out of its writer, so a
+    model definition could not carry a unit at all and its elements could
+    only reference the units of the main model. They are written into the
+    `<comp:modelDefinition>` now, where they belong.
+    """
+    model = Model(
+        sid="model_definition_units",
+        packages=[Package.COMP_V1],
+        units=[UnitDefinition("min", "min")],
+        parameters=[Parameter("k_top", 1.0, "min", name="parameter of the main model")],
+        model_definitions=[
+            ModelDefinition(
+                sid="md_units",
+                name="model definition with units",
+                units=[
+                    UnitDefinition("mmole_per_min", "mmole/min"),
+                    UnitDefinition("per_min", "1/min"),
+                ],
+                model_units=ModelUnits(time="per_min"),
+                parameters=[
+                    Parameter("k", 1.0, "mmole_per_min", name="flux"),
+                ],
+            )
+        ],
+    )
+    doc = _write(model, tmp_path)
+
+    doc_comp: libsbml.CompSBMLDocumentPlugin = doc.getPlugin("comp")
+    md: libsbml.ModelDefinition = doc_comp.getModelDefinition("md_units")
+    assert md.getNumUnitDefinitions() == 2
+    udef: libsbml.UnitDefinition = md.getUnitDefinition("mmole_per_min")
+    assert udef is not None
+    assert udef.getNumUnits() == 2
+    assert md.getParameter("k").getUnits() == "mmole_per_min"
+    assert md.getTimeUnits() == "per_min"
+
+    # the units of the model definition are its own, the main model keeps its
+    assert doc.getModel().getNumUnitDefinitions() == 1
+    assert doc.getModel().getUnitDefinition("mmole_per_min") is None
+
+
+@pytest.mark.parametrize(
+    "field, value",
+    [
+        ("packages", [Package.FBC_V3]),
+        ("model_definitions", [ModelDefinition(sid="nested", name="nested")]),
+        (
+            "external_model_definitions",
+            [ExternalModelDefinition(sid="emd", source="other.xml", modelRef="other")],
+        ),
+    ],
+)
+def test_model_definition_rejects_document_level_fields(
+    field: str, value: Any, tmp_path: Path
+) -> None:
+    """Test that the fields of the document are rejected on a model definition.
+
+    A package is declared on the `<sbml>` element and a `<comp:modelDefinition>`
+    or `<comp:externalModelDefinition>` is a child of it, so none of the three
+    has a place on a model definition; comp does not nest model definitions at
+    all. They are rejected rather than silently ignored, both when the model
+    definition is constructed and when it is written, since the lists of a
+    model are commonly populated by assignment afterwards.
+    """
+    with pytest.raises(ValueError, match=field):
+        ModelDefinition(sid="md1", name="model definition", **{field: value})
+
+    model_definition = ModelDefinition(sid="md1", name="model definition")
+    setattr(model_definition, field, value)
+    model = Model(
+        sid="rejected_field",
+        packages=[Package.COMP_V1],
+        model_definitions=[model_definition],
+    )
+    with pytest.raises(ValueError, match=field):
+        create_model(
+            model=model,
+            filepath=tmp_path / "rejected_field.xml",
+            validation_options=ValidationOptions(units_consistency=False),
+        )
+
+
+def test_model_definition_does_not_write_fbc_strict(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that `fbc:strict` is not written on a model definition.
+
+    libsbml writes `fbc:strict` twice on a `<comp:modelDefinition>`, once
+    through the model it subclasses and once through the element itself, and
+    the document it then writes is not readable XML ("Duplicate XML
+    attribute"). The attribute is not written and the model definition which
+    asked for it is reported; the document stays readable.
+    """
+    model = Model(
+        sid="model_definition_strict",
+        packages=[Package.COMP_V1, Package.FBC_V3],
+        strict=True,
+        parameters=[Parameter("k_top", 1.0, name="parameter of the main model")],
+        model_definitions=[
+            ModelDefinition(
+                sid="md_strict",
+                name="model definition which asks to be strict",
+                strict=True,
+                gene_products=[GeneProduct("g1", label="G1", name="gene 1")],
+            )
+        ],
+    )
+    with caplog.at_level(logging.WARNING, logger="sbmlutils"):
+        doc = _write(model, tmp_path)
+
+    assert any(
+        "md_strict" in record.getMessage() and "strict" in record.getMessage()
+        for record in caplog.records
+    ), "no warning named the model definition which set 'strict'"
+
+    sbml = (tmp_path / "model_definition_strict.xml").read_text(encoding="utf-8")
+    definition_line = [
+        line for line in sbml.splitlines() if "comp:modelDefinition " in line
+    ]
+    assert len(definition_line) == 1
+    assert "fbc:strict" not in definition_line[0]
+
+    # the document is readable, which is what not writing the attribute buys;
+    # the only error it carries is the missing `fbc:strict` itself, which
+    # libsbml reports while reading, not a "Duplicate XML attribute"
+    assert [
+        doc.getError(index).getErrorId() for index in range(doc.getNumErrors())
+    ] == [2020209]
+    doc_comp: libsbml.CompSBMLDocumentPlugin = doc.getPlugin("comp")
+    md_fbc: libsbml.FbcModelPlugin = doc_comp.getModelDefinition("md_strict").getPlugin(
+        "fbc"
+    )
+    assert not md_fbc.isSetStrict()
+    # the main model writes its own `fbc:strict` as before
+    assert doc.getModel().getPlugin("fbc").getStrict() is True
+
+
+def test_written_model_definition_validates(tmp_path: Path) -> None:
+    """Test that a document with a full model definition validates.
+
+    All checks of `sbmlutils.validation` run, the unit consistency check
+    included. The one error a model definition with fbc content cannot avoid
+    is libsbml 2020209 ("Strict attribute required on <model>"), because
+    libsbml cannot write `fbc:strict` on a `<comp:modelDefinition>` without
+    making the document unreadable, see `ModelDefinition`.
+    """
+    model = Model(
+        sid="model_definition_validates",
+        packages=[Package.COMP_V1, Package.FBC_V3],
+        parameters=[Parameter("k_top", 1.0, U.per_min, name="parameter of the model")],
+        model_definitions=[_model_definition_with_every_element()],
+    )
+    create_model(
+        model=model,
+        filepath=tmp_path / "model_definition_validates.xml",
+        sbml_level=3,
+        sbml_version=2,
+    )
+    doc = read_sbml(tmp_path / "model_definition_validates.xml")
+    result = validate_doc(doc, options=ValidationOptions())
+    # reported once for every consistency check `ValidationOptions` runs
+    assert {error.getErrorId() for error in result.errors} == {2020209}
+    assert result.warnings == []
+
+
+def test_submodel_instantiates_a_model_definition(tmp_path: Path) -> None:
+    """Test that a submodel of the main model resolves a model definition.
+
+    The elements of the model definition are in the flattened model, which is
+    the check that the written model definition is a model libsbml can
+    instantiate.
+    """
+    model = Model(
+        sid="model_definition_submodel",
+        packages=[Package.COMP_V1],
+        submodels=[Submodel(sid="sub1", modelRef="md_sub")],
+        model_definitions=[
+            ModelDefinition(
+                sid="md_sub",
+                name="the instantiated model definition",
+                units=[UnitDefinition("per_min", "1/min")],
+                compartments=[Compartment("c", 1.0, name="cell")],
+                species=[
+                    Species(
+                        "S1", compartment="c", initialConcentration=10.0, name="S1"
+                    ),
+                    Species("S2", compartment="c", initialConcentration=0.0, name="S2"),
+                ],
+                parameters=[Parameter("k", 0.1, "per_min", name="rate constant")],
+                reactions=[
+                    Reaction("r1", "S1 -> S2", formula="k * S1", name="conversion")
+                ],
+            )
+        ],
+    )
+    sbml_path = tmp_path / "model_definition_submodel.xml"
+    create_model(
+        model=model,
+        filepath=sbml_path,
+        sbml_level=3,
+        sbml_version=2,
+        validation_options=ValidationOptions(units_consistency=False),
+    )
+
+    flat_path = tmp_path / "model_definition_submodel_flat.xml"
+    working_dir = os.getcwd()
+    try:
+        comp.flatten_sbml(sbml_path=sbml_path, sbml_flat_path=flat_path)
+    finally:
+        os.chdir(working_dir)
+
+    doc_flat = read_sbml(flat_path)
+    model_flat: libsbml.Model = doc_flat.getModel()
+    ids = {element.getId() for element in model_flat.getListOfAllElements()}
+    assert "sub1__S1" in ids
+    assert "sub1__S2" in ids
+    assert "sub1__k" in ids
+    assert "sub1__r1" in ids
+    # the unit definition of the model definition is flattened like its
+    # elements, under the id the flattener prefixes with the submodel
+    unit_definition: libsbml.UnitDefinition = model_flat.getUnitDefinition(
+        "sub1__per_min"
+    )
+    assert unit_definition is not None
+    assert model_flat.getParameter("sub1__k").getUnits() == "sub1__per_min"

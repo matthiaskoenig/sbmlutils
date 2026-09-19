@@ -2492,8 +2492,12 @@ class Reaction(Sbase):
 
             # check all genes are in model; the association names them by id,
             # which is what `setAssociation(usingId=True)` below writes, so the
-            # lookup is `getGeneProduct` and not `getGeneProductByLabel`
-            model_fbc: libsbml.FbcModelPlugin = r.getModel().getPlugin("fbc")
+            # lookup is `getGeneProduct` and not `getGeneProductByLabel`. The
+            # model is the one the reaction is created in, which is passed in:
+            # `r.getModel()` returns the model of the document even for a
+            # reaction inside a `<comp:modelDefinition>` (measured with
+            # libsbml 5.21.2), whose gene products are its own.
+            model_fbc: libsbml.FbcModelPlugin = model.getPlugin("fbc")
             for gp in _gene_product_ids(self.geneProductAssociation):
                 if not model_fbc.getGeneProduct(gp):
                     logger.error("GeneProduct missing in model: `%s`", gp)
@@ -4519,82 +4523,6 @@ class Objective(Sbase):
         return objective
 
 
-class ModelDefinition(Sbase):
-    """ModelDefinition."""
-
-    # FIXME: handle as model
-
-    def __init__(
-        self,
-        sid: str,
-        name: str | None = None,
-        sboTerm: str | None = None,
-        metaId: str | None = None,
-        annotations: OptionalAnnotationsType = None,
-        notes: str | Notes | None = None,
-        keyValuePairs: list[KeyValuePair] | None = None,
-        units: type[Units] | None = None,
-        compartments: list[Compartment] | None = None,
-        species: list[Species] | None = None,
-    ):
-        """Create a ModelDefinition."""
-        super().__init__(
-            sid=sid,
-            name=name,
-            sboTerm=sboTerm,
-            metaId=metaId,
-            annotations=annotations,
-            notes=notes,
-            keyValuePairs=keyValuePairs,
-        )
-        self.units = units
-        self.compartments = compartments
-        self.species = species
-
-    def create_sbml(self, model: libsbml.Model) -> libsbml.ModelDefinition:
-        """Create ModelDefinition."""
-        doc: libsbml.SBMLDocument = model.getSBMLDocument()
-        doc_comp: libsbml.CompSBMLDocumentPlugin = doc.getPlugin("comp")
-        model_definition: libsbml.ModelDefinition = doc_comp.createModelDefinition()
-        self._set_fields(model_definition, model)
-        return model_definition
-
-    def _set_fields(self, sbase: libsbml.ModelDefinition, model: libsbml.Model) -> None:
-        """Set fields on ModelDefinition."""
-        super()._set_fields(sbase, model)
-        for attr in [
-            "externalModelDefinitions",
-            "modelDefinitions",
-            "submodels",
-            # "units",
-            "functions",
-            "parameters",
-            "compartments",
-            "species",
-            "assignments",
-            "rules",
-            "rate_rules",
-            "reactions",
-            "events",
-            "constraints",
-            "ports",
-            "replacedElements",
-            "deletions",
-            "objectives",
-            "layouts",
-        ]:
-            # create units
-            # FIXME:
-            # if hasattr(self, "units"):
-            #     self.units.create_unit_definitions(obj)
-
-            # create the respective objects
-            if hasattr(self, attr):
-                objects = getattr(self, attr)
-                if objects:
-                    create_objects(sbase, obj_iter=objects, key=attr)
-
-
 class ExternalModelDefinition(Sbase):
     """ExternalModelDefinition."""
 
@@ -5222,6 +5150,12 @@ class Model(Sbase, FrozenClass):
         Package.FBC_V3,
     }
 
+    #: field name -> why this kind of model does not support it, checked by
+    #: `_check_fields`. Empty for the model of a document, which supports
+    #: every field it declares; `ModelDefinition` fills it with the fields
+    #: which have no place on a `<comp:modelDefinition>`.
+    _unsupported_fields: ClassVar[dict[str, str]] = {}
+
     def __str__(self) -> str:
         """Get string."""
         # FIXME: issue with access
@@ -5360,6 +5294,7 @@ class Model(Sbase, FrozenClass):
                 elif isinstance(sbase, GeneProduct):
                     self.gene_products.append(sbase)
 
+        self._check_fields()
         self._freeze()  # no new attributes after this point
 
     @staticmethod
@@ -5437,7 +5372,11 @@ class Model(Sbase, FrozenClass):
         Args:
             model: the created libsbml.Model, or the libsbml.ModelDefinition
                 created for a `ModelDefinition`, which subclasses it
+
+        Raises:
+            ValueError: if a field this kind of model does not support is set
         """
+        self._check_fields()
         self._set_fields(model, model)
 
         # history
@@ -5459,10 +5398,23 @@ class Model(Sbase, FrozenClass):
         if self.model_units:
             ModelUnits.set_model_units(model, self.model_units)
 
+        # the two document level lists of comp: a `<comp:externalModelDefinition>`
+        # and a `<comp:modelDefinition>` are children of the `<sbml>` element,
+        # not of the `<model>`, so they are created on the document rather
+        # than in the model, which is why they are not in the loop below. They
+        # are created before the content of the model, as they were when they
+        # were the first two keys of it: a `Submodel` of the model
+        # instantiates them by `modelRef`. A `ModelDefinition` supports
+        # neither of them, see its class docstring, so both lists are empty
+        # for one and only the model of the document writes them.
+        for external_model_definition in self.external_model_definitions:
+            # resolves the document from the model it is given
+            external_model_definition.create_sbml(model)
+        for model_definition in self.model_definitions:
+            model_definition.create_sbml(model.getSBMLDocument())
+
         # lists ofs
         for attr in [
-            "external_model_definitions",
-            "model_definitions",
             "submodels",
             # "units",
             "functions",
@@ -5549,6 +5501,23 @@ class Model(Sbase, FrozenClass):
                 )
 
         return packages_in_canonical_order(packages_set)
+
+    def _check_fields(self) -> None:
+        """Check that no field this kind of model does not support is set.
+
+        Checked when the model is constructed and again when it is written,
+        since the lists of a model are commonly populated by assignment after
+        it was constructed, which the constructor cannot see.
+
+        Raises:
+            ValueError: if a field of `_unsupported_fields` is set
+        """
+        for field, reason in self._unsupported_fields.items():
+            if getattr(self, field, None):
+                raise ValueError(
+                    f"'{field}' is not supported on "
+                    f"{type(self).__name__} '{self.sid}': {reason}"
+                )
 
     def _has_comp_content(self) -> bool:
         """Determine whether writing this model requires the comp package.
@@ -5651,6 +5620,96 @@ class Model(Sbase, FrozenClass):
         return model
 
 
+class ModelDefinition(Model):
+    """A comp model definition: a complete model of its own inside a document.
+
+    A `<comp:modelDefinition>` lives in the document next to its main model
+    and is instantiated by the `Submodel`s which name it in their `modelRef`.
+    In libsbml `ModelDefinition` subclasses `Model`, and so does this class:
+    the same code writes every element of it, its unit definitions, its model
+    units and its model history included. It is created on the comp plugin of
+    the document rather than with `createModel`, which is the only thing that
+    differs, see `_create_sbml`.
+
+    What a model definition does not take, decided by what libsbml 5.21.2
+    accepts on a `<comp:modelDefinition>` and writes for it:
+
+    - `packages`: a package is declared on the `<sbml>` element, which is the
+      document, and comp gives a model definition no place to declare one.
+      Rejected. The document declares what the content of its model
+      definitions needs, see `Model._required_packages`.
+    - `model_definitions` and `external_model_definitions`: both are children
+      of the `<sbml>` element as well, and the `CompModelPlugin` of a model
+      definition has neither `createModelDefinition` nor
+      `createExternalModelDefinition`, so comp does not nest them at all.
+      Rejected.
+    - `strict`: the fbc model plugin does attach to a model definition and
+      `setStrict` succeeds on it, but libsbml then writes `fbc:strict` twice
+      on the `<comp:modelDefinition>` element and the document it writes
+      cannot be read back, by libsbml or any other XML parser ("Duplicate XML
+      attribute"). The attribute is therefore not written and a model
+      definition which sets it is reported. A model definition with fbc
+      content consequently carries the libsbml error 2020209 ("Strict
+      attribute required on <model>"): a document which validates with one
+      error is usable, an unreadable one is not.
+
+    Everything else a `Model` holds is written into it: the comp constructs
+    of a model definition (`submodels`, `ports`, `replaced_elements`,
+    `deletions`), the fbc ones (`gene_products`, `objectives`,
+    `user_defined_constraints`, the charge and the chemical formula of a
+    species, the flux bounds and the gene product association of a reaction,
+    key-value pairs), the distrib `uncertainties` of any of its elements and
+    a `layouts` list, all through the plugins libsbml attaches to a model
+    definition as it does to the model of a document.
+    """
+
+    _unsupported_fields: ClassVar[dict[str, str]] = {
+        "packages": (
+            "the packages of a document are declared on its <sbml> element, "
+            "which is written from the packages of its model; the document "
+            "declares what the content of a model definition needs"
+        ),
+        "model_definitions": (
+            "comp does not nest model definitions, a <comp:modelDefinition> "
+            "is a child of the <sbml> element; use the model definitions of "
+            "the model of the document"
+        ),
+        "external_model_definitions": (
+            "a <comp:externalModelDefinition> is a child of the <sbml> "
+            "element; use the external model definitions of the model of the "
+            "document"
+        ),
+    }
+
+    def _create_sbml(self, doc: libsbml.SBMLDocument) -> libsbml.ModelDefinition:
+        """Create the libsbml.ModelDefinition on the document and fill it.
+
+        Args:
+            doc: the libsbml.SBMLDocument the model definition is created on
+
+        Returns:
+            the created and filled libsbml.ModelDefinition
+
+        Raises:
+            ValueError: if the document does not declare the comp package, or
+                if a field a model definition does not support is set
+        """
+        doc_comp: libsbml.CompSBMLDocumentPlugin = _comp_plugin(
+            doc, f"The model definition '{self.sid}'"
+        )
+        model_definition: libsbml.ModelDefinition = doc_comp.createModelDefinition()
+        if self.strict is not None:
+            logger.warning(
+                "'strict' is not written on model definition '%s': libsbml "
+                "writes 'fbc:strict' twice on a <comp:modelDefinition>, which "
+                "makes the written document unreadable. See the class "
+                "docstring of `ModelDefinition`.",
+                self.sid,
+            )
+        self._fill_sbml(model_definition)
+        return model_definition
+
+
 def _model_field_kind(annotation: object) -> type | None:
     """Classify a resolved `Model` field annotation as list-valued or scalar.
 
@@ -5702,14 +5761,16 @@ def _model_field_kind(annotation: object) -> type | None:
 def _derive_model_keys() -> dict[str, Any]:
     """Derive `Model._keys` from `Model`'s own field annotations.
 
-    Called once, as a module-level statement right after the `Model` class
-    body, rather than during it: `from __future__ import annotations` turns
-    every annotation in this file into a string, and `typing.get_type_hints`
+    Called once, as a module-level statement after the `Model` class body,
+    rather than during it: `from __future__ import annotations` turns every
+    annotation in this file into a string, and `typing.get_type_hints`
     resolves each of `Model`'s forward references (`Species`, `Reaction`, ...)
     by looking them up in this module's namespace, which only holds them once
     the statements that define them, all located earlier in this module, have
     run. Resolving them while `Model`'s own class body is still executing,
-    before the `Model` name itself is bound, is not possible.
+    before the `Model` name itself is bound, is not possible. One of those
+    forward references is `ModelDefinition`, which subclasses `Model` and is
+    therefore defined between the class body and this call.
 
     Every field `Model` declares in its own class body (not one inherited
     from `Sbase` or `FrozenClass`) is classified by `_model_field_kind`;
