@@ -863,6 +863,47 @@ def test_roundtrip_document_returns_both_documents(tmp_path: Path) -> None:
     assert isinstance(structural_diff(doc_in, doc_out), list)
 
 
+def test_roundtrip_preserves_fbc_strict(tmp_path: Path) -> None:
+    """Test that `fbc:strict="true"` of the source survives the round trip.
+
+    `FBC_ECOLI_CORE_SBML` declares `fbc:strict="true"`. `Document.create_sbml`
+    used to hardcode `setStrict(False)`, which lost it on every round trip;
+    other constructs of this fixture still differ today (gene products and
+    the rest of the objective are parsed by a later task), so this only
+    asserts on `fbc.strict`, never on an empty diff.
+    """
+    doc_in, doc_out = roundtrip_document(FBC_ECOLI_CORE_SBML, tmp_path)
+
+    fbc_in: libsbml.FbcModelPlugin = doc_in.getModel().getPlugin("fbc")
+    assert fbc_in.getStrict() is True
+
+    diffs = structural_diff(doc_in, doc_out)
+    assert [d for d in diffs if d.construct == "fbc.strict"] == []
+
+
+def test_roundtrip_preserves_fbc_v1_implicit_strict(tmp_path: Path) -> None:
+    """Test that an fbc v1 source, which has no `strict` attribute, round trips as strict.
+
+    fbc version 1 has no `fbc:strict` attribute at all, so `isSetStrict()` is
+    `False` on the source; `_packages_of_document` upgrades every fbc v1
+    document to `Package.FBC_V2` on the round trip regardless. Comparing it
+    is done as `tests/structural.py`'s `comparable_document` converts it,
+    and libsbml's own "convert fbc v1 to fbc v2" converter unconditionally
+    sets `fbc:strict="true"` for every fbc v1 document: fbc v1 has no notion
+    of a non-strict model. Reading `strict` as `True` for an fbc v1 source
+    matches that.
+    """
+    sbml_path = testsuite_case("01186")
+    doc_in, doc_out = roundtrip_document(sbml_path, tmp_path)
+
+    fbc_in: libsbml.FbcModelPlugin = doc_in.getModel().getPlugin("fbc")
+    assert fbc_in.getPackageVersion() == 1
+    assert fbc_in.isSetStrict() is False
+
+    diffs = structural_diff(doc_in, doc_out)
+    assert [d for d in diffs if d.construct == "fbc.strict"] == []
+
+
 # ---------------------------------------------------------------------------
 # the whitelist, ruling R5
 # ---------------------------------------------------------------------------

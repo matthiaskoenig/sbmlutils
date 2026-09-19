@@ -77,3 +77,41 @@ def test_key_value_pair_writes_uri() -> None:
     kvp_sbml = parameter.getPlugin("fbc").getListOfKeyValuePairs().get(0)
     assert kvp_sbml.getValue() == "v1"
     assert kvp_sbml.getUri() == "http://example.org/kvp"
+
+
+def _fbc_strict(model: Model) -> bool | None:
+    """Get `fbc:strict` of the model created by `Document`, `None` if unset."""
+    doc: libsbml.SBMLDocument = Document(model=model).create_sbml()
+    fbc: libsbml.FbcModelPlugin = doc.getModel().getPlugin("fbc")
+    return fbc.getStrict() if fbc.isSetStrict() else None
+
+
+def test_model_strict_true_writes_true() -> None:
+    """Test that `Model(strict=True)` writes `fbc:strict="true"`."""
+    model = Model("m", packages=[Package.FBC], strict=True)
+
+    assert _fbc_strict(model) is True
+
+
+def test_model_strict_false_writes_false() -> None:
+    """Test that `Model(strict=False)` writes `fbc:strict="false"`."""
+    model = Model("m", packages=[Package.FBC], strict=False)
+
+    assert _fbc_strict(model) is False
+
+
+def test_model_strict_none_writes_false() -> None:
+    """Test that `Model(strict=None)` keeps today's default of `fbc:strict="false"` when fbc is declared."""
+    model = Model("m", packages=[Package.FBC])
+
+    assert model.strict is None
+    assert _fbc_strict(model) is False
+
+
+def test_model_without_fbc_writes_no_strict() -> None:
+    """Test that a model which does not declare fbc writes no `fbc:strict` at all."""
+    model = Model("m")
+
+    doc: libsbml.SBMLDocument = Document(model=model).create_sbml()
+
+    assert doc.getPlugin("fbc") is None

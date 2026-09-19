@@ -4441,6 +4441,7 @@ class ModelDict(TypedDict, total=False):
     replaced_elements: list[ReplacedElement] | None
     deletions: list[Deletion] | None
     # fbc
+    strict: bool | None
     user_defined_constraints: list[UserDefinedConstraint] | None
     objectives: list[Objective] | None
     gene_products: list[GeneProduct] | None
@@ -4490,6 +4491,12 @@ class Model(Sbase, FrozenClass):
     replaced_elements: list[ReplacedElement]
     deletions: list[Deletion]
     # fbc
+    #: `fbc:strict` of the model, `None` keeps today's default of writing it
+    #: `False` when the model declares fbc, and unset otherwise (see
+    #: `_create_sbml`). It is a scalar in `_keys` (not `list`-typed), so
+    #: `merge_models` overwrites it with the value of the last model that
+    #: sets it, like `conversionFactor` and every other scalar field.
+    strict: bool | None
     user_defined_constraints: list[UserDefinedConstraint]
     objectives: list[Objective]
     gene_products: list[GeneProduct]
@@ -4553,6 +4560,7 @@ class Model(Sbase, FrozenClass):
         ports: list[Port] | None = None,
         replaced_elements: list[ReplacedElement] | None = None,
         deletions: list[Deletion] | None = None,
+        strict: bool | None = None,
         user_defined_constraints: list[UserDefinedConstraint] | None = None,
         objectives: list[Objective] | None = None,
         gene_products: list[GeneProduct] | None = None,
@@ -4599,6 +4607,7 @@ class Model(Sbase, FrozenClass):
             replaced_elements if replaced_elements else []
         )
         self.deletions: list[Deletion] = deletions if deletions else []
+        self.strict = strict
         self.user_defined_constraints: list[UserDefinedConstraint] = (
             user_defined_constraints if user_defined_constraints else []
         )
@@ -5120,8 +5129,15 @@ class Document(Sbase):
             self.doc.setPackageRequired("comp", True)
         if (Package.FBC_V2 in packages) or (Package.FBC_V3 in packages):
             self.doc.setPackageRequired("fbc", False)
-            fbc_plugin = sbml_model.getPlugin("fbc")
-            fbc_plugin.setStrict(False)
+            fbc_plugin: libsbml.FbcModelPlugin = sbml_model.getPlugin("fbc")
+            # `Model.strict` is `None` for a model which never set it, which
+            # keeps today's default of writing `fbc:strict="false"`, see the
+            # field's docstring in `Model`
+            strict = self.model.strict if self.model.strict is not None else False
+            check(
+                fbc_plugin.setStrict(strict),
+                f"Set fbc:strict on model '{self.model.sid}'",
+            )
         if Package.DISTRIB_V1 in packages:
             self.doc.setPackageRequired("distrib", True)
 

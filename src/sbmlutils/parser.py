@@ -9,11 +9,12 @@ references, modifiers and kinetic laws with local parameters, the initial
 assignments, rules, events with their trigger, priority, delay and event
 assignments, and constraints, and on each of these its id, name, metaid,
 sboTerm, notes, annotations and fbc key-value pairs. An element without math,
-which SBML allows from L3V2 on, is read without math.
+which SBML allows from L3V2 on, is read without math. It also reads
+`fbc:strict` of the model.
 
-Not read are the model history, and the content of the `fbc`, `distrib`,
-`comp`, `groups` and `layout` packages: flux bounds, objectives and gene
-products, uncertainties, submodels, ports and replacements. The `fbc`,
+Not read are the model history, and the rest of the content of the `fbc`,
+`distrib`, `comp`, `groups` and `layout` packages: flux bounds, objectives and
+gene products, uncertainties, submodels, ports and replacements. The `fbc`,
 `distrib` and `comp` packages a document declares are declared on the model.
 Math is read as an L3 infix string, in which an id named like a MathML
 constant or csymbol (`pi`, `INF`, `NaN`, `time`, `avogadro`) cannot be told
@@ -270,15 +271,35 @@ def _parse_model_body(model: libsbml.Model, m: Model) -> None:
     Populates `m` with everything `sbml_to_model` parses from `model`: unit
     definitions, model units, function definitions, compartments, species,
     parameters, reactions with kinetic laws, initial assignments, rules,
-    events and constraints. `model` can be any `libsbml.Model`, including a
-    `libsbml.ModelDefinition`, which subclasses it, so the comp package can
-    recurse into a model definition with the same parser.
+    events, constraints and `fbc:strict`. `model` can be any `libsbml.Model`,
+    including a `libsbml.ModelDefinition`, which subclasses it, so the comp
+    package can recurse into a model definition with the same parser.
 
     Args:
         model: the libsbml.Model, or libsbml.ModelDefinition, to parse
         m: the `Model` to populate; already constructed, with its own
             `Sbase` fields, `parsed`, `packages` and `conversionFactor` set
     """
+    # fbc:strict, read from the fbc plugin of this `model` rather than
+    # passed in by `sbml_to_model`: the fbc model plugin attaches to a comp
+    # `ModelDefinition` as well, which a later task parses by recursing into
+    # this function, so `m.strict` has to be set from whichever plugin this
+    # call was given. fbc version 1 has no `strict` attribute at all
+    # (`isSetStrict()` is always `False`), and `_packages_of_document`
+    # already upgrades it to `Package.FBC_V2` on the round trip, so it is
+    # read here as `True`: fbc version 1 has no notion of a non-strict
+    # model, and libsbml's own "convert fbc v1 to fbc v2" converter sets
+    # `fbc:strict="true"` unconditionally on every v1 document, flux bounds
+    # or not (measured on an otherwise empty model), which is the version
+    # `tests/structural.py` compares a v1 document as, see its module
+    # docstring.
+    model_fbc: libsbml.FbcModelPlugin | None = model.getPlugin("fbc")
+    if model_fbc is not None:
+        if model_fbc.isSetStrict():
+            m.strict = model_fbc.getStrict()
+        elif model_fbc.getPackageVersion() == 1:
+            m.strict = True
+
     # unit definitions
     udef: libsbml.UnitDefinition
     for udef in model.getListOfUnitDefinitions():
@@ -561,7 +582,24 @@ def sbml_to_model(
     promote: bool = False,
     validation_options: ValidationOptions | None = None,
 ) -> Model:
-    """Parse SBML model."""
+    """Parse an SBML document into the `Model` of `sbmlutils.factory`, see the module docstring.
+
+    Args:
+        source: an SBML file path, an SBML string, or a URL, passed through
+            to `sbmlutils.io.sbml.read_sbml`
+        validate: whether to validate the document while reading it
+        promote: whether to promote local parameters to global parameters
+        validation_options: which validation checks to run, only used when
+            `validate` is `True`
+
+    Returns:
+        the parsed `Model`, with `parsed` set to `True` so that it is
+        written back out without the authoring hints of a model definition
+
+    Raises:
+        AttributeError: if `source` has no model; `read_sbml` only logs that
+            case, it does not raise
+    """
     doc: libsbml.SBMLDocument = read_sbml(
         source=source,
         promote=promote,

@@ -56,12 +56,28 @@ def test_model_keys_pinned() -> None:
         "ports": list,
         "replaced_elements": list,
         "deletions": list,
+        "strict": None,
         "user_defined_constraints": list,
         "objectives": list,
         "gene_products": list,
         "layouts": list,
         "parsed": None,
     }
+
+
+def test_strict_merge_takes_the_last_model() -> None:
+    """Test that `merge_models` overwrites `strict` with the value of the last model that sets it.
+
+    `strict` is a scalar in `Model._keys` (`None`, not `list`), like
+    `conversionFactor`: `merge_models` does not concatenate it, it takes the
+    value of the last model of the sequence which sets it, `None` included.
+    """
+    m1 = Model("m1", strict=True)
+    m2 = Model("m2", strict=False)
+
+    assert Model.merge_models(models=[m1, m2]).strict is False
+    assert Model.merge_models(models=[m2, m1]).strict is True
+    assert Model.merge_models(models=[m1, Model("m3")]).strict is None
 
 
 def test_creator_merge() -> None:
