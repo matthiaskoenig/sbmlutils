@@ -388,115 +388,121 @@ def _gene_product_association(
     return infix
 
 
+def _parse_fbc_model(model_fbc: libsbml.FbcModelPlugin, m: Model) -> None:
+    """Parse the fbc content of a model itself into an already constructed `Model`.
+
+    This is what the fbc plugin of a model carries: `fbc:strict`, the gene
+    products, the objectives with their flux objectives and which of them is
+    active, and the user-defined constraints of fbc version 3 with their
+    components. The fbc content of a species, of a reaction and of any element
+    with key-value pairs belongs to those elements and is read where they are.
+
+    Args:
+        model_fbc: the fbc plugin of a libsbml.Model or libsbml.ModelDefinition
+        m: the `Model` to populate
+    """
+    # `fbc:strict`. A model which does not state it leaves `m.strict` at
+    # `None`, which is written as `fbc:strict="false"`, the weakest claim:
+    # that is the case for a document which declared fbc version 1, whose
+    # `strict` `_convert_fbc_v1` unsets again, since claiming `true` for a
+    # model which never said so makes every `constant="false"` species
+    # reference of it an error (libsbml 2020714).
+    if model_fbc.isSetStrict():
+        m.strict = model_fbc.getStrict()
+
+    # the gene products, which the associations of the reactions reference by
+    # id; `Model._create_sbml` creates them before the reactions, so that
+    # `Reaction.geneProductAssociation` resolves every id it names
+    gene_product: libsbml.GeneProduct
+    for gene_product in model_fbc.getListOfGeneProducts():
+        m.gene_products.append(
+            GeneProduct(
+                label=gene_product.getLabel(),
+                associatedSpecies=(
+                    gene_product.getAssociatedSpecies()
+                    if gene_product.isSetAssociatedSpecies()
+                    else None
+                ),
+                **_parse_sbase_kwargs(gene_product),
+            )
+        )
+
+    # fbc objectives; `active` is not an attribute of an objective, it is
+    # the `activeObjective` of the list, which names at most one of them
+    objectives: libsbml.ListOfObjectives = model_fbc.getListOfObjectives()
+    active: str | None = (
+        objectives.getActiveObjective() if objectives.isSetActiveObjective() else None
+    )
+    objective: libsbml.Objective
+    for objective in objectives:
+        flux_objectives: list[FluxObjective] = []
+        flux_objective: libsbml.FluxObjective
+        for flux_objective in objective.getListOfFluxObjectives():
+            flux_objectives.append(
+                FluxObjective(
+                    reaction=flux_objective.getReaction(),
+                    coefficient=flux_objective.getCoefficient(),
+                    variableType=_variable_type(flux_objective),
+                    **_parse_sbase_kwargs(flux_objective),
+                )
+            )
+        m.objectives.append(
+            Objective(
+                objectiveType=_objective_type(objective),
+                active=objective.getIdAttribute() == active,
+                fluxObjectives=flux_objectives,
+                # every flux objective carries the variableType of the
+                # document, so none of them is to be given the authoring
+                # default of the objective
+                variableType=None,
+                **_parse_sbase_kwargs(objective),
+            )
+        )
+
+    # fbc user-defined constraints, added in fbc version 3
+    constraint_fbc: libsbml.UserDefinedConstraint
+    for constraint_fbc in model_fbc.getListOfUserDefinedConstraints():
+        components: list[UserDefinedConstraintComponent] = []
+        component: libsbml.UserDefinedConstraintComponent
+        for component in constraint_fbc.getListOfUserDefinedConstraintComponents():
+            components.append(
+                UserDefinedConstraintComponent(
+                    coefficient=component.getCoefficient(),
+                    variable=component.getVariable(),
+                    variableType=_variable_type(component),
+                    **_parse_sbase_kwargs(component),
+                )
+            )
+        m.user_defined_constraints.append(
+            UserDefinedConstraint(
+                lowerBound=constraint_fbc.getLowerBound(),
+                upperBound=constraint_fbc.getUpperBound(),
+                components=components,
+                # as above, every component carries its own
+                variableType=None,
+                **_parse_sbase_kwargs(constraint_fbc),
+            )
+        )
+
+
 def _parse_model_body(model: libsbml.Model, m: Model) -> None:
     """Parse the body of a model into an already constructed `Model`.
 
     Populates `m` with everything `sbml_to_model` parses from `model`: unit
     definitions, model units, function definitions, compartments, species,
     parameters, reactions with kinetic laws, initial assignments, rules,
-    events, constraints, `fbc:strict`, the gene products, objectives and
-    user-defined constraints of the model, the gene product association and
-    the flux bounds of a reaction and the charge and chemical formula of a
-    species. `model` can be any `libsbml.Model`,
-    including a `libsbml.ModelDefinition`, which subclasses it, so the comp
-    package can recurse into a model definition with the same parser.
+    events and constraints, with the gene product association and the flux
+    bounds of a reaction and the charge and chemical formula of a species, and
+    the fbc content of the model itself, see `_parse_fbc_model`. `model` can
+    be any `libsbml.Model`, including a `libsbml.ModelDefinition`, which
+    subclasses it, so the comp package can recurse into a model definition
+    with the same parser.
 
     Args:
         model: the libsbml.Model, or libsbml.ModelDefinition, to parse
         m: the `Model` to populate; already constructed, with its own
             `Sbase` fields, `parsed`, `packages` and `conversionFactor` set
     """
-    # fbc:strict, read from the fbc plugin of this `model` rather than
-    # passed in by `sbml_to_model`: the fbc model plugin attaches to a comp
-    # `ModelDefinition` as well, which a later task parses by recursing into
-    # this function, so `m.strict` has to be set from whichever plugin this
-    # call was given. A model which does not state `strict` leaves `m.strict`
-    # at `None`, which is written as `fbc:strict="false"`, the weakest claim:
-    # that is the case for a document which declared fbc version 1, whose
-    # `strict` `_convert_fbc_v1` unsets again, since claiming `true` for a
-    # model which never said so makes every `constant="false"` species
-    # reference of it an error (libsbml 2020714).
-    model_fbc: libsbml.FbcModelPlugin | None = model.getPlugin("fbc")
-    if model_fbc is not None and model_fbc.isSetStrict():
-        m.strict = model_fbc.getStrict()
-
-    # fbc gene products, which the associations of the reactions reference by
-    # id; `Model._create_sbml` creates them before the reactions, so that
-    # `Reaction.geneProductAssociation` resolves every id it names
-    if model_fbc is not None:
-        gene_product: libsbml.GeneProduct
-        for gene_product in model_fbc.getListOfGeneProducts():
-            m.gene_products.append(
-                GeneProduct(
-                    label=gene_product.getLabel(),
-                    associatedSpecies=(
-                        gene_product.getAssociatedSpecies()
-                        if gene_product.isSetAssociatedSpecies()
-                        else None
-                    ),
-                    **_parse_sbase_kwargs(gene_product),
-                )
-            )
-
-        # fbc objectives; `active` is not an attribute of an objective, it is
-        # the `activeObjective` of the list, which names at most one of them
-        objectives: libsbml.ListOfObjectives = model_fbc.getListOfObjectives()
-        active: str | None = (
-            objectives.getActiveObjective()
-            if objectives.isSetActiveObjective()
-            else None
-        )
-        objective: libsbml.Objective
-        for objective in objectives:
-            flux_objectives: list[FluxObjective] = []
-            flux_objective: libsbml.FluxObjective
-            for flux_objective in objective.getListOfFluxObjectives():
-                flux_objectives.append(
-                    FluxObjective(
-                        reaction=flux_objective.getReaction(),
-                        coefficient=flux_objective.getCoefficient(),
-                        variableType=_variable_type(flux_objective),
-                        **_parse_sbase_kwargs(flux_objective),
-                    )
-                )
-            m.objectives.append(
-                Objective(
-                    objectiveType=_objective_type(objective),
-                    active=objective.getIdAttribute() == active,
-                    fluxObjectives=flux_objectives,
-                    # every flux objective carries the variableType of the
-                    # document, so none of them is to be given the authoring
-                    # default of the objective
-                    variableType=None,
-                    **_parse_sbase_kwargs(objective),
-                )
-            )
-
-        # fbc user-defined constraints, added in fbc version 3
-        constraint_fbc: libsbml.UserDefinedConstraint
-        for constraint_fbc in model_fbc.getListOfUserDefinedConstraints():
-            components: list[UserDefinedConstraintComponent] = []
-            component: libsbml.UserDefinedConstraintComponent
-            for component in constraint_fbc.getListOfUserDefinedConstraintComponents():
-                components.append(
-                    UserDefinedConstraintComponent(
-                        coefficient=component.getCoefficient(),
-                        variable=component.getVariable(),
-                        variableType=_variable_type(component),
-                        **_parse_sbase_kwargs(component),
-                    )
-                )
-            m.user_defined_constraints.append(
-                UserDefinedConstraint(
-                    lowerBound=constraint_fbc.getLowerBound(),
-                    upperBound=constraint_fbc.getUpperBound(),
-                    components=components,
-                    # as above, every component carries its own
-                    variableType=None,
-                    **_parse_sbase_kwargs(constraint_fbc),
-                )
-            )
-
     # unit definitions
     udef: libsbml.UnitDefinition
     for udef in model.getListOfUnitDefinitions():
@@ -787,6 +793,14 @@ def _parse_model_body(model: libsbml.Model, m: Model) -> None:
                 **_parse_sbase_kwargs(constraint),
             )
         )
+
+    # fbc, on the plugin of this `model` rather than on one passed in by
+    # `sbml_to_model`: the fbc model plugin attaches to a comp
+    # `ModelDefinition` as well, which a later task parses by recursing into
+    # this function
+    model_fbc: libsbml.FbcModelPlugin | None = model.getPlugin("fbc")
+    if model_fbc is not None:
+        _parse_fbc_model(model_fbc, m)
 
     # the content of the distrib, comp, groups and layout packages is not
     # parsed yet, see the module docstring
