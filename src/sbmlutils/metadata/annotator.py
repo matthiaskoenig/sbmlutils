@@ -14,9 +14,8 @@ ontology lookup service.
 import logging
 import os
 import re
-from collections.abc import Iterable, Iterator
-from contextlib import contextmanager
-from contextvars import ContextVar
+from collections.abc import Iterable
+from contextlib import AbstractContextManager
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -30,7 +29,7 @@ from sbmlutils import utils
 from sbmlutils.console import console
 from sbmlutils.io.sbml import read_sbml, write_sbml
 
-from ..validation import check
+from ..validation import ScopedLossCollector, check
 
 logger = logging.getLogger(__name__)
 
@@ -65,18 +64,31 @@ class _CollectionLoss:
     reasons: set[str] = field(default_factory=set)
 
 
+def _report_collection_loss(collection: str, loss: _CollectionLoss) -> None:
+    """Report the resources of one collection which were written as given.
+
+    Args:
+        collection: the collection the resources belong to
+        loss: the count, the example and the reasons
+    """
+    logger.warning(
+        "%s annotation resource(s) of the collection '%s' are written as "
+        "given, e.g. '%s': %s.",
+        loss.count,
+        collection,
+        loss.example,
+        "; ".join(sorted(loss.reasons)),
+    )
+
+
 #: the resources written as given in the document currently being written,
-#: keyed by collection; `None` outside `collect_resource_losses`. A
-#: `ContextVar` rather than a module global: the collection belongs to the
-#: code which writes one document, and a thread starts with a fresh context
-#: in which this holds its default.
-_resource_losses: ContextVar[dict[str, _CollectionLoss] | None] = ContextVar(
-    "sbmlutils_resource_losses", default=None
+#: keyed by collection, see `ScopedLossCollector`
+_resource_losses: ScopedLossCollector[str, _CollectionLoss] = ScopedLossCollector(
+    "sbmlutils_resource_losses", _report_collection_loss
 )
 
 
-@contextmanager
-def collect_resource_losses() -> Iterator[None]:
+def collect_resource_losses() -> AbstractContextManager[None]:
     """Report the resources written as given once per collection.
 
     An annotation resource which pymetadata cannot canonicalize without
@@ -93,30 +105,10 @@ def collect_resource_losses() -> Iterator[None]:
     own, so that a document which is created and then annotated from a file
     is still reported once.
 
-    Yields:
-        None
+    Returns:
+        the context manager
     """
-    if _resource_losses.get() is not None:
-        # an inner context reuses the collector, only the outermost reports
-        yield
-        return
-
-    losses: dict[str, _CollectionLoss] = {}
-    token = _resource_losses.set(losses)
-    try:
-        yield
-    finally:
-        _resource_losses.reset(token)
-        for collection in sorted(losses):
-            loss = losses[collection]
-            logger.warning(
-                "%s annotation resource(s) of the collection '%s' are written as "
-                "given, e.g. '%s': %s.",
-                loss.count,
-                collection,
-                loss.example,
-                "; ".join(sorted(loss.reasons)),
-            )
+    return _resource_losses.scope()
 
 
 def _record_loss(annotation: Annotation, normalized: str | None, reason: str) -> None:
@@ -133,8 +125,10 @@ def _record_loss(annotation: Annotation, normalized: str | None, reason: str) ->
         reason: why the canonical resource cannot be written
     """
     collection: str = annotation.collection or _UNKNOWN_COLLECTION
-    losses = _resource_losses.get()
-    if losses is None:
+    loss = _resource_losses.group(
+        collection, lambda: _CollectionLoss(example=annotation.resource)
+    )
+    if loss is None:
         logger.warning(
             "The annotation resource '%s' of the collection '%s' is written as "
             "given: %s.",
@@ -144,10 +138,6 @@ def _record_loss(annotation: Annotation, normalized: str | None, reason: str) ->
         )
         return
 
-    loss = losses.get(collection)
-    if loss is None:
-        loss = _CollectionLoss(example=annotation.resource)
-        losses[collection] = loss
     loss.count += 1
     loss.reasons.add(reason)
     logger.debug(

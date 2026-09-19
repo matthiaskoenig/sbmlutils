@@ -26,7 +26,7 @@ import numbers
 import re
 from collections import namedtuple
 from collections.abc import Iterable, Iterator, Sequence
-from contextlib import contextmanager
+from contextlib import AbstractContextManager, contextmanager
 from contextvars import ContextVar
 from copy import deepcopy
 from dataclasses import dataclass
@@ -64,7 +64,7 @@ from sbmlutils.metadata.annotator import Annotation
 from sbmlutils.notes import Notes, NotesFormat, detect_format
 from sbmlutils.reaction_equation import EquationPart, ReactionEquation
 from sbmlutils.utils import FrozenClass, create_metaid
-from sbmlutils.validation import ValidationOptions, check
+from sbmlutils.validation import ScopedLossCollector, ValidationOptions, check
 
 try:
     from typing import TypedDict
@@ -254,6 +254,139 @@ def _sbml_flavour(sbase: Any) -> str:
     return f"SBML L{level}V{version}"
 
 
+#: the version of each package this module writes, which is what a document
+#: has to declare to carry the content of that version
+_LATEST_PACKAGE_VERSION: dict[str, int] = {"comp": 1, "distrib": 1, "fbc": 3}
+
+
+def _flavour_advice(sbase: Any) -> str:
+    """Say what to write to keep an attribute the document has no place for.
+
+    Args:
+        sbase: the libsbml object, or plugin, the attribute was set on
+
+    Returns:
+        the sentence, empty if no level, version or package version this
+        module writes has the attribute either
+    """
+    package: str = sbase.getPackageName()
+    if package and package != "core":
+        latest = _LATEST_PACKAGE_VERSION.get(package)
+        if latest is not None and sbase.getPackageVersion() < latest:
+            return f"Declare {package} version {latest} to keep it."
+        return ""
+    if (sbase.getLevel(), sbase.getVersion()) < (3, 2):
+        return "Write SBML Level 3 Version 2 to keep it."
+    return ""
+
+
+@dataclass
+class _AttributeLoss:
+    """The elements of one kind whose attribute the document cannot carry.
+
+    Attributes:
+        count: how many elements of the kind lost the attribute
+        example: the first of them, named in the report
+        flavour: the level, version and package version which has no such
+            attribute, see `_sbml_flavour`
+        advice: what to write to keep the attribute, see `_flavour_advice`
+    """
+
+    count: int = 0
+    example: str = ""
+    flavour: str = ""
+    advice: str = ""
+
+
+def _report_attribute_loss(key: tuple[str, ...], loss: _AttributeLoss) -> None:
+    """Report the elements of one kind which lost one attribute.
+
+    Args:
+        key: the SBML element name and the attribute, as collected
+        loss: the count, the example, the flavour and the advice
+    """
+    element_name, attribute = key
+    logger.warning(
+        "The '%s' of %s <%s> element(s) is not written: %s has no such "
+        "attribute, e.g. '%s'. %s",
+        attribute,
+        loss.count,
+        element_name,
+        loss.flavour,
+        loss.example,
+        loss.advice,
+    )
+
+
+#: the attributes which the level, the version or the package version of the
+#: document being written has no place for, collected per document so that
+#: one decision is reported once, see `collect_attribute_losses`
+_attribute_losses: ScopedLossCollector[tuple[str, ...], _AttributeLoss] = (
+    ScopedLossCollector("sbmlutils_attribute_losses", _report_attribute_loss)
+)
+
+
+def collect_attribute_losses() -> AbstractContextManager[None]:
+    """Report the attributes a document has no place for once per kind.
+
+    An attribute which the SBML level and version of the document, or the
+    version of the package, does not have at all is lost for every element
+    which carries it, and the caller fixes all of them with one decision:
+    write SBML Level 3 Version 2, or declare a later version of the package.
+    Inside this context every such loss is collected and logged at debug, and
+    one warning per element kind and attribute is emitted when the context
+    ends. Outside it, every loss is warned about on its own.
+
+    The context is entered by the code which writes a whole document,
+    `Document.create_sbml` and `create_model`; a context inside an active one
+    collects into it and reports nothing of its own.
+
+    Returns:
+        the context manager
+    """
+    return _attribute_losses.scope()
+
+
+def _record_attribute_loss(
+    sbase: Any, attribute: str, value: Any, element: Any
+) -> None:
+    """Record an attribute the document being written has no place for.
+
+    Args:
+        sbase: the libsbml object, or plugin, the attribute was set on
+        attribute: the name of the SBML attribute, e.g. `name`
+        value: the value which was not written
+        element: the model element the attribute belongs to
+    """
+    element_name: str = sbase.getElementName()
+    loss = _attribute_losses.group(
+        (element_name, attribute),
+        lambda: _AttributeLoss(
+            example=str(element),
+            flavour=_sbml_flavour(sbase),
+            advice=_flavour_advice(sbase),
+        ),
+    )
+    if loss is None:
+        logger.warning(
+            "The '%s' of '%s' is not written: %s has no such attribute. %s",
+            attribute,
+            element,
+            _sbml_flavour(sbase),
+            _flavour_advice(sbase),
+        )
+        return
+    loss.count += 1
+    logger.debug(
+        "The '%s' of '%s' is not written with the value '%s': %s has no such "
+        "attribute.",
+        attribute,
+        element,
+        value,
+        loss.flavour,
+    )
+
+
 def _check_attribute(
     status: int, sbase: Any, attribute: str, value: Any, element: Any
 ) -> bool:
@@ -261,11 +394,14 @@ def _check_attribute(
 
     A libsbml setter answers with a status code instead of raising, so an
     attribute which could not be written is lost in silence unless the status
-    is looked at. `LIBSBML_UNEXPECTED_ATTRIBUTE` gets a message of its own:
-    the document has no such attribute at all, which no value can fix, and
-    the reason is the SBML level and version of the document, or the version
-    of the package the element belongs to. Every other status, an invalid
-    value above all, goes through `check`.
+    is looked at. The two kinds of failure are reported differently:
+
+    - `LIBSBML_UNEXPECTED_ATTRIBUTE` means the document has no place for the
+      attribute at all, which no value can fix and which one decision fixes
+      for every element at once, so it is collected for the document and
+      reported once per element kind, see `collect_attribute_losses`;
+    - every other status, an invalid **value** above all, is a property of
+      the one element and goes through `check`, which reports it as an error.
 
     Both messages are built in the failure branch, so that a document which
     is written without a loss pays nothing for the report.
@@ -285,13 +421,7 @@ def _check_attribute(
     if status == libsbml.LIBSBML_OPERATION_SUCCESS:
         return True
     if status == libsbml.LIBSBML_UNEXPECTED_ATTRIBUTE:
-        logger.error(
-            "The %s '%s' of '%s' is not written: %s has no such attribute.",
-            attribute,
-            value,
-            element,
-            _sbml_flavour(sbase),
-        )
+        _record_attribute_loss(sbase, attribute, value, element)
         return False
     return check(status, f"Set {attribute} '{value}' on '{element}'")
 
@@ -827,29 +957,17 @@ class Sbase:
             # libsbml aliases setId to the variable/symbol attribute on rules,
             # initial assignments and event assignments, where it is a no-op;
             # setIdAttribute is the accessor which actually sets the id
+            # many elements only have an id from SBML L3V2 on, e.g. a
+            # constraint or a kinetic law; below it the id has no place in
+            # the document, which one decision fixes for all of them, so it
+            # is reported with every other such attribute, see
+            # `collect_attribute_losses`
             if sbase.getTypeCode() in _ID_ATTRIBUTE_TYPECODES:
-                check(
-                    sbase.setIdAttribute(self.sid),
-                    f"Set id '{self.sid}' on {sbase}",
+                _check_attribute(
+                    sbase.setIdAttribute(self.sid), sbase, "id", self.sid, self
                 )
             else:
-                status: int = sbase.setId(self.sid)
-                if status == libsbml.LIBSBML_UNEXPECTED_ATTRIBUTE and (
-                    sbase.getLevel(),
-                    sbase.getVersion(),
-                ) < (3, 2):
-                    # many elements only have an id from SBML L3V2 on, e.g. a
-                    # constraint or a kinetic law; below it the id has no
-                    # place in the document, which the caller cannot change
-                    logger.debug(
-                        "'%s' has no id in SBML L%sV%s, id '%s' is not written.",
-                        sbase.getElementName(),
-                        sbase.getLevel(),
-                        sbase.getVersion(),
-                        self.sid,
-                    )
-                else:
-                    check(status, f"Set id '{self.sid}' on {sbase}")
+                _check_attribute(sbase.setId(self.sid), sbase, "id", self.sid, self)
         if self.name is not None:
             _check_attribute(sbase.setName(self.name), sbase, "name", self.name, self)
         elif Sbase._authoring_hints.get() and not isinstance(
@@ -6913,7 +7031,7 @@ class Document(Sbase):
         Returns:
             the created libsbml.SBMLDocument
         """
-        with annotator.collect_resource_losses():
+        with annotator.collect_resource_losses(), collect_attribute_losses():
             return self._create_sbml()
 
     def _create_sbml(self) -> libsbml.SBMLDocument:
@@ -7090,8 +7208,10 @@ def create_model(
 
     # create and write SBML; creating the document and annotating it from a
     # file both write annotation resources, and one call writes one document,
-    # so both report into one collector, see `collect_resource_losses`
-    with annotator.collect_resource_losses():
+    # so both report into one collector, see `collect_resource_losses`. The
+    # attributes the document has no place for are collected the same way,
+    # see `collect_attribute_losses`
+    with annotator.collect_resource_losses(), collect_attribute_losses():
         doc: libsbml.SBMLDocument = Document(
             model=m,
             sbml_level=sbml_level,

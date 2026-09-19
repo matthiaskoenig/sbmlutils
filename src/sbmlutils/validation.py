@@ -2,14 +2,104 @@
 
 import logging
 import time
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable, Iterator
+from contextlib import contextmanager
+from contextvars import ContextVar
 from dataclasses import dataclass
+from typing import Generic, TypeVar
 
 import libsbml
 
 from sbmlutils.console import console
 
 logger = logging.getLogger(__name__)
+
+#: the key a loss is grouped under; constrained rather than unbounded so that
+#: the groups of a scope can be sorted for a deterministic report
+K = TypeVar("K", str, tuple[str, ...])
+#: what is collected for one key, e.g. a count with an example
+V = TypeVar("V")
+
+
+class ScopedLossCollector(Generic[K, V]):
+    """Collect the losses of one document and report them once per group.
+
+    Writing a document can lose the same thing over and over: an annotation
+    resource of a collection which cannot be canonicalized, an attribute the
+    level and version of the document does not have. Reporting each of them
+    on its own buries the one decision which fixes all of them under
+    thousands of lines. Inside a scope every loss is collected under a key
+    and the detail is logged at debug by the caller; when the outermost scope
+    ends, one report per key is emitted, in the order of the keys. Outside a
+    scope there is nothing to report at the end, so the caller reports the
+    loss directly.
+
+    The collection is held in a `ContextVar` rather than in a module global:
+    it belongs to the code which writes one document, and a thread starts
+    with a fresh context in which the variable holds its default, so writing
+    one document does not collect into the report of another.
+
+    Type parameters:
+        K: the key the losses are grouped under, a string or a tuple of them
+        V: what is collected for one key
+    """
+
+    def __init__(self, name: str, report: Callable[[K, V], None]) -> None:
+        """Construct a collector.
+
+        Args:
+            name: the name of the `ContextVar`, which is used for debugging
+                only and should name the package and the kind of loss
+            report: called once per key when the outermost scope ends, in the
+                order of the keys
+        """
+        self._groups: ContextVar[dict[K, V] | None] = ContextVar(name, default=None)
+        self._report = report
+
+    @contextmanager
+    def scope(self) -> Iterator[None]:
+        """Collect the losses recorded inside and report them when it ends.
+
+        A scope inside an active one collects into it and reports nothing of
+        its own, so that a document which is created and then annotated from
+        a file is still reported once.
+
+        Yields:
+            None
+        """
+        if self._groups.get() is not None:
+            # an inner scope reuses the collection, only the outermost reports
+            yield
+            return
+
+        groups: dict[K, V] = {}
+        token = self._groups.set(groups)
+        try:
+            yield
+        finally:
+            self._groups.reset(token)
+            for key in sorted(groups):
+                self._report(key, groups[key])
+
+    def group(self, key: K, create: Callable[[], V]) -> V | None:
+        """Get the group of a key inside a scope, `None` outside one.
+
+        Args:
+            key: the key the loss is grouped under
+            create: builds the group when the key is seen for the first time
+
+        Returns:
+            the group to record the loss in, `None` if no scope is active and
+            the caller has to report the loss itself
+        """
+        groups = self._groups.get()
+        if groups is None:
+            return None
+        group = groups.get(key)
+        if group is None:
+            group = create()
+            groups[key] = group
+        return group
 
 
 def check(value: int, message: str) -> bool:

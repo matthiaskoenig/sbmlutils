@@ -2115,9 +2115,10 @@ def _minimal_content() -> dict[str, Any]:
 
 #: one case per kind of libsbml failure the survey of the unwrapped setters
 #: found, as `(build, level, version, fragments of the one error)`. Every case
-#: is a value which `factory.py` passes on to libsbml unchanged and which
+#: is a **value** which `factory.py` passes on to libsbml unchanged and which
 #: libsbml refuses with a status code, so that the attribute was dropped in
-#: silence before it was wrapped.
+#: silence before it was wrapped. An attribute the document has no place for
+#: at all is the other half, see `_ATTRIBUTES_WITHOUT_A_PLACE`.
 _SWALLOWED_ATTRIBUTES: list[Any] = [
     pytest.param(
         lambda: Model(
@@ -2173,48 +2174,6 @@ _SWALLOWED_ATTRIBUTES: list[Any] = [
         1,
         ["time unit", "not an sid", "Model(invalid_unit_id)"],
         id="invalid-unit-id",
-    ),
-    pytest.param(
-        lambda: Model(
-            sid="attribute_of_a_later_level",
-            name="a model",
-            parameters=[Parameter("p1", 1.0, name="p1")],
-            compartments=[Compartment("c", 1.0, name="compartment")],
-            species=[
-                Species(
-                    "S1",
-                    compartment="c",
-                    initialAmount=1.0,
-                    name="S1",
-                    conversionFactor="p1",
-                )
-            ],
-        ),
-        2,
-        4,
-        ["conversionFactor", "p1", "Species(S1", "SBML L2V4 has no such attribute"],
-        id="attribute-of-a-later-level",
-    ),
-    pytest.param(
-        lambda: Model(
-            sid="attribute_of_a_later_package_version",
-            name="a model",
-            packages=[Package.FBC_V2],
-            objectives=[
-                Objective(
-                    sid="obj1",
-                    name="objective",
-                    objectiveType="maximize",
-                    fluxObjectives={"R1": 1.0},
-                )
-            ],
-            reactions=[Reaction("R1", "S1 ->", name="reaction")],
-            **_minimal_content(),
-        ),
-        3,
-        1,
-        ["variableType", "fbc version 2", "has no such attribute"],
-        id="attribute-of-a-later-package-version",
     ),
     pytest.param(
         lambda: Model(
@@ -2310,10 +2269,10 @@ def test_attribute_libsbml_refuses_is_reported(
     asked for it, the written document did not carry it and validated. Every
     case here is one kind of refusal the survey of `factory.py` found: an
     invalid SId, an invalid SBO term, an invalid metaid, an invalid unit id,
-    an attribute the SBML level and version does not have, an attribute the
-    package version does not have, a value outside an enumeration, an invalid
-    chemical formula, a reference the element cannot carry, and a package the
-    SBML level cannot declare.
+    a value outside an enumeration, an invalid chemical formula, a reference
+    the element cannot carry, and a package the SBML level cannot declare.
+    An attribute the document has no place for at all is not an error per
+    element, see `test_attribute_the_document_has_no_place_for_is_reported_once`.
 
     The document is written either way, which the file on disk shows.
     """
@@ -2346,6 +2305,106 @@ def test_attribute_libsbml_refuses_is_reported(
     sbml_model: libsbml.Model = doc.getModel()
     assert sbml_model.getId() == model.sid
     assert sbml_model.getNumCompartments() == 1
+
+
+#: one case per kind of attribute the document has no place for, as
+#: `(build, level, version, fragments of the one warning)`. This is the other
+#: half of `_SWALLOWED_ATTRIBUTES`: the value is fine and the document has
+#: nowhere to put it, which one decision fixes for every element at once.
+_ATTRIBUTES_WITHOUT_A_PLACE: list[Any] = [
+    pytest.param(
+        lambda: Model(
+            sid="attribute_of_a_later_level",
+            name="a model",
+            parameters=[Parameter("p1", 1.0, name="p1")],
+            compartments=[Compartment("c", 1.0, name="compartment")],
+            species=[
+                Species(
+                    "S1",
+                    compartment="c",
+                    initialAmount=1.0,
+                    name="S1",
+                    conversionFactor="p1",
+                )
+            ],
+        ),
+        2,
+        4,
+        [
+            "'conversionFactor'",
+            "1 <species>",
+            "Species(S1",
+            "SBML L2V4 has no such attribute",
+            "Write SBML Level 3 Version 2",
+        ],
+        id="attribute-of-a-later-level",
+    ),
+    pytest.param(
+        lambda: Model(
+            sid="attribute_of_a_later_package_version",
+            name="a model",
+            packages=[Package.FBC_V2],
+            objectives=[
+                Objective(
+                    sid="obj1",
+                    name="objective",
+                    objectiveType="maximize",
+                    fluxObjectives={"R1": 1.0},
+                )
+            ],
+            reactions=[Reaction("R1", "S1 ->", name="reaction")],
+            **_minimal_content(),
+        ),
+        3,
+        1,
+        [
+            "'variableType'",
+            "1 <fluxObjective>",
+            "fbc version 2",
+            "has no such attribute",
+            "Declare fbc version 3",
+        ],
+        id="attribute-of-a-later-package-version",
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "build, level, version, fragments", _ATTRIBUTES_WITHOUT_A_PLACE
+)
+def test_attribute_the_document_has_no_place_for_is_reported_once(
+    build: Callable[[], Model],
+    level: int,
+    version: int,
+    fragments: list[str],
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that an attribute the document cannot carry is one warning.
+
+    The value is fine; the SBML level and version of the document, or the
+    version of the package, has no such attribute, which the caller fixes
+    with one decision for every element at once. Such a loss is collected for
+    the document and reported once per element kind and attribute, not as an
+    error per element.
+    """
+    model = build()
+    sbml_path = tmp_path / f"{model.sid}.xml"
+    with caplog.at_level(logging.WARNING, logger="sbmlutils"):
+        create_model(
+            model=model,
+            filepath=sbml_path,
+            sbml_level=level,
+            sbml_version=version,
+            validate=False,
+        )
+
+    warnings = [m for m in _records(caplog, logging.WARNING) if "not written" in m]
+    assert len(warnings) == 1, warnings
+    for fragment in fragments:
+        assert fragment in warnings[0], warnings[0]
+    assert _records(caplog, logging.ERROR) == []
+    assert sbml_path.exists()
 
 
 def test_create_model_writes_into_a_directory_which_does_not_exist(
@@ -2393,3 +2452,165 @@ def test_create_model_raises_for_a_file_it_cannot_write(tmp_path: Path) -> None:
 
     with pytest.raises(OSError, match=re.escape(str(sbml_path))):
         create_model(model=model, filepath=sbml_path, validate=False)
+
+
+def _named_rules_model() -> Model:
+    """Get a model whose three assignment rules carry a name.
+
+    A `<rule>` has no `name` attribute below SBML L3V2, so the names of this
+    model are written at L3V2 and lost at L3V1.
+
+    Returns:
+        the model
+    """
+    return Model(
+        sid="named_rules",
+        name="a model whose rules carry a name",
+        compartments=[Compartment("c", 1.0, name="compartment")],
+        parameters=[
+            Parameter("k1", 1.0, name="k1", constant=False),
+            Parameter("k2", 1.0, name="k2", constant=False),
+            Parameter("k3", 1.0, name="k3", constant=False),
+        ],
+        rules=[
+            AssignmentRule("k1", "2.0", name="the first rule"),
+            AssignmentRule("k2", "3.0", name="the second rule"),
+            AssignmentRule("k3", "4.0", name="the third rule"),
+        ],
+    )
+
+
+def _records(caplog: pytest.LogCaptureFixture, level: int) -> list[str]:
+    """Get the messages logged at exactly the given level.
+
+    Args:
+        caplog: the pytest log capture
+        level: the level to filter on
+
+    Returns:
+        the formatted messages
+    """
+    return [r.getMessage() for r in caplog.records if r.levelno == level]
+
+
+def test_attribute_of_a_later_level_is_reported_once_per_document(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that one decision is reported once, not once per element.
+
+    A `<rule>` has no `name` below SBML L3V2, which `create_model` writes by
+    default, so a model whose rules carry a name loses every one of them.
+    Reporting each on its own buried the one decision which fixes all of them
+    (write L3V2) under one error per rule; `examples/icg/model_body.py` alone
+    produced 57 of them. The losses are collected for the document and
+    reported once per element kind and attribute.
+    """
+    model = _named_rules_model()
+    with caplog.at_level(logging.DEBUG, logger="sbmlutils"):
+        create_model(
+            model=model,
+            filepath=tmp_path / "model.xml",
+            sbml_level=3,
+            sbml_version=1,
+            validate=False,
+        )
+
+    warnings = [m for m in _records(caplog, logging.WARNING) if "not written" in m]
+    assert len(warnings) == 1, warnings
+    assert "assignmentRule" in warnings[0]
+    assert "'name'" in warnings[0]
+    assert "3 " in warnings[0]
+    assert "SBML L3V1" in warnings[0]
+    assert "Level 3 Version 2" in warnings[0]
+    assert _records(caplog, logging.ERROR) == []
+    # the detail of every single loss is available at debug
+    assert (
+        len([m for m in _records(caplog, logging.DEBUG) if "the first rule" in m]) == 1
+    )
+
+
+def test_the_same_model_written_at_l3v2_keeps_the_names(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test the positive control: at SBML L3V2 a rule carries its name."""
+    model = _named_rules_model()
+    sbml_path = tmp_path / "model.xml"
+    with caplog.at_level(logging.WARNING, logger="sbmlutils"):
+        create_model(
+            model=model,
+            filepath=sbml_path,
+            sbml_level=3,
+            sbml_version=2,
+            validate=False,
+        )
+
+    assert [m for m in _records(caplog, logging.WARNING) if "not written" in m] == []
+    assert _records(caplog, logging.ERROR) == []
+    assert "the first rule" in sbml_path.read_text(encoding="utf-8")
+
+
+def test_attribute_of_a_later_level_is_reported_for_a_parameter(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test the same report for an SBML Level 1 document.
+
+    A `<parameter>` of an SBML L1 document has no `constant` attribute, so a
+    `constant=False` parameter silently becomes a constant one.
+    """
+    model = Model(
+        sid="l1_parameters",
+        name="a model with parameters which are not constant",
+        compartments=[Compartment("c", 1.0, name="compartment")],
+        parameters=[
+            Parameter("k1", 1.0, name="k1", constant=False),
+            Parameter("k2", 1.0, name="k2", constant=False),
+        ],
+    )
+    with caplog.at_level(logging.WARNING, logger="sbmlutils"):
+        create_model(
+            model=model,
+            filepath=tmp_path / "model.xml",
+            sbml_level=1,
+            sbml_version=2,
+            validate=False,
+        )
+
+    constant = [
+        m
+        for m in _records(caplog, logging.WARNING)
+        if "'constant'" in m and "<parameter>" in m
+    ]
+    assert len(constant) == 1, constant
+    assert "2 <parameter> element(s)" in constant[0]
+    assert "SBML L1V2" in constant[0]
+
+
+def test_two_documents_report_only_their_own_attribute_losses(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that the collection of one document does not reach the next.
+
+    The collection is held in a `ContextVar` which is reset when the scope
+    of the document ends, so a second `create_model` starts empty.
+    """
+    with caplog.at_level(logging.WARNING, logger="sbmlutils"):
+        create_model(
+            model=_named_rules_model(),
+            filepath=tmp_path / "first.xml",
+            sbml_level=3,
+            sbml_version=1,
+            validate=False,
+        )
+        first = [m for m in _records(caplog, logging.WARNING) if "not written" in m]
+        caplog.clear()
+        create_model(
+            model=_named_rules_model(),
+            filepath=tmp_path / "second.xml",
+            sbml_level=3,
+            sbml_version=1,
+            validate=False,
+        )
+        second = [m for m in _records(caplog, logging.WARNING) if "not written" in m]
+
+    assert len(first) == 1, first
+    assert second == first
