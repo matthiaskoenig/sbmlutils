@@ -53,6 +53,7 @@ from sbmlutils.factory import (
     Deletion,
     Event,
     EventAssignment,
+    ExternalModelDefinition,
     FluxObjective,
     Function,
     GeneProduct,
@@ -61,6 +62,7 @@ from sbmlutils.factory import (
     KineticLaw,
     LocalParameter,
     Model,
+    ModelDefinition,
     ModelUnits,
     Objective,
     Package,
@@ -1224,6 +1226,48 @@ def _parse_model_body(model: libsbml.Model, m: Model) -> None:
     # module docstring
 
 
+def _parse_comp_document(doc_comp: libsbml.CompSBMLDocumentPlugin, m: Model) -> None:
+    """Parse the comp content of a document into the `Model` of its model.
+
+    A `<comp:modelDefinition>` and a `<comp:externalModelDefinition>` are
+    children of the `<sbml>` element rather than of the `<model>`, so they
+    belong to the document; `sbmlutils.factory` holds them in the
+    `model_definitions` and `external_model_definitions` of the model of the
+    document, which is the only model that can have them, and writes them on
+    the document again.
+
+    A model definition is a model of its own: it is read into a
+    `ModelDefinition`, which is a `Model`, by recursing into
+    `_parse_model_body`, so every core, fbc, distrib and comp element of it is
+    read by the parser which reads them for the model of the document.
+
+    Args:
+        doc_comp: the comp plugin of the libsbml.SBMLDocument
+        m: the `Model` of the document, which is populated
+    """
+    external: libsbml.ExternalModelDefinition
+    for external in doc_comp.getListOfExternalModelDefinitions():
+        m.external_model_definitions.append(
+            ExternalModelDefinition(
+                # `comp:source` and `comp:modelRef` are required; the empty
+                # string of a document which states none leaves the attribute
+                # unset again, see `_parse_replaced_by`
+                source=external.getSource(),
+                modelRef=external.getModelRef(),
+                md5=external.getMd5() if external.isSetMd5() else None,
+                **_drop_unwritable(_parse_sbase_kwargs(external), external),
+            )
+        )
+
+    definition: libsbml.ModelDefinition
+    for definition in doc_comp.getListOfModelDefinitions():
+        model_definition = ModelDefinition(
+            **_drop_unwritable(_parse_sbase_kwargs(definition), definition)
+        )
+        _parse_model_body(definition, model_definition)
+        m.model_definitions.append(model_definition)
+
+
 def _convert_fbc_v1(doc: libsbml.SBMLDocument) -> None:
     """Convert a document which declares fbc version 1 to fbc version 2, in place.
 
@@ -1324,6 +1368,12 @@ def sbml_to_model(
     m.packages = _packages_of_document(doc)
 
     _parse_model_body(model, m)
+
+    # the two document level lists of comp, which are children of the `<sbml>`
+    # element and not of a model
+    doc_comp: libsbml.CompSBMLDocumentPlugin | None = doc.getPlugin("comp")
+    if doc_comp is not None:
+        _parse_comp_document(doc_comp, m)
 
     return m
 

@@ -2820,3 +2820,51 @@ def test_parser_reports_a_replaced_element_of_an_element_without_an_id(
     assert "p8_raterule" in lost[0]
     # the replaced element of the parameter `p8`, which has an id, is kept
     assert [r.elementRef for r in model.replaced_elements] == ["p8"]
+
+
+#: the only fixture of the repository with a `<comp:modelDefinition>`
+MODEL_DEFINITIONS_SBML: Path = EXAMPLES_DIR / "model_definitions.xml"
+
+
+def test_roundtrip_preserves_a_model_definition(
+    package_roundtrip: Callable[[Path], Comparison],
+) -> None:
+    """Test that a `<comp:modelDefinition>` survives a round trip with its content.
+
+    A model definition is a model of its own next to the model of the document; `sbmlutils.parser` reads it by constructing a `ModelDefinition` and recursing into the same `_parse_model_body` the model of the document goes through, so its core elements, its unit definitions and its package content come along. The comparison compares a model definition recursively, core content included, since nothing else sees it, see the docstring of `tests/structural.py`.
+    """
+    counts, differences = package_roundtrip(MODEL_DEFINITIONS_SBML)
+    assert counts["comp.modelDefinition"] == 1
+    assert counts["comp.modelDefinition.species"]
+    assert counts["comp.modelDefinition.compartment"]
+
+    assert _comp_differences(differences) == []
+
+
+@requires_testsuite
+def test_roundtrip_preserves_the_whole_content_of_a_model_definition(
+    package_roundtrip: Callable[[Path], Comparison],
+) -> None:
+    """Test that every kind of element of a model definition survives.
+
+    Cases 01142 and 01169 of the SBML test suite are the two whose model definitions hold species, reactions, rules and events between them, which the comparison compares element by element with their L3V2 core attributes and their math.
+    """
+    for case in ("01142", "01169"):
+        counts, differences = package_roundtrip(testsuite_case(case))
+        for element in ("species", "reaction", "rateRule", "event", "trigger"):
+            assert counts[f"comp.modelDefinition.{element}"], f"{case}: {element}"
+        assert _comp_differences(differences) == [], case
+
+
+@requires_testsuite
+def test_roundtrip_preserves_the_submodels_and_ports_of_a_model_definition(
+    package_roundtrip: Callable[[Path], Comparison],
+) -> None:
+    """Test that the comp content of a model definition survives too.
+
+    A model definition holds submodels and ports of its own, which the recursion into `_parse_model_body` reads with the same parser as those of the model of the document. Case 01153 nests a submodel inside a model definition, case 01166 gives its model definitions ports.
+    """
+    for case in ("01153", "01166"):
+        comparison = package_roundtrip(testsuite_case(case))
+        assert comparison[0]["comp.modelDefinition"], f"case {case} has none"
+        assert _comp_differences(comparison[1]) == [], case
