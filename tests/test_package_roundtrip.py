@@ -47,7 +47,12 @@ from sbmlutils.factory import (
     Species,
     create_model,
 )
-from sbmlutils.resources import COMP_ICG_BODY, EXAMPLES_DIR, FBC_ECOLI_CORE_SBML
+from sbmlutils.resources import (
+    COMP_ICG_BODY,
+    EXAMPLES_DIR,
+    FBC_ECOLI_CORE_SBML,
+    FBC_RECON3D_SBML,
+)
 
 #: the uncertainties of distrib, with parameters, spans and math
 UNCERTAINTY_SBML: Path = RESOURCES_DIR / "distrib" / "uncertainty.xml"
@@ -953,7 +958,7 @@ def fbc_roundtrip(
 ) -> Callable[[Path], Comparison]:
     """Round trip a fixture and compare its fbc content, once per fixture.
 
-    The tests below assert on one construct of a fixture each, and the round trip of `FBC_RECON3D_SBML` takes about ten seconds, so every fixture is round tripped once and its result is cached for the module. The cache holds plain values only: the documents are released when the comparison returns, and a libsbml object does not keep its document alive.
+    The tests below assert on one construct of a fixture each, and the round trip of `FBC_RECON3D_SBML` takes about ten seconds, so every fixture is round tripped once and its result is cached for the module. `structural_diff` is spelled out as the `diff_snapshots` of two `snapshot`s of two `comparable_document`s, which is its body and what `scripts/package_report.py` does as well, so that the census reads the converted document the comparison reads instead of converting the fixture a third time. The cache holds plain values only: the documents are released when the comparison returns, and a libsbml object does not keep its document alive.
 
     Args:
         tmp_path_factory: pytest's factory of the directory the round trips write to
@@ -967,9 +972,13 @@ def fbc_roundtrip(
     def compare(sbml_path: Path) -> Comparison:
         if sbml_path not in cache:
             doc_in, doc_out = roundtrip_document(sbml_path, tmp_path)
+            converted_in = comparable_document(doc_in)
+            differences = diff_snapshots(
+                snapshot(converted_in), snapshot(comparable_document(doc_out))
+            )
             cache[sbml_path] = (
-                _expected_constructs(comparable_document(doc_in)),
-                [d for d in structural_diff(doc_in, doc_out) if d.package == "fbc"],
+                _expected_constructs(converted_in),
+                [d for d in differences if d.package == "fbc"],
             )
         return cache[sbml_path]
 
@@ -1131,6 +1140,83 @@ def test_roundtrip_preserves_user_defined_constraints(
         "fbc.userDefinedConstraint",
         "fbc.userDefinedConstraintComponent",
     )
+
+
+def test_roundtrip_preserves_key_value_pairs(tmp_path: Path) -> None:
+    """Test that the fbc key-value pairs of a model survive a round trip.
+
+    A key-value pair of fbc version 3 sits on any element; the example puts one on the model, a parameter and a species. The fixture is built from the example, see `_kvp_model`.
+    """
+    sbml_path = _source_path(_kvp_model, tmp_path)
+    doc_in, doc_out = roundtrip_document(sbml_path, tmp_path)
+    assert _expected_constructs(comparable_document(doc_in))["fbc.keyValuePair"] == 3
+
+    diffs = [d for d in structural_diff(doc_in, doc_out) if d.package == "fbc"]
+
+    assert [str(d) for d in diffs] == []
+
+
+#: every fbc fixture of the repository whose content round trips unchanged,
+#: with the constructs it has to contain
+FBC_FIXTURES: list[tuple[Path, tuple[str, ...]]] = [
+    (
+        FBC_ECOLI_CORE_SBML,
+        (
+            "fbc.package",
+            "fbc.strict",
+            "fbc.geneProduct",
+            "fbc.geneProductAssociation",
+            "fbc.fluxBound",
+            "fbc.charge",
+            "fbc.chemicalFormula",
+            "fbc.objective",
+            "fbc.fluxObjective",
+        ),
+    ),
+    (
+        FBC_RECON3D_SBML,
+        (
+            "fbc.package",
+            "fbc.strict",
+            "fbc.geneProduct",
+            "fbc.geneProductAssociation",
+            "fbc.fluxBound",
+            "fbc.charge",
+            "fbc.chemicalFormula",
+            "fbc.objective",
+            "fbc.fluxObjective",
+        ),
+    ),
+    (
+        FBC_UDC_SBML,
+        (
+            "fbc.package",
+            "fbc.strict",
+            "fbc.userDefinedConstraint",
+            "fbc.userDefinedConstraintComponent",
+        ),
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "sbml_path, constructs",
+    FBC_FIXTURES,
+    ids=[sbml_path.name for sbml_path, _ in FBC_FIXTURES],
+)
+def test_roundtrip_preserves_the_whole_fbc_content(
+    sbml_path: Path,
+    constructs: tuple[str, ...],
+    fbc_roundtrip: Callable[[Path], Comparison],
+) -> None:
+    """Test that a round trip of an fbc fixture changes no fbc content at all.
+
+    Between them the three fixtures carry every fbc construct the parser reads: `FBC_RECON3D_SBML` is the largest model of the repository with 2248 gene products, 10600 flux bounds and 5835 charges, and `FBC_UDC_SBML` is the only one with user-defined constraints. This asserts on every difference, not on the named constructs only, so a construct the round trip *adds* fails it too.
+    """
+    counts, differences = fbc_roundtrip(sbml_path)
+    assert [c for c in constructs if not counts[c]] == []
+
+    assert [str(d) for d in differences] == []
 
 
 # ---------------------------------------------------------------------------
