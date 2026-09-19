@@ -1,6 +1,7 @@
 """Testing the factory methods."""
 
 import logging
+import threading
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -998,6 +999,64 @@ def test_nested_elements_log_no_authoring_hints(
 
     assert "should be set" not in caplog.text, caplog.text
     del doc
+
+
+def test_no_authoring_hints_is_confined_to_its_thread(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that suppressing the hints in one thread does not silence another.
+
+    `sbmlutils.parser` writes a parsed model inside `no_authoring_hints()`.
+    While the suppression was a class attribute it was global: a model
+    definition written in another thread at the same time lost its hints,
+    which are the only report it gets about a missing name or sboTerm.
+
+    One thread writes a model inside the context, the main thread writes an
+    equally unnamed model while that thread is provably still inside it. The
+    threads are synchronized with events rather than with sleeps, and the log
+    records are told apart by the thread which emitted them.
+    """
+    written = threading.Event()
+    release = threading.Event()
+    failure: list[BaseException] = []
+
+    def write_without_hints() -> None:
+        try:
+            with Sbase.no_authoring_hints():
+                create_model(
+                    model=Model("suppressed", compartments=[Compartment("c", 1.0)]),
+                    filepath=tmp_path / "suppressed.xml",
+                    validation_options=ValidationOptions(units_consistency=False),
+                )
+                written.set()
+                assert release.wait(timeout=30.0)
+        except BaseException as err:
+            failure.append(err)
+        finally:
+            written.set()
+
+    thread = threading.Thread(target=write_without_hints, name="suppressed")
+    with caplog.at_level(logging.WARNING, logger="sbmlutils.factory"):
+        thread.start()
+        try:
+            assert written.wait(timeout=30.0)
+            create_model(
+                model=Model("hinted", compartments=[Compartment("c", 1.0)]),
+                filepath=tmp_path / "hinted.xml",
+                validation_options=ValidationOptions(units_consistency=False),
+            )
+        finally:
+            release.set()
+            thread.join(timeout=30.0)
+
+    assert not failure, failure
+    assert not thread.is_alive()
+    hints = {
+        record.threadName
+        for record in caplog.records
+        if "'name' should be set" in record.message
+    }
+    assert hints == {threading.current_thread().name}, caplog.text
 
 
 @pytest.mark.parametrize(

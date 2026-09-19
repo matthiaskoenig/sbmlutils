@@ -26,6 +26,7 @@ import numbers
 from collections import namedtuple
 from collections.abc import Iterable, Iterator, Sequence
 from contextlib import contextmanager
+from contextvars import ContextVar
 from copy import deepcopy
 from dataclasses import dataclass
 from enum import StrEnum
@@ -366,7 +367,7 @@ class ModelUnits:
             model_units = ModelUnits(**model_units)
 
         if not model_units:
-            if Sbase._authoring_hints:
+            if Sbase._authoring_hints.get():
                 logger.warning(
                     "Model units should be set for a model. These can be stored "
                     "using the 'model_units' on a model definition."
@@ -374,7 +375,7 @@ class ModelUnits:
         else:
             for key in ("time", "extent", "substance", "length", "area", "volume"):
                 if getattr(model_units, key) is None:
-                    if Sbase._authoring_hints:
+                    if Sbase._authoring_hints.get():
                         # strongly recommended fields warn, optional ones inform
                         logger.log(
                             logging.WARNING
@@ -568,8 +569,15 @@ class Sbase:
     ]
 
     #: authoring hints are logged for a hand written model definition, they are
-    #: noise for a model which was parsed from a file, see `Sbase.no_authoring_hints`
-    _authoring_hints: ClassVar[bool] = True
+    #: noise for a model which was parsed from a file, see
+    #: `Sbase.no_authoring_hints`. A `ContextVar` rather than a class attribute:
+    #: the suppression belongs to the code which writes one model, and a class
+    #: attribute is shared by every thread, so writing a parsed model in one
+    #: thread silenced the hints of a model definition written in another. A
+    #: thread starts with a fresh context, in which this holds its default.
+    _authoring_hints: ClassVar[ContextVar[bool]] = ContextVar(
+        "sbmlutils_authoring_hints", default=True
+    )
 
     @staticmethod
     @contextmanager
@@ -583,12 +591,11 @@ class Sbase:
         Yields:
             None
         """
-        previous = Sbase._authoring_hints
-        Sbase._authoring_hints = False
+        token = Sbase._authoring_hints.set(False)
         try:
             yield
         finally:
-            Sbase._authoring_hints = previous
+            Sbase._authoring_hints.reset(token)
 
     def __str__(self) -> str:
         """Get string."""
@@ -689,7 +696,7 @@ class Sbase:
                     check(status, f"Set id '{self.sid}' on {sbase}")
         if self.name is not None:
             sbase.setName(self.name)
-        elif Sbase._authoring_hints and not isinstance(
+        elif Sbase._authoring_hints.get() and not isinstance(
             self,
             (
                 Document,
@@ -715,7 +722,7 @@ class Sbase:
             else:
                 sbo = self.sboTerm
             sbase.setSBOTerm(sbo)
-        elif Sbase._authoring_hints and not isinstance(
+        elif Sbase._authoring_hints.get() and not isinstance(
             self,
             (
                 Document,
