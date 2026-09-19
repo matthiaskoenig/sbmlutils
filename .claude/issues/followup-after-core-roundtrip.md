@@ -155,3 +155,7 @@ The invariant which separates a canonicalization from a loss: `resource_normaliz
 ## 11. libsbml: the key-value pairs of a species reference are written and never read back
 
 Measured with python-libsbml 5.21.2 alone, no sbmlutils involved (package branch, fbc fixes). The fbc version 3 `listOfKeyValuePairs` of a `<speciesReference>` is written into the document, and reading that document again gives a species reference without any key-value pair; on a `<modifierSpeciesReference>` the same round trip works. sbmlutils writes the pairs of reactants, products and modifiers from 0.12.0 on, so a reactant or product pair is write-only for every libsbml reader, and the structural comparison cannot see it. A test pins the behaviour so that a fixed libsbml is noticed. To report upstream at [sbmlteam/libsbml](https://github.com/sbmlteam/libsbml).
+
+## 12. libsbml: the core id and name of a comp reference are not written
+
+Measured with python-libsbml 5.21.2 alone (package branch, comp data model). The SBML Level 3 Version 2 core `id` and `name` set on a `ReplacedElement`, a `ReplacedBy`, a `Deletion` or a nested `sBaseRef` do not survive a write and re-read, nested or not; `metaid`, `sboTerm`, notes, annotation and the four reference attributes do. A `Port` is not affected, its `id` is a comp attribute. sbmlutils sets them, libsbml does not write them, and the structural comparison reads both sides through libsbml and cannot see it. Documented on the `SbaseRef` docstring.

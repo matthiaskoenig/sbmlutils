@@ -295,7 +295,7 @@ Measured at writing time: `class UncertParameter:` and `class UncertSpan:` have 
 - Test: `tests/test_comp.py`
 
 - [ ] **Nested `sBaseRef`.** Add an optional recursive `sBaseRef: SbaseRef | None` field on `SbaseRef`, written with `createSBaseRef()` in `_set_fields`. The SBML spec allows arbitrary depth. Failing test first: a port with a three-deep `sBaseRef` chain writes all three levels.
-- [ ] **`SbaseRef._set_fields` sets the id twice**, and the checked second call returns `-2`, so every `ReplacedElement` and `ReplacedBy` ever created logs two ERROR lines. Failing test first: creating a `ReplacedElement` logs no ERROR.
+- [ ] **`SbaseRef._set_fields` sets the id twice.** (Ruling T10a: the plan's claim that the second call is checked, returns `-2` and logs two ERROR lines did not reproduce: the second call was never checked and nothing was ever logged. The dead call is removed and pinned by its call count. The release notes must not claim removed error lines.)
 - [ ] **`Submodel.setModelRef(None)` raises `TypeError`**, and `modelRef` defaults to `None`. Guard the call. Failing test first: a `Submodel` without a `modelRef` is written without raising.
 - [ ] **Verify and commit.** tox, lint, 148/148, `tests/test_comp.py` green.
 
