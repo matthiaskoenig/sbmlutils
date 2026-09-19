@@ -88,42 +88,41 @@ Gates everything else. Produces the per-construct baseline before any parser cod
   - **Order:** lists whose SBML order carries no meaning compare as sets keyed by id; `listOfUncertainties` children and the elements of a nested `sBaseRef` chain compare in order.
   - **The whitelist (R5), exactly these three and nothing else:** GPA same-operator flattening, `((a and b) and c)` equal to `(a and b and c)`; `<cn>` gaining `type="integer"`; a `urn:miriam:` annotation URI becoming its `identifiers.org` URL. Each has a reason string.
 
-- [ ] **Step 2: Write the failing test that pins the known baseline losses.**
+- [ ] **Step 2: Write failing self-tests that prove the harness sees each KIND of loss, using synthetic mutations.**
 
-  In `tests/test_package_roundtrip.py`:
+  These must not depend on what the current parser happens to lose, because later tasks remove those losses one by one and a test pinned to them would break (pre-flight ruling P1). Instead, take a real fixture, damage one construct in a **copy** of its document, and assert `structural_diff` reports exactly that damage and nothing else. In `tests/test_package_roundtrip.py`:
 
   ```python
-  def test_structural_diff_detects_the_known_fbc_losses(tmp_path: Path) -> None:
-      """The harness must SEE what a round trip loses today.
+  @pytest.mark.parametrize("mutation", ["drop_gene_product", "change_flux_bound",
+      "drop_objective", "flip_strict", "drop_port", "drop_submodel",
+      "truncate_sbaseref_chain", "reorder_uncertainty_children"])
+  def test_structural_diff_sees_each_kind_of_loss(mutation: str, tmp_path: Path) -> None:
+      """A harness that reports nothing on a damaged document is blind.
 
-      Measured by the survey: a round trip of e_coli_core discards 137 gene
-      products, 69 GPAs, 95 flux bounds, 72 charges, 72 chemical formulas,
-      the objective and fbc:strict, and the result validates with zero
-      errors. A harness that reports no difference here is blind.
+      Each mutation removes or alters exactly one construct in a copy of a
+      real fixture; the harness must report that construct and only that.
       """
-      doc_in, doc_out = roundtrip_document(FBC_ECOLI_CORE_SBML, tmp_path)
-      diffs = structural_diff(doc_in, doc_out)
-      constructs = {d.construct for d in diffs}
-      assert "fbc:geneProduct" in constructs
-      assert "fbc:geneProductAssociation" in constructs
-      assert "fbc:fluxBound" in constructs
-      assert "fbc:objective" in constructs
-      assert "fbc:strict" in constructs
+      doc_in, doc_damaged = _damaged_copy(mutation, tmp_path)
+      diffs = structural_diff(doc_in, doc_damaged)
+      assert diffs, f"structural_diff missed a {mutation}"
+      assert {d.construct for d in diffs} == {_EXPECTED_CONSTRUCT[mutation]}
   ```
 
-  And the comp counterpart on `COMP_ICG_BODY`, asserting the submodel, ports, replaced elements and external model definition are reported. **These tests assert that the harness sees the losses.** They are inverted in Tasks 6 and 12, once the losses are fixed.
+  plus the reverse: `structural_diff(doc, doc)` of an undamaged document returns `[]`, so the harness does not report noise. `_damaged_copy` reads the fixture with libsbml and applies the mutation directly to the libsbml document, and **must hold both documents** for as long as they are used.
+
+  The real-fixture baseline (e_coli_core loses 137 gene products, and so on) is **recorded** in step 7, not asserted as a test.
 
 - [ ] **Step 3: Run them to verify they fail** (the harness does not exist yet). `uvx --with tox-uv tox -e py3.14 -- tests/test_package_roundtrip.py -v`
 
 - [ ] **Step 4: Implement `tests/structural.py`** to the policy in step 1. Walk each package through its libsbml plugin (`getPlugin("fbc")`, `getPlugin("distrib")`, `getPlugin("comp")`) on both documents. For comp model definitions, recurse. The function returns differences; it does not assert.
 
-- [ ] **Step 5: Run the tests to verify they pass**, i.e. the harness now sees every known loss.
+- [ ] **Step 5: Run the tests to verify they pass**: the harness reports each synthetic loss and nothing on an undamaged document.
 
 - [ ] **Step 6: Write `scripts/package_report.py`**, which sweeps the 157 package cases of the test suite (resolved from the checkout) plus every fixture named in the Corpus section, runs `structural_diff` on each, and prints a table of `construct -> (cases exercising it, cases where it is preserved)`. It isolates each case in its own subprocess, as `scripts/roundtrip_report.py` does, so a native crash ends one case, not the sweep.
 
 - [ ] **Step 7: Record the baseline.** Run the report and paste its table into the commit message. **This table is the "57.4%" of this effort.** Expect every package construct at or near zero preserved.
 
-- [ ] **Step 8: Prove the harness is not blind**, by mutation: temporarily make `structural_diff` return `[]` and confirm the step 2 tests fail. Restore.
+- [ ] **Step 8: Prove the self-tests are load-bearing**, by mutation: temporarily make `structural_diff` return `[]` and confirm the step 2 tests fail. Restore.
 
 - [ ] **Step 9: Verify and commit.** tox on py3.11 and py3.14, `ruff check`, `ruff format --check`, `uvx ty check`, and the 150-case core report at 148/148.
 
@@ -192,7 +191,7 @@ The fixes, each with a failing test first:
 
 ---
 
-### Task 5: `fbc:strict` on `Model`, and `Objective.active` from the document
+### Task 5: `fbc:strict` on `Model`
 
 **Files:**
 - Modify: `src/sbmlutils/factory.py` (`Model`, `Document.create_sbml`), `src/sbmlutils/parser.py`
@@ -203,9 +202,9 @@ The fixes, each with a failing test first:
 - Produces: `Model.strict: bool | None`. `None` keeps today's behaviour of writing `fbc:strict="false"` when fbc is declared. The parser sets it from the document.
 
 - [ ] **Step 1: Failing test:** round trip a model whose source has `fbc:strict="true"` and assert the output has `fbc:strict="true"`. The current code hardcodes `setStrict(False)` in `Document.create_sbml` (measured near `factory.py:4979`).
-- [ ] **Step 2: Failing test:** round trip a model with two objectives where the source's `activeObjectiveId` names the **first**; assert the output's active objective is the first. Today the last-written objective wins because `Objective.active` defaults to `True`.
+- [ ] **Step 2 (moved):** `Objective.active` is set from the document in **Task 6**, where objectives are first parsed (pre-flight ruling P2). This task does `fbc:strict` only.
 - [ ] **Step 3: Add `Model.strict`**, write it in `Document.create_sbml`, and add it to the annotations, the constructor and `ModelDict`. `_keys` follows automatically from Task 3; confirm that.
-- [ ] **Step 4: In the parser, read `fbc:strict`** from the model's fbc plugin, and **read `activeObjectiveId` and pass `active=True` only to the matching objective and `active=False` to every other** (ruling R4: the authoring default stays `True`).
+- [ ] **Step 4: In the parser, read `fbc:strict`** from the model's fbc plugin and pass it to `Model(strict=...)`.
 - [ ] **Step 5: Verify and commit.** tox, lint, 148/148.
 
 ---
@@ -219,11 +218,12 @@ The fixes, each with a failing test first:
 **Interfaces:**
 - Consumes: Tasks 1, 2, 5. The factory classes `GeneProduct`, `Objective`, `FluxObjective`, `UserDefinedConstraint`, `UserDefinedConstraintComponent`, `KeyValuePair`, and `Reaction`'s `lowerFluxBound`, `upperFluxBound`, `geneProductAssociation`, and `Species`' `charge`, `chemicalFormula`. The survey found these attribute-complete for writing; **read each live constructor before building one**.
 
-- [ ] **Step 1: Invert the Task 1 fbc baseline test.** It now asserts `structural_diff` reports **no** fbc difference on `FBC_ECOLI_CORE_SBML`. Run it to confirm it fails.
+- [ ] **Step 1: Add a test that `structural_diff` reports no fbc difference on `FBC_ECOLI_CORE_SBML`** after a round trip. Run it to confirm it fails today (per the recorded baseline, 137 gene products and the rest are lost).
 - [ ] **Step 2: Parse gene products** (`id`, `name`, `label`, `associatedSpecies`) into `m.gene_products`.
 - [ ] **Step 3: Parse the GPA of each reaction as an infix string from the ID side.** `Reaction.geneProductAssociation` is written with `setAssociation(infix, usingId=True, addMissingGP=False)`, so the parser must produce an infix of gene product **ids**, not labels; reading labels would change the model. Check which libsbml accessor gives the id-side infix.
+- [ ] **Step 3b: `Objective.active` from the document (ruling R4, moved here from Task 5 by pre-flight ruling P2).** Read the model's `activeObjectiveId` and pass `active=True` only to the matching objective and `active=False` to every other. The authoring default of `Objective.active` stays `True`. Failing test first: a model with two objectives whose `activeObjectiveId` names the **first** round trips with the first still active. Today the last-written objective wins.
 - [ ] **Step 4: Parse flux bounds, objectives and flux objectives, species charge and chemical formula, user-defined constraints and their components, and key-value pairs on every element** that carries them.
-- [ ] **Step 5: Run the inverted test to verify it passes** on `FBC_ECOLI_CORE_SBML`, and add the same structural assertion on `FBC_RECON3D_SBML` and `resources/examples/fbc_user_defined_constraints.xml`.
+- [ ] **Step 5: Run the test to verify it passes** on `FBC_ECOLI_CORE_SBML`, and add the same structural assertion on `FBC_RECON3D_SBML` and `resources/examples/fbc_user_defined_constraints.xml`.
 - [ ] **Step 6: Re-run `scripts/package_report.py`** and record the fbc rows against the Task 1 baseline in the commit message.
 - [ ] **Step 7: Verify and commit.** tox, lint, 148/148.
 
@@ -320,11 +320,11 @@ Measured at writing time: `class ModelDefinition(Sbase):` near `factory.py:3872`
 **Interfaces:**
 - Consumes: Tasks 2, 10, 11.
 
-- [ ] **Step 1: Invert the Task 1 comp baseline test.** It now asserts `structural_diff` reports no comp difference on `COMP_ICG_BODY`. Run it to confirm it fails.
+- [ ] **Step 1: Add a test that `structural_diff` reports no comp difference on `COMP_ICG_BODY`** after a round trip. Run it to confirm it fails today (per the recorded baseline, the submodel, 16 ports, 6 replaced elements and the external model definition are lost).
 - [ ] **Step 2: Parse submodels** (`id`, `modelRef`, `timeConversionFactor`, `extentConversionFactor`), **ports, replaced elements, replaced by and deletions**, each with the full nested `sBaseRef` chain from Task 10.
 - [ ] **Step 3: Parse each model definition by recursing into `_parse_model_body`** (Task 2) with a `ModelDefinition` (Task 11) as the target. This is why the refactor and R1 come first: the recursion gets every core, fbc and distrib element of the model definition for free.
 - [ ] **Step 4: Preserve external model definitions exactly, and do NOT resolve them** (ruling R2): `id`, `source`, `modelRef`, `md5`. Test: the output's `<externalModelDefinition>` attributes equal the input's, and no external file is opened.
-- [ ] **Step 5: Run the inverted test to verify it passes** on `COMP_ICG_BODY`, and on the three nested-`sBaseRef` cases 01132, 01133 and 01134 (resolved from the checkout).
+- [ ] **Step 5: Run the test to verify it passes** on `COMP_ICG_BODY`, and on the three nested-`sBaseRef` cases 01132, 01133 and 01134 (resolved from the checkout).
 - [ ] **Step 6: Re-run the package report** over all 123 comp cases and record the comp rows against the baseline.
 - [ ] **Step 7: Verify and commit.** tox, lint, 148/148.
 
