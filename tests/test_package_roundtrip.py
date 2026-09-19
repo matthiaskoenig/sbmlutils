@@ -35,7 +35,7 @@ from structural import (
     snapshot,
     structural_diff,
 )
-from test_roundtrip import testsuite_case
+from test_roundtrip import SEMANTIC_DIR, requires_testsuite, testsuite_case
 
 from sbmlutils import RESOURCES_DIR
 from sbmlutils.factory import (
@@ -507,7 +507,27 @@ def _damaged_copy(
     return doc_in, doc_damaged
 
 
-@pytest.mark.parametrize("mutation", MUTATIONS)
+def _param(value: Any, source: Source) -> Any:
+    """Mark a parametrization whose fixture is a case of the vendored SBML test suite.
+
+    The test suite is resolved from the checkout and is in neither the wheel nor an sdist, see the module docstring, so a parametrization which reads one of its cases has to skip where it is absent instead of failing on a file which is not there.
+
+    Args:
+        value: the value of the parametrization
+        source: the fixture the parametrization reads
+
+    Returns:
+        the value, as a `pytest.param` marked `requires_testsuite` if the fixture is a test suite case
+    """
+    if isinstance(source, Path) and SEMANTIC_DIR in source.parents:
+        return pytest.param(value, marks=[requires_testsuite])
+    return value
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    [_param(name, mutation.source) for name, mutation in MUTATIONS.items()],
+)
 def test_structural_diff_sees_each_kind_of_loss(mutation: str, tmp_path: Path) -> None:
     """A comparison which reports nothing on a damaged document is blind.
 
@@ -544,13 +564,17 @@ FIXTURES: list[Path] = [
     testsuite_case("01167"),
 ]
 
+#: the fixtures as parametrizations, with the test suite cases marked to skip
+#: where the vendored suite is absent
+FIXTURE_PARAMS: list[Any] = [_param(path, path) for path in FIXTURES]
+
 
 def fixture_idfn(sbml_path: Path) -> str:
     """Name a test by its fixture."""
     return sbml_path.name
 
 
-@pytest.mark.parametrize("sbml_path", FIXTURES, ids=fixture_idfn)
+@pytest.mark.parametrize("sbml_path", FIXTURE_PARAMS, ids=fixture_idfn)
 def test_structural_diff_reports_nothing_on_an_undamaged_document(
     sbml_path: Path,
 ) -> None:
@@ -672,7 +696,7 @@ def _expected_constructs(doc: libsbml.SBMLDocument) -> Counter[str]:
     return counts
 
 
-@pytest.mark.parametrize("sbml_path", FIXTURES, ids=fixture_idfn)
+@pytest.mark.parametrize("sbml_path", FIXTURE_PARAMS, ids=fixture_idfn)
 def test_snapshot_sees_every_element(sbml_path: Path) -> None:
     """Test that the comparison sees every package element libsbml reads.
 
@@ -722,7 +746,7 @@ _COMPARED_ELSEWHERE: frozenset[tuple[str, str]] = frozenset(
 )
 
 
-@pytest.mark.parametrize("sbml_path", FIXTURES, ids=fixture_idfn)
+@pytest.mark.parametrize("sbml_path", FIXTURE_PARAMS, ids=fixture_idfn)
 def test_snapshot_compares_every_attribute(sbml_path: Path) -> None:
     """Test that the comparison reads every attribute libsbml writes.
 
@@ -818,7 +842,9 @@ def test_comparable_document_changes_no_package_content(sbml_path: Path) -> None
         # L3V1, which the round trip does not write
         (FBC_ECOLI_CORE_SBML, "L3V1"),
         # L3V2 with fbc version 1, whose flux bounds the walk would never see
-        (testsuite_case("01186"), "fbc version 2"),
+        pytest.param(
+            testsuite_case("01186"), "fbc version 2", marks=[requires_testsuite]
+        ),
     ],
     ids=["L3V1", "fbc-v1"],
 )
@@ -837,6 +863,7 @@ def test_snapshot_refuses_a_document_which_was_not_converted(
     assert snapshot(comparable_document(doc)), "the converted document compares"
 
 
+@requires_testsuite
 def test_fbc_v1_is_compared_as_libsbml_converts_it() -> None:
     """Test that an fbc v1 document is compared as its fbc v2 conversion.
 
@@ -889,6 +916,7 @@ def test_roundtrip_preserves_fbc_strict(tmp_path: Path) -> None:
     assert [d for d in diffs if d.construct == "fbc.strict"] == []
 
 
+@requires_testsuite
 def test_roundtrip_preserves_fbc_v1_implicit_strict(tmp_path: Path) -> None:
     """Test that an fbc v1 source, which has no `strict` attribute, round trips as strict.
 
