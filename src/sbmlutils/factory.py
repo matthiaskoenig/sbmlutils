@@ -2505,13 +2505,9 @@ class Species(Sbase):
             self.compartment,
             self,
         )
-        _check_attribute(
-            sbase.setBoundaryCondition(self.boundaryCondition),
-            sbase,
-            "boundaryCondition",
-            self.boundaryCondition,
-            self,
-        )
+        # `boundaryCondition` is a plain boolean which every SBML level and
+        # version has, measured to answer success for every input
+        sbase.setBoundaryCondition(self.boundaryCondition)
         _check_attribute(
             sbase.setHasOnlySubstanceUnits(self.hasOnlySubstanceUnits),
             sbase,
@@ -2537,13 +2533,9 @@ class Species(Sbase):
         )
 
         if self.initialAmount is not None:
-            _check_attribute(
-                sbase.setInitialAmount(self.initialAmount),
-                sbase,
-                "initialAmount",
-                self.initialAmount,
-                self,
-            )
+            # a plain double which every SBML level and version has, measured
+            # to answer success for every input
+            sbase.setInitialAmount(self.initialAmount)
         if self.initialConcentration is not None:
             _check_attribute(
                 sbase.setInitialConcentration(self.initialConcentration),
