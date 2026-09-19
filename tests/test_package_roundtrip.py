@@ -1118,12 +1118,37 @@ _CLASSIC_URLS: list[str] = [
     "https://identifiers.org/taxonomy/9606",
 ]
 
+#: the `http` spelling of the compact URL, as the corpus spells it; pymetadata
+#: writes it as the `https` one, see ruling C1c
+_COMPACT_URLS: list[str] = [
+    "http://identifiers.org/BTO:0000131",
+    "http://identifiers.org/SBO:0000625",
+    "http://identifiers.org/FMA:12274",
+    "http://identifiers.org/CHEBI:33699",
+    "http://identifiers.org/GO:0005623",
+    # a collection whose namespace is not embedded in its term
+    "http://identifiers.org/uniprot:P03023",
+    "http://identifiers.org/kegg.compound:C00031",
+]
 
-@pytest.mark.parametrize("resource", [*_URNS, *_CLASSIC_URLS])
+#: bare compact identifiers, as the corpus spells them; pymetadata writes the
+#: compact URL of them, see ruling C1c
+_BARE_IDENTIFIERS: list[str] = [
+    "UO:0000021",
+    "CHEBI:33699",
+    "GO:0005623",
+    "SBO:0000247",
+    "uniprot:P03023",
+]
+
+
+@pytest.mark.parametrize(
+    "resource", [*_URNS, *_CLASSIC_URLS, *_COMPACT_URLS, *_BARE_IDENTIFIERS]
+)
 def test_identifiers_org_is_what_pymetadata_does(resource: str) -> None:
     """Test the normalization against the canonicalization of pymetadata.
 
-    `create_model` writes a resource as pymetadata normalizes it, so the whitelist entry has to accept what pymetadata writes for a MIRIAM URN and for a classic identifiers.org URL. The expectation is measured, never spelled out here.
+    `create_model` writes a resource as pymetadata normalizes it, so the whitelist entry has to accept what pymetadata writes for each of the four source forms of ruling R5: a MIRIAM URN, a classic identifiers.org URL, the `http` spelling of the compact URL and a bare compact identifier. The expectation is measured, never spelled out here.
     """
     url = RDFAnnotation(BQB.IS, resource, validate=False).resource_normalized
     before = (("bqbiol:is", resource),)
@@ -1166,12 +1191,30 @@ def test_identifiers_org_is_what_pymetadata_does(resource: str) -> None:
             ("bqbiol:is", "http://identifiers.org/biomodels.sbo/SBO:0000247"),
             ("bqbiol:is", "https://identifiers.org/SBO:0000247"),
         ),
+        # the http spelling of the compact URL, ruling C1c
+        (
+            ("bqbiol:is", "http://identifiers.org/BTO:0000131"),
+            ("bqbiol:is", "https://identifiers.org/BTO:0000131"),
+        ),
+        (
+            ("bqbiol:is", "http://identifiers.org/uniprot:P03023"),
+            ("bqbiol:is", "https://identifiers.org/uniprot:P03023"),
+        ),
+        # the bare compact identifier, ruling C1c
+        (
+            ("bqbiol:is", "UO:0000021"),
+            ("bqbiol:is", "https://identifiers.org/UO:0000021"),
+        ),
+        (
+            ("bqbiol:is", "uniprot:P03023"),
+            ("bqbiol:is", "https://identifiers.org/uniprot:P03023"),
+        ),
     ],
 )
-def test_identifiers_org_accepts_a_urn_and_a_classic_url(
+def test_identifiers_org_accepts_every_source_form(
     before: tuple[str, str], after: tuple[str, str]
 ) -> None:
-    """Test that both sources of ruling C1a are accepted as the compact URL."""
+    """Test that each of the four source forms of R5 is accepted as the compact URL."""
     assert _normalization("identifiers-org").equivalent((before,), (after,))
 
 
@@ -1204,7 +1247,7 @@ def test_identifiers_org_accepts_a_urn_and_a_classic_url(
             ("bqbiol:is", "https://identifiers.org/kegg.drug:C00031"),
         ),
         # the bare term pymetadata writes for a collection it does not know is a
-        # loss of the collection, not a normalization, see ruling C1b
+        # loss of the collection, not a normalization, see rulings C1b and C1d
         (("bqbiol:is", "urn:miriam:foo:bar"), ("bqbiol:is", "bar")),
         (("bqbiol:is", "http://identifiers.org/foo/bar"), ("bqbiol:is", "bar")),
         (("bqbiol:is", "http://identifiers.org/sabiork/1406"), ("bqbiol:is", "1406")),
@@ -1215,6 +1258,16 @@ def test_identifiers_org_accepts_a_urn_and_a_classic_url(
             ("bqbiol:is", "http://identifiers.org/foo/BAR:123"),
             ("bqbiol:is", "BAR:123"),
         ),
+        (
+            ("bqbiol:is", "http://identifiers.org/unit/UO:0000040"),
+            ("bqbiol:is", "UO:0000040"),
+        ),
+        # a compact URL pymetadata reduces to its bare term, the same loss from a
+        # resource which was canonical already
+        (
+            ("bqbiol:is", "https://identifiers.org/CMO:0000012"),
+            ("bqbiol:is", "CMO:0000012"),
+        ),
         # pymetadata drops the collection of a term which does not carry it, for
         # a collection whose namespace the registry says is embedded in the term
         (
@@ -1222,15 +1275,27 @@ def test_identifiers_org_accepts_a_urn_and_a_classic_url(
             ("bqbiol:is", "https://identifiers.org/000000035"),
         ),
         # pymetadata shortens a term which repeats its collection, which changes
-        # the term and is outside ruling C1a
+        # the term, see ruling C1d
         (
             ("bqbiol:is", "http://identifiers.org/reactome/REACTOME:R-HSA-70355.1"),
             ("bqbiol:is", "https://identifiers.org/reactome:R-HSA-70355.1"),
         ),
-        # an http compact URL is neither a URN nor a classic URL, ruling C1a
+        # a bare compact identifier is a source, but only as itself: another
+        # term, another prefix
         (
-            ("bqbiol:is", "http://identifiers.org/BTO:0000131"),
-            ("bqbiol:is", "https://identifiers.org/BTO:0000131"),
+            ("bqbiol:is", "UO:0000021"),
+            ("bqbiol:is", "https://identifiers.org/UO:0000022"),
+        ),
+        (
+            ("bqbiol:is", "UO:0000021"),
+            ("bqbiol:is", "https://identifiers.org/uo:0000021"),
+        ),
+        # a collection and term without a colon, and an arbitrary URL, are no
+        # compact identifier
+        (("bqbiol:is", "foo/bar"), ("bqbiol:is", "https://identifiers.org/foo/bar")),
+        (
+            ("bqbiol:is", "https://doi.org/10.1101/2021.06.15.448411"),
+            ("bqbiol:is", "https://identifiers.org/10.1101/2021.06.15.448411"),
         ),
         # http instead of https
         (

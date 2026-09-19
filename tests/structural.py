@@ -86,7 +86,16 @@ Through the libsbml getters, the `isSet` getter first: an unset attribute is `No
 
 - `gpa-flattening` (`fbc.geneProductAssociation.association`): libsbml flattens a nested group of the same operator, `((a and b) and c)` is written back as `(a and b and c)`. Accepted when the association written parses to exactly the tree of the association read with every group spliced into its parent group of the same operator, and only that: the operands keep their order, no operand is added, removed or repeated, an operator is never changed, and a partly flattened or regrouped association is not accepted.
 - `cn-integer` (any `math`): math round trips as an L3 infix string, which spells a real of integral value like an integer, so `<cn> 1 </cn>` is read back as `<cn type="integer"> 1 </cn>`. Accepted when both MathML trees are identical except for `cn` elements without a `type` whose value is a finite integral number, which come back with `type="integer"`, the same integer and otherwise the same attributes. A negative real read back as the unary minus of an integer is a different tree and is not accepted.
-- `identifiers-org` (any `cvterms`): pymetadata canonicalizes a deprecated MIRIAM URN and a classic identifiers.org URL to the same compact identifiers.org URL, `urn:miriam:chebi:CHEBI%3A33699` and `http://identifiers.org/chebi/CHEBI:12965` as `https://identifiers.org/CHEBI:33699` and `https://identifiers.org/CHEBI:12965` (ruling C1a of the ledger widened this entry from the URN to both sources, after the classic URL was measured to be the same canonicalization). Accepted when every resource which differs is a `urn:miriam:<collection>:<term>` or an `http(s)://identifiers.org/<collection>/<term>` on one side and on the other side exactly `https://identifiers.org/<collection>:<term>`, or `https://identifiers.org/<term>` if the term carries the collection as its own prefix, with the same qualifier, the term unchanged except for the `%3A` of a URN decoded to `:`, and the collection unchanged except for the two legacy renames pymetadata applies, `obo.go` to `go` and `biomodels.sbo` to `sbo`. Every resource written has to be the compact identifiers.org URI of the resource read; any other rewriting is a difference, in particular the bare term pymetadata writes for a collection its registry does not know (`http://identifiers.org/sabiork/1406` as `1406`), which carries neither the collection nor a URI scheme and is a real loss, never a normalization (ruling C1b).
+- `identifiers-org` (any `cvterms`): pymetadata canonicalizes an annotation resource to the compact identifiers.org URL of its collection and term, `urn:miriam:chebi:CHEBI%3A33699` and `http://identifiers.org/chebi/CHEBI:12965` as `https://identifiers.org/CHEBI:33699` and `https://identifiers.org/CHEBI:12965`. **The entry is defined by its result**, and the source is one of the four forms ruling R5 names, all four measured (rulings C1a and C1c of the ledger widened the entry from the URN alone):
+
+    1. a MIRIAM URN, `urn:miriam:<collection>:<term>`,
+    2. a classic identifiers.org URL, `http(s)://identifiers.org/<collection>/<term>`,
+    3. the `http` spelling of the compact URL, `http://identifiers.org/BTO:0000131`,
+    4. a bare compact identifier, `UO:0000021`.
+
+  Accepted when every resource which differs is one of those on one side and on the other side exactly `https://identifiers.org/<collection>:<term>`, or `https://identifiers.org/<term>` if the term carries the collection as its own prefix, with the same qualifier, the term unchanged except for the `%3A` of a URN decoded to `:`, and the collection unchanged except for the two legacy renames pymetadata applies, `obo.go` to `go` and `biomodels.sbo` to `sbo`. A source of form 3 or 4 carries its collection as the prefix of its term already, so its only accepted result is the identifiers.org URI written in front of it, unchanged in prefix and term.
+
+  A result which is not that compact URL is a loss and is never accepted (rulings C1b and C1d): the bare term pymetadata writes for a collection its registry does not know, which carries neither the collection nor a URI scheme (`http://identifiers.org/sabiork/1406` as `1406`, `https://identifiers.org/CMO:0000012` as `CMO:0000012`), a resource stripped of its collection (`http://identifiers.org/slm/000000035` as `https://identifiers.org/000000035`), and a term whose repeated collection prefix was shortened away.
 """
 
 import math
@@ -365,6 +374,12 @@ _MIRIAM_URN = re.compile(r"urn:miriam:([^:]+):(.+)")
 #: URL to pymetadata and comes back unchanged
 _CLASSIC_URL = re.compile(r"https?://identifiers\.org/([a-zA-Z0-9.]+)/(.+)")
 
+#: a compact identifier, `<prefix>:<term>`, as the `http` spelling of its
+#: identifiers.org URL and bare; the term carries no `/`, so that an arbitrary
+#: URL and a `<collection>/<term>` short form are no compact identifier
+_COMPACT_URL = re.compile(r"https?://identifiers\.org/([a-zA-Z0-9.]+:[^/\s]+)")
+_COMPACT_IDENTIFIER = re.compile(r"[a-zA-Z0-9.]+:[^/\s]+")
+
 #: the collections pymetadata renames, see `RDFAnnotation.replaced_collections`
 _LEGACY_COLLECTIONS: dict[str, str] = {"obo.go": "go", "biomodels.sbo": "sbo"}
 
@@ -394,25 +409,47 @@ def _collection_and_term(resource: str) -> tuple[str, str] | None:
     return _LEGACY_COLLECTIONS.get(collection, collection), term
 
 
+def _compact_identifier(resource: str) -> str | None:
+    """Get the compact identifier a resource already is, `<prefix>:<term>`.
+
+    These are the two source forms of ruling C1c which carry their collection as the prefix of their term already, so that pymetadata only has to write the identifiers.org URI in front of them: the `http` spelling of the compact URL, `http://identifiers.org/BTO:0000131`, and the bare compact identifier, `UO:0000021`. A MIRIAM URN is one of the other two source forms and is never read as one of these.
+
+    Args:
+        resource: a resource, e.g. `http://identifiers.org/BTO:0000131` or `UO:0000021`
+
+    Returns:
+        the compact identifier, `None` if the resource is none
+    """
+    if resource.startswith("urn:"):
+        return None
+    url = _COMPACT_URL.fullmatch(resource)
+    if url is not None:
+        return url.group(1)
+    return resource if _COMPACT_IDENTIFIER.fullmatch(resource) else None
+
+
 def _normalized_forms(resource: str) -> set[str]:
     """Get the resources pymetadata's canonicalization may write for a resource.
 
-    pymetadata splits the resource into its collection and its term and writes the compact `https://identifiers.org/<collection>:<term>`, or `https://identifiers.org/<term>` where the term carries its collection as its own prefix, or, for a collection its registry does not know, the bare `<term>`. Only the first two keep the collection, and `_identifiers_org` accepts only those, see ruling C1b.
+    A resource which is a compact identifier already is written as the identifiers.org URI of exactly that identifier, or, for a collection its registry does not know, as the identifier alone. Otherwise pymetadata splits the resource into its collection and its term and writes the compact `https://identifiers.org/<collection>:<term>`, or `https://identifiers.org/<term>` where the term carries its collection as its own prefix, or again the bare `<term>`. Only the forms which keep the collection are a normalization, and `_identifiers_org` accepts only those, see rulings C1b and C1d.
 
     Args:
         resource: a resource, e.g. `urn:miriam:chebi:CHEBI%3A33699`
 
     Returns:
-        the forms of the resource; empty if it is neither a MIRIAM URN nor a classic identifiers.org URL
+        the forms of the resource; empty for a resource which is none of the four source forms of ruling R5
     """
+    compact = _compact_identifier(resource)
+    if compact is not None:
+        return {f"{_IDENTIFIERS_ORG}{compact}", compact}
     parsed = _collection_and_term(resource)
     if parsed is None:
         return set()
     collection, term = parsed
-    forms = {f"https://identifiers.org/{collection}:{term}", term}
+    forms = {f"{_IDENTIFIERS_ORG}{collection}:{term}", term}
     prefix, separator, _ = term.partition(":")
     if separator and prefix.lower() == collection.lower():
-        forms.add(f"https://identifiers.org/{term}")
+        forms.add(f"{_IDENTIFIERS_ORG}{term}")
     return forms
 
 
@@ -483,12 +520,15 @@ WHITELIST: tuple[Normalization, ...] = (
         attribute="cvterms",
         reason=(
             "create_model writes a resource as pymetadata canonicalizes it, which "
-            "writes a deprecated MIRIAM URN and a classic identifiers.org URL as "
-            "the compact identifiers.org URL, urn:miriam:chebi:CHEBI%3A33699 and "
-            "http://identifiers.org/chebi/CHEBI:12965 as "
-            "https://identifiers.org/CHEBI:33699 and "
-            "https://identifiers.org/CHEBI:12965: the same collection and term, "
-            "resolved by the same registry, see ruling C1a"
+            "writes a MIRIAM URN, a classic identifiers.org URL, the http "
+            "spelling of the compact URL and a bare compact identifier as the "
+            "compact identifiers.org URL of the same collection and term, "
+            "urn:miriam:chebi:CHEBI%3A33699, "
+            "http://identifiers.org/chebi/CHEBI:12965 and UO:0000021 as "
+            "https://identifiers.org/CHEBI:33699, "
+            "https://identifiers.org/CHEBI:12965 and "
+            "https://identifiers.org/UO:0000021: the same identifier, resolved by "
+            "the same registry, see rulings C1a and C1c"
         ),
         equivalent=_identifiers_org,
     ),
