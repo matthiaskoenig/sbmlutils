@@ -1283,8 +1283,8 @@ class Sbase:
 
         The `port=True` shorthand and a `Port` object which names nothing of
         its own are both made to reference this element, by the reference
-        `_port_reference` names for the class; a `Port` which carries a
-        reference of its own keeps it. Both `_port_loss` and `create_port`
+        `_port_reference_for` names for the document being written; a `Port`
+        which carries a reference of its own keeps it. Both `_port_loss` and `create_port`
         ask this, which is why it is one predicate.
 
         Returns:
@@ -1381,8 +1381,8 @@ class Sbase:
         """Create the port of the element, if it has one.
 
         A port which references nothing of its own is made to reference this
-        element, by the reference `_port_reference` names for the class: its
-        id, its unit id or its metaid. A port which cannot be written is
+        element, by the reference `_port_reference_for` names for the
+        document being written: its id, its unit id or its metaid. A port which cannot be written is
         reported here, once, and `Model._has_comp_content` asks the same
         predicate so that it does not declare comp for it, see `_port_loss`.
 
@@ -1539,7 +1539,7 @@ class KeyValuePair(Sbase):
     `LIBSBML_UNEXPECTED_ATTRIBUTE` in fbc version 2 and attaches no fbc
     plugin without the package. Both are reported once for the element which
     carries the pairs, see `KeyValuePair.create_pairs` and
-    `_fbc_version_loss`, which answers the same question for an
+    `_fbc_version_allows`, which answers the same question for an
     `<fbc:userDefinedConstraint>`.
 
     Neither `uncertainties` nor a nested list of `keyValuePairs` is offered:
@@ -5351,7 +5351,7 @@ class UserDefinedConstraint(Sbase):
         that would be written is an empty `<fbc:userDefinedConstraint/>`,
         which is invalid. Such a document is reported once for the constraint
         and gets no element, the way a key-value pair is refused, see
-        `_fbc_version_loss`.
+        `_fbc_version_allows`.
 
         Args:
             model: the libsbml.Model the constraint is created in
