@@ -12,12 +12,13 @@ sboTerm, notes, annotations and fbc key-value pairs. An element without math,
 which SBML allows from L3V2 on, is read without math. It also reads
 `fbc:strict` of the model, its gene products and objectives with their flux
 objectives, the gene product association of a reaction, as an infix string of
-gene product ids, its flux bounds, and the charge and chemical formula of a
-species. A document which declares fbc version 1 is converted to fbc version 2
-before it is read, see `_convert_fbc_v1`.
+gene product ids, its flux bounds, the charge and chemical formula of a
+species, and the user-defined constraints of the model with their components.
+A document which declares fbc version 1 is converted to fbc version 2 before
+it is read, see `_convert_fbc_v1`.
 
-Not read are the model history, and the rest of the content of the `fbc`,
-`distrib`, `comp`, `groups` and `layout` packages: user-defined constraints,
+Not read are the model history, and the rest of the content of the `distrib`,
+`comp`, `groups` and `layout` packages:
 uncertainties, submodels, ports and replacements. The `fbc`,
 `distrib` and `comp` packages a document declares are declared on the model.
 Math is read as an L3 infix string, in which an id named like a MathML
@@ -62,6 +63,8 @@ from sbmlutils.factory import (
     Trigger,
     Unit,
     UnitDefinition,
+    UserDefinedConstraint,
+    UserDefinedConstraintComponent,
     create_model,
 )
 from sbmlutils.io.sbml import read_sbml
@@ -358,10 +361,10 @@ def _parse_model_body(model: libsbml.Model, m: Model) -> None:
     Populates `m` with everything `sbml_to_model` parses from `model`: unit
     definitions, model units, function definitions, compartments, species,
     parameters, reactions with kinetic laws, initial assignments, rules,
-    events, constraints, `fbc:strict`, the gene products and objectives of the
-    model, the gene product association and the flux bounds of a reaction and
-    the charge and chemical formula of a species. `model` can be any
-    `libsbml.Model`,
+    events, constraints, `fbc:strict`, the gene products, objectives and
+    user-defined constraints of the model, the gene product association and
+    the flux bounds of a reaction and the charge and chemical formula of a
+    species. `model` can be any `libsbml.Model`,
     including a `libsbml.ModelDefinition`, which subclasses it, so the comp
     package can recurse into a model definition with the same parser.
 
@@ -435,6 +438,29 @@ def _parse_model_body(model: libsbml.Model, m: Model) -> None:
                     active=objective.getIdAttribute() == active,
                     fluxObjectives=flux_objectives,
                     **_parse_sbase_kwargs(objective),
+                )
+            )
+
+        # fbc user-defined constraints, added in fbc version 3
+        constraint_fbc: libsbml.UserDefinedConstraint
+        for constraint_fbc in model_fbc.getListOfUserDefinedConstraints():
+            components: list[UserDefinedConstraintComponent] = []
+            component: libsbml.UserDefinedConstraintComponent
+            for component in constraint_fbc.getListOfUserDefinedConstraintComponents():
+                components.append(
+                    UserDefinedConstraintComponent(
+                        coefficient=component.getCoefficient(),
+                        variable=component.getVariable(),
+                        variableType=_variable_type(component),
+                        **_parse_sbase_kwargs(component),
+                    )
+                )
+            m.user_defined_constraints.append(
+                UserDefinedConstraint(
+                    lowerBound=constraint_fbc.getLowerBound(),
+                    upperBound=constraint_fbc.getUpperBound(),
+                    components=components,
+                    **_parse_sbase_kwargs(constraint_fbc),
                 )
             )
 
@@ -729,7 +755,7 @@ def _parse_model_body(model: libsbml.Model, m: Model) -> None:
             )
         )
 
-    # the content of the fbc, distrib, comp, groups and layout packages is not
+    # the content of the distrib, comp, groups and layout packages is not
     # parsed yet, see the module docstring
 
 

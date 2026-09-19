@@ -229,8 +229,8 @@ def _change_constraint_component(doc: libsbml.SBMLDocument) -> None:
     component: libsbml.UserDefinedConstraintComponent = (
         constraint.getUserDefinedConstraintComponent(0)
     )
-    # fbc v3 references a parameter as the coefficient, the fixture spells a number
-    assert component.getCoefficient() == "1"
+    # fbc v3 references a parameter as the coefficient
+    assert component.getCoefficient() == "coef_plus_one"
     assert component.setCoefficient("Avar") == libsbml.LIBSBML_OPERATION_SUCCESS
 
 
@@ -1113,6 +1113,24 @@ def test_roundtrip_preserves_fbc_v1_flux_bounds(
     assert counts["fbc.fluxBound"] == 26
 
     _assert_preserved(fbc_roundtrip(sbml_path), "fbc.fluxBound")
+
+
+def test_roundtrip_preserves_user_defined_constraints(
+    fbc_roundtrip: Callable[[Path], Comparison],
+) -> None:
+    """Test that the user-defined constraints of a model survive a round trip.
+
+    A user-defined constraint is an fbc version 3 constraint which is not implied by the stoichiometry of the network; `FBC_UDC_SBML` is the only fixture of the repository which has any.
+    """
+    counts, _ = fbc_roundtrip(FBC_UDC_SBML)
+    assert counts["fbc.userDefinedConstraint"] == 2
+    assert counts["fbc.userDefinedConstraintComponent"] == 4
+
+    _assert_preserved(
+        fbc_roundtrip(FBC_UDC_SBML),
+        "fbc.userDefinedConstraint",
+        "fbc.userDefinedConstraintComponent",
+    )
 
 
 # ---------------------------------------------------------------------------
