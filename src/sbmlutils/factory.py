@@ -4506,7 +4506,7 @@ class Model(Sbase, FrozenClass):
     # fbc
     #: `fbc:strict` of the model, `None` keeps today's default of writing it
     #: `False` when the model declares fbc, and unset otherwise (see
-    #: `_create_sbml`). It is a scalar in `_keys` (not `list`-typed), so
+    #: `Document._create_sbml`). It is a scalar in `_keys` (not `list`-typed), so
     #: `merge_models` overwrites it with the value of the last model that
     #: sets it, like `conversionFactor` and every other scalar field.
     strict: bool | None
