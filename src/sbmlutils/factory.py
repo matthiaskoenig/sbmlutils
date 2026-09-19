@@ -121,6 +121,7 @@ __all__ = [
     "ReactionEquation",
     "ReplacedBy",
     "ReplacedElement",
+    "SbaseRef",
     "Species",
     "Submodel",
     "Trigger",
@@ -4707,7 +4708,27 @@ class Submodel(Sbase):
 
 
 class SbaseRef(Sbase):
-    """SBaseRef."""
+    """SBaseRef.
+
+    The base of `Port`, `ReplacedElement`, `ReplacedBy` and `Deletion`: each
+    references an element by one of `portRef`, `idRef`, `unitRef`,
+    `metaIdRef`. The SBML spec allows a `<comp:sBaseRef>` to hold a nested
+    `<comp:sBaseRef>` child of its own, which continues the reference into a
+    submodel of the referenced submodel, to arbitrary depth; `sBaseRef`
+    holds that nested reference, an `SbaseRef` in its own right so the chain
+    can continue.
+
+    `sid` is set on every level (`Sbase._set_fields` sets it through the
+    generic `id` SBase core added in SBML L3V2), but libsbml's comp writer
+    does not serialize that generic `id`/`name` on any `SBaseRef`,
+    `ReplacedElement`, `ReplacedBy` or `Deletion`, nested or not: measured
+    with libsbml 5.21.2, `isSetIdAttribute()` is `True` right after
+    `_set_fields`, and `False` once the document is written and read back.
+    `metaId`, `sboTerm`, notes and annotations are unaffected (they predate
+    L3V2 and are written normally); `Port.sid` is unaffected too, since a
+    port's `id`/`name` are required package attributes of `comp:Port`
+    itself, not the generic core one.
+    """
 
     def __init__(
         self,
@@ -4722,6 +4743,7 @@ class SbaseRef(Sbase):
         annotations: OptionalAnnotationsType = None,
         notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
+        sBaseRef: SbaseRef | None = None,
     ):
         """Create an SBaseRef."""
         super().__init__(
@@ -4738,8 +4760,22 @@ class SbaseRef(Sbase):
         self.unitRef = unitRef
         _check_unit_type(self.unitRef, "unitRef", self)
         self.metaIdRef = metaIdRef
+        self.sBaseRef = sBaseRef
 
-    def _set_fields(self, sbase: Any, model: libsbml.Model) -> None:
+    def _set_fields(self, sbase: Any, model: Any) -> None:
+        """Set the fields of the created libsbml `SBaseRef` (or subclass).
+
+        Args:
+            sbase: the libsbml object created by `create_sbml`, one of
+                `libsbml.Port`, `libsbml.ReplacedElement`,
+                `libsbml.ReplacedBy`, `libsbml.Deletion` or, for a nested
+                reference, `libsbml.SBaseRef` itself
+            model: the `libsbml.Model` the object belongs to; `None` for a
+                nested reference, which lives inside another `SbaseRef`
+                rather than in a list of the model, following the pattern
+                `LocalParameter`/`UncertParameter`/`UncertSpan` use for an
+                element nested inside another
+        """
         super()._set_fields(sbase, model)
 
         if self.portRef is not None:
@@ -4751,6 +4787,27 @@ class SbaseRef(Sbase):
             sbase.setUnitRef(unit_str)
         if self.metaIdRef is not None:
             sbase.setMetaIdRef(self.metaIdRef)
+        if self.sBaseRef is not None:
+            nested: libsbml.SBaseRef = sbase.createSBaseRef()
+            # written through the base class explicitly rather than through
+            # `self.sBaseRef._set_fields`: a nested reference is always a
+            # plain `<comp:sBaseRef>` in the SBML written, never a
+            # `<comp:port>`, `<comp:replacedElement>` or
+            # `<comp:replacedBy>`, whatever python class built it (a `Port`
+            # is a convenient, already available `SbaseRef` a caller may
+            # reuse for a nested level; its `portType` is a construction
+            # convenience of `Port.create_sbml`, not a field of
+            # `_set_fields`, so it is silently not applied to the nested
+            # level, and a `ReplacedElement`/`ReplacedBy` passed here would
+            # otherwise raise `AttributeError` on `setSubmodelRef`, which
+            # `libsbml.SBaseRef` does not implement). `model` is passed as
+            # `None`, the pattern `LocalParameter.create_sbml` and
+            # `KineticLaw.create_sbml` use for an element nested inside
+            # another: none of the four subclasses exposes `port`,
+            # `uncertainties` or `replacedBy` through its constructor, so
+            # this is currently only a safety net, not an observed
+            # difference.
+            SbaseRef._set_fields(self.sBaseRef, nested, None)
 
 
 class ReplacedElement(SbaseRef):
@@ -4773,6 +4830,7 @@ class ReplacedElement(SbaseRef):
         annotations: OptionalAnnotationsType = None,
         notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
+        sBaseRef: SbaseRef | None = None,
     ):
         """Create a ReplacedElement."""
         super().__init__(
@@ -4787,6 +4845,7 @@ class ReplacedElement(SbaseRef):
             annotations=annotations,
             notes=notes,
             keyValuePairs=keyValuePairs,
+            sBaseRef=sBaseRef,
         )
         self.elementRef = elementRef
         self.submodelRef = submodelRef
@@ -4839,6 +4898,7 @@ class ReplacedBy(SbaseRef):
         annotations: OptionalAnnotationsType = None,
         notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
+        sBaseRef: SbaseRef | None = None,
     ):
         """Create a ReplacedElement."""
         super().__init__(
@@ -4853,6 +4913,7 @@ class ReplacedBy(SbaseRef):
             annotations=annotations,
             notes=notes,
             keyValuePairs=keyValuePairs,
+            sBaseRef=sBaseRef,
         )
         self.elementRef = elementRef
         self.submodelRef = submodelRef
@@ -4892,6 +4953,7 @@ class Deletion(SbaseRef):
         annotations: OptionalAnnotationsType = None,
         notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
+        sBaseRef: SbaseRef | None = None,
     ):
         """Initialize Deletion."""
         super().__init__(
@@ -4906,6 +4968,7 @@ class Deletion(SbaseRef):
             annotations=annotations,
             notes=notes,
             keyValuePairs=keyValuePairs,
+            sBaseRef=sBaseRef,
         )
         self.submodelRef = submodelRef
 
@@ -4954,6 +5017,7 @@ class Port(SbaseRef):
         annotations: OptionalAnnotationsType = None,
         notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
+        sBaseRef: SbaseRef | None = None,
     ):
         """Create a Port."""
         super().__init__(
@@ -4968,6 +5032,7 @@ class Port(SbaseRef):
             annotations=annotations,
             notes=notes,
             keyValuePairs=keyValuePairs,
+            sBaseRef=sBaseRef,
         )
         self.portType = portType
 

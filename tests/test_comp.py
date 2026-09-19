@@ -6,10 +6,12 @@ from typing import Any
 
 import libsbml
 import pytest
+from structural import snapshot
+from test_roundtrip import requires_testsuite, testsuite_case
 
 from sbmlutils import comp
 from sbmlutils.factory import *
-from sbmlutils.factory import PortType, create_objects
+from sbmlutils.factory import PortType, SbaseRef, create_objects
 from sbmlutils.io import read_sbml
 from sbmlutils.metadata import SBO
 from sbmlutils.validation import ValidationOptions, validate_doc
@@ -318,6 +320,109 @@ def test_port_needs_an_id(caplog: pytest.LogCaptureFixture) -> None:
     assert any("port" in record.getMessage() for record in caplog.records)
 
 
+def _nested_sbaseref_chain(prefix: str) -> SbaseRef:
+    """Build a three level chain of nested `sBaseRef` for a test.
+
+    Args:
+        prefix: distinguishes the `idRef` of every level across the ports,
+            replaced elements, replaced by and deletions of one test
+
+    Returns:
+        the first level, whose own `sBaseRef` holds the second, whose own
+        `sBaseRef` holds the third
+    """
+    return SbaseRef(
+        sid=f"{prefix}_L1",
+        idRef=f"{prefix}_target_L1",
+        sBaseRef=SbaseRef(
+            sid=f"{prefix}_L2",
+            idRef=f"{prefix}_target_L2",
+            sBaseRef=SbaseRef(
+                sid=f"{prefix}_L3",
+                idRef=f"{prefix}_target_L3",
+            ),
+        ),
+    )
+
+
+def _assert_nested_sbaseref_chain(sbaseref: libsbml.SBaseRef, prefix: str) -> None:
+    """Walk a three level nested `sBaseRef` chain built by `_nested_sbaseref_chain`.
+
+    Args:
+        sbaseref: the first level, as read back from a written document
+        prefix: the prefix `_nested_sbaseref_chain` was built with
+    """
+    assert sbaseref.getIdRef() == f"{prefix}_target_L1"
+    level2 = sbaseref.getSBaseRef()
+    assert level2.getIdRef() == f"{prefix}_target_L2"
+    level3 = level2.getSBaseRef()
+    assert level3.getIdRef() == f"{prefix}_target_L3"
+    assert not level3.isSetSBaseRef()
+
+
+def test_nested_sbaseref_chain_is_written(tmp_path: Path) -> None:
+    """Test that a three deep chain of nested `sBaseRef` survives a write and re-read.
+
+    The SBML spec allows an `sBaseRef` to continue a reference into a
+    submodel of the referenced submodel, to arbitrary depth. Every subclass
+    of `SbaseRef` inherits the field: a port, a replaced element, a replaced
+    by and a deletion each get their own chain here.
+    """
+    model = Model(
+        sid="nested_sbaseref",
+        compartments=[
+            Compartment("c1", 1.0),
+            Compartment(
+                "c2",
+                1.0,
+                replacedBy=ReplacedBy(
+                    sid="rby1",
+                    elementRef="c2",
+                    submodelRef="sub1",
+                    sBaseRef=_nested_sbaseref_chain("rby"),
+                ),
+            ),
+        ],
+        submodels=[Submodel(sid="sub1", modelRef="emd1")],
+        ports=[
+            Port(sid="port1", idRef="c1", sBaseRef=_nested_sbaseref_chain("port")),
+        ],
+        replaced_elements=[
+            ReplacedElement(
+                sid="re1",
+                elementRef="c1",
+                submodelRef="sub1",
+                sBaseRef=_nested_sbaseref_chain("re"),
+            ),
+        ],
+        deletions=[
+            Deletion(
+                sid="del1",
+                submodelRef="sub1",
+                idRef="deleted_x",
+                sBaseRef=_nested_sbaseref_chain("del"),
+            ),
+        ],
+    )
+    doc = _write(model, tmp_path)
+    sbml_model: libsbml.Model = doc.getModel()
+    cmodel: libsbml.CompModelPlugin = sbml_model.getPlugin("comp")
+
+    port: libsbml.Port = cmodel.getPort("port1")
+    _assert_nested_sbaseref_chain(port.getSBaseRef(), "port")
+
+    c1_comp: libsbml.CompSBasePlugin = sbml_model.getCompartment("c1").getPlugin("comp")
+    replaced_element: libsbml.ReplacedElement = c1_comp.getReplacedElement(0)
+    _assert_nested_sbaseref_chain(replaced_element.getSBaseRef(), "re")
+
+    c2_comp: libsbml.CompSBasePlugin = sbml_model.getCompartment("c2").getPlugin("comp")
+    replaced_by: libsbml.ReplacedBy = c2_comp.getReplacedBy()
+    _assert_nested_sbaseref_chain(replaced_by.getSBaseRef(), "rby")
+
+    deletion: libsbml.Deletion = cmodel.getSubmodel("sub1").getDeletion(0)
+    _assert_nested_sbaseref_chain(deletion.getSBaseRef(), "del")
+
+
 def test_replaced_element_sets_id_once(caplog: pytest.LogCaptureFixture) -> None:
     """Test that `SbaseRef._set_fields` sets the id of the created object once.
 
@@ -392,3 +497,79 @@ def test_submodel_without_model_ref_is_written_without_raising(
     assert any(error.getErrorId() == 1020607 for error in result.errors), (
         "validation did not report the missing comp:modelRef"
     )
+
+
+@requires_testsuite
+def test_nested_sbaseref_chain_matches_test_suite_case_01132(tmp_path: Path) -> None:
+    """Test the written chain against the one carried by test suite case 01132.
+
+    A second oracle beyond `test_nested_sbaseref_chain_is_written`: case
+    01132 replaces `S1` (a reference into `sub3`, continued through
+    `sub2`'s `sub1` into `sub1`'s own `S1`) with a chain nested two deep,
+    `<species id="S1">`'s own `comp:replacedElement` (`idRef="sub2"`,
+    `submodelRef="sub3"`) holding a `comp:sBaseRef` (`idRef="sub1"`)
+    which holds a further `comp:sBaseRef` (`idRef="S1"`). The same chain is
+    built here with the factory and both are reduced to the snapshot
+    `tests/structural.py` uses to judge a round trip; the element id path
+    of the built chain is identical to the source's by construction (same
+    species id, same references, one `replacedElement`), so the attributes
+    of the three matching keys are compared directly, which is the
+    assertion an unrestricted `structural_diff` of the whole two documents
+    would also make for these three keys, the rest of the two documents
+    being unrelated content.
+    """
+    source_doc: libsbml.SBMLDocument = libsbml.readSBMLFromFile(
+        str(testsuite_case("01132"))
+    )
+    source_snapshot = snapshot(source_doc)
+
+    model = Model(
+        sid="chain_from_01132",
+        compartments=[Compartment("C", 10.0, constant=True)],
+        species=[
+            Species(
+                "S1",
+                compartment="C",
+                initialAmount=5.0,
+                hasOnlySubstanceUnits=False,
+                boundaryCondition=False,
+                constant=True,
+            ),
+        ],
+        submodels=[
+            Submodel(sid="sub1", modelRef="moddef1"),
+            Submodel(sid="sub2", modelRef="moddef2"),
+            Submodel(sid="sub3", modelRef="moddef3"),
+        ],
+        replaced_elements=[
+            ReplacedElement(
+                sid="re_for_S1",
+                elementRef="S1",
+                submodelRef="sub3",
+                idRef="sub2",
+                sBaseRef=SbaseRef(
+                    sid="chain_L2",
+                    idRef="sub1",
+                    sBaseRef=SbaseRef(sid="chain_L3", idRef="S1"),
+                ),
+            ),
+        ],
+    )
+    doc = _write(model, tmp_path)
+    built_snapshot = snapshot(doc)
+
+    chain_keys = [
+        ("comp.replacedElement", "model/species:S1/replacedElement[sub3/idRef=sub2]"),
+        (
+            "comp.sBaseRef",
+            "model/species:S1/replacedElement[sub3/idRef=sub2]/sBaseRef",
+        ),
+        (
+            "comp.sBaseRef",
+            "model/species:S1/replacedElement[sub3/idRef=sub2]/sBaseRef/sBaseRef",
+        ),
+    ]
+    for key in chain_keys:
+        assert key in source_snapshot, f"the source does not carry {key}"
+        assert key in built_snapshot, f"the written chain does not carry {key}"
+        assert source_snapshot[key] == built_snapshot[key]
