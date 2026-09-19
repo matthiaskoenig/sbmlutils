@@ -8,7 +8,7 @@ This docstring is the comparison policy. The code implements it and nothing else
 
 The round trip writes SBML L3V2 with fbc version 2 or 3, so a document read at another version cannot come back unchanged, only as it reads when converted. Each document is therefore first brought to L3V2 and fbc version 2 or higher, on a copy, by libsbml's own converters, which are the reference for that conversion: the `convert fbc v1 to fbc v2` converter with its default options for fbc version 1, then `setLevelAndVersion(3, 2, strict=False)` for any other level and version. A document already at those versions is compared as it is.
 
-- The fbc v1 conversion turns every `fbc:fluxBound` into a `fbc:lowerFluxBound`/`fbc:upperFluxBound` reference to a new parameter with the generated id `fb_<reaction>_<operation>`, and sets `fbc:strict="true"`. A round trip of an fbc v1 document is expected to reproduce exactly that.
+- The fbc v1 conversion turns every `fbc:fluxBound` into a `fbc:lowerFluxBound`/`fbc:upperFluxBound` reference to a new parameter with the generated id `fb_<reaction>_<operation>`, and sets `fbc:strict="true"`. A round trip of an fbc v1 document is expected to reproduce exactly that. The converter drops the `<fbc:fluxBound>` element, and both documents are compared as libsbml converts them, so the `metaid`, the `sboTerm` and the annotation of that element are invisible on both sides: what survives of it is the bound it expresses, `fbc.fluxBound`, and the parameter the conversion generates for it.
 - The L3V1 to L3V2 conversion removes the `fast` attribute of a reaction, which L3V2 does not have, and changes no package content (measured on every L3V1 fixture of the corpus).
 
 ## Snapshot, construct and element id
@@ -82,11 +82,11 @@ Through the libsbml getters, the `isSet` getter first: an unset attribute is `No
 
 ## The whitelist
 
-`WHITELIST` holds the three normalizations of ruling R5 of the design and nothing else. Each is known to preserve the meaning, and each is narrow: it accepts exactly its normalization of a value and rejects that normalization combined with any other change.
+`WHITELIST` holds the three normalizations of ruling R5 of the design and nothing else. Each is known to preserve the meaning, and each is narrow: it accepts exactly its normalization of a value and rejects that normalization combined with any other change. Each entry is keyed by the construct and the attribute it applies to, never by the attribute alone, so that a construct which gains an attribute of the same name does not inherit a normalization of another construct; an entry whose construct is `None` applies to that attribute of every construct.
 
 - `gpa-flattening` (`fbc.geneProductAssociation.association`): libsbml flattens a nested group of the same operator, `((a and b) and c)` is written back as `(a and b and c)`. Accepted when the association written parses to exactly the tree of the association read with every group spliced into its parent group of the same operator, and only that: the operands keep their order, no operand is added, removed or repeated, an operator is never changed, and a partly flattened or regrouped association is not accepted.
 - `cn-integer` (any `math`): math round trips as an L3 infix string, which spells a real of integral value like an integer, so `<cn> 1 </cn>` is read back as `<cn type="integer"> 1 </cn>`. Accepted when both MathML trees are identical except for `cn` elements without a `type` whose value is a finite integral number, which come back with `type="integer"`, the same integer and otherwise the same attributes. A negative real read back as the unary minus of an integer is a different tree and is not accepted.
-- `miriam-urn` (any `cvterms`): pymetadata writes a deprecated MIRIAM URN as its identifiers.org URL, `urn:miriam:chebi:CHEBI%3A33699` as `https://identifiers.org/CHEBI:33699`. Accepted when every resource which differs is a `urn:miriam:<collection>:<term>` on one side and on the other side exactly `https://identifiers.org/<collection>:<term>`, or `https://identifiers.org/<term>` if the term carries the collection as its own prefix, with the same qualifier, the term unchanged except for its `%3A` decoded to `:`, and the collection unchanged except for the two legacy renames pymetadata applies, `obo.go` to `go` and `biomodels.sbo` to `sbo`. Any other rewriting of a resource, e.g. an `http://identifiers.org/<collection>/<term>` URL to the compact `https` form, or a URN of an unknown collection to its bare term, is a difference.
+- `identifiers-org` (any `cvterms`): pymetadata canonicalizes a deprecated MIRIAM URN and a classic identifiers.org URL to the same compact identifiers.org URL, `urn:miriam:chebi:CHEBI%3A33699` and `http://identifiers.org/chebi/CHEBI:12965` as `https://identifiers.org/CHEBI:33699` and `https://identifiers.org/CHEBI:12965` (ruling C1a of the ledger widened this entry from the URN to both sources, after the classic URL was measured to be the same canonicalization). Accepted when every resource which differs is a `urn:miriam:<collection>:<term>` or an `http(s)://identifiers.org/<collection>/<term>` on one side and on the other side exactly `https://identifiers.org/<collection>:<term>`, or `https://identifiers.org/<term>` if the term carries the collection as its own prefix, with the same qualifier, the term unchanged except for the `%3A` of a URN decoded to `:`, and the collection unchanged except for the two legacy renames pymetadata applies, `obo.go` to `go` and `biomodels.sbo` to `sbo`. Every resource written has to be the compact identifiers.org URI of the resource read; any other rewriting is a difference, in particular the bare term pymetadata writes for a collection its registry does not know (`http://identifiers.org/sabiork/1406` as `1406`), which carries neither the collection nor a URI scheme and is a real loss, never a normalization (ruling C1b).
 """
 
 import math
@@ -159,15 +159,33 @@ class Normalization:
 
     Attributes:
         name: the name of the normalization
-        attribute: the attribute it applies to, of any construct
+        construct: the construct it applies to, or `None` for every construct
+        attribute: the attribute of that construct it applies to
         reason: why the normalized value means the same
         equivalent: whether the value read and the value written are that normalization of each other
     """
 
     name: str
+    construct: str | None
     attribute: str
     reason: str
     equivalent: Callable[[Any, Any], bool]
+
+    def applies_to(self, construct: str, attribute: str) -> bool:
+        """Test whether this normalization applies to an attribute of a construct.
+
+        An entry is keyed by its construct and its attribute, never by the attribute alone: a construct which gains an attribute of a name another construct normalizes must not inherit that normalization.
+
+        Args:
+            construct: the construct of the element, e.g. `fbc.geneProductAssociation`
+            attribute: the attribute which differs, e.g. `association`
+
+        Returns:
+            whether the entry is the one of this attribute of this construct
+        """
+        if attribute != self.attribute:
+            return False
+        return self.construct is None or construct == self.construct
 
 
 # ---------------------------------------------------------------------------
@@ -336,44 +354,77 @@ def _cn_integer(before: object, after: object) -> bool:
 
 
 # ---------------------------------------------------------------------------
-# miriam-urn
+# identifiers-org
 # ---------------------------------------------------------------------------
+#: a deprecated MIRIAM URN, `urn:miriam:<collection>:<term>`
 _MIRIAM_URN = re.compile(r"urn:miriam:([^:]+):(.+)")
+
+#: a classic identifiers.org URL, `http(s)://identifiers.org/<collection>/<term>`;
+#: the collection is spelled as pymetadata's `IDENTIFIERS_ORG_PATTERN_CLASSIC`
+#: spells it, which is why `http://identifiers.org/ec-code/1.1.1.1` is no classic
+#: URL to pymetadata and comes back unchanged
+_CLASSIC_URL = re.compile(r"https?://identifiers\.org/([a-zA-Z0-9.]+)/(.+)")
 
 #: the collections pymetadata renames, see `RDFAnnotation.replaced_collections`
 _LEGACY_COLLECTIONS: dict[str, str] = {"obo.go": "go", "biomodels.sbo": "sbo"}
 
+#: the URI every canonicalized resource starts with, pymetadata's
+#: `IDENTIFIERS_ORG_PREFIX`; a resource written without it carries no collection
+#: and, as the bare term of ruling C1b, no URI scheme at all
+_IDENTIFIERS_ORG: str = "https://identifiers.org/"
 
-def _urls_of_urn(resource: str) -> set[str]:
-    """Get the identifiers.org URLs a MIRIAM URN may be written as.
+
+def _collection_and_term(resource: str) -> tuple[str, str] | None:
+    """Split a resource which pymetadata canonicalizes into its collection and its term.
+
+    Args:
+        resource: a resource, e.g. `urn:miriam:chebi:CHEBI%3A33699` or `http://identifiers.org/chebi/CHEBI:12965`
+
+    Returns:
+        the collection, with the two legacy renames applied, and the term, with the `%3A` of a URN decoded; `None` for a resource which is neither a MIRIAM URN nor a classic identifiers.org URL
+    """
+    urn = _MIRIAM_URN.fullmatch(resource)
+    url = _CLASSIC_URL.fullmatch(resource)
+    if urn is not None:
+        collection, term = urn.group(1), urn.group(2).replace("%3A", ":")
+    elif url is not None:
+        collection, term = url.group(1), url.group(2)
+    else:
+        return None
+    return _LEGACY_COLLECTIONS.get(collection, collection), term
+
+
+def _normalized_forms(resource: str) -> set[str]:
+    """Get the resources pymetadata's canonicalization may write for a resource.
+
+    pymetadata splits the resource into its collection and its term and writes the compact `https://identifiers.org/<collection>:<term>`, or `https://identifiers.org/<term>` where the term carries its collection as its own prefix, or, for a collection its registry does not know, the bare `<term>`. Only the first two keep the collection, and `_identifiers_org` accepts only those, see ruling C1b.
 
     Args:
         resource: a resource, e.g. `urn:miriam:chebi:CHEBI%3A33699`
 
     Returns:
-        `https://identifiers.org/<collection>:<term>`, and `https://identifiers.org/<term>` if the term carries the collection as its prefix; empty if the resource is no MIRIAM URN
+        the forms of the resource; empty if it is neither a MIRIAM URN nor a classic identifiers.org URL
     """
-    match = _MIRIAM_URN.fullmatch(resource)
-    if match is None:
+    parsed = _collection_and_term(resource)
+    if parsed is None:
         return set()
-    collection = _LEGACY_COLLECTIONS.get(match.group(1), match.group(1))
-    term = match.group(2).replace("%3A", ":")
-    urls = {f"https://identifiers.org/{collection}:{term}"}
+    collection, term = parsed
+    forms = {f"https://identifiers.org/{collection}:{term}", term}
     prefix, separator, _ = term.partition(":")
     if separator and prefix.lower() == collection.lower():
-        urls.add(f"https://identifiers.org/{term}")
-    return urls
+        forms.add(f"https://identifiers.org/{term}")
+    return forms
 
 
-def _miriam_urn(before: object, after: object) -> bool:
-    """Test whether annotations came back with their MIRIAM URNs as identifiers.org URLs.
+def _identifiers_org(before: object, after: object) -> bool:
+    """Test whether annotations came back canonicalized as identifiers.org URLs.
 
     Args:
         before: the `(qualifier, resource)` pairs read
         after: the `(qualifier, resource)` pairs written
 
     Returns:
-        whether every pair which differs is a URN read and written as one of its URLs, with the same qualifier, one for one
+        whether every pair which differs is a MIRIAM URN or a classic identifiers.org URL read and written as its compact URL, with the same qualifier, one for one
     """
     if not isinstance(before, tuple) or not isinstance(after, tuple):
         return False
@@ -381,9 +432,19 @@ def _miriam_urn(before: object, after: object) -> bool:
     unmatched_after = set(after) - set(before)
     if not unmatched_before:
         return False
+    # every resource written has to be the compact identifiers.org URI of the one
+    # read: the bare term pymetadata writes for a collection its registry does not
+    # know, `1406` for `http://identifiers.org/sabiork/1406`, carries neither the
+    # collection nor a URI scheme, which is a loss and no normalization, see
+    # ruling C1b
+    if any(
+        not resource.startswith(_IDENTIFIERS_ORG) for _, resource in unmatched_after
+    ):
+        return False
     for qualifier, resource in sorted(unmatched_before):
         candidates = sorted(
-            {(qualifier, url) for url in _urls_of_urn(resource)} & unmatched_after
+            {(qualifier, form) for form in _normalized_forms(resource)}
+            & unmatched_after
         )
         if not candidates:
             return False
@@ -395,6 +456,7 @@ def _miriam_urn(before: object, after: object) -> bool:
 WHITELIST: tuple[Normalization, ...] = (
     Normalization(
         name="gpa-flattening",
+        construct="fbc.geneProductAssociation",
         attribute="association",
         reason=(
             "libsbml parses an association into a tree and splices a nested group "
@@ -406,6 +468,7 @@ WHITELIST: tuple[Normalization, ...] = (
     ),
     Normalization(
         name="cn-integer",
+        construct=None,
         attribute="math",
         reason=(
             "math round trips as an L3 infix string, which spells a real of "
@@ -415,15 +478,19 @@ WHITELIST: tuple[Normalization, ...] = (
         equivalent=_cn_integer,
     ),
     Normalization(
-        name="miriam-urn",
+        name="identifiers-org",
+        construct=None,
         attribute="cvterms",
         reason=(
-            "create_model writes a resource as pymetadata normalizes it, which "
-            "writes a deprecated MIRIAM URN as its identifiers.org URL, "
-            "urn:miriam:chebi:CHEBI%3A33699 as https://identifiers.org/CHEBI:33699: "
-            "the same collection and term, resolved by the same registry"
+            "create_model writes a resource as pymetadata canonicalizes it, which "
+            "writes a deprecated MIRIAM URN and a classic identifiers.org URL as "
+            "the compact identifiers.org URL, urn:miriam:chebi:CHEBI%3A33699 and "
+            "http://identifiers.org/chebi/CHEBI:12965 as "
+            "https://identifiers.org/CHEBI:33699 and "
+            "https://identifiers.org/CHEBI:12965: the same collection and term, "
+            "resolved by the same registry, see ruling C1a"
         ),
-        equivalent=_miriam_urn,
+        equivalent=_identifiers_org,
     ),
 )
 
@@ -1071,12 +1138,30 @@ def _visit_model(snap: Snapshot, model: Any, path: str, core: bool) -> None:
 def snapshot(doc: libsbml.SBMLDocument) -> Snapshot:
     """Reduce the package content of a document to plain values, see the module docstring.
 
+    The document has to be the one `comparable_document` returns: the walk reads the content of the versions the round trip writes, so the `fbc:fluxBound` elements of an fbc v1 document are never walked and a document of another level is compared against content it cannot have. Both are a mistake of the caller and are refused rather than reported as a missing construct.
+
     Args:
-        doc: a document, which the caller holds; `structural_diff` passes it through `comparable_document` first
+        doc: a document at L3V2 with fbc version 2 or higher, which the caller holds; `structural_diff` passes it through `comparable_document` first
 
     Returns:
         the attributes of every compared element, by `(construct, element id)`
+
+    Raises:
+        ValueError: if the document is not at L3V2, or if it declares fbc below version 2
     """
+    if (doc.getLevel(), doc.getVersion()) != (3, 2):
+        raise ValueError(
+            f"a snapshot compares an L3V2 document, not L{doc.getLevel()}"
+            f"V{doc.getVersion()}: pass it through comparable_document first"
+        )
+    fbc_plugin: libsbml.SBMLDocumentPlugin | None = doc.getPlugin("fbc")
+    if fbc_plugin is not None and fbc_plugin.getPackageVersion() < 2:
+        raise ValueError(
+            f"a snapshot compares fbc version 2 or higher, not version "
+            f"{fbc_plugin.getPackageVersion()}: pass the document through "
+            f"comparable_document first"
+        )
+
     snap: Snapshot = {}
     for package in PACKAGES:
         plugin: libsbml.SBMLDocumentPlugin | None = doc.getPlugin(package)
@@ -1134,10 +1219,20 @@ def _same(before: object, after: object) -> bool:
     )
 
 
-def _whitelisted(attribute: str, before: object, after: object) -> bool:
-    """Test whether a whitelist entry declares two values of an attribute the same."""
+def _whitelisted(construct: str, attribute: str, before: object, after: object) -> bool:
+    """Test whether a whitelist entry declares two values of an attribute the same.
+
+    Args:
+        construct: the construct of the element, e.g. `fbc.geneProductAssociation`
+        attribute: the attribute which differs, e.g. `association`
+        before: the value read
+        after: the value written
+
+    Returns:
+        whether an entry of `WHITELIST` applies to this attribute of this construct and declares the two values the same
+    """
     return any(
-        entry.attribute == attribute and entry.equivalent(before, after)
+        entry.applies_to(construct, attribute) and entry.equivalent(before, after)
         for entry in WHITELIST
     )
 
@@ -1174,7 +1269,7 @@ def diff_snapshots(before: Snapshot, after: Snapshot) -> list[Difference]:
             value_before = before[key].get(attribute)
             value_after = after[key].get(attribute)
             if _same(value_before, value_after) or _whitelisted(
-                attribute, value_before, value_after
+                construct, attribute, value_before, value_after
             ):
                 continue
             differences.append(

@@ -23,10 +23,14 @@ from structural import (
     ABSENT,
     DISTRIB_CSYMBOL,
     ELEMENT,
+    PACKAGES,
     WHITELIST,
+    Attributes,
     Difference,
     Normalization,
+    Snapshot,
     comparable_document,
+    diff_snapshots,
     roundtrip_document,
     snapshot,
     structural_diff,
@@ -48,10 +52,16 @@ ECOLI_EXPRESSION_SBML: Path = RESOURCES_DIR / "distrib" / "e_coli_core_expressio
 FBC_UDC_SBML: Path = EXAMPLES_DIR / "fbc_user_defined_constraints.xml"
 
 
+#: the source of a fixture: an SBML file, or a model definition built on demand
+Source = Path | Callable[[], Model]
+
+
 def _kvp_model() -> Model:
     """Get the model of the key-value pair example.
 
     The packaged `fbc/fbc_key_value_pair.xml` holds three `keyValuePair` elements without a key, value or uri, it predates the writer of key-value pairs. The example itself writes complete ones, so the fixture is created from it.
+
+    The example is imported here and not at the top of the module, so that a broken example fails the one test which uses it instead of the collection of every test of this module.
 
     Returns:
         the model definition of the example
@@ -61,11 +71,11 @@ def _kvp_model() -> Model:
     return model
 
 
-def _source_path(source: Path | Model, tmp_path: Path) -> Path:
+def _source_path(source: Source, tmp_path: Path) -> Path:
     """Resolve the source of a fixture to an SBML file.
 
     Args:
-        source: an SBML file, or a model definition which is created first
+        source: an SBML file, or a function returning a model definition which is built and created first
         tmp_path: directory a model definition is created in
 
     Returns:
@@ -73,8 +83,9 @@ def _source_path(source: Path | Model, tmp_path: Path) -> Path:
     """
     if isinstance(source, Path):
         return source
-    sbml_path = tmp_path / f"{source.sid}.xml"
-    create_model(model=source, filepath=sbml_path, validate=False)
+    model = source()
+    sbml_path = tmp_path / f"{model.sid}.xml"
+    create_model(model=model, filepath=sbml_path, validate=False)
     return sbml_path
 
 
@@ -349,18 +360,18 @@ class Mutation:
     """A damage to one construct of a fixture.
 
     Attributes:
-        source: the fixture, an SBML file or a model definition
+        source: the fixture, an SBML file or a function returning a model definition
         damage: damages a document read from the source, in place
         constructs: the constructs which the damage changes, and nothing else
     """
 
-    source: Path | Model
+    source: Source
     damage: Callable[[libsbml.SBMLDocument], None]
     constructs: frozenset[str]
 
 
 def _mutation(
-    source: Path | Model,
+    source: Source,
     damage: Callable[[libsbml.SBMLDocument], None],
     *constructs: str,
 ) -> Mutation:
@@ -417,7 +428,7 @@ MUTATIONS: dict[str, Mutation] = {
         "fbc.userDefinedConstraintComponent",
     ),
     "change_key_value_pair": _mutation(
-        _kvp_model(), _change_key_value_pair, "fbc.keyValuePair"
+        _kvp_model, _change_key_value_pair, "fbc.keyValuePair"
     ),
     # comp
     "drop_port": _mutation(COMP_ICG_BODY, _drop_port, "comp.port"),
@@ -666,9 +677,10 @@ def test_snapshot_sees_every_element(sbml_path: Path) -> None:
     assert seen == _expected_constructs(doc)
 
 
-#: the start tag of an element and its attributes, as libsbml writes them
+#: the start tag of an element and its attributes, as libsbml writes them, and
+#: the name and the value of one attribute
 _START_TAG = re.compile(r"<[^\s>/]+((?:\s+[^\s=]+=\"[^\"]*\")*)\s*/?>")
-_ATTRIBUTE = re.compile(r"([^\s=]+)=\"[^\"]*\"")
+_ATTRIBUTE = re.compile(r"([^\s=]+)=\"([^\"]*)\"")
 
 
 def _written_attributes(element: libsbml.SBase) -> set[tuple[str, str]]:
@@ -683,7 +695,7 @@ def _written_attributes(element: libsbml.SBase) -> set[tuple[str, str]]:
     match = _START_TAG.match(element.toSBML())
     assert match is not None, element.toSBML()[:200]
     written: set[tuple[str, str]] = set()
-    for name in _ATTRIBUTE.findall(match.group(1)):
+    for name, _value in _ATTRIBUTE.findall(match.group(1)):
         prefix, _, local = name.rpartition(":")
         if prefix == "xmlns" or name == "xmlns":
             continue
@@ -738,6 +750,35 @@ def test_snapshot_compares_every_attribute(sbml_path: Path) -> None:
 # ---------------------------------------------------------------------------
 # the documents compared
 # ---------------------------------------------------------------------------
+#: the core namespace of an element, which names the level and version
+_CORE_NAMESPACE = re.compile(r"http://www\.sbml\.org/sbml/level\d+/version\d+/core")
+
+
+def _package_content(doc: libsbml.SBMLDocument) -> Counter[str]:
+    """Get the package content of a document as the SBML libsbml writes for it.
+
+    This is independent of `snapshot`, which compares a document at L3V2 only, so it can measure a conversion to L3V2. The core namespace an element declares names the level and version of the document and is no content, so it is blanked.
+
+    Args:
+        doc: a document, which the caller holds
+
+    Returns:
+        how often the SBML of every element of fbc, distrib or comp occurs, and every package attribute of a core element with its value
+    """
+    content: Counter[str] = Counter()
+    for element in doc.getListOfAllElements():
+        if element.getPackageName() in PACKAGES:
+            content[_CORE_NAMESPACE.sub("core", element.toSBML())] += 1
+            continue
+        match = _START_TAG.match(element.toSBML())
+        assert match is not None, element.toSBML()[:200]
+        for name, value in _ATTRIBUTE.findall(match.group(1)):
+            prefix, _, _local = name.rpartition(":")
+            if prefix in PACKAGES:
+                content[f'{element.getElementName()} {name}="{value}"'] += 1
+    return content
+
+
 @pytest.mark.parametrize(
     "sbml_path",
     [
@@ -753,12 +794,39 @@ def test_comparable_document_changes_no_package_content(sbml_path: Path) -> None
     """Test that the conversion of an L3V1 document to L3V2 changes no content."""
     doc = _read(sbml_path)
     assert (doc.getLevel(), doc.getVersion()) == (3, 1)
+    before = _package_content(doc)
+    assert before, f"no package content in '{sbml_path}'"
 
     converted = comparable_document(doc)
 
     assert (converted.getLevel(), converted.getVersion()) == (3, 2)
     assert (doc.getLevel(), doc.getVersion()) == (3, 1), "the original was converted"
-    assert snapshot(converted) == snapshot(doc)
+    assert _package_content(converted) == before
+
+
+@pytest.mark.parametrize(
+    "sbml_path, refused",
+    [
+        # L3V1, which the round trip does not write
+        (FBC_ECOLI_CORE_SBML, "L3V1"),
+        # L3V2 with fbc version 1, whose flux bounds the walk would never see
+        (testsuite_case("01186"), "fbc version 2"),
+    ],
+    ids=["L3V1", "fbc-v1"],
+)
+def test_snapshot_refuses_a_document_which_was_not_converted(
+    sbml_path: Path, refused: str
+) -> None:
+    """Test that a snapshot of a document which was not converted fails loudly.
+
+    A document which is not the one `comparable_document` returns is compared incompletely: an fbc v1 document keeps its content in `fbc:fluxBound` elements, which the walk does not visit, so it would silently report no flux bound at all.
+    """
+    doc = _read(sbml_path)
+
+    with pytest.raises(ValueError, match=refused):
+        snapshot(doc)
+
+    assert snapshot(comparable_document(doc)), "the converted document compares"
 
 
 def test_fbc_v1_is_compared_as_libsbml_converts_it() -> None:
@@ -809,13 +877,37 @@ def test_whitelist_is_exactly_ruling_r5() -> None:
 
     A whitelist is where a real loss hides, so an entry is added by a ruling, never on the way.
     """
-    assert [entry.name for entry in WHITELIST] == [
-        "gpa-flattening",
-        "cn-integer",
-        "miriam-urn",
+    assert [(entry.name, entry.construct, entry.attribute) for entry in WHITELIST] == [
+        ("gpa-flattening", "fbc.geneProductAssociation", "association"),
+        ("cn-integer", None, "math"),
+        ("identifiers-org", None, "cvterms"),
     ]
     for entry in WHITELIST:
         assert len(entry.reason) > 40, entry.name
+
+
+def test_whitelist_applies_to_the_construct_of_its_entry() -> None:
+    """Test that an entry is keyed by its construct and attribute, not by the attribute.
+
+    The GPA flattening is a normalization of an `fbc.geneProductAssociation`; another construct with an attribute of the same name must not inherit it.
+    """
+    nested: Attributes = {"association": "((a and b) and c)"}
+    flattened: Attributes = {"association": "(a and b and c)"}
+    gpa, port = "fbc.geneProductAssociation", "comp.port"
+    before: Snapshot = {
+        (gpa, "model/reaction:R1"): nested,
+        (port, "model/port:p"): nested,
+    }
+    after: Snapshot = {
+        (gpa, "model/reaction:R1"): flattened,
+        (port, "model/port:p"): flattened,
+    }
+
+    differences = diff_snapshots(before, after)
+
+    assert [(d.construct, d.element_id, d.attribute) for d in differences] == [
+        (port, "model/port:p", "association")
+    ]
 
 
 def _parsed_again(doc: libsbml.SBMLDocument, infix: str) -> str:
@@ -1010,18 +1102,77 @@ _URNS: list[str] = [
     "urn:miriam:reactome:REACT_1234",
 ]
 
+#: classic identifiers.org URLs, as the corpus spells them; pymetadata
+#: canonicalizes them exactly as it canonicalizes a URN, see ruling C1a
+_CLASSIC_URLS: list[str] = [
+    "http://identifiers.org/chebi/CHEBI:12965",
+    "http://identifiers.org/uniprot/P03023",
+    "http://identifiers.org/go/GO:0005623",
+    "http://identifiers.org/obo.go/GO:0005623",
+    "http://identifiers.org/biomodels.sbo/SBO:0000247",
+    "http://identifiers.org/kegg.compound/C00031",
+    "http://identifiers.org/pubmed/10643997",
+    "http://identifiers.org/bigg.metabolite/glc__D",
+    "http://identifiers.org/asap/ABE-0000027",
+    # the https flavour of the classic form
+    "https://identifiers.org/taxonomy/9606",
+]
 
-@pytest.mark.parametrize("urn", _URNS)
-def test_miriam_urn_is_what_pymetadata_does(urn: str) -> None:
-    """Test the URN normalization against the canonicalization of pymetadata.
 
-    `create_model` writes a resource as pymetadata normalizes it, so the whitelist entry has to accept what pymetadata writes for a URN.
+@pytest.mark.parametrize("resource", [*_URNS, *_CLASSIC_URLS])
+def test_identifiers_org_is_what_pymetadata_does(resource: str) -> None:
+    """Test the normalization against the canonicalization of pymetadata.
+
+    `create_model` writes a resource as pymetadata normalizes it, so the whitelist entry has to accept what pymetadata writes for a MIRIAM URN and for a classic identifiers.org URL. The expectation is measured, never spelled out here.
     """
-    url = RDFAnnotation(BQB.IS, urn, validate=False).resource_normalized
-    before = (("bqbiol:is", urn),)
+    url = RDFAnnotation(BQB.IS, resource, validate=False).resource_normalized
+    before = (("bqbiol:is", resource),)
 
     assert url is not None and url.startswith("https://identifiers.org/")
-    assert _normalization("miriam-urn").equivalent(before, (("bqbiol:is", url),))
+    assert _normalization("identifiers-org").equivalent(before, (("bqbiol:is", url),))
+
+
+@pytest.mark.parametrize(
+    "before, after",
+    [
+        # a URN, with and without the collection as the prefix of its term
+        (
+            ("bqbiol:is", "urn:miriam:chebi:CHEBI%3A33699"),
+            ("bqbiol:is", "https://identifiers.org/CHEBI:33699"),
+        ),
+        (
+            ("bqbiol:is", "urn:miriam:uniprot:P03023"),
+            ("bqbiol:is", "https://identifiers.org/uniprot:P03023"),
+        ),
+        # a classic identifiers.org URL, ruling C1a
+        (
+            ("bqbiol:is", "http://identifiers.org/chebi/CHEBI:12965"),
+            ("bqbiol:is", "https://identifiers.org/CHEBI:12965"),
+        ),
+        (
+            ("bqbiol:is", "http://identifiers.org/uniprot/P03023"),
+            ("bqbiol:is", "https://identifiers.org/uniprot:P03023"),
+        ),
+        (
+            ("bqbiol:is", "https://identifiers.org/taxonomy/9606"),
+            ("bqbiol:is", "https://identifiers.org/taxonomy:9606"),
+        ),
+        # the two legacy collections pymetadata renames
+        (
+            ("bqbiol:is", "http://identifiers.org/obo.go/GO:0005623"),
+            ("bqbiol:is", "https://identifiers.org/GO:0005623"),
+        ),
+        (
+            ("bqbiol:is", "http://identifiers.org/biomodels.sbo/SBO:0000247"),
+            ("bqbiol:is", "https://identifiers.org/SBO:0000247"),
+        ),
+    ],
+)
+def test_identifiers_org_accepts_a_urn_and_a_classic_url(
+    before: tuple[str, str], after: tuple[str, str]
+) -> None:
+    """Test that both sources of ruling C1a are accepted as the compact URL."""
+    assert _normalization("identifiers-org").equivalent((before,), (after,))
 
 
 @pytest.mark.parametrize(
@@ -1044,35 +1195,71 @@ def test_miriam_urn_is_what_pymetadata_does(urn: str) -> None:
             ("bqbiol:is", "urn:miriam:kegg.compound:C00031"),
             ("bqbiol:is", "https://identifiers.org/kegg.drug:C00031"),
         ),
-        # pymetadata writes a URN of an unknown collection as its bare term
-        (("bqbiol:is", "urn:miriam:foo:bar"), ("bqbiol:is", "bar")),
-        # a classic identifiers.org URL is not a URN
         (
-            ("bqbiol:is", "http://identifiers.org/chebi/CHEBI:33699"),
-            ("bqbiol:is", "https://identifiers.org/CHEBI:33699"),
+            ("bqbiol:is", "http://identifiers.org/uniprot/P03023"),
+            ("bqbiol:is", "https://identifiers.org/uniprot:P03024"),
+        ),
+        (
+            ("bqbiol:is", "http://identifiers.org/kegg.compound/C00031"),
+            ("bqbiol:is", "https://identifiers.org/kegg.drug:C00031"),
+        ),
+        # the bare term pymetadata writes for a collection it does not know is a
+        # loss of the collection, not a normalization, see ruling C1b
+        (("bqbiol:is", "urn:miriam:foo:bar"), ("bqbiol:is", "bar")),
+        (("bqbiol:is", "http://identifiers.org/foo/bar"), ("bqbiol:is", "bar")),
+        (("bqbiol:is", "http://identifiers.org/sabiork/1406"), ("bqbiol:is", "1406")),
+        # a bare term which carries its own prefix reads like a URI, and is a
+        # loss of the collection all the same
+        (("bqbiol:is", "urn:miriam:foo:BAR%3A123"), ("bqbiol:is", "BAR:123")),
+        (
+            ("bqbiol:is", "http://identifiers.org/foo/BAR:123"),
+            ("bqbiol:is", "BAR:123"),
+        ),
+        # pymetadata drops the collection of a term which does not carry it, for
+        # a collection whose namespace the registry says is embedded in the term
+        (
+            ("bqbiol:is", "http://identifiers.org/slm/000000035"),
+            ("bqbiol:is", "https://identifiers.org/000000035"),
+        ),
+        # pymetadata shortens a term which repeats its collection, which changes
+        # the term and is outside ruling C1a
+        (
+            ("bqbiol:is", "http://identifiers.org/reactome/REACTOME:R-HSA-70355.1"),
+            ("bqbiol:is", "https://identifiers.org/reactome:R-HSA-70355.1"),
+        ),
+        # an http compact URL is neither a URN nor a classic URL, ruling C1a
+        (
+            ("bqbiol:is", "http://identifiers.org/BTO:0000131"),
+            ("bqbiol:is", "https://identifiers.org/BTO:0000131"),
         ),
         # http instead of https
         (
             ("bqbiol:is", "urn:miriam:uniprot:P03023"),
             ("bqbiol:is", "http://identifiers.org/uniprot:P03023"),
         ),
+        (
+            ("bqbiol:is", "http://identifiers.org/uniprot/P03023"),
+            ("bqbiol:is", "http://identifiers.org/uniprot:P03023"),
+        ),
     ],
 )
-def test_miriam_urn_is_narrow(before: tuple[str, str], after: tuple[str, str]) -> None:
-    """Test that the URN normalization accepts nothing but a URN written as its URL."""
-    assert not _normalization("miriam-urn").equivalent((before,), (after,))
+def test_identifiers_org_is_narrow(
+    before: tuple[str, str], after: tuple[str, str]
+) -> None:
+    """Test that the normalization accepts nothing but the compact URL of its source."""
+    assert not _normalization("identifiers-org").equivalent((before,), (after,))
 
 
-def test_miriam_urn_needs_every_resource_matched() -> None:
+def test_identifiers_org_needs_every_resource_matched() -> None:
     """Test that a resource lost next to a normalized one is not accepted."""
     before = (
         ("bqbiol:is", "urn:miriam:uniprot:P03023"),
-        ("bqbiol:is", "urn:miriam:uniprot:P03024"),
+        ("bqbiol:is", "http://identifiers.org/uniprot/P03024"),
     )
     after = (("bqbiol:is", "https://identifiers.org/uniprot:P03023"),)
 
-    assert not _normalization("miriam-urn").equivalent(before, after)
-    assert not _normalization("miriam-urn").equivalent(after, before)
+    assert not _normalization("identifiers-org").equivalent(before, after)
+    assert not _normalization("identifiers-org").equivalent(after, before)
 
 
 def _set_association(doc: libsbml.SBMLDocument, reaction_id: str, infix: str) -> None:
@@ -1092,16 +1279,31 @@ def test_structural_diff_applies_the_whitelist() -> None:
     doc_out = _read(FBC_ECOLI_CORE_SBML)
     _set_association(doc_out, "R_PFL", FLATTENED["R_PFL"])
     gene_product: libsbml.GeneProduct = _fbc(doc_in).getGeneProduct("G_b1241")
-    for doc, resource in [
-        (doc_in, "urn:miriam:uniprot:P0A9Q7"),
-        (doc_out, "https://identifiers.org/uniprot:P0A9Q7"),
+    # both sources of the identifiers-org entry, a URN and a classic URL
+    for doc, resources in [
+        (
+            doc_in,
+            ["urn:miriam:uniprot:P0A9Q7", "http://identifiers.org/chebi/CHEBI:12965"],
+        ),
+        (
+            doc_out,
+            [
+                "https://identifiers.org/uniprot:P0A9Q7",
+                "https://identifiers.org/CHEBI:12965",
+            ],
+        ),
     ]:
-        term = libsbml.CVTerm(libsbml.BIOLOGICAL_QUALIFIER)
-        term.setBiologicalQualifierType(libsbml.BQB_IS_ENCODED_BY)
-        term.addResource(resource)
         target: libsbml.GeneProduct = _fbc(doc).getGeneProduct("G_b1241")
-        assert target.addCVTerm(term) == libsbml.LIBSBML_OPERATION_SUCCESS
-    assert gene_product.getNumCVTerms() == 2
+        for qualifier, resource in zip(
+            [libsbml.BQB_IS_ENCODED_BY, libsbml.BQB_IS_DESCRIBED_BY],
+            resources,
+            strict=True,
+        ):
+            term = libsbml.CVTerm(libsbml.BIOLOGICAL_QUALIFIER)
+            term.setBiologicalQualifierType(qualifier)
+            term.addResource(resource)
+            assert target.addCVTerm(term) == libsbml.LIBSBML_OPERATION_SUCCESS
+    assert gene_product.getNumCVTerms() == 3
 
     assert structural_diff(doc_in, doc_out) == []
 
@@ -1135,6 +1337,41 @@ def test_structural_diff_applies_the_cn_whitelist_to_distrib_math() -> None:
     assert [(d.construct, d.attribute) for d in changed] == [
         ("distrib.uncertParameter", "math")
     ]
+
+
+# ---------------------------------------------------------------------------
+# the report script, which sweeps the corpus with the comparison
+# ---------------------------------------------------------------------------
+@pytest.mark.parametrize(
+    "content, expected, reported",
+    [
+        # what a worker killed while it writes its result leaves behind
+        ('{"stage": "round trip", "pres', {}, True),
+        ("", {}, True),
+        ('["stage"]', {}, True),
+        ('{"stage": "done"}', {"stage": "done"}, False),
+        # a worker killed before it wrote anything
+        (None, {}, False),
+    ],
+    ids=["truncated", "empty", "no object", "complete", "missing"],
+)
+def test_package_report_survives_an_unreadable_result(
+    content: str | None, expected: dict[str, object], reported: bool, tmp_path: Path
+) -> None:
+    """Test that a result file a killed worker left behind ends its case, not the sweep.
+
+    `scripts/package_report.py` runs every case in a process of its own so that a crash or a timeout ends one case. A worker killed while it writes its result leaves a truncated file, and reading it unguarded would raise through `executor.map` and end the whole sweep, which is the failure that isolation exists to prevent. The case is reported as a failed one instead.
+    """
+    from scripts.package_report import read_result
+
+    result_path = tmp_path / "result.json"
+    if content is not None:
+        result_path.write_text(content)
+
+    recorded, unreadable = read_result(result_path)
+
+    assert recorded == expected
+    assert bool(unreadable) is reported
 
 
 def test_difference_names_its_package() -> None:

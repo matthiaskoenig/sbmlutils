@@ -15,7 +15,7 @@ The corpus is
 
 A construct is preserved in a case if the case has it and the round trip reports no difference for it, neither a changed or lost element nor an added one. An element is preserved if the round trip reports no difference for it. A case whose round trip raises preserves nothing, and it is listed with its error.
 
-Every case runs in a python process of its own, as in `scripts/roundtrip_report.py`: a crash in native code ends one case instead of the sweep, and it is reported apart from the round-trip failures. A case is killed after `--timeout` seconds. The round-tripped SBML and the result of every case are kept in `.package_tmp/<case>/` for inspection.
+Every case runs in a python process of its own, as in `scripts/roundtrip_report.py`: a crash in native code ends one case instead of the sweep, and it is reported apart from the round-trip failures. A case is killed after `--timeout` seconds, which can leave its result file truncated; such a case is reported as a failed one and never ends the sweep either. The round-tripped SBML and the result of every case are kept in `.package_tmp/<case>/` for inspection.
 """
 
 import argparse
@@ -189,6 +189,28 @@ class CaseResult:
     added: dict[str, list[str]] = field(default_factory=dict)
 
 
+def read_result(result_path: Path) -> tuple[dict[str, object], str]:
+    """Read what a worker recorded about its case.
+
+    A worker killed by the timeout or by a native crash can leave a truncated file behind. That must end its case and not the sweep, which is what running every case in a process of its own is for, so an unreadable result is reported as the failure of that case.
+
+    Args:
+        result_path: path of the result file of the case
+
+    Returns:
+        what the worker recorded, empty if nothing readable is there, and why it could not be read, empty if it could
+    """
+    if not result_path.exists():
+        return {}, ""
+    try:
+        recorded: object = json.loads(result_path.read_text())
+    except (ValueError, OSError) as err:
+        return {}, f"{RESULT_FILE} unreadable: {type(err).__name__}"
+    if not isinstance(recorded, dict):
+        return {}, f"{RESULT_FILE} holds {type(recorded).__name__}, not an object"
+    return recorded, ""
+
+
 def run_case(
     name: str, sbml_path: Path, timeout: float, crash: Callable[[int], str | None]
 ) -> CaseResult:
@@ -217,15 +239,20 @@ def run_case(
     except subprocess.TimeoutExpired:
         process = None
 
-    result_path = case_dir / RESULT_FILE
-    recorded: dict[str, object] = (
-        json.loads(result_path.read_text()) if result_path.exists() else {}
-    )
+    recorded, unreadable = read_result(case_dir / RESULT_FILE)
     stage = str(recorded.get("stage", "start the worker"))
     present = recorded.get("present", {})
-    assert isinstance(present, dict)
+    if not isinstance(present, dict):
+        present = {}
     if process is None:
-        return CaseResult(name, "timed out", stage, f"after {timeout:.0f} s", present)
+        detail = f"after {timeout:.0f} s"
+        return CaseResult(
+            name,
+            "timed out",
+            stage,
+            f"{detail}, {unreadable}" if unreadable else detail,
+            present,
+        )
     signal = crash(process.returncode)
     if signal is not None:
         return CaseResult(name, "crashed in native code", stage, signal, present)
@@ -233,13 +260,22 @@ def run_case(
         return CaseResult(
             name, "round trip failed", stage, str(recorded["error"]), present
         )
-    if stage != "done":
+    if stage != "done" or unreadable:
         stderr = process.stderr.strip().splitlines()
         detail = f"exit code {process.returncode}: {stderr[-1] if stderr else ''}"
-        return CaseResult(name, "worker error", stage, detail, present)
-    differing = recorded["differing"]
-    added = recorded["added"]
-    assert isinstance(differing, dict) and isinstance(added, dict)
+        return CaseResult(
+            name,
+            "worker error",
+            stage,
+            f"{unreadable}, {detail}" if unreadable else detail,
+            present,
+        )
+    differing = recorded.get("differing", {})
+    added = recorded.get("added", {})
+    if not isinstance(differing, dict) or not isinstance(added, dict):
+        return CaseResult(
+            name, "worker error", stage, f"{RESULT_FILE} is incomplete", present
+        )
     return CaseResult(name, "compared", stage, "", present, differing, added)
 
 
