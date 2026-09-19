@@ -32,6 +32,97 @@ from ..validation import check
 logger = logging.getLogger(__name__)
 
 
+def _resource_for_cvterm(annotation: Annotation) -> str:
+    """Get the resource an annotation is written into a CVTerm with.
+
+    pymetadata canonicalizes a resource to the compact identifiers.org URL of
+    its collection and term, which is what should be written:
+    `urn:miriam:chebi:CHEBI%3A33699` and `chebi/CHEBI:12965` become
+    `https://identifiers.org/CHEBI:33699` and
+    `https://identifiers.org/CHEBI:12965`.
+
+    For a collection the identifiers.org registry does not know it returns
+    the bare term instead, `1406` for `http://identifiers.org/sabiork/1406`
+    and `UO:0000040` for `http://identifiers.org/unit/UO:0000040`, and for a
+    collection whose terms embed no prefix it can return a URL the collection
+    has been dropped from, `https://identifiers.org/000000035` for
+    `http://identifiers.org/slm/000000035`. None of those three is the
+    annotation the model definition made: the collection is gone, and with it
+    the only way back to the database entry.
+
+    The canonical resource is therefore written only when it is an
+    `http(s)://` URL - a bare term is no resource a reader can resolve - and
+    parsing it again yields the same collection and term as the resource
+    given, which is what it means for the canonicalization to have lost
+    nothing. Otherwise the resource is written exactly as given, and the loss
+    is logged once.
+
+    Args:
+        annotation: the annotation to write
+
+    Returns:
+        the resource to write into the CVTerm
+    """
+    normalized: str | None = annotation.resource_normalized
+    if normalized == annotation.resource:
+        return annotation.resource
+
+    reason: str | None
+    if normalized is None:
+        reason = "it has no term"
+    elif not normalized.startswith(("http://", "https://")):
+        reason = f"'{normalized}' is no resolvable resource"
+    else:
+        reason = _reparse_loss(annotation, normalized)
+        if reason is None:
+            return normalized
+
+    logger.warning(
+        "Resource '%s' is written as given, it cannot be normalized without "
+        "losing information: %s.",
+        annotation.resource,
+        reason,
+    )
+    return annotation.resource
+
+
+def _reparse_loss(annotation: Annotation, normalized: str) -> str | None:
+    """Say what the canonical resource of an annotation loses.
+
+    The canonical resource loses nothing if parsing it again gives the
+    collection and the term the annotation was parsed into. The second parse
+    is a probe rather than an annotation of its own, so it does not validate:
+    validating it would report the canonical resource as an invalid
+    annotation, which is neither news to the user nor something they wrote,
+    and the resource is reported once, as a warning, by the caller.
+
+    pymetadata refuses a resource which is not a non-empty string, which the
+    canonical resource of an annotation always is; the refusal is caught
+    anyway, so that such a resource is written as given rather than ending
+    the annotation of the model.
+
+    Args:
+        annotation: the annotation whose resource was canonicalized
+        normalized: the canonical resource, an `http(s)://` URL
+
+    Returns:
+        what the canonical resource loses, `None` if it loses nothing
+    """
+    try:
+        reparsed = Annotation(
+            qualifier=annotation.qualifier, resource=normalized, validate=False
+        )
+    except ValueError as err:
+        return f"'{normalized}' cannot be parsed again: {err}"
+
+    if (reparsed.collection, reparsed.term) == (annotation.collection, annotation.term):
+        return None
+    return (
+        f"'{normalized}' is the collection '{reparsed.collection}' and the term "
+        f"'{reparsed.term}', not '{annotation.collection}' and '{annotation.term}'"
+    )
+
+
 def annotate_sbml(
     source: Path | str, annotations_path: Path, filepath: Path
 ) -> libsbml.SBMLDocument:
@@ -366,7 +457,10 @@ class ModelAnnotator:
         :param annotation: Annotation
         :return:
         """
-        qualifier, resource = annotation.qualifier.value, annotation.resource_normalized
+        qualifier, resource = (
+            annotation.qualifier.value,
+            _resource_for_cvterm(annotation),
+        )
         cv: libsbml.CVTerm = libsbml.CVTerm()
 
         # set correct type of qualifier
