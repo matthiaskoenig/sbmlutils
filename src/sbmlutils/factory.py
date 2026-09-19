@@ -799,7 +799,7 @@ def set_model_history(
         _check_attribute(
             sbase.setMetaId(metaid),
             sbase,
-            "metaId",
+            "metaid",
             metaid,
             f"Model({sbase.getId()})",
         )
@@ -1200,7 +1200,7 @@ class Sbase:
             logger.warning("'sboTerm' should be set on '%s'", self)
         if self.metaId is not None:
             _check_attribute(
-                sbase.setMetaId(self.metaId), sbase, "metaId", self.metaId, self
+                sbase.setMetaId(self.metaId), sbase, "metaid", self.metaId, self
             )
 
         if self.notes is not None and self.notes.strip():
@@ -3344,7 +3344,7 @@ class Reaction(Sbase):
                     sref.setStoichiometry(part.stoichiometry)
             if part.metaId is not None:
                 _check_attribute(
-                    sref.setMetaId(part.metaId), sref, "metaId", part.metaId, part
+                    sref.setMetaId(part.metaId), sref, "metaid", part.metaId, part
                 )
             if part.sboTerm is not None:
                 # normalized like the sboTerm of every other element, see
@@ -5617,7 +5617,7 @@ class Objective(Sbase):
             _check_attribute(
                 model_fbc.setActiveObjectiveId(self.sid),
                 model_fbc,
-                "activeObjectiveId",
+                "activeObjective",
                 self.sid,
                 self,
             )

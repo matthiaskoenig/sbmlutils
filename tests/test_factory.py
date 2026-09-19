@@ -2155,7 +2155,7 @@ _SWALLOWED_ATTRIBUTES: list[Any] = [
         ),
         3,
         1,
-        ["metaId", "meta id", "Parameter(p1"],
+        ["metaid", "meta id", "Parameter(p1"],
         id="invalid-metaid",
     ),
     pytest.param(
@@ -2571,8 +2571,8 @@ def test_attribute_of_a_later_level_is_reported_for_a_parameter(
         name="a model with parameters which are not constant",
         compartments=[Compartment("c", 1.0, name="compartment")],
         parameters=[
-            Parameter("k1", 1.0, name="k1", constant=False),
-            Parameter("k2", 1.0, name="k2", constant=False),
+            Parameter("k1", 1.0, name="k1", constant=False, metaId="meta_k1"),
+            Parameter("k2", 1.0, name="k2", constant=False, metaId="meta_k2"),
         ],
     )
     with caplog.at_level(logging.WARNING, logger="sbmlutils"):
@@ -2592,6 +2592,16 @@ def test_attribute_of_a_later_level_is_reported_for_a_parameter(
     assert len(constant) == 1, constant
     assert "2 <parameter> element(s)" in constant[0]
     assert "SBML L1V2" in constant[0]
+
+    # the attribute is named as the document spells it, `metaid` and not the
+    # `metaId` of the model definition, see
+    # `test_the_reported_attribute_name_is_the_one_in_the_document`
+    metaid = [
+        m
+        for m in _records(caplog, logging.WARNING)
+        if "<parameter>" in m and "'metaid'" in m
+    ]
+    assert len(metaid) == 1, _records(caplog, logging.WARNING)
 
 
 def test_two_documents_report_only_their_own_attribute_losses(
@@ -2954,3 +2964,141 @@ def test_an_attribute_of_a_plugin_is_reported_and_does_not_raise(
     grouped = _records(caplog, logging.WARNING)
     assert len(grouped) == 1, grouped
     assert f"<{element_name}> element(s)" in grouped[0]
+
+
+#: the start tag of a serialized libsbml element, up to the first `>`
+_START_TAG = re.compile(r"<[^>]*>")
+#: an attribute of a start tag, with its package prefix stripped
+_XML_ATTRIBUTE = re.compile(r"(?:[A-Za-z][A-Za-z0-9]*:)?([A-Za-z][A-Za-z0-9]*)\s*=")
+
+
+def _xml_attributes(sbase: Any) -> set[str]:
+    """Get the attribute names of the start tag a libsbml object writes.
+
+    Args:
+        sbase: the libsbml object to serialize; its document is held by the
+            caller
+
+    Returns:
+        the attribute names, each without the prefix of its package
+    """
+    match = _START_TAG.search(sbase.toSBML())
+    assert match is not None, sbase.toSBML()
+    return set(_XML_ATTRIBUTE.findall(match.group(0)))
+
+
+def _fbc_document() -> tuple[libsbml.SBMLDocument, libsbml.Model]:
+    """Build an SBML L3V2 document which declares fbc version 3.
+
+    Returns:
+        the document, which the caller holds, and its model
+    """
+    ns = libsbml.SBMLNamespaces(3, 2)
+    ns.addPackageNamespace("fbc", 3)
+    doc: libsbml.SBMLDocument = libsbml.SBMLDocument(ns)
+    model: libsbml.Model = doc.createModel()
+    model.setId("m")
+    return doc, model
+
+
+def _reported_attribute(caplog: pytest.LogCaptureFixture) -> str:
+    """Get the attribute name of the one report in the captured log.
+
+    Args:
+        caplog: the pytest log capture, holding exactly one report
+
+    Returns:
+        the name between the first pair of single quotes of the message
+    """
+    messages = _records(caplog, logging.WARNING)
+    assert len(messages) == 1, messages
+    quoted = re.search(r"'([^']*)'", messages[0])
+    assert quoted is not None, messages[0]
+    return quoted.group(1)
+
+
+def test_the_reported_attribute_name_is_the_one_in_the_document(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that a report names the attribute as the XML spells it.
+
+    The attribute name is half of the key the report groups by and what
+    somebody looking for a loss greps for, so it has to be the name the
+    attribute has in the **document**, not the name of the libsbml method
+    which writes it: `FbcModelPlugin.setActiveObjectiveId` writes
+    `fbc:activeObjective`, and `SBase.setMetaId` writes `metaid`.
+
+    Each case sets the attribute on a libsbml object which accepts it,
+    serializes that object and asserts that the name the writer reports is
+    one of the attributes of the start tag. The refused branch is forced,
+    since these setters answer success for the values used here.
+    """
+    # `_doc` is held for the whole test: a libsbml proxy does not keep its
+    # document alive, and everything below is read from it
+    _doc, model = _fbc_document()
+    species: libsbml.Species = model.createSpecies()
+    species.setId("S1")
+    reaction: libsbml.Reaction = model.createReaction()
+    reaction.setId("R1")
+    parameter: libsbml.Parameter = model.createParameter()
+    parameter.setId("p1")
+    model_fbc: libsbml.FbcModelPlugin = model.getPlugin("fbc")
+    objective: libsbml.Objective = model_fbc.createObjective()
+    objective.setId("obj1")
+    objective.setType("maximize")
+
+    #: `(what is set, the object `_check_attribute` is handed, the object
+    #: which writes the attribute, the name the writer reports)`
+    cases: list[tuple[Callable[[], Any], Any, Any, str]] = [
+        (lambda: model.setTimeUnits("second"), model, model, "timeUnits"),
+        (lambda: model.setExtentUnits("mole"), model, model, "extentUnits"),
+        (lambda: model.setSubstanceUnits("mole"), model, model, "substanceUnits"),
+        (lambda: model.setLengthUnits("metre"), model, model, "lengthUnits"),
+        (lambda: model.setAreaUnits("metre"), model, model, "areaUnits"),
+        (lambda: model.setVolumeUnits("litre"), model, model, "volumeUnits"),
+        (
+            lambda: model_fbc.setActiveObjectiveId("obj1"),
+            model_fbc,
+            model_fbc.getListOfObjectives(),
+            "activeObjective",
+        ),
+        (
+            lambda: reaction.getPlugin("fbc").setUpperFluxBound("p1"),
+            reaction.getPlugin("fbc"),
+            reaction,
+            "upperFluxBound",
+        ),
+        (
+            lambda: reaction.getPlugin("fbc").setLowerFluxBound("p1"),
+            reaction.getPlugin("fbc"),
+            reaction,
+            "lowerFluxBound",
+        ),
+        (
+            lambda: species.getPlugin("fbc").setChemicalFormula("H2O"),
+            species.getPlugin("fbc"),
+            species,
+            "chemicalFormula",
+        ),
+        (lambda: parameter.setName("a name"), parameter, parameter, "name"),
+        (lambda: parameter.setConstant(True), parameter, parameter, "constant"),
+        (lambda: parameter.setMetaId("meta_p1"), parameter, parameter, "metaid"),
+    ]
+
+    for write, target, writes_onto, reported in cases:
+        assert write() == libsbml.LIBSBML_OPERATION_SUCCESS, reported
+        assert reported in _xml_attributes(writes_onto), (
+            reported,
+            sorted(_xml_attributes(writes_onto)),
+        )
+
+        caplog.clear()
+        with caplog.at_level(logging.WARNING, logger="sbmlutils"):
+            factory._check_attribute(
+                libsbml.LIBSBML_UNEXPECTED_ATTRIBUTE,
+                target,
+                reported,
+                "a value",
+                "an element",
+            )
+        assert _reported_attribute(caplog) == reported
