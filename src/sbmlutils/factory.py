@@ -237,6 +237,30 @@ def ast_node_from_formula(model: libsbml.Model, formula: str) -> libsbml.ASTNode
     return ast_node
 
 
+def _sbml_element_name(sbase: Any) -> str:
+    """Name the SBML element an attribute was set on.
+
+    `sbase` is either a libsbml object, which answers `getElementName` with
+    its own tag, or a libsbml **plugin**, which carries the attributes of a
+    package on an element and has no `getElementName` at all (measured with
+    libsbml 5.21.2: `FbcReactionPlugin` does not define it). A plugin is
+    asked for the element it belongs to instead.
+
+    Args:
+        sbase: the libsbml object, or plugin, the attribute was set on
+
+    Returns:
+        the SBML element name, e.g. `species`; the name of the package for a
+        plugin which is attached to nothing, which libsbml does not produce
+    """
+    if isinstance(sbase, libsbml.SBasePlugin):
+        parent: libsbml.SBase | None = sbase.getParentSBMLObject()
+        if parent is None:
+            return str(sbase.getPackageName())
+        return str(parent.getElementName())
+    return str(sbase.getElementName())
+
+
 def _sbml_flavour(sbase: Any) -> str:
     """Name the SBML level, version and package an object is written in.
 
@@ -366,7 +390,7 @@ def _record_attribute_loss(
         value: the value which was not written
         element: the model element the attribute belongs to
     """
-    element_name: str = sbase.getElementName()
+    element_name: str = _sbml_element_name(sbase)
     loss = _attribute_losses.group(
         (element_name, attribute),
         lambda: _AttributeLoss(

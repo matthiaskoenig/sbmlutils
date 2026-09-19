@@ -2875,3 +2875,73 @@ def test_an_sbase_attribute_of_a_package_element_advises_the_sbml_version(
     assert len(reports) == 1, reports
     assert "comp version 1 of an SBML L3V1 document" in reports[0]
     assert reports[0].endswith("Write SBML Level 3 Version 2 to keep it.")
+
+
+@pytest.mark.parametrize(
+    "plugin_of, element_name",
+    [("species", "species"), ("reaction", "reaction"), ("model", "model")],
+)
+def test_an_attribute_of_a_plugin_is_reported_and_does_not_raise(
+    plugin_of: str,
+    element_name: str,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that the report names the element of a libsbml plugin.
+
+    `_check_attribute` is handed the object the attribute was set on, which
+    for the fbc attributes of a species, of a reaction and of a model is the
+    fbc **plugin** of the element. A plugin has no `getElementName` at all
+    (measured with libsbml 5.21.2), so building the report from it raised
+    `AttributeError`, which `_create_object` re-raises and which would take
+    the whole file with it: the report would be the failure. No input
+    reaches that branch today, since the three plugin setters answer success
+    at every fbc version, so the branch is forced here.
+    """
+    ns = libsbml.SBMLNamespaces(3, 1)
+    ns.addPackageNamespace("fbc", 2)
+    doc: libsbml.SBMLDocument = libsbml.SBMLDocument(ns)
+    libsbml_model: libsbml.Model = doc.createModel()
+    libsbml_model.setId("m")
+    species: libsbml.Species = libsbml_model.createSpecies()
+    species.setId("S1")
+    reaction: libsbml.Reaction = libsbml_model.createReaction()
+    reaction.setId("R1")
+    owner = {
+        "species": species,
+        "reaction": reaction,
+        "model": libsbml_model,
+    }[plugin_of]
+    plugin = owner.getPlugin("fbc")
+
+    with caplog.at_level(logging.WARNING, logger="sbmlutils"):
+        written = factory._check_attribute(
+            libsbml.LIBSBML_UNEXPECTED_ATTRIBUTE,
+            plugin,
+            "chemicalFormula",
+            "H2O",
+            "an element",
+        )
+
+    assert written is False
+    messages = _records(caplog, logging.WARNING)
+    assert len(messages) == 1, messages
+    assert "'chemicalFormula' of 'an element'" in messages[0]
+    assert "fbc version 2 of an SBML L3V1 document" in messages[0]
+
+    # inside a document the same loss is grouped under the element of the
+    # plugin, which is what the element name of the report has to be
+    with (
+        factory.collect_attribute_losses(),
+        caplog.at_level(logging.WARNING, logger="sbmlutils"),
+    ):
+        caplog.clear()
+        factory._check_attribute(
+            libsbml.LIBSBML_UNEXPECTED_ATTRIBUTE,
+            plugin,
+            "chemicalFormula",
+            "H2O",
+            "an element",
+        )
+    grouped = _records(caplog, logging.WARNING)
+    assert len(grouped) == 1, grouped
+    assert f"<{element_name}> element(s)" in grouped[0]
