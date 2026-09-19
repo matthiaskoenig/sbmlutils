@@ -2778,13 +2778,13 @@ def test_roundtrip_preserves_replacements_and_their_sbaseref_chain(
 ) -> None:
     """Test that a replaced element, a replacedBy and their nested chain survive.
 
-    A `<comp:replacedElement>` and a `<comp:replacedBy>` sit on the element they replace, and either can continue its reference into a submodel of the submodel it names, through a nested `<comp:sBaseRef>` of arbitrary depth. Each level is compared under the level above it, in order, see the docstring of `tests/structural.py`, so a chain which comes back one level short is a difference.
+    A `<comp:replacedElement>` and a `<comp:replacedBy>` sit on the element they replace, and either can continue its reference into a submodel of the submodel it names, through a nested `<comp:sBaseRef>` of arbitrary depth. Each level is compared under the level above it, in order, see the docstring of `tests/structural.py`, so a chain which comes back one level short is a difference. Every comp difference of the case is asserted, not only those of the named constructs, so comp content the round trip *adds* fails it too.
     """
-    comparison = package_roundtrip(testsuite_case(case))
-    missing = [c for c in constructs if not comparison[0][c]]
+    counts, differences = package_roundtrip(testsuite_case(case))
+    missing = [c for c in constructs if not counts[c]]
     assert missing == [], f"case {case} has none of {missing}"
 
-    _assert_preserved(comparison, *constructs)
+    assert _comp_differences(differences) == []
 
 
 @requires_testsuite
