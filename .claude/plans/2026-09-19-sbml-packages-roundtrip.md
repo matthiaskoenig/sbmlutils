@@ -271,7 +271,11 @@ Measured at writing time: `class UncertParameter:` and `class UncertSpan:` have 
 
 **Files:**
 - Modify: `src/sbmlutils/parser.py` (`_parse_model_body`, and the kwargs so that every element can carry its uncertainties)
-- Test: `tests/test_package_roundtrip.py`
+- Modify: `src/sbmlutils/factory.py` (ruling T8a: the fields the parser needs and the data model lacks; ruling T8b: the namespace order)
+- Test: `tests/test_package_roundtrip.py`, `tests/test_distrib.py`
+
+- [ ] **Step 0a: The package namespaces on `<sbml>` are written in a fixed order (ruling T8b).** They are written in the iteration order of a `set[Package]`, which depends on the hash seed, so the same model can write two different files in two processes. Reproduce with two `PYTHONHASHSEED` values, fix with a canonical order, failing test first. First commit of the task, so that no later byte-identical guard of this branch needs `PYTHONHASHSEED`.
+- [ ] **Step 0b: The data model can hold what the parser must preserve (ruling T8a).** Task 8 measured that `Uncertainty`, `UncertParameter` and `UncertSpan` cannot express `definitionURL`, math, a nested `listOfUncertParameters` (one exists, in `resources/distrib/uncertainty.xml`) or the `distribution` and `externalParameter` types. Add exactly those fields, each written in `_set_fields` and each with a failing test first; keep every existing constructor call working; `Uncertainty(formula=...)` keeps writing what it writes today (byte-identical guard over the distrib examples).
 
 - [ ] **Step 0: Delete the three draft-syntax fixtures (ruling C2).** `resources/distrib/uncertainty_distribution.xml`, `uncertainty_uncertspan.xml` and `uncertainty_uncertvalue.xml` use a pre-release distrib syntax (`<distrib:uncertainty>` directly under the parameter, `<distrib:confidenceInterval>`, `<distrib:mean>`) which libsbml drops silently on read, so they look like coverage and contain none. Nothing references them; confirm with grep before deleting, and name the removal in the release notes.
 - [ ] **Step 1: Failing test:** `structural_diff` reports no distrib difference on each file that carries uncertainties: `distrib/uncertainty.xml`, `distrib/e_coli_core_expression.xml`, `examples/distrib_uncertainties.xml`, `examples/distrib_comp.xml`, `examples/distrib_comp_flat.xml`, `examples/model.xml` (verify the list against the resources). **The test asserts first that libsbml reads at least one uncertainty from each file**, so it cannot pass vacuously.
