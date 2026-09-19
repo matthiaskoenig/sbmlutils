@@ -206,7 +206,7 @@ The fixes, each with a failing test first:
 - [ ] **Step 1: Failing test:** round trip a model whose source has `fbc:strict="true"` and assert the output has `fbc:strict="true"`. The current code hardcodes `setStrict(False)` in `Document.create_sbml` (measured near `factory.py:4979`).
 - [ ] **Step 2 (moved):** `Objective.active` is set from the document in **Task 6**, where objectives are first parsed (pre-flight ruling P2). This task does `fbc:strict` only.
 - [ ] **Step 3: Add `Model.strict`**, write it in `Document.create_sbml`, and add it to the annotations, the constructor and `ModelDict`. `_keys` follows automatically from Task 3; confirm that.
-- [ ] **Step 4: In the parser, read `fbc:strict`** from the model's fbc plugin and pass it to `Model(strict=...)`.
+- [ ] **Step 4: In the parser, read `fbc:strict`** from the fbc plugin of the model inside `_parse_model_body` and set `m.strict` (ruling T5a: the plugin attaches to a comp `ModelDefinition` too, and Task 12 recurses into `_parse_model_body`), only when `isSetStrict()` is true. **An fbc v1 model is NOT read as strict (ruling T5c):** libsbml's v1-to-v2 converter invents `fbc:strict="true"`, which turned 11 of the 12 valid fbc v1 test-suite cases into documents with 54 errors of id 2020714 each. The parser unsets it after converting, `strict` stays `None` and is written as `false`; the structural comparison does not compare `fbc.strict` for an fbc v1 source, which has no such attribute.
 - [ ] **Step 5: Verify and commit.** tox, lint, 148/148.
 
 ---
@@ -225,7 +225,7 @@ The fixes, each with a failing test first:
 - [ ] **Step 3: Parse the GPA of each reaction as an infix string from the ID side.** `Reaction.geneProductAssociation` is written with `setAssociation(infix, usingId=True, addMissingGP=False)`, so the parser must produce an infix of gene product **ids**, not labels; reading labels would change the model. Check which libsbml accessor gives the id-side infix.
 - [ ] **Step 3b: `Objective.active` from the document (ruling R4, moved here from Task 5 by pre-flight ruling P2).** Read the model's `activeObjectiveId` and pass `active=True` only to the matching objective and `active=False` to every other. The authoring default of `Objective.active` stays `True`. Failing test first: a model with two objectives whose `activeObjectiveId` names the **first** round trips with the first still active. Today the last-written objective wins.
 - [ ] **Step 4: Parse flux bounds, objectives and flux objectives, species charge and chemical formula, user-defined constraints and their components, and key-value pairs on every element** that carries them.
-- [ ] **Step 5: Run the test to verify it passes** on `FBC_ECOLI_CORE_SBML`, and add the same structural assertion on `FBC_RECON3D_SBML` and `resources/examples/fbc_user_defined_constraints.xml`.
+- [ ] **Step 5: Run the test to verify it passes** on `FBC_ECOLI_CORE_SBML`, and add the same structural assertion on `FBC_RECON3D_SBML` and `resources/examples/fbc_user_defined_constraints.xml`. The packaged `fbc_user_defined_constraints.xml` was invalid fbc v3 (13 errors, component coefficients spelled as numbers, which libsbml refuses to write) and is regenerated from its example (ruling T6a, release note).
 - [ ] **Step 6: Re-run `scripts/package_report.py`** and record the fbc rows against the Task 1 baseline in the commit message.
 - [ ] **Step 7: Verify and commit.** tox, lint, 148/148.
 
