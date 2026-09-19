@@ -3645,9 +3645,12 @@ class UserDefinedConstraintComponent(Sbase):
         )
         self.variable = variable
         self.coefficient = coefficient
+        # `None` is "the component has no variableType", which fbc writes as
+        # an absent attribute; the tested value is `is not None`, since
+        # `libsbml.FBC_VARIABLE_TYPE_LINEAR` is `0` and falsy
         self.variableType = (
             FluxObjective.normalize_variable_type(variableType)
-            if variableType
+            if variableType is not None
             else None
         )
 
@@ -3665,10 +3668,11 @@ class UserDefinedConstraintComponent(Sbase):
             component.setCoefficient(self.coefficient),
             f"set coefficient `{self.coefficient}`",
         )
-        check(
-            component.setVariableType(self.variableType),
-            f"set variableType `{self.variableType}`",
-        )
+        if self.variableType is not None:
+            check(
+                component.setVariableType(self.variableType),
+                f"set variableType `{self.variableType}`",
+            )
 
         return component
 
@@ -3690,7 +3694,7 @@ class UserDefinedConstraint(Sbase):
         lowerBound: str,
         upperBound: str,
         components: list[UserDefinedConstraintComponent] | dict[str, str] | None = None,
-        variableType: str = libsbml.FBC_VARIABLE_TYPE_LINEAR,
+        variableType: str | None = libsbml.FBC_VARIABLE_TYPE_LINEAR,
         sid: str | None = None,
         name: str | None = None,
         sboTerm: str | None = None,
@@ -3733,8 +3737,10 @@ class UserDefinedConstraint(Sbase):
                     )
             else:
                 for component in components:
-                    # infer variableType from objective
-                    if not component.variableType:
+                    # infer variableType from the constraint; a component
+                    # which states one keeps it, `libsbml.
+                    # FBC_VARIABLE_TYPE_LINEAR` included, which is `0`
+                    if component.variableType is None:
                         component.variableType = variableType
                     self.components.append(component)
 
@@ -3767,7 +3773,7 @@ class FluxObjective(Sbase):
         self,
         reaction: str,
         coefficient: float,
-        variableType: str,
+        variableType: str | None = None,
         sid: str | None = None,
         name: str | None = None,
         sboTerm: str | None = None,
@@ -3794,7 +3800,14 @@ class FluxObjective(Sbase):
         )
         self.reaction = reaction
         self.coefficient = coefficient
-        self.variableType = FluxObjective.normalize_variable_type(variableType)
+        # `None` is "the flux objective has no variableType", which fbc writes
+        # as an absent attribute; the tested value is `is not None`, since
+        # `libsbml.FBC_VARIABLE_TYPE_LINEAR` is `0` and falsy
+        self.variableType = (
+            FluxObjective.normalize_variable_type(variableType)
+            if variableType is not None
+            else None
+        )
 
     @classmethod
     def normalize_variable_type(cls, variable_type: str) -> str:
@@ -3820,7 +3833,8 @@ class FluxObjective(Sbase):
 
         flux_objective.setReaction(self.reaction)
         flux_objective.setCoefficient(self.coefficient)
-        flux_objective.setVariableType(self.variableType)
+        if self.variableType is not None:
+            flux_objective.setVariableType(self.variableType)
 
         return flux_objective
 
@@ -3843,7 +3857,7 @@ class Objective(Sbase):
         objectiveType: str = libsbml.OBJECTIVE_TYPE_MAXIMIZE,
         active: bool = True,
         fluxObjectives: list[FluxObjective] | dict[str, float] | None = None,
-        variableType: str = libsbml.FBC_VARIABLE_TYPE_LINEAR,
+        variableType: str | None = libsbml.FBC_VARIABLE_TYPE_LINEAR,
         name: str | None = None,
         sboTerm: str | None = None,
         metaId: str | None = None,
@@ -3889,8 +3903,10 @@ class Objective(Sbase):
                     )
             else:
                 for flux_objective in fluxObjectives:
-                    # infer variableType from objective
-                    if not flux_objective.variableType:
+                    # infer variableType from objective; a flux objective
+                    # which states one keeps it, `libsbml.
+                    # FBC_VARIABLE_TYPE_LINEAR` included, which is `0`
+                    if flux_objective.variableType is None:
                         flux_objective.variableType = variableType
                     self.fluxObjectives.append(flux_objective)
 

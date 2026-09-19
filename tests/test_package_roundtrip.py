@@ -7,6 +7,7 @@ They never assert what `sbml_to_model` loses today. Those losses are removed one
 The cases of the SBML test suite are resolved from the checkout, see `tests/test_roundtrip.py`, since the installed package does not contain them.
 """
 
+import logging
 import re
 from collections import Counter
 from collections.abc import Callable
@@ -1209,6 +1210,103 @@ def test_roundtrip_preserves_user_defined_constraints(
         "fbc.userDefinedConstraint",
         "fbc.userDefinedConstraintComponent",
     )
+
+
+def _no_variable_type_sbml(tmp_path: Path) -> Path:
+    """Write an fbc v3 model whose flux objective and constraint component have no `variableType`.
+
+    `fbc:variableType` was added in fbc version 3 and is optional, so a document of that version can omit it; libsbml reads such an element with `isSetVariableType() == False`. The document is built with libsbml rather than with the factory, so that it states exactly that and nothing the writer decides.
+
+    Args:
+        tmp_path: the directory the SBML file is written to
+
+    Returns:
+        the path of the SBML file
+    """
+    namespaces = libsbml.SBMLNamespaces(3, 1, "fbc", 3)
+    doc: libsbml.SBMLDocument = libsbml.SBMLDocument(namespaces)
+    doc.setPackageRequired("fbc", False)
+    model: libsbml.Model = doc.createModel()
+    model.setId("no_variable_type")
+    model_fbc: libsbml.FbcModelPlugin = model.getPlugin("fbc")
+    model_fbc.setStrict(False)
+    compartment: libsbml.Compartment = model.createCompartment()
+    compartment.setId("c")
+    compartment.setConstant(True)
+    compartment.setSize(1.0)
+    compartment.setSpatialDimensions(3.0)
+    species: libsbml.Species = model.createSpecies()
+    species.setId("S1")
+    species.setCompartment("c")
+    species.setConstant(False)
+    species.setBoundaryCondition(False)
+    species.setHasOnlySubstanceUnits(False)
+    species.setInitialAmount(1.0)
+    for pid, value in (("lb", 0.0), ("ub", 10.0), ("coef", 1.0)):
+        parameter: libsbml.Parameter = model.createParameter()
+        parameter.setId(pid)
+        parameter.setValue(value)
+        parameter.setConstant(True)
+    reaction: libsbml.Reaction = model.createReaction()
+    reaction.setId("R1")
+    reaction.setReversible(False)
+    reaction.setFast(False)
+    reactant: libsbml.SpeciesReference = reaction.createReactant()
+    reactant.setSpecies("S1")
+    reactant.setStoichiometry(1.0)
+    reactant.setConstant(True)
+    objective: libsbml.Objective = model_fbc.createObjective()
+    objective.setId("obj")
+    objective.setType("maximize")
+    model_fbc.setActiveObjectiveId("obj")
+    flux_objective: libsbml.FluxObjective = objective.createFluxObjective()
+    flux_objective.setReaction("R1")
+    flux_objective.setCoefficient(1.0)
+    constraint: libsbml.UserDefinedConstraint = model_fbc.createUserDefinedConstraint()
+    constraint.setLowerBound("lb")
+    constraint.setUpperBound("ub")
+    component: libsbml.UserDefinedConstraintComponent = (
+        constraint.createUserDefinedConstraintComponent()
+    )
+    component.setVariable("R1")
+    component.setCoefficient("coef")
+
+    sbml_path = tmp_path / "no_variable_type.xml"
+    libsbml.writeSBMLToFile(doc, str(sbml_path))
+    return sbml_path
+
+
+def test_roundtrip_keeps_an_unset_variable_type_unset(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that an element read without a `variableType` is written without one.
+
+    fbc version 3 requires `fbc:variableType` on a flux objective and on a constraint component, so a document without one is invalid; a parser reads what is there and does not repair it, so the element must not be given the `linear` of the default and the writer must not try to set what the `Model` does not have. `UserDefinedConstraintComponent.create_sbml` routes `setVariableType` through `check()`, which logged two errors per component for the value the parser used to pass for "no variable type".
+
+    Reading the invalid source logs libsbml's own consistency errors about the missing attribute, which are about the source. The assertion is therefore on the errors `check()` reports for a libsbml call which failed, which is what the writer produced here.
+    """
+    sbml_path = _no_variable_type_sbml(tmp_path)
+
+    with caplog.at_level(logging.ERROR, logger="sbmlutils"):
+        doc_in, doc_out = roundtrip_document(sbml_path, tmp_path)
+
+    fbc_out: libsbml.FbcModelPlugin = doc_out.getModel().getPlugin("fbc")
+    flux_objective: libsbml.FluxObjective = fbc_out.getObjective(0).getFluxObjective(0)
+    component: libsbml.UserDefinedConstraintComponent = (
+        fbc_out.getUserDefinedConstraint(0).getUserDefinedConstraintComponent(0)
+    )
+    assert flux_objective.isSetVariableType() is False
+    assert component.isSetVariableType() is False
+
+    assert [
+        record.getMessage()
+        for record in caplog.records
+        if record.levelno >= logging.ERROR
+        and "Error encountered trying to" in record.getMessage()
+    ] == []
+    assert [
+        str(d) for d in structural_diff(doc_in, doc_out) if d.package == "fbc"
+    ] == []
 
 
 def test_roundtrip_preserves_key_value_pairs(tmp_path: Path) -> None:

@@ -335,25 +335,25 @@ def _objective_type(objective: libsbml.Objective) -> str:
 
 def _variable_type(
     sbase: libsbml.FluxObjective | libsbml.UserDefinedConstraintComponent,
-) -> str:
+) -> str | None:
     """Get the fbc variableType of a flux objective or a constraint component.
 
     `variableType` was added in fbc version 3, so it is unset on every fbc
-    version 2 document. `FluxObjective` and `UserDefinedConstraintComponent`
-    take it as a required field with no `None`, and `"invalid"` is the name
-    they give `libsbml.FBC_VARIABLE_TYPE_INVALID`, which libsbml refuses to
-    set: an element read without a variable type is written without one, and
-    is not given the `"linear"` the fbc version 3 default would imply.
+    version 2 document, and an fbc version 3 document which omits it is
+    invalid. Either way the element states none, which `FluxObjective` and
+    `UserDefinedConstraintComponent` hold as `None` and write as an absent
+    attribute: an element read without a variable type is written without one
+    rather than being given the `"linear"` the fbc version 3 default implies.
 
     Args:
         sbase: the flux objective or constraint component to read
 
     Returns:
-        the name of the variable type, `"invalid"` if the element has none
+        the name of the variable type, `None` if the element has none
     """
-    variable_type: str = (
-        sbase.getVariableTypeAsString() if sbase.isSetVariableType() else "invalid"
-    )
+    if not sbase.isSetVariableType():
+        return None
+    variable_type: str = sbase.getVariableTypeAsString()
     return variable_type
 
 
@@ -464,6 +464,10 @@ def _parse_model_body(model: libsbml.Model, m: Model) -> None:
                     objectiveType=_objective_type(objective),
                     active=objective.getIdAttribute() == active,
                     fluxObjectives=flux_objectives,
+                    # every flux objective carries the variableType of the
+                    # document, so none of them is to be given the authoring
+                    # default of the objective
+                    variableType=None,
                     **_parse_sbase_kwargs(objective),
                 )
             )
@@ -487,6 +491,8 @@ def _parse_model_body(model: libsbml.Model, m: Model) -> None:
                     lowerBound=constraint_fbc.getLowerBound(),
                     upperBound=constraint_fbc.getUpperBound(),
                     components=components,
+                    # as above, every component carries its own
+                    variableType=None,
                     **_parse_sbase_kwargs(constraint_fbc),
                 )
             )
