@@ -6,6 +6,7 @@ from typing import Any
 
 import libsbml
 import pytest
+from structural import roundtrip_document, structural_diff
 
 from examples.distrib import (
     distrib_comp,
@@ -1396,16 +1397,13 @@ def test_uncert_child_without_a_type_is_written_without_one() -> None:
     assert span.getValueLower() == 1.0
 
 
-def _kinetic_law_uncertainty_model(sid: str) -> dict[str, Any]:
+def _kinetic_law_uncertainty_model() -> dict[str, Any]:
     """Get the content of a model whose kinetic law and local parameter have one.
 
-    A kinetic law and its local parameters are the two elements which are
+    A kinetic law and its local parameters are the two elements which were
     written without the `libsbml.Model`, which is what
     `Sbase.create_uncertainties` needs, so the uncertainties of both used to
     be accepted and silently dropped.
-
-    Args:
-        sid: unused, kept so that the caller reads like the model it builds
 
     Returns:
         the keyword arguments of a `Model` or a `ModelDefinition`
@@ -1500,7 +1498,7 @@ def test_uncertainties_of_a_kinetic_law_and_a_local_parameter_are_written() -> N
         sid="kinetic_law_uncertainties",
         name="uncertainties inside a kinetic law",
         packages=[Package.DISTRIB_V1],
-        **_kinetic_law_uncertainty_model("kinetic_law_uncertainties"),
+        **_kinetic_law_uncertainty_model(),
     )
     doc: libsbml.SBMLDocument = Document(model=model).create_sbml()
     doc_read: libsbml.SBMLDocument = libsbml.readSBMLFromString(
@@ -1522,7 +1520,7 @@ def test_uncertainties_inside_a_kinetic_law_of_a_model_definition_are_written() 
             ModelDefinition(
                 sid="md1",
                 name="a model definition",
-                **_kinetic_law_uncertainty_model("md1"),
+                **_kinetic_law_uncertainty_model(),
             )
         ],
     )
@@ -1535,3 +1533,36 @@ def test_uncertainties_inside_a_kinetic_law_of_a_model_definition_are_written() 
     assert _kinetic_law_uncertainties(doc_comp.getModelDefinition("md1")) == (
         _KINETIC_LAW_UNCERTAINTIES
     )
+
+
+def test_uncertainties_inside_a_kinetic_law_survive_a_round_trip(
+    tmp_path: Path,
+) -> None:
+    """Test that both uncertainties come back unchanged and validate.
+
+    The written document is the source of the round trip, so this also says
+    that `sbml_to_model` hands the two uncertainties over instead of
+    reporting them as lost, and `structural_diff` is what sees a loss, see
+    the docstring of `tests/structural.py`.
+    """
+    model = Model(
+        sid="kinetic_law_uncertainties_roundtrip",
+        name="uncertainties inside a kinetic law",
+        packages=[Package.DISTRIB_V1],
+        **_kinetic_law_uncertainty_model(),
+    )
+    sbml_path = tmp_path / f"{model.sid}.xml"
+    create_model(
+        model=model,
+        filepath=sbml_path,
+        sbml_level=3,
+        sbml_version=2,
+        validate=False,
+    )
+
+    doc_in, doc_out = roundtrip_document(sbml_path, tmp_path)
+
+    assert _kinetic_law_uncertainties(doc_in.getModel()) == (_KINETIC_LAW_UNCERTAINTIES)
+    assert [str(d) for d in structural_diff(doc_in, doc_out)] == []
+    result = validate_doc(doc_out, options=ValidationOptions(units_consistency=False))
+    assert [error.getErrorId() for error in result.errors] == []

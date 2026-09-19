@@ -1701,6 +1701,20 @@ def _nested_port_content() -> dict[str, Any]:
             Parameter("ub", 1000.0, name="upper bound"),
             Parameter("p1", 0.0, constant=False, name="p1"),
             Parameter(
+                "p3",
+                3.0,
+                name="p3",
+                keyValuePairs=[
+                    KeyValuePair(
+                        key="kind",
+                        value="test",
+                        uri="https://example.org",
+                        sid="kvp1",
+                        port=True,
+                    )
+                ],
+            ),
+            Parameter(
                 "p2",
                 2.0,
                 name="p2",
@@ -1809,6 +1823,7 @@ _NESTED_PORTS: dict[str, tuple[str, str]] = {
     "udc1_port": ("idRef", "udc1"),
     "udcc1_port": ("idRef", "udcc1"),
     "unc1_port": ("idRef", "unc1"),
+    "kvp1_port": ("idRef", "kvp1"),
 }
 
 
@@ -1933,16 +1948,13 @@ def test_roundtrip_keeps_the_port_of_a_nested_element(tmp_path: Path) -> None:
     assert [str(d) for d in structural_diff(doc_in, doc_out)] == []
 
 
-def test_replaced_by_of_a_kinetic_law_is_written(tmp_path: Path) -> None:
-    """Test that the replacedBy of a kinetic law is written onto it.
+def _replaced_by_kinetic_law_model() -> Model:
+    """Get a model whose kinetic law is replaced by the one of its submodel.
 
-    A kinetic law is written without the `libsbml.Model` which
-    `Sbase.create_replaced_by` needs, so its replacedBy used to be accepted
-    and silently dropped. libsbml attaches the comp plugin of an `SBase` to a
-    `<kineticLaw>`, writes the `<comp:replacedBy>` there, reads it back and
-    validates the document.
+    Returns:
+        the model
     """
-    model = Model(
+    return Model(
         sid="replaced_by_on_a_kinetic_law",
         name="a kinetic law which is replaced by one of a submodel",
         packages=[Package.COMP_V1],
@@ -1989,6 +2001,18 @@ def test_replaced_by_of_a_kinetic_law_is_written(tmp_path: Path) -> None:
             )
         ],
     )
+
+
+def test_replaced_by_of_a_kinetic_law_is_written(tmp_path: Path) -> None:
+    """Test that the replacedBy of a kinetic law is written onto it.
+
+    A kinetic law is written without the `libsbml.Model` which
+    `Sbase.create_replaced_by` needs, so its replacedBy used to be accepted
+    and silently dropped. libsbml attaches the comp plugin of an `SBase` to a
+    `<kineticLaw>`, writes the `<comp:replacedBy>` there, reads it back and
+    validates the document.
+    """
+    model = _replaced_by_kinetic_law_model()
     doc = _write(model, tmp_path, validate=False)
 
     klaw: libsbml.KineticLaw = doc.getModel().getReaction("r1").getKineticLaw()
@@ -1999,6 +2023,8 @@ def test_replaced_by_of_a_kinetic_law_is_written(tmp_path: Path) -> None:
         "sub1",
         "klaw_sub",
     )
+    result = validate_doc(doc, options=ValidationOptions(units_consistency=False))
+    assert [error.getErrorId() for error in result.errors] == []
 
 
 @pytest.mark.parametrize("field", ["replacedBy"])
@@ -2495,4 +2521,32 @@ def test_a_port_of_a_local_parameter_is_unique_per_kinetic_law(
         "meta_kf_r2_port": ("metaIdRef", "meta_kf_r2"),
     }
     result = validate_doc(doc, options=ValidationOptions(units_consistency=False))
+    assert [error.getErrorId() for error in result.errors] == []
+
+
+def test_replaced_by_of_a_kinetic_law_survives_a_round_trip(tmp_path: Path) -> None:
+    """Test that the replacement comes back unchanged and validates.
+
+    The written document is the source of the round trip, so this also says
+    that `sbml_to_model` hands the replacement over instead of reporting it
+    as lost. `structural_diff` compares `comp.replacedBy` with its
+    `submodelRef` and its four references and the whole model definition
+    around it, see the docstring of `tests/structural.py`.
+    """
+    model = _replaced_by_kinetic_law_model()
+    sbml_path = tmp_path / f"{model.sid}.xml"
+    create_model(
+        model=model,
+        filepath=sbml_path,
+        sbml_level=3,
+        sbml_version=2,
+        validate=False,
+    )
+
+    doc_in, doc_out = roundtrip_document(sbml_path, tmp_path)
+
+    klaw_in: libsbml.KineticLaw = doc_in.getModel().getReaction("r1").getKineticLaw()
+    assert klaw_in.getPlugin("comp").isSetReplacedBy()
+    assert [str(d) for d in structural_diff(doc_in, doc_out)] == []
+    result = validate_doc(doc_out, options=ValidationOptions(units_consistency=False))
     assert [error.getErrorId() for error in result.errors] == []
