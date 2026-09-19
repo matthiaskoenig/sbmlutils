@@ -148,4 +148,6 @@ Measured with pymetadata 0.6.2 (package branch, Task 1 fix round). sbmlutils gua
 - **A compact URL of a collection it does not know is reduced to the bare term:** `https://identifiers.org/CMO:0000012` becomes `CMO:0000012` (`icg_body.xml`).
 - **The collection is dropped from the URL:** `http://identifiers.org/slm/000000035` becomes `https://identifiers.org/000000035`, which resolves to nothing; parsing that result again gives collection `None` (319 uses).
 
+- **A hyphenated prefix cannot be read back:** `urn:miriam:ec-code:1.1.1.1` becomes `https://identifiers.org/ec-code:1.1.1.1`, which keeps collection and term, but the compact pattern of pymetadata does not match a hyphen in the prefix, so parsing the result again fails and sbmlutils writes the URN as given (0 uses in the corpus).
+
 The invariant which separates a canonicalization from a loss: `resource_normalized` is an `http(s)://` URL and parsing it again yields the same collection and term.
