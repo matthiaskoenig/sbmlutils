@@ -4742,7 +4742,6 @@ class SbaseRef(Sbase):
     def _set_fields(self, sbase: Any, model: libsbml.Model) -> None:
         super()._set_fields(sbase, model)
 
-        sbase.setId(self.sid)
         if self.portRef is not None:
             sbase.setPortRef(self.portRef)
         if self.idRef is not None:

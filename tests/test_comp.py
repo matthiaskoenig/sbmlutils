@@ -318,6 +318,51 @@ def test_port_needs_an_id(caplog: pytest.LogCaptureFixture) -> None:
     assert any("port" in record.getMessage() for record in caplog.records)
 
 
+def test_replaced_element_sets_id_once(caplog: pytest.LogCaptureFixture) -> None:
+    """Test that `SbaseRef._set_fields` sets the id of the created object once.
+
+    `SbaseRef._set_fields` used to set the id both through the base class
+    (`Sbase._set_fields`, which routes it through `setId`/`setIdAttribute`
+    depending on the element) and again, unconditionally and unchecked, in
+    `SbaseRef._set_fields` itself. The redundant call never actually raised
+    the two ERROR log lines a first, superficial read suggests: the base
+    call is only checked when it neither succeeds nor is skipped because the
+    id is not a core attribute of the SBML level and version written (which
+    logs at DEBUG, not ERROR), so the second, unchecked call never surfaced
+    a visible symptom; it was simply dead code, which this test pins down by
+    counting the calls directly. No ERROR is logged either, which is
+    asserted too since that was the originally reported symptom.
+    """
+    sbmlns = libsbml.SBMLNamespaces(3, 2, "comp", 1)
+    doc = libsbml.SBMLDocument(sbmlns)
+    model: libsbml.Model = doc.createModel()
+    model.setId("m1")
+    c: libsbml.Compartment = model.createCompartment()
+    c.setId("c1")
+    c.setConstant(True)
+    c.setSpatialDimensions(3.0)
+    c.setSize(1.0)
+    cplugin: libsbml.CompSBasePlugin = c.getPlugin("comp")
+    obj: libsbml.ReplacedElement = cplugin.createReplacedElement()
+
+    set_id_calls: list[str] = []
+    original_set_id = obj.setId
+
+    def _spy_set_id(value: str) -> int:
+        set_id_calls.append(value)
+        return original_set_id(value)
+
+    obj.setId = _spy_set_id  # ty: ignore[invalid-assignment]
+
+    replaced_element = ReplacedElement(sid="re1", elementRef="c1", submodelRef="sub1")
+    with caplog.at_level(logging.DEBUG, logger="sbmlutils"):
+        replaced_element._set_fields(obj, model)
+
+    assert set_id_calls == ["re1"]
+    assert [r for r in caplog.records if r.levelname == "ERROR"] == []
+    assert obj.getId() == "re1"
+
+
 def test_submodel_without_model_ref_is_written_without_raising(
     tmp_path: Path, caplog: pytest.LogCaptureFixture
 ) -> None:
