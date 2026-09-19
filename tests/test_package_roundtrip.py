@@ -3007,43 +3007,41 @@ def _external_model_sbml(tmp_path: Path) -> Path:
     return sbml_path
 
 
-def test_roundtrip_does_not_resolve_an_external_model_definition(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+def test_roundtrip_does_not_inline_an_external_model_definition(
+    tmp_path: Path,
 ) -> None:
-    """Test that an external model definition is preserved as a reference, unresolved.
+    """Test that the content of a referenced model does not end up in the document.
 
-    An external model definition names a model in another file. The round trip preserves the reference and never follows it: it does not read the file, and the content of the referenced model does not end up in the document written. Both halves are asserted. The file `opened` records is every file python opens while the document is read and written, which is where `sbmlutils` would have to read it; that the content is not inlined is asserted against a file which does exist and holds a parameter of a telltale id.
+    An external model definition names a model in another file, and the round trip preserves that reference rather than resolving it. The file here does exist and its model holds a parameter of a telltale id, so a round trip which read it and wrote its content into the document, in a `<comp:modelDefinition>` or inline, would be caught by the id turning up in the file written.
+
+    That libsbml itself opens no file cannot be asserted from python: it reads and writes through `libsbml.readSBMLFromFile` and `libsbml.writeSBMLToFile`, whose file IO happens in C++ and passes no python file API, so a spy on `open` records nothing whatever libsbml does and could never fail. What the round trip writes is the observable half, and it is what this test and `test_roundtrip_keeps_an_external_model_definition_whose_source_is_missing` assert between them.
     """
     external_path = _external_model_sbml(tmp_path)
     sbml_path = _external_sbml(tmp_path, external_path.name)
-    opened: list[str] = []
-    real_open = Path.open
+    assert "only_in_the_external_model" in external_path.read_text()
 
-    def spy(self: Path, *args: Any, **kwargs: Any) -> Any:
-        opened.append(str(self))
-        return real_open(self, *args, **kwargs)
-
-    monkeypatch.setattr(Path, "open", spy)
     doc_in, doc_out = roundtrip_document(sbml_path, tmp_path)
-    monkeypatch.undo()
 
-    assert [path for path in opened if external_path.name in path] == []
-    written = Path(tmp_path / f"{sbml_path.stem}-roundtrip.xml").read_text()
+    written = (tmp_path / f"{sbml_path.stem}-roundtrip.xml").read_text()
     assert "only_in_the_external_model" not in written
+    comp: libsbml.CompSBMLDocumentPlugin = doc_out.getPlugin("comp")
+    assert comp.getNumModelDefinitions() == 0
     assert structural_diff(doc_in, doc_out) == []
 
 
 def test_roundtrip_keeps_an_external_model_definition_whose_source_is_missing(
-    tmp_path: Path,
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
 ) -> None:
     """Test that a source which resolves to nothing round trips as it is.
 
-    A reference is preserved as a reference, whether or not the file is there, so a document whose `comp:source` names a file which does not exist round trips unchanged. libsbml reads such a document without an error and only its consistency check reports the unresolved reference, id 1090101, which `create_model` reports and does not act on.
+    A reference is preserved as a reference, whether or not the file is there, so a document whose `comp:source` names a file which does not exist round trips unchanged: the three attributes come back as they were, the structural comparison of the two documents is empty, and neither the parser nor the writer reports anything at all, which is what a round trip that tried to follow the reference could not do. libsbml reads such a document without an error too; only its consistency check reports the unresolved reference, id 1090101, which `create_model` reports and does not act on.
     """
     sbml_path = _external_sbml(tmp_path, "does_not_exist.xml")
 
-    doc_in, doc_out = roundtrip_document(sbml_path, tmp_path)
+    with caplog.at_level(logging.ERROR, logger="sbmlutils"):
+        doc_in, doc_out = roundtrip_document(sbml_path, tmp_path)
 
+    assert [record.getMessage() for record in caplog.records] == []
     assert structural_diff(doc_in, doc_out) == []
     comp: libsbml.CompSBMLDocumentPlugin = doc_out.getPlugin("comp")
     external: libsbml.ExternalModelDefinition = comp.getExternalModelDefinition(0)
