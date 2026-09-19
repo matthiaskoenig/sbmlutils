@@ -14,7 +14,10 @@ ontology lookup service.
 import logging
 import os
 import re
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator
+from contextlib import contextmanager
+from contextvars import ContextVar
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -30,6 +33,129 @@ from sbmlutils.io.sbml import read_sbml, write_sbml
 from ..validation import check
 
 logger = logging.getLogger(__name__)
+
+#: the collection a resource is reported under when pymetadata parses none
+#: from it; such a resource has no collection to group it under and is
+#: reported under this key rather than dropped from the report
+_UNKNOWN_COLLECTION: str = "<no collection>"
+
+#: why the canonical resource of an annotation cannot be written, one
+#: constant per kind of loss so that no message is built for a resource
+_NO_TERM: str = "pymetadata parses no term from the resource"
+_BARE_TERM: str = (
+    "pymetadata shortens the resource to a bare term, which names no collection"
+)
+_DROPPED_COLLECTION: str = "pymetadata writes the resource without its collection"
+_NOT_PARSED_AGAIN: str = "the canonical resource cannot be parsed again"
+
+
+@dataclass
+class _CollectionLoss:
+    """The resources of one collection which were written as given.
+
+    Attributes:
+        count: how many resources of the collection were written as given
+        example: the first of them, named in the report
+        reasons: the reasons they were written as given; one collection has
+            one reason in practice, a set keeps the report honest if not
+    """
+
+    count: int = 0
+    example: str = ""
+    reasons: set[str] = field(default_factory=set)
+
+
+#: the resources written as given in the document currently being written,
+#: keyed by collection; `None` outside `collect_resource_losses`. A
+#: `ContextVar` rather than a module global: the collection belongs to the
+#: code which writes one document, and a thread starts with a fresh context
+#: in which this holds its default.
+_resource_losses: ContextVar[dict[str, _CollectionLoss] | None] = ContextVar(
+    "sbmlutils_resource_losses", default=None
+)
+
+
+@contextmanager
+def collect_resource_losses() -> Iterator[None]:
+    """Report the resources written as given once per collection.
+
+    An annotation resource which pymetadata cannot canonicalize without
+    losing its collection is written as given, see `_resource_for_cvterm`.
+    That is a property of the collection, not of the single resource, and a
+    document can hold tens of thousands of resources of one such collection.
+    Inside this context each of them is collected and logged as a single
+    warning per collection, in the order of the collection ids; the detail of
+    every single resource is logged at debug. Outside it, every resource is
+    warned about on its own.
+
+    The context is entered by the code which writes a whole document. A
+    context inside an active one collects into it and reports nothing of its
+    own, so that a document which is created and then annotated from a file
+    is still reported once.
+
+    Yields:
+        None
+    """
+    if _resource_losses.get() is not None:
+        # an inner context reuses the collector, only the outermost reports
+        yield
+        return
+
+    losses: dict[str, _CollectionLoss] = {}
+    token = _resource_losses.set(losses)
+    try:
+        yield
+    finally:
+        _resource_losses.reset(token)
+        for collection in sorted(losses):
+            loss = losses[collection]
+            logger.warning(
+                "%s annotation resource(s) of the collection '%s' are written as "
+                "given, e.g. '%s': %s.",
+                loss.count,
+                collection,
+                loss.example,
+                "; ".join(sorted(loss.reasons)),
+            )
+
+
+def _record_loss(annotation: Annotation, normalized: str | None, reason: str) -> None:
+    """Report that a resource is written as given rather than canonicalized.
+
+    Inside a `collect_resource_losses` context the resource is collected,
+    to be reported once for its collection, and the detail is logged at
+    debug. Outside one nothing would ever report it, so it is warned about
+    on its own.
+
+    Args:
+        annotation: the annotation whose resource is written as given
+        normalized: the canonical resource which is not written
+        reason: why the canonical resource cannot be written
+    """
+    collection: str = annotation.collection or _UNKNOWN_COLLECTION
+    losses = _resource_losses.get()
+    if losses is None:
+        logger.warning(
+            "The annotation resource '%s' of the collection '%s' is written as "
+            "given: %s.",
+            annotation.resource,
+            collection,
+            reason,
+        )
+        return
+
+    loss = losses.get(collection)
+    if loss is None:
+        loss = _CollectionLoss(example=annotation.resource)
+        losses[collection] = loss
+    loss.count += 1
+    loss.reasons.add(reason)
+    logger.debug(
+        "The annotation resource '%s' is written as given rather than as '%s': %s.",
+        annotation.resource,
+        normalized,
+        reason,
+    )
 
 
 def _resource_for_cvterm(annotation: Annotation) -> str:
@@ -55,7 +181,7 @@ def _resource_for_cvterm(annotation: Annotation) -> str:
     parsing it again yields the same collection and term as the resource
     given, which is what it means for the canonicalization to have lost
     nothing. Otherwise the resource is written exactly as given, and the loss
-    is logged once.
+    is reported by `_record_loss`.
 
     Args:
         annotation: the annotation to write
@@ -69,58 +195,56 @@ def _resource_for_cvterm(annotation: Annotation) -> str:
 
     reason: str | None
     if normalized is None:
-        reason = "it has no term"
-    elif not normalized.startswith(("http://", "https://")):
-        reason = f"'{normalized}' is no resolvable resource"
+        reason = _NO_TERM
     else:
         reason = _reparse_loss(annotation, normalized)
         if reason is None:
             return normalized
 
-    logger.warning(
-        "Resource '%s' is written as given, it cannot be normalized without "
-        "losing information: %s.",
-        annotation.resource,
-        reason,
-    )
+    _record_loss(annotation, normalized, reason)
     return annotation.resource
 
 
 def _reparse_loss(annotation: Annotation, normalized: str) -> str | None:
     """Say what the canonical resource of an annotation loses.
 
-    The canonical resource loses nothing if parsing it again gives the
-    collection and the term the annotation was parsed into. The second parse
-    is a probe rather than an annotation of its own, so it does not validate:
-    validating it would report the canonical resource as an invalid
-    annotation, which is neither news to the user nor something they wrote,
-    and the resource is reported once, as a warning, by the caller.
+    A canonical resource which is not an `http(s)://` URL is a bare term,
+    which no reader can resolve. One which is such a URL loses nothing if
+    parsing it again gives the collection and the term the annotation was
+    parsed into. The second parse is a probe rather than an annotation of
+    its own, so it does not validate: validating it would report the
+    canonical resource as an invalid annotation, which is neither news to
+    the user nor something they wrote.
 
     pymetadata refuses a resource which is not a non-empty string, which the
     canonical resource of an annotation always is; the refusal is caught
     anyway, so that such a resource is written as given rather than ending
     the annotation of the model.
 
+    The reasons are constants rather than composed messages, so that nothing
+    is formatted for a resource whose report is a counter or a debug record
+    which is filtered out.
+
     Args:
         annotation: the annotation whose resource was canonicalized
-        normalized: the canonical resource, an `http(s)://` URL
+        normalized: the canonical resource
 
     Returns:
-        what the canonical resource loses, `None` if it loses nothing
+        why the canonical resource cannot be written, `None` if it loses
+        nothing
     """
+    if not normalized.startswith(("http://", "https://")):
+        return _BARE_TERM
     try:
         reparsed = Annotation(
             qualifier=annotation.qualifier, resource=normalized, validate=False
         )
-    except ValueError as err:
-        return f"'{normalized}' cannot be parsed again: {err}"
+    except ValueError:
+        return _NOT_PARSED_AGAIN
 
     if (reparsed.collection, reparsed.term) == (annotation.collection, annotation.term):
         return None
-    return (
-        f"'{normalized}' is the collection '{reparsed.collection}' and the term "
-        f"'{reparsed.term}', not '{annotation.collection}' and '{annotation.term}'"
-    )
+    return _DROPPED_COLLECTION
 
 
 def annotate_sbml(
@@ -279,29 +403,36 @@ class ModelAnnotator:
         self.id_dict = self._get_ids_from_model()
 
     def annotate_model(self) -> None:
-        """Annotate the model with the given annotations."""
-        # writes all annotations
-        for a in self.annotations:
-            pattern = a.pattern
-            if a.sbml_type == "document":
-                elements = [self.doc]
-            else:
-                # lookup of allowed ids for given sbmlutils type
-                ids = self.id_dict.get(a.sbml_type, None)
-                elements = []
-                if ids:
-                    # find the subset of ids matching the pattern
-                    pattern_ids = ModelAnnotator._get_matching_ids(ids, pattern)
-                    if not pattern_ids:
-                        logger.warning(
-                            "No SBML objects found matching SId annotation pattern: '%s'",
-                            pattern,
-                        )
-                    elements = ModelAnnotator._elements_from_ids(
-                        self.model, pattern_ids, sbml_type=a.sbml_type
-                    )
+        """Annotate the model with the given annotations.
 
-            self._annotate_elements(elements, a)
+        This annotates a whole document, so a resource which cannot be
+        canonicalized is reported once for its collection rather than once
+        for every element it is written on, see `collect_resource_losses`.
+        """
+        # writes all annotations
+        with collect_resource_losses():
+            for a in self.annotations:
+                pattern = a.pattern
+                if a.sbml_type == "document":
+                    elements = [self.doc]
+                else:
+                    # lookup of allowed ids for given sbmlutils type
+                    ids = self.id_dict.get(a.sbml_type, None)
+                    elements = []
+                    if ids:
+                        # find the subset of ids matching the pattern
+                        pattern_ids = ModelAnnotator._get_matching_ids(ids, pattern)
+                        if not pattern_ids:
+                            logger.warning(
+                                "No SBML objects found matching SId annotation "
+                                "pattern: '%s'",
+                                pattern,
+                            )
+                        elements = ModelAnnotator._elements_from_ids(
+                            self.model, pattern_ids, sbml_type=a.sbml_type
+                        )
+
+                self._annotate_elements(elements, a)
 
     def _get_ids_from_model(self) -> dict[str, list[str]]:
         """Create dictionary of ids for given model for lookup.

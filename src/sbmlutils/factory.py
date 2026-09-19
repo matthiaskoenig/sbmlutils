@@ -5052,7 +5052,25 @@ class Document(Sbase):
             )
 
     def create_sbml(self) -> libsbml.SBMLDocument:
-        """Create SBML model."""
+        """Create the libsbml.SBMLDocument of the model.
+
+        This writes a whole document, so an annotation resource which cannot
+        be canonicalized is reported once for its collection rather than once
+        for every element it is written on, see
+        `annotator.collect_resource_losses`.
+
+        Returns:
+            the created libsbml.SBMLDocument
+        """
+        with annotator.collect_resource_losses():
+            return self._create_sbml()
+
+    def _create_sbml(self) -> libsbml.SBMLDocument:
+        """Create the libsbml.SBMLDocument and all its objects.
+
+        Returns:
+            the created libsbml.SBMLDocument
+        """
         logger.info("Create SBML for model '%s'", self.model.sid)
 
         # the packages actually needed to write this model: comp is added
@@ -5171,25 +5189,28 @@ def create_model(
     else:
         raise ValueError(f"Unsupported `model` type: {type(model)}")
 
-    # create and write SBML
-    doc: libsbml.SBMLDocument = Document(
-        model=m,
-        sbml_level=sbml_level,
-        sbml_version=sbml_version,
-    ).create_sbml()
+    # create and write SBML; creating the document and annotating it from a
+    # file both write annotation resources, and one call writes one document,
+    # so both report into one collector, see `collect_resource_losses`
+    with annotator.collect_resource_losses():
+        doc: libsbml.SBMLDocument = Document(
+            model=m,
+            sbml_level=sbml_level,
+            sbml_version=sbml_version,
+        ).create_sbml()
 
-    write_sbml(
-        doc=doc,
-        filepath=filepath,
-        validate=validate,
-        validation_options=validation_options,
-    )
-
-    # annotation of model (overwrites file)
-    if annotations is not None:
-        annotator.annotate_sbml(
-            source=filepath, annotations_path=annotations, filepath=filepath
+        write_sbml(
+            doc=doc,
+            filepath=filepath,
+            validate=validate,
+            validation_options=validation_options,
         )
+
+        # annotation of model (overwrites file)
+        if annotations is not None:
+            annotator.annotate_sbml(
+                source=filepath, annotations_path=annotations, filepath=filepath
+            )
 
     # additional serializations (from the final file, including the annotations)
     antimony_path: Path | None = None
