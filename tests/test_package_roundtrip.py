@@ -1075,6 +1075,46 @@ def test_roundtrip_keeps_the_active_objective(
     assert [str(d) for d in diffs] == []
 
 
+def test_roundtrip_preserves_bounds_charge_and_formula(
+    fbc_roundtrip: Callable[[Path], Comparison],
+) -> None:
+    """Test that the flux bounds, charges and chemical formulas of a model survive.
+
+    The flux bounds of `FBC_ECOLI_CORE_SBML` are what makes its flux space finite; 72 of its 72 species carry a charge and a chemical formula.
+    """
+    counts, _ = fbc_roundtrip(FBC_ECOLI_CORE_SBML)
+    assert counts["fbc.fluxBound"] == 95
+    assert counts["fbc.charge"] == 72
+    assert counts["fbc.chemicalFormula"] == 72
+
+    _assert_preserved(
+        fbc_roundtrip(FBC_ECOLI_CORE_SBML),
+        "fbc.fluxBound",
+        "fbc.charge",
+        "fbc.chemicalFormula",
+    )
+
+
+@requires_testsuite
+def test_roundtrip_preserves_fbc_v1_flux_bounds(
+    fbc_roundtrip: Callable[[Path], Comparison],
+) -> None:
+    """Test that the flux bounds of an fbc version 1 document survive a round trip.
+
+    fbc version 1 states a bound as an `fbc:fluxBound` element of the model rather than as a parameter the reaction references, and there is no `Model` field for that element. The parser converts an fbc version 1 document with libsbml's own `convert fbc v1 to fbc v2` converter before reading it, which is exactly how `tests/structural.py` compares such a document: every bound becomes a parameter of the generated id `fb_<reaction>_<operation>`, which the reaction references.
+    """
+    sbml_path = testsuite_case("01186")
+    doc = _read(sbml_path)
+    fbc_v1: libsbml.FbcModelPlugin = doc.getModel().getPlugin("fbc")
+    assert fbc_v1.getPackageVersion() == 1
+    assert fbc_v1.getNumFluxBounds() == 52
+
+    counts, _ = fbc_roundtrip(sbml_path)
+    assert counts["fbc.fluxBound"] == 26
+
+    _assert_preserved(fbc_roundtrip(sbml_path), "fbc.fluxBound")
+
+
 # ---------------------------------------------------------------------------
 # the whitelist, ruling R5
 # ---------------------------------------------------------------------------

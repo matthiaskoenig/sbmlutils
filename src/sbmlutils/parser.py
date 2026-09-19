@@ -11,11 +11,13 @@ assignments, and constraints, and on each of these its id, name, metaid,
 sboTerm, notes, annotations and fbc key-value pairs. An element without math,
 which SBML allows from L3V2 on, is read without math. It also reads
 `fbc:strict` of the model, its gene products and objectives with their flux
-objectives, and the gene product association of a reaction, as an infix string
-of gene product ids.
+objectives, the gene product association of a reaction, as an infix string of
+gene product ids, its flux bounds, and the charge and chemical formula of a
+species. A document which declares fbc version 1 is converted to fbc version 2
+before it is read, see `_convert_fbc_v1`.
 
 Not read are the model history, and the rest of the content of the `fbc`,
-`distrib`, `comp`, `groups` and `layout` packages: flux bounds,
+`distrib`, `comp`, `groups` and `layout` packages: user-defined constraints,
 uncertainties, submodels, ports and replacements. The `fbc`,
 `distrib` and `comp` packages a document declares are declared on the model.
 Math is read as an L3 infix string, in which an id named like a MathML
@@ -270,6 +272,33 @@ def _parse_variable_kwargs(sbase: libsbml.SBase) -> dict[str, Any]:
     return kwargs
 
 
+def _charge(species_fbc: libsbml.FbcSpeciesPlugin | None) -> float | None:
+    """Get the fbc charge of a species.
+
+    libsbml keeps the integer charge of fbc version 2 and the double charge of
+    fbc version 3 apart: it reads and writes only the one of the version of
+    the document, and the getter of the other one returns 0. The charge is
+    therefore read through the accessor of the version of the plugin, and as
+    the same python type the writer needs for it, since
+    `FbcSpeciesPlugin.setCharge` dispatches on that type: an `int` sets the
+    fbc version 2 charge, a `float` the fbc version 3 one.
+
+    Args:
+        species_fbc: the fbc plugin of a species, `None` for a document
+            without fbc
+
+    Returns:
+        the charge, `None` if the species has none
+    """
+    if species_fbc is None or not species_fbc.isSetCharge():
+        return None
+    if species_fbc.getPackageVersion() >= 3:
+        charge_double: float = species_fbc.getChargeAsDouble()
+        return charge_double
+    charge: int = species_fbc.getCharge()
+    return charge
+
+
 def _variable_type(sbase: Any) -> str:
     """Get the fbc variableType of a flux objective or a constraint component.
 
@@ -292,7 +321,9 @@ def _variable_type(sbase: Any) -> str:
     return variable_type
 
 
-def _gene_product_association(reaction: libsbml.Reaction) -> str | None:
+def _gene_product_association(
+    reaction_fbc: libsbml.FbcReactionPlugin | None,
+) -> str | None:
     """Get the gene product association of a reaction as an infix string of ids.
 
     `Reaction.geneProductAssociation` holds the association as an infix string
@@ -303,14 +334,14 @@ def _gene_product_association(reaction: libsbml.Reaction) -> str | None:
     names and neither unique nor resolvable as an id.
 
     Args:
-        reaction: the libsbml.Reaction to read the association of
+        reaction_fbc: the fbc plugin of a reaction, `None` for a document
+            without fbc
 
     Returns:
         the association as an infix string of gene product ids, `None` if the
         reaction has no association, or one without an `and`, `or` or
         `geneProductRef` child
     """
-    reaction_fbc: libsbml.FbcReactionPlugin | None = reaction.getPlugin("fbc")
     if reaction_fbc is None or not reaction_fbc.isSetGeneProductAssociation():
         return None
     gpa: libsbml.GeneProductAssociation = reaction_fbc.getGeneProductAssociation()
@@ -328,7 +359,8 @@ def _parse_model_body(model: libsbml.Model, m: Model) -> None:
     definitions, model units, function definitions, compartments, species,
     parameters, reactions with kinetic laws, initial assignments, rules,
     events, constraints, `fbc:strict`, the gene products and objectives of the
-    model and the gene product association of a reaction. `model` can be any
+    model, the gene product association and the flux bounds of a reaction and
+    the charge and chemical formula of a species. `model` can be any
     `libsbml.Model`,
     including a `libsbml.ModelDefinition`, which subclasses it, so the comp
     package can recurse into a model definition with the same parser.
@@ -472,8 +504,15 @@ def _parse_model_body(model: libsbml.Model, m: Model) -> None:
 
     s: libsbml.Species
     for s in model.getListOfSpecies():
+        species_fbc: libsbml.FbcSpeciesPlugin | None = s.getPlugin("fbc")
         m.species.append(
             Species(
+                charge=_charge(species_fbc),
+                chemicalFormula=(
+                    species_fbc.getChemicalFormula()
+                    if species_fbc is not None and species_fbc.isSetChemicalFormula()
+                    else None
+                ),
                 compartment=s.getCompartment(),
                 initialAmount=s.getInitialAmount() if s.isSetInitialAmount() else None,
                 initialConcentration=(
@@ -505,6 +544,7 @@ def _parse_model_body(model: libsbml.Model, m: Model) -> None:
     formula: str | None
 
     for r in model.getListOfReactions():
+        reaction_fbc: libsbml.FbcReactionPlugin | None = r.getPlugin("fbc")
         equation = ReactionEquation(
             reversible=r.getReversible() if r.isSetReversible() else True
         )
@@ -575,7 +615,17 @@ def _parse_model_body(model: libsbml.Model, m: Model) -> None:
                 reversible=r.getReversible() if r.isSetReversible() else None,
                 compartment=r.getCompartment() if r.isSetCompartment() else None,
                 fast=r.getFast() if r.isSetFast() else False,
-                geneProductAssociation=_gene_product_association(r),
+                lowerFluxBound=(
+                    reaction_fbc.getLowerFluxBound()
+                    if reaction_fbc is not None and reaction_fbc.isSetLowerFluxBound()
+                    else None
+                ),
+                upperFluxBound=(
+                    reaction_fbc.getUpperFluxBound()
+                    if reaction_fbc is not None and reaction_fbc.isSetUpperFluxBound()
+                    else None
+                ),
+                geneProductAssociation=_gene_product_association(reaction_fbc),
                 **_parse_sbase_kwargs(r),
             )
         )
@@ -683,6 +733,42 @@ def _parse_model_body(model: libsbml.Model, m: Model) -> None:
     # parsed yet, see the module docstring
 
 
+def _convert_fbc_v1(doc: libsbml.SBMLDocument) -> None:
+    """Convert a document which declares fbc version 1 to fbc version 2, in place.
+
+    fbc version 1 states a flux bound as an `fbc:fluxBound` element of the
+    model, which names its reaction, its operation and its value; from fbc
+    version 2 on a bound is a parameter which the reaction references. There
+    is no `Model` field for the version 1 element, and `create_model` writes
+    fbc version 2 or 3 in any case, so the document is brought to the version
+    which is written before it is read, by libsbml's own converter: every
+    bound becomes a parameter of the generated id `fb_<reaction>_<operation>`
+    which carries its value, and the model becomes `fbc:strict="true"`, which
+    fbc version 1 has no attribute for. This is the same conversion the
+    structural comparison of the round trip applies, see the docstring of
+    `tests/structural.py`.
+
+    The whole document is converted, so a `comp:modelDefinition` of it is read
+    as fbc version 2 as well.
+
+    Args:
+        doc: the SBMLDocument to convert, which the caller owns; a document
+            which does not declare fbc version 1 is not touched
+
+    Raises:
+        ValueError: if libsbml cannot convert the document
+    """
+    fbc: libsbml.SBMLDocumentPlugin | None = doc.getPlugin("fbc")
+    if fbc is None or fbc.getPackageVersion() != 1:
+        return
+
+    properties = libsbml.ConversionProperties()
+    properties.addOption("convert fbc v1 to fbc v2", True)
+    status: int = doc.convert(properties)
+    if status != libsbml.LIBSBML_OPERATION_SUCCESS:
+        raise ValueError(f"libsbml cannot convert fbc v1 to fbc v2: {status}")
+
+
 def sbml_to_model(
     source: Path | str,
     validate: bool = False,
@@ -706,6 +792,8 @@ def sbml_to_model(
     Raises:
         AttributeError: if `source` has no model; `read_sbml` only logs that
             case, it does not raise
+        ValueError: if the document declares fbc version 1 and libsbml cannot
+            convert it to fbc version 2
     """
     doc: libsbml.SBMLDocument = read_sbml(
         source=source,
@@ -713,6 +801,9 @@ def sbml_to_model(
         validate=validate,
         validation_options=validation_options,
     )
+    # validation above reports on the document as it was given; the conversion
+    # of fbc version 1 changes the document, so it comes after it
+    _convert_fbc_v1(doc)
     model: libsbml.Model = doc.getModel()
 
     if not model:
