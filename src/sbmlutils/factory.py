@@ -917,7 +917,26 @@ class Sbase:
     def create_replaced_by(
         self, sbase: libsbml.SBase, model: libsbml.Model
     ) -> libsbml.ReplacedBy | None:
-        """Create comp:ReplacedBy."""
+        """Create the `<comp:replacedBy>` of the element, if it has one.
+
+        comp allows a `<comp:replacedBy>` on every SBML element, but libsbml
+        only carries one on an element it attaches a `CompSBasePlugin` to.
+        Measured with libsbml 5.21.2, it attaches none to a `<priority>`, to
+        a `<distrib:uncertainty>` or to any element of fbc
+        (`<fbc:geneProduct>`, `<fbc:objective>`, `<fbc:fluxObjective>`,
+        `<fbc:userDefinedConstraint>`,
+        `<fbc:userDefinedConstraintComponent>`, `<fbc:keyValuePair>`), so it
+        can neither write nor read a replacement there. Those classes do not
+        offer `replacedBy`, and neither does `LocalParameter`, on which every
+        form of the replacement is invalid; see their class docstrings.
+
+        Args:
+            sbase: the libsbml object the replacement is created on
+            model: the `libsbml.Model` the element belongs to
+
+        Returns:
+            the created replacement, `None` if the element has none
+        """
         if not self.replacedBy:
             return None
 
@@ -2725,6 +2744,11 @@ class EventAssignment(Value):
     Assigns the value of the expression to the variable when the event fires.
     """
 
+    #: `libsbml.Model.getElementBySId`, which comp resolves a `comp:idRef`
+    #: with, does not answer with an event assignment, so a port names one by
+    #: its metaid, see `Sbase._port_reference`
+    _port_reference: ClassVar[Literal["idRef", "unitRef", "metaIdRef"]] = "metaIdRef"
+
     def __init__(
         self,
         variable: str,
@@ -2808,11 +2832,6 @@ class EventAssignment(Value):
         else:
             check(ea.setMath(ast_node), f"Set math on '{self.variable}'")
         return ea
-
-    #: `libsbml.Model.getElementBySId`, which comp resolves a `comp:idRef`
-    #: with, does not answer with an event assignment, so a port names one by
-    #: its metaid, see `Sbase._port_reference`
-    _port_reference: ClassVar[Literal["idRef", "unitRef", "metaIdRef"]] = "metaIdRef"
 
     def _set_fields(self, sbase: libsbml.EventAssignment, model: libsbml.Model) -> None:
         """Set fields on libsbml.EventAssignment.
@@ -2960,6 +2979,10 @@ class Priority(Sbase):
     Corresponds to a `libsbml.Priority`: the math which orders the events
     that are executed at the same time, the event with the higher priority
     first.
+
+    libsbml attaches no `CompSBasePlugin` to a `<priority>`, alone among the
+    four children of an event, so a `replacedBy` is not offered, see
+    `Sbase.create_replaced_by`.
     """
 
     def __init__(
@@ -4193,6 +4216,9 @@ class Uncertainty(Sbase):
     children given explicitly. An uncertainty is written from
     `uncertParameters` and from nothing else, so a parsed uncertainty, which
     carries the distribution as an ordinary child, is written exactly once.
+
+    libsbml attaches no `CompSBasePlugin` to a `<distrib:uncertainty>`, so a
+    `replacedBy` is not offered, see `Sbase.create_replaced_by`.
     """
 
     def __init__(
@@ -4338,6 +4364,9 @@ class GeneProduct(Sbase):
     The purpose of this class is to define a single gene product. It implements
     two required attributes id and label as well as two optional attributes
     name and associatedSpecies.
+
+    libsbml attaches no `CompSBasePlugin` to an `<fbc:geneProduct>`, so a
+    `replacedBy` is not offered, see `Sbase.create_replaced_by`.
     """
 
     def __init__(
@@ -4385,7 +4414,12 @@ class GeneProduct(Sbase):
 
 
 class UserDefinedConstraintComponent(Sbase):
-    """UserDefinedConstraintComponent."""
+    """UserDefinedConstraintComponent.
+
+    libsbml attaches no `CompSBasePlugin` to an
+    `<fbc:userDefinedConstraintComponent>`, so a `replacedBy` is not offered,
+    see `Sbase.create_replaced_by`.
+    """
 
     def __init__(
         self,
@@ -4478,6 +4512,9 @@ class UserDefinedConstraint(Sbase):
     reaction network. In order to achieve, we defined a new type of linear
     constraint, the UserDefinedConstraint
 
+    libsbml attaches no `CompSBasePlugin` to an
+    `<fbc:userDefinedConstraint>`, so a `replacedBy` is not offered, see
+    `Sbase.create_replaced_by`.
     """
 
     def __init__(
@@ -4548,7 +4585,11 @@ class UserDefinedConstraint(Sbase):
 
 
 class FluxObjective(Sbase):
-    """FluxObjective."""
+    """FluxObjective.
+
+    libsbml attaches no `CompSBasePlugin` to an `<fbc:fluxObjective>`, so a
+    `replacedBy` is not offered, see `Sbase.create_replaced_by`.
+    """
 
     fbc_variable_types: ClassVar[set[str]] = {
         libsbml.FBC_VARIABLE_TYPE_LINEAR,
@@ -4647,7 +4688,11 @@ class FluxObjective(Sbase):
 
 
 class Objective(Sbase):
-    """Objective."""
+    """Objective.
+
+    libsbml attaches no `CompSBasePlugin` to an `<fbc:objective>`, so a
+    `replacedBy` is not offered, see `Sbase.create_replaced_by`.
+    """
 
     objective_types: ClassVar[set[str]] = {
         libsbml.OBJECTIVE_TYPE_MAXIMIZE,
