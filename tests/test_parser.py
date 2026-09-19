@@ -1,7 +1,9 @@
 """Test parsing of SBML."""
 
+import logging
 from pathlib import Path
 
+import libsbml
 import pytest
 from pymetadata.omex import ManifestEntry, Omex
 
@@ -49,3 +51,62 @@ def test_model_from_biomodels_omex(omex_path: Path, tmp_path: Path) -> None:
                 sbml_version=2,
                 validation_options=ValidationOptions(units_consistency=False),
             )
+
+
+#: an fbc v2 model whose objective omits the required `fbc:type`
+_OBJECTIVE_WITHOUT_TYPE: str = """<?xml version="1.0" encoding="UTF-8"?>
+<sbml xmlns="http://www.sbml.org/sbml/level3/version2/core"
+      xmlns:fbc="http://www.sbml.org/sbml/level3/version1/fbc/version2"
+      level="3" version="2" fbc:required="false">
+  <model id="no_objective_type" fbc:strict="false">
+    <listOfCompartments>
+      <compartment id="c" size="1" constant="true"/>
+    </listOfCompartments>
+    <listOfSpecies>
+      <species id="S1" compartment="c" initialAmount="1"
+               hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+    </listOfSpecies>
+    <listOfReactions>
+      <reaction id="R1" reversible="false">
+        <listOfReactants>
+          <speciesReference species="S1" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+      </reaction>
+    </listOfReactions>
+    <fbc:listOfObjectives fbc:activeObjective="obj">
+      <fbc:objective fbc:id="obj">
+        <fbc:listOfFluxObjectives>
+          <fbc:fluxObjective fbc:reaction="R1" fbc:coefficient="1"/>
+        </fbc:listOfFluxObjectives>
+      </fbc:objective>
+    </fbc:listOfObjectives>
+  </model>
+</sbml>
+"""
+
+
+def test_objective_without_a_type_is_read_and_logged(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that an objective without `fbc:type` is read, not raised on.
+
+    `fbc:type` is required on an objective, so a document without it is
+    invalid, and `Objective` has no field for a missing one:
+    `Objective.normalize_objective_type` refuses both `None` and the empty
+    string `libsbml.Objective.getType()` returns for it. A parser reads what
+    is there and reports the problem, it does not turn an invalid document
+    into an exception, so the objective is read with the `maximize` of the
+    `Objective` default and the problem is logged.
+    """
+    with caplog.at_level(logging.ERROR, logger="sbmlutils.parser"):
+        m: Model = sbml_to_model(_OBJECTIVE_WITHOUT_TYPE)
+
+    (objective,) = m.objectives
+    assert objective.sid == "obj"
+    assert objective.objectiveType == libsbml.OBJECTIVE_TYPE_MAXIMIZE
+    assert objective.active is True
+    assert [
+        record.getMessage()
+        for record in caplog.records
+        if record.name == "sbmlutils.parser" and "fbc:type" in record.getMessage()
+    ] != []

@@ -306,6 +306,33 @@ def _charge(species_fbc: libsbml.FbcSpeciesPlugin | None) -> float | None:
     return charge
 
 
+def _objective_type(objective: libsbml.Objective) -> str:
+    """Get the type of an objective, `maximize` for a document which has none.
+
+    `fbc:type` is required on an objective, so a document without it is
+    invalid, and `Objective` has no field for a missing one:
+    `Objective.normalize_objective_type` refuses `None` as well as the empty
+    string `getType()` returns for an unset attribute. Reading what is there
+    is what a parser does, so such an objective is read with the `maximize` of
+    the `Objective` default and the problem is logged.
+
+    Args:
+        objective: the libsbml.Objective to read
+
+    Returns:
+        the type of the objective, `"maximize"` if it has none
+    """
+    if objective.isSetType():
+        objective_type: str = objective.getType()
+        return objective_type
+    logger.error(
+        "Objective '%s' has no 'fbc:type', which fbc requires of every "
+        "objective; it is read as 'maximize'.",
+        objective.getIdAttribute(),
+    )
+    return "maximize"
+
+
 def _variable_type(
     sbase: libsbml.FluxObjective | libsbml.UserDefinedConstraintComponent,
 ) -> str:
@@ -434,7 +461,7 @@ def _parse_model_body(model: libsbml.Model, m: Model) -> None:
                 )
             m.objectives.append(
                 Objective(
-                    objectiveType=objective.getType(),
+                    objectiveType=_objective_type(objective),
                     active=objective.getIdAttribute() == active,
                     fluxObjectives=flux_objectives,
                     **_parse_sbase_kwargs(objective),
