@@ -3632,6 +3632,8 @@ class UncertParameter(_UncertChild):
             notes: the notes of the uncert parameter
             keyValuePairs: the fbc key value pairs of the uncert parameter
         """
+        # before `super().__init__`, which checks and reports what the
+        # element states, through the `_states_a_value` of this class
         self.value: float | None = value
         self.var: str | None = var
         super().__init__(
@@ -3759,6 +3761,8 @@ class UncertSpan(_UncertChild):
             notes: the notes of the uncert span
             keyValuePairs: the fbc key value pairs of the uncert span
         """
+        # before `super().__init__`, which checks and reports the bounds
+        # through the `_check_states_a_value` of this class
         self.valueLower: float | None = valueLower
         self.varLower: str | None = varLower
         self.valueUpper: float | None = valueUpper
