@@ -37,6 +37,8 @@ sbml_str = write_sbml(doc, filepath=None)  # returns the SBML as a string
 
 `write_sbml` records how the file was created in the notes of the document, and validates the result when asked to.
 
+The parent directory of `filepath` is created if it does not exist, and a write which fails all the same raises an `OSError` naming the path: a caller who asks for a file and gets none must not be told that the model is valid. This is about the file, not about the validation results, which are reported and never block.
+
 ## Reading a model definition back
 
 `sbml_to_model` parses an SBML file into the `Model` object of the [model creation](creation.md), which is the inverse of `create_model`:

@@ -97,6 +97,16 @@ def write_sbml(
     :param program_version: Program version for SBML file
 
     :return: None or SBML string
+
+    :raises OSError: if the file could not be written. The parent directory
+        of `filepath` is created if it does not exist, which is the one such
+        failure a writer can repair; anything else is raised, naming the
+        path. A caller who asks for a file and gets none must not be told
+        that the model is valid, which is what happened while
+        `libsbml.SBMLWriter.writeSBMLToFile` was called for its side effect:
+        it answers `False` and writes nothing, and the validation which
+        follows re-reads the path, gets an empty document from a file which
+        is not there and reports it as valid.
     """
     writer = libsbml.SBMLWriter()
     if program_name:
@@ -111,7 +121,17 @@ def write_sbml(
         sbml_str = writer.writeSBMLToString(doc)
         source = str(sbml_str)
     else:
-        writer.writeSBMLToFile(doc, str(filepath))
+        filepath = Path(filepath)
+        try:
+            filepath.parent.mkdir(parents=True, exist_ok=True)
+            written: bool = writer.writeSBMLToFile(doc, str(filepath))
+        except OSError as err:
+            raise OSError(f"SBML could not be written to '{filepath}': {err}") from err
+        if not written:
+            raise OSError(
+                f"SBML could not be written to '{filepath}': libsbml's writer "
+                f"refused the path."
+            )
         source = filepath
 
     # validation

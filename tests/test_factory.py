@@ -2346,3 +2346,50 @@ def test_attribute_libsbml_refuses_is_reported(
     sbml_model: libsbml.Model = doc.getModel()
     assert sbml_model.getId() == model.sid
     assert sbml_model.getNumCompartments() == 1
+
+
+def test_create_model_writes_into_a_directory_which_does_not_exist(
+    tmp_path: Path,
+) -> None:
+    """Test that `create_model` writes the file a caller asks for.
+
+    `libsbml.SBMLWriter.writeSBMLToFile` answers `False` for a path whose
+    parent directory does not exist and writes nothing, which the writer
+    discarded: `create_model` then validated the *path*, read an empty
+    document from the file which was never written, printed `valid: TRUE`
+    and returned a `FactoryResult` whose `sbml_path` does not exist.
+    """
+    sbml_path = tmp_path / "does" / "not" / "exist" / "model.xml"
+    model = Model(
+        sid="missing_directory",
+        name="a model",
+        compartments=[Compartment("c", 1.0, name="compartment")],
+        species=[Species("S1", compartment="c", initialAmount=1.0, name="S1")],
+    )
+
+    result = create_model(
+        model=model,
+        filepath=sbml_path,
+        validation_options=ValidationOptions(units_consistency=False),
+    )
+
+    assert result.sbml_path.exists()
+    doc: libsbml.SBMLDocument = read_sbml(source=sbml_path, validate=False)
+    assert doc.getModel().getId() == "missing_directory"
+
+
+def test_create_model_raises_for_a_file_it_cannot_write(tmp_path: Path) -> None:
+    """Test that a write which cannot be repaired stops `create_model`.
+
+    A caller who asks for a file and gets none must not be told that the
+    model is valid. This is about the file, not about the validation
+    results: a document which does not validate is still written, and
+    `create_model` still returns.
+    """
+    blocking_file = tmp_path / "a_file"
+    blocking_file.write_text("not a directory", encoding="utf-8")
+    sbml_path = blocking_file / "model.xml"
+    model = Model(sid="unwritable", name="a model")
+
+    with pytest.raises(OSError, match=re.escape(str(sbml_path))):
+        create_model(model=model, filepath=sbml_path, validate=False)
