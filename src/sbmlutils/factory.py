@@ -158,6 +158,30 @@ _ID_ATTRIBUTE_TYPECODES: frozenset[int] = frozenset(
 )
 
 
+def _create_object(obj: Any, container: Any) -> libsbml.SBase:
+    """Create one object in its container, naming it if the creation fails.
+
+    Args:
+        obj: the object to create, e.g. a `Parameter`
+        container: what its `create_sbml` takes, the `libsbml.Model` for an
+            element of a model and the `libsbml.SBMLDocument` for a
+            `ModelDefinition`, which is a child of the `<sbml>` element
+
+    Returns:
+        the created libsbml object
+
+    Raises:
+        Exception: whatever `create_sbml` raises, after reporting which
+            object it was raised for, which the traceback alone does not say
+    """
+    try:
+        return obj.create_sbml(container)
+    except Exception as err:
+        logger.error("Error creating SBML object for '%s'", obj)
+        logger.error(err)
+        raise err
+
+
 def create_objects(
     model: libsbml.Model, obj_iter: list[Any], key: str | None = None
 ) -> dict[str, libsbml.SBase]:
@@ -180,12 +204,7 @@ def create_objects(
                 sbml_objects,
             )
 
-        try:
-            sbml_obj: libsbml.SBase = obj.create_sbml(model)
-        except Exception as err:
-            logger.error("Error creating SBML object for '%s'", obj)
-            logger.error(err)
-            raise err
+        sbml_obj: libsbml.SBase = _create_object(obj, model)
         # FIXME: what happens for objects without id?
         sbml_objects[sbml_obj.getId()] = sbml_obj
 
@@ -5480,11 +5499,15 @@ class Model(Sbase, FrozenClass):
         # instantiates them by `modelRef`. A `ModelDefinition` supports
         # neither of them, see its class docstring, so both lists are empty
         # for one and only the model of the document writes them.
-        for external_model_definition in self.external_model_definitions:
-            # resolves the document from the model it is given
-            external_model_definition.create_sbml(model)
+        # an external model definition resolves the document from the model
+        # it is given, a model definition is created on the document itself
+        create_objects(
+            model,
+            obj_iter=self.external_model_definitions,
+            key="external_model_definitions",
+        )
         for model_definition in self.model_definitions:
-            model_definition.create_sbml(model.getSBMLDocument())
+            _create_object(model_definition, model.getSBMLDocument())
 
         # lists ofs
         for attr in [
