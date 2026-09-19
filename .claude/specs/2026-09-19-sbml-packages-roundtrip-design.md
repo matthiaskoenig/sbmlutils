@@ -89,7 +89,7 @@ Its comparison policy is part of the design and must be settled in that first ta
 
 Of the 1690 l3v2 semantic cases, **123 use comp and 34 use fbc; none use distrib**. All are numbered 01124 or higher, so the core branch's 150-case window touched none of them. The 34 fbc cases contain no gene products, GPAs, user-defined constraints or key-value pairs. Nested `sBaseRef` occurs in exactly three cases, 01132 to 01134, maximum depth 3. The vendored `models/distrib/testsuite/` holds 50 cases containing no `<distrib:>` element at all.
 
-So gene products, GPAs, user-defined constraints, key-value pairs and **all of distrib** are verified on in-repo fixtures: `fbc/e_coli_core.xml.gz`, `Recon3D.xml.gz`, `resources/distrib/uncertainty*.xml`, and `examples/fbc_user_defined_constraints.xml`. Where a construct has no fixture at all, one is authored, and the spec records that such a fixture tests what its author already believed.
+So gene products, GPAs, user-defined constraints, key-value pairs and **all of distrib** are verified on in-repo fixtures: `fbc/e_coli_core.xml.gz`, `Recon3D.xml.gz`, `resources/distrib/uncertainty*.xml`, and `resources/examples/fbc_user_defined_constraints.xml`. Where a construct has no fixture at all, one is authored, and the spec records that such a fixture tests what its author already believed.
 
 ## Design by strand
 
