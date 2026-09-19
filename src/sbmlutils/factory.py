@@ -459,13 +459,13 @@ def _check_attribute(
     return check(status, f"Set {attribute} '{value}' on '{element}'")
 
 
-def _fbc_version_loss(
+def _fbc_version_allows(
     plugin: Any, needed: int, what: str, count: int, element: Any
-) -> str | None:
-    """Say why the fbc version of a document cannot carry this content.
+) -> bool:
+    """Say whether the fbc version of a document can carry this content.
 
-    The one place which answers whether content of a later fbc version can be
-    written. A `<fbc:keyValuePair>` and an `<fbc:userDefinedConstraint>` are
+    The one place which answers that, and which reports the content it
+    refuses. A `<fbc:keyValuePair>` and an `<fbc:userDefinedConstraint>` are
     both fbc version 3, and in an fbc version 2 document libsbml creates the
     element and answers every attribute of it with
     `LIBSBML_UNEXPECTED_ATTRIBUTE` (measured with libsbml 5.21.2), so what
@@ -479,27 +479,39 @@ def _fbc_version_loss(
             document which does not declare fbc at all
         needed: the fbc version the content needs
         what: the content, named in the report, e.g. `key-value pair(s)`
-        count: how many of them are lost
+        count: how many of them would be lost
         element: the model element the content belongs to
 
     Returns:
-        the reason, as a sentence which names the element and says what to do
-        about it, `None` if the document can carry the content
+        `True` if the content can be written, `False` if it was reported and
+        nothing is to be written
     """
     if plugin is None:
-        return (
-            f"The {count} {what} of '{element}' are not written: the document "
-            f"does not declare the fbc package. Add "
-            f"`packages=[Package.FBC_V{needed}]` to the model definition."
+        logger.error(
+            "The %s %s of '%s' are not written: the document does not "
+            "declare the fbc package. Add `packages=[Package.FBC_V%s]` to "
+            "the model definition.",
+            count,
+            what,
+            element,
+            needed,
         )
+        return False
     have: int = plugin.getPackageVersion()
     if have < needed:
-        return (
-            f"The {count} {what} of '{element}' are not written: the content "
-            f"is fbc version {needed}, the document is fbc version {have}. "
-            f"Use `Package.FBC_V{needed}` for a model with it."
+        logger.error(
+            "The %s %s of '%s' are not written: the content is fbc version "
+            "%s, the document is fbc version %s. Use `Package.FBC_V%s` for a "
+            "model with it.",
+            count,
+            what,
+            element,
+            needed,
+            have,
+            needed,
         )
-    return None
+        return False
+    return True
 
 
 def _sbo_term(sbo_term: Any) -> Any:
@@ -1633,9 +1645,9 @@ class KeyValuePair(Sbase):
             return None
 
         sbase_fbc: libsbml.FbcSBasePlugin | None = sbase.getPlugin("fbc")
-        loss = _fbc_version_loss(sbase_fbc, 3, "key-value pair(s)", len(pairs), element)
-        if loss is not None:
-            logger.error("%s", loss)
+        if not _fbc_version_allows(
+            sbase_fbc, 3, "key-value pair(s)", len(pairs), element
+        ):
             return None
 
         return [pair.create_sbml(sbase, model) for pair in pairs]
@@ -5341,13 +5353,14 @@ class UserDefinedConstraint(Sbase):
             cannot carry one
         """
         model_fbc: libsbml.FbcModelPlugin | None = model.getPlugin("fbc")
-        loss = _fbc_version_loss(model_fbc, 3, "user defined constraint(s)", 1, self)
-        if loss is not None:
-            logger.error("%s", loss)
+        if not _fbc_version_allows(model_fbc, 3, "user defined constraint(s)", 1, self):
             return None
-        # a document without an fbc plugin is one of the reasons
-        # `_fbc_version_loss` answers with, so the plugin is there
-        assert model_fbc is not None
+        if model_fbc is None:
+            # not reachable: a document without an fbc plugin is one of the
+            # cases `_fbc_version_allows` refuses. Spelled out rather than
+            # asserted, which `python -O` removes, so that the plugin is
+            # known not to be `None` below
+            return None
 
         udc: libsbml.UserDefinedConstraint = model_fbc.createUserDefinedConstraint()
         self._set_fields(udc, model)
