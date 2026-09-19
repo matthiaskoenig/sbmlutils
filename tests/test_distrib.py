@@ -1,11 +1,17 @@
 """Test distrib functionality."""
 
+import logging
 from typing import Any
 
 import libsbml
 import pytest
 
-from examples.distrib import distrib_packages_examples, distrib_uncertainty
+from examples.distrib import (
+    distrib_comp,
+    distrib_packages_examples,
+    distrib_uncertainties,
+    distrib_uncertainty,
+)
 from sbmlutils.factory import *
 from sbmlutils.metadata import BQB, SBO
 from sbmlutils.validation import ValidationOptions, validate_doc
@@ -771,3 +777,28 @@ def test_uncert_child_writes_no_nested_uncertainties() -> None:
     child: libsbml.UncertParameter = uncertainty.getUncertParameter(0)
     child_distrib: libsbml.DistribSBasePlugin = child.getPlugin("distrib")
     assert child_distrib.getNumUncertainties() == 0
+
+
+def test_distrib_examples_log_no_authoring_hint(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that the children of an uncertainty log no authoring hint.
+
+    An uncert parameter and a span have no name and no sboTerm in any of the
+    examples, and neither is a hint worth logging on them: both are optional
+    on an element which is identified by its type.
+    """
+    with caplog.at_level(logging.WARNING, logger="sbmlutils.factory"):
+        Document(model=distrib_uncertainties.model).create_sbml()
+        Document(model=distrib_comp.model).create_sbml()
+
+    hints = [
+        record.getMessage()
+        for record in caplog.records
+        if "should be set on" in record.getMessage()
+        and (
+            "UncertParameter" in record.getMessage()
+            or "UncertSpan" in record.getMessage()
+        )
+    ]
+    assert not hints, hints

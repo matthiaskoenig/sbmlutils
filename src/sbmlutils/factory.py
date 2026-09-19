@@ -712,6 +712,10 @@ class Sbase:
                 Trigger,
                 Priority,
                 Delay,
+                # identified by their type and their value, a name and an
+                # sboTerm are unusual on them
+                UncertParameter,
+                UncertSpan,
             ),
         ):
             logger.warning("'name' should be set on '%s'", self)
@@ -741,6 +745,8 @@ class Sbase:
                 Trigger,
                 Priority,
                 Delay,
+                UncertParameter,
+                UncertSpan,
             ),
         ):
             logger.warning("'sboTerm' should be set on '%s'", self)
