@@ -30,10 +30,15 @@ from copy import deepcopy
 from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
+from types import UnionType
 from typing import (
     Any,
     ClassVar,
     TypeAlias,
+    Union,
+    get_args,
+    get_origin,
+    get_type_hints,
 )
 
 import libsbml
@@ -4442,47 +4447,12 @@ class Model(Sbase, FrozenClass):
     layouts: list | None
     parsed: bool
 
-    _keys: ClassVar[dict[str, Any]] = {
-        "sid": None,
-        "name": None,
-        "sboTerm": None,
-        "metaId": None,
-        "annotations": list,
-        "notes": None,
-        "keyValuePairs": list,
-        "port": None,
-        "packages": list,
-        "creators": None,
-        "model_units": None,
-        "conversionFactor": None,
-        # `units` is a list on the Model, but it must not be marked as one
-        # here: `merge_models` merges the units in its own branch, deduplicated
-        # by unit id. Marking it a `list` would extend the lists of the merged
-        # models instead and write duplicate unit ids into the merged model.
-        "units": None,
-        "functions": list,
-        "compartments": list,
-        "species": list,
-        "parameters": list,
-        "assignments": list,
-        "rules": list,
-        "rate_rules": list,
-        "algebraic_rules": list,
-        "reactions": list,
-        "events": list,
-        "constraints": list,
-        "external_model_definitions": list,
-        "model_definitions": list,
-        "submodels": list,
-        "ports": list,
-        "replaced_elements": list,
-        "deletions": list,
-        "user_defined_constraints": list,
-        "objectives": list,
-        "gene_products": list,
-        "layouts": list,
-        "parsed": None,
-    }
+    #: field name -> merge kind read by `merge_models` to decide whether a
+    #: field of two models is concatenated (`list`) or overwritten (`None`).
+    #: Derived from the annotations above by `_derive_model_keys`, called once
+    #: right after this class is defined, once every field annotation this
+    #: class references is itself defined; see the comment there.
+    _keys: ClassVar[dict[str, Any]] = {}
 
     _supported_packages: ClassVar[set[str]] = {
         Package.COMP,
@@ -4884,6 +4854,111 @@ class Model(Sbase, FrozenClass):
         model.creators = list(creators)
 
         return model
+
+
+def _model_field_kind(annotation: object) -> type | None:
+    """Classify a resolved `Model` field annotation as list-valued or scalar.
+
+    `merge_models` concatenates a `list`-valued field of the merged models
+    and overwrites every other field with the value of the last model that
+    sets it. An annotation is list-valued when it is, once `| None` /
+    `Optional[...]` is stripped, the bare `list` (`Model.layouts`), a
+    subscripted `list[X]`, or a subscripted `Sequence[X]`. `Model.annotations`
+    is declared `AnnotationsType` (`Sequence[AnnotationType]`, see its
+    definition above `Model`), not `list[...]`, because it accepts any
+    sequence but `Sbase.__init__` always stores it as a list, so `Sequence` is
+    classified the same as `list` here.
+
+    Args:
+        annotation: a fully resolved field annotation, as returned by
+            `typing.get_type_hints`, not the raw annotation string
+            `from __future__ import annotations` leaves in `__annotations__`
+
+    Returns:
+        `list` for a list-valued annotation, `None` for a scalar one
+
+    Raises:
+        TypeError: if `annotation` is a shape this function does not
+            recognize (a union of more than one non-`None` member, or a
+            generic other than `list`/`Sequence`), so a field with an
+            annotation shape nobody has taught this function about fails
+            loudly at import instead of silently being classified as scalar
+    """
+    origin = get_origin(annotation)
+    if origin is Union or origin is UnionType:
+        members = [arg for arg in get_args(annotation) if arg is not type(None)]
+        if len(members) != 1:
+            raise TypeError(
+                f"Cannot classify Model field annotation {annotation!r}: a "
+                f"union must have exactly one non-None member."
+            )
+        return _model_field_kind(members[0])
+    if annotation is list or origin is list or origin is Sequence:
+        return list
+    if origin is None:
+        # a plain, non-generic annotation (str, bool, Any, or a class): scalar
+        return None
+    raise TypeError(
+        f"Cannot classify Model field annotation {annotation!r}: unsupported "
+        f"generic origin {origin!r}."
+    )
+
+
+def _derive_model_keys() -> dict[str, Any]:
+    """Derive `Model._keys` from `Model`'s own field annotations.
+
+    Called once, as a module-level statement right after the `Model` class
+    body, rather than during it: `from __future__ import annotations` turns
+    every annotation in this file into a string, and `typing.get_type_hints`
+    resolves each of `Model`'s forward references (`Species`, `Reaction`, ...)
+    by looking them up in this module's namespace, which only holds them once
+    the statements that define them, all located earlier in this module, have
+    run. Resolving them while `Model`'s own class body is still executing,
+    before the `Model` name itself is bound, is not possible.
+
+    Every field `Model` declares in its own class body (not one inherited
+    from `Sbase` or `FrozenClass`) is classified by `_model_field_kind`;
+    `ClassVar`s and private names (`_keys` itself, `_supported_packages`) are
+    not fields and are excluded.
+
+    Two fields are `list`-typed on `Model` but forced to `None` here, because
+    `merge_models` merges them itself in a dedicated branch, deduplicated,
+    rather than through its generic list-extend branch:
+
+    - `units`, deduplicated by unit id: marking it `list` would run the
+      generic branch instead, which writes duplicate unit ids into the merged
+      model.
+    - `creators`, deduplicated by equality: marking it `list` would also run
+      the generic branch instead, and `merge_models` then unconditionally
+      overwrites `model.creators` with the (never populated) dedup dict after
+      its main loop, discarding the generic branch's result and leaving the
+      merged model with no creators at all.
+
+    Returns:
+        the field name -> merge kind mapping `merge_models` reads through
+        `Model._keys`
+
+    Raises:
+        TypeError: if a field annotation's shape is not recognized by
+            `_model_field_kind`
+    """
+    own_annotations = inspect.get_annotations(Model)
+    resolved = get_type_hints(Model)
+    keys: dict[str, Any] = {}
+    for name in own_annotations:
+        if name.startswith("_"):
+            continue
+        hint = resolved[name]
+        if get_origin(hint) is ClassVar:
+            continue
+        keys[name] = _model_field_kind(hint)
+
+    keys["units"] = None
+    keys["creators"] = None
+    return keys
+
+
+Model._keys = _derive_model_keys()
 
 
 class Document(Sbase):
