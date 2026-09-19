@@ -1247,11 +1247,22 @@ class UnitDefinition(Sbase):
 
         Returns:
             the unit id, `None` if no unit was given
+
+        Raises:
+            ValueError: if the unit is neither a `UnitDefinition` nor a unit
+                id; the value would otherwise reach a libsbml setter and
+                surface as a SWIG `TypeError` which names neither the value
+                nor the element it was set on
         """
         if unit is None:
             return None
         if isinstance(unit, UnitDefinition):
             return unit.sid
+        if not isinstance(unit, str):
+            raise ValueError(
+                f"A unit must be a UnitDefinition or the id of one, but "
+                f"'{unit}' is '{type(unit)}'."
+            )
         return unit
 
 
@@ -1310,6 +1321,28 @@ class Units:
             udef.create_sbml(model=model)
 
 
+def _check_unit_type(unit: Any, attribute: str, sbase: Sbase) -> None:
+    """Warn if a unit attribute is neither a `UnitDefinition` nor a unit id.
+
+    The value is passed on either way, `UnitDefinition.get_uid_for_unit`
+    refuses it when the element is written. The warning is the early hint
+    which names the attribute and the element it was given on.
+
+    Args:
+        unit: the value given for the unit attribute
+        attribute: the name of the attribute, e.g. `substanceUnit`
+        sbase: the element the attribute belongs to
+    """
+    if unit is not None and not isinstance(unit, (UnitDefinition, str)):
+        logger.warning(
+            "'%s' must be a UnitDefinition or a unit id, but '%s' in '%s' is '%s'.",
+            attribute,
+            unit,
+            sbase,
+            type(unit),
+        )
+
+
 class ValueWithUnit(Value):
     """Helper class.
 
@@ -1350,13 +1383,7 @@ class ValueWithUnit(Value):
             replacedBy=replacedBy,
         )
         self.unit = unit
-        if self.unit is not None and not isinstance(self.unit, (UnitDefinition, str)):
-            logger.warning(
-                "'unit' must be a UnitDefinition or a unit id, but '%s' in '%s' is '%s'.",
-                self.unit,
-                self,
-                type(self.unit),
-            )
+        _check_unit_type(self.unit, "unit", self)
 
     def _set_fields(self, sbase: Any, model: libsbml.Model) -> None:
         super()._set_fields(sbase, model)
@@ -1693,6 +1720,7 @@ class Species(Sbase):
                 f"species, but not both: `{sid}`."
             )
         self.substanceUnits = substanceUnit
+        _check_unit_type(self.substanceUnits, "substanceUnit", self)
         self.initialAmount = initialAmount
         self.initialConcentration = initialConcentration
         self.compartment = compartment
@@ -4077,6 +4105,7 @@ class SbaseRef(Sbase):
         self.portRef = portRef
         self.idRef = idRef
         self.unitRef = unitRef
+        _check_unit_type(self.unitRef, "unitRef", self)
         self.metaIdRef = metaIdRef
 
     def _set_fields(self, sbase: Any, model: libsbml.Model) -> None:

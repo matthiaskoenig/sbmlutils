@@ -1,5 +1,7 @@
 """Testing the factory methods."""
 
+import logging
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -9,6 +11,7 @@ import pytest
 
 from sbmlutils import factory
 from sbmlutils.factory import *
+from sbmlutils.factory import Sbase, SbaseRef
 from sbmlutils.io import read_sbml
 from sbmlutils.metadata import BQB
 from sbmlutils.reaction_equation import EquationPart
@@ -376,6 +379,55 @@ def test_model_units_accepts_units_class() -> None:
 def test_unit_reference_by_id() -> None:
     """Test that a unit can be referenced by its id string."""
     assert UnitDefinition.get_uid_for_unit("mymole") == "mymole"
+
+
+def test_unit_reference_without_unit() -> None:
+    """Test that no unit at all is no error."""
+    assert UnitDefinition.get_uid_for_unit(None) is None
+
+
+#: a unit of a type the annotations forbid, as it reaches the factory from
+#: untyped data; declared `Any` so that the type checker does not flag the
+#: deliberate misuse which the runtime guard is tested with
+BAD_UNIT: Any = 1.0
+
+
+def test_bad_unit_type_raises_value_error(tmp_path: Path) -> None:
+    """Test that a unit which is neither a UnitDefinition nor an id is refused.
+
+    `1.0` reached `libsbml.Parameter.setUnits` and surfaced as a SWIG
+    `TypeError` about `argument 2 of type 'std::string const &'`, which names
+    neither the offending value nor the element it was set on.
+    """
+    model = Model(sid="m", parameters=[Parameter("p", value=1.0, unit=BAD_UNIT)])
+    with pytest.raises(ValueError, match="UnitDefinition"):
+        create_model(model=model, filepath=tmp_path / "m.xml")
+
+
+@pytest.mark.parametrize(
+    "create",
+    [
+        lambda: Parameter("p", value=1.0, unit=BAD_UNIT),
+        lambda: Species("s", compartment="c", substanceUnit=BAD_UNIT),
+        lambda: SbaseRef("ref", unitRef=BAD_UNIT),
+    ],
+    ids=["Parameter.unit", "Species.substanceUnit", "SbaseRef.unitRef"],
+)
+def test_bad_unit_type_warns_on_construction(
+    create: Callable[[], Sbase], caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that a unit of a bad type is reported when the element is built.
+
+    `ValueWithUnit` warned about it, `Species.substanceUnits` and
+    `SbaseRef.unitRef` passed the value on silently.
+    """
+    with caplog.at_level(logging.WARNING, logger="sbmlutils.factory"):
+        create()
+    assert any(
+        "must be a UnitDefinition or a unit id" in record.message
+        and "float" in record.message
+        for record in caplog.records
+    ), caplog.text
 
 
 def test_unit_definition_name() -> None:
