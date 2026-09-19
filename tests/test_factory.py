@@ -2614,3 +2614,159 @@ def test_two_documents_report_only_their_own_attribute_losses(
 
     assert len(first) == 1, first
     assert second == first
+
+
+#: a model whose only package content is one construct, without `packages=`,
+#: as `(build, namespace fragment, content fragment)`
+_PACKAGE_FROM_CONTENT: list[Any] = [
+    pytest.param(
+        lambda: Model(
+            sid="only_a_gene_product",
+            name="a model with a gene product",
+            gene_products=[GeneProduct(sid="g1", label="G1", name="gene")],
+            **_minimal_content(),
+        ),
+        "fbc/version3",
+        "<fbc:geneProduct",
+        id="gene-product",
+    ),
+    pytest.param(
+        lambda: Model(
+            sid="only_an_objective",
+            name="a model with an objective",
+            objectives=[
+                Objective(
+                    sid="obj1",
+                    name="objective",
+                    objectiveType="maximize",
+                    fluxObjectives={"R1": 1.0},
+                )
+            ],
+            reactions=[Reaction("R1", "S1 ->", name="reaction")],
+            **_minimal_content(),
+        ),
+        "fbc/version3",
+        "<fbc:objective",
+        id="objective",
+    ),
+    pytest.param(
+        lambda: Model(
+            sid="only_key_value_pairs",
+            name="a model with key-value pairs",
+            parameters=[
+                Parameter(
+                    "k",
+                    1.0,
+                    name="k",
+                    keyValuePairs=[
+                        KeyValuePair(key="kind", value="test", uri="https://x.org")
+                    ],
+                )
+            ],
+            **_minimal_content(),
+        ),
+        "fbc/version3",
+        "<keyValuePair",
+        id="key-value-pairs",
+    ),
+    pytest.param(
+        lambda: Model(
+            sid="only_an_uncertainty",
+            name="a model with an uncertainty",
+            parameters=[
+                Parameter(
+                    "k",
+                    1.0,
+                    name="k",
+                    uncertainties=[
+                        Uncertainty(
+                            sid="unc1",
+                            name="uncertainty",
+                            uncertParameters=[
+                                UncertParameter(
+                                    type=libsbml.DISTRIB_UNCERTTYPE_MEAN, value=1.0
+                                )
+                            ],
+                        )
+                    ],
+                )
+            ],
+            **_minimal_content(),
+        ),
+        "distrib/version1",
+        "<distrib:uncertainty",
+        id="uncertainty",
+    ),
+]
+
+
+@pytest.mark.parametrize("build, namespace, content", _PACKAGE_FROM_CONTENT)
+def test_model_declares_the_package_its_content_needs(
+    build: Callable[[], Model],
+    namespace: str,
+    content: str,
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that the main model declares the package its content engages.
+
+    `Model._required_packages` reads off which packages the content of a
+    model needs and was only asked of the model definitions of a document,
+    never of the model itself. A top level model whose only fbc content was a
+    gene product, an objective or a key-value pair therefore declared no fbc,
+    and writing it reached a plugin which does not exist: the key-value pair
+    raised `AttributeError`, the gene product and the objective wrote
+    nothing.
+    """
+    model = build()
+    sbml_path = tmp_path / f"{model.sid}.xml"
+    with caplog.at_level(logging.ERROR, logger="sbmlutils"):
+        create_model(
+            model=model,
+            filepath=sbml_path,
+            validation_options=ValidationOptions(units_consistency=False),
+        )
+
+    sbml = sbml_path.read_text(encoding="utf-8")
+    assert namespace in sbml, sbml
+    assert content in sbml, sbml
+    assert _records(caplog, logging.ERROR) == []
+
+
+def test_the_declared_fbc_version_wins_over_the_content(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that an explicit fbc version is not raised by the content.
+
+    A key-value pair needs fbc version 3, but a model which asks for fbc
+    version 2 gets fbc version 2: the caller stated the version of the
+    document. The pairs which cannot be written there are reported, see
+    `KeyValuePair.create_pairs`.
+    """
+    model = Model(
+        sid="explicit_fbc_v2",
+        name="a model which asks for fbc version 2",
+        packages=[Package.FBC_V2],
+        parameters=[
+            Parameter(
+                "k",
+                1.0,
+                name="k",
+                keyValuePairs=[
+                    KeyValuePair(key="kind", value="test", uri="https://x.org")
+                ],
+            )
+        ],
+        **_minimal_content(),
+    )
+    sbml_path = tmp_path / "model.xml"
+    with caplog.at_level(logging.ERROR, logger="sbmlutils"):
+        create_model(model=model, filepath=sbml_path, validate=False)
+
+    sbml = sbml_path.read_text(encoding="utf-8")
+    assert "fbc/version2" in sbml
+    assert "fbc/version3" not in sbml
+    assert "keyValuePair" not in sbml
+    errors = _records(caplog, logging.ERROR)
+    assert len(errors) == 1, errors
+    assert "fbc version 3, the document is fbc version 2" in errors[0]

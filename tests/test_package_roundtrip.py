@@ -3633,24 +3633,51 @@ def test_key_value_pairs_of_an_fbc_v3_document_are_written(tmp_path: Path) -> No
     assert 'key="reactant-key"' in sbml
 
 
-def test_key_value_pairs_need_the_fbc_package(
+def test_key_value_pairs_declare_the_fbc_package_they_need(
     tmp_path: Path, caplog: pytest.LogCaptureFixture
 ) -> None:
-    """Test that a document which declares no fbc reports its pairs.
+    """Test that a model with pairs and no `packages=` declares fbc itself.
 
     libsbml attaches no fbc plugin to an element of a document which does not
     declare the package, so writing a pair raised `AttributeError: 'NoneType'
     object has no attribute 'getListOfKeyValuePairs'` and no file was written
-    at all.
+    at all. A model reads off the packages its content engages, so the pairs
+    of a model which asks for no package declare fbc version 3 themselves.
     """
     model = _key_value_pair_model([])
     sbml_path = tmp_path / f"{model.sid}.xml"
     with caplog.at_level(logging.ERROR, logger="sbmlutils"):
         create_model(model=model, filepath=sbml_path, validate=False)
 
-    assert sbml_path.exists()
-    assert "keyValuePair" not in sbml_path.read_text(encoding="utf-8")
+    sbml = sbml_path.read_text(encoding="utf-8")
+    assert "fbc/version3" in sbml
+    assert sbml.count("<keyValuePair ") == 3
+    assert [record.getMessage() for record in caplog.records] == []
+
+
+def test_key_value_pairs_without_an_fbc_plugin_are_reported(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test the report for an element which has no fbc plugin at all.
+
+    A caller which writes an element onto a `libsbml.Model` of a document
+    that does not declare fbc reaches `getPlugin("fbc")`, which answers
+    `None`; the pairs are reported rather than raising an `AttributeError`.
+    """
+    doc: libsbml.SBMLDocument = libsbml.SBMLDocument(libsbml.SBMLNamespaces(3, 2))
+    libsbml_model: libsbml.Model = doc.createModel()
+    libsbml_model.setId("no_fbc")
+
+    with caplog.at_level(logging.ERROR, logger="sbmlutils"):
+        Parameter(
+            "k",
+            1.0,
+            name="k",
+            keyValuePairs=[KeyValuePair(key="kind", value="test", uri=None)],
+        ).create_sbml(libsbml_model)
+
     errors = [record.getMessage() for record in caplog.records]
-    assert len(errors) == 2, errors
+    assert len(errors) == 1, errors
     assert "does not declare the fbc package" in errors[0]
     assert "Parameter(k" in errors[0]
+    assert "keyValuePair" not in libsbml.writeSBMLToString(doc)

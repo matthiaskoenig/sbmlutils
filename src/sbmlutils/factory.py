@@ -7042,18 +7042,15 @@ class Document(Sbase):
         """
         logger.info("Create SBML for model '%s'", self.model.sid)
 
-        # the packages actually needed to write this model: comp is added
-        # when the model has comp content the definition did not explicitly
-        # request it for (see `Model._has_comp_content`), and so is whatever
-        # the content of a model definition of the document needs, which is a
-        # model of its own but has no place to declare a package (see
-        # `Model._required_packages`). This must be decided before the
-        # namespace is built, since libsbml cannot enable a package on the
-        # document after it exists.
+        # the packages actually needed to write this model: whatever the
+        # content of the model engages without the definition asking for it,
+        # and whatever the content of a model definition of the document
+        # needs, which is a model of its own but has no place to declare a
+        # package, both read off by `Model._required_packages`. This must be
+        # decided before the namespace is built, since libsbml cannot enable
+        # a package on the document after it exists.
         packages = list(self.model.packages)
-        required: set[Package] = set()
-        if self.model._has_comp_content():
-            required.add(Package.COMP_V1)
+        required: set[Package] = self.model._required_packages()
         for model_definition in self.model.model_definitions:
             required |= model_definition._required_packages()
 
