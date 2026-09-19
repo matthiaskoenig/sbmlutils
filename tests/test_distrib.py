@@ -1085,21 +1085,6 @@ def test_uncertainty_of_a_formula_is_written_once_per_document() -> None:
     assert len(_children(second)) == 1
 
 
-def test_uncertainty_of_a_formula_without_a_distribution_writes_no_math() -> None:
-    """Test that a formula which names no distribution of distrib writes none.
-
-    The shortcut recognizes the distributions of distrib by name; a formula
-    which names none of them is written as the bare uncert parameter of the
-    type `distribution` it has always been written as.
-    """
-    doc = _uncertainty_document(Uncertainty(formula="2.0 * p2"))
-
-    (child,) = _children(doc)
-    assert child.getTypeAsString() == "distribution"
-    assert not child.isSetDefinitionURL()
-    assert not child.isSetMath()
-
-
 def test_uncert_parameter_without_a_value_is_reported(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
@@ -1173,20 +1158,107 @@ def test_uncert_parameter_which_states_a_value_is_not_reported(
     ] == []
 
 
-def test_uncertainty_of_a_rayleigh_formula_writes_its_definition_url() -> None:
-    """Test that the rayleigh distribution is recognized by the formula shortcut.
+#: every distribution of distrib, with a formula which calls it with an arity
+#: it accepts
+DISTRIBUTION_FORMULAS: list[tuple[str, str]] = [
+    ("normal", "normal(0, 1)"),
+    ("uniform", "uniform(0, 1)"),
+    ("bernoulli", "bernoulli(0.5)"),
+    ("binomial", "binomial(10, 0.5)"),
+    ("cauchy", "cauchy(0, 1)"),
+    ("chisquare", "chisquare(2)"),
+    ("exponential", "exponential(1)"),
+    ("gamma", "gamma(2, 1)"),
+    ("laplace", "laplace(0, 1)"),
+    ("lognormal", "lognormal(0, 1)"),
+    ("poisson", "poisson(0.5)"),
+    ("rayleigh", "rayleigh(0.5)"),
+]
 
-    The list of distributions the shortcut recognizes spelled it `raleigh`,
-    which no formula of the distribution contains: `rayleigh(0.5)` was written
-    as an uncert parameter of the type `distribution` without a definitionURL
-    and without math, and a formula with the misspelling was given the URL
-    `.../distrib/raleigh`, which distrib does not define. libsbml writes the
-    csymbol `.../distrib/rayleigh`, see `examples/distrib_distributions.xml`.
+
+@pytest.mark.parametrize("distribution, formula", DISTRIBUTION_FORMULAS)
+def test_uncertainty_of_a_formula_writes_the_url_of_its_distribution(
+    distribution: str, formula: str
+) -> None:
+    """Test that every distribution of distrib is recognized by its own name.
+
+    The shortcut searched the text of the formula for the name of a
+    distribution, which is the wrong question to ask: `lognormal(0, 1)`
+    contains `normal`, so it was written as the distribution which happened to
+    match, and `rayleigh` was never matched at all while the table spelled it
+    `raleigh`.
     """
-    doc = _uncertainty_document(Uncertainty(formula="rayleigh(0.5)"))
+    doc = _uncertainty_document(Uncertainty(formula=formula))
 
     (child,) = _children(doc)
+    assert child.getTypeAsString() == "distribution"
     assert (
-        child.getDefinitionURL() == "http://www.sbml.org/sbml/symbols/distrib/rayleigh"
+        child.getDefinitionURL()
+        == f"http://www.sbml.org/sbml/symbols/distrib/{distribution}"
     )
-    assert libsbml.formulaToL3String(child.getMath()) == "rayleigh(0.5)"
+    assert libsbml.formulaToL3String(child.getMath()) == formula
+
+
+@pytest.mark.parametrize(
+    "formula",
+    [
+        # an identifier which contains the name of a distribution
+        "normalization * 2",
+        "gamma_rate + 1",
+        # a distribution which is not what the formula computes
+        "5 * normal(0, 1)",
+        # no distribution anywhere
+        "2.0 * p2",
+    ],
+)
+def test_uncertainty_of_a_formula_which_calls_no_distribution_writes_no_url(
+    formula: str, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that only a call of a distribution names a distribution.
+
+    The name of a distribution can occur in a formula without the formula
+    being a draw from it: as part of an identifier, or in a term of a larger
+    expression. The uncert parameter of such a formula is written as it has
+    always been written, without a definitionURL and without math, and the
+    formula is named in an error, since the shortcut cannot express it.
+    """
+    with caplog.at_level(logging.ERROR, logger="sbmlutils.factory"):
+        doc = _uncertainty_document(Uncertainty(formula=formula))
+
+    (child,) = _children(doc)
+    assert child.getTypeAsString() == "distribution"
+    assert not child.isSetDefinitionURL()
+    assert not child.isSetMath()
+    errors = [
+        record.getMessage()
+        for record in caplog.records
+        if record.levelno >= logging.ERROR
+    ]
+    assert len(errors) == 1, errors
+    assert formula in errors[0]
+    assert "not a call of a distribution" in errors[0]
+
+
+def test_uncertainty_of_an_unparsable_formula_is_reported(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that a formula which does not parse is reported, not raised on.
+
+    The formula is parsed to find out which distribution it calls, so a
+    formula which is not a formula at all is met here rather than in the
+    writer; the uncert parameter is written without a definitionURL and
+    without math.
+    """
+    with caplog.at_level(logging.ERROR, logger="sbmlutils.factory"):
+        doc = _uncertainty_document(Uncertainty(formula="normal("))
+
+    (child,) = _children(doc)
+    assert not child.isSetDefinitionURL()
+    assert not child.isSetMath()
+    errors = [
+        record.getMessage()
+        for record in caplog.records
+        if record.levelno >= logging.ERROR
+    ]
+    assert len(errors) == 1, errors
+    assert "could not be parsed" in errors[0] and "normal(" in errors[0]

@@ -583,11 +583,13 @@ class Sbase:
     @staticmethod
     @contextmanager
     def no_authoring_hints() -> Iterator[None]:
-        """Suppress the authoring hints of `_set_fields` inside the context.
+        """Suppress the hints about a hand written element inside the context.
 
-        The `name` and `sboTerm` hints help somebody writing a model
-        definition. They are noise when a model is written back out after it
-        was parsed from a file, which is what `sbmlutils.parser` does.
+        The `name` and `sboTerm` hints of `_set_fields` help somebody writing
+        a model definition. They are noise when a model is written back out
+        after it was parsed from a file, which is what `sbmlutils.parser`
+        does, and when the element is built by this module rather than by
+        hand, see `_UncertChild._check_states_a_value`.
 
         Yields:
             None
@@ -3485,8 +3487,13 @@ class _UncertChild(Sbase):
         parameter, and libsbml reads and validates an element which states
         nothing, so this is reported rather than refused: the parser has to be
         able to hold every document libsbml reads.
+
+        This is a hint about a hand written element, so it is silent inside
+        `Sbase.no_authoring_hints`, which is what `_distribution_parameter`
+        builds its parameter in: the caller which knows why the element states
+        nothing says it precisely instead.
         """
-        if not self._states_a_value():
+        if Sbase._authoring_hints.get() and not self._states_a_value():
             logger.error(
                 "'%s' states nothing about the value: none of 'value', 'var', "
                 "'definitionURL', 'math' and 'uncertParameters' is set.",
@@ -3848,24 +3855,62 @@ _DISTRIBUTIONS: tuple[str, ...] = (
 def _distribution_parameter(formula: str) -> UncertParameter:
     """Build the uncert parameter the `formula` of an uncertainty is written as.
 
+    Which distribution the formula draws from is decided on the parsed
+    formula, the name of the function it calls at the top level: libsbml
+    parses every distribution of distrib into an AST node of its own, whose
+    name is the name of the distribution. The name cannot be searched for in
+    the text of the formula, which is what this did: `lognormal(0, 1)`
+    contains `normal`, and so does an identifier like `normalization`.
+
+    A formula which is not a call of a distribution is written as the uncert
+    parameter of the type `distribution` it has always been written as,
+    without a `definitionURL` and without math, and is reported: the shortcut
+    has no way to express it, and the generic check of `_UncertChild` would
+    only say that the parameter states nothing, which this says precisely.
+    The math itself is parsed again when it is written, by `_set_math` with
+    the model of the document, which resolves the ids of the formula.
+
     Args:
         formula: the distribution of the value as an SBML L3 formula, e.g.
             `normal(2.0, 2.0)`
 
     Returns:
         an uncert parameter of the type `distribution`: with the
-        `definitionURL` of the distribution the formula names and the formula
-        as its math, or, for a formula which names none of the distributions
-        of distrib, with neither
+        `definitionURL` of the distribution the formula calls and the formula
+        as its math, or, for a formula which calls none, with neither
     """
-    for distribution in _DISTRIBUTIONS:
-        if distribution in formula:
-            return UncertParameter(
-                type=libsbml.DISTRIB_UNCERTTYPE_DISTRIBUTION,
-                definitionURL=f"{_DISTRIBUTION_URL}{distribution}",
-                math=formula,
+    distribution: str | None = None
+    ast: libsbml.ASTNode | None = libsbml.parseL3Formula(formula)
+    if ast is None:
+        reason: str = libsbml.getLastParseL3Error().strip() or "empty formula"
+        logger.error(
+            "The formula '%s' of an uncertainty could not be parsed: %s",
+            formula,
+            reason,
+        )
+    elif ast.isFunction() and ast.getName() in _DISTRIBUTIONS:
+        distribution = str(ast.getName())
+
+    if distribution is None:
+        if ast is not None:
+            logger.error(
+                "The formula '%s' of an uncertainty is not a call of a "
+                "distribution of distrib (%s), so the uncert parameter of the "
+                "uncertainty is written without a definitionURL and without "
+                "math.",
+                formula,
+                ", ".join(_DISTRIBUTIONS),
             )
-    return UncertParameter(type=libsbml.DISTRIB_UNCERTTYPE_DISTRIBUTION)
+        # the parameter states nothing about the value, which the message
+        # above says more precisely than `_UncertChild._check_states_a_value`
+        with Sbase.no_authoring_hints():
+            return UncertParameter(type=libsbml.DISTRIB_UNCERTTYPE_DISTRIBUTION)
+
+    return UncertParameter(
+        type=libsbml.DISTRIB_UNCERTTYPE_DISTRIBUTION,
+        definitionURL=f"{_DISTRIBUTION_URL}{distribution}",
+        math=formula,
+    )
 
 
 class Uncertainty(Sbase):
