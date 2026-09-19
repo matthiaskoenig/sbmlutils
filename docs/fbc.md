@@ -88,6 +88,8 @@ model.objectives = [
 
 `fluxObjectives` maps a reaction id to its coefficient. Several objectives can be defined, exactly one is `active`.
 
+A flux objective which states no `variableType` takes the `linear` of the objective, which is the fbc version 3 default. It is written as `fbc:variableType` in an fbc version 3 document and not at all in an fbc version 2 one, which has no such attribute and whose flux objectives are linear by definition; a `quadratic` flux objective cannot be expressed in fbc version 2 and is reported.
+
 ## Gene products
 
 Gene products and the association of a reaction with them record which genes carry a reaction:

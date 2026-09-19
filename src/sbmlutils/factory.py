@@ -526,6 +526,52 @@ def _sbo_term(sbo_term: Any) -> Any:
     return sbo_term
 
 
+def _set_variable_type(sbase: Any, variable_type: Any, element: Any) -> None:
+    """Write the fbc variableType of an element, if the document can carry it.
+
+    `fbc:variableType` was added in **fbc version 3**. An fbc version 2
+    document has no such attribute at all, and its flux objectives and
+    constraint components are linear by definition: the objective of an fbc
+    version 2 model is the sum of `coefficient * flux`. So `linear` is what
+    such a document means anyway and not writing it loses nothing, which is
+    why it is not reported; `quadratic` cannot be expressed there at all and
+    is, once per document, with every other attribute the document has no
+    place for, see `collect_attribute_losses`.
+
+    That distinction matters because `Objective` and `UserDefinedConstraint`
+    give the elements which state none the `linear` of the fbc version 3
+    default, so every fbc version 2 model built with the
+    `{reaction: coefficient}` shorthand carries a variable type its author
+    never chose.
+
+    Args:
+        sbase: the created `libsbml.FluxObjective` or
+            `libsbml.UserDefinedConstraintComponent`, which states the fbc
+            version of the document being written
+        variable_type: the variable type to write, normalized by
+            `FluxObjective.normalize_variable_type`
+        element: the model element it belongs to, named in the report
+    """
+    if sbase.getPackageVersion() >= 3:
+        _check_attribute(
+            sbase.setVariableType(variable_type),
+            sbase,
+            "variableType",
+            variable_type,
+            element,
+        )
+        return
+    if variable_type in (libsbml.FBC_VARIABLE_TYPE_LINEAR, "linear"):
+        logger.debug(
+            "The linear variableType of '%s' is not written: an fbc version "
+            "%s document has no such attribute and is linear anyway.",
+            element,
+            sbase.getPackageVersion(),
+        )
+        return
+    _record_attribute_loss(sbase, "variableType", variable_type, element)
+
+
 def _set_math(sbase: Any, math: str | None, model: libsbml.Model) -> None:
     """Set a formula as the math of an element.
 
@@ -5202,10 +5248,7 @@ class UserDefinedConstraintComponent(Sbase):
             f"set coefficient `{self.coefficient}`",
         )
         if self.variableType is not None:
-            check(
-                component.setVariableType(self.variableType),
-                f"set variableType `{self.variableType}`",
-            )
+            _set_variable_type(component, self.variableType, self)
 
         return component
 
@@ -5434,14 +5477,7 @@ class FluxObjective(Sbase):
         # a coefficient is a plain double, which libsbml accepts in every form
         flux_objective.setCoefficient(self.coefficient)
         if self.variableType is not None:
-            # `fbc:variableType` is fbc version 3
-            _check_attribute(
-                flux_objective.setVariableType(self.variableType),
-                flux_objective,
-                "variableType",
-                self.variableType,
-                self,
-            )
+            _set_variable_type(flux_objective, self.variableType, self)
 
         return flux_objective
 

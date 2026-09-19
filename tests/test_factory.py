@@ -2349,7 +2349,16 @@ _ATTRIBUTES_WITHOUT_A_PLACE: list[Any] = [
                     sid="obj1",
                     name="objective",
                     objectiveType="maximize",
-                    fluxObjectives={"R1": 1.0},
+                    # `linear` is what an fbc version 2 document means
+                    # anyway, `quadratic` is what it cannot express
+                    fluxObjectives=[
+                        FluxObjective(
+                            reaction="R1",
+                            coefficient=1.0,
+                            name="flux objective",
+                            variableType="quadratic",
+                        )
+                    ],
                 )
             ],
             reactions=[Reaction("R1", "S1 ->", name="reaction")],

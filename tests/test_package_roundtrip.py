@@ -44,6 +44,7 @@ from sbmlutils import RESOURCES_DIR
 from sbmlutils.factory import (
     Compartment,
     EquationPart,
+    FluxObjective,
     KeyValuePair,
     Model,
     Objective,
@@ -3760,3 +3761,118 @@ def test_user_defined_constraints_of_an_fbc_v3_document_are_written(
     sbml = sbml_path.read_text(encoding="utf-8")
     assert "<fbc:userDefinedConstraint " in sbml
     assert 'fbc:lowerBound="lb"' in sbml
+
+
+def _objective_model(packages: list[Package], variable_type: str | None) -> Model:
+    """Get an ordinary fbc model with one objective.
+
+    Args:
+        packages: the packages the model declares
+        variable_type: the `variableType` stated on the flux objective,
+            `None` for the `{reaction: coefficient}` shorthand, which states
+            none and takes the default of the objective
+
+    Returns:
+        the model
+    """
+    flux_objectives: Any = (
+        {"R1": 1.0}
+        if variable_type is None
+        else [
+            FluxObjective(
+                reaction="R1",
+                coefficient=1.0,
+                name="flux objective",
+                variableType=variable_type,
+            )
+        ]
+    )
+    return Model(
+        sid="an_objective",
+        name="an ordinary fbc model",
+        packages=packages,
+        compartments=[Compartment("c", 1.0, name="compartment")],
+        species=[Species("S1", compartment="c", initialAmount=1.0, name="S1")],
+        reactions=[Reaction("R1", "S1 ->", name="reaction")],
+        objectives=[
+            Objective(
+                sid="obj1",
+                name="objective",
+                objectiveType="maximize",
+                fluxObjectives=flux_objectives,
+            )
+        ],
+    )
+
+
+def test_an_ordinary_fbc_v2_model_reports_no_variable_type(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that the fbc version 2 default is not reported as a loss.
+
+    `Objective` gives the flux objectives which state none the `linear` of
+    the fbc version 3 default, so every fbc version 2 model built with the
+    `{reaction: coefficient}` shorthand carried a `variableType` its author
+    never chose, and the writer reported it as lost. An fbc version 2
+    document has no `fbc:variableType` at all and its flux objectives are
+    linear by definition, so `linear` is what such a document means anyway
+    and not writing it loses nothing.
+    """
+    model = _objective_model([Package.FBC_V2], None)
+    sbml_path = tmp_path / f"{model.sid}.xml"
+    with caplog.at_level(logging.DEBUG, logger="sbmlutils"):
+        create_model(model=model, filepath=sbml_path, validate=False)
+
+    assert "variableType" not in sbml_path.read_text(encoding="utf-8")
+    assert [
+        record.getMessage()
+        for record in caplog.records
+        if record.levelno >= logging.WARNING and "variableType" in record.getMessage()
+    ] == []
+
+
+def test_an_ordinary_fbc_v3_model_writes_the_default_variable_type(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test the positive control: fbc version 3 writes `linear`."""
+    model = _objective_model([Package.FBC_V3], None)
+    sbml_path = tmp_path / f"{model.sid}.xml"
+    with caplog.at_level(logging.WARNING, logger="sbmlutils"):
+        create_model(
+            model=model,
+            filepath=sbml_path,
+            validation_options=ValidationOptions(units_consistency=False),
+        )
+
+    assert 'fbc:variableType="linear"' in sbml_path.read_text(encoding="utf-8")
+    assert [
+        record.getMessage()
+        for record in caplog.records
+        if record.levelno >= logging.WARNING and "variableType" in record.getMessage()
+    ] == []
+
+
+def test_a_variable_type_an_fbc_v2_document_cannot_express_is_reported(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that a variable type which is not linear is reported once.
+
+    An fbc version 2 document is linear by definition, so a `quadratic`
+    flux objective cannot be expressed there at all, unlike the `linear`
+    which the document means anyway.
+    """
+    model = _objective_model([Package.FBC_V2], "quadratic")
+    sbml_path = tmp_path / f"{model.sid}.xml"
+    with caplog.at_level(logging.WARNING, logger="sbmlutils"):
+        create_model(model=model, filepath=sbml_path, validate=False)
+
+    reports = [
+        record.getMessage()
+        for record in caplog.records
+        if record.levelno >= logging.WARNING and "variableType" in record.getMessage()
+    ]
+    assert len(reports) == 1, reports
+    assert "<fluxObjective>" in reports[0]
+    assert "fbc version 2" in reports[0]
+    assert "Declare fbc version 3 to keep it." in reports[0]
+    assert "variableType" not in sbml_path.read_text(encoding="utf-8")
