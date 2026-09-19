@@ -941,7 +941,6 @@ class KeyValuePair(Sbase):
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
-        replacedBy: Any | None = None,
     ):
         """Create a KeyValuePair."""
         super().__init__(
@@ -954,7 +953,6 @@ class KeyValuePair(Sbase):
             keyValuePairs=keyValuePairs,
             port=port,
             uncertainties=uncertainties,
-            replacedBy=replacedBy,
         )
         self.key = key
         self.value = value
@@ -2905,7 +2903,6 @@ class Priority(Sbase):
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
-        replacedBy: Any | None = None,
     ):
         """Construct a Priority.
 
@@ -2924,7 +2921,6 @@ class Priority(Sbase):
             keyValuePairs: optional key-value pairs
             port: optional comp port
             uncertainties: optional distrib uncertainties
-            replacedBy: optional comp replacement
         """
         super().__init__(
             sid=sid,
@@ -2936,7 +2932,6 @@ class Priority(Sbase):
             keyValuePairs=keyValuePairs,
             port=port,
             uncertainties=uncertainties,
-            replacedBy=replacedBy,
         )
         self.math = math
 
@@ -4142,7 +4137,6 @@ class Uncertainty(Sbase):
         notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
-        replacedBy: Any | None = None,
     ):
         """Construct Uncertainty.
 
@@ -4163,7 +4157,6 @@ class Uncertainty(Sbase):
             notes: the notes of the uncertainty
             keyValuePairs: the fbc key value pairs of the uncertainty
             port: the comp port of the uncertainty
-            replacedBy: the comp replacedBy of the uncertainty
         """
         super().__init__(
             sid,
@@ -4174,7 +4167,6 @@ class Uncertainty(Sbase):
             notes=notes,
             keyValuePairs=keyValuePairs,
             port=port,
-            replacedBy=replacedBy,
         )
 
         # Object on which the uncertainty is written
@@ -4290,7 +4282,6 @@ class GeneProduct(Sbase):
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
-        replacedBy: Any | None = None,
     ):
         """Create a GeneProduct."""
         super().__init__(
@@ -4303,7 +4294,6 @@ class GeneProduct(Sbase):
             keyValuePairs=keyValuePairs,
             port=port,
             uncertainties=uncertainties,
-            replacedBy=replacedBy,
         )
         self.associatedSpecies = associatedSpecies
         self.label = label
@@ -4340,7 +4330,6 @@ class UserDefinedConstraintComponent(Sbase):
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
-        replacedBy: Any | None = None,
     ):
         """Create a UserDefinedConstraintComponent."""
         super().__init__(
@@ -4353,7 +4342,6 @@ class UserDefinedConstraintComponent(Sbase):
             keyValuePairs=keyValuePairs,
             port=port,
             uncertainties=uncertainties,
-            replacedBy=replacedBy,
         )
         self.variable = variable
         self.coefficient = coefficient
@@ -4436,7 +4424,6 @@ class UserDefinedConstraint(Sbase):
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
-        replacedBy: Any | None = None,
     ):
         """Create an UserDefinedConstraint."""
         super().__init__(
@@ -4449,7 +4436,6 @@ class UserDefinedConstraint(Sbase):
             keyValuePairs=keyValuePairs,
             port=port,
             uncertainties=uncertainties,
-            replacedBy=replacedBy,
         )
         self.lowerBound = lowerBound
         self.upperBound = upperBound
@@ -4516,7 +4502,6 @@ class FluxObjective(Sbase):
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
-        replacedBy: Any | None = None,
     ):
         """Create a FluxObjective."""
         super().__init__(
@@ -4529,7 +4514,6 @@ class FluxObjective(Sbase):
             keyValuePairs=keyValuePairs,
             port=port,
             uncertainties=uncertainties,
-            replacedBy=replacedBy,
         )
         self.reaction = reaction
         self.coefficient = coefficient
@@ -4618,7 +4602,6 @@ class Objective(Sbase):
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
-        replacedBy: Any | None = None,
     ):
         """Create an Objective.
 
@@ -4635,7 +4618,6 @@ class Objective(Sbase):
             keyValuePairs=keyValuePairs,
             port=port,
             uncertainties=uncertainties,
-            replacedBy=replacedBy,
         )
         self.objectiveType = self.normalize_objective_type(objectiveType)
         self.active = active

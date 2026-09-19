@@ -32,7 +32,9 @@ document.
 Not read are the model history, the content of the `groups` and `layout`
 packages, an uncertainty on an element which cannot carry one and a
 `<comp:replacedBy>` on an element which cannot carry one, both of which are
-reported (`_drop_uncertainties`, `_drop_replaced_by`), a
+reported (`_drop_uncertainties`, `_drop_replaced_by`; of the elements libsbml
+reads a replacement from at all, a species reference and a local parameter
+are the two whose replacement is dropped), a
 `<comp:replacedElement>` of an element which has neither an id nor a metaid,
 which `sbmlutils.factory` has no way to name and which is reported
 (`_parse_replaced_elements`), the `comp:substanceConversionFactor` libsbml
@@ -304,20 +306,30 @@ def _drop_uncertainties(kwargs: dict[str, Any], sbase: libsbml.SBase) -> dict[st
 def _drop_replaced_by(kwargs: dict[str, Any], sbase: libsbml.SBase) -> dict[str, Any]:
     """Drop the comp replacedBy of an element which cannot carry one, loudly.
 
-    comp allows a `<comp:replacedBy>` on every SBML element and libsbml reads
-    it from every element it attaches a `CompSBasePlugin` to, but not every
-    element of `sbmlutils.factory` can write one back: a `Model`, a species
-    reference (`EquationPart`), an `UncertParameter`, an `UncertSpan` and the
-    comp references themselves (`Port`, `ReplacedElement`, `ReplacedBy`,
-    `Deletion`, `SbaseRef`, `Submodel`, `ExternalModelDefinition`) have no
-    `replacedBy` field at all, a `LocalParameter` does not offer one because
-    no `<comp:replacedBy>` on a `<localParameter>` is valid, and a
-    `KeyValuePair` is written without `Sbase._set_fields`. Passing it on
-    would raise a `TypeError` in the
-    constructor or lose it silently in the writer, so it is dropped here,
-    where the element is known and the loss can be reported. No document of
-    the corpus carries one on such an element: the 31 replacements of the
-    corpus sit on a species, a compartment, a parameter or a reaction, see
+    comp allows a `<comp:replacedBy>` on every SBML element, but libsbml only
+    reads one from an element it attaches a `CompSBasePlugin` to, and not
+    every element of `sbmlutils.factory` can write one back. Three groups
+    do not offer the field:
+
+    - a `Model`, a species reference (`EquationPart`), an `UncertParameter`,
+      an `UncertSpan` and the comp references themselves (`Port`,
+      `ReplacedElement`, `ReplacedBy`, `Deletion`, `SbaseRef`, `Submodel`,
+      `ExternalModelDefinition`) have no `replacedBy` field at all,
+    - a `Priority`, a `GeneProduct`, an `Objective`, a `FluxObjective`, a
+      `UserDefinedConstraint`, a `UserDefinedConstraintComponent`, an
+      `Uncertainty` and a `KeyValuePair` do not offer one because libsbml
+      attaches no `CompSBasePlugin` to the element they create, so it can
+      neither write nor read a replacement there,
+    - a `LocalParameter` does not offer one because no `<comp:replacedBy>` on
+      a `<localParameter>` is valid, see the class docstring.
+
+    Passing it on would raise a `TypeError` in the constructor, so it is
+    dropped here, where the element is known and the loss can be reported.
+    For the second group there is nothing to report: libsbml reads no
+    replacement from those elements, so the value popped here is always
+    `None`. No document of the corpus carries one on any of these elements:
+    the 31 replacements of the corpus sit on a species, a compartment, a
+    parameter or a reaction, see
     https://github.com/matthiaskoenig/sbmlutils/issues/469.
 
     Args:
@@ -345,9 +357,10 @@ def _drop_unwritable(kwargs: dict[str, Any], sbase: libsbml.SBase) -> dict[str, 
     replacedBy of every element, and most elements which cannot write one of
     them back cannot write the other either, so the two drops are applied
     together here. `_drop_uncertainties` and `_drop_replaced_by` say which
-    elements those are and why; they are used on their own for the two which
-    can write one but not the other, a `UnitDefinition` and an `Uncertainty`,
-    each of which carries a replacedBy and no uncertainties.
+    elements those are and why; they are used on their own for the elements
+    which can write one but not the other, a `UnitDefinition`, which carries
+    a replacedBy and no uncertainties, and a `LocalParameter`, a `Priority`
+    and the fbc elements, which carry uncertainties and no replacedBy.
 
     Args:
         kwargs: the kwargs of the element, as `_parse_sbase_kwargs` built them
@@ -610,7 +623,7 @@ def _parse_uncertainties(sbase: libsbml.SBase) -> list[Uncertainty]:
                     _parse_uncert_child(child)
                     for child in uncertainty.getListOfUncertParameters()
                 ],
-                **_drop_uncertainties(_parse_sbase_kwargs(uncertainty), uncertainty),
+                **_drop_unwritable(_parse_sbase_kwargs(uncertainty), uncertainty),
             )
         )
     return uncertainties
@@ -855,7 +868,7 @@ def _parse_fbc_model(model_fbc: libsbml.FbcModelPlugin, m: Model) -> None:
                     if gene_product.isSetAssociatedSpecies()
                     else None
                 ),
-                **_parse_sbase_kwargs(gene_product),
+                **_drop_replaced_by(_parse_sbase_kwargs(gene_product), gene_product),
             )
         )
 
@@ -875,7 +888,9 @@ def _parse_fbc_model(model_fbc: libsbml.FbcModelPlugin, m: Model) -> None:
                     reaction=flux_objective.getReaction(),
                     coefficient=flux_objective.getCoefficient(),
                     variableType=_variable_type(flux_objective),
-                    **_parse_sbase_kwargs(flux_objective),
+                    **_drop_replaced_by(
+                        _parse_sbase_kwargs(flux_objective), flux_objective
+                    ),
                 )
             )
         m.objectives.append(
@@ -887,7 +902,7 @@ def _parse_fbc_model(model_fbc: libsbml.FbcModelPlugin, m: Model) -> None:
                 # document, so none of them is to be given the authoring
                 # default of the objective
                 variableType=None,
-                **_parse_sbase_kwargs(objective),
+                **_drop_replaced_by(_parse_sbase_kwargs(objective), objective),
             )
         )
 
@@ -902,7 +917,7 @@ def _parse_fbc_model(model_fbc: libsbml.FbcModelPlugin, m: Model) -> None:
                     coefficient=component.getCoefficient(),
                     variable=component.getVariable(),
                     variableType=_variable_type(component),
-                    **_parse_sbase_kwargs(component),
+                    **_drop_replaced_by(_parse_sbase_kwargs(component), component),
                 )
             )
         m.user_defined_constraints.append(
@@ -912,7 +927,9 @@ def _parse_fbc_model(model_fbc: libsbml.FbcModelPlugin, m: Model) -> None:
                 components=components,
                 # as above, every component carries its own
                 variableType=None,
-                **_parse_sbase_kwargs(constraint_fbc),
+                **_drop_replaced_by(
+                    _parse_sbase_kwargs(constraint_fbc), constraint_fbc
+                ),
             )
         )
 
@@ -1265,7 +1282,9 @@ def _parse_model_body(model: libsbml.Model, m: Model) -> None:
         priority: Priority | None = None
         if e.isSetPriority():
             pr: libsbml.Priority = e.getPriority()
-            priority = Priority(math=_math(pr), **_parse_sbase_kwargs(pr))
+            priority = Priority(
+                math=_math(pr), **_drop_replaced_by(_parse_sbase_kwargs(pr), pr)
+            )
         delay: Delay | None = None
         if e.isSetDelay():
             de: libsbml.Delay = e.getDelay()

@@ -2010,3 +2010,50 @@ def test_local_parameter_does_not_offer_a_replaced_by(field: str) -> None:
     """
     with pytest.raises(TypeError, match=field):
         LocalParameter("kf", 1.0, **{field: None})
+
+
+#: an element of `sbmlutils.factory` which does not offer `replacedBy`,
+#: because libsbml attaches no `CompSBasePlugin` to the libsbml element it
+#: creates (measured with libsbml 5.21.2: `getPlugin("comp")` answers with a
+#: plain `SBasePlugin`, which has no `createReplacedBy`), or because no
+#: `<comp:replacedBy>` on it is valid
+_NO_REPLACED_BY: list[Any] = [
+    pytest.param(Priority, {"math": "1"}, id="Priority"),
+    pytest.param(GeneProduct, {"sid": "gp1", "label": "gp1"}, id="GeneProduct"),
+    pytest.param(Objective, {"sid": "obj1"}, id="Objective"),
+    pytest.param(
+        FluxObjective, {"reaction": "r1", "coefficient": 1.0}, id="FluxObjective"
+    ),
+    pytest.param(
+        UserDefinedConstraint,
+        {"lowerBound": "lb", "upperBound": "ub"},
+        id="UserDefinedConstraint",
+    ),
+    pytest.param(
+        UserDefinedConstraintComponent,
+        {"coefficient": "k", "variable": "r1"},
+        id="UserDefinedConstraintComponent",
+    ),
+    pytest.param(Uncertainty, {"sid": "unc1"}, id="Uncertainty"),
+    pytest.param(
+        KeyValuePair, {"key": "k", "value": "v", "uri": None}, id="KeyValuePair"
+    ),
+]
+
+
+@pytest.mark.parametrize("cls, kwargs", _NO_REPLACED_BY)
+def test_replaced_by_is_not_offered_where_it_cannot_be_written(
+    cls: type, kwargs: dict[str, Any]
+) -> None:
+    """Test that an element which cannot carry a replacedBy does not offer one.
+
+    Seven of them are elements of a package (`fbc:geneProduct`,
+    `fbc:objective`, `fbc:fluxObjective`, `fbc:userDefinedConstraint`,
+    `fbc:userDefinedConstraintComponent`, `distrib:uncertainty`,
+    `fbc:keyValuePair`) and one is core (`priority`); libsbml attaches no
+    `CompSBasePlugin` to any of them, so it can neither write nor read a
+    `<comp:replacedBy>` there, and `Sbase.create_replaced_by` used to fail
+    with an `AttributeError` on the plugin.
+    """
+    with pytest.raises(TypeError, match="replacedBy"):
+        cls(replacedBy=None, **kwargs)
