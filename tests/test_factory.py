@@ -2072,4 +2072,8 @@ def test_package_namespaces_do_not_depend_on_the_hash_seed() -> None:
         )
         tags[seed] = process.stdout.strip()
 
+    # a child which printed nothing would make two empty strings equal
+    for seed, tag in tags.items():
+        assert tag.startswith("<sbml "), (seed, process.stderr)
+        assert _NAMESPACE_PREFIX.findall(tag) == ["comp", "distrib", "fbc"], tag
     assert tags["0"] == tags["1"], tags
