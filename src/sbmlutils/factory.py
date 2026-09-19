@@ -475,6 +475,30 @@ def _fbc_version_loss(
     return None
 
 
+def _sbo_term(sbo_term: Any) -> Any:
+    """Normalize an SBO term to the spelling an SBML document is written with.
+
+    A model definition may state an SBO term as an `SBO` member, as the
+    `SBO:0000011` of the document or as the `SBO_0000011` of the ontology
+    file; libsbml accepts only the first spelling and answers the second with
+    `LIBSBML_INVALID_ATTRIBUTE_VALUE`. Every element normalizes through this,
+    the `Sbase` ones and the `EquationPart` of a species reference alike.
+
+    Args:
+        sbo_term: the SBO term as the model definition states it
+
+    Returns:
+        the term as it is written, unchanged for a value which is neither an
+        `SBO` member nor a string, which libsbml then refuses and the caller
+        reports
+    """
+    if isinstance(sbo_term, SBO):
+        return sbo_term.curie
+    if isinstance(sbo_term, str):
+        return sbo_term.replace("_", ":")
+    return sbo_term
+
+
 def _set_math(sbase: Any, math: str | None, model: libsbml.Model) -> None:
     """Set a formula as the math of an element.
 
@@ -1057,12 +1081,7 @@ class Sbase:
         ):
             logger.warning("'name' should be set on '%s'", self)
         if self.sboTerm is not None:
-            if isinstance(self.sboTerm, SBO):
-                sbo = self.sboTerm.curie
-            elif isinstance(self.sboTerm, str):
-                sbo = self.sboTerm.replace("_", ":")
-            else:
-                sbo = self.sboTerm
+            sbo = _sbo_term(self.sboTerm)
             _check_attribute(sbase.setSBOTerm(sbo), sbase, "sboTerm", sbo, self)
         elif Sbase._authoring_hints.get() and not isinstance(
             self,
@@ -3243,10 +3262,11 @@ class Reaction(Sbase):
                     sref.setMetaId(part.metaId), sref, "metaId", part.metaId, part
                 )
             if part.sboTerm is not None:
-                # unlike `Sbase._set_fields`, an `EquationPart` states its
-                # sboTerm as the string it is written as, `SBO:0000011`
+                # normalized like the sboTerm of every other element, see
+                # `_sbo_term`
+                sbo_term = _sbo_term(part.sboTerm)
                 _check_attribute(
-                    sref.setSBOTerm(part.sboTerm), sref, "sboTerm", part.sboTerm, part
+                    sref.setSBOTerm(sbo_term), sref, "sboTerm", sbo_term, part
                 )
             if part.name is not None:
                 # `SimpleSpeciesReference::setName` (libsbml 5.21.1)

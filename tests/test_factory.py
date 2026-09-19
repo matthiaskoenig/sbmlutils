@@ -19,7 +19,7 @@ from sbmlutils.factory import *
 from sbmlutils.factory import Sbase, SbaseRef
 from sbmlutils.io import read_sbml
 from sbmlutils.metadata import BQB
-from sbmlutils.reaction_equation import EquationPart
+from sbmlutils.reaction_equation import EquationPart, ReactionEquation
 from sbmlutils.validation import ValidationOptions
 
 compartment_value_data = [
@@ -2770,3 +2770,48 @@ def test_the_declared_fbc_version_wins_over_the_content(
     errors = _records(caplog, logging.ERROR)
     assert len(errors) == 1, errors
     assert "fbc version 3, the document is fbc version 2" in errors[0]
+
+
+@pytest.mark.parametrize("sbo_term", ["SBO:0000011", "SBO_0000011"])
+def test_sbo_term_of_a_species_reference_is_normalized(
+    sbo_term: str, tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that a species reference takes an SBO term in either spelling.
+
+    `Sbase._set_fields` turns the `SBO_0000011` of a model definition into
+    the `SBO:0000011` an SBML document is written with, and an `EquationPart`
+    handed its `sboTerm` over as it was, so the same string was accepted on a
+    species and refused by libsbml on a reactant.
+    """
+    model = Model(
+        sid="species_reference_sbo_term",
+        name="a model whose reactant states an sboTerm",
+        compartments=[Compartment("c", 1.0, name="compartment")],
+        species=[
+            Species(
+                "S1", compartment="c", initialAmount=1.0, name="S1", sboTerm=sbo_term
+            ),
+            Species("S2", compartment="c", initialAmount=0.0, name="S2"),
+        ],
+        reactions=[
+            Reaction(
+                "R1",
+                ReactionEquation(
+                    reactants=[
+                        EquationPart(species="S1", stoichiometry=1.0, sboTerm=sbo_term)
+                    ],
+                    products=[EquationPart(species="S2", stoichiometry=1.0)],
+                ),
+                name="reaction",
+            )
+        ],
+    )
+    sbml_path = tmp_path / "model.xml"
+    with caplog.at_level(logging.ERROR, logger="sbmlutils"):
+        create_model(model=model, filepath=sbml_path, validate=False)
+
+    assert _records(caplog, logging.ERROR) == []
+    doc: libsbml.SBMLDocument = read_sbml(source=sbml_path, validate=False)
+    sref: libsbml.SpeciesReference = doc.getModel().getReaction("R1").getReactant(0)
+    assert sref.getSBOTermID() == "SBO:0000011"
+    assert doc.getModel().getSpecies("S1").getSBOTermID() == "SBO:0000011"
