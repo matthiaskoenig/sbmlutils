@@ -2701,10 +2701,10 @@ def test_roundtrip_preserves_the_submodels_of_icg_body(
 
     The model is a whole-body PBPK model whose liver is a submodel of an external model definition, so it has exactly one `<comp:submodel>`, with an id and a name.
     """
-    counts, _ = package_roundtrip(COMP_ICG_BODY)
-    assert counts["comp.submodel"] == 1
+    comparison = package_roundtrip(COMP_ICG_BODY)
+    assert comparison[0]["comp.submodel"] == 1
 
-    _assert_preserved(package_roundtrip(COMP_ICG_BODY), "comp.submodel")
+    _assert_preserved(comparison, "comp.submodel")
 
 
 @requires_testsuite
@@ -2728,10 +2728,10 @@ def test_roundtrip_preserves_the_ports_of_icg_body(
 
     Every port has an id, a name, a metaid and an sboTerm of its own, and each references a parameter or a species of the model by `idRef`.
     """
-    counts, _ = package_roundtrip(COMP_ICG_BODY)
-    assert counts["comp.port"] == 16
+    comparison = package_roundtrip(COMP_ICG_BODY)
+    assert comparison[0]["comp.port"] == 16
 
-    _assert_preserved(package_roundtrip(COMP_ICG_BODY), "comp.port")
+    _assert_preserved(comparison, "comp.port")
 
 
 def test_roundtrip_writes_each_port_exactly_once(tmp_path: Path) -> None:
