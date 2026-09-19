@@ -4866,11 +4866,13 @@ class Model(Sbase, FrozenClass):
                         if value:
                             setattr(model, key, deepcopy(value))
 
-                # units are collected and merged at the end
+                # units are collected and merged at the end; they are copied
+                # like every other merged list, so that the merged model and
+                # the model it was merged from do not share one object
                 elif key == "units":
                     for udef in m2.units:
                         if udef.sid:
-                            udefs[udef.sid] = udef
+                            udefs[udef.sid] = deepcopy(udef)
                 elif key == "creators":
                     if m2.creators:
                         for c in m2.creators:

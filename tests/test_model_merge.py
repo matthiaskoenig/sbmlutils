@@ -1,5 +1,7 @@
 """Test model merging."""
 
+from pathlib import Path
+
 import libsbml
 
 from sbmlutils.factory import *
@@ -167,3 +169,27 @@ def test_units_merge_same_attribute_different_sid() -> None:
     sids = [udef.sid for udef in m_merged.units]
     assert "mM" in sids
     assert "mmole_per_min" in sids
+
+
+def test_units_merge_copies_unit_definitions(tmp_path: Path) -> None:
+    """Test that a merged model does not share its unit definitions.
+
+    Every other merged list is extended by `deepcopy`, the units were
+    collected by reference. The merged model and the model it was merged from
+    then shared one `UnitDefinition` object, so changing the unit of the
+    merged model silently changed the SBML the source model writes.
+    """
+
+    class U1(Units):
+        mM = UnitDefinition("mM", "mmole/liter", name="millimolar")
+
+    m1 = Model("m1", units=U1)
+    m_merged = Model.merge_models(models=[m1, Model("m2")])
+
+    (udef,) = [udef for udef in m_merged.units if udef.sid == "mM"]
+    udef.name = "changed in the merged model"
+
+    sbml_path = tmp_path / "m1.xml"
+    create_model(model=m1, filepath=sbml_path)
+    doc: libsbml.SBMLDocument = libsbml.readSBMLFromFile(str(sbml_path))
+    assert doc.getModel().getUnitDefinition("mM").getName() == "millimolar"
