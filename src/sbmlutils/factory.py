@@ -23,7 +23,8 @@ import inspect
 import json
 import logging
 from collections import namedtuple
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable, Iterator, Sequence
+from contextlib import contextmanager
 from copy import deepcopy
 from dataclasses import dataclass
 from enum import StrEnum
@@ -39,7 +40,6 @@ import numpy as np
 import xmltodict
 from numpy import nan as NaN
 from pint import UndefinedUnitError, UnitRegistry
-from pydantic import BaseModel, ConfigDict
 from pymetadata.core.creator import Creator
 
 from sbmlutils.console import console
@@ -52,7 +52,7 @@ from sbmlutils.metadata import (
     annotator,
 )
 from sbmlutils.metadata.annotator import Annotation
-from sbmlutils.notes import Notes, NotesFormat
+from sbmlutils.notes import Notes, NotesFormat, detect_format
 from sbmlutils.reaction_equation import EquationPart, ReactionEquation
 from sbmlutils.utils import FrozenClass, create_metaid
 from sbmlutils.validation import ValidationOptions, check
@@ -84,6 +84,7 @@ __all__ = [
     "Deletion",
     "Document",
     "Event",
+    "EventAssignment",
     "ExchangeReaction",
     "ExternalModelDefinition",
     "FactoryResult",
@@ -93,6 +94,8 @@ __all__ = [
     "GeneProduct",
     "InitialAssignment",
     "KeyValuePair",
+    "KineticLaw",
+    "LocalParameter",
     "Model",
     "ModelDefinition",
     "ModelDict",
@@ -113,6 +116,7 @@ __all__ = [
     "UncertParameter",
     "UncertSpan",
     "Uncertainty",
+    "Unit",
     "UnitDefinition",
     "UnitType",
     "Units",
@@ -128,6 +132,18 @@ SBML_VERSION = 1  # default SBML version
 PORT_SUFFIX = "_port"
 PORT_UNIT_SUFFIX = "_unit_port"
 PREFIX_EXCHANGE_REACTION = "EX_"
+
+#: libsbml types whose `setId` aliases another attribute, so that the id has to
+#: be set through `setIdAttribute`
+_ID_ATTRIBUTE_TYPECODES: frozenset[int] = frozenset(
+    {
+        libsbml.SBML_ASSIGNMENT_RULE,
+        libsbml.SBML_RATE_RULE,
+        libsbml.SBML_ALGEBRAIC_RULE,
+        libsbml.SBML_INITIAL_ASSIGNMENT,
+        libsbml.SBML_EVENT_ASSIGNMENT,
+    }
+)
 
 
 def create_objects(
@@ -182,7 +198,7 @@ def ast_node_from_formula(model: libsbml.Model, formula: str) -> libsbml.ASTNode
     return ast_node
 
 
-UnitType: TypeAlias = "UnitDefinition | None"
+UnitType: TypeAlias = "UnitDefinition | str | None"
 
 #: an annotation is either a full RDF annotation or a `(qualifier, resource)` tuple
 AnnotationType: TypeAlias = "Annotation | tuple[BQB | BQM, str]"
@@ -203,6 +219,64 @@ def set_notes(
     """
     _notes = Notes(notes, format=format)
     check(sbase.setNotes(_notes.xml), message=f"Setting notes on '{sbase}'")
+
+
+def _xhtml_body_content(xhtml: str) -> str:
+    """Extract the inner content of the body of XHTML notes.
+
+    Used to merge two already normalized notes fragments, e.g. a user
+    supplied notes body and the `sbmlutils` attribution notes of
+    `Document`, into a single body instead of nesting one body inside
+    another.
+
+    Args:
+        xhtml: XHTML notes, either a body, e.g. `<body xmlns="...">...</body>`,
+            or a complete XHTML document rooted at `<html>`, whose `<body>`
+            holds the content
+
+    Returns:
+        the content between the opening and the closing `body` tag, or an
+        empty string if `xhtml` has no closing `</body>` tag, e.g. a
+        self-closing `<body/>`
+    """
+    end = xhtml.rfind("</body>")
+    body = xhtml.find("<body")
+    if end == -1 or body == -1:
+        logger.warning(
+            "Notes have no '<body>' with a closing '</body>' tag, treating "
+            "their content as empty: '%s'",
+            xhtml,
+        )
+        return ""
+    start = xhtml.find(">", body) + 1
+    return xhtml[start:end]
+
+
+def _append_to_xhtml_body(xhtml: str, content: str) -> str:
+    """Append content to the end of the body of XHTML notes.
+
+    The notes keep their root: a body stays a body, and a complete XHTML
+    document rooted at `<html>` keeps its `<head>`.
+
+    Args:
+        xhtml: XHTML notes, either a body or a complete XHTML document rooted
+            at `<html>`
+        content: the XHTML content to append
+
+    Returns:
+        the notes with the content at the end of their body; notes without a
+        closing `</body>` tag, e.g. a self-closing `<body/>`, have no content,
+        they are replaced by a body which holds only the appended content
+    """
+    end = xhtml.rfind("</body>")
+    if end == -1:
+        logger.warning(
+            "Notes body has no closing '</body>' tag, treating its content "
+            "as empty: '%s'",
+            xhtml,
+        )
+        return f'<body xmlns="http://www.w3.org/1999/xhtml">\n{content}\n</body>'
+    return f"{xhtml[:end]}\n{content}\n{xhtml[end:]}"
 
 
 class ModelUnits:
@@ -263,20 +337,23 @@ class ModelUnits:
             model_units = ModelUnits(**model_units)
 
         if not model_units:
-            logger.warning(
-                "Model units should be set for a model. These can be stored "
-                "using the 'model_units' on a model definition."
-            )
+            if Sbase._authoring_hints:
+                logger.warning(
+                    "Model units should be set for a model. These can be stored "
+                    "using the 'model_units' on a model definition."
+                )
         else:
             for key in ("time", "extent", "substance", "length", "area", "volume"):
                 if getattr(model_units, key) is None:
-                    msg = f"'{key}' should be set in 'model_units'."
-                    if key in ["time", "extent", "substance", "volume"]:
-                        # strongly recommended fields
-                        logger.warning(msg)
-                    else:
-                        # optional fields
-                        logger.info(msg)
+                    if Sbase._authoring_hints:
+                        # strongly recommended fields warn, optional ones inform
+                        logger.log(
+                            logging.WARNING
+                            if key in ["time", "extent", "substance", "volume"]
+                            else logging.INFO,
+                            "'%s' should be set in 'model_units'.",
+                            key,
+                        )
 
                     continue
 
@@ -360,6 +437,65 @@ def date_now() -> libsbml.Date:
     return libsbml.Date(timestr)
 
 
+def _comp_plugin(sbase: libsbml.SBase, what: str) -> Any:
+    """Get the comp plugin of a libsbml object for a port or a replacement.
+
+    Args:
+        sbase: the libsbml object, the model for a port, the replaced
+            element for a replacement
+        what: the port or the replacement, for the error message
+
+    Returns:
+        the comp plugin of the libsbml object
+
+    Raises:
+        ValueError: if the document does not declare the comp package, which
+            `create_model` does for every model with comp content, see
+            `Model._has_comp_content`
+    """
+    plugin = sbase.getPlugin("comp")
+    if plugin is None:
+        raise ValueError(
+            f"{what} needs the comp package, which the document does not declare."
+        )
+    return plugin
+
+
+def _iter_sbases(value: Any, seen: set[int] | None = None) -> Iterator[Sbase]:
+    """Iterate every `Sbase` reachable from a value, the value included.
+
+    The walk descends into the attributes of every `Sbase` and into lists,
+    tuples, sets and the values of dicts. So it finds an element wherever a
+    model definition nests it: in a list of the model, among the parameters
+    and rules of a reaction, the local parameters of a kinetic law, the
+    assignments of an event or the glyphs of a layout.
+
+    Args:
+        value: the value to walk, e.g. a `Model`
+        seen: the ids of the `Sbase` objects already yielded, which the
+            recursion shares; every `Sbase` is yielded once, which also ends
+            the walk on a cycle
+
+    Yields:
+        every `Sbase` reachable from the value
+    """
+    if seen is None:
+        seen = set()
+    if isinstance(value, Sbase):
+        if id(value) in seen:
+            return
+        seen.add(id(value))
+        yield value
+        for attribute in vars(value).values():
+            yield from _iter_sbases(attribute, seen)
+    elif isinstance(value, (list, tuple, set, frozenset)):
+        for item in value:
+            yield from _iter_sbases(item, seen)
+    elif isinstance(value, dict):
+        for item in value.values():
+            yield from _iter_sbases(item, seen)
+
+
 class Sbase:
     """Base class of all SBML objects."""
 
@@ -370,7 +506,7 @@ class Sbase:
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
@@ -380,7 +516,7 @@ class Sbase:
         self.name = name
         self.sboTerm = sboTerm
         self.metaId = metaId
-        self.notes = notes
+        self.notes = Sbase._process_notes(notes)
         self.keyValuePairs = keyValuePairs
         self.port = port
         self.uncertainties = uncertainties
@@ -401,6 +537,29 @@ class Sbase:
         "replacedBy",
         "annotations",
     ]
+
+    #: authoring hints are logged for a hand written model definition, they are
+    #: noise for a model which was parsed from a file, see `Sbase.no_authoring_hints`
+    _authoring_hints: ClassVar[bool] = True
+
+    @staticmethod
+    @contextmanager
+    def no_authoring_hints() -> Iterator[None]:
+        """Suppress the authoring hints of `_set_fields` inside the context.
+
+        The `name` and `sboTerm` hints help somebody writing a model
+        definition. They are noise when a model is written back out after it
+        was parsed from a file, which is what `sbmlutils.parser` does.
+
+        Yields:
+            None
+        """
+        previous = Sbase._authoring_hints
+        Sbase._authoring_hints = False
+        try:
+            yield
+        finally:
+            Sbase._authoring_hints = previous
 
     def __str__(self) -> str:
         """Get string."""
@@ -432,13 +591,29 @@ class Sbase:
                 annotations.append(annotation)
         return annotations
 
-    def get_notes_xml(self) -> str | None:
-        """Get notes xml string."""
-        if self.notes:
-            notes_str: str | None = str(Notes(self.notes).xml)
-            return notes_str
+    @staticmethod
+    def _process_notes(notes: str | Notes | None) -> str | None:
+        """Normalize notes to an XHTML body string.
 
-        return None
+        Notes are stored as XHTML so that a round trip is a fixed point:
+        markdown is rendered once here, and notes which came from an SBML
+        document are stored verbatim instead of being run through the
+        markdown renderer, which would mutate them.
+
+        Args:
+            notes: the notes as markdown, as XHTML, or as a `Notes` object
+                which states its format explicitly
+
+        Returns:
+            the XHTML body of the notes, `None` if no notes were given
+        """
+        if notes is None:
+            return None
+        if isinstance(notes, Notes):
+            return str(notes)
+        if not notes.strip():
+            return None
+        return str(Notes(notes, format=detect_format(notes)))
 
     def _set_fields(self, sbase: Any, model: Any) -> None:
         """Set the fields of the created libsbml object.
@@ -457,14 +632,46 @@ class Sbase:
                     self.sid,
                     sbase,
                 )
-            sbase.setId(self.sid)
+            # libsbml aliases setId to the variable/symbol attribute on rules,
+            # initial assignments and event assignments, where it is a no-op;
+            # setIdAttribute is the accessor which actually sets the id
+            if sbase.getTypeCode() in _ID_ATTRIBUTE_TYPECODES:
+                check(
+                    sbase.setIdAttribute(self.sid),
+                    f"Set id '{self.sid}' on {sbase}",
+                )
+            else:
+                status: int = sbase.setId(self.sid)
+                if status == libsbml.LIBSBML_UNEXPECTED_ATTRIBUTE and (
+                    sbase.getLevel(),
+                    sbase.getVersion(),
+                ) < (3, 2):
+                    # many elements only have an id from SBML L3V2 on, e.g. a
+                    # constraint or a kinetic law; below it the id has no
+                    # place in the document, which the caller cannot change
+                    logger.debug(
+                        "'%s' has no id in SBML L%sV%s, id '%s' is not written.",
+                        sbase.getElementName(),
+                        sbase.getLevel(),
+                        sbase.getVersion(),
+                        self.sid,
+                    )
+                else:
+                    check(status, f"Set id '{self.sid}' on {sbase}")
         if self.name is not None:
             sbase.setName(self.name)
-        else:
-            if not isinstance(
-                self, (Document, Port, ReplacedBy, ReplacedElement, AssignmentRule)
-            ):
-                logger.warning("'name' should be set on '%s'", self)
+        elif Sbase._authoring_hints and not isinstance(
+            self,
+            (
+                Document,
+                Port,
+                ReplacedBy,
+                ReplacedElement,
+                AssignmentRule,
+                EventAssignment,
+            ),
+        ):
+            logger.warning("'name' should be set on '%s'", self)
         if self.sboTerm is not None:
             if isinstance(self.sboTerm, SBO):
                 sbo = self.sboTerm.curie
@@ -473,50 +680,35 @@ class Sbase:
             else:
                 sbo = self.sboTerm
             sbase.setSBOTerm(sbo)
-        else:
-            if not isinstance(
-                self,
-                (
-                    Document,
-                    Port,
-                    UnitDefinition,
-                    Model,
-                    ReplacedBy,
-                    ReplacedElement,
-                    AssignmentRule,
-                    RateRule,
-                    ExternalModelDefinition,
-                    Submodel,
-                ),
-            ):
-                logger.warning("'sboTerm' should be set on '%s'", self)
+        elif Sbase._authoring_hints and not isinstance(
+            self,
+            (
+                Document,
+                Port,
+                UnitDefinition,
+                Model,
+                ReplacedBy,
+                ReplacedElement,
+                AssignmentRule,
+                RateRule,
+                ExternalModelDefinition,
+                Submodel,
+                EventAssignment,
+            ),
+        ):
+            logger.warning("'sboTerm' should be set on '%s'", self)
         if self.metaId is not None:
             sbase.setMetaId(self.metaId)
 
         if self.notes is not None and self.notes.strip():
-            set_notes(sbase, self.notes)
+            # notes are normalized to xhtml by `Sbase._process_notes`
+            set_notes(sbase, self.notes, format=NotesFormat.HTML)
 
         # annotation handling
         processed_annotations: list[Annotation] = []
         if self.annotations:
             # annotations can have been added after initial processing
             processed_annotations = Sbase._process_annotations(self.annotations)
-
-        if self.sboTerm is not None:
-            sbo_annotation = Annotation(
-                qualifier=BQB.IS, resource=f"sbo/{self.sboTerm.replace('_', ':')}"
-            )
-            # check if SBO annotation exists
-            sbo_exists = False
-            for annotation in processed_annotations:
-                if (
-                    annotation.qualifier == sbo_annotation.qualifier
-                    and annotation.term == sbo_annotation.term
-                ):
-                    sbo_exists = True
-                    continue
-            if not sbo_exists:
-                processed_annotations = [sbo_annotation, *processed_annotations]
 
         for annotation in processed_annotations:
             annotator.ModelAnnotator.annotate_sbase(sbase=sbase, annotation=annotation)
@@ -529,15 +721,41 @@ class Sbase:
             self.create_key_value_pairs(sbase)
 
     def create_port(self, model: libsbml.Model) -> libsbml.Port | None:
-        """Create port if existing."""
-        if self.port is None:
+        """Create the port of the element, if it has one.
+
+        Args:
+            model: the model the port is created in
+
+        Returns:
+            the port, `None` if the element has no port or no id which the
+            port could reference
+
+        Raises:
+            ValueError: if the document does not declare the comp package
+        """
+        if self.port is None or self.port is False:
+            return None
+
+        references_self = isinstance(self.port, bool) or not (
+            self.port.portRef
+            or self.port.idRef
+            or self.port.unitRef
+            or self.port.metaIdRef
+        )
+        if references_self and self.sid is None:
+            logger.error(
+                "'%s' has no id for its port to reference, no port is created.",
+                self,
+            )
             return None
 
         p: libsbml.Port | None = None
         if isinstance(self.port, bool):
             if self.port is True:
                 # manually create port for the id
-                cmodel = model.getPlugin("comp")
+                cmodel: libsbml.CompModelPlugin = _comp_plugin(
+                    model, f"The port of {type(self).__name__} '{self.sid}'"
+                )
                 p = cmodel.createPort()
                 if isinstance(self, UnitDefinition):
                     port_sid = f"{self.sid}{PORT_UNIT_SUFFIX}"
@@ -555,12 +773,7 @@ class Sbase:
                     p.setIdRef(self.sid)
         else:
             # use the port object
-            if (
-                (not self.port.portRef)
-                and (not self.port.idRef)
-                and (not self.port.unitRef)
-                and (not self.port.metaIdRef)
-            ):
+            if references_self:
                 # if no reference set id reference to current object
                 self.port.idRef = self.sid
             p = self.port.create_sbml(model)
@@ -615,7 +828,7 @@ class KeyValuePair(Sbase):
         name: str | None = None,
         sboTerm: str | None = None,
         metaId: str | None = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         annotations: OptionalAnnotationsType = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
@@ -649,7 +862,7 @@ class KeyValuePair(Sbase):
         if self.value is not None:
             check(kvp.setValue(self.value), f"Set `value={self.value}` on KeyValuePair")
         if self.uri is not None:
-            check(kvp.setValue(self.value), f"Set `uri={self.uri}` on KeyValuePair")
+            check(kvp.setUri(self.uri), f"Set `uri={self.uri}` on KeyValuePair")
 
         return kvp
 
@@ -669,7 +882,7 @@ class Value(Sbase):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
@@ -691,6 +904,75 @@ class Value(Sbase):
 
     def _set_fields(self, sbase: Any, model: libsbml.Model) -> None:
         super()._set_fields(sbase, model)
+
+
+class Unit:
+    """A single unit of a `UnitDefinition`.
+
+    Corresponds to the information in a `libsbml.Unit`, i.e. one factor of a
+    unit definition. An SBML unit is `multiplier * 10^scale * kind^exponent`.
+    """
+
+    def __init__(
+        self,
+        kind: str,
+        exponent: float = 1.0,
+        scale: int = 0,
+        multiplier: float = 1.0,
+    ):
+        """Construct a Unit.
+
+        Args:
+            kind: the SBML unit kind, e.g. `"litre"`
+            exponent: the exponent of the unit
+            scale: the decimal scale of the unit
+            multiplier: the multiplier of the unit
+        """
+        self.kind = kind
+        self.exponent = exponent
+        self.scale = scale
+        self.multiplier = multiplier
+
+    def __repr__(self) -> str:
+        """Get string representation."""
+        return (
+            f"Unit({self.kind}, exponent={self.exponent}, "
+            f"scale={self.scale}, multiplier={self.multiplier})"
+        )
+
+    def __eq__(self, other: object) -> bool:
+        """Compare two units."""
+        if not isinstance(other, Unit):
+            return NotImplemented
+        return (
+            self.kind == other.kind
+            and self.exponent == other.exponent
+            and self.scale == other.scale
+            and self.multiplier == other.multiplier
+        )
+
+    def __hash__(self) -> int:
+        """Get hash of the unit."""
+        return hash((self.kind, self.exponent, self.scale, self.multiplier))
+
+    def create_sbml(self, udef: libsbml.UnitDefinition) -> libsbml.Unit:
+        """Create the libsbml.Unit in the given libsbml.UnitDefinition.
+
+        Args:
+            udef: the libsbml.UnitDefinition the unit is created in
+
+        Returns:
+            the created libsbml.Unit
+        """
+        unit: libsbml.Unit = udef.createUnit()
+        kind: int = libsbml.UnitKind_forName(self.kind)
+        if kind == libsbml.UNIT_KIND_INVALID:
+            logger.error("'%s' is not a valid SBML unit kind.", self.kind)
+        check(unit.setKind(kind), f"Set kind '{self.kind}' on unit")
+        check(unit.setExponent(float(self.exponent)), "Set exponent on unit")
+        check(unit.setScale(int(self.scale)), "Set scale on unit")
+        check(unit.setMultiplier(float(self.multiplier)), "Set multiplier on unit")
+        return unit
 
 
 class UnitDefinition(Sbase):
@@ -758,16 +1040,37 @@ class UnitDefinition(Sbase):
         self,
         sid: str,
         definition: str | None = None,
+        units: list[Unit] | None = None,
         name: str | None = None,
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         replacedBy: Any | None = None,
     ):
-        """Construct UnitDefinition."""
+        """Construct UnitDefinition.
+
+        A unit definition is either written as a pint expression in
+        `definition`, which is the authoring style, or as the explicit list of
+        `units` it consists of, which is what the parser reads from a file.
+
+        Args:
+            sid: the id of the unit definition
+            definition: the pint expression, e.g. `"mmole/liter"`; defaults to
+                `sid`
+            units: the explicit units of the definition; they take precedence
+                over `definition`
+            name: the name of the unit definition
+            sboTerm: the SBO term of the unit definition
+            metaId: the meta id of the unit definition
+            annotations: the annotations of the unit definition
+            notes: the notes of the unit definition
+            keyValuePairs: the key value pairs of the unit definition
+            port: the port of the unit definition
+            replacedBy: the comp ReplacedBy of the unit definition
+        """
         super().__init__(
             sid=sid,
             name=name,
@@ -780,24 +1083,64 @@ class UnitDefinition(Sbase):
             replacedBy=replacedBy,
         )
 
+        self.units = units
         self.definition = definition if definition is not None else sid
-        if not self.name:
+        if not self.name and units is None:
+            # the pint expression is the readable label of the definition; with
+            # explicit units the definition is only the id and would make a
+            # meaningless name
             self.name = self.definition
 
     def create_sbml(self, model: libsbml.Model) -> libsbml.UnitDefinition | None:
-        """Create libsbml.UnitDefinition."""
-        if isinstance(self.definition, int):
-            # libsbml unit type
+        """Create libsbml.UnitDefinition.
+
+        Args:
+            model: the libsbml.Model the unit definition is created in
+
+        Returns:
+            the created libsbml.UnitDefinition, `None` for a base unit kind
+        """
+        if self.units is None and isinstance(self.definition, int):
+            # libsbml unit kind, the unit definition is a base unit
             return None
 
         obj: libsbml.UnitDefinition = model.createUnitDefinition()
 
+        units = self.units if self.units is not None else self._units_from_definition()
+        for unit in units:
+            unit.create_sbml(obj)
+
+        self._set_fields(obj, model)
+        self.create_port(model)
+        return obj
+
+    def _units_from_definition(self) -> list[Unit]:
+        """Compile the pint definition string into explicit units.
+
+        Returns:
+            the units the pint expression of `definition` resolves to
+
+        Raises:
+            UndefinedUnitError: if the expression is not valid pint syntax
+            ValueError: if a unit of the expression has no SBML unit kind
+        """
         # parse the string into pint
-        quantity = Q_(self.definition)
+        try:
+            quantity = Q_(self.definition)
+        except UndefinedUnitError as err:
+            console.print_exception(show_locals=False)
+            logger.error(
+                "Unit definition '%s' is not valid pint syntax, %s.",
+                self.definition,
+                err,
+            )
+            raise err
+
         magnitude, units_tuple = quantity.to_tuple()
         # pint types the units as a fixed length tuple, it is empty for a number
         units: list[Sequence[Any]] = list(units_tuple)
 
+        sbml_units: list[Unit] = []
         if units:
             for k, item in enumerate(units):
                 prefix, unit_name, _suffix = ureg.parse_unit_name(item[0])[0]
@@ -812,13 +1155,14 @@ class UnitDefinition(Sbase):
 
                 multiplier = np.power(multiplier, 1 / abs(exponent))
 
+                # the pint path cannot resolve a scale, it is part of the
+                # multiplier; only a parsed unit definition carries a scale
                 scale = 0
                 # resolve the kind (this is already a unit known by libsbml)
                 kind = self.__class__._pint2sbml.get(unit_name, None)
                 if kind is None:
                     # we have to bring the unit to base units
                     uq = Q_(unit_name).to_base_units()
-                    # console.log("uq:", uq)
                     multiplier = multiplier * uq.magnitude
                     kind = self.__class__._pint2sbml.get(str(uq.units), None)
                     if kind is None:
@@ -829,51 +1173,47 @@ class UnitDefinition(Sbase):
                         logger.error(msg)
                         raise ValueError(msg)
 
-                self._create_unit(obj, kind, exponent, scale, multiplier)
+                sbml_units.append(
+                    Unit(
+                        kind=libsbml.UnitKind_toString(kind),
+                        exponent=exponent,
+                        scale=scale,
+                        multiplier=float(multiplier),
+                    )
+                )
         else:
             # only magnitude (units canceled)
             kind = self.__class__._pint2sbml["dimensionless"]
-            self._create_unit(obj, kind, 1.0, 0, magnitude)
+            sbml_units.append(
+                Unit(
+                    kind=libsbml.UnitKind_toString(kind),
+                    exponent=1.0,
+                    scale=0,
+                    multiplier=float(magnitude),
+                )
+            )
 
-        self._set_fields(obj, model)
-        self.create_port(model)
-        return obj
+        return sbml_units
 
     def _set_fields(self, sbase: libsbml.UnitDefinition, model: libsbml.Model) -> None:
         """Set fields on libsbml.UnitDefinition."""
         super()._set_fields(sbase, model)
 
     @staticmethod
-    def _create_unit(
-        udef: libsbml.UnitDefinition,
-        kind: int,
-        exponent: float,
-        scale: int = 0,
-        multiplier: float = 1.0,
-    ) -> libsbml.Unit:
-        """Create libsbml.Unit."""
-        unit: libsbml.Unit = udef.createUnit()
-        unit.setKind(kind)
-        unit.setExponent(exponent)
-        unit.setScale(scale)
-        unit.setMultiplier(multiplier)
-        return unit
+    def get_uid_for_unit(unit: UnitDefinition | str | None) -> str | None:
+        """Get unit id for the given unit.
 
-    @staticmethod
-    def get_uid_for_unit(unit: UnitDefinition | str) -> str | None:
-        """Get unit id for given definition string."""
-        uid: str | None
+        Args:
+            unit: a UnitDefinition or the id of one
+
+        Returns:
+            the unit id, `None` if no unit was given
+        """
         if unit is None:
-            uid = None
-        elif isinstance(unit, UnitDefinition):
-            uid = unit.sid
-        else:
-            raise ValueError(
-                f"unit must be a 'UnitDefinition', but '{unit}' is "
-                f"'{type(unit)}. Best practise is to use a `class U(Units)` for "
-                f"units definitions."
-            )
-        return uid
+            return None
+        if isinstance(unit, UnitDefinition):
+            return unit.sid
+        return unit
 
 
 class Units:
@@ -919,32 +1259,16 @@ class Units:
 
     @classmethod
     def create_unit_definitions(cls, model: libsbml.Model) -> None:
-        """Create the libsbml.UnitDefinitions in the model."""
-        unit_definition: UnitDefinition
-        uid: str
-        for uid, definition in cls.attributes():
-            if isinstance(definition, str):
-                unit_definition = UnitDefinition(sid=uid, definition=definition)
-            elif isinstance(definition, UnitDefinition):
-                unit_definition = definition
-            else:
-                raise ValueError(
-                    f"Units attributes must be a unit string or UnitDefinition, "
-                    f"but '{type(definition)} for '{definition}'."
-                )
-            # create and register libsbml.UnitDefinition in libsbml.Model
-            try:
-                _: libsbml.UnitDefinition | None = unit_definition.create_sbml(
-                    model=model
-                )
-            except UndefinedUnitError as err:
-                console.print_exception(show_locals=False)
-                logger.error(
-                    "Unit definition '%s' is not valid pint syntax, %s.",
-                    unit_definition.definition,
-                    err,
-                )
-                raise err
+        """Create the libsbml.UnitDefinitions in the model.
+
+        Deprecated, `Model` normalizes its units to a list of
+        `UnitDefinition` and creates them directly.
+
+        Args:
+            model: the libsbml.Model the unit definitions are created in
+        """
+        for udef in Model._normalize_units(cls):
+            udef.create_sbml(model=model)
 
 
 class ValueWithUnit(Value):
@@ -960,14 +1284,14 @@ class ValueWithUnit(Value):
 
     def __init__(
         self,
-        sid: str,
+        sid: str | None,
         value: str | float | None,
         unit: UnitType = Units.dimensionless,
         name: str | None = None,
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
@@ -987,9 +1311,9 @@ class ValueWithUnit(Value):
             replacedBy=replacedBy,
         )
         self.unit = unit
-        if self.unit and not isinstance(self.unit, UnitDefinition):
+        if self.unit is not None and not isinstance(self.unit, (UnitDefinition, str)):
             logger.warning(
-                "'unit' must be of type UnitDefinition, but '%s' in '%s' is '%s'.",
+                "'unit' must be a UnitDefinition or a unit id, but '%s' in '%s' is '%s'.",
                 self.unit,
                 self,
                 type(self.unit),
@@ -1016,17 +1340,20 @@ class Function(Sbase):
     FunctionDefinitions consist of a lambda expression in the value field, e.g.,
         lambda(x,y, piecewise(x,gt(x,y),y) )  #  definition of minimum function
         lambda(x, sin(x) )
+
+    A value of `None` is a function definition without math, which SBML
+    allows from L3V2 on.
     """
 
     def __init__(
         self,
         sid: str,
-        value: str,
+        value: str | None,
         name: str | None = None,
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
@@ -1059,8 +1386,8 @@ class Function(Sbase):
         self, sbase: libsbml.FunctionDefinition, model: libsbml.Model
     ) -> None:
         super()._set_fields(sbase, model)
-        ast_node = ast_node_from_formula(model, self.formula)
-        sbase.setMath(ast_node)
+        if self.formula is not None:
+            sbase.setMath(ast_node_from_formula(model, self.formula))
 
 
 class Parameter(ValueWithUnit):
@@ -1079,7 +1406,7 @@ class Parameter(ValueWithUnit):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
@@ -1107,8 +1434,8 @@ class Parameter(ValueWithUnit):
         obj: libsbml.Parameter = model.createParameter()
         self._set_fields(obj, model)
         if self.value is None:
-            obj.setValue(np.nan)
-
+            # an unset value stays unset, it is not invented as NaN
+            pass
         elif type(self.value) is str:
             try:
                 # check if number
@@ -1135,6 +1462,67 @@ class Parameter(ValueWithUnit):
         sbase.setConstant(self.constant)
 
 
+class LocalParameter(ValueWithUnit):
+    """LocalParameter of a KineticLaw.
+
+    A local parameter is scoped to the kinetic law it is defined in, unlike a
+    `Parameter`, which is global to the model.
+    """
+
+    #: the identifier is required, unlike on `Sbase`
+    sid: str
+
+    def __init__(
+        self,
+        sid: str,
+        value: str | float | None = None,
+        unit: UnitType = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
+        annotations: OptionalAnnotationsType = None,
+        notes: str | Notes | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
+        port: Any = None,
+        uncertainties: list[Uncertainty] | None = None,
+        replacedBy: Any | None = None,
+    ):
+        """Construct LocalParameter."""
+        super().__init__(
+            sid=sid,
+            value=value,
+            unit=unit,
+            name=name,
+            sboTerm=sboTerm,
+            metaId=metaId,
+            annotations=annotations,
+            notes=notes,
+            keyValuePairs=keyValuePairs,
+            port=port,
+            uncertainties=uncertainties,
+            replacedBy=replacedBy,
+        )
+
+    def create_sbml(self, klaw: libsbml.KineticLaw) -> libsbml.LocalParameter:
+        """Create the libsbml.LocalParameter in the given kinetic law.
+
+        Args:
+            klaw: the libsbml.KineticLaw the local parameter is created in
+
+        Returns:
+            the created libsbml.LocalParameter
+        """
+        lp: libsbml.LocalParameter = klaw.createLocalParameter()
+        self._set_fields(lp, None)
+        if self.value is not None:
+            check(lp.setValue(float(self.value)), f"Set value on '{self.sid}'")
+        return lp
+
+    def _set_fields(self, sbase: libsbml.LocalParameter, model: Any) -> None:
+        """Set fields on libsbml.LocalParameter."""
+        super()._set_fields(sbase, model)
+
+
 class Compartment(ValueWithUnit):
     """Compartment."""
 
@@ -1144,15 +1532,15 @@ class Compartment(ValueWithUnit):
     def __init__(
         self,
         sid: str,
-        value: str | float,
+        value: str | float | None,
         unit: UnitType = None,
         constant: bool = True,
-        spatialDimensions: float = 3,
+        spatialDimensions: float | None = None,
         name: str | None = None,
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
@@ -1182,7 +1570,8 @@ class Compartment(ValueWithUnit):
         self._set_fields(obj, model)
 
         if self.value is None:
-            obj.setSize(np.nan)
+            # an unset size stays unset, it is not invented as NaN
+            pass
         elif type(self.value) is str:
             try:
                 # check if number
@@ -1206,7 +1595,11 @@ class Compartment(ValueWithUnit):
         """Set fields on Compartment."""
         super()._set_fields(sbase, model)
         sbase.setConstant(self.constant)
-        sbase.setSpatialDimensions(self.spatialDimensions)
+        if self.spatialDimensions is not None:
+            check(
+                sbase.setSpatialDimensions(self.spatialDimensions),
+                f"Set spatialDimensions on '{self.sid}'",
+            )
 
 
 class Species(Sbase):
@@ -1229,7 +1622,7 @@ class Species(Sbase):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
@@ -1324,20 +1717,21 @@ class InitialAssignment(Value):
 
     The unit attribute is only for the case where a parameter must be created
     (which has the unit). In case of an initialAssignment of a value the units
-    have to be defined in the math.
+    have to be defined in the math. A value of `None` is an initial assignment
+    without math, which SBML allows from L3V2 on.
     """
 
     def __init__(
         self,
         symbol: str,
-        value: str | float,
+        value: str | float | None,
         unit: UnitType = Units.dimensionless,
         sid: str | None = None,
         name: str | None = None,
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
@@ -1392,8 +1786,8 @@ class InitialAssignment(Value):
         obj: libsbml.InitialAssignment = model.createInitialAssignment()
         self._set_fields(obj, model)
         obj.setSymbol(self.symbol)
-        ast_node = ast_node_from_formula(model, str(self.value))
-        obj.setMath(ast_node)
+        if self.value is not None:
+            obj.setMath(ast_node_from_formula(model, str(self.value)))
 
         self.create_port(model)
         return obj
@@ -1403,7 +1797,7 @@ class RuleWithVariable:
     """Rule."""
 
     variable: str
-    value: str | float
+    value: str | float | None
     unit: UnitType
     sid: str | None
     name: str | None
@@ -1453,7 +1847,8 @@ class AssignmentRule(ValueWithUnit, RuleWithVariable):
 
     The unit attribute is only for the case where a parameter must be created
     (which has the unit). In case of an initialAssignment of a value the units
-    have to be defined in the math.
+    have to be defined in the math. A value of `None` is a rule without math,
+    which SBML allows from L3V2 on.
     """
 
     def __repr__(self) -> str:
@@ -1463,14 +1858,14 @@ class AssignmentRule(ValueWithUnit, RuleWithVariable):
     def __init__(
         self,
         variable: str,
-        value: str | float,
+        value: str | float | None,
         unit: UnitType = Units.dimensionless,
         sid: str | None = None,
         name: str | None = None,
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
@@ -1478,7 +1873,7 @@ class AssignmentRule(ValueWithUnit, RuleWithVariable):
     ):
         """Construct AssignmentRule."""
         super().__init__(
-            sid=sid if sid else f"AssignmentRule_{variable}",
+            sid=sid,
             value=value,
             unit=unit,
             name=name,
@@ -1499,14 +1894,17 @@ class AssignmentRule(ValueWithUnit, RuleWithVariable):
         obj: libsbml.AssignmentRule = model.createAssignmentRule()
         self._set_fields(obj, model)
         obj.setVariable(self.variable)
-        ast_node: libsbml.ASTNode = ast_node_from_formula(model, str(self.value))
-        obj.setMath(ast_node)
+        if self.value is not None:
+            obj.setMath(ast_node_from_formula(model, str(self.value)))
         self.create_port(model)
         return obj
 
 
 class RateRule(ValueWithUnit, RuleWithVariable):
-    """RateRule."""
+    """RateRule.
+
+    A value of `None` is a rule without math, which SBML allows from L3V2 on.
+    """
 
     def __repr__(self) -> str:
         """Get string representation."""
@@ -1515,14 +1913,14 @@ class RateRule(ValueWithUnit, RuleWithVariable):
     def __init__(
         self,
         variable: str,
-        value: str | float,
+        value: str | float | None,
         unit: UnitType = Units.dimensionless,
         sid: str | None = None,
         name: str | None = None,
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
@@ -1530,7 +1928,7 @@ class RateRule(ValueWithUnit, RuleWithVariable):
     ):
         """Construct RateRule."""
         super().__init__(
-            sid=sid if sid else f"RateRule_{variable}",
+            sid=sid,
             value=value,
             unit=unit,
             name=name,
@@ -1551,14 +1949,17 @@ class RateRule(ValueWithUnit, RuleWithVariable):
         obj: libsbml.RateRule = model.createRateRule()
         self._set_fields(obj, model)
         obj.setVariable(self.variable)
-        ast_node: libsbml.ASTNode = ast_node_from_formula(model, str(self.value))
-        obj.setMath(ast_node)
+        if self.value is not None:
+            obj.setMath(ast_node_from_formula(model, str(self.value)))
         self.create_port(model)
         return obj
 
 
 class AlgebraicRule(ValueWithUnit, RuleWithVariable):
-    """AlgebraicRule."""
+    """AlgebraicRule.
+
+    A value of `None` is a rule without math, which SBML allows from L3V2 on.
+    """
 
     def __repr__(self) -> str:
         """Get string representation."""
@@ -1566,14 +1967,14 @@ class AlgebraicRule(ValueWithUnit, RuleWithVariable):
 
     def __init__(
         self,
-        sid: str,
-        value: str | float,
+        sid: str | None,
+        value: str | float | None,
         unit: UnitType = Units.dimensionless,
         name: str | None = None,
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
@@ -1599,13 +2000,115 @@ class AlgebraicRule(ValueWithUnit, RuleWithVariable):
         """Create AlgebraicRule."""
         rule: libsbml.AlgebraicRule = model.createAlgebraicRule()
         self._set_fields(rule, model)
-        ast_node: libsbml.ASTNode = ast_node_from_formula(model, str(self.value))
-        rule.setMath(ast_node)
+        if self.value is not None:
+            rule.setMath(ast_node_from_formula(model, str(self.value)))
         self.create_port(model)
         return rule
 
 
+#: deprecated, a kinetic law is a `KineticLaw`; still accepted by
+#: `Reaction._process_formula`
 Formula = namedtuple("Formula", "value unit")
+
+
+class KineticLaw(Sbase):
+    """KineticLaw of a Reaction.
+
+    Corresponds to the information in a `libsbml.KineticLaw`: the rate math,
+    and the local parameters which are scoped to it.
+    """
+
+    def __init__(
+        self,
+        math: str | None,
+        unit: UnitType = None,
+        local_parameters: list[LocalParameter] | None = None,
+        sid: str | None = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
+        annotations: OptionalAnnotationsType = None,
+        notes: str | Notes | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
+        port: Any = None,
+        uncertainties: list[Uncertainty] | None = None,
+        replacedBy: Any | None = None,
+    ):
+        """Construct a KineticLaw.
+
+        Args:
+            math: the rate expression, as an SBML L3 formula string; `None`
+                for a kinetic law without math, which SBML allows from L3V2 on
+            unit: the unit of the rate; never written to XML in any
+                level/version this package currently emits (it existed on
+                `libsbml.KineticLaw` only in L1V1, L1V2 and L2V1, and this
+                package never wrote it even then). Kept as python state for a
+                `KineticLaw` parsed from such an old document, since a future
+                write-back needs somewhere to hold it
+            local_parameters: the parameters scoped to this kinetic law
+            sid: optional SId, kinetic laws only carry one since SBML L3V2;
+                not written when the target document is older, see
+                `Sbase._set_fields`
+            name: optional SBML name
+            sboTerm: optional SBO term
+            metaId: optional SBML metaid
+            annotations: optional RDF annotations
+            notes: optional notes, as markdown, XHTML or a `Notes` object
+            keyValuePairs: optional key-value pairs
+            port: optional comp port
+            uncertainties: optional distrib uncertainties
+            replacedBy: optional comp replacement
+        """
+        super().__init__(
+            sid=sid,
+            name=name,
+            sboTerm=sboTerm,
+            metaId=metaId,
+            annotations=annotations,
+            notes=notes,
+            keyValuePairs=keyValuePairs,
+            port=port,
+            uncertainties=uncertainties,
+            replacedBy=replacedBy,
+        )
+        self.math = math
+        self.unit = unit
+        self.local_parameters = local_parameters if local_parameters else []
+
+    def __repr__(self) -> str:
+        """Get string representation."""
+        return f"KineticLaw({self.math})"
+
+    def create_sbml(self, reaction: libsbml.Reaction) -> libsbml.KineticLaw:
+        """Create the libsbml.KineticLaw on the given reaction.
+
+        Args:
+            reaction: the libsbml.Reaction the kinetic law belongs to
+
+        Returns:
+            the created libsbml.KineticLaw
+        """
+        klaw: libsbml.KineticLaw = reaction.createKineticLaw()
+        self._set_fields(klaw, None)
+
+        # local parameters must exist before the math is parsed, so that the
+        # formula parser resolves their ids
+        for local_parameter in self.local_parameters:
+            local_parameter.create_sbml(klaw)
+
+        if self.math is None:
+            return klaw
+        model: libsbml.Model = reaction.getModel()
+        ast_node = libsbml.parseL3FormulaWithModel(self.math, model)
+        if ast_node is None:
+            logger.error(
+                "Kinetic law math could not be parsed: '%s', %s",
+                self.math,
+                libsbml.getLastParseL3Error(),
+            )
+        else:
+            check(klaw.setMath(ast_node), f"Set math on kinetic law '{self.math}'")
+        return klaw
 
 
 class Reaction(Sbase):
@@ -1642,7 +2145,7 @@ class Reaction(Sbase):
         self,
         sid: str,
         equation: ReactionEquation | str,
-        formula: Formula | tuple[str, UnitType] | str | None = None,
+        formula: KineticLaw | Formula | tuple[str, UnitType] | str | None = None,
         pars: list[Parameter] | None = None,
         rules: list[AssignmentRule] | None = None,
         compartment: str | None = None,
@@ -1655,7 +2158,7 @@ class Reaction(Sbase):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
@@ -1695,17 +2198,29 @@ class Reaction(Sbase):
 
     @staticmethod
     def _process_formula(
-        formula: Formula | tuple[str, UnitType] | str | None,
-    ) -> Formula | None:
-        """Process reaction formula (kinetic law)."""
+        formula: KineticLaw | Formula | tuple[str, UnitType] | str | None,
+    ) -> KineticLaw | None:
+        """Process the reaction formula into a KineticLaw.
+
+        Args:
+            formula: a KineticLaw, a `(math, unit)` tuple, a math string, or
+                None
+
+        Returns:
+            the kinetic law of the reaction, None if no formula was given
+
+        Raises:
+            ValueError: if the formula is of an unsupported type
+        """
         if formula is None:
             return None
-        if isinstance(formula, Formula):
+        if isinstance(formula, KineticLaw):
             return formula
-        if isinstance(formula, (tuple, list)):
-            return Formula(*formula)
         if isinstance(formula, str):
-            return Formula(value=formula, unit=None)
+            return KineticLaw(math=formula)
+        if isinstance(formula, (tuple, list)):
+            math, unit = formula
+            return KineticLaw(math=math, unit=unit)
         raise ValueError(f"Unsupported formula: '{formula}'")
 
     def create_sbml(self, model: libsbml.Model) -> libsbml.Reaction:
@@ -1720,21 +2235,68 @@ class Reaction(Sbase):
         r_fbc: libsbml.FbcReactionPlugin = r.getPlugin("fbc")
 
         def set_speciesref_fields(
-            sref: libsbml.SpeciesReference, part: EquationPart
+            sref: libsbml.SpeciesReference | libsbml.ModifierSpeciesReference,
+            part: EquationPart,
         ) -> None:
-            """Set the fields on the SpeciesReference."""
+            """Set the fields on the SpeciesReference.
+
+            A `libsbml.ModifierSpeciesReference` has no `constant` or
+            `stoichiometry` attribute (only its sibling `SpeciesReference`,
+            used for reactants and products, does), so those two are only
+            set when `sref` actually is one.
+            """
             if part.species is not None:
                 sref.setSpecies(part.species)
             if part.sid is not None:
                 sref.setId(part.sid)
-            if part.constant is not None:
-                sref.setConstant(part.constant)
-            if part.stoichiometry is not None:
-                sref.setStoichiometry(part.stoichiometry)
+            if isinstance(sref, libsbml.SpeciesReference):
+                if part.constant is not None:
+                    sref.setConstant(part.constant)
+                if part.stoichiometry is not None:
+                    sref.setStoichiometry(part.stoichiometry)
             if part.metaId is not None:
                 sref.setMetaId(part.metaId)
             if part.sboTerm is not None:
                 sref.setSBOTerm(part.sboTerm)
+            if part.name is not None:
+                # `SimpleSpeciesReference::setName` (libsbml 5.21.1)
+                # erroneously applies SId syntax validation to `name`,
+                # which SBML L3 defines as a plain `string`, not an `SId`;
+                # `Species.setName`/`Reaction.setName` do not do this.
+                # Verified live: `SpeciesReference.setName('reactant
+                # name')` returns rc=-4 (LIBSBML_INVALID_ATTRIBUTE_VALUE)
+                # and leaves `getName()` empty, while
+                # `SpeciesReference.setName('reactantname')` (no space)
+                # returns rc=0 and is set; `Species.setName('a species
+                # name')` (the control) returns rc=0. This is a libsbml
+                # defect specific to `SimpleSpeciesReference` (the base of
+                # both `SpeciesReference` and `ModifierSpeciesReference`),
+                # not a bug in this package, and there is nothing correct
+                # to do about it here short of mangling the name, which
+                # this deliberately does not do. Logged as a warning
+                # rather than routed through `check()` (which always logs
+                # at error level): the name is unfixable from the caller's
+                # side, and any name containing a space, one of the most
+                # common cases, would otherwise log as an error on every
+                # single reaction.
+                rc = sref.setName(part.name)
+                if rc != libsbml.LIBSBML_OPERATION_SUCCESS:
+                    logger.warning(
+                        "Name '%s' could not be set on species reference "
+                        "for species '%s': rejected by libsbml with code "
+                        "%s (a known SimpleSpeciesReference.setName defect "
+                        "which applies SId syntax validation to the "
+                        "string-typed 'name' attribute).",
+                        part.name,
+                        part.species,
+                        rc,
+                    )
+            if part.notes is not None and part.notes.strip():
+                set_notes(sref, part.notes, format=detect_format(part.notes))
+            for annotation in Sbase._process_annotations(part.annotations or []):
+                annotator.ModelAnnotator.annotate_sbase(
+                    sbase=sref, annotation=annotation
+                )
 
         # equation
         for reactant in self.equation.reactants:
@@ -1747,11 +2309,11 @@ class Reaction(Sbase):
 
         for modifier in self.equation.modifiers:
             mref: libsbml.ModifierSpeciesReference = r.createModifier()
-            mref.setSpecies(modifier)
+            set_speciesref_fields(sref=mref, part=modifier)
 
         # kinetics
-        if self.formula:
-            Reaction.set_kinetic_law(model, r, self.formula.value)
+        if self.formula is not None:
+            self.formula.create_sbml(r)
 
         # add fbc bounds
         if self.upperFluxBound or self.lowerFluxBound:
@@ -1800,20 +2362,131 @@ class Reaction(Sbase):
             sbase.setCompartment(self.compartment)
         # else:
         #    logger.info(f"'compartment' should be set on '{self}'}")
-        sbase.setReversible(self.equation.reversible)
-        sbase.setFast(self.fast)
+        reversible = (
+            self.reversible if self.reversible is not None else self.equation.reversible
+        )
+        check(sbase.setReversible(reversible), f"Set reversible on '{self.sid}'")
 
-    @staticmethod
-    def set_kinetic_law(
-        model: libsbml.Model, reaction: libsbml.Reaction, formula: str
-    ) -> libsbml.KineticLaw:
-        """Set the kinetic law in reaction based on given formula."""
-        law: libsbml.KineticLaw = reaction.createKineticLaw()
-        ast_node = libsbml.parseL3FormulaWithModel(formula, model)
+        # `fast` was removed from SBML in L3V2; `setFast` errors on such a
+        # document, so it is only called when the level/version being
+        # written still supports the attribute.
+        supports_fast = sbase.getLevel() < 3 or (
+            sbase.getLevel() == 3 and sbase.getVersion() < 2
+        )
+        if supports_fast:
+            check(sbase.setFast(self.fast), f"Set fast on '{self.sid}'")
+
+
+class EventAssignment(Value):
+    """EventAssignment of an Event.
+
+    Assigns the value of the expression to the variable when the event fires.
+    """
+
+    def __init__(
+        self,
+        variable: str,
+        value: str | float | None,
+        sid: str | None = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
+        annotations: OptionalAnnotationsType = None,
+        notes: str | Notes | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
+        port: Any = None,
+        uncertainties: list[Uncertainty] | None = None,
+        replacedBy: Any | None = None,
+    ):
+        """Construct an EventAssignment.
+
+        Args:
+            variable: the id of the element the assignment applies to
+            value: the assigned expression, as an SBML L3 formula string;
+                `None` for an event assignment without math, which SBML allows
+                from L3V2 on
+            sid: optional SId; `libsbml.EventAssignment` only gained a real,
+                separate `id` attribute in SBML L3V2, and only from L3V2
+                onward is it distinct from `variable` (see `_set_fields`
+                docstring for the L3V1 behaviour)
+            name: optional SBML name
+            sboTerm: optional SBO term
+            metaId: optional SBML metaid
+            annotations: optional RDF annotations
+            notes: optional notes, as markdown, XHTML or a `Notes` object
+            keyValuePairs: optional key-value pairs
+            port: optional comp port
+            uncertainties: optional distrib uncertainties
+            replacedBy: optional comp replacement
+        """
+        super().__init__(
+            sid=sid,
+            value=value,
+            name=name,
+            sboTerm=sboTerm,
+            metaId=metaId,
+            annotations=annotations,
+            notes=notes,
+            keyValuePairs=keyValuePairs,
+            port=port,
+            uncertainties=uncertainties,
+            replacedBy=replacedBy,
+        )
+        self.variable = variable
+
+    def __repr__(self) -> str:
+        """Get string representation."""
+        return f"EventAssignment({self.variable} = {self.value})"
+
+    def create_sbml(
+        self, event: libsbml.Event, model: libsbml.Model
+    ) -> libsbml.EventAssignment:
+        """Create the libsbml.EventAssignment on the given event.
+
+        Args:
+            event: the libsbml.Event the assignment belongs to
+            model: the libsbml.Model, used to resolve ids in the expression
+
+        Returns:
+            the created libsbml.EventAssignment
+        """
+        ea: libsbml.EventAssignment = event.createEventAssignment()
+        self._set_fields(ea, model)
+        check(ea.setVariable(self.variable), f"Set variable '{self.variable}'")
+        if self.value is None:
+            return ea
+        ast_node = libsbml.parseL3FormulaWithModel(str(self.value), model)
         if ast_node is None:
-            logger.error(libsbml.getLastParseL3Error())
-        check(law.setMath(ast_node), "set math in kinetic law")
-        return law
+            logger.error(
+                "Event assignment math could not be parsed: '%s', %s",
+                self.value,
+                libsbml.getLastParseL3Error(),
+            )
+        else:
+            check(ea.setMath(ast_node), f"Set math on '{self.variable}'")
+        return ea
+
+    def _set_fields(self, sbase: libsbml.EventAssignment, model: libsbml.Model) -> None:
+        """Set fields on libsbml.EventAssignment.
+
+        No override of the id handling is needed here: `SBML_EVENT_ASSIGNMENT`
+        is already in `Sbase._ID_ATTRIBUTE_TYPECODES`, so `Sbase._set_fields`
+        already routes `self.sid` through `setIdAttribute` rather than
+        `setId`, and `setIdAttribute` never touches `variable`. Verified
+        against live libsbml: on an L3V1 object `setIdAttribute` returns
+        success but writes nothing (`EventAssignment` has no `id` attribute
+        before L3V2, so it is silently dropped, exactly the "silently
+        skipped on an older level/version" behaviour `KineticLaw` documents);
+        on L3V2+ it writes a real, separately-serialized `id` distinct from
+        `variable`. Nulling `self.sid` unconditionally, as an earlier draft
+        of this method did, would have thrown away that L3V2 case for no
+        benefit.
+
+        Args:
+            sbase: the libsbml.EventAssignment created by `create_sbml`
+            model: the libsbml.Model the event assignment belongs to
+        """
+        super()._set_fields(sbase, model)
 
 
 class Event(Sbase):
@@ -1824,13 +2497,17 @@ class Event(Sbase):
     Assignments have the format
         sid = value
 
+    The trigger, the priority and the delay are each an SBML L3 formula
+    string. `None` writes no element at all: an event without a priority or a
+    delay, or, from SBML L3V2 on, without a trigger. An empty string writes the
+    element without math, which SBML allows from L3V2 on.
     """
 
     def __init__(
         self,
-        sid: str,
-        trigger: str,
-        assignments: dict[str, str | float] | None = None,
+        sid: str | None,
+        trigger: str | None,
+        assignments: dict[str, str | float] | list[EventAssignment] | None = None,
         trigger_persistent: bool = True,
         trigger_initialValue: bool = False,
         useValuesFromTriggerTime: bool = True,
@@ -1840,7 +2517,7 @@ class Event(Sbase):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
@@ -1861,18 +2538,39 @@ class Event(Sbase):
         )
 
         self.trigger = trigger
-        self.assignments = assignments if assignments else {}
-        if type(assignments) is not dict:
-            logger.warning(
-                "Event assignment must be dict with sid: assignment, but: '%s'",
-                type(assignments),
-            )
+        self.assignments = Event._process_assignments(assignments)
         self.trigger_persistent = trigger_persistent
         self.trigger_initialValue = trigger_initialValue
         self.useValuesFromTriggerTime = useValuesFromTriggerTime
 
         self.priority = priority
         self.delay = delay
+
+    @staticmethod
+    def _process_assignments(
+        assignments: dict[str, str | float] | list[EventAssignment] | None,
+    ) -> list[EventAssignment]:
+        """Normalize the event assignments to a list.
+
+        A model definition writes the assignments as a `{variable:
+        expression}` dict, which is the documented authoring style; the
+        parser passes a list of `EventAssignment`, which carry their own
+        metaId, sboTerm and annotations.
+
+        Args:
+            assignments: the assignments as a dict or a list
+
+        Returns:
+            the event assignments as `EventAssignment` objects
+        """
+        if assignments is None:
+            return []
+        if isinstance(assignments, dict):
+            return [
+                EventAssignment(variable=variable, value=value)
+                for variable, value in assignments.items()
+            ]
+        return list(assignments)
 
     def create_sbml(self, model: libsbml.Model) -> libsbml.Event:
         """Create Event SBML in model."""
@@ -1885,32 +2583,33 @@ class Event(Sbase):
         """Set fields in libsbml.Event."""
         super()._set_fields(sbase, model)
 
-        sbase.setUseValuesFromTriggerTime(True)
-        t = sbase.createTrigger()
-        t.setInitialValue(
-            self.trigger_initialValue
-        )  # False ! not supported by Copasi -> lame fix via time
-        t.setPersistent(
-            self.trigger_persistent
-        )  # True ! not supported by Copasi -> careful with usage
-
-        ast_trigger = libsbml.parseL3FormulaWithModel(self.trigger, model)
-        t.setMath(ast_trigger)
+        check(
+            sbase.setUseValuesFromTriggerTime(self.useValuesFromTriggerTime),
+            f"Set useValuesFromTriggerTime on '{self.sid}'",
+        )
+        if self.trigger is not None:
+            t: libsbml.Trigger = sbase.createTrigger()
+            t.setInitialValue(
+                self.trigger_initialValue
+            )  # False ! not supported by Copasi -> lame fix via time
+            t.setPersistent(
+                self.trigger_persistent
+            )  # True ! not supported by Copasi -> careful with usage
+            if self.trigger:
+                t.setMath(libsbml.parseL3FormulaWithModel(self.trigger, model))
 
         if self.priority is not None:
-            ast_priority = libsbml.parseL3FormulaWithModel(self.priority, model)
             priority: libsbml.Priority = sbase.createPriority()
-            priority.setMath(ast_priority)
+            if self.priority:
+                priority.setMath(libsbml.parseL3FormulaWithModel(self.priority, model))
 
         if self.delay is not None:
-            ast_delay = libsbml.parseL3FormulaWithModel(self.delay, model)
-            sbase.setDelay(ast_delay)
+            delay: libsbml.Delay = sbase.createDelay()
+            if self.delay:
+                delay.setMath(libsbml.parseL3FormulaWithModel(self.delay, model))
 
-        for key, math in self.assignments.items():
-            ast_assign = libsbml.parseL3FormulaWithModel(str(math), model)
-            ea = sbase.createEventAssignment()
-            ea.setVariable(key)
-            ea.setMath(ast_assign)
+        for assignment in self.assignments:
+            assignment.create_sbml(sbase, model)
 
     @staticmethod
     def _trigger_from_time(t: float) -> str:
@@ -1935,13 +2634,13 @@ class Constraint(Sbase):
     def __init__(
         self,
         sid: str,
-        math: str,
+        math: str | None = None,
         message: str | None = None,
         name: str | None = None,
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
@@ -2063,7 +2762,7 @@ class Uncertainty(Sbase):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         replacedBy: Any | None = None,
@@ -2119,7 +2818,7 @@ class Uncertainty(Sbase):
                 if uncertSpan.varLower is not None:
                     up_span.setVarLower(uncertSpan.varLower)
                 if uncertSpan.varUpper is not None:
-                    up_span.setValueLower(uncertSpan.varUpper)
+                    up_span.setVarUpper(uncertSpan.varUpper)
                 if uncertSpan.unit:
                     up_span.setUnits(
                         UnitDefinition.get_uid_for_unit(unit=uncertSpan.unit)
@@ -2150,7 +2849,7 @@ class Uncertainty(Sbase):
                 if uncertParameter.value is not None:
                     up_p.setValue(uncertParameter.value)
                 if uncertParameter.var is not None:
-                    up_p.setValue(uncertParameter.var)
+                    up_p.setVar(uncertParameter.var)
                 if uncertParameter.unit:
                     up_p.setUnits(
                         UnitDefinition.get_uid_for_unit(unit=uncertParameter.unit)
@@ -2222,7 +2921,7 @@ class ExchangeReaction(Reaction):
         name: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
@@ -2269,7 +2968,7 @@ class GeneProduct(Sbase):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
@@ -2317,7 +3016,7 @@ class UserDefinedConstraintComponent(Sbase):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
@@ -2389,7 +3088,7 @@ class UserDefinedConstraint(Sbase):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
@@ -2466,7 +3165,7 @@ class FluxObjective(Sbase):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
@@ -2541,7 +3240,7 @@ class Objective(Sbase):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
@@ -2628,7 +3327,7 @@ class ModelDefinition(Sbase):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         units: type[Units] | None = None,
         compartments: list[Compartment] | None = None,
@@ -2705,7 +3404,7 @@ class ExternalModelDefinition(Sbase):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
     ):
         """Create an ExternalModelDefinition."""
@@ -2754,7 +3453,7 @@ class Submodel(Sbase):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
     ):
         """Create a Submodel."""
@@ -2803,7 +3502,7 @@ class SbaseRef(Sbase):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
     ):
         """Create an SBaseRef."""
@@ -2854,7 +3553,7 @@ class ReplacedElement(SbaseRef):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
     ):
         """Create a ReplacedElement."""
@@ -2920,7 +3619,7 @@ class ReplacedBy(SbaseRef):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
     ):
         """Create a ReplacedElement."""
@@ -2944,7 +3643,9 @@ class ReplacedBy(SbaseRef):
         self, sbase: libsbml.SBase, model: libsbml.Model
     ) -> libsbml.ReplacedBy:
         """Create SBML ReplacedBy."""
-        sbase_comp: libsbml.CompSBasePlugin = sbase.getPlugin("comp")
+        sbase_comp: libsbml.CompSBasePlugin = _comp_plugin(
+            sbase, f"The replacedBy of {sbase.getElementName()} '{sbase.getId()}'"
+        )
         rby: libsbml.ReplacedBy = sbase_comp.createReplacedBy()
         self._set_fields(rby, model)
 
@@ -2971,7 +3672,7 @@ class Deletion(SbaseRef):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
     ):
         """Initialize Deletion."""
@@ -3033,7 +3734,7 @@ class Port(SbaseRef):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
     ):
         """Create a Port."""
@@ -3054,7 +3755,7 @@ class Port(SbaseRef):
 
     def create_sbml(self, model: libsbml.Model) -> libsbml.Port:
         """Create SBML for Port."""
-        cmodel = model.getPlugin("comp")
+        cmodel: libsbml.CompModelPlugin = _comp_plugin(model, f"Port '{self.sid}'")
         p = cmodel.createPort()
         self._set_fields(p, model)
 
@@ -3108,9 +3809,10 @@ class ModelDict(TypedDict, total=False):
     packages: list[Package] | None
     creators: list[Creator] | None
     model_units: ModelUnits | None
+    conversionFactor: str | None
     objects: list[Sbase] | None
 
-    units: type[Units] | None
+    units: type[Units] | list[UnitDefinition] | None
     functions: list[Function] | None
     compartments: list[Compartment] | None
     species: list[Species] | None
@@ -3137,14 +3839,15 @@ class ModelDict(TypedDict, total=False):
     layouts: list | None
 
 
-class Model(Sbase, FrozenClass, BaseModel):
-    """Model."""
+class Model(Sbase, FrozenClass):
+    """Model.
 
-    model_config = ConfigDict(
-        extra="allow",
-        arbitrary_types_allowed=True,
-        protected_namespaces=(),
-    )
+    The field annotations below document the model structure. `Model` used to
+    declare `pydantic.BaseModel` as a base, but `Model.__init__` never reached
+    `BaseModel.__init__` and `FrozenClass.__setattr__` shadowed pydantic's, so
+    no validation ever ran and `deepcopy`, `==` and `model_dump` raised.
+    `FrozenClass` rejects unknown attributes, which is what the freeze was for.
+    """
 
     sid: str
     name: str | None
@@ -3157,7 +3860,8 @@ class Model(Sbase, FrozenClass, BaseModel):
     packages: list[Package]
     creators: list[Creator]
     model_units: ModelUnits | None
-    units: type[Units] | None
+    conversionFactor: str | None
+    units: list[UnitDefinition]
     functions: list[Function]
     compartments: list[Compartment]
     species: list[Species]
@@ -3182,6 +3886,7 @@ class Model(Sbase, FrozenClass, BaseModel):
     gene_products: list[GeneProduct]
     # layout
     layouts: list | None
+    parsed: bool
 
     _keys: ClassVar[dict[str, Any]] = {
         "sid": None,
@@ -3195,6 +3900,11 @@ class Model(Sbase, FrozenClass, BaseModel):
         "packages": list,
         "creators": None,
         "model_units": None,
+        "conversionFactor": None,
+        # `units` is a list on the Model, but it must not be marked as one
+        # here: `merge_models` merges the units in its own branch, deduplicated
+        # by unit id. Marking it a `list` would extend the lists of the merged
+        # models instead and write duplicate unit ids into the merged model.
         "units": None,
         "functions": list,
         "compartments": list,
@@ -3217,6 +3927,7 @@ class Model(Sbase, FrozenClass, BaseModel):
         "objectives": list,
         "gene_products": list,
         "layouts": list,
+        "parsed": None,
     }
 
     _supported_packages: ClassVar[set[str]] = {
@@ -3243,12 +3954,13 @@ class Model(Sbase, FrozenClass, BaseModel):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         packages: list[Package] | None = None,
         creators: list[Creator] | None = None,
         model_units: ModelUnits | None = None,
-        units: type[Units] | None = None,
+        conversionFactor: str | None = None,
+        units: type[Units] | list[UnitDefinition] | None = None,
         objects: list[Sbase] | None = None,
         external_model_definitions: list[ExternalModelDefinition] | None = None,
         model_definitions: list[ModelDefinition] | None = None,
@@ -3287,8 +3999,8 @@ class Model(Sbase, FrozenClass, BaseModel):
 
         self.creators = creators if creators else []
         self.model_units = model_units
-        self.units = units if units else Units
-        self.units_dict = None
+        self.conversionFactor = conversionFactor
+        self.units = Model._normalize_units(units)
         self.external_model_definitions = (
             external_model_definitions if external_model_definitions else []
         )
@@ -3320,6 +4032,10 @@ class Model(Sbase, FrozenClass, BaseModel):
         self.gene_products: list[GeneProduct] = gene_products if gene_products else []
 
         self.layouts: list | None = layouts
+
+        #: `True` when the model was created by `sbmlutils.parser`, which
+        #: suppresses the authoring hints when it is written back out
+        self.parsed = False
 
         if objects:
             for sbase in objects:
@@ -3362,6 +4078,44 @@ class Model(Sbase, FrozenClass, BaseModel):
 
         self._freeze()  # no new attributes after this point
 
+    @staticmethod
+    def _normalize_units(
+        units: type[Units] | list[UnitDefinition] | None,
+    ) -> list[UnitDefinition]:
+        """Normalize the units of a model to a list of UnitDefinitions.
+
+        A model definition declares its units as a `class U(Units)`, which is
+        the documented authoring style; the parser passes a list. Both are
+        stored as a list.
+
+        Args:
+            units: a `Units` subclass, a list of UnitDefinitions, or None
+
+        Returns:
+            the unit definitions of the model
+
+        Raises:
+            ValueError: if an attribute of the `Units` class is neither a unit
+                string nor a UnitDefinition
+        """
+        if units is None:
+            return []
+        if isinstance(units, list):
+            return units
+
+        udefs: list[UnitDefinition] = []
+        for uid, definition in units.attributes():
+            if isinstance(definition, str):
+                udefs.append(UnitDefinition(sid=uid, definition=definition))
+            elif isinstance(definition, UnitDefinition):
+                udefs.append(definition)
+            else:
+                raise ValueError(
+                    f"Units attributes must be a unit string or UnitDefinition, "
+                    f"but '{type(definition)}' for '{definition}'."
+                )
+        return udefs
+
     def create_sbml(self, doc: libsbml.SBMLDocument) -> libsbml.Model:
         """Create Model.
 
@@ -3369,6 +4123,13 @@ class Model(Sbase, FrozenClass, BaseModel):
 
           doc = Document(model=model).create_sbml()
         """
+        if self.parsed:
+            with Sbase.no_authoring_hints():
+                return self._create_sbml(doc)
+        return self._create_sbml(doc)
+
+    def _create_sbml(self, doc: libsbml.SBMLDocument) -> libsbml.Model:
+        """Create the libsbml.Model and all its objects."""
         model: libsbml.Model = doc.createModel()
         self._set_fields(model, model)
 
@@ -3376,9 +4137,16 @@ class Model(Sbase, FrozenClass, BaseModel):
         if self.creators:
             set_model_history(model, self.creators)
 
+        # conversion factor
+        if self.conversionFactor is not None:
+            check(
+                model.setConversionFactor(self.conversionFactor),
+                f"Set conversionFactor on model '{self.sid}'",
+            )
+
         # units
-        if self.units:
-            self.units.create_unit_definitions(model=model)
+        for udef in self.units:
+            udef.create_sbml(model=model)
 
         # model units
         if self.model_units:
@@ -3463,22 +4231,71 @@ class Model(Sbase, FrozenClass, BaseModel):
                     f"but package '{p}' found."
                 )
 
-        # add comp as default package
-        packages_set.add(Package.COMP_V1)
-
         return list(packages_set)
+
+    def _has_comp_content(self) -> bool:
+        """Determine whether writing this model requires the comp package.
+
+        The `submodels`/`ports`/`replaced_elements`/`deletions`/
+        `model_definitions`/`external_model_definitions` lists are the
+        explicit comp constructs, but comp is also engaged by the
+        `port=True`/`Port(...)` and `replacedBy=...` shorthand any
+        `Sbase`-derived element can carry (`Sbase.create_port`,
+        `Sbase.create_replaced_by`), which does not populate `ports` at all.
+        Such an element need not be in a list of the model: the parameters
+        and rules of a `Reaction` are written as elements of the model, a
+        `KineticLaw` holds its local parameters, an `Event` its assignments.
+        So every `Sbase` reachable from the model is checked, see
+        `_iter_sbases`, rather than a list of the places an element can be
+        nested in, which would miss the next one.
+        This is checked here, once every element list of the model is
+        populated, rather than defaulted in `check_packages`, which runs
+        from `__init__` before any of them are.
+
+        Returns:
+            True if the model uses a comp construct anywhere
+        """
+        if (
+            self.submodels
+            or self.ports
+            or self.replaced_elements
+            or self.deletions
+            or self.model_definitions
+            or self.external_model_definitions
+        ):
+            return True
+
+        return any(
+            getattr(sbase, "port", None) not in (None, False)
+            or bool(getattr(sbase, "replacedBy", None))
+            for sbase in _iter_sbases(self)
+        )
 
     @staticmethod
     def merge_models(models: Iterable[Model]) -> Model:
-        """Merge information from multiple models."""
+        """Merge information from multiple models into a single model.
+
+        The lists of the models are concatenated, the creators and the unit
+        definitions are collected and deduplicated, and every other attribute
+        is taken from the last model which sets it.
+
+        Args:
+            models: the models to merge; a single Model is returned unchanged
+
+        Returns:
+            the merged model
+
+        Raises:
+            ValueError: if no models are provided
+        """
         if isinstance(models, Model):
             return models
         if not models:
             raise ValueError("No models are provided.")
         model = Model("template")
-        units_base_classes: list[type[Units]] = (
-            [model.units] if model.units else [Units]
-        )
+        # units are collected over all models and deduplicated by their id, so
+        # that two models which define the same unit do not write it twice
+        udefs: dict[str, UnitDefinition] = {}
         creators: dict[Creator, Any] = {}  # using a dict to keep order of insertion
         for m2 in models:
             for key, value in m2.__dict__.items():
@@ -3496,10 +4313,11 @@ class Model(Sbase, FrozenClass, BaseModel):
                         if value:
                             setattr(model, key, deepcopy(value))
 
-                # units are collected and class created dynamically at the end
+                # units are collected and merged at the end
                 elif key == "units":
-                    if m2.units:
-                        units_base_classes.append(m2.units)
+                    for udef in m2.units:
+                        if udef.sid:
+                            udefs[udef.sid] = udef
                 elif key == "creators":
                     if m2.creators:
                         for c in m2.creators:
@@ -3508,15 +4326,7 @@ class Model(Sbase, FrozenClass, BaseModel):
                 else:
                     setattr(model, key, value)
 
-        # Handle merging of units
-        attr_dict = {}
-        for base_class in units_base_classes:
-            for a in base_class.attributes():
-                attr_dict[a[0]] = a[1]
-
-        if units_base_classes:
-            model.units = type("U", (Units,), attr_dict)
-
+        model.units = list(udefs.values())
         model.creators = list(creators)
 
         return model
@@ -3533,7 +4343,7 @@ class Document(Sbase):
         sboTerm: str | None = None,
         metaId: str | None = None,
         annotations: OptionalAnnotationsType = None,
-        notes: str | None = None,
+        notes: str | Notes | None = None,
         keyValuePairs: list[KeyValuePair] | None = None,
         sbml_level: int = SBML_LEVEL,
         sbml_version: int = SBML_VERSION,
@@ -3547,30 +4357,51 @@ class Document(Sbase):
         self.annotations: list[AnnotationType] = (
             list(annotations) if annotations else []
         )
-        self.notes = notes
+        # `Document` does not call `Sbase.__init__` (it has no sboTerm
+        # handling and sets its own fields), so the notes normalization
+        # `Sbase.__init__` otherwise applies is done here explicitly
+        self.notes = Sbase._process_notes(notes)
         self.keyValuePairs = keyValuePairs
         self.sbml_level = sbml_level
         self.sbml_version = sbml_version
         self.doc: libsbml.SBMLDocument | None = None
 
-        sbmlutils_notes = """
+        sbmlutils_notes = Sbase._process_notes(
+            """
         Created with [https://github.com/matthiaskoenig/sbmlutils](https://github.com/matthiaskoenig/sbmlutils).
         [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5525390.svg)](https://doi.org/10.5281/zenodo.5525390)
         """
+        )
+        assert sbmlutils_notes is not None
+
         if self.notes is None:
             self.notes = sbmlutils_notes
         else:
-            self.notes += sbmlutils_notes
+            # both are already xhtml, appending the attribution as it is
+            # would nest a body inside the notes; its content goes into their
+            # body instead, which keeps an `<html>` root with its head
+            self.notes = _append_to_xhtml_body(
+                self.notes, _xhtml_body_content(sbmlutils_notes)
+            )
 
     def create_sbml(self) -> libsbml.SBMLDocument:
         """Create SBML model."""
         logger.info("Create SBML for model '%s'", self.model.sid)
 
+        # the packages actually needed to write this model: comp is added
+        # when the model has comp content the definition did not explicitly
+        # request it for (see `Model._has_comp_content`). This must be
+        # decided before the namespace is built, since libsbml cannot enable
+        # a package on the document after it exists.
+        packages = list(self.model.packages)
+        if self.model._has_comp_content() and Package.COMP_V1 not in packages:
+            packages.append(Package.COMP_V1)
+
         # create core model
         sbmlns = libsbml.SBMLNamespaces(self.sbml_level, self.sbml_version)
 
         # add all the package
-        for package in self.model.packages:
+        for package in packages:
             if package == Package.COMP_V1:
                 sbmlns.addPackageNamespace("comp", 1)
             if package == Package.DISTRIB_V1:
@@ -3586,15 +4417,13 @@ class Document(Sbase):
         # create model
         sbml_model: libsbml.Model = self.model.create_sbml(self.doc)
 
-        if Package.COMP_V1 in self.model.packages:
+        if Package.COMP_V1 in packages:
             self.doc.setPackageRequired("comp", True)
-        if (Package.FBC_V2 in self.model.packages) or (
-            Package.FBC_V3 in self.model.packages
-        ):
+        if (Package.FBC_V2 in packages) or (Package.FBC_V3 in packages):
             self.doc.setPackageRequired("fbc", False)
             fbc_plugin = sbml_model.getPlugin("fbc")
             fbc_plugin.setStrict(False)
-        if Package.DISTRIB_V1 in self.model.packages:
+        if Package.DISTRIB_V1 in packages:
             self.doc.setPackageRequired("distrib", True)
 
         return self.doc

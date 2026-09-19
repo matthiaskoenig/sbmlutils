@@ -455,3 +455,63 @@ def test_sabiork_uncertainty() -> None:
         ],
     }
     check_model(Model(**model_dict))
+
+
+def test_uncert_parameter_writes_var() -> None:
+    """Test that an UncertParameter with a var writes it.
+
+    `create_sbml` called `setValue(uncertParameter.var)` instead of `setVar`.
+    """
+    doc = libsbml.SBMLDocument(3, 1)
+    doc.enablePackage(
+        "http://www.sbml.org/sbml/level3/version1/distrib/version1", "distrib", True
+    )
+    model = doc.createModel()
+    parameter = model.createParameter()
+    parameter.setId("p1")
+    parameter.setConstant(True)
+
+    uncertainty = Uncertainty(
+        uncertParameters=[
+            UncertParameter(type=libsbml.DISTRIB_UNCERTTYPE_MEAN, var="p2")
+        ]
+    )
+    uncertainty.create_sbml(parameter, model)
+
+    up = parameter.getPlugin("distrib").getUncertainty(0).getUncertParameter(0)
+    assert up.getVar() == "p2"
+
+
+def test_uncert_span_writes_var_upper() -> None:
+    """Test that an UncertSpan with a varUpper writes it.
+
+    `create_sbml` called `up_span.setValueLower(uncertSpan.varUpper)` instead
+    of `up_span.setVarUpper(uncertSpan.varUpper)`, so the upper bound
+    variable reference was never written and instead clobbered the lower
+    numeric value.
+    """
+    doc = libsbml.SBMLDocument(3, 1)
+    doc.enablePackage(
+        "http://www.sbml.org/sbml/level3/version1/distrib/version1", "distrib", True
+    )
+    model = doc.createModel()
+    parameter = model.createParameter()
+    parameter.setId("p1")
+    parameter.setConstant(True)
+
+    uncertainty = Uncertainty(
+        uncertSpans=[
+            UncertSpan(
+                type=libsbml.DISTRIB_UNCERTTYPE_RANGE,
+                valueLower=1.0,
+                varUpper="p2",
+            )
+        ]
+    )
+    uncertainty.create_sbml(parameter, model)
+
+    # `UncertSpan` is stored (and retrieved) as an `UncertParameter` in
+    # libsbml's distrib implementation.
+    span = parameter.getPlugin("distrib").getUncertainty(0).getUncertParameter(0)
+    assert span.getValueLower() == 1.0
+    assert span.getVarUpper() == "p2"

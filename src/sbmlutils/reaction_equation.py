@@ -96,14 +96,22 @@ class ReactionEquation:
         self,
         reactants: list[EquationPart] | None = None,
         products: list[EquationPart] | None = None,
-        modifiers: list[str] | None = None,
+        modifiers: list[EquationPart | str] | None = None,
         reversible: bool = True,
     ):
-        """Initialize equation."""
+        """Initialize equation.
+
+        A modifier may be given as a bare species id, which is the documented
+        string syntax, or as a full `EquationPart` carrying its own SBase
+        fields. Both are stored as `EquationPart`.
+        """
         self.reversible: bool = reversible
         self.reactants: list[EquationPart] = reactants if reactants else []
         self.products: list[EquationPart] = products if products else []
-        self.modifiers: list[str] = modifiers if modifiers else []
+        self.modifiers: list[EquationPart] = [
+            EquationPart(species=modifier) if isinstance(modifier, str) else modifier
+            for modifier in (modifiers if modifiers else [])
+        ]
 
     @staticmethod
     def from_str(equation_str: str) -> ReactionEquation:
@@ -165,7 +173,11 @@ class ReactionEquation:
         s = s.strip()
         tokens = re.split("[,;]", s)
         modifiers = [t.strip() for t in tokens]
-        self.modifiers = [t for t in modifiers if len(t) > 0]
+        self.modifiers = [
+            EquationPart(species=modifier)
+            for modifier in modifiers
+            if len(modifier) > 0
+        ]
 
     def _parse_half_equation(self, string: str) -> list[EquationPart]:
         """Parse half-equation.
@@ -227,7 +239,7 @@ class ReactionEquation:
         return " + ".join(tokens)
 
     def _to_string_modifiers(self) -> str:
-        return f"[{', '.join(self.modifiers)}]"
+        return f"[{', '.join(modifier.species for modifier in self.modifiers)}]"
 
     def to_string(self, modifiers: bool = False) -> str:
         """Get string representation of equation."""

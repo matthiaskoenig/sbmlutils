@@ -1,12 +1,13 @@
 """Testing notes."""
 
+import logging
 import re
 
 import libsbml
 import pytest
 
-from sbmlutils.factory import Parameter
-from sbmlutils.notes import Notes
+from sbmlutils.factory import Document, Model, Parameter, _xhtml_body_content
+from sbmlutils.notes import Notes, NotesFormat, detect_format
 
 
 @pytest.mark.parametrize(
@@ -106,3 +107,171 @@ def test_note_sbml(notes: str, expected: str) -> None:
     p_sbml: libsbml.Parameter = p.create_sbml(model=model)
     assert p_sbml
     assert p_sbml.isSetNotes()
+
+
+def test_detect_format_markdown() -> None:
+    """Test that a markdown string is detected as markdown."""
+    assert detect_format("A **glucose** species") == NotesFormat.MARKDOWN
+
+
+def test_detect_format_html() -> None:
+    """Test that an XHTML string is detected as html."""
+    notes = '<body xmlns="http://www.w3.org/1999/xhtml"><p>text</p></body>'
+    assert detect_format(notes) == NotesFormat.HTML
+
+
+def test_detect_format_leading_whitespace() -> None:
+    """Test that leading whitespace does not hide the markup."""
+    notes = '\n  <body xmlns="http://www.w3.org/1999/xhtml"><p>text</p></body>'
+    assert detect_format(notes) == NotesFormat.HTML
+
+
+def test_detect_format_markdown_with_inline_html() -> None:
+    """Test that markdown which merely contains a tag stays markdown.
+
+    Only a string which *starts* with markup is html, so a markdown
+    paragraph using an inline tag is still rendered as markdown.
+    """
+    assert detect_format("see <b>this</b> value") == NotesFormat.MARKDOWN
+
+
+def test_notes_html_is_not_rendered() -> None:
+    """Test that html notes are stored verbatim.
+
+    Markdown rendering mutates plain text, `2*3*4` becomes `2<em>3</em>4`,
+    which must not happen to notes which came from an SBML file.
+    """
+    notes = '<body xmlns="http://www.w3.org/1999/xhtml"><p>2*3*4</p></body>'
+    assert "2*3*4" in str(Notes(notes, format=NotesFormat.HTML))
+    assert "<em>" not in str(Notes(notes, format=NotesFormat.HTML))
+
+
+def test_xhtml_body_content_self_closing_body_logs_warning(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that a self-closing body without a closing tag is handled loudly.
+
+    `<body .../>` has no `</body>` to search for. The empty result is
+    correct (a self-closed body has no content), but it must be reached
+    through an explicit guard and a logged warning rather than by accident
+    of the slice indices, so that genuinely malformed input is not silently
+    swallowed.
+    """
+    notes = '<body xmlns="http://www.w3.org/1999/xhtml"/>'
+    with caplog.at_level(logging.WARNING, logger="sbmlutils"):
+        content = _xhtml_body_content(notes)
+    assert content == ""
+    assert any("</body>" in record.getMessage() for record in caplog.records)
+
+
+#: a complete XHTML document as notes, the form CellDesigner writes
+HTML_NOTES: str = (
+    '<html xmlns="http://www.w3.org/1999/xhtml">'
+    "<head><title>t</title></head>"
+    "<body><p>2*3*4</p></body>"
+    "</html>"
+)
+
+
+def test_notes_html_root_is_kept() -> None:
+    """Test that notes rooted at `<html>` are not wrapped into a body.
+
+    SBML allows a complete XHTML document as notes. Wrapping it into a body
+    nests an `<html>` inside a `<body>`, which is not valid XHTML.
+    """
+    notes = str(Notes(HTML_NOTES, format=NotesFormat.HTML))
+    assert notes.startswith("<html")
+    assert notes.count("<body") == 1
+    assert "<title>t</title>" in notes
+
+
+def test_xhtml_body_content_of_html_root() -> None:
+    """Test that the content of the body of an `<html>` document is found.
+
+    The content used to be sliced from the first `>`, which is the end of
+    the `<html>` tag, so the head and the opening body tag were part of it.
+    """
+    assert _xhtml_body_content(HTML_NOTES) == "<p>2*3*4</p>"
+
+
+def _make_model() -> Model:
+    """Create a minimal model for `Document` notes tests.
+
+    Returns:
+        a `Model` with only an `sid`, sufficient to construct a `Document`
+    """
+    return Model(sid="m1")
+
+
+def test_document_notes_merges_markdown() -> None:
+    """Test that Document merges user markdown notes with the attribution.
+
+    The merged notes must be a single well formed body: the markdown must
+    be rendered, the sbmlutils attribution must still be present, and the
+    two fragments must not nest one body inside another.
+    """
+    doc = Document(model=_make_model(), notes="some **markdown**")
+    assert doc.notes is not None
+    assert doc.notes.count("<body") == 1
+    assert "<strong>markdown</strong>" in doc.notes
+    assert "Created with" in doc.notes
+
+    sbml_doc = doc.create_sbml()
+    assert sbml_doc.getNumErrors() == 0
+
+
+def test_document_notes_merges_html_verbatim() -> None:
+    """Test that Document merges user html notes without re-rendering them.
+
+    Html notes must survive the merge untouched, next to the sbmlutils
+    attribution, in a single body.
+    """
+    html = '<body xmlns="http://www.w3.org/1999/xhtml"><p>2*3*4</p></body>'
+    doc = Document(model=_make_model(), notes=Notes(html, format=NotesFormat.HTML))
+    assert doc.notes is not None
+    assert doc.notes.count("<body") == 1
+    assert "2*3*4" in doc.notes
+    assert "<em>" not in doc.notes
+    assert "Created with" in doc.notes
+
+    sbml_doc = doc.create_sbml()
+    assert sbml_doc.getNumErrors() == 0
+
+
+def test_document_default_notes_are_rendered_html() -> None:
+    """Test that the default sbmlutils attribution is rendered html.
+
+    This pins the original bug: the attribution notice used to be stored as
+    raw markdown and, once notes were normalized to xhtml at construction,
+    it had to still come out as rendered html rather than literal markdown
+    text such as `[https://...](...)`.
+    """
+    doc = Document(model=_make_model())
+    assert doc.notes is not None
+    assert doc.notes.count("<body") == 1
+    assert '<a href="https://github.com/matthiaskoenig/sbmlutils">' in doc.notes
+    assert "[https://github.com/matthiaskoenig/sbmlutils]" not in doc.notes
+
+    sbml_doc = doc.create_sbml()
+    assert sbml_doc.getNumErrors() == 0
+
+
+def test_document_notes_merges_html_root() -> None:
+    """Test that Document merges notes rooted at `<html>` into their body.
+
+    The attribution goes at the end of the body of the notes, which keep
+    their root and their head, rather than a second body nested in them.
+    """
+    doc = Document(
+        model=_make_model(), notes=Notes(HTML_NOTES, format=NotesFormat.HTML)
+    )
+    assert doc.notes is not None
+    assert doc.notes.startswith("<html")
+    assert doc.notes.count("<body") == 1
+    assert "<title>t</title>" in doc.notes
+    assert "2*3*4" in doc.notes
+    assert doc.notes.index("Created with") < doc.notes.index("</body>")
+
+    sbml_doc = doc.create_sbml()
+    assert sbml_doc.getNumErrors() == 0
+    assert sbml_doc.getNotesString().count("<body") == 1

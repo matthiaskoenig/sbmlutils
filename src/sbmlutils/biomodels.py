@@ -93,8 +93,7 @@ def download_biomodel_sbml(
         # get SBML models in archive
         sbml_entries = omex.entries_by_format(format_key="sbml")
         if not sbml_entries:
-            msg = f"No SBML entries found in archive '{omex_path}'."
-            logger.error(msg)
+            logger.error("No SBML entries found in archive '%s'.", omex_path)
             return []
 
         if output_format == "omex":

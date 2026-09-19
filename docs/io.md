@@ -50,6 +50,51 @@ print(model.species[0].sid)
 
 This is how an existing model is brought into a python definition which can be edited, composed or generated from.
 
+## Round tripping
+
+`sbml_to_model` and `create_model` compose: a round trip `SBML -> sbml_to_model -> create_model -> SBML` preserves SBML core. A model read from a file can be changed in python and written back without losing what the file had:
+
+```python
+from pathlib import Path
+
+from sbmlutils.factory import create_model
+from sbmlutils.parser import sbml_to_model
+
+model = sbml_to_model(Path("model.xml"))
+model.parameters[0].value = 2.0
+create_model(
+    model=model, filepath=Path("model_changed.xml"), sbml_level=3, sbml_version=2
+)
+```
+
+The round trip preserves the unit definitions and every unit reference, the function definitions, compartments, species and parameters, the reactions with their species references, modifiers and kinetic laws with local parameters, the initial assignments, rules, events and constraints, and the id, name, metaid, sboTerm, notes and annotations of each of them. An element without math, which SBML allows from L3V2 on, such as a rule, an event assignment, a kinetic law, the trigger, priority or delay of an event, or an event without a trigger, round trips without math. Writing a model which was read from a file does not log the authoring hints of `create_model`, such as `'name' should be set`: the model has what its file had.
+
+### Measured coverage
+
+The round trip is tested on the semantic cases of the [SBML test suite](https://github.com/sbmlteam/sbml-test-suite): each case is simulated with roadrunner, round tripped and simulated again, and the two trajectories are compared. The 1690 cases of SBML L3V2 come out as follows:
+
+| Outcome | Cases |
+| --- | --- |
+| the round trip simulates like the original | 1372 |
+| the round trip simulates differently: the comp package | 103 |
+| the round trip simulates differently: an id shadows a MathML constant | 7 |
+| roadrunner does not simulate the original: algebraic rules (108), delay equations (49), fbc (34), solver failures (3) | 194 |
+| the original is not deterministic: events with the same or no priority fire at once, in random order | 14 |
+
+So 1372 of the 1482 cases which can be compared round trip. Of those which use no package, 1362 of 1369 round trip, 99.5%; the other seven are the shadowed constants, see below. `scripts/roundtrip_report.py` runs this sweep, and `tests/test_roundtrip.py` lists every case which does not round trip yet with its reason.
+
+### What is not preserved
+
+- **The fbc, distrib and comp packages.** Their content is not read: flux bounds, objectives and gene products, uncertainties, submodels, ports, replacements and deletions. A round trip keeps the package declaration but not the content, a comp model loses its submodels. The packages are out of scope of this release and are tracked separately.
+- **Math is normalized.** Math round trips through the infix notation of libsbml, so it comes back equivalent rather than identical: `<cn> 2 </cn>` becomes `<cn type="integer"> 2 </cn>`, and `a * (b * c)` one `<times/>` of three arguments. In the infix notation an id named like a MathML constant or csymbol, `pi`, `INF`, `NaN`, `time` or `avogadro`, cannot be told apart from the constant, so one of them comes back as the other.
+- **Annotation URIs are canonicalized.** The annotations are written through pymetadata, which writes a resource in its canonical form: `urn:miriam:pubmed:10659856` becomes `https://identifiers.org/pubmed:10659856`. This is intentional, and idempotent: round tripping the result again writes the same document.
+- **Rules are grouped by kind.** A model keeps its assignment rules, rate rules and algebraic rules in a list each, so the round trip writes them in that order rather than in the order of the file. The order of the rules has no meaning in SBML.
+- **Notes are wrapped into a body.** Notes which are a sequence of elements such as `<p>` are written inside a `<body>`, an equivalent form. Notes which are a `<body>` or a complete XHTML document rooted at `<html>` are kept as they are.
+- **Inherited species units are made explicit.** A species without `substanceUnits` is written with the `substanceUnits` of the model, which it inherits anyway.
+- **The model history** is not read, nor the metadata of the trigger, priority and delay of an event, only their math. The document gains the notes in which `create_model` records that sbmlutils wrote it.
+
+A round trip writes the SBML level and version `create_model` is given, which is L3V1 by default. The coverage above is measured writing L3V2, so only the L3V2 flavour of each test case is a true round trip. Reading an L1 or L2 file and writing L3 is a conversion: the model keeps its meaning, but not the file attribute for attribute.
+
 ## Antimony
 
 [Antimony](https://tellurium.readthedocs.io/en/latest/antimony.html) is a compact text notation for models. `sbmlutils.parser` converts it to SBML, and to a model definition:

@@ -5,6 +5,7 @@ import pytest
 from sbmlutils.reaction_equation import (
     IRREVERSIBILITY_SEPARATOR,
     REVERSIBILITY_SEPARATOR,
+    EquationPart,
     ReactionEquation,
 )
 
@@ -93,3 +94,20 @@ def test_equation_no_products() -> None:
     eq = ReactionEquation.from_str(eq_string)
     test_res = eq_string.replace("=>", IRREVERSIBILITY_SEPARATOR)
     assert eq.to_string() == test_res
+
+
+def test_modifiers_accept_strings() -> None:
+    """Test that the `modifiers=["M1"]` authoring style still works."""
+    equation = ReactionEquation.from_str("S1 -> S2 [M1]")
+    assert len(equation.modifiers) == 1
+    assert equation.modifiers[0].species == "M1"
+
+
+def test_modifiers_keep_sbase_fields() -> None:
+    """Test that a modifier carries its own metaId and sboTerm."""
+    equation = ReactionEquation(
+        reactants=[EquationPart(species="S1")],
+        products=[EquationPart(species="S2")],
+        modifiers=[EquationPart(species="M1", metaId="mod1", sboTerm="SBO:0000019")],
+    )
+    assert equation.modifiers[0].metaId == "mod1"

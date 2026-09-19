@@ -17,6 +17,8 @@ model = Model(
 )
 ```
 
+A model declares the comp package when it has comp content: a `port` or a `replacedBy` on any of its elements, also on a parameter or a rule of a reaction, a submodel, a port, a replaced element, a deletion or a model definition. `Package.COMP_V1` in `packages` declares it explicitly, for a model which gets its comp content later, e.g. from `sbmlutils.comp.create_ports` on the written document.
+
 The port of an element gets the id of the element plus `PORT_SUFFIX` (`_port`), so the port of `cell` is `cell_port`. A unit port uses `PORT_UNIT_SUFFIX` (`_unit_port`). A `Port` object is created explicitly when the id or the reference has to be different.
 
 ## Submodels
