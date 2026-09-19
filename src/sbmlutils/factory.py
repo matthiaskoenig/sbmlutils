@@ -766,17 +766,19 @@ class ModelUnits:
                 uid = UnitDefinition.get_uid_for_unit(unit=unit)
                 # set the values; the six unit attributes of a model are SBML
                 # L3 only, and below L3 every one of them answers
-                # `LIBSBML_UNEXPECTED_ATTRIBUTE`
-                setter = {
-                    "time": model.setTimeUnits,
-                    "extent": model.setExtentUnits,
-                    "substance": model.setSubstanceUnits,
-                    "length": model.setLengthUnits,
-                    "area": model.setAreaUnits,
-                    "volume": model.setVolumeUnits,
+                # `LIBSBML_UNEXPECTED_ATTRIBUTE`. The report names the
+                # attribute as the document spells it, not as the field of
+                # `ModelUnits` is called
+                setter, attribute = {
+                    "time": (model.setTimeUnits, "timeUnits"),
+                    "extent": (model.setExtentUnits, "extentUnits"),
+                    "substance": (model.setSubstanceUnits, "substanceUnits"),
+                    "length": (model.setLengthUnits, "lengthUnits"),
+                    "area": (model.setAreaUnits, "areaUnits"),
+                    "volume": (model.setVolumeUnits, "volumeUnits"),
                 }[key]
                 _check_attribute(
-                    setter(uid), model, f"{key} unit", uid, f"Model({model.getId()})"
+                    setter(uid), model, attribute, uid, f"Model({model.getId()})"
                 )
 
 
@@ -795,7 +797,11 @@ def set_model_history(
         # document which has no metaid at all (SBML L1) cannot carry one
         metaid = create_metaid(sbase=sbase)
         _check_attribute(
-            sbase.setMetaId(metaid), sbase, "metaId", metaid, sbase.getElementName()
+            sbase.setMetaId(metaid),
+            sbase,
+            "metaId",
+            metaid,
+            f"Model({sbase.getId()})",
         )
 
     # create and set model history
@@ -2827,7 +2833,9 @@ class RuleWithVariable:
                 p.getId(),
                 p.getConstant(),
             )
-            _check_attribute(p.setConstant(False), p, "constant", False, p.getId())
+            _check_attribute(
+                p.setConstant(False), p, "constant", False, f"Parameter({p.getId()})"
+            )
 
         # Check if rule exists
         if model.getRuleByVariable(self.variable):
@@ -5609,7 +5617,7 @@ class Objective(Sbase):
             _check_attribute(
                 model_fbc.setActiveObjectiveId(self.sid),
                 model_fbc,
-                "activeObjective",
+                "activeObjectiveId",
                 self.sid,
                 self,
             )

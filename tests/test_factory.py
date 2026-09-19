@@ -2172,7 +2172,7 @@ _SWALLOWED_ATTRIBUTES: list[Any] = [
         ),
         3,
         1,
-        ["time unit", "not an sid", "Model(invalid_unit_id)"],
+        ["timeUnits", "not an sid", "Model(invalid_unit_id)"],
         id="invalid-unit-id",
     ),
     pytest.param(
