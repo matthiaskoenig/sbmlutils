@@ -159,3 +159,7 @@ Measured with python-libsbml 5.21.2 alone, no sbmlutils involved (package branch
 ## 12. libsbml: the core id and name of a comp reference are not written
 
 Measured with python-libsbml 5.21.2 alone (package branch, comp data model). The SBML Level 3 Version 2 core `id` and `name` set on a `ReplacedElement`, a `ReplacedBy`, a `Deletion` or a nested `sBaseRef` do not survive a write and re-read, nested or not; `metaid`, `sboTerm`, notes, annotation and the four reference attributes do. A `Port` is not affected, its `id` is a comp attribute. sbmlutils sets them, libsbml does not write them, and the structural comparison reads both sides through libsbml and cannot see it. Documented on the `SbaseRef` docstring.
+
+## 13. libsbml: fbc:strict cannot be written on a comp model definition
+
+Measured with python-libsbml 5.21.2 alone (package branch, `ModelDefinition` as a `Model`). Setting `strict` on the fbc plugin of a `<comp:modelDefinition>` writes the `fbc:strict` attribute twice, and the file then fails to parse with "Duplicate XML attribute". sbmlutils therefore does not write `fbc:strict` on a model definition, and a document whose model definition carries fbc content validates with libsbml error 2020209 (the required attribute is missing): a validation error which a reader survives, instead of a file which no reader can open. `comp/flatten.py` copy-constructs a `libsbml.ModelDefinition` and is affected by the same defect. To report upstream at [sbmlteam/libsbml](https://github.com/sbmlteam/libsbml).
