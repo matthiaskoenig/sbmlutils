@@ -159,7 +159,7 @@ Prerequisite for `fbc:strict` (Task 5), or it becomes a fifth hand-synchronized 
 - Test: `tests/test_model_merge.py`
 
 **Interfaces:**
-- Produces: `Model._keys` computed once at class definition from the `Model` field annotations: any `list[...]` annotation maps to `list`, everything else to `None`, with an explicit override table whose only entry is `units -> None` and a comment saying why (a `list` would make `merge_models` concatenate unit definitions and write duplicate unit ids).
+- Produces: `Model._keys` computed once at class definition from the `Model` field annotations: any `list[...]` annotation maps to `list`, everything else to `None`, with an explicit override table of two entries, `units -> None` and `creators -> None`, and a comment saying why (`merge_models` collects both in its own deduplicating branch and overwrites them after its loop; a `list` would make it concatenate unit definitions and write duplicate unit ids, and would leave the merged creators empty). The second entry is ruling R3a: the literal already held `"creators": None`, which the plan had missed.
 
 - [ ] **Step 1: Write a test that the derived `_keys` equals the current literal `_keys` exactly**, so the refactor provably changes nothing. Capture the literal dict from the live code into the test first.
 - [ ] **Step 2: Run it against the current code**: it passes trivially, which is the point; it pins the current content.
