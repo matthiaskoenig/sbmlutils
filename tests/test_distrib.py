@@ -3,6 +3,7 @@
 from typing import Any
 
 import libsbml
+import pytest
 
 from examples.distrib import distrib_packages_examples, distrib_uncertainty
 from sbmlutils.factory import *
@@ -515,3 +516,258 @@ def test_uncert_span_writes_var_upper() -> None:
     span = parameter.getPlugin("distrib").getUncertainty(0).getUncertParameter(0)
     assert span.getValueLower() == 1.0
     assert span.getVarUpper() == "p2"
+
+
+#: the sboTerm written on the children of the uncertainty in the metadata tests
+UNCERT_SBO = "SBO:0000612"
+
+
+@pytest.fixture
+def uncert_metadata_doc() -> libsbml.SBMLDocument:
+    """Write an uncertainty whose children carry every metadata field.
+
+    The model is serialized and read back, so that the assertions are made on
+    a document which went through the SBML writer and parser, not on the
+    objects the factory created.
+
+    Returns:
+        the document read back from the written SBML; the test has to hold it,
+        libsbml objects do not keep their document alive
+    """
+    model = Model(
+        "uncert_metadata",
+        packages=[Package.DISTRIB_V1, Package.FBC_V3],
+        parameters=[
+            Parameter(
+                "p1",
+                value=1.0,
+                uncertainties=[
+                    Uncertainty(
+                        "u1",
+                        uncertParameters=[
+                            UncertParameter(
+                                type=libsbml.DISTRIB_UNCERTTYPE_MEAN,
+                                value=5.0,
+                                sid="up_mean",
+                                name="mean of p1",
+                                metaId="meta_up_mean",
+                                sboTerm=UNCERT_SBO,
+                                annotations=[(BQB.IS, "chebi/CHEBI:15377")],
+                                notes="mean of the measurements",
+                                keyValuePairs=[
+                                    KeyValuePair(
+                                        key="source",
+                                        value="sabiork",
+                                        uri="https://example.org/kvp",
+                                    )
+                                ],
+                            )
+                        ],
+                        uncertSpans=[
+                            UncertSpan(
+                                type=libsbml.DISTRIB_UNCERTTYPE_RANGE,
+                                valueLower=1.0,
+                                valueUpper=9.0,
+                                sid="up_range",
+                                name="range of p1",
+                                metaId="meta_up_range",
+                                sboTerm=UNCERT_SBO,
+                                annotations=[(BQB.IS, "chebi/CHEBI:15377")],
+                                notes="range of the measurements",
+                                keyValuePairs=[
+                                    KeyValuePair(
+                                        key="source",
+                                        value="sabiork",
+                                        uri="https://example.org/kvp",
+                                    )
+                                ],
+                            )
+                        ],
+                    )
+                ],
+            )
+        ],
+    )
+    doc: libsbml.SBMLDocument = Document(model=model).create_sbml()
+    doc_read: libsbml.SBMLDocument = libsbml.readSBMLFromString(
+        libsbml.writeSBMLToString(doc)
+    )
+    return doc_read
+
+
+def _uncert_child(doc: libsbml.SBMLDocument, sid: str) -> libsbml.UncertParameter:
+    """Get the child of the uncertainty with the given id.
+
+    A span is stored and read back as an `UncertParameter` in the same list,
+    so both children are looked up by their id rather than by their position.
+
+    Args:
+        doc: the document written by the `uncert_metadata_doc` fixture
+        sid: the id of the uncert parameter or span
+
+    Returns:
+        the libsbml.UncertParameter with this id
+    """
+    uncertainty: libsbml.Uncertainty = (
+        doc.getModel().getParameter("p1").getPlugin("distrib").getUncertainty(0)
+    )
+    children: libsbml.ListOfUncertParameters = uncertainty.getListOfUncertParameters()
+    for k in range(children.size()):
+        child: libsbml.UncertParameter = children.get(k)
+        if child.getId() == sid:
+            return child
+    raise AssertionError(f"No uncert parameter '{sid}' in '{uncertainty}'.")
+
+
+@pytest.mark.parametrize("sid", ["up_mean", "up_range"])
+def test_uncert_child_writes_meta_id_and_sbo_term(
+    uncert_metadata_doc: libsbml.SBMLDocument, sid: str
+) -> None:
+    """Test that a metaId and an sboTerm are written on a child of an uncertainty."""
+    child = _uncert_child(uncert_metadata_doc, sid)
+    assert child.getMetaId() == f"meta_{sid}"
+    assert child.getSBOTermID() == UNCERT_SBO
+
+
+@pytest.mark.parametrize("sid", ["up_mean", "up_range"])
+def test_uncert_child_writes_id_and_name(
+    uncert_metadata_doc: libsbml.SBMLDocument, sid: str
+) -> None:
+    """Test that an id and a name are written on a child of an uncertainty."""
+    child = _uncert_child(uncert_metadata_doc, sid)
+    assert child.getId() == sid
+    assert child.getName() == ("mean of p1" if sid == "up_mean" else "range of p1")
+
+
+@pytest.mark.parametrize("sid", ["up_mean", "up_range"])
+def test_uncert_child_writes_notes(
+    uncert_metadata_doc: libsbml.SBMLDocument, sid: str
+) -> None:
+    """Test that notes are written on a child of an uncertainty."""
+    child = _uncert_child(uncert_metadata_doc, sid)
+    assert child.isSetNotes()
+    assert "of the measurements" in child.getNotesString()
+
+
+@pytest.mark.parametrize("sid", ["up_mean", "up_range"])
+def test_uncert_child_writes_annotations(
+    uncert_metadata_doc: libsbml.SBMLDocument, sid: str
+) -> None:
+    """Test that annotations are written on a child of an uncertainty."""
+    child = _uncert_child(uncert_metadata_doc, sid)
+    assert child.getNumCVTerms() == 1
+    cvterm: libsbml.CVTerm = child.getCVTerm(0)
+    assert cvterm.getBiologicalQualifierType() == libsbml.BQB_IS
+    assert cvterm.getResourceURI(0).endswith("CHEBI:15377")
+
+
+@pytest.mark.parametrize("sid", ["up_mean", "up_range"])
+def test_uncert_child_writes_key_value_pairs(
+    uncert_metadata_doc: libsbml.SBMLDocument, sid: str
+) -> None:
+    """Test that fbc key value pairs are written on a child of an uncertainty."""
+    child = _uncert_child(uncert_metadata_doc, sid)
+    child_fbc: libsbml.FbcSBasePlugin = child.getPlugin("fbc")
+    assert child_fbc is not None
+    assert child_fbc.getNumKeyValuePairs() == 1
+    kvp: libsbml.KeyValuePair = child_fbc.getKeyValuePair(0)
+    assert kvp.getKey() == "source"
+    assert kvp.getValue() == "sabiork"
+    assert kvp.getUri() == "https://example.org/kvp"
+
+
+def test_uncert_child_without_id_writes_no_id() -> None:
+    """Test that a child of an uncertainty without an id is written without one."""
+    model = Model(
+        "uncert_without_id",
+        packages=[Package.DISTRIB_V1],
+        parameters=[
+            Parameter(
+                "p1",
+                value=1.0,
+                uncertainties=[
+                    Uncertainty(
+                        uncertParameters=[
+                            UncertParameter(
+                                type=libsbml.DISTRIB_UNCERTTYPE_MEAN, value=5.0
+                            )
+                        ],
+                        uncertSpans=[
+                            UncertSpan(
+                                type=libsbml.DISTRIB_UNCERTTYPE_RANGE,
+                                valueLower=1.0,
+                                valueUpper=9.0,
+                            )
+                        ],
+                    )
+                ],
+            )
+        ],
+    )
+    doc: libsbml.SBMLDocument = Document(model=model).create_sbml()
+    uncertainty: libsbml.Uncertainty = (
+        doc.getModel().getParameter("p1").getPlugin("distrib").getUncertainty(0)
+    )
+    children: libsbml.ListOfUncertParameters = uncertainty.getListOfUncertParameters()
+    assert children.size() == 2
+    for k in range(children.size()):
+        assert not children.get(k).isSetId()
+    assert "distrib:id" not in libsbml.writeSBMLToString(doc)
+
+
+@pytest.mark.parametrize("field", ["uncertainties", "port", "replacedBy"])
+def test_uncert_children_do_not_offer_the_model_bound_fields(field: str) -> None:
+    """Test that the `Sbase` fields which need the model are not offered.
+
+    A child of an uncertainty is written without the `libsbml.Model`, so the
+    three fields which are written from the model are refused by the
+    constructor instead of being accepted and dropped, see the class
+    docstrings.
+    """
+    with pytest.raises(TypeError):
+        UncertParameter(
+            type=libsbml.DISTRIB_UNCERTTYPE_MEAN,
+            value=1.0,
+            **{field: None},
+        )
+    with pytest.raises(TypeError):
+        UncertSpan(
+            type=libsbml.DISTRIB_UNCERTTYPE_RANGE,
+            valueLower=1.0,
+            valueUpper=2.0,
+            **{field: None},
+        )
+
+
+def test_uncert_child_writes_no_nested_uncertainties() -> None:
+    """Test that a child of an uncertainty writes no uncertainties of its own.
+
+    The children of an uncertainty are written with `model=None`, which is
+    what keeps `Sbase._set_fields` from descending into the `uncertainties` of
+    an element. The field is not offered by the constructor, so it is set here
+    the only way it can be set, on the object, and nothing is written for it.
+    """
+    up = UncertParameter(type=libsbml.DISTRIB_UNCERTTYPE_MEAN, value=5.0)
+    up.uncertainties = [
+        Uncertainty(
+            uncertParameters=[
+                UncertParameter(type=libsbml.DISTRIB_UNCERTTYPE_VARIANCE, value=1.0)
+            ]
+        )
+    ]
+    model = Model(
+        "nested_uncertainties",
+        packages=[Package.DISTRIB_V1],
+        parameters=[
+            Parameter(
+                "p1", value=1.0, uncertainties=[Uncertainty(uncertParameters=[up])]
+            )
+        ],
+    )
+    doc: libsbml.SBMLDocument = Document(model=model).create_sbml()
+    uncertainty: libsbml.Uncertainty = (
+        doc.getModel().getParameter("p1").getPlugin("distrib").getUncertainty(0)
+    )
+    child: libsbml.UncertParameter = uncertainty.getUncertParameter(0)
+    child_distrib: libsbml.DistribSBasePlugin = child.getPlugin("distrib")
+    assert child_distrib.getNumUncertainties() == 0
