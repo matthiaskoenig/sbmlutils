@@ -9,6 +9,7 @@ The cases of the SBML test suite are resolved from the checkout, see `tests/test
 
 import logging
 import re
+import shutil
 from collections import Counter
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -3157,3 +3158,32 @@ def test_roundtrip_preserves_the_comp_content_of_every_case(
     assert dict(remaining) == COMP_REMAINING.get(sbml_path.name[:5], {}), (
         _comp_differences(structural_diff(doc_in, doc_out))
     )
+
+
+def test_roundtrip_of_an_l3v1_comp_model_validates_at_its_own_version(
+    tmp_path: Path,
+) -> None:
+    """Test what libsbml makes of an external model definition of another version.
+
+    `COMP_ICG_BODY` is an L3V1 document whose liver submodel is the L3V1 file `icg_liver.xml` next to it. Written at L3V1, with that file beside it, the round trip validates without an error. Written at L3V2, libsbml refuses to resolve the reference, error 1020304 (`External models must be L3`, whose message says the document found at the source "was not SBML Level 3 Version 1"), and the submodel which names it is then unresolvable as well, error 1020615: libsbml requires the referenced document at the level and version of the document which references it. The round trip preserves the reference and does not touch the file it names, so the level of the document written is what decides this, and a caller who needs the reference to resolve writes the level of the source.
+    """
+    shutil.copy(COMP_ICG_BODY.parent / "icg_liver.xml", tmp_path / "icg_liver.xml")
+    model = sbml_to_model(COMP_ICG_BODY)
+    errors: dict[int, list[int]] = {}
+    for version in (1, 2):
+        out = tmp_path / f"icg_body-l3v{version}.xml"
+        create_model(
+            model=model,
+            filepath=out,
+            sbml_level=3,
+            sbml_version=version,
+            validate=False,
+        )
+        # the document is held while its errors are read: a libsbml error
+        # does not keep the document it belongs to alive
+        doc = _read(out)
+        result = validate_doc(doc, options=ValidationOptions())
+        errors[version] = sorted({error.getErrorId() for error in result.errors})
+
+    assert errors[1] == []
+    assert errors[2] == [1020304, 1020615]

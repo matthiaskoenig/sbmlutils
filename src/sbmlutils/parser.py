@@ -403,8 +403,8 @@ def _parse_replaced_elements(model: libsbml.Model, m: Model) -> None:
     by id or, for an element which has no id, by metaid. An element which has
     neither cannot be named at all, so a replaced element of one is lost,
     which is reported rather than dropped silently. No document of the corpus
-    has one: SBML requires a metaid of every element an annotation or a comp
-    replacement refers to, see
+    has one: of its 343 replaced elements, 341 sit on an element with an id
+    and 2 on a rate rule with a metaid, see
     https://github.com/matthiaskoenig/sbmlutils/issues/469.
 
     The model itself is not walked: `getListOfAllElements` yields the elements
@@ -460,8 +460,8 @@ def _parse_sbase_ref_kwargs(ref: libsbml.SBaseRef) -> dict[str, Any]:
     These are the kwargs `SbaseRef.__init__` takes and every subclass of it
     passes on: the four references by which comp names an element, the nested
     `<comp:sBaseRef>` chain and the `Sbase` fields. None of the subclasses
-    offers `uncertainties`, so they are dropped, loudly, see
-    `_drop_uncertainties`.
+    offers `uncertainties` or `replacedBy`, so both are dropped, loudly, see
+    `_drop_unwritable`.
 
     Args:
         ref: the libsbml.Port, ReplacedElement, ReplacedBy, Deletion or
