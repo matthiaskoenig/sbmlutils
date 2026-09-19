@@ -1328,7 +1328,7 @@ class Units:
             udef.create_sbml(model=model)
 
 
-def _check_unit_type(unit: Any, attribute: str, sbase: Sbase) -> None:
+def _check_unit_type(unit: Any, attribute: str, owner: object) -> None:
     """Warn if a unit attribute is neither a `UnitDefinition` nor a unit id.
 
     The value is passed on either way, `UnitDefinition.get_uid_for_unit`
@@ -1338,14 +1338,15 @@ def _check_unit_type(unit: Any, attribute: str, sbase: Sbase) -> None:
     Args:
         unit: the value given for the unit attribute
         attribute: the name of the attribute, e.g. `substanceUnit`
-        sbase: the element the attribute belongs to
+        owner: the element the attribute belongs to; `UncertParameter` and
+            `UncertSpan` carry a unit without being an `Sbase`
     """
     if unit is not None and not isinstance(unit, (UnitDefinition, str)):
         logger.warning(
             "'%s' must be a UnitDefinition or a unit id, but '%s' in '%s' is '%s'.",
             attribute,
             unit,
-            sbase,
+            owner,
             type(unit),
         )
 
@@ -3305,6 +3306,12 @@ class UncertParameter:
         self.value: float | None = value
         self.var: str | None = var
         self.unit: UnitType = unit
+        _check_unit_type(self.unit, "unit", self)
+
+    def __repr__(self) -> str:
+        """Get string representation."""
+        value = self.value if self.value is not None else self.var
+        return f"UncertParameter({self.type}, {value} [{self.unit}])"
 
 
 class UncertSpan:
@@ -3338,6 +3345,13 @@ class UncertSpan:
         self.valueUpper = valueUpper
         self.varUpper = varUpper
         self.unit = unit
+        _check_unit_type(self.unit, "unit", self)
+
+    def __repr__(self) -> str:
+        """Get string representation."""
+        lower = self.valueLower if self.valueLower is not None else self.varLower
+        upper = self.valueUpper if self.valueUpper is not None else self.varUpper
+        return f"UncertSpan({self.type}, {lower} - {upper} [{self.unit}])"
 
 
 class Uncertainty(Sbase):

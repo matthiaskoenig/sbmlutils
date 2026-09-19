@@ -438,7 +438,11 @@ def test_bad_unit_type_raises_value_error(tmp_path: Path) -> None:
     """
     model = Model(sid="m", parameters=[Parameter("p", value=1.0, unit=BAD_UNIT)])
     with pytest.raises(ValueError, match="UnitDefinition"):
-        create_model(model=model, filepath=tmp_path / "m.xml")
+        create_model(
+            model=model,
+            filepath=tmp_path / "m.xml",
+            validation_options=ValidationOptions(units_consistency=False),
+        )
 
 
 @pytest.mark.parametrize(
@@ -447,16 +451,31 @@ def test_bad_unit_type_raises_value_error(tmp_path: Path) -> None:
         lambda: Parameter("p", value=1.0, unit=BAD_UNIT),
         lambda: Species("s", compartment="c", substanceUnit=BAD_UNIT),
         lambda: SbaseRef("ref", unitRef=BAD_UNIT),
+        lambda: UncertParameter(
+            type=libsbml.DISTRIB_UNCERTTYPE_MEAN, value=1.0, unit=BAD_UNIT
+        ),
+        lambda: UncertSpan(
+            type=libsbml.DISTRIB_UNCERTTYPE_RANGE,
+            valueLower=1.0,
+            valueUpper=2.0,
+            unit=BAD_UNIT,
+        ),
     ],
-    ids=["Parameter.unit", "Species.substanceUnit", "SbaseRef.unitRef"],
+    ids=[
+        "Parameter.unit",
+        "Species.substanceUnit",
+        "SbaseRef.unitRef",
+        "UncertParameter.unit",
+        "UncertSpan.unit",
+    ],
 )
 def test_bad_unit_type_warns_on_construction(
-    create: Callable[[], Sbase], caplog: pytest.LogCaptureFixture
+    create: Callable[[], object], caplog: pytest.LogCaptureFixture
 ) -> None:
     """Test that a unit of a bad type is reported when the element is built.
 
-    `ValueWithUnit` warned about it, `Species.substanceUnits` and
-    `SbaseRef.unitRef` passed the value on silently.
+    `ValueWithUnit` warned about it, every other unit attribute passed the
+    value on silently until it reached `get_uid_for_unit`, which now raises.
     """
     with caplog.at_level(logging.WARNING, logger="sbmlutils.factory"):
         create()
@@ -1356,10 +1375,10 @@ def test_constraint_unparsable_math_logs_an_error(
 
 
 @pytest.mark.parametrize(
-    "model, formula",
+    "create, formula",
     [
         (
-            Model(
+            lambda: Model(
                 "kinetic_law",
                 compartments=[Compartment("c", 1.0)],
                 species=[
@@ -1371,7 +1390,7 @@ def test_constraint_unparsable_math_logs_an_error(
             "A >",
         ),
         (
-            Model(
+            lambda: Model(
                 "event_assignment",
                 parameters=[Parameter("p1", value=0.0, constant=False)],
                 events=[Event("e1", trigger="time >= 10", assignments={"p1": "p1 >"})],
@@ -1379,7 +1398,7 @@ def test_constraint_unparsable_math_logs_an_error(
             "p1 >",
         ),
         (
-            Model(
+            lambda: Model(
                 "uncertainty",
                 packages=[Package.DISTRIB_V1],
                 parameters=[
@@ -1396,7 +1415,10 @@ def test_constraint_unparsable_math_logs_an_error(
     ids=["KineticLaw", "EventAssignment", "Uncertainty"],
 )
 def test_unparsable_math_is_logged_at_every_formula_call_site(
-    model: Model, formula: str, tmp_path: Path, caplog: pytest.LogCaptureFixture
+    create: Callable[[], Model],
+    formula: str,
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test that every formula which does not parse is reported as an error.
 
@@ -1408,7 +1430,7 @@ def test_unparsable_math_is_logged_at_every_formula_call_site(
     """
     with caplog.at_level(logging.ERROR, logger="sbmlutils.factory"):
         create_model(
-            model=model,
+            model=create(),
             filepath=tmp_path / "model.xml",
             validation_options=ValidationOptions(units_consistency=False),
         )

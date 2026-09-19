@@ -1148,7 +1148,7 @@ _BARE_IDENTIFIERS: list[str] = [
 def test_identifiers_org_is_what_pymetadata_does(resource: str) -> None:
     """Test the normalization against the canonicalization of pymetadata.
 
-    `create_model` writes a resource as pymetadata normalizes it, so the whitelist entry has to accept what pymetadata writes for each of the four source forms of ruling R5: a MIRIAM URN, a classic identifiers.org URL, the `http` spelling of the compact URL and a bare compact identifier. The expectation is measured, never spelled out here.
+    `create_model` writes a resource as pymetadata normalizes it whenever the normalization keeps the collection and the term of the resource, and as given when it does not, see `_resource_for_cvterm` of `sbmlutils.metadata.annotator`. Whenever it does normalize, it writes exactly what pymetadata writes, so the whitelist entry has to accept that for each of the four source forms of ruling R5: a MIRIAM URN, a classic identifiers.org URL, the `http` spelling of the compact URL and a bare compact identifier. The expectation is measured, never spelled out here. This is about the whitelist entry, not about which resources are written that way, which is `tests/metadata/test_annotator.py`.
     """
     url = RDFAnnotation(BQB.IS, resource, validate=False).resource_normalized
     before = (("bqbiol:is", resource),)

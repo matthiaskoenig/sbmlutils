@@ -39,6 +39,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+import libsbml
 import numpy as np
 import pytest
 
@@ -1768,12 +1769,6 @@ def test_roundtrip_species_reference_metadata(tmp_path: Path) -> None:
     assert "P35557" in rt_modifier.getCVTerm(0).getResourceURI(0)
 
 
-if __name__ == "__main__":
-    # the worker of `run_case_isolated`: `python test_roundtrip.py <sbml_path>
-    # <case_dir>` round trips the case and records its outcome in `case_dir`
-    run_worker(Path(sys.argv[1]), Path(sys.argv[2]))
-
-
 def _spatial_dimensions(sbml_path: Path) -> list[float | None]:
     """Collect the spatialDimensions of every compartment of a model.
 
@@ -1784,8 +1779,6 @@ def _spatial_dimensions(sbml_path: Path) -> list[float | None]:
         the spatialDimensions of every compartment in document order, `None`
         for a compartment which does not set them
     """
-    import libsbml
-
     doc: libsbml.SBMLDocument = libsbml.readSBMLFromFile(str(sbml_path))
     dimensions: list[float | None] = []
     compartment: libsbml.Compartment
@@ -1844,3 +1837,9 @@ def test_roundtrip_spatial_dimensions_of_a_definition(
     roundtrip_path = roundtrip_sbml(sbml_path, roundtrip_dir)
     assert _spatial_dimensions(roundtrip_path) == [float(dimensions)]
     assert f'spatialDimensions="{dimensions:g}"' in roundtrip_path.read_text()
+
+
+if __name__ == "__main__":
+    # the worker of `run_case_isolated`: `python test_roundtrip.py <sbml_path>
+    # <case_dir>` round trips the case and records its outcome in `case_dir`
+    run_worker(Path(sys.argv[1]), Path(sys.argv[2]))
