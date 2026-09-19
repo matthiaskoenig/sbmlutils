@@ -3362,16 +3362,23 @@ distrib information
 """
 
 
-class UncertParameter(Sbase):
-    """A single value of an `Uncertainty`, e.g. a mean or a standard deviation.
+class _UncertChild(Sbase):
+    """The part an `UncertParameter` and an `UncertSpan` have in common.
 
-    The value is either a number (`value`) or a reference to a parameter of
-    the model (`var`), and the `type` states what it is, e.g.
-    `libsbml.DISTRIB_UNCERTTYPE_MEAN`.
+    Both are children of the `distrib:listOfUncertParameters` of an
+    uncertainty or of an uncert parameter, and both state what is known about
+    a value: an `UncertParameter` states one value, an `UncertSpan` a lower
+    and an upper bound. Everything else is the same on both and lives here:
+    the `type` which says what the value is, the `unit` of the value, the
+    `definitionURL` which names the distribution or the external parameter
+    the element stands for, the `math` which states a distribution, and the
+    uncert parameters and spans of its own, which an external distribution
+    states its parameters as.
 
-    An uncert parameter is an SBML `SBase`: libsbml writes and reads back
-    `id`, `name`, `metaId`, `sboTerm`, notes, annotations and fbc key value
-    pairs on a `distrib:uncertParameter`, so all of them are offered here.
+    Both are SBML `SBase` objects: libsbml writes and reads back `id`,
+    `name`, `metaId`, `sboTerm`, notes, annotations and fbc key value pairs
+    on a `distrib:uncertParameter` and a `distrib:uncertSpan`, so all of them
+    are offered.
 
     The three `Sbase` fields which are written from the `libsbml.Model` are
     not offered, and passing one is a `TypeError` rather than a value which is
@@ -3380,22 +3387,206 @@ class UncertParameter(Sbase):
     - `uncertainties`: libsbml does attach a distrib plugin to an uncert
       parameter, but it then writes the `listOfUncertainties` twice, which
       makes the document invalid (`distrib-20201`, only one list is allowed).
+      `uncertParameters` is how an uncert parameter holds children.
     - `port` and `replacedBy`: a comp port which references an uncert
       parameter is written as a `Port` of the model with an `idRef` or a
       `metaIdRef`, which is how the parser reads it back; the shorthand on the
       element would have to be written with the model, which the children of
       an uncertainty are not written with, see `_set_fields`.
-
-    A nested `listOfUncertParameters`, which SBML allows under an uncert
-    parameter of type `distribution`, is not expressed by this class.
     """
+
+    #: the `distrib:type` values SBML allows on the element of this class
+    _types: ClassVar[frozenset[int]] = frozenset()
 
     def __init__(
         self,
-        type: str,
+        type: int,
+        unit: UnitType = None,
+        definitionURL: str | None = None,
+        math: str | None = None,
+        uncertParameters: list[UncertParameter | UncertSpan] | None = None,
+        sid: str | None = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
+        annotations: OptionalAnnotationsType = None,
+        notes: str | Notes | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
+    ):
+        """Construct the fields an uncert parameter and an uncert span share.
+
+        Args:
+            type: the kind of the value, a `libsbml.DISTRIB_UNCERTTYPE_*`
+            unit: the unit of the value
+            definitionURL: the URL which defines the distribution or the
+                external parameter the element stands for, e.g. a term of
+                ProbOnto or the csymbol of a distribution of distrib
+            math: the math of the element as an SBML L3 formula, which an
+                uncert parameter of the type `distribution` states its
+                distribution as
+            uncertParameters: the uncert parameters and spans of the element,
+                in the order they are written in; the parameters of an
+                external distribution
+            sid: the id of the element, which is optional in SBML
+            name: the name of the element
+            sboTerm: the SBO term of the element
+            metaId: the meta id of the element, which its annotations are
+                referenced by
+            annotations: the annotations of the element
+            notes: the notes of the element
+            keyValuePairs: the fbc key value pairs of the element
+        """
+        super().__init__(
+            sid=sid,
+            name=name,
+            sboTerm=sboTerm,
+            metaId=metaId,
+            annotations=annotations,
+            notes=notes,
+            keyValuePairs=keyValuePairs,
+        )
+        self.type: int = type
+        self.unit: UnitType = unit
+        self.definitionURL: str | None = definitionURL
+        self.math: str | None = math
+        self.uncertParameters: list[UncertParameter | UncertSpan] = (
+            list(uncertParameters) if uncertParameters else []
+        )
+        _check_unit_type(self.unit, "unit", self)
+        self._check_states_a_value()
+
+    def __str__(self) -> str:
+        """Get string representation.
+
+        `Sbase.__str__` lists the `Sbase` fields, which are all optional on a
+        child of an uncertainty and empty on most of them. The messages which
+        name the element are only useful with its type and its value, which is
+        what `__repr__` prints, so both representations are the same here.
+        """
+        return repr(self)
+
+    def _states_a_value(self) -> bool:
+        """Test whether the element states anything about the value.
+
+        Returns:
+            whether the element has a value, a variable it reads the value
+            from, a definitionURL, math, or uncert parameters of its own
+        """
+        return bool(
+            self.definitionURL is not None
+            or self.math is not None
+            or self.uncertParameters
+        )
+
+    def _check_states_a_value(self) -> None:
+        """Report an element which states nothing about the value.
+
+        SBML requires neither a value nor anything else of an uncert
+        parameter, and libsbml reads and validates an element which states
+        nothing, so this is reported rather than refused: the parser has to be
+        able to hold every document libsbml reads.
+        """
+        if not self._states_a_value():
+            logger.error(
+                "'%s' states nothing about the value: none of 'value', 'var', "
+                "'definitionURL', 'math' and 'uncertParameters' is set.",
+                self,
+            )
+
+    def _supports_type(self) -> bool:
+        """Test whether SBML allows the type of the element on it.
+
+        A span states an interval and a parameter a single value, so the types
+        of the two are disjoint; a type of the other element, or no type of
+        distrib at all, is reported and the element is not written, since
+        libsbml would write an element SBML does not define.
+
+        Returns:
+            whether the element is written
+        """
+        if self.type in self._types:
+            return True
+        logger.error(
+            "Unsupported type for %s: '%s' in '%s'.",
+            type(self).__name__,
+            self.type,
+            self,
+        )
+        return False
+
+    def _set_fields(self, sbase: Any, model: Any) -> None:
+        """Set the shared fields on the created libsbml object.
+
+        `sbase` is declared `Any` for the reason `Sbase._set_fields` declares
+        it `Any`: each subclass narrows it to the one libsbml type it creates,
+        and a `libsbml.UncertParameter` here would make the `libsbml.UncertSpan`
+        of `UncertSpan._set_fields` an LSP violation.
+
+        Args:
+            sbase: the libsbml.UncertParameter or libsbml.UncertSpan created
+                by `create_sbml`
+            model: `None`, a child of an uncertainty is written without the
+                model, which is what keeps `Sbase._set_fields` from descending
+                into the `uncertainties` and the comp fields of an element.
+                The math is parsed with the model of the created object, which
+                is attached to its parent already.
+        """
+        super()._set_fields(sbase, model)
+        check(sbase.setType(self.type), f"Set type '{self.type}' on {sbase}")
+        if self.definitionURL is not None:
+            check(
+                sbase.setDefinitionURL(self.definitionURL),
+                f"Set definitionURL '{self.definitionURL}' on {sbase}",
+            )
+        _set_math(sbase, self.math, sbase.getModel())
+        if self.unit:
+            uid = UnitDefinition.get_uid_for_unit(unit=self.unit)
+            check(sbase.setUnits(uid), f"Set unit '{uid}' on {sbase}")
+
+        child: UncertParameter | UncertSpan
+        for child in self.uncertParameters:
+            child.create_sbml(sbase)
+
+
+class UncertParameter(_UncertChild):
+    """A single value of an `Uncertainty`, e.g. a mean or a standard deviation.
+
+    The value is either a number (`value`), a reference to a parameter of the
+    model (`var`), or, for an uncert parameter of the type `distribution`, the
+    distribution the value is drawn from, as `math` or as a `definitionURL`
+    with the `uncertParameters` of the distribution. The `type` states which of
+    them it is, e.g. `libsbml.DISTRIB_UNCERTTYPE_MEAN`.
+
+    The fields it shares with an `UncertSpan`, and the fields neither of them
+    offers, are documented in `_UncertChild`.
+    """
+
+    _types: ClassVar[frozenset[int]] = frozenset(
+        {
+            libsbml.DISTRIB_UNCERTTYPE_COEFFIENTOFVARIATION,
+            libsbml.DISTRIB_UNCERTTYPE_DISTRIBUTION,
+            libsbml.DISTRIB_UNCERTTYPE_EXTERNALPARAMETER,
+            libsbml.DISTRIB_UNCERTTYPE_KURTOSIS,
+            libsbml.DISTRIB_UNCERTTYPE_MEAN,
+            libsbml.DISTRIB_UNCERTTYPE_MEDIAN,
+            libsbml.DISTRIB_UNCERTTYPE_MODE,
+            libsbml.DISTRIB_UNCERTTYPE_SAMPLESIZE,
+            libsbml.DISTRIB_UNCERTTYPE_SKEWNESS,
+            libsbml.DISTRIB_UNCERTTYPE_STANDARDDEVIATION,
+            libsbml.DISTRIB_UNCERTTYPE_STANDARDERROR,
+            libsbml.DISTRIB_UNCERTTYPE_VARIANCE,
+        }
+    )
+
+    def __init__(
+        self,
+        type: int,
         value: float | None = None,
         var: str | None = None,
         unit: UnitType = None,
+        definitionURL: str | None = None,
+        math: str | None = None,
+        uncertParameters: list[UncertParameter | UncertSpan] | None = None,
         sid: str | None = None,
         name: str | None = None,
         sboTerm: str | None = None,
@@ -3412,6 +3603,9 @@ class UncertParameter(Sbase):
             var: the id of the element which holds the value, an alternative
                 to `value`
             unit: the unit of the value
+            definitionURL: see `_UncertChild`
+            math: see `_UncertChild`
+            uncertParameters: see `_UncertChild`
             sid: the id of the uncert parameter, which is optional in SBML
             name: the name of the uncert parameter
             sboTerm: the SBO term of the uncert parameter
@@ -3420,15 +3614,15 @@ class UncertParameter(Sbase):
             annotations: the annotations of the uncert parameter
             notes: the notes of the uncert parameter
             keyValuePairs: the fbc key value pairs of the uncert parameter
-
-        Raises:
-            ValueError: if neither `value` nor `var` is set
         """
-        if (value is None) and (var is None):
-            raise ValueError(
-                "Either 'value' or 'var' have to be set in UncertParameter."
-            )
+        self.value: float | None = value
+        self.var: str | None = var
         super().__init__(
+            type=type,
+            unit=unit,
+            definitionURL=definitionURL,
+            math=math,
+            uncertParameters=uncertParameters,
             sid=sid,
             name=name,
             sboTerm=sboTerm,
@@ -3437,37 +3631,34 @@ class UncertParameter(Sbase):
             notes=notes,
             keyValuePairs=keyValuePairs,
         )
-        self.type: str = type
-        self.value: float | None = value
-        self.var: str | None = var
-        self.unit: UnitType = unit
-        _check_unit_type(self.unit, "unit", self)
 
     def __repr__(self) -> str:
         """Get string representation."""
         value = self.value if self.value is not None else self.var
         return f"UncertParameter({self.type}, {value} [{self.unit}])"
 
-    def __str__(self) -> str:
-        """Get string representation.
+    def _states_a_value(self) -> bool:
+        """Test whether the uncert parameter states anything about the value."""
+        return (
+            self.value is not None or self.var is not None or super()._states_a_value()
+        )
 
-        `Sbase.__str__` lists the `Sbase` fields, which are all optional on an
-        uncert parameter and empty on most of them. The messages which name
-        the element are only useful with its type and its value, so both
-        representations are the same here.
-        """
-        return repr(self)
-
-    def create_sbml(self, uncertainty: libsbml.Uncertainty) -> libsbml.UncertParameter:
-        """Create the libsbml.UncertParameter in the given uncertainty.
+    def create_sbml(
+        self, parent: libsbml.Uncertainty | libsbml.UncertParameter
+    ) -> libsbml.UncertParameter | None:
+        """Create the libsbml.UncertParameter in the given parent.
 
         Args:
-            uncertainty: the libsbml.Uncertainty the parameter is created in
+            parent: the libsbml.Uncertainty or libsbml.UncertParameter the
+                parameter is created in
 
         Returns:
-            the created libsbml.UncertParameter
+            the created libsbml.UncertParameter, `None` for a parameter whose
+            type SBML does not allow on one, see `_supports_type`
         """
-        up: libsbml.UncertParameter = uncertainty.createUncertParameter()
+        if not self._supports_type():
+            return None
+        up: libsbml.UncertParameter = parent.createUncertParameter()
         self._set_fields(up, None)
         return up
 
@@ -3476,22 +3667,16 @@ class UncertParameter(Sbase):
 
         Args:
             sbase: the libsbml.UncertParameter created by `create_sbml`
-            model: `None`, a child of an uncertainty is written without the
-                model, which is what keeps `Sbase._set_fields` from descending
-                into the `uncertainties` and the comp fields of an element
+            model: `None`, see `_UncertChild._set_fields`
         """
         super()._set_fields(sbase, model)
-        check(sbase.setType(self.type), f"Set type '{self.type}' on {sbase}")
         if self.value is not None:
             check(sbase.setValue(self.value), f"Set value '{self.value}' on {sbase}")
         if self.var is not None:
             check(sbase.setVar(self.var), f"Set var '{self.var}' on {sbase}")
-        if self.unit:
-            uid = UnitDefinition.get_uid_for_unit(unit=self.unit)
-            check(sbase.setUnits(uid), f"Set unit '{uid}' on {sbase}")
 
 
-class UncertSpan(Sbase):
+class UncertSpan(_UncertChild):
     """An interval of an `Uncertainty`, e.g. a range or a confidence interval.
 
     Both bounds are either a number (`valueLower`, `valueUpper`) or a
@@ -3499,21 +3684,32 @@ class UncertSpan(Sbase):
     `type` states what the interval is, e.g.
     `libsbml.DISTRIB_UNCERTTYPE_RANGE`.
 
-    An uncert span is an SBML `SBase` and carries the same metadata as an
-    `UncertParameter`, which it is a subclass of in libsbml: it is written
-    with `createUncertSpan` and read back from the `listOfUncertParameters`.
-    The fields which are not offered and the reason for it are the ones of
-    `UncertParameter`.
+    An uncert span carries the same fields as an `UncertParameter`, which it
+    is a subclass of in libsbml: it is written with `createUncertSpan` and
+    read back from the `listOfUncertParameters`. The shared fields, and the
+    fields neither class offers, are documented in `_UncertChild`.
     """
+
+    _types: ClassVar[frozenset[int]] = frozenset(
+        {
+            libsbml.DISTRIB_UNCERTTYPE_CONFIDENCEINTERVAL,
+            libsbml.DISTRIB_UNCERTTYPE_CREDIBLEINTERVAL,
+            libsbml.DISTRIB_UNCERTTYPE_INTERQUARTILERANGE,
+            libsbml.DISTRIB_UNCERTTYPE_RANGE,
+        }
+    )
 
     def __init__(
         self,
-        type: str,
+        type: int,
         valueLower: float | None = None,
         varLower: str | None = None,
         valueUpper: float | None = None,
         varUpper: str | None = None,
         unit: UnitType = None,
+        definitionURL: str | None = None,
+        math: str | None = None,
+        uncertParameters: list[UncertParameter | UncertSpan] | None = None,
         sid: str | None = None,
         name: str | None = None,
         sboTerm: str | None = None,
@@ -3533,6 +3729,9 @@ class UncertSpan(Sbase):
             varUpper: the id of the element which holds the upper bound, an
                 alternative to `valueUpper`
             unit: the unit of the bounds
+            definitionURL: see `_UncertChild`
+            math: see `_UncertChild`
+            uncertParameters: see `_UncertChild`
             sid: the id of the uncert span, which is optional in SBML
             name: the name of the uncert span
             sboTerm: the SBO term of the uncert span
@@ -3541,19 +3740,17 @@ class UncertSpan(Sbase):
             annotations: the annotations of the uncert span
             notes: the notes of the uncert span
             keyValuePairs: the fbc key value pairs of the uncert span
-
-        Raises:
-            ValueError: if a bound has neither its value nor its variable set
         """
-        if (valueLower is None) and (varLower is None):
-            raise ValueError(
-                "Either 'valueLower' or 'varLower' have to be set in UncertSpan."
-            )
-        if (valueUpper is None) and (varUpper is None):
-            raise ValueError(
-                "Either 'valueLower' or 'varLower' have to be set in UncertSpan."
-            )
+        self.valueLower: float | None = valueLower
+        self.varLower: str | None = varLower
+        self.valueUpper: float | None = valueUpper
+        self.varUpper: str | None = varUpper
         super().__init__(
+            type=type,
+            unit=unit,
+            definitionURL=definitionURL,
+            math=math,
+            uncertParameters=uncertParameters,
             sid=sid,
             name=name,
             sboTerm=sboTerm,
@@ -3562,13 +3759,6 @@ class UncertSpan(Sbase):
             notes=notes,
             keyValuePairs=keyValuePairs,
         )
-        self.type = type
-        self.valueLower = valueLower
-        self.varLower = varLower
-        self.valueUpper = valueUpper
-        self.varUpper = varUpper
-        self.unit = unit
-        _check_unit_type(self.unit, "unit", self)
 
     def __repr__(self) -> str:
         """Get string representation."""
@@ -3576,23 +3766,32 @@ class UncertSpan(Sbase):
         upper = self.valueUpper if self.valueUpper is not None else self.varUpper
         return f"UncertSpan({self.type}, {lower} - {upper} [{self.unit}])"
 
-    def __str__(self) -> str:
-        """Get string representation.
+    def _states_a_value(self) -> bool:
+        """Test whether the uncert span states anything about its bounds."""
+        return (
+            self.valueLower is not None
+            or self.varLower is not None
+            or self.valueUpper is not None
+            or self.varUpper is not None
+            or super()._states_a_value()
+        )
 
-        The bounds identify an uncert span, see `UncertParameter.__str__`.
-        """
-        return repr(self)
-
-    def create_sbml(self, uncertainty: libsbml.Uncertainty) -> libsbml.UncertSpan:
-        """Create the libsbml.UncertSpan in the given uncertainty.
+    def create_sbml(
+        self, parent: libsbml.Uncertainty | libsbml.UncertParameter
+    ) -> libsbml.UncertSpan | None:
+        """Create the libsbml.UncertSpan in the given parent.
 
         Args:
-            uncertainty: the libsbml.Uncertainty the span is created in
+            parent: the libsbml.Uncertainty or libsbml.UncertParameter the
+                span is created in
 
         Returns:
-            the created libsbml.UncertSpan
+            the created libsbml.UncertSpan, `None` for a span whose type SBML
+            does not allow on one, see `_supports_type`
         """
-        span: libsbml.UncertSpan = uncertainty.createUncertSpan()
+        if not self._supports_type():
+            return None
+        span: libsbml.UncertSpan = parent.createUncertSpan()
         self._set_fields(span, None)
         return span
 
@@ -3601,10 +3800,9 @@ class UncertSpan(Sbase):
 
         Args:
             sbase: the libsbml.UncertSpan created by `create_sbml`
-            model: `None`, see `UncertParameter._set_fields`
+            model: `None`, see `_UncertChild._set_fields`
         """
         super()._set_fields(sbase, model)
-        check(sbase.setType(self.type), f"Set type '{self.type}' on {sbase}")
         if self.valueLower is not None:
             check(
                 sbase.setValueLower(self.valueLower),
@@ -3625,22 +3823,84 @@ class UncertSpan(Sbase):
                 sbase.setVarUpper(self.varUpper),
                 f"Set varUpper '{self.varUpper}' on {sbase}",
             )
-        if self.unit:
-            uid = UnitDefinition.get_uid_for_unit(unit=self.unit)
-            check(sbase.setUnits(uid), f"Set unit '{uid}' on {sbase}")
+
+
+#: the start of the `definitionURL` of every distribution of distrib
+_DISTRIBUTION_URL: str = "http://www.sbml.org/sbml/symbols/distrib/"
+
+#: the distributions of distrib, which `Uncertainty.formula` names one of
+_DISTRIBUTIONS: tuple[str, ...] = (
+    "normal",
+    "uniform",
+    "bernoulli",
+    "binomial",
+    "cauchy",
+    "chisquare",
+    "exponential",
+    "gamma",
+    "laplace",
+    "lognormal",
+    "poisson",
+    "raleigh",
+)
+
+
+def _distribution_parameter(formula: str) -> UncertParameter:
+    """Build the uncert parameter the `formula` of an uncertainty is written as.
+
+    Args:
+        formula: the distribution of the value as an SBML L3 formula, e.g.
+            `normal(2.0, 2.0)`
+
+    Returns:
+        an uncert parameter of the type `distribution`: with the
+        `definitionURL` of the distribution the formula names and the formula
+        as its math, or, for a formula which names none of the distributions
+        of distrib, with neither
+    """
+    for distribution in _DISTRIBUTIONS:
+        if distribution in formula:
+            return UncertParameter(
+                type=libsbml.DISTRIB_UNCERTTYPE_DISTRIBUTION,
+                definitionURL=f"{_DISTRIBUTION_URL}{distribution}",
+                math=formula,
+            )
+    return UncertParameter(type=libsbml.DISTRIB_UNCERTTYPE_DISTRIBUTION)
 
 
 class Uncertainty(Sbase):
-    """Uncertainty.
+    """The uncertainty of the value of an element, a `distrib:uncertainty`.
 
-    Uncertainty information for Sbase.
+    An uncertainty states what is known about a value beyond the value
+    itself: a mean with a standard deviation, a range, a confidence interval,
+    or the distribution the value is drawn from. Every `Sbase` can carry a
+    list of them.
+
+    SBML holds the values of an uncertainty in one list, the
+    `distrib:listOfUncertParameters`, whose elements are
+    `distrib:uncertParameter` and `distrib:uncertSpan`, and
+    `uncertParameters` is that list: it takes `UncertParameter` and
+    `UncertSpan` objects and is written in its own order, which is how the
+    order of a parsed document is preserved.
+
+    `uncertSpans` is the authoring style of two lists, one per kind, and is
+    kept. It has no place for an order between the two, so its spans are put
+    in front of `uncertParameters`, which is the order such an uncertainty has
+    always been written in.
+
+    `formula` is the shortcut for a distribution: it is normalized into one
+    `UncertParameter` of the type `distribution` when the uncertainty is
+    constructed, see `_distribution_parameter`, and appended after the
+    children given explicitly. An uncertainty is written from
+    `uncertParameters` and from nothing else, so a parsed uncertainty, which
+    carries the distribution as an ordinary child, is written exactly once.
     """
 
     def __init__(
         self,
         sid: str | None = None,
         formula: str | None = None,
-        uncertParameters: list[UncertParameter] | None = None,
+        uncertParameters: list[UncertParameter | UncertSpan] | None = None,
         uncertSpans: list[UncertSpan] | None = None,
         name: str | None = None,
         sboTerm: str | None = None,
@@ -3651,7 +3911,27 @@ class Uncertainty(Sbase):
         port: Any = None,
         replacedBy: Any | None = None,
     ):
-        """Uncertainty constructor."""
+        """Construct Uncertainty.
+
+        Args:
+            sid: the id of the uncertainty, which is optional in SBML
+            formula: the distribution of the value as an SBML L3 formula,
+                e.g. `normal(2.0, 2.0)`; the shortcut for the uncert parameter
+                of the type `distribution` it is normalized into
+            uncertParameters: the uncert parameters and spans of the
+                uncertainty, in the order they are written in
+            uncertSpans: the spans of the uncertainty, which are written
+                before `uncertParameters`
+            name: the name of the uncertainty
+            sboTerm: the SBO term of the uncertainty
+            metaId: the meta id of the uncertainty, which its annotations are
+                referenced by
+            annotations: the annotations of the uncertainty
+            notes: the notes of the uncertainty
+            keyValuePairs: the fbc key value pairs of the uncertainty
+            port: the comp port of the uncertainty
+            replacedBy: the comp replacedBy of the uncertainty
+        """
         super().__init__(
             sid,
             name=name,
@@ -3666,91 +3946,33 @@ class Uncertainty(Sbase):
 
         # Object on which the uncertainty is written
         self.formula = formula
-        self.uncertParameters: list[UncertParameter] = (
-            uncertParameters if uncertParameters else []
-        )
-        self.uncertSpans: list[UncertSpan] = uncertSpans if uncertSpans else []
+        self.uncertParameters: list[UncertParameter | UncertSpan] = [
+            *(uncertSpans if uncertSpans else []),
+            *(uncertParameters if uncertParameters else []),
+        ]
+        if formula:
+            self.uncertParameters.append(_distribution_parameter(formula))
 
     def create_sbml(
         self, sbase: libsbml.SBase, model: libsbml.Model
     ) -> libsbml.Uncertainty:
-        """Create libsbml Uncertainty.
+        """Create the libsbml.Uncertainty on the given element.
 
-        :param sbase:
-        :param model:
-        :return:
+        Args:
+            sbase: the libsbml object the uncertainty is created on
+            model: the libsbml.Model the element belongs to
+
+        Returns:
+            the created libsbml.Uncertainty
         """
         sbase_distrib: libsbml.DistribSBasePlugin = sbase.getPlugin("distrib")
         uncertainty: libsbml.Uncertainty = sbase_distrib.createUncertainty()
 
         self._set_fields(uncertainty, model)
 
-        uncertSpan: UncertSpan
-        for uncertSpan in self.uncertSpans:
-            if uncertSpan.type in [
-                libsbml.DISTRIB_UNCERTTYPE_INTERQUARTILERANGE,
-                libsbml.DISTRIB_UNCERTTYPE_CREDIBLEINTERVAL,
-                libsbml.DISTRIB_UNCERTTYPE_CONFIDENCEINTERVAL,
-                libsbml.DISTRIB_UNCERTTYPE_RANGE,
-            ]:
-                uncertSpan.create_sbml(uncertainty)
-            else:
-                logger.error(
-                    "Unsupported type for UncertSpan: '%s' in '%s'.",
-                    uncertSpan.type,
-                    uncertSpan,
-                )
-
-        uncertParameter: UncertParameter
-        for uncertParameter in self.uncertParameters:
-            if uncertParameter.type in [
-                libsbml.DISTRIB_UNCERTTYPE_COEFFIENTOFVARIATION,
-                libsbml.DISTRIB_UNCERTTYPE_KURTOSIS,
-                libsbml.DISTRIB_UNCERTTYPE_MEAN,
-                libsbml.DISTRIB_UNCERTTYPE_MEDIAN,
-                libsbml.DISTRIB_UNCERTTYPE_MODE,
-                libsbml.DISTRIB_UNCERTTYPE_SAMPLESIZE,
-                libsbml.DISTRIB_UNCERTTYPE_SKEWNESS,
-                libsbml.DISTRIB_UNCERTTYPE_STANDARDDEVIATION,
-                libsbml.DISTRIB_UNCERTTYPE_STANDARDERROR,
-                libsbml.DISTRIB_UNCERTTYPE_VARIANCE,
-            ]:
-                uncertParameter.create_sbml(uncertainty)
-            else:
-                logger.error(
-                    "Unsupported type for UncertParameter: '%s' in '%s'.",
-                    uncertParameter.type,
-                    uncertParameter,
-                )
-
-        # create a distribution uncertainty
-        if self.formula:
-            model = sbase.getModel()
-            up_dist: libsbml.UncertParameter = uncertainty.createUncertParameter()
-            up_dist.setType(libsbml.DISTRIB_UNCERTTYPE_DISTRIBUTION)
-            for key in [
-                "normal",
-                "uniform",
-                "bernoulli",
-                "binomial",
-                "cauchy",
-                "chisquare",
-                "exponential",
-                "gamma",
-                "laplace",
-                "lognormal",
-                "poisson",
-                "raleigh",
-            ]:
-                if key in self.formula:
-                    up_dist.setDefinitionURL(
-                        f"http://www.sbml.org/sbml/symbols/distrib/{key}"
-                    )
-                    ast = libsbml.parseL3FormulaWithModel(self.formula, model)
-                    if ast is None:
-                        logger.error(libsbml.getLastParseL3Error())
-                    else:
-                        check(up_dist.setMath(ast), "set math in distrib formula")
+        child: UncertParameter | UncertSpan
+        for child in self.uncertParameters:
+            child.create_sbml(uncertainty)
 
         return uncertainty
 

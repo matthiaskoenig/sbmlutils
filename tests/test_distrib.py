@@ -802,3 +802,372 @@ def test_distrib_examples_log_no_authoring_hint(
         )
     ]
     assert not hints, hints
+
+
+def _uncertainty_document(*uncertainties: Uncertainty) -> libsbml.SBMLDocument:
+    """Write the uncertainties on a parameter and read the SBML back.
+
+    Args:
+        uncertainties: the uncertainties of the parameter `p1`
+
+    Returns:
+        the document read back from the written SBML; the caller has to hold
+        it, libsbml objects do not keep their document alive
+    """
+    model = Model(
+        "uncertainty_fields",
+        packages=[Package.DISTRIB_V1],
+        parameters=[
+            Parameter("p1", value=1.0, uncertainties=list(uncertainties)),
+            Parameter("p2", value=2.0),
+        ],
+    )
+    doc: libsbml.SBMLDocument = Document(model=model).create_sbml()
+    doc_read: libsbml.SBMLDocument = libsbml.readSBMLFromString(
+        libsbml.writeSBMLToString(doc)
+    )
+    return doc_read
+
+
+def _children(
+    doc: libsbml.SBMLDocument, index: int = 0
+) -> list[libsbml.UncertParameter]:
+    """Get the children of an uncertainty of the parameter `p1`.
+
+    Args:
+        doc: a document written by `_uncertainty_document`, which the caller holds
+        index: the position of the uncertainty in the list of uncertainties
+
+    Returns:
+        the uncert parameters and spans of the uncertainty, in document order
+    """
+    uncertainty: libsbml.Uncertainty = (
+        doc.getModel().getParameter("p1").getPlugin("distrib").getUncertainty(index)
+    )
+    return [
+        uncertainty.getUncertParameter(k)
+        for k in range(uncertainty.getNumUncertParameters())
+    ]
+
+
+def test_uncert_parameter_writes_a_definition_url() -> None:
+    """Test that the definitionURL of an external parameter is written.
+
+    A `distrib:definitionURL` is how an uncert parameter names the
+    distribution or the external parameter it stands for, e.g. a term of
+    ProbOnto.
+    """
+    doc = _uncertainty_document(
+        Uncertainty(
+            uncertParameters=[
+                UncertParameter(
+                    type=libsbml.DISTRIB_UNCERTTYPE_EXTERNALPARAMETER,
+                    value=0.25,
+                    definitionURL="http://purl.obolibrary.org/obo/STATO_0000068",
+                )
+            ]
+        )
+    )
+
+    (child,) = _children(doc)
+    assert child.getTypeAsString() == "externalParameter"
+    assert child.getDefinitionURL() == "http://purl.obolibrary.org/obo/STATO_0000068"
+
+
+def test_uncert_parameter_writes_math() -> None:
+    """Test that the math of a distribution uncert parameter is written.
+
+    An uncert parameter of the type `distribution` states the distribution as
+    math, a call of a distrib csymbol.
+    """
+    doc = _uncertainty_document(
+        Uncertainty(
+            uncertParameters=[
+                UncertParameter(
+                    type=libsbml.DISTRIB_UNCERTTYPE_DISTRIBUTION,
+                    definitionURL="http://www.sbml.org/sbml/symbols/distrib/normal",
+                    math="normal(1 mole, 3 mole)",
+                )
+            ]
+        )
+    )
+
+    (child,) = _children(doc)
+    assert child.isSetMath()
+    assert libsbml.formulaToL3String(child.getMath()) == "normal(1 mole, 3 mole)"
+
+
+def test_uncert_span_writes_a_definition_url_and_math() -> None:
+    """Test that a span carries a definitionURL and math as well.
+
+    `distrib:uncertSpan` is a `distrib:uncertParameter` with two bounds in
+    SBML, so it carries every attribute of one.
+    """
+    doc = _uncertainty_document(
+        Uncertainty(
+            uncertSpans=[
+                UncertSpan(
+                    type=libsbml.DISTRIB_UNCERTTYPE_RANGE,
+                    valueLower=1.0,
+                    valueUpper=4.0,
+                    definitionURL="http://purl.obolibrary.org/obo/STATO_0000035",
+                    math="1 + 3",
+                )
+            ]
+        )
+    )
+
+    (child,) = _children(doc)
+    assert child.getDefinitionURL() == "http://purl.obolibrary.org/obo/STATO_0000035"
+    assert libsbml.formulaToL3String(child.getMath()) == "1 + 3"
+
+
+def test_uncert_parameter_writes_nested_uncert_parameters() -> None:
+    """Test that the uncert parameters of an uncert parameter are written.
+
+    SBML allows a `distrib:listOfUncertParameters` under an uncert parameter
+    of the type `distribution`, which is how the parameters of an external
+    distribution are given, see `resources/distrib/uncertainty.xml`.
+    """
+    doc = _uncertainty_document(
+        Uncertainty(
+            uncertParameters=[
+                UncertParameter(
+                    type=libsbml.DISTRIB_UNCERTTYPE_DISTRIBUTION,
+                    value=1.0,
+                    definitionURL="http://www.probonto.org/ontology#PROB_k0000782",
+                    uncertParameters=[
+                        UncertParameter(
+                            type=libsbml.DISTRIB_UNCERTTYPE_EXTERNALPARAMETER,
+                            value=0.4,
+                            name="success probability",
+                            definitionURL=(
+                                "http://www.probonto.org/ontology#PROB_k0000789"
+                            ),
+                        )
+                    ],
+                )
+            ]
+        )
+    )
+
+    (child,) = _children(doc)
+    assert child.getNumUncertParameters() == 1
+    nested: libsbml.UncertParameter = child.getUncertParameter(0)
+    assert nested.getTypeAsString() == "externalParameter"
+    assert nested.getValue() == 0.4
+    assert nested.getName() == "success probability"
+    assert nested.getDefinitionURL() == "http://www.probonto.org/ontology#PROB_k0000789"
+
+
+@pytest.mark.parametrize(
+    "type_, written",
+    [
+        (libsbml.DISTRIB_UNCERTTYPE_DISTRIBUTION, "distribution"),
+        (libsbml.DISTRIB_UNCERTTYPE_EXTERNALPARAMETER, "externalParameter"),
+    ],
+)
+def test_uncertainty_writes_a_distribution_and_an_external_parameter(
+    type_: int, written: str
+) -> None:
+    """Test that the two types an uncertainty could not write are written.
+
+    `distribution` and `externalParameter` were refused by the type check of
+    `Uncertainty.create_sbml`: the element was dropped with an error, and a
+    distribution could only be written through the `formula` shortcut.
+    """
+    doc = _uncertainty_document(
+        Uncertainty(uncertParameters=[UncertParameter(type=type_, value=0.5)])
+    )
+
+    (child,) = _children(doc)
+    assert child.getTypeAsString() == written
+
+
+def test_uncertainty_keeps_the_order_of_its_children() -> None:
+    """Test that the children are written in the order they are given in.
+
+    The `distrib:listOfUncertParameters` holds the parameters and the spans
+    of an uncertainty in one list, so `uncertParameters` is that list and
+    takes both; a span before a parameter stays before it.
+    """
+    doc = _uncertainty_document(
+        Uncertainty(
+            uncertParameters=[
+                UncertParameter(type=libsbml.DISTRIB_UNCERTTYPE_MEAN, value=5.0),
+                UncertSpan(
+                    type=libsbml.DISTRIB_UNCERTTYPE_RANGE,
+                    valueLower=1.0,
+                    valueUpper=9.0,
+                ),
+                UncertParameter(
+                    type=libsbml.DISTRIB_UNCERTTYPE_STANDARDDEVIATION, value=0.3
+                ),
+            ]
+        )
+    )
+
+    assert [child.getElementName() for child in _children(doc)] == [
+        "uncertParameter",
+        "uncertSpan",
+        "uncertParameter",
+    ]
+
+
+def test_uncertainty_writes_the_spans_of_the_span_argument_first() -> None:
+    """Test that the `uncertSpans` argument writes its spans before the parameters.
+
+    `uncertSpans` is the authoring style of two lists, which has no place for
+    an order between them; the spans are written first, which is the order
+    such an uncertainty has always been written in.
+    """
+    doc = _uncertainty_document(
+        Uncertainty(
+            uncertParameters=[
+                UncertParameter(type=libsbml.DISTRIB_UNCERTTYPE_MEAN, value=5.0)
+            ],
+            uncertSpans=[
+                UncertSpan(
+                    type=libsbml.DISTRIB_UNCERTTYPE_RANGE,
+                    valueLower=1.0,
+                    valueUpper=9.0,
+                )
+            ],
+        )
+    )
+
+    assert [child.getElementName() for child in _children(doc)] == [
+        "uncertSpan",
+        "uncertParameter",
+    ]
+
+
+def test_uncertainty_of_a_formula_writes_one_distribution_parameter() -> None:
+    """Test that the formula shortcut writes exactly one distribution parameter.
+
+    `formula` is the authoring shortcut for an uncert parameter of the type
+    `distribution` with the definitionURL of the distribution it names and
+    the formula as its math. It is normalized into that parameter when the
+    uncertainty is constructed, so it is written exactly once, and it is the
+    last child, after the explicitly given ones.
+    """
+    uncertainty = Uncertainty(
+        formula="normal(2.0, 2.0)",
+        uncertParameters=[
+            UncertParameter(type=libsbml.DISTRIB_UNCERTTYPE_MEAN, value=2.0)
+        ],
+    )
+    doc = _uncertainty_document(uncertainty)
+
+    children = _children(doc)
+    assert [child.getTypeAsString() for child in children] == ["mean", "distribution"]
+    distribution = children[1]
+    assert (
+        distribution.getDefinitionURL()
+        == "http://www.sbml.org/sbml/symbols/distrib/normal"
+    )
+    assert libsbml.formulaToL3String(distribution.getMath()) == "normal(2, 2)"
+
+
+def test_uncertainty_of_a_formula_is_written_once_per_document() -> None:
+    """Test that writing one uncertainty twice writes one distribution each time.
+
+    A model definition is written more than once in the tests and the
+    examples, so the normalization of `formula` must not accumulate children
+    on the object.
+    """
+    uncertainty = Uncertainty(formula="normal(2.0, 2.0)")
+
+    first = _uncertainty_document(uncertainty)
+    second = _uncertainty_document(uncertainty)
+
+    assert len(_children(first)) == 1
+    assert len(_children(second)) == 1
+
+
+def test_uncertainty_of_a_formula_without_a_distribution_writes_no_math() -> None:
+    """Test that a formula which names no distribution of distrib writes none.
+
+    The shortcut recognizes the distributions of distrib by name; a formula
+    which names none of them is written as the bare uncert parameter of the
+    type `distribution` it has always been written as.
+    """
+    doc = _uncertainty_document(Uncertainty(formula="2.0 * p2"))
+
+    (child,) = _children(doc)
+    assert child.getTypeAsString() == "distribution"
+    assert not child.isSetDefinitionURL()
+    assert not child.isSetMath()
+
+
+def test_uncert_parameter_without_a_value_is_reported(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that a parameter which states nothing is reported and not refused.
+
+    Neither SBML nor libsbml requires a value of an uncert parameter: libsbml
+    writes, reads and validates a `distrib:uncertParameter` which carries
+    nothing but its type. A parameter which states nothing is an authoring
+    mistake all the same, so it is reported; refusing it in the constructor
+    would make a document which libsbml reads impossible to hold.
+    """
+    with caplog.at_level(logging.ERROR, logger="sbmlutils.factory"):
+        parameter = UncertParameter(type=libsbml.DISTRIB_UNCERTTYPE_MEAN)
+
+    assert parameter.value is None
+    errors = [
+        record.getMessage()
+        for record in caplog.records
+        if "states nothing about the value" in record.getMessage()
+    ]
+    assert len(errors) == 1, caplog.records
+
+
+def test_uncert_span_without_a_bound_is_reported(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that a span which states neither of its bounds is reported."""
+    with caplog.at_level(logging.ERROR, logger="sbmlutils.factory"):
+        UncertSpan(type=libsbml.DISTRIB_UNCERTTYPE_RANGE)
+
+    errors = [
+        record.getMessage()
+        for record in caplog.records
+        if "states nothing about the value" in record.getMessage()
+    ]
+    assert len(errors) == 1, caplog.records
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"value": 1.0},
+        {"var": "p2"},
+        {"definitionURL": "http://www.probonto.org/ontology#PROB_k0000782"},
+        {"math": "normal(1, 2)"},
+        {
+            "uncertParameters": [
+                UncertParameter(
+                    type=libsbml.DISTRIB_UNCERTTYPE_EXTERNALPARAMETER, value=0.4
+                )
+            ]
+        },
+    ],
+)
+def test_uncert_parameter_which_states_a_value_is_not_reported(
+    kwargs: dict[str, Any], caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that every way of stating the value counts as one.
+
+    A value, the variable it is read from, the definitionURL of an external
+    distribution, math and the uncert parameters of an external distribution
+    each state what the value is.
+    """
+    with caplog.at_level(logging.ERROR, logger="sbmlutils.factory"):
+        UncertParameter(type=libsbml.DISTRIB_UNCERTTYPE_DISTRIBUTION, **kwargs)
+
+    assert [
+        record.getMessage()
+        for record in caplog.records
+        if "states nothing about the value" in record.getMessage()
+    ] == []
