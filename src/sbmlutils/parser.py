@@ -286,9 +286,9 @@ def _charge(species_fbc: libsbml.FbcSpeciesPlugin | None) -> float | None:
     fbc version 3 apart: it reads and writes only the one of the version of
     the document, and the getter of the other one returns 0. The charge is
     therefore read through the accessor of the version of the plugin, and as
-    the same python type the writer needs for it, since
-    `FbcSpeciesPlugin.setCharge` dispatches on that type: an `int` sets the
-    fbc version 2 charge, a `float` the fbc version 3 one.
+    the `float` of `Species.charge`; which of the two libsbml is given back is
+    the decision of `Species._set_charge`, from the fbc version of the
+    document it writes into.
 
     Args:
         species_fbc: the fbc plugin of a species, `None` for a document
@@ -303,7 +303,7 @@ def _charge(species_fbc: libsbml.FbcSpeciesPlugin | None) -> float | None:
         charge_double: float = species_fbc.getChargeAsDouble()
         return charge_double
     charge: int = species_fbc.getCharge()
-    return charge
+    return float(charge)
 
 
 def _objective_type(objective: libsbml.Objective) -> str:

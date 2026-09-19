@@ -1783,9 +1783,51 @@ class Species(Sbase):
                 )
             else:
                 if self.charge is not None:
-                    obj_fbc.setCharge(self.charge)
+                    self._set_charge(obj_fbc)
                 if self.chemicalFormula is not None:
                     obj_fbc.setChemicalFormula(self.chemicalFormula)
+
+    def _set_charge(self, species_fbc: libsbml.FbcSpeciesPlugin) -> None:
+        """Set the fbc charge as the fbc version of the document writes it.
+
+        libsbml keeps the integer `fbc:charge` of fbc version 2 and the double
+        `fbc:charge` of fbc version 3 apart: it writes only the one of the
+        version of the document, and the getter of the other one returns 0.
+        `FbcSpeciesPlugin.setCharge` picks which of the two it sets from the
+        python type of its argument, an `int` the fbc version 2 charge and a
+        `float` the fbc version 3 one, so the charge is passed as the type the
+        version of the plugin writes. The version is read from the plugin of
+        the created species, which is the version of the document being
+        written, rather than from the packages of the `Model`.
+
+        fbc version 2 has no charge which is not a whole number, so such a
+        charge cannot be written into a document of that version at all. It is
+        reported and left unset rather than rounded, which would write a
+        charge the model never stated.
+
+        Args:
+            species_fbc: the fbc plugin of the created libsbml.Species
+        """
+        if self.charge is None:
+            return
+        if species_fbc.getPackageVersion() >= 3:
+            check(
+                species_fbc.setCharge(float(self.charge)),
+                f"Set charge '{self.charge}' on species '{self.sid}'",
+            )
+        elif float(self.charge).is_integer():
+            check(
+                species_fbc.setCharge(int(self.charge)),
+                f"Set charge '{self.charge}' on species '{self.sid}'",
+            )
+        else:
+            logger.error(
+                "Species '%s' has the charge %s, which fbc version 2 cannot "
+                "express: its 'fbc:charge' is an integer. The charge is not "
+                "written; use `Package.FBC_V3` for a model with such a charge.",
+                self.sid,
+                self.charge,
+            )
 
 
 class InitialAssignment(Value):

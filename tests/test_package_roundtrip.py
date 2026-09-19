@@ -1173,6 +1173,112 @@ def test_roundtrip_preserves_bounds_charge_and_formula(
     )
 
 
+def _charge_sbml(tmp_path: Path, fbc_version: int, charges: list[float]) -> Path:
+    """Write a model whose species carry the given charges, with libsbml.
+
+    The source is built with libsbml rather than with the factory, so that the
+    charges of the document read are the ones stated here and not the ones the
+    writer under test would have produced; a writer which loses a charge would
+    otherwise lose it on both sides and the comparison would see nothing. One
+    species carries no charge at all, so that an unset charge is not confused
+    with a charge of zero.
+
+    Args:
+        tmp_path: the directory the SBML file is written to
+        fbc_version: the fbc package version of the document, 2 or 3
+        charges: the charge of each species of the model, in order
+
+    Returns:
+        the path of the SBML file
+    """
+    doc: libsbml.SBMLDocument = libsbml.SBMLDocument(
+        libsbml.SBMLNamespaces(3, 2, "fbc", fbc_version)
+    )
+    doc.setPackageRequired("fbc", False)
+    model: libsbml.Model = doc.createModel()
+    model.setId(f"charge_fbc_v{fbc_version}")
+    model_fbc: libsbml.FbcModelPlugin = model.getPlugin("fbc")
+    model_fbc.setStrict(False)
+    compartment: libsbml.Compartment = model.createCompartment()
+    compartment.setId("c")
+    compartment.setConstant(True)
+    compartment.setSize(1.0)
+    compartment.setSpatialDimensions(3.0)
+    for index, charge in enumerate([*charges, None]):
+        species: libsbml.Species = model.createSpecies()
+        species.setId(f"S{index}")
+        species.setCompartment("c")
+        species.setConstant(False)
+        species.setBoundaryCondition(False)
+        species.setHasOnlySubstanceUnits(False)
+        species.setInitialAmount(1.0)
+        if charge is None:
+            continue
+        plugin: libsbml.FbcSpeciesPlugin = species.getPlugin("fbc")
+        value = float(charge) if fbc_version >= 3 else int(charge)
+        assert plugin.setCharge(value) == libsbml.LIBSBML_OPERATION_SUCCESS
+
+    sbml_path = tmp_path / f"charge_fbc_v{fbc_version}.xml"
+    libsbml.writeSBMLToFile(doc, str(sbml_path))
+    return sbml_path
+
+
+def _charges(doc: libsbml.SBMLDocument) -> list[float | None]:
+    """Get the charge of every species of a document, as libsbml writes it.
+
+    Args:
+        doc: the document, which the caller holds
+
+    Returns:
+        the charge of every species in document order, `None` for a species
+        without one
+    """
+    charges: list[float | None] = []
+    species: libsbml.Species
+    for species in doc.getModel().getListOfSpecies():
+        plugin: libsbml.FbcSpeciesPlugin = species.getPlugin("fbc")
+        if not plugin.isSetCharge():
+            charges.append(None)
+        elif plugin.getPackageVersion() >= 3:
+            charges.append(float(plugin.getChargeAsDouble()))
+        else:
+            charges.append(float(plugin.getCharge()))
+    return charges
+
+
+@pytest.mark.parametrize(
+    "fbc_version, charges",
+    [
+        (2, [-2.0, 0.0, 3.0]),
+        # fbc version 3 has a double charge, which need not be a whole number
+        (3, [-2.5, 0.0, 3.0, -2.0]),
+    ],
+    ids=["fbc-v2", "fbc-v3"],
+)
+def test_roundtrip_preserves_the_charge_of_each_fbc_version(
+    fbc_version: int, charges: list[float], tmp_path: Path
+) -> None:
+    """Test that the charge of a species survives a round trip in both fbc versions.
+
+    libsbml keeps the integer `fbc:charge` of fbc version 2 and the double
+    `fbc:charge` of fbc version 3 apart and writes only the one of the version
+    of the document, so a charge set as the wrong python type comes out as
+    `fbc:charge="0"`. A charge of zero and a species without a charge stay
+    apart, which the last species of the fixture, which has none, shows.
+    """
+    sbml_path = _charge_sbml(tmp_path, fbc_version, charges)
+    doc_in, doc_out = roundtrip_document(sbml_path, tmp_path)
+    assert _charges(doc_in) == [*charges, None]
+    assert _expected_constructs(comparable_document(doc_in))["fbc.charge"] == len(
+        charges
+    )
+
+    diffs = [d for d in structural_diff(doc_in, doc_out) if d.package == "fbc"]
+
+    assert [str(d) for d in diffs] == []
+    assert _charges(doc_out) == [*charges, None]
+
+
 def _one_flux_bound_model() -> Model:
     """Get a model whose reaction states its lower flux bound and no upper one.
 

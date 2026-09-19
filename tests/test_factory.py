@@ -1,6 +1,7 @@
 """Testing the factory methods."""
 
 import logging
+import re
 import threading
 from collections.abc import Callable
 from pathlib import Path
@@ -1879,3 +1880,110 @@ def test_reaction_speciesref_keeps_key_value_pairs() -> None:
         "kp": ("2", None),
         "km": ("3", None),
     }
+
+
+# ---------------------------------------------------------------------------
+# the fbc charge, which libsbml keeps apart by fbc version
+# ---------------------------------------------------------------------------
+def _charge_document(fbc_version: int, charge: float | None) -> libsbml.SBMLDocument:
+    """Create a species with a charge in a document of the given fbc version.
+
+    Args:
+        fbc_version: the fbc package version of the document, 2 or 3
+        charge: the charge of the species, `None` for a species without one
+
+    Returns:
+        the document, which the caller has to hold for as long as it uses any
+        object of it
+    """
+    doc = libsbml.SBMLDocument(libsbml.SBMLNamespaces(3, 2, "fbc", fbc_version))
+    doc.setPackageRequired("fbc", False)
+    model: libsbml.Model = doc.createModel()
+    model.setId("charge")
+    plugin: libsbml.FbcModelPlugin = model.getPlugin("fbc")
+    plugin.setStrict(False)
+    compartment: libsbml.Compartment = model.createCompartment()
+    compartment.setId("c")
+    compartment.setConstant(True)
+    Species(sid="S1", compartment="c", initialAmount=1.0, charge=charge).create_sbml(
+        model
+    )
+    return doc
+
+
+def _written_charge(doc: libsbml.SBMLDocument) -> str | None:
+    """Get the `fbc:charge` libsbml writes for the species `S1` of a document.
+
+    The charge is read out of the SBML rather than through a getter, since the
+    getter of the version the document is not at returns 0 for a charge which
+    is set, which is the very confusion this is about.
+
+    Args:
+        doc: the document, which the caller holds
+
+    Returns:
+        the value of the `fbc:charge` attribute, `None` if the species has none
+    """
+    match = re.search(
+        r'<species [^>]*fbc:charge="([^"]*)"', libsbml.writeSBMLToString(doc)
+    )
+    return match.group(1) if match is not None else None
+
+
+@pytest.mark.parametrize(
+    "fbc_version, charge, written",
+    [
+        # fbc version 2 writes an integer charge; an integral float is one
+        (2, -2.0, "-2"),
+        (2, 1, "1"),
+        (2, 0, "0"),
+        (2, 0.0, "0"),
+        (2, None, None),
+        # fbc version 3 writes a double charge, integral or not
+        (3, 1, "1"),
+        (3, -2.0, "-2"),
+        (3, -2.5, "-2.5"),
+        (3, 0, "0"),
+        (3, None, None),
+    ],
+)
+def test_species_charge_is_written_for_the_fbc_version_of_the_document(
+    fbc_version: int, charge: float | None, written: str | None
+) -> None:
+    """Test that the charge given is the charge written, in both fbc versions.
+
+    libsbml keeps the integer charge of fbc version 2 and the double charge of
+    fbc version 3 apart and writes only the one of the version of the
+    document, and `FbcSpeciesPlugin.setCharge` picks which of the two it sets
+    from the python type of its argument. `Species._set_fields` passed the
+    `charge` field through as it was, so a `float` in an fbc version 2 model
+    and an `int` in an fbc version 3 model each set the charge of the other
+    version: `fbc:charge` came out as `0` while the charge was reported as
+    set. A charge of `0` and a species without a charge stay apart.
+    """
+    doc = _charge_document(fbc_version, charge)
+
+    assert _written_charge(doc) == written
+
+
+def test_species_charge_which_fbc_v2_cannot_write_is_reported(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that a non-integral charge in an fbc version 2 model is reported, not rounded.
+
+    `fbc:charge` is an integer in fbc version 2, so a charge of `-2.5` cannot
+    be written into such a document at all. Rounding it would write a charge
+    the model never stated, so it is left unset and the species and the charge
+    are named in an error.
+    """
+    with caplog.at_level(logging.ERROR, logger="sbmlutils.factory"):
+        doc = _charge_document(2, -2.5)
+
+    assert _written_charge(doc) is None
+    errors = [
+        record.getMessage()
+        for record in caplog.records
+        if record.levelno >= logging.ERROR
+    ]
+    assert len(errors) == 1, errors
+    assert "S1" in errors[0] and "-2.5" in errors[0]
