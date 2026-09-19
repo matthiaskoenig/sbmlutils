@@ -1402,3 +1402,26 @@ def test_a_rejected_model_definition_reports_nothing_else(
         )
 
     assert not [record for record in caplog.records if "strict" in record.getMessage()]
+
+
+def test_a_model_definition_cannot_be_written_as_a_document(tmp_path: Path) -> None:
+    """Test that a model definition is not accepted as the model of a document.
+
+    A `<comp:modelDefinition>` lives next to the `<model>` of a document, it
+    is not one: writing a `ModelDefinition` on its own used to produce a
+    document without a model, and failed deep inside the comp plugin lookup.
+    """
+    model_definition = ModelDefinition(
+        sid="md_alone",
+        name="a model definition on its own",
+        parameters=[Parameter("k", 1.0, name="rate constant")],
+    )
+
+    with pytest.raises(ValueError, match="not the model of a document"):
+        create_model(
+            model=model_definition,
+            filepath=tmp_path / "md_alone.xml",
+            validation_options=ValidationOptions(units_consistency=False),
+        )
+    with pytest.raises(ValueError, match="not the model of a document"):
+        model_definition.get_sbml()

@@ -5825,6 +5825,12 @@ class ModelDefinition(Model):
     key-value pairs), the distrib `uncertainties` of any of its elements and
     a `layouts` list, all through the plugins libsbml attaches to a model
     definition as it does to the model of a document.
+
+    A model definition is a model *in* a document, not the model *of* it: it
+    is written by putting it in the `model_definitions` of a `Model` and
+    writing that model. Handing one to `create_model`, to `Document` or to
+    `get_sbml` is refused, since the document it would write has a
+    `<comp:modelDefinition>` and no `<model>` at all.
     """
 
     _unsupported_fields: ClassVar[dict[str, str]] = {
@@ -5992,7 +5998,32 @@ class Document(Sbase):
         sbml_level: int = SBML_LEVEL,
         sbml_version: int = SBML_VERSION,
     ):
-        """Document constructor."""
+        """Document constructor.
+
+        Args:
+            model: the model of the document
+            sid: the id of the document
+            name: the name of the document
+            sboTerm: the SBO term of the document
+            metaId: the meta id of the document
+            annotations: the annotations of the document
+            notes: the notes of the document
+            keyValuePairs: the fbc key value pairs of the document
+            sbml_level: the SBML level to write
+            sbml_version: the SBML version to write
+
+        Raises:
+            ValueError: if the model is a `ModelDefinition`, which is a model
+                of the document but not the model of the document
+        """
+        if isinstance(model, ModelDefinition):
+            raise ValueError(
+                f"A ModelDefinition is not the model of a document: "
+                f"'{model.sid}' cannot be written on its own, a "
+                f"<comp:modelDefinition> lives next to the <model> of a "
+                f"document. Put it in the `model_definitions` of a `Model` "
+                f"and write that model."
+            )
         self.model = model
         self.sid = sid
         self.name = name
