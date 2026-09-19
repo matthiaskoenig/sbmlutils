@@ -23,6 +23,8 @@ The port of an element gets the id of the element plus `PORT_SUFFIX` (`_port`), 
 
 A port names most elements by their id (`comp:idRef`), a unit definition by `comp:unitRef`, and an initial assignment, a rule, an event assignment and a local parameter by their metaid (`comp:metaIdRef`): libsbml resolves a `comp:idRef` with `Model.getElementBySId`, which answers with none of those four. Such an element needs a `metaId` for its port, which its port is then named after; an element without one is reported and gets no port.
 
+A kinetic law, a trigger, a priority, a delay, a constraint and a key-value pair are named by their id from SBML Level 3 Version 2 on and by their metaid below it, where an SBML document carries no id for them. `create_model` writes Level 3 Version 1 by default, so a port on one of those needs a `metaId` unless the document is written as Level 3 Version 2.
+
 ## Submodels
 
 A submodel refers to a model definition, which is either inside the same file (`ModelDefinition`) or in another file (`ExternalModelDefinition`):

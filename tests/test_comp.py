@@ -265,9 +265,15 @@ def _event_model(sid: str, event: Event) -> Model:
 @pytest.mark.parametrize(
     "kwargs",
     [
-        {"trigger": Trigger("time >= 10", sid="t1", port=True)},
-        {"trigger": "time >= 10", "priority": Priority("1", sid="pr1", port=True)},
-        {"trigger": "time >= 10", "delay": Delay("2", sid="d1", port=True)},
+        {"trigger": Trigger("time >= 10", sid="t1", metaId="meta_t1", port=True)},
+        {
+            "trigger": "time >= 10",
+            "priority": Priority("1", sid="pr1", metaId="meta_pr1", port=True),
+        },
+        {
+            "trigger": "time >= 10",
+            "delay": Delay("2", sid="d1", metaId="meta_d1", port=True),
+        },
     ],
     ids=["trigger", "priority", "delay"],
 )
@@ -275,7 +281,11 @@ def test_port_on_an_event_child_is_comp_content(kwargs: dict[str, Any]) -> None:
     """Test that a port on a trigger, priority or delay is found.
 
     They are held by the `Event`, which is walked like every other element
-    of the model, see `Model._has_comp_content`.
+    of the model, see `Model._has_comp_content`. Each of the three states a
+    metaid, which its port names it by in the SBML L3V1 document
+    `_has_comp_content` answers for by default: a `<trigger>`, a
+    `<priority>` and a `<delay>` have no id below L3V2, see
+    `Sbase._port_id_needs_l3v2`.
     """
     event = Event("e1", assignments={"p1": 1.0}, **kwargs)
     assert _event_model("event_child_port", event)._has_comp_content()
@@ -1948,7 +1958,16 @@ def test_roundtrip_keeps_the_port_of_a_nested_element(tmp_path: Path) -> None:
         **_nested_port_content(),
     )
     sbml_path = tmp_path / f"{model.sid}.xml"
-    create_model(model=model, filepath=sbml_path, validate=False)
+    # SBML L3V2, like every other test of `_NESTED_PORTS`: a kinetic law, a
+    # trigger, a priority, a delay, a constraint and a key-value pair are
+    # named by their id only from L3V2 on, see `Sbase._port_id_needs_l3v2`
+    create_model(
+        model=model,
+        filepath=sbml_path,
+        sbml_level=3,
+        sbml_version=2,
+        validate=False,
+    )
 
     doc_in, doc_out = roundtrip_document(sbml_path, tmp_path)
 
@@ -2639,3 +2658,208 @@ def test_external_model_definition_without_a_model_ref_reports_nothing(
     assert "comp:modelRef" in sbml  # the submodel has one
     assert 'comp:modelRef=""' not in sbml
     assert [record.getMessage() for record in caplog.records] == []
+
+
+#: the six element types whose `id` an SBML L3V1 document does not carry: a
+#: kinetic law, a trigger, a priority, a delay and a constraint have no `id`
+#: attribute below L3V2, and libsbml writes the `fbc:id` of a key-value pair
+#: into an L3V1 document but does not read it back. A `<comp:port>` by
+#: `comp:idRef` to any of them is rejected there with libsbml 1020702.
+_L3V2_ID_ELEMENTS: list[str] = [
+    "KineticLaw",
+    "Trigger",
+    "Priority",
+    "Delay",
+    "Constraint",
+    "KeyValuePair",
+]
+
+
+def _l3v2_id_port_model(sid: str, element: str, metaId: str | None) -> Model:
+    """Get a model with a port on one element whose id needs SBML L3V2.
+
+    Args:
+        sid: the id of the model
+        element: the class name of the element which carries the port, one of
+            `_L3V2_ID_ELEMENTS`
+        metaId: the metaid of that element, `None` for an element which
+            states none
+
+    Returns:
+        the model
+    """
+    ports: dict[str, Any] = {name: {} for name in _L3V2_ID_ELEMENTS}
+    ports[element] = {"port": True, "metaId": metaId}
+
+    return Model(
+        sid=sid,
+        name="a port on an element whose id needs L3V2",
+        packages=[Package.COMP_V1, Package.FBC_V3],
+        compartments=[Compartment("c", 1.0, name="compartment")],
+        species=[
+            Species("S1", compartment="c", initialConcentration=1.0, name="S1"),
+            Species("S2", compartment="c", initialConcentration=0.0, name="S2"),
+        ],
+        parameters=[
+            Parameter("k", 1.0, name="k"),
+            Parameter("p1", 0.0, constant=False, name="p1"),
+            Parameter(
+                "p3",
+                3.0,
+                name="p3",
+                keyValuePairs=[
+                    KeyValuePair(
+                        key="kind",
+                        value="test",
+                        uri="https://example.org",
+                        sid="kvp1",
+                        **ports["KeyValuePair"],
+                    )
+                ],
+            ),
+        ],
+        reactions=[
+            Reaction(
+                "r1",
+                "S1 -> S2",
+                name="reaction",
+                formula=KineticLaw(math="k * S1", sid="klaw1", **ports["KineticLaw"]),
+            )
+        ],
+        events=[
+            Event(
+                "e1",
+                name="event",
+                trigger=Trigger("time >= 10", sid="t1", **ports["Trigger"]),
+                priority=Priority("1", sid="pr1", **ports["Priority"]),
+                delay=Delay("2", sid="d1", **ports["Delay"]),
+                assignments=[EventAssignment("p1", "1.0", sid="ea1")],
+            )
+        ],
+        constraints=[
+            Constraint("con1", math="p1 >= 0", name="constraint", **ports["Constraint"])
+        ],
+    )
+
+
+#: the port each of the six elements gets, as `element -> (id, reference,
+#: target)` at SBML L3V1 and at L3V2. Below L3V2 the element is named by its
+#: metaid and the port is named after it; from L3V2 on both are the id.
+_L3V2_ID_PORTS: dict[str, tuple[tuple[str, str, str], tuple[str, str, str]]] = {
+    "KineticLaw": (
+        ("meta_klaw1_port", "metaIdRef", "meta_klaw1"),
+        ("klaw1_port", "idRef", "klaw1"),
+    ),
+    "Trigger": (
+        ("meta_t1_port", "metaIdRef", "meta_t1"),
+        ("t1_port", "idRef", "t1"),
+    ),
+    "Priority": (
+        ("meta_pr1_port", "metaIdRef", "meta_pr1"),
+        ("pr1_port", "idRef", "pr1"),
+    ),
+    "Delay": (
+        ("meta_d1_port", "metaIdRef", "meta_d1"),
+        ("d1_port", "idRef", "d1"),
+    ),
+    "Constraint": (
+        ("meta_con1_port", "metaIdRef", "meta_con1"),
+        ("con1_port", "idRef", "con1"),
+    ),
+    "KeyValuePair": (
+        ("meta_kvp1_port", "metaIdRef", "meta_kvp1"),
+        ("kvp1_port", "idRef", "kvp1"),
+    ),
+}
+
+
+@pytest.mark.parametrize("element", _L3V2_ID_ELEMENTS)
+@pytest.mark.parametrize("version", [1, 2])
+def test_port_of_an_element_whose_id_needs_l3v2_validates(
+    element: str, version: int, tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that the port of such an element validates at L3V1 and at L3V2.
+
+    A kinetic law, a trigger, a priority, a delay and a constraint have no
+    `id` attribute below SBML L3V2, and libsbml does not read the `fbc:id` of
+    a key-value pair back from an L3V1 document, so a `<comp:port>` which
+    named one of them by `comp:idRef` resolved to nothing there and the
+    document failed with libsbml 1020702. `create_model` writes L3V1 by
+    default, so that was the default. A port names its element by what the
+    document being written carries: the metaid below L3V2, the id from L3V2
+    on.
+    """
+    model = _l3v2_id_port_model(
+        f"port_on_a_{element.lower()}_l3v{version}",
+        element,
+        metaId=f"meta_{_L3V2_ID_PORTS[element][1][2]}",
+    )
+    sbml_path = tmp_path / f"{model.sid}.xml"
+    with caplog.at_level(logging.ERROR, logger="sbmlutils.factory"):
+        create_model(
+            model=model,
+            filepath=sbml_path,
+            sbml_level=3,
+            sbml_version=version,
+            validate=False,
+        )
+    doc = read_sbml(sbml_path)
+
+    port_id, reference, target = _L3V2_ID_PORTS[element][version - 1]
+    assert _ports(doc.getModel()) == {port_id: (reference, target)}
+    assert [r.getMessage() for r in caplog.records if "port of" in r.getMessage()] == []
+    result = validate_doc(doc, options=ValidationOptions(units_consistency=False))
+    assert [error.getErrorId() for error in result.errors] == []
+
+
+@pytest.mark.parametrize("element", _L3V2_ID_ELEMENTS)
+def test_port_of_such_an_element_without_a_metaid_is_reported_at_l3v1(
+    element: str, tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that such a port is reported, not written, when there is no metaid.
+
+    Below SBML L3V2 the port needs the element's metaid, so an element which
+    states none gets no port and the model declares no comp for it, the same
+    way a local parameter without a metaid is reported.
+    """
+    model = _l3v2_id_port_model(
+        f"port_without_a_metaid_{element.lower()}", element, None
+    )
+    sbml_path = tmp_path / f"{model.sid}.xml"
+    with caplog.at_level(logging.ERROR, logger="sbmlutils.factory"):
+        create_model(
+            model=model,
+            filepath=sbml_path,
+            sbml_level=3,
+            sbml_version=1,
+            validate=False,
+        )
+
+    doc = read_sbml(sbml_path)
+    assert _ports(doc.getModel()) == {}
+    reports = [r.getMessage() for r in caplog.records if "port of" in r.getMessage()]
+    assert len(reports) == 1, reports
+    assert element in reports[0]
+    assert "metaId" in reports[0]
+
+
+@pytest.mark.parametrize("element", _L3V2_ID_ELEMENTS)
+def test_port_of_such_an_element_without_a_metaid_is_written_at_l3v2(
+    element: str, tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that the same port is written by `comp:idRef` at SBML L3V2."""
+    model = _l3v2_id_port_model(f"port_by_idref_{element.lower()}", element, None)
+    sbml_path = tmp_path / f"{model.sid}.xml"
+    with caplog.at_level(logging.ERROR, logger="sbmlutils.factory"):
+        create_model(
+            model=model,
+            filepath=sbml_path,
+            sbml_level=3,
+            sbml_version=2,
+            validate=False,
+        )
+
+    doc = read_sbml(sbml_path)
+    port_id, reference, target = _L3V2_ID_PORTS[element][1]
+    assert _ports(doc.getModel()) == {port_id: (reference, target)}
+    assert [r.getMessage() for r in caplog.records if "port of" in r.getMessage()] == []

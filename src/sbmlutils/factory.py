@@ -852,6 +852,18 @@ class Sbase:
     #: validates, and a unit definition has `comp:unitRef` of its own.
     _port_reference: ClassVar[Literal["idRef", "unitRef", "metaIdRef"]] = "idRef"
 
+    #: whether the id of an element of this class is only carried by an SBML
+    #: L3V2 document, so that a port cannot name it by `comp:idRef` below
+    #: L3V2 and names it by its metaid there instead. Two reasons make an id
+    #: need L3V2, both measured with libsbml 5.21.2: a `<kineticLaw>`, a
+    #: `<trigger>`, a `<priority>`, a `<delay>` and a `<constraint>` have no
+    #: `id` attribute at all below L3V2, and libsbml writes the `fbc:id` of a
+    #: `<fbc:keyValuePair>` into an L3V1 document but does not read it back.
+    #: A `<comp:port>` by `comp:idRef` to any of them is rejected in an L3V1
+    #: document with libsbml 1020702, which is what `create_model` writes by
+    #: default.
+    _port_id_needs_l3v2: ClassVar[bool] = False
+
     #: authoring hints are logged for a hand written model definition, they are
     #: noise for a model which was parsed from a file, see
     #: `Sbase.no_authoring_hints`. A `ContextVar` rather than a class attribute:
@@ -1052,16 +1064,40 @@ class Sbase:
         if self.keyValuePairs is not None:
             self.create_key_value_pairs(sbase, model)
 
-    def _port_target(self) -> str | None:
+    @classmethod
+    def _port_reference_for(
+        cls, level: int, version: int
+    ) -> Literal["idRef", "unitRef", "metaIdRef"]:
+        """Get how a port names an element of this class in such a document.
+
+        A port names its element by what the document being written carries,
+        which for the classes whose id needs SBML L3V2 is not the same in
+        every document, see `_port_id_needs_l3v2`.
+
+        Args:
+            level: the SBML level of the document being written
+            version: the SBML version of the document being written
+
+        Returns:
+            the reference the port uses
+        """
+        if cls._port_reference == "idRef" and cls._port_id_needs_l3v2:
+            return "idRef" if (level, version) >= (3, 2) else "metaIdRef"
+        return cls._port_reference
+
+    def _port_target(self, reference: str) -> str | None:
         """Get the name a port references this element by, if it has one.
+
+        Args:
+            reference: the reference the port uses, see `_port_reference_for`
 
         Returns:
             the id of the element for `idRef` and `unitRef`, its metaid for
             `metaIdRef`, `None` if the element does not state it
         """
-        return self.metaId if self._port_reference == "metaIdRef" else self.sid
+        return self.metaId if reference == "metaIdRef" else self.sid
 
-    def _port_id(self) -> str:
+    def _port_id(self, reference: str) -> str:
         """Get the id the `port=True` shorthand gives the port of this element.
 
         The port is named after the name it references the element by, which
@@ -1072,12 +1108,15 @@ class Sbase:
         must have unique ids", and 10307, "Duplicate 'metaid' attribute
         value").
 
+        Args:
+            reference: the reference the port uses, see `_port_reference_for`
+
         Returns:
             the id, which is also the metaid of the port; the empty string
             for an element with no name a port can reference
         """
-        suffix = PORT_UNIT_SUFFIX if self._port_reference == "unitRef" else PORT_SUFFIX
-        target = self._port_target()
+        suffix = PORT_UNIT_SUFFIX if reference == "unitRef" else PORT_SUFFIX
+        target = self._port_target(reference)
         return "" if target is None else f"{target}{suffix}"
 
     def _port_references_self(self) -> bool:
@@ -1106,7 +1145,7 @@ class Sbase:
             or self.port.metaIdRef
         )
 
-    def _port_loss(self, in_model: bool) -> str | None:
+    def _port_loss(self, in_model: bool, level: int, version: int) -> str | None:
         """Say why the port of this element cannot be written, if it cannot.
 
         The one predicate which decides whether a port is written. Both users
@@ -1114,7 +1153,9 @@ class Sbase:
         and `Model._has_comp_content`, which does not count such a port as
         comp content, so that a model whose only comp construct is a port
         which cannot be written declares no comp package and leaves no empty
-        comp namespace behind.
+        comp namespace behind. Both hand over the SBML level and version of
+        the document being written, since how a port names its element
+        depends on it, see `_port_reference_for`.
 
         Three things stop a port from being written:
 
@@ -1122,7 +1163,8 @@ class Sbase:
           live in, which is what happens to a key-value pair nested in an
           uncert parameter, an uncert span or a `<comp:sBaseRef>`,
         - the port references the element itself and the element does not
-          state the name that reference needs, an id or a metaid,
+          state the name that reference needs in this document, an id or a
+          metaid,
         - the `port=True` shorthand would derive an id for the port which is
           no valid `SId`, which a metaid can be: a metaid is an XML `ID`,
           which allows `.` and `-`, and libsbml answers `setId` with
@@ -1133,6 +1175,8 @@ class Sbase:
         Args:
             in_model: whether the element is written with the
                 `libsbml.Model`, see `_iter_sbases_with_model`
+            level: the SBML level of the document being written
+            version: the SBML version of the document being written
 
         Returns:
             the reason, as a sentence which names the element and says what to
@@ -1150,21 +1194,27 @@ class Sbase:
             )
         if not self._port_references_self():
             return None
-        if self._port_target() is None:
-            name = "metaId" if self._port_reference == "metaIdRef" else "id"
+        reference = self._port_reference_for(level, version)
+        if self._port_target(reference) is None:
+            name = "metaId" if reference == "metaIdRef" else "id"
+            because = (
+                f" in an SBML L{level}V{version} document"
+                if self._port_id_needs_l3v2
+                else ""
+            )
             return (
                 f"{what} is not created: a port references this element by its "
-                f"{name}, which it does not state. Give it a {name}, or give "
-                f"the port a reference of its own."
+                f"{name}{because}, which it does not state. Give it a {name}, "
+                f"or give the port a reference of its own."
             )
         if isinstance(self.port, bool) and not libsbml.SyntaxChecker.isValidSBMLSId(
-            self._port_id()
+            self._port_id(reference)
         ):
             return (
-                f"{what} is not created: the id '{self._port_id()}' derived "
-                f"from the metaid '{self.metaId}' is no valid SBML SId, which "
-                f"a port requires. Give the element a metaid which is a valid "
-                f"SId, or give the port an id and a reference of its own."
+                f"{what} is not created: the id '{self._port_id(reference)}' "
+                f"derived from the metaid '{self.metaId}' is no valid SBML SId, "
+                f"which a port requires. Give the element a metaid which is a "
+                f"valid SId, or give the port an id and a reference of its own."
             )
         return None
 
@@ -1192,21 +1242,25 @@ class Sbase:
             return None
         if model is None:
             # the element is written without a model, which `_port_loss`
-            # states as one of its three reasons
-            logger.error("%s", self._port_loss(False))
+            # states as one of its three reasons; the level and version are
+            # not looked at on that path
+            logger.error("%s", self._port_loss(False, SBML_LEVEL, SBML_VERSION))
             return None
-        loss = self._port_loss(True)
+        level: int = model.getLevel()
+        version: int = model.getVersion()
+        loss = self._port_loss(True, level, version)
         if loss is not None:
             logger.error("%s", loss)
             return None
 
         # the element is written with a model, states the name its port
-        # references it by, and that name gives a valid port id
-        reference = self._port_reference
+        # references it by in a document of this level and version, and that
+        # name gives a valid port id
+        reference = self._port_reference_for(level, version)
         # the name the port references this element by; `unitRef` names a
         # unit definition by its id like `idRef` does, in the namespace of
         # the unit definitions of the model
-        target: str | None = self._port_target()
+        target: str | None = self._port_target(reference)
 
         p: libsbml.Port | None = None
         if isinstance(self.port, bool):
@@ -1216,7 +1270,7 @@ class Sbase:
                     model, f"The port of {type(self).__name__} '{self.sid}'"
                 )
                 p = cmodel.createPort()
-                port_sid = self._port_id()
+                port_sid = self._port_id(reference)
                 p.setId(port_sid)
                 # the name says which element the port belongs to, which is
                 # its id where it has one, even when the port references it
@@ -1343,6 +1397,11 @@ class KeyValuePair(Sbase):
     document fails with 1090105), while one nested in a `<comp:sBaseRef>` is
     resolvable; this package writes a port for neither.
     """
+
+    #: libsbml writes the `fbc:id` of a `<fbc:keyValuePair>` into an SBML
+    #: L3V1 document but does not read it back, so a port names a pair by its
+    #: metaid there, see `Sbase._port_id_needs_l3v2`
+    _port_id_needs_l3v2: ClassVar[bool] = True
 
     def __init__(
         self,
@@ -2847,6 +2906,10 @@ class KineticLaw(Sbase):
     and the local parameters which are scoped to it.
     """
 
+    #: a `<kineticLaw>` has no id in an SBML L3V1 document, so a port names it by
+    #: its metaid there, see `Sbase._port_id_needs_l3v2`
+    _port_id_needs_l3v2: ClassVar[bool] = True
+
     def __init__(
         self,
         math: str | None,
@@ -3412,6 +3475,10 @@ class Trigger(Sbase):
     to true fires the event, and the two flags which qualify it.
     """
 
+    #: a `<trigger>` has no id in an SBML L3V1 document, so a port names it by
+    #: its metaid there, see `Sbase._port_id_needs_l3v2`
+    _port_id_needs_l3v2: ClassVar[bool] = True
+
     def __init__(
         self,
         math: str | None,
@@ -3534,6 +3601,10 @@ class Priority(Sbase):
     `Sbase.create_replaced_by`.
     """
 
+    #: a `<priority>` has no id in an SBML L3V1 document, so a port names it by
+    #: its metaid there, see `Sbase._port_id_needs_l3v2`
+    _port_id_needs_l3v2: ClassVar[bool] = True
+
     def __init__(
         self,
         math: str | None,
@@ -3627,6 +3698,10 @@ class Delay(Sbase):
     Corresponds to a `libsbml.Delay`: the math of the time between the firing
     of the event and the execution of its assignments.
     """
+
+    #: a `<delay>` has no id in an SBML L3V1 document, so a port names it by
+    #: its metaid there, see `Sbase._port_id_needs_l3v2`
+    _port_id_needs_l3v2: ClassVar[bool] = True
 
     def __init__(
         self,
@@ -4073,6 +4148,10 @@ class Constraint(Sbase):
     The message must be well formated XHTML, e.g.,
         message='<body xmlns="http://www.w3.org/1999/xhtml">ATP must be non-negative</body>'
     """
+
+    #: a `<constraint>` has no id in an SBML L3V1 document, so a port names it by
+    #: its metaid there, see `Sbase._port_id_needs_l3v2`
+    _port_id_needs_l3v2: ClassVar[bool] = True
 
     def __init__(
         self,
@@ -6581,7 +6660,9 @@ class Model(Sbase, FrozenClass):
                     f"{type(self).__name__} '{self.sid}': {reason}"
                 )
 
-    def _has_comp_content(self) -> bool:
+    def _has_comp_content(
+        self, level: int = SBML_LEVEL, version: int = SBML_VERSION
+    ) -> bool:
         """Determine whether writing this model requires the comp package.
 
         The `submodels`/`ports`/`replaced_elements`/`deletions`/
@@ -6604,7 +6685,13 @@ class Model(Sbase, FrozenClass):
         can is decided by `Sbase._port_loss`, the same predicate the writer
         asks, so that a model whose only comp construct is such a port
         declares no comp package instead of leaving an empty comp namespace
-        behind. The writer reports the port, once; this only counts.
+        behind. The writer reports the port, once; this only counts. How a
+        port names its element depends on the SBML level and version being
+        written, so both are handed over, see `Sbase._port_reference_for`.
+
+        Args:
+            level: the SBML level of the document being written
+            version: the SBML version of the document being written
 
         Returns:
             True if the model uses a comp construct anywhere
@@ -6622,13 +6709,15 @@ class Model(Sbase, FrozenClass):
         return any(
             (
                 getattr(sbase, "port", None) not in (None, False)
-                and sbase._port_loss(in_model) is None
+                and sbase._port_loss(in_model, level, version) is None
             )
             or bool(getattr(sbase, "replacedBy", None))
             for sbase, in_model in _iter_sbases_with_model(self)
         )
 
-    def _required_packages(self) -> set[Package]:
+    def _required_packages(
+        self, level: int = SBML_LEVEL, version: int = SBML_VERSION
+    ) -> set[Package]:
         """Determine the packages the content of this model requires.
 
         The model of a document declares the packages of the document itself,
@@ -6639,6 +6728,11 @@ class Model(Sbase, FrozenClass):
         walked, see `_iter_sbases`, rather than a list of the places an
         element can be nested in, which would miss the next one.
 
+        Args:
+            level: the SBML level of the document being written, which a port
+                decides by how it names its element
+            version: the SBML version of the document being written
+
         Returns:
             the packages the content of this model requires, at the version
             this module writes; fbc content contributes `Package.FBC_V3`,
@@ -6646,7 +6740,7 @@ class Model(Sbase, FrozenClass):
             version of fbc writes it
         """
         packages: set[Package] = set()
-        if self._has_comp_content():
+        if self._has_comp_content(level, version):
             packages.add(Package.COMP_V1)
 
         for sbase in _iter_sbases(self):
@@ -7050,9 +7144,13 @@ class Document(Sbase):
         # decided before the namespace is built, since libsbml cannot enable
         # a package on the document after it exists.
         packages = list(self.model.packages)
-        required: set[Package] = self.model._required_packages()
+        required: set[Package] = self.model._required_packages(
+            self.sbml_level, self.sbml_version
+        )
         for model_definition in self.model.model_definitions:
-            required |= model_definition._required_packages()
+            required |= model_definition._required_packages(
+                self.sbml_level, self.sbml_version
+            )
 
         if Package.COMP_V1 in required and Package.COMP_V1 not in packages:
             packages.append(Package.COMP_V1)
