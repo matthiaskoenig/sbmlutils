@@ -329,8 +329,14 @@ def _parse_model_body(model: libsbml.Model, m: Model) -> None:
             Compartment(
                 value=c.getSize() if c.isSetSize() else None,
                 constant=c.getConstant() if c.isSetConstant() else True,
+                # SBML declares spatialDimensions a double from L3 on, and
+                # `getSpatialDimensions` is the accessor of the unsigned
+                # integer attribute of L2, which returns 0 for a value which
+                # is not integral, e.g. the 2.7 of test suite case 01310
                 spatialDimensions=(
-                    c.getSpatialDimensions() if c.isSetSpatialDimensions() else None
+                    c.getSpatialDimensionsAsDouble()
+                    if c.isSetSpatialDimensions()
+                    else None
                 ),
                 unit=c.getUnits() if c.isSetUnits() else None,
                 **_parse_sbase_kwargs(c),

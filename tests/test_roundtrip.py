@@ -42,7 +42,7 @@ from typing import TYPE_CHECKING, Any
 import numpy as np
 import pytest
 
-from sbmlutils.factory import create_model
+from sbmlutils.factory import Compartment, Model, create_model
 from sbmlutils.parser import sbml_to_model
 from sbmlutils.resources import SBML_TESTSUITE_DIR
 from sbmlutils.validation import ValidationOptions
@@ -70,6 +70,10 @@ SEMANTIC_DIR: Path = (
     / "models"
     / Path(SBML_TESTSUITE_DIR).name
     / "semantic"
+)
+
+requires_testsuite = pytest.mark.skipif(
+    not SEMANTIC_DIR.is_dir(), reason="requires the vendored SBML test suite"
 )
 
 #: uniform timecourse the round-trip comparison simulates
@@ -1768,3 +1772,75 @@ if __name__ == "__main__":
     # the worker of `run_case_isolated`: `python test_roundtrip.py <sbml_path>
     # <case_dir>` round trips the case and records its outcome in `case_dir`
     run_worker(Path(sys.argv[1]), Path(sys.argv[2]))
+
+
+def _spatial_dimensions(sbml_path: Path) -> list[float | None]:
+    """Collect the spatialDimensions of every compartment of a model.
+
+    Args:
+        sbml_path: path of the SBML file
+
+    Returns:
+        the spatialDimensions of every compartment in document order, `None`
+        for a compartment which does not set them
+    """
+    import libsbml
+
+    doc: libsbml.SBMLDocument = libsbml.readSBMLFromFile(str(sbml_path))
+    dimensions: list[float | None] = []
+    compartment: libsbml.Compartment
+    for compartment in doc.getModel().getListOfCompartments():
+        dimensions.append(
+            compartment.getSpatialDimensionsAsDouble()
+            if compartment.isSetSpatialDimensions()
+            else None
+        )
+    return dimensions
+
+
+@requires_testsuite
+def test_roundtrip_non_integral_spatial_dimensions(tmp_path: Path) -> None:
+    """Test that a compartment of 2.7 spatial dimensions keeps them.
+
+    SBML declares `spatialDimensions` a double, and case 01310 uses 2.7.
+    `libsbml.Compartment.getSpatialDimensions` is the accessor of the
+    unsigned integer attribute of SBML L2 and returns 0 for a value which is
+    not integral, so the round trip wrote `spatialDimensions="0"`. Neither
+    the simulation sweep nor validation sees that: the attribute changes no
+    trajectory and 0 is a valid value.
+    """
+    sbml_path = testsuite_case("01310")
+    assert _spatial_dimensions(sbml_path) == [2.7]
+
+    assert _spatial_dimensions(roundtrip_sbml(sbml_path, tmp_path)) == [2.7]
+
+
+@pytest.mark.parametrize("dimensions", [2.7, 3.0, 3, 0.0])
+def test_roundtrip_spatial_dimensions_of_a_definition(
+    dimensions: float, tmp_path: Path
+) -> None:
+    """Test that the spatial dimensions of a model definition survive.
+
+    The test suite has one case with a non-integral value and none with an
+    integral one written as a float, so the source is built with the factory.
+    An integral value stays an integer in the document: libsbml writes the
+    double `3.0` as `spatialDimensions="3"`.
+    """
+    sbml_path = tmp_path / "source.xml"
+    create_model(
+        model=Model(
+            "spatial_dimensions",
+            compartments=[Compartment("c", 4.0, spatialDimensions=dimensions)],
+        ),
+        filepath=sbml_path,
+        sbml_level=3,
+        sbml_version=2,
+        validation_options=ValidationOptions(units_consistency=False),
+    )
+    assert _spatial_dimensions(sbml_path) == [float(dimensions)]
+
+    roundtrip_dir = tmp_path / "roundtrip"
+    roundtrip_dir.mkdir()
+    roundtrip_path = roundtrip_sbml(sbml_path, roundtrip_dir)
+    assert _spatial_dimensions(roundtrip_path) == [float(dimensions)]
+    assert f'spatialDimensions="{dimensions:g}"' in roundtrip_path.read_text()
