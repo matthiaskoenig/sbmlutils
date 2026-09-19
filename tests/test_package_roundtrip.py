@@ -30,7 +30,6 @@ from structural import (
     Difference,
     Normalization,
     Snapshot,
-    _charge,
     comparable_document,
     diff_snapshots,
     roundtrip_document,
@@ -1283,6 +1282,12 @@ def _charge_sbml(tmp_path: Path, fbc_version: int, charges: list[float]) -> Path
 def _charges(doc: libsbml.SBMLDocument) -> list[float | None]:
     """Get the charge of every species of a document, as libsbml writes it.
 
+    The fbc version decides which of the two getters carries the charge, and
+    this test reads it without `structural._charge`, which does the same
+    dispatch, on purpose: the test checks what the comparison reports, so a
+    defect in that dispatch has to be able to fail it rather than cancel out
+    on both sides.
+
     Args:
         doc: the document, which the caller holds
 
@@ -1294,9 +1299,12 @@ def _charges(doc: libsbml.SBMLDocument) -> list[float | None]:
     species: libsbml.Species
     for species in doc.getModel().getListOfSpecies():
         plugin: libsbml.FbcSpeciesPlugin = species.getPlugin("fbc")
-        # the fbc version decides which of the two getters carries the charge,
-        # which is what the comparison reads it with
-        charges.append(_charge(plugin) if plugin.isSetCharge() else None)
+        if not plugin.isSetCharge():
+            charges.append(None)
+        elif plugin.getPackageVersion() >= 3:
+            charges.append(float(plugin.getChargeAsDouble()))
+        else:
+            charges.append(float(plugin.getCharge()))
     return charges
 
 
