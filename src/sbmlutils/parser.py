@@ -1376,9 +1376,11 @@ def _parse_comp_document(doc_comp: libsbml.CompSBMLDocumentPlugin, m: Model) -> 
     for external in doc_comp.getListOfExternalModelDefinitions():
         m.external_model_definitions.append(
             ExternalModelDefinition(
-                # `comp:source` and `comp:modelRef` are required; the empty
-                # string of a document which states none leaves the attribute
-                # unset again, see `_parse_replaced_by`
+                # `comp:source` is required, `comp:modelRef` is not: a
+                # definition without one refers to the main model of its
+                # source document. The empty string of a document which
+                # states none is handed over and written as no attribute
+                # again, see `ExternalModelDefinition`
                 source=external.getSource(),
                 modelRef=external.getModelRef(),
                 md5=external.getMd5() if external.isSetMd5() else None,

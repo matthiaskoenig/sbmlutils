@@ -5279,7 +5279,15 @@ class Objective(Sbase):
 
 
 class ExternalModelDefinition(Sbase):
-    """ExternalModelDefinition."""
+    """ExternalModelDefinition.
+
+    `comp:modelRef` is **optional**: a definition without one refers to the
+    main model of its source document, which is what
+    `resources/models/sbml-test-suite-3.4.0/semantic/01168` does, and such a
+    document validates. The empty string `sbmlutils.parser` hands over for a
+    definition which states none is therefore not written rather than
+    reported.
+    """
 
     def __init__(
         self,
@@ -5321,9 +5329,10 @@ class ExternalModelDefinition(Sbase):
     ) -> None:
         """Set fields on ExternalModelDefinition."""
         super()._set_fields(sbase, model)
-        _check_attribute(
-            sbase.setModelRef(self.modelRef), sbase, "modelRef", self.modelRef, self
-        )
+        if self.modelRef:
+            _check_attribute(
+                sbase.setModelRef(self.modelRef), sbase, "modelRef", self.modelRef, self
+            )
         # the source and the md5 are plain strings, which libsbml accepts in
         # every form
         sbase.setSource(self.source)

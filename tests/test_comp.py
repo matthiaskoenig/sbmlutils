@@ -2603,3 +2603,39 @@ def test_replaced_by_of_a_kinetic_law_survives_a_round_trip(tmp_path: Path) -> N
     assert [str(d) for d in structural_diff(doc_in, doc_out)] == []
     result = validate_doc(doc_out, options=ValidationOptions(units_consistency=False))
     assert [error.getErrorId() for error in result.errors] == []
+
+
+def test_external_model_definition_without_a_model_ref_reports_nothing(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that the optional `comp:modelRef` may be absent.
+
+    `comp:modelRef` is optional on an `<comp:externalModelDefinition>`: a
+    definition without one refers to the main model of its source document,
+    and case 01168 of the SBML test suite
+    (`resources/models/sbml-test-suite-3.4.0/semantic/01168`) is such a
+    document and validates. `sbmlutils.parser` hands the empty string of a definition
+    which states none straight on, which the writer used to pass to
+    `setModelRef`, where libsbml answered
+    `LIBSBML_INVALID_ATTRIBUTE_VALUE` and wrote nothing. The empty value is
+    not written at all now, so the round trip of such a document reports
+    nothing.
+    """
+    model = Model(
+        sid="external_model_definition_without_a_model_ref",
+        name="a model which refers to the main model of another file",
+        packages=[Package.COMP_V1],
+        external_model_definitions=[
+            ExternalModelDefinition(
+                sid="emd1", name="the other file", source="other.xml", modelRef=""
+            )
+        ],
+        submodels=[Submodel(sid="sub1", modelRef="emd1", name="submodel")],
+    )
+    with caplog.at_level(logging.ERROR, logger="sbmlutils"):
+        _write(model, tmp_path, validate=False)
+
+    sbml = (tmp_path / f"{model.sid}.xml").read_text(encoding="utf-8")
+    assert "comp:modelRef" in sbml  # the submodel has one
+    assert 'comp:modelRef=""' not in sbml
+    assert [record.getMessage() for record in caplog.records] == []
