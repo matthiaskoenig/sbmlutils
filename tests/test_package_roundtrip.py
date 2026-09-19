@@ -45,6 +45,7 @@ from sbmlutils.factory import (
     Model,
     Objective,
     Package,
+    Parameter,
     Reaction,
     Species,
     create_model,
@@ -1172,6 +1173,48 @@ def test_roundtrip_preserves_bounds_charge_and_formula(
         "fbc.charge",
         "fbc.chemicalFormula",
     )
+
+
+def _one_flux_bound_model() -> Model:
+    """Get a model whose reaction states its lower flux bound and no upper one.
+
+    A strict model needs both bounds on every reaction, so the model is not strict; fbc version 2, where a bound is a parameter the reaction references.
+
+    Returns:
+        the model definition
+    """
+    return Model(
+        sid="one_flux_bound",
+        packages=[Package.FBC_V2],
+        strict=False,
+        compartments=[Compartment(sid="c", value=1.0)],
+        species=[Species(sid="S1", compartment="c", initialAmount=1.0)],
+        parameters=[Parameter(sid="lb", value=-10.0, constant=True)],
+        reactions=[Reaction(sid="R1", equation="S1 ->", lowerFluxBound="lb")],
+    )
+
+
+def test_roundtrip_keeps_a_reaction_with_one_flux_bound(tmp_path: Path) -> None:
+    """Test that a reaction with one of the two flux bounds keeps it, and gains no other.
+
+    Both bounds of a reaction are optional on their own in a model which is not strict, and the two are read and written one by one, so a reaction can state one and not the other. The bound it states survives, and the one it does not state is not invented.
+    """
+    sbml_path = _source_path(_one_flux_bound_model, tmp_path)
+    doc_in, doc_out = roundtrip_document(sbml_path, tmp_path)
+    reaction_in: libsbml.FbcReactionPlugin = (
+        doc_in.getModel().getReaction("R1").getPlugin("fbc")
+    )
+    assert reaction_in.getLowerFluxBound() == "lb"
+    assert reaction_in.isSetUpperFluxBound() is False
+
+    diffs = [d for d in structural_diff(doc_in, doc_out) if d.package == "fbc"]
+
+    assert [str(d) for d in diffs] == []
+    reaction_out: libsbml.FbcReactionPlugin = (
+        doc_out.getModel().getReaction("R1").getPlugin("fbc")
+    )
+    assert reaction_out.getLowerFluxBound() == "lb"
+    assert reaction_out.isSetUpperFluxBound() is False
 
 
 @requires_testsuite
