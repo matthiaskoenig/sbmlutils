@@ -156,131 +156,129 @@ def _math(sbase: Any) -> str | None:
     return libsbml.formulaToL3String(sbase.getMath()) if sbase.isSetMath() else None
 
 
-def sbml_to_model(
-    source: Path | str,
-    validate: bool = False,
-    promote: bool = False,
-    validation_options: ValidationOptions | None = None,
-) -> Model:
-    """Parse SBML model."""
-    doc: libsbml.SBMLDocument = read_sbml(
-        source=source,
-        promote=promote,
-        validate=validate,
-        validation_options=validation_options,
-    )
-    model: libsbml.Model = doc.getModel()
+def _parse_sbase_kwargs(sbase: libsbml.SBase) -> dict[str, Any]:
+    """Parse SBase information in dictionary.
 
-    def parse_sbase_kwargs(sbase: libsbml.SBase) -> dict[str, Any]:
-        """Parse SBase information in dictionary."""
-        # the sboTerm is already carried by the `sboTerm` kwarg below; a real
-        # CVTerm must not be synthesized for it, or a round trip would turn the
-        # sboTerm attribute into a duplicated annotation, see
-        # https://github.com/matthiaskoenig/sbmlutils/issues/469
-        d = SBMLDocumentInfo.sbase_dict(sbase, include_sbo_cvterm=False)
-        kwargs = {
-            "sid": d["id"],
-            "name": d["name"],
-            "metaId": d["metaId"],
-            "sboTerm": d["sbo"],
-            "annotations": [],
-        }
+    Args:
+        sbase: the libsbml.SBase to parse
 
-        # annotations
-        if d["cvterms"]:
-            for cvterm in d["cvterms"]:
-                qualifier_str = cvterm["qualifier"]
-                qualifier: BQB | BQM
-                if qualifier_str.startswith("BQB_"):
-                    qualifier = BQB.__getitem__(qualifier_str[4:])
-                elif qualifier_str.startswith("BQM_"):
-                    qualifier = BQM.__getitem__(qualifier_str[4:])
+    Returns:
+        the kwargs accepted by `Sbase.__init__`
+    """
+    # the sboTerm is already carried by the `sboTerm` kwarg below; a real
+    # CVTerm must not be synthesized for it, or a round trip would turn the
+    # sboTerm attribute into a duplicated annotation, see
+    # https://github.com/matthiaskoenig/sbmlutils/issues/469
+    d = SBMLDocumentInfo.sbase_dict(sbase, include_sbo_cvterm=False)
+    kwargs = {
+        "sid": d["id"],
+        "name": d["name"],
+        "metaId": d["metaId"],
+        "sboTerm": d["sbo"],
+        "annotations": [],
+    }
 
-                for resource in cvterm["resources"]:
-                    kwargs["annotations"].append((qualifier, resource))
+    # annotations
+    if d["cvterms"]:
+        for cvterm in d["cvterms"]:
+            qualifier_str = cvterm["qualifier"]
+            qualifier: BQB | BQM
+            if qualifier_str.startswith("BQB_"):
+                qualifier = BQB.__getitem__(qualifier_str[4:])
+            elif qualifier_str.startswith("BQM_"):
+                qualifier = BQM.__getitem__(qualifier_str[4:])
 
-        # model history
-        # FIXME: currently not supported consistently, see
-        # https://github.com/matthiaskoenig/sbmlutils/issues/416
+            for resource in cvterm["resources"]:
+                kwargs["annotations"].append((qualifier, resource))
 
-        # keyValuePairs
-        sbase_fbc: libsbml.FbcSBasePlugin = sbase.getPlugin("fbc")
-        kvps: list[KeyValuePair] = []
-        if sbase_fbc:
-            kvp: libsbml.KeyValuePair
-            for kvp in sbase_fbc.getListOfKeyValuePairs():
-                kvps.append(
-                    KeyValuePair(
-                        key=kvp.getKey(),
-                        value=kvp.getValue(),
-                        uri=kvp.getUri() if kvp.isSetUri() else None,
-                        **parse_sbase_kwargs(kvp),
-                    )
+    # model history
+    # FIXME: currently not supported consistently, see
+    # https://github.com/matthiaskoenig/sbmlutils/issues/416
+
+    # keyValuePairs
+    sbase_fbc: libsbml.FbcSBasePlugin = sbase.getPlugin("fbc")
+    kvps: list[KeyValuePair] = []
+    if sbase_fbc:
+        kvp: libsbml.KeyValuePair
+        for kvp in sbase_fbc.getListOfKeyValuePairs():
+            kvps.append(
+                KeyValuePair(
+                    key=kvp.getKey(),
+                    value=kvp.getValue(),
+                    uri=kvp.getUri() if kvp.isSetUri() else None,
+                    **_parse_sbase_kwargs(kvp),
                 )
+            )
 
-        kwargs["keyValuePairs"] = kvps
-        # notes are the xhtml of the source document; `Sbase._process_notes`
-        # detects that and stores them verbatim instead of rendering them
-        if d["notes"]:
-            kwargs["notes"] = d["notes"]
+    kwargs["keyValuePairs"] = kvps
+    # notes are the xhtml of the source document; `Sbase._process_notes`
+    # detects that and stores them verbatim instead of rendering them
+    if d["notes"]:
+        kwargs["notes"] = d["notes"]
 
-        return kwargs
+    return kwargs
 
-    def parse_udef_kwargs(sbase: libsbml.SBase) -> dict[str, Any]:
-        """Parse SBase information of a UnitDefinition.
 
-        A UnitDefinition has no uncertainties, so that key is removed.
+def _parse_udef_kwargs(sbase: libsbml.SBase) -> dict[str, Any]:
+    """Parse SBase information of a UnitDefinition.
 
-        Args:
-            sbase: the libsbml.UnitDefinition to parse
+    A UnitDefinition has no uncertainties, so that key is removed.
 
-        Returns:
-            the kwargs accepted by `UnitDefinition.__init__`
-        """
-        kwargs = parse_sbase_kwargs(sbase)
-        kwargs.pop("uncertainties", None)
-        return kwargs
+    Args:
+        sbase: the libsbml.UnitDefinition to parse
 
-    def parse_variable_kwargs(sbase: libsbml.SBase) -> dict[str, Any]:
-        """Parse SBase information of a Rule, InitialAssignment or similar.
+    Returns:
+        the kwargs accepted by `UnitDefinition.__init__`
+    """
+    kwargs = _parse_sbase_kwargs(sbase)
+    kwargs.pop("uncertainties", None)
+    return kwargs
 
-        libsbml aliases `getId`/`isSetId` to the `variable`/`symbol` attribute
-        on rules and initial assignments, and to the `variable` attribute on
-        an event assignment, so `parse_sbase_kwargs`'s `sid` is not the real
-        id: it reports the variable name whether or not the source XML
-        actually carried an id attribute. Passing it through would resurrect
-        it as a real, separately-declared SId on the round trip, which then
-        collides with the variable's own element (a compartment, species or
-        parameter of that same id). `isSetIdAttribute` is the accessor which
-        reflects the actual L3 core `id` attribute.
 
-        Args:
-            sbase: the libsbml Rule, InitialAssignment, AlgebraicRule or
-                EventAssignment to parse
+def _parse_variable_kwargs(sbase: libsbml.SBase) -> dict[str, Any]:
+    """Parse SBase information of a Rule, InitialAssignment or similar.
 
-        Returns:
-            the kwargs accepted by the corresponding `Sbase` subclass, with
-            `sid` set from the real id attribute, `None` if the source did
-            not set one. `sid` is a required key even when its value is
-            `None`: `AlgebraicRule.__init__` takes it as a required
-            parameter, so it must not be popped from the kwargs.
-        """
-        kwargs = parse_sbase_kwargs(sbase)
-        kwargs["sid"] = sbase.getIdAttribute() if sbase.isSetIdAttribute() else None
-        return kwargs
+    libsbml aliases `getId`/`isSetId` to the `variable`/`symbol` attribute
+    on rules and initial assignments, and to the `variable` attribute on
+    an event assignment, so `_parse_sbase_kwargs`'s `sid` is not the real
+    id: it reports the variable name whether or not the source XML
+    actually carried an id attribute. Passing it through would resurrect
+    it as a real, separately-declared SId on the round trip, which then
+    collides with the variable's own element (a compartment, species or
+    parameter of that same id). `isSetIdAttribute` is the accessor which
+    reflects the actual L3 core `id` attribute.
 
-    if not model:
-        logger.error("No model in SBMLDocument.")
+    Args:
+        sbase: the libsbml Rule, InitialAssignment, AlgebraicRule or
+            EventAssignment to parse
 
-    m = Model(**parse_sbase_kwargs(model))
-    # a parsed model carries whatever the source file had, so the authoring
-    # hints of `Sbase._set_fields` are noise when it is written back out
-    m.parsed = True
-    m.packages = _packages_of_document(doc)
-    m.conversionFactor = (
-        model.getConversionFactor() if model.isSetConversionFactor() else None
-    )
+    Returns:
+        the kwargs accepted by the corresponding `Sbase` subclass, with
+        `sid` set from the real id attribute, `None` if the source did
+        not set one. `sid` is a required key even when its value is
+        `None`: `AlgebraicRule.__init__` takes it as a required
+        parameter, so it must not be popped from the kwargs.
+    """
+    kwargs = _parse_sbase_kwargs(sbase)
+    kwargs["sid"] = sbase.getIdAttribute() if sbase.isSetIdAttribute() else None
+    return kwargs
 
+
+def _parse_model_body(model: libsbml.Model, m: Model) -> None:
+    """Parse the body of a model into an already constructed `Model`.
+
+    Populates `m` with everything `sbml_to_model` parses from `model`: unit
+    definitions, model units, function definitions, compartments, species,
+    parameters, reactions with kinetic laws, initial assignments, rules,
+    events and constraints. `model` can be any `libsbml.Model`, including a
+    `libsbml.ModelDefinition`, which subclasses it, so the comp package can
+    recurse into a model definition with the same parser.
+
+    Args:
+        model: the libsbml.Model, or libsbml.ModelDefinition, to parse
+        m: the `Model` to populate; already constructed, with its own
+            `Sbase` fields, `parsed`, `packages` and `conversionFactor` set
+    """
     # unit definitions
     udef: libsbml.UnitDefinition
     for udef in model.getListOfUnitDefinitions():
@@ -295,7 +293,7 @@ def sbml_to_model(
                     multiplier=u.getMultiplier() if u.isSetMultiplier() else 1.0,
                 )
             )
-        m.units.append(UnitDefinition(units=units, **parse_udef_kwargs(udef)))
+        m.units.append(UnitDefinition(units=units, **_parse_udef_kwargs(udef)))
 
     # model units
     m.model_units = ModelUnits(
@@ -310,11 +308,11 @@ def sbml_to_model(
     # function definitions
     fd: libsbml.FunctionDefinition
     for fd in model.getListOfFunctionDefinitions():
-        m.functions.append(Function(value=_math(fd), **parse_sbase_kwargs(fd)))
+        m.functions.append(Function(value=_math(fd), **_parse_sbase_kwargs(fd)))
 
     p: libsbml.Parameter
     for p in model.getListOfParameters():
-        d = parse_sbase_kwargs(p)
+        d = _parse_sbase_kwargs(p)
         # print(d)
         m.parameters.append(
             Parameter(
@@ -335,7 +333,7 @@ def sbml_to_model(
                     c.getSpatialDimensions() if c.isSetSpatialDimensions() else None
                 ),
                 unit=c.getUnits() if c.isSetUnits() else None,
-                **parse_sbase_kwargs(c),
+                **_parse_sbase_kwargs(c),
             )
         )
 
@@ -365,7 +363,7 @@ def sbml_to_model(
                 conversionFactor=(
                     s.getConversionFactor() if s.isSetConversionFactor() else None
                 ),
-                **parse_sbase_kwargs(s),
+                **_parse_sbase_kwargs(s),
             )
         )
 
@@ -390,7 +388,7 @@ def sbml_to_model(
                     constant=(
                         reactant.getConstant() if reactant.isSetConstant() else True
                     ),
-                    **parse_sbase_kwargs(reactant),
+                    **_parse_sbase_kwargs(reactant),
                 )
             )
             product: libsbml.SpeciesReference
@@ -404,7 +402,7 @@ def sbml_to_model(
                         else None
                     ),
                     constant=product.getConstant() if product.isSetConstant() else True,
-                    **parse_sbase_kwargs(product),
+                    **_parse_sbase_kwargs(product),
                 )
             )
         modifier: libsbml.ModifierSpeciesReference
@@ -413,7 +411,7 @@ def sbml_to_model(
                 equation.modifiers.append(
                     EquationPart(
                         species=modifier.getSpecies(),
-                        **parse_sbase_kwargs(modifier),
+                        **_parse_sbase_kwargs(modifier),
                     )
                 )
 
@@ -428,13 +426,13 @@ def sbml_to_model(
                     LocalParameter(
                         value=lp.getValue() if lp.isSetValue() else None,
                         unit=lp.getUnits() if lp.isSetUnits() else None,
-                        **parse_sbase_kwargs(lp),
+                        **_parse_sbase_kwargs(lp),
                     )
                 )
             kinetic_law = KineticLaw(
                 math=_math(klaw),
                 local_parameters=local_parameters,
-                **parse_sbase_kwargs(klaw),
+                **_parse_sbase_kwargs(klaw),
             )
 
         m.reactions.append(
@@ -444,7 +442,7 @@ def sbml_to_model(
                 reversible=r.getReversible() if r.isSetReversible() else None,
                 compartment=r.getCompartment() if r.isSetCompartment() else None,
                 fast=r.getFast() if r.isSetFast() else False,
-                **parse_sbase_kwargs(r),
+                **_parse_sbase_kwargs(r),
             )
         )
 
@@ -455,7 +453,7 @@ def sbml_to_model(
             InitialAssignment(
                 symbol=ia.getSymbol(),
                 value=_math(ia),
-                **parse_variable_kwargs(ia),
+                **_parse_variable_kwargs(ia),
             )
         )
 
@@ -469,7 +467,7 @@ def sbml_to_model(
                 AssignmentRule(
                     variable=rule.getVariable(),
                     value=formula,
-                    **parse_variable_kwargs(rule),
+                    **_parse_variable_kwargs(rule),
                 )
             )
         elif typecode == libsbml.SBML_RATE_RULE:
@@ -477,12 +475,12 @@ def sbml_to_model(
                 RateRule(
                     variable=rule.getVariable(),
                     value=formula,
-                    **parse_variable_kwargs(rule),
+                    **_parse_variable_kwargs(rule),
                 )
             )
         elif typecode == libsbml.SBML_ALGEBRAIC_RULE:
             m.algebraic_rules.append(
-                AlgebraicRule(value=formula, **parse_variable_kwargs(rule))
+                AlgebraicRule(value=formula, **_parse_variable_kwargs(rule))
             )
 
     # events
@@ -497,16 +495,16 @@ def sbml_to_model(
                 math=_math(t),
                 initialValue=t.getInitialValue() if t.isSetInitialValue() else True,
                 persistent=t.getPersistent() if t.isSetPersistent() else True,
-                **parse_sbase_kwargs(t),
+                **_parse_sbase_kwargs(t),
             )
         priority: Priority | None = None
         if e.isSetPriority():
             pr: libsbml.Priority = e.getPriority()
-            priority = Priority(math=_math(pr), **parse_sbase_kwargs(pr))
+            priority = Priority(math=_math(pr), **_parse_sbase_kwargs(pr))
         delay: Delay | None = None
         if e.isSetDelay():
             de: libsbml.Delay = e.getDelay()
-            delay = Delay(math=_math(de), **parse_sbase_kwargs(de))
+            delay = Delay(math=_math(de), **_parse_sbase_kwargs(de))
 
         assignments: list[EventAssignment] = []
         ea: libsbml.EventAssignment
@@ -515,7 +513,7 @@ def sbml_to_model(
                 EventAssignment(
                     variable=ea.getVariable(),
                     value=_math(ea),
-                    **parse_variable_kwargs(ea),
+                    **_parse_variable_kwargs(ea),
                 )
             )
 
@@ -530,7 +528,7 @@ def sbml_to_model(
                 ),
                 priority=priority,
                 delay=delay,
-                **parse_sbase_kwargs(e),
+                **_parse_sbase_kwargs(e),
             )
         )
 
@@ -543,12 +541,43 @@ def sbml_to_model(
                 message=(
                     constraint.getMessageString() if constraint.isSetMessage() else None
                 ),
-                **parse_sbase_kwargs(constraint),
+                **_parse_sbase_kwargs(constraint),
             )
         )
 
     # the content of the fbc, distrib, comp, groups and layout packages is not
     # parsed yet, see the module docstring
+
+
+def sbml_to_model(
+    source: Path | str,
+    validate: bool = False,
+    promote: bool = False,
+    validation_options: ValidationOptions | None = None,
+) -> Model:
+    """Parse SBML model."""
+    doc: libsbml.SBMLDocument = read_sbml(
+        source=source,
+        promote=promote,
+        validate=validate,
+        validation_options=validation_options,
+    )
+    model: libsbml.Model = doc.getModel()
+
+    if not model:
+        logger.error("No model in SBMLDocument.")
+
+    m = Model(**_parse_sbase_kwargs(model))
+    # a parsed model carries whatever the source file had, so the authoring
+    # hints of `Sbase._set_fields` are noise when it is written back out
+    m.parsed = True
+    m.packages = _packages_of_document(doc)
+    m.conversionFactor = (
+        model.getConversionFactor() if model.isSetConversionFactor() else None
+    )
+
+    _parse_model_body(model, m)
+
     return m
 
 
