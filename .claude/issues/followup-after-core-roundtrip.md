@@ -139,3 +139,13 @@ Measured by comparing the math of the main model of all 1690 test-suite cases be
 - 11 maths: a nested n-ary `and`/`or` of the same operator is flattened.
 
 Round-tripping the MathML itself would remove all three and the constant shadowing at once.
+
+## 10. pymetadata: `resource_normalized` loses information, found by the structural harness of the package work
+
+Measured with pymetadata 0.6.2 (package branch, Task 1 fix round). sbmlutils guards against all of these from 0.12.0 on by writing the resource as given, so the fix belongs in pymetadata.
+
+- **An unknown collection is reduced to the bare term:** `http://identifiers.org/sabiork/1406` becomes `1406`, `urn:miriam:foo:bar` becomes `bar`, `http://identifiers.org/unit/UO:0000040` becomes `UO:0000040`, `http://identifiers.org/ncbigi/gi:16128336` becomes `gi:16128336` (281 uses in the corpus, 138 distinct in `distrib/e_coli_core.xml` alone).
+- **A compact URL of a collection it does not know is reduced to the bare term:** `https://identifiers.org/CMO:0000012` becomes `CMO:0000012` (`icg_body.xml`).
+- **The collection is dropped from the URL:** `http://identifiers.org/slm/000000035` becomes `https://identifiers.org/000000035`, which resolves to nothing; parsing that result again gives collection `None` (319 uses).
+
+The invariant which separates a canonicalization from a loss: `resource_normalized` is an `http(s)://` URL and parsing it again yields the same collection and term.
