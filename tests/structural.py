@@ -1340,6 +1340,27 @@ def diff_snapshots(before: Snapshot, after: Snapshot) -> list[Difference]:
     return differences
 
 
+def snapshots(
+    doc_in: libsbml.SBMLDocument, doc_out: libsbml.SBMLDocument
+) -> tuple[Snapshot, Snapshot]:
+    """Take the snapshot of both documents of a round trip, under the policy.
+
+    This is the whole of the comparison policy which is not inside `snapshot` itself: both documents are brought to the versions the round trip writes, and both are snapshotted under the `compares_fbc_strict` of the **source**, see the module docstring. Every comparison goes through this, so that no caller has to remember it: `structural_diff`, the round-trip tests and `scripts/package_report.py`, which needs the two snapshots apart and therefore cannot call `structural_diff`.
+
+    Args:
+        doc_in: the document read, which the caller holds and which is not changed
+        doc_out: the document written, which the caller holds and which is not changed
+
+    Returns:
+        the snapshot of the document read and the snapshot of the document written
+    """
+    compare_strict = compares_fbc_strict(doc_in)
+    return (
+        snapshot(comparable_document(doc_in), compare_strict=compare_strict),
+        snapshot(comparable_document(doc_out), compare_strict=compare_strict),
+    )
+
+
 def structural_diff(
     doc_in: libsbml.SBMLDocument, doc_out: libsbml.SBMLDocument
 ) -> list[Difference]:
@@ -1352,8 +1373,4 @@ def structural_diff(
     Returns:
         every difference in the package content, after applying `WHITELIST`
     """
-    compare_strict = compares_fbc_strict(doc_in)
-    return diff_snapshots(
-        snapshot(comparable_document(doc_in), compare_strict=compare_strict),
-        snapshot(comparable_document(doc_out), compare_strict=compare_strict),
-    )
+    return diff_snapshots(*snapshots(doc_in, doc_out))

@@ -31,10 +31,10 @@ from structural import (
     Normalization,
     Snapshot,
     comparable_document,
-    compares_fbc_strict,
     diff_snapshots,
     roundtrip_document,
     snapshot,
+    snapshots,
     structural_diff,
 )
 from test_roundtrip import SEMANTIC_DIR, requires_testsuite, testsuite_case
@@ -1027,7 +1027,7 @@ def fbc_roundtrip(
 ) -> Callable[[Path], Comparison]:
     """Round trip a fixture and compare its fbc content, once per fixture.
 
-    The tests below assert on one construct of a fixture each, and the round trip of `FBC_RECON3D_SBML` takes about ten seconds, so every fixture is round tripped once and its result is cached for the module. `structural_diff` is spelled out as the `diff_snapshots` of two `snapshot`s of two `comparable_document`s, including the `compares_fbc_strict` of the source, which is its body and what `scripts/package_report.py` does as well, so that the census reads the converted document the comparison reads instead of converting the fixture a third time. The cache holds plain values only: the documents are released when the comparison returns, and a libsbml object does not keep its document alive.
+    The tests below assert on one construct of a fixture each, and the round trip of `FBC_RECON3D_SBML` takes about ten seconds, so every fixture is round tripped once and its result is cached for the module. The differences come from `snapshots`, which is the comparison policy, and the census which proves a fixture has a construct is an independent recount of the same document. The cache holds plain values only: the documents are released when the comparison returns, and a libsbml object does not keep its document alive.
 
     Args:
         tmp_path_factory: pytest's factory of the directory the round trips write to
@@ -1041,14 +1041,9 @@ def fbc_roundtrip(
     def compare(sbml_path: Path) -> Comparison:
         if sbml_path not in cache:
             doc_in, doc_out = roundtrip_document(sbml_path, tmp_path)
-            compare_strict = compares_fbc_strict(doc_in)
-            converted_in = comparable_document(doc_in)
-            differences = diff_snapshots(
-                snapshot(converted_in, compare_strict=compare_strict),
-                snapshot(comparable_document(doc_out), compare_strict=compare_strict),
-            )
+            differences = diff_snapshots(*snapshots(doc_in, doc_out))
             cache[sbml_path] = (
-                _expected_constructs(converted_in),
+                _expected_constructs(comparable_document(doc_in)),
                 [d for d in differences if d.package == "fbc"],
             )
         return cache[sbml_path]
