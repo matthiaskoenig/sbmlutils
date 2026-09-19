@@ -85,7 +85,7 @@ Reported upstream to libsbml; see "Decisions already taken". Numbering is kept s
 - **`get_uid_for_unit` lost its type guard** in the core branch, so a unit that is neither a `str` nor a `UnitDefinition` now fails as a SWIG `TypeError` from `setUnits` instead of a `ValueError` with guidance. `SbaseRef.unitRef` and `Species.substanceUnits` do not warn on a bad type the way `ValueWithUnit` does.
 - **`Model.units` is merged by reference, not deep copied**, unlike every other merged list. This predates the core branch.
 - **`Sbase._authoring_hints` is a class-level mutable, not thread-local**, so concurrent model creation on several threads could race. The package is single-threaded in its documented use.
-- **An empty comp namespace for ports that are never written.** `KineticLaw`, `LocalParameter` and `EventAssignment` accept a `port` that is never written, and `KineticLaw` and `LocalParameter` accept a `replacedBy` that is never written, yet either now makes the model declare comp. The document is valid, but a port the user asked for is silently not created.
+- **An empty comp namespace for ports that are never written.** `Event`, `Constraint`, `KineticLaw`, `LocalParameter`, `EventAssignment`, `Trigger`, `Priority` and `Delay` accept a `port` that is never written (only the elements which call `Sbase.create_port` write one), and `KineticLaw` and `LocalParameter` accept a `replacedBy` that is never written, yet either now makes the model declare comp. The document is valid, but a port the user asked for is silently not created.
 
 ## 4. Robustness and consistency
 
@@ -98,9 +98,17 @@ The original version of this section said that `delay.setMath()`, `priority.setM
 - **`LocalParameter.sid` is typed as a required `str`**, but the parser passes `None` for a non-compliant document that leaves out the mandatory id. `Species` and `Compartment` are handled the same way, so this is a question of convention rather than a bug.
 - **Model history is never parsed.** `sbmlutils.parser` reads no `ModelHistory`, so creators and timestamps do not round trip. `SBMLDocumentInfo.sbase_dict` already extracts the history. The core branch reverted a `set_timestamps=False` change that was meant to help here, because it wrote a fake `1900-01-01` instead of preserving anything, and with no parser support there was nothing to preserve.
 
-## 5. Decide before the 0.11.0 tag
+## 5. Decided before the 0.11.0 tag: resolved
 
-**The empty-string sentinel on event children.** For an event's `trigger`, `priority` and `delay`, the core branch makes `None` mean "no element" and `""` mean "an element without math". That is inconsistent with every other element type: on function definitions, initial assignments, the three rule types, event assignments and kinetic laws, `None` means "no math" and `""` logs a parse error (`Constraint` stays silent). Worse, **an unparsable trigger now silently becomes "no math"**, where before it logged an error. The recommended fix is `Trigger`, `Priority` and `Delay` objects with `math: str | None`, the pattern `KineticLaw` already follows, which would also preserve their own metadata. The convention ships as public API, so it has to be settled before the release is tagged.
+**The empty-string sentinel on event children.** The core branch held an event's `trigger`, `priority` and `delay` as formula strings, with `None` meaning "no element" and `""` meaning "an element without math". That was inconsistent with every other element type, where `None` means "no math" and `""` is math which does not parse, and the strings had no place for the metadata of the element, which was lost on a round trip.
+
+Resolved before 0.11.0 was tagged, on the branch `fix/event-trigger-priority-delay`, following the pattern of `KineticLaw`:
+
+- `Trigger`, `Priority` and `Delay` are `Sbase` subclasses with `math: str | None` and the full `Sbase` parameter set; `Trigger` also carries `initialValue` and `persistent`. On an `Event`, `None` writes no element, an object whose `math` is `None` writes the element without math. The `""` sentinel is gone, `""` is math which does not parse like any other.
+- Math which does not parse is logged as an error through `ast_node_from_formula`, the element is written without math. The claim above that an unparsable trigger "before logged an error" was wrong: measured on `e2944176`, before the core branch, it became a trigger without math just as silently; it is logged for the first time now.
+- `Event(trigger="time >= 10", priority="1", delay="2")` is still accepted, the strings are normalized into the objects and write the same SBML as before. `trigger_persistent` and `trigger_initialValue` configure the `Trigger` created from a string; passed together with a `Trigger`, the object's own values win and a differing flag is logged as a warning.
+- `sbml_to_model` reads the id, name, metaid, sboTerm, notes and annotations of the trigger, priority and delay with `parse_sbase_kwargs`, so they round trip. Their id is a real id attribute from SBML L3V2 on, `setId` aliases nothing, so they are not in `_ID_ATTRIBUTE_TYPECODES`; below L3V2 `setId` returns "unexpected attribute" and the generic level guard in `Sbase._set_fields` drops the id, as for a `KineticLaw`.
+- A `port` on a `Trigger`, `Priority` or `Delay` is found by `Model._has_comp_content`, but is not written, see "An empty comp namespace for ports that are never written" in section 3.
 
 ## 6. Test coverage gaps
 

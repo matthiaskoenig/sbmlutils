@@ -607,6 +607,347 @@ def test_event_assignments_keep_sbase_fields() -> None:
     assert ea.getSBOTermID() == "SBO:0000064"
 
 
+def _event_test_model(version: int) -> tuple[libsbml.SBMLDocument, libsbml.Model]:
+    """Build an SBML L3 model with the non-constant parameter 'p1' for event tests.
+
+    Args:
+        version: the SBML L3 version of the document
+
+    Returns:
+        the document and its model. The caller has to hold the document for
+        as long as it uses the model: the model is owned by the document and
+        dangles once the document is garbage collected.
+    """
+    doc = libsbml.SBMLDocument(3, version)
+    model: libsbml.Model = doc.createModel()
+    p1: libsbml.Parameter = model.createParameter()
+    p1.setId("p1")
+    p1.setValue(0.0)
+    p1.setConstant(False)
+    return doc, model
+
+
+#: the SBML of an event with a trigger, a delay and a priority written in the
+#: string authoring style, as it was written before they became `Trigger`,
+#: `Priority` and `Delay` objects (captured at a59bd4ef)
+EVENT_STRING_STYLE_SBML = """<event sboTerm="SBO:0000231" id="e1" name="e" useValuesFromTriggerTime="true">
+  <trigger initialValue="false" persistent="true">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <geq/>
+        <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
+        <cn type="integer"> 10 </cn>
+      </apply>
+    </math>
+  </trigger>
+  <delay>
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <cn type="integer"> 2 </cn>
+    </math>
+  </delay>
+  <priority>
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <cn type="integer"> 1 </cn>
+    </math>
+  </priority>
+  <listOfEventAssignments>
+    <eventAssignment variable="p1">
+      <math xmlns="http://www.w3.org/1998/Math/MathML">
+        <cn> 10 </cn>
+      </math>
+    </eventAssignment>
+  </listOfEventAssignments>
+</event>"""
+
+#: the SBML of an event whose string trigger is configured by the
+#: `trigger_persistent` and `trigger_initialValue` arguments (captured at a59bd4ef)
+EVENT_TRIGGER_FLAGS_SBML = """<event sboTerm="SBO:0000231" id="e1" name="e" useValuesFromTriggerTime="true">
+  <trigger initialValue="true" persistent="false">
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <apply>
+        <geq/>
+        <csymbol encoding="text" definitionURL="http://www.sbml.org/sbml/symbols/time"> time </csymbol>
+        <cn type="integer"> 20 </cn>
+      </apply>
+    </math>
+  </trigger>
+  <listOfEventAssignments>
+    <eventAssignment variable="p1">
+      <math xmlns="http://www.w3.org/1998/Math/MathML">
+        <cn> 20 </cn>
+      </math>
+    </eventAssignment>
+  </listOfEventAssignments>
+</event>"""
+
+
+@pytest.mark.parametrize("version", [1, 2])
+@pytest.mark.parametrize(
+    "kwargs, expected",
+    [
+        (
+            {
+                "trigger": "time >= 10",
+                "priority": "1",
+                "delay": "2",
+                "assignments": {"p1": 10.0},
+            },
+            EVENT_STRING_STYLE_SBML,
+        ),
+        (
+            {
+                "trigger": "time >= 20",
+                "trigger_persistent": False,
+                "trigger_initialValue": True,
+                "assignments": {"p1": 20.0},
+            },
+            EVENT_TRIGGER_FLAGS_SBML,
+        ),
+    ],
+    ids=["trigger_priority_delay", "trigger_flags"],
+)
+def test_event_string_style_writes_the_same_sbml(
+    kwargs: dict[str, Any], expected: str, version: int
+) -> None:
+    """Test that the string authoring style writes the SBML it always wrote.
+
+    `Event(trigger="time >= 10", priority="1", delay="2")` is the documented
+    authoring style. The strings are normalized into `Trigger`, `Priority` and
+    `Delay` objects, which must not change the SBML written from them.
+    """
+    doc, model = _event_test_model(version)
+    Event("e1", name="e", sboTerm="SBO:0000231", **kwargs).create_sbml(model)
+
+    assert model.getEvent("e1").toSBML() == expected
+    del doc
+
+
+def test_event_string_trigger_is_a_trigger() -> None:
+    """Test that the strings of an event are normalized into objects."""
+    event = Event("e1", trigger="time >= 10", priority="1", delay="2")
+
+    assert isinstance(event.trigger, Trigger)
+    assert event.trigger.math == "time >= 10"
+    assert event.trigger.persistent is True
+    assert event.trigger.initialValue is False
+    assert isinstance(event.priority, Priority)
+    assert event.priority.math == "1"
+    assert isinstance(event.delay, Delay)
+    assert event.delay.math == "2"
+
+
+def test_event_trigger_flags_configure_a_string_trigger() -> None:
+    """Test that `trigger_persistent` and `trigger_initialValue` still apply.
+
+    They are arguments of `Event`, which configure the `Trigger` created from
+    a trigger string.
+    """
+    event = Event(
+        "e1",
+        trigger="time >= 10",
+        trigger_persistent=False,
+        trigger_initialValue=True,
+    )
+    assert isinstance(event.trigger, Trigger)
+    assert event.trigger.persistent is False
+    assert event.trigger.initialValue is True
+
+    doc, model = _event_test_model(2)
+    event.create_sbml(model)
+    trigger: libsbml.Trigger = model.getEvent("e1").getTrigger()
+    assert trigger.getPersistent() is False
+    assert trigger.getInitialValue() is True
+    del doc
+
+
+@pytest.mark.parametrize(
+    "flag, value, attribute",
+    [
+        ("trigger_persistent", False, "persistent"),
+        ("trigger_initialValue", True, "initialValue"),
+    ],
+)
+def test_event_trigger_object_wins_over_the_trigger_flags(
+    flag: str, value: bool, attribute: str, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that a `Trigger` keeps its own value, and the conflict is logged."""
+    trigger = Trigger("time >= 10", persistent=True, initialValue=False)
+
+    kwargs: dict[str, Any] = {flag: value}
+    with caplog.at_level("WARNING", logger="sbmlutils.factory"):
+        event = Event("e1", trigger=trigger, **kwargs)
+
+    assert event.trigger is trigger
+    assert getattr(trigger, attribute) is (not value)
+    assert flag in caplog.text
+
+
+def test_event_trigger_flags_agreeing_with_the_trigger_object_do_not_warn(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that a flag which agrees with the `Trigger` is not a conflict."""
+    with caplog.at_level("WARNING", logger="sbmlutils.factory"):
+        event = Event(
+            "e1",
+            trigger=Trigger("time >= 10", persistent=False, initialValue=True),
+            trigger_persistent=False,
+            trigger_initialValue=True,
+        )
+
+    assert isinstance(event.trigger, Trigger)
+    assert event.trigger.persistent is False
+    assert event.trigger.initialValue is True
+    assert not caplog.records, [r.getMessage() for r in caplog.records]
+
+
+def test_event_trigger_flags_without_a_trigger_warn(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that a trigger flag on an event without a trigger is logged.
+
+    An event without a trigger, which SBML allows from L3V2 on, has nothing
+    the flag could configure.
+    """
+    with caplog.at_level("WARNING", logger="sbmlutils.factory"):
+        event = Event("e1", trigger=None, trigger_persistent=False)
+
+    assert event.trigger is None
+    assert "trigger_persistent" in caplog.text
+
+
+def test_event_none_writes_no_trigger_priority_or_delay() -> None:
+    """Test that `None` writes no trigger, priority and delay at all."""
+    doc, model = _event_test_model(2)
+    Event("e1", trigger=None, assignments={"p1": 1.0}).create_sbml(model)
+
+    event: libsbml.Event = model.getEvent("e1")
+    assert not event.isSetTrigger()
+    assert not event.isSetPriority()
+    assert not event.isSetDelay()
+    del doc
+
+
+def test_event_children_without_math(caplog: pytest.LogCaptureFixture) -> None:
+    """Test that a `Trigger`, `Priority` and `Delay` without math are written.
+
+    SBML allows the trigger, the priority and the delay of an event without
+    math from L3V2 on. `math=None` writes the element without math, and
+    without an error.
+    """
+    doc, model = _event_test_model(2)
+    with caplog.at_level("WARNING", logger="sbmlutils"):
+        Event(
+            "e1",
+            trigger=Trigger(None),
+            priority=Priority(None),
+            delay=Delay(None),
+            assignments={"p1": 1.0},
+        ).create_sbml(model)
+
+    event: libsbml.Event = model.getEvent("e1")
+    for child in (event.getTrigger(), event.getPriority(), event.getDelay()):
+        assert child is not None
+        assert not child.isSetMath()
+    assert not any(record.levelname == "ERROR" for record in caplog.records), [
+        r.getMessage() for r in caplog.records if r.levelname == "ERROR"
+    ]
+    del doc
+
+
+@pytest.mark.parametrize("element", ["trigger", "priority", "delay"])
+@pytest.mark.parametrize("math", ["time >=", ""], ids=["unparsable", "empty"])
+def test_event_unparsable_math_logs_an_error(
+    element: str, math: str, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that math which does not parse is logged as an error.
+
+    It used to become an element without math, silently. An empty string is
+    math which does not parse like any other, it is not an element without
+    math, which is `math=None`.
+    """
+    doc, model = _event_test_model(2)
+    kwargs: dict[str, Any] = {"trigger": "time >= 10", element: math}
+    with caplog.at_level("ERROR", logger="sbmlutils.factory"):
+        Event("e1", assignments={"p1": 1.0}, **kwargs).create_sbml(model)
+
+    errors = [r.getMessage() for r in caplog.records if r.levelname == "ERROR"]
+    assert any(f"'{math}'" in message for message in errors), errors
+    # the trigger, priority or delay; `libsbml.SBase` declares no `isSetMath`
+    child: Any = getattr(model.getEvent("e1"), f"get{element.title()}")()
+    assert not child.isSetMath()
+    del doc
+
+
+@pytest.mark.parametrize("version", [1, 2])
+def test_event_children_id_written_from_l3v2(
+    version: int, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that the id of a trigger, priority and delay is written from L3V2 on.
+
+    Like a kinetic law, they only have an id attribute from SBML L3V2 on, and
+    libsbml's `setId` fails with "unexpected attribute" below it. The caller
+    cannot fix that by changing the element, so the id is dropped without an
+    error.
+    """
+    doc, model = _event_test_model(version)
+    with caplog.at_level("WARNING", logger="sbmlutils"):
+        Event(
+            "e1",
+            trigger=Trigger("time >= 10", sid="t1"),
+            priority=Priority("1", sid="pr1"),
+            delay=Delay("2", sid="d1"),
+            assignments={"p1": 1.0},
+        ).create_sbml(model)
+
+    event: libsbml.Event = model.getEvent("e1")
+    for child, sid in (
+        (event.getTrigger(), "t1"),
+        (event.getPriority(), "pr1"),
+        (event.getDelay(), "d1"),
+    ):
+        assert child.isSetId() is (version == 2)
+        assert (f'id="{sid}"' in child.toSBML()) is (version == 2)
+    assert not any(record.levelname == "ERROR" for record in caplog.records), [
+        r.getMessage() for r in caplog.records if r.levelname == "ERROR"
+    ]
+    del doc
+
+
+def test_nested_elements_log_no_authoring_hints(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that a kinetic law, trigger, priority and delay log no authoring hints.
+
+    `'name' should be set` and `'sboTerm' should be set` help somebody who
+    writes a reaction or an event. The kinetic law of a reaction and the
+    trigger, priority and delay of an event are created from a string in the
+    documented authoring style, which has no place for their name or sboTerm,
+    so a hint on them could not be acted upon.
+    """
+    doc, model = _event_test_model(2)
+    model.createCompartment().setId("c")
+    for sid in ("A", "B"):
+        species: libsbml.Species = model.createSpecies()
+        species.setId(sid)
+        species.setCompartment("c")
+
+    with caplog.at_level("WARNING", logger="sbmlutils.factory"):
+        Reaction(
+            "r1", "A => B", formula="A", name="r1", sboTerm="SBO:0000176"
+        ).create_sbml(model)
+        Event(
+            "e1",
+            trigger="time >= 10",
+            priority="1",
+            delay="2",
+            name="e1",
+            sboTerm="SBO:0000231",
+        ).create_sbml(model)
+
+    assert "should be set" not in caplog.text, caplog.text
+    del doc
+
+
 def test_reaction_reversible_overrides_the_equation() -> None:
     """Test that an explicit `reversible` is honoured.
 

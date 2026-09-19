@@ -81,6 +81,7 @@ __all__ = [
     "Compartment",
     "Constraint",
     "Creator",
+    "Delay",
     "Deletion",
     "Document",
     "Event",
@@ -106,6 +107,7 @@ __all__ = [
     "Parameter",
     "Port",
     "PortType",
+    "Priority",
     "RateRule",
     "Reaction",
     "ReactionEquation",
@@ -113,6 +115,7 @@ __all__ = [
     "ReplacedElement",
     "Species",
     "Submodel",
+    "Trigger",
     "UncertParameter",
     "UncertSpan",
     "Uncertainty",
@@ -196,6 +199,25 @@ def ast_node_from_formula(model: libsbml.Model, formula: str) -> libsbml.ASTNode
         logger.error("Formula could not be parsed: '%s'", formula)
         logger.error(libsbml.getLastParseL3Error())
     return ast_node
+
+
+def _set_math(sbase: Any, math: str | None, model: libsbml.Model) -> None:
+    """Set a formula as the math of an element.
+
+    Args:
+        sbase: the libsbml object the math is set on, e.g. a
+            `libsbml.Trigger`; `libsbml.SBase` itself declares no `setMath`
+        math: the math as an SBML L3 formula string; `None` for an element
+            without math, which SBML allows from L3V2 on. A formula which does
+            not parse is logged as an error by `ast_node_from_formula` and
+            leaves the element without math
+        model: the libsbml.Model which resolves the ids in the formula
+    """
+    if math is None:
+        return
+    ast_node: libsbml.ASTNode | None = ast_node_from_formula(model, math)
+    if ast_node is not None:
+        check(sbase.setMath(ast_node), f"Set math '{math}' on {sbase.getElementName()}")
 
 
 UnitType: TypeAlias = "UnitDefinition | str | None"
@@ -669,6 +691,12 @@ class Sbase:
                 ReplacedElement,
                 AssignmentRule,
                 EventAssignment,
+                # created from a formula string in the authoring style, which
+                # has no place for their name or sboTerm
+                KineticLaw,
+                Trigger,
+                Priority,
+                Delay,
             ),
         ):
             logger.warning("'name' should be set on '%s'", self)
@@ -694,6 +722,10 @@ class Sbase:
                 ExternalModelDefinition,
                 Submodel,
                 EventAssignment,
+                KineticLaw,
+                Trigger,
+                Priority,
+                Delay,
             ),
         ):
             logger.warning("'sboTerm' should be set on '%s'", self)
@@ -2489,30 +2521,19 @@ class EventAssignment(Value):
         super()._set_fields(sbase, model)
 
 
-class Event(Sbase):
-    """Event.
+class Trigger(Sbase):
+    """Trigger of an Event.
 
-    Trigger have the format of a logical expression:
-        time%200 == 0
-    Assignments have the format
-        sid = value
-
-    The trigger, the priority and the delay are each an SBML L3 formula
-    string. `None` writes no element at all: an event without a priority or a
-    delay, or, from SBML L3V2 on, without a trigger. An empty string writes the
-    element without math, which SBML allows from L3V2 on.
+    Corresponds to a `libsbml.Trigger`: the condition whose change from false
+    to true fires the event, and the two flags which qualify it.
     """
 
     def __init__(
         self,
-        sid: str | None,
-        trigger: str | None,
-        assignments: dict[str, str | float] | list[EventAssignment] | None = None,
-        trigger_persistent: bool = True,
-        trigger_initialValue: bool = False,
-        useValuesFromTriggerTime: bool = True,
-        priority: str | None = None,
-        delay: str | None = None,
+        math: str | None,
+        initialValue: bool = False,
+        persistent: bool = True,
+        sid: str | None = None,
         name: str | None = None,
         sboTerm: str | None = None,
         metaId: str | None = None,
@@ -2523,7 +2544,330 @@ class Event(Sbase):
         uncertainties: list[Uncertainty] | None = None,
         replacedBy: Any | None = None,
     ):
-        """Construct Event."""
+        """Construct a Trigger.
+
+        Args:
+            math: the condition, as an SBML L3 formula string, e.g.
+                `"time >= 10"`; `None` for a trigger without math, which SBML
+                allows from L3V2 on
+            initialValue: the value of the trigger before the simulation
+                starts; with `False` a condition which is true at the start
+                fires the event at the start
+            persistent: whether a fired event is executed even if the
+                condition turns false again before its delay has passed
+            sid: optional SId, a trigger only carries one since SBML L3V2;
+                not written when the target document is older, see
+                `Sbase._set_fields`
+            name: optional SBML name, a trigger only carries one since SBML
+                L3V2; not written when the target document is older
+            sboTerm: optional SBO term
+            metaId: optional SBML metaid
+            annotations: optional RDF annotations
+            notes: optional notes, as markdown, XHTML or a `Notes` object
+            keyValuePairs: optional key-value pairs
+            port: optional comp port
+            uncertainties: optional distrib uncertainties
+            replacedBy: optional comp replacement
+        """
+        super().__init__(
+            sid=sid,
+            name=name,
+            sboTerm=sboTerm,
+            metaId=metaId,
+            annotations=annotations,
+            notes=notes,
+            keyValuePairs=keyValuePairs,
+            port=port,
+            uncertainties=uncertainties,
+            replacedBy=replacedBy,
+        )
+        self.math = math
+        self.initialValue = initialValue
+        self.persistent = persistent
+
+    def __repr__(self) -> str:
+        """Get string representation."""
+        return f"Trigger({self.math})"
+
+    def create_sbml(
+        self, event: libsbml.Event, model: libsbml.Model
+    ) -> libsbml.Trigger:
+        """Create the libsbml.Trigger on the given event.
+
+        Args:
+            event: the libsbml.Event the trigger belongs to
+            model: the libsbml.Model, used to resolve ids in the math
+
+        Returns:
+            the created libsbml.Trigger
+        """
+        trigger: libsbml.Trigger = event.createTrigger()
+        self._set_fields(trigger, model)
+        return trigger
+
+    def _set_fields(self, sbase: libsbml.Trigger, model: libsbml.Model) -> None:
+        """Set the fields on the libsbml.Trigger.
+
+        Args:
+            sbase: the libsbml.Trigger created by `create_sbml`
+            model: the libsbml.Model the trigger belongs to
+        """
+        super()._set_fields(sbase, model)
+        # initialValue False is not supported by Copasi, a condition on time
+        # is the workaround
+        check(
+            sbase.setInitialValue(self.initialValue),
+            f"Set initialValue on trigger '{self.math}'",
+        )
+        # persistent True is not supported by Copasi, careful with its usage
+        check(
+            sbase.setPersistent(self.persistent),
+            f"Set persistent on trigger '{self.math}'",
+        )
+        _set_math(sbase, self.math, model)
+
+
+class Priority(Sbase):
+    """Priority of an Event.
+
+    Corresponds to a `libsbml.Priority`: the math which orders the events
+    that are executed at the same time, the event with the higher priority
+    first.
+    """
+
+    def __init__(
+        self,
+        math: str | None,
+        sid: str | None = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
+        annotations: OptionalAnnotationsType = None,
+        notes: str | Notes | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
+        port: Any = None,
+        uncertainties: list[Uncertainty] | None = None,
+        replacedBy: Any | None = None,
+    ):
+        """Construct a Priority.
+
+        Args:
+            math: the priority, as an SBML L3 formula string; `None` for a
+                priority without math, which SBML allows from L3V2 on
+            sid: optional SId, a priority only carries one since SBML L3V2;
+                not written when the target document is older, see
+                `Sbase._set_fields`
+            name: optional SBML name, a priority only carries one since SBML
+                L3V2; not written when the target document is older
+            sboTerm: optional SBO term
+            metaId: optional SBML metaid
+            annotations: optional RDF annotations
+            notes: optional notes, as markdown, XHTML or a `Notes` object
+            keyValuePairs: optional key-value pairs
+            port: optional comp port
+            uncertainties: optional distrib uncertainties
+            replacedBy: optional comp replacement
+        """
+        super().__init__(
+            sid=sid,
+            name=name,
+            sboTerm=sboTerm,
+            metaId=metaId,
+            annotations=annotations,
+            notes=notes,
+            keyValuePairs=keyValuePairs,
+            port=port,
+            uncertainties=uncertainties,
+            replacedBy=replacedBy,
+        )
+        self.math = math
+
+    def __repr__(self) -> str:
+        """Get string representation."""
+        return f"Priority({self.math})"
+
+    def create_sbml(
+        self, event: libsbml.Event, model: libsbml.Model
+    ) -> libsbml.Priority:
+        """Create the libsbml.Priority on the given event.
+
+        Args:
+            event: the libsbml.Event the priority belongs to
+            model: the libsbml.Model, used to resolve ids in the math
+
+        Returns:
+            the created libsbml.Priority
+        """
+        priority: libsbml.Priority = event.createPriority()
+        self._set_fields(priority, model)
+        return priority
+
+    def _set_fields(self, sbase: libsbml.Priority, model: libsbml.Model) -> None:
+        """Set the fields on the libsbml.Priority.
+
+        Args:
+            sbase: the libsbml.Priority created by `create_sbml`
+            model: the libsbml.Model the priority belongs to
+        """
+        super()._set_fields(sbase, model)
+        _set_math(sbase, self.math, model)
+
+
+class Delay(Sbase):
+    """Delay of an Event.
+
+    Corresponds to a `libsbml.Delay`: the math of the time between the firing
+    of the event and the execution of its assignments.
+    """
+
+    def __init__(
+        self,
+        math: str | None,
+        sid: str | None = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
+        annotations: OptionalAnnotationsType = None,
+        notes: str | Notes | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
+        port: Any = None,
+        uncertainties: list[Uncertainty] | None = None,
+        replacedBy: Any | None = None,
+    ):
+        """Construct a Delay.
+
+        Args:
+            math: the delay, as an SBML L3 formula string; `None` for a delay
+                without math, which SBML allows from L3V2 on
+            sid: optional SId, a delay only carries one since SBML L3V2; not
+                written when the target document is older, see
+                `Sbase._set_fields`
+            name: optional SBML name, a delay only carries one since SBML
+                L3V2; not written when the target document is older
+            sboTerm: optional SBO term
+            metaId: optional SBML metaid
+            annotations: optional RDF annotations
+            notes: optional notes, as markdown, XHTML or a `Notes` object
+            keyValuePairs: optional key-value pairs
+            port: optional comp port
+            uncertainties: optional distrib uncertainties
+            replacedBy: optional comp replacement
+        """
+        super().__init__(
+            sid=sid,
+            name=name,
+            sboTerm=sboTerm,
+            metaId=metaId,
+            annotations=annotations,
+            notes=notes,
+            keyValuePairs=keyValuePairs,
+            port=port,
+            uncertainties=uncertainties,
+            replacedBy=replacedBy,
+        )
+        self.math = math
+
+    def __repr__(self) -> str:
+        """Get string representation."""
+        return f"Delay({self.math})"
+
+    def create_sbml(self, event: libsbml.Event, model: libsbml.Model) -> libsbml.Delay:
+        """Create the libsbml.Delay on the given event.
+
+        Args:
+            event: the libsbml.Event the delay belongs to
+            model: the libsbml.Model, used to resolve ids in the math
+
+        Returns:
+            the created libsbml.Delay
+        """
+        delay: libsbml.Delay = event.createDelay()
+        self._set_fields(delay, model)
+        return delay
+
+    def _set_fields(self, sbase: libsbml.Delay, model: libsbml.Model) -> None:
+        """Set the fields on the libsbml.Delay.
+
+        Args:
+            sbase: the libsbml.Delay created by `create_sbml`
+            model: the libsbml.Model the delay belongs to
+        """
+        super()._set_fields(sbase, model)
+        _set_math(sbase, self.math, model)
+
+
+class Event(Sbase):
+    """Event.
+
+    An event fires when its trigger, e.g. `time >= 10`, changes from false to
+    true, and then executes its assignments, e.g. `{"S1": 5.0}`, after its
+    optional delay. The priority orders events which are executed at the same
+    time.
+
+    The trigger, the priority and the delay are a `Trigger`, a `Priority` and
+    a `Delay`, which carry their own metadata. Each of them is also accepted
+    as a formula string, which is normalized into the object; this is the
+    documented authoring style, e.g.
+    `Event("e1", trigger="time >= 10", priority="1", delay="2")`. `None`
+    writes no element at all: an event without a priority or a delay, or,
+    from SBML L3V2 on, without a trigger. An element without math, which SBML
+    allows from L3V2 on, is an object whose `math` is `None`, e.g.
+    `Trigger(None)`.
+    """
+
+    def __init__(
+        self,
+        sid: str | None,
+        trigger: Trigger | str | None,
+        assignments: dict[str, str | float] | list[EventAssignment] | None = None,
+        trigger_persistent: bool | None = None,
+        trigger_initialValue: bool | None = None,
+        useValuesFromTriggerTime: bool = True,
+        priority: Priority | str | None = None,
+        delay: Delay | str | None = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
+        annotations: OptionalAnnotationsType = None,
+        notes: str | Notes | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
+        port: Any = None,
+        uncertainties: list[Uncertainty] | None = None,
+        replacedBy: Any | None = None,
+    ):
+        """Construct an Event.
+
+        Args:
+            sid: optional SId
+            trigger: the trigger, a `Trigger` or the formula string of one;
+                `None` for an event without a trigger, which SBML allows from
+                L3V2 on
+            assignments: the event assignments, a list of `EventAssignment`
+                or a `{variable: expression}` dict
+            trigger_persistent: the `persistent` of the `Trigger` created from
+                a trigger string, `True` if not given. A `Trigger` keeps its
+                own `persistent`, a different value given here is logged as a
+                warning and not applied
+            trigger_initialValue: the `initialValue` of the `Trigger` created
+                from a trigger string, `False` if not given. A `Trigger` keeps
+                its own `initialValue`, a different value given here is logged
+                as a warning and not applied
+            useValuesFromTriggerTime: whether the assignments are evaluated
+                when the event fires rather than when it is executed
+            priority: the priority, a `Priority` or the formula string of one;
+                `None` for an event without a priority
+            delay: the delay, a `Delay` or the formula string of one; `None`
+                for an event without a delay
+            name: optional SBML name
+            sboTerm: optional SBO term
+            metaId: optional SBML metaid
+            annotations: optional RDF annotations
+            notes: optional notes, as markdown, XHTML or a `Notes` object
+            keyValuePairs: optional key-value pairs
+            port: optional comp port
+            uncertainties: optional distrib uncertainties
+            replacedBy: optional comp replacement
+        """
         super().__init__(
             sid,
             name=name,
@@ -2537,14 +2881,77 @@ class Event(Sbase):
             replacedBy=replacedBy,
         )
 
-        self.trigger = trigger
+        self.trigger: Trigger | None = Event._process_trigger(
+            sid, trigger, trigger_persistent, trigger_initialValue
+        )
         self.assignments = Event._process_assignments(assignments)
-        self.trigger_persistent = trigger_persistent
-        self.trigger_initialValue = trigger_initialValue
         self.useValuesFromTriggerTime = useValuesFromTriggerTime
 
-        self.priority = priority
-        self.delay = delay
+        self.priority: Priority | None = (
+            Priority(math=priority) if isinstance(priority, str) else priority
+        )
+        self.delay: Delay | None = (
+            Delay(math=delay) if isinstance(delay, str) else delay
+        )
+
+    @staticmethod
+    def _process_trigger(
+        sid: str | None,
+        trigger: Trigger | str | None,
+        persistent: bool | None,
+        initialValue: bool | None,
+    ) -> Trigger | None:
+        """Normalize the trigger of an event into a `Trigger`.
+
+        A trigger string is the documented authoring style; the
+        `trigger_persistent` and `trigger_initialValue` arguments of the event
+        configure the `Trigger` created from it. A `Trigger` carries its own
+        flags, which win over these arguments, so an argument which differs
+        from them is logged as a warning, as is one given for an event without
+        a trigger.
+
+        Args:
+            sid: the id of the event, for the warnings
+            trigger: the trigger, a `Trigger`, the formula string of one, or
+                `None` for an event without a trigger
+            persistent: the `trigger_persistent` argument, `None` if it was
+                not given
+            initialValue: the `trigger_initialValue` argument, `None` if it was
+                not given
+
+        Returns:
+            the trigger of the event, `None` for an event without a trigger
+        """
+        if isinstance(trigger, str):
+            return Trigger(
+                math=trigger,
+                persistent=True if persistent is None else persistent,
+                initialValue=False if initialValue is None else initialValue,
+            )
+
+        for flag, value, attribute in (
+            ("trigger_persistent", persistent, "persistent"),
+            ("trigger_initialValue", initialValue, "initialValue"),
+        ):
+            if value is None:
+                continue
+            if trigger is None:
+                logger.warning(
+                    "Event '%s' has no trigger, '%s=%s' is not applied.",
+                    sid,
+                    flag,
+                    value,
+                )
+            elif value != getattr(trigger, attribute):
+                logger.warning(
+                    "Event '%s': '%s=%s' is not applied, its Trigger has '%s=%s'.",
+                    sid,
+                    flag,
+                    value,
+                    attribute,
+                    getattr(trigger, attribute),
+                )
+        return trigger
 
     @staticmethod
     def _process_assignments(
@@ -2588,25 +2995,11 @@ class Event(Sbase):
             f"Set useValuesFromTriggerTime on '{self.sid}'",
         )
         if self.trigger is not None:
-            t: libsbml.Trigger = sbase.createTrigger()
-            t.setInitialValue(
-                self.trigger_initialValue
-            )  # False ! not supported by Copasi -> lame fix via time
-            t.setPersistent(
-                self.trigger_persistent
-            )  # True ! not supported by Copasi -> careful with usage
-            if self.trigger:
-                t.setMath(libsbml.parseL3FormulaWithModel(self.trigger, model))
-
+            self.trigger.create_sbml(sbase, model)
         if self.priority is not None:
-            priority: libsbml.Priority = sbase.createPriority()
-            if self.priority:
-                priority.setMath(libsbml.parseL3FormulaWithModel(self.priority, model))
-
+            self.priority.create_sbml(sbase, model)
         if self.delay is not None:
-            delay: libsbml.Delay = sbase.createDelay()
-            if self.delay:
-                delay.setMath(libsbml.parseL3FormulaWithModel(self.delay, model))
+            self.delay.create_sbml(sbase, model)
 
         for assignment in self.assignments:
             assignment.create_sbml(sbase, model)

@@ -103,7 +103,7 @@ model.species += [
 | `Reaction` | a reaction, with an `equation` and a rate `formula` |
 | `InitialAssignment` | the initial value of a symbol as a formula |
 | `AssignmentRule`, `RateRule`, `AlgebraicRule` | the rules of the model |
-| `Event` | a discrete event with a trigger and assignments |
+| `Event` | a discrete event with a trigger, assignments and an optional priority and delay, given as formulas, e.g. `Event("e1", trigger="time >= 10", assignments={"S1": 5.0})`; a `Trigger`, `EventAssignment`, `Priority` or `Delay` gives each of them its own metadata |
 | `Function` | a function definition |
 | `Constraint` | a constraint on the state of the model |
 | `Objective`, `FluxObjective`, `GeneProduct` | the [fbc](fbc.md) elements |

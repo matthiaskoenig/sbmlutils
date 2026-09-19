@@ -2,6 +2,7 @@
 
 import logging
 from pathlib import Path
+from typing import Any
 
 import libsbml
 import pytest
@@ -222,6 +223,68 @@ def test_replaced_by_in_a_kinetic_law_declares_comp() -> None:
     assert not _reaction_model(
         "plain", Reaction("r1", "S1 -> S2", formula="k * S1")
     )._has_comp_content()
+
+
+def _event_model(sid: str, event: Event) -> Model:
+    """Create a model around a single event which assigns the parameter `p1`.
+
+    Args:
+        sid: the id of the model
+        event: the event
+
+    Returns:
+        the model
+    """
+    return Model(
+        sid=sid,
+        parameters=[Parameter("p1", 0.0, constant=False)],
+        events=[event],
+    )
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"trigger": Trigger("time >= 10", sid="t1", port=True)},
+        {"trigger": "time >= 10", "priority": Priority("1", sid="pr1", port=True)},
+        {"trigger": "time >= 10", "delay": Delay("2", sid="d1", port=True)},
+    ],
+    ids=["trigger", "priority", "delay"],
+)
+def test_port_on_an_event_child_is_comp_content(kwargs: dict[str, Any]) -> None:
+    """Test that a port on a trigger, priority or delay is found.
+
+    They are held by the `Event`, which is walked like every other element
+    of the model, see `Model._has_comp_content`.
+    """
+    event = Event("e1", assignments={"p1": 1.0}, **kwargs)
+    assert _event_model("event_child_port", event)._has_comp_content()
+    assert not _event_model(
+        "plain", Event("e1", trigger="time >= 10", priority="1", delay="2")
+    )._has_comp_content()
+
+
+def test_replaced_by_on_a_trigger_is_written() -> None:
+    """Test that the replacedBy of a trigger is written onto the trigger."""
+    sbmlns = libsbml.SBMLNamespaces(3, 2, "comp", 1)
+    doc = libsbml.SBMLDocument(sbmlns)
+    model: libsbml.Model = doc.createModel()
+    p1: libsbml.Parameter = model.createParameter()
+    p1.setId("p1")
+    p1.setConstant(False)
+
+    trigger = Trigger(
+        "time >= 10",
+        sid="t1",
+        replacedBy=ReplacedBy(sid="rby", elementRef="t_sub", submodelRef="sub"),
+    )
+    Event("e1", trigger=trigger, assignments={"p1": 1.0}).create_sbml(model)
+
+    trigger_comp: libsbml.CompSBasePlugin = (
+        model.getEvent("e1").getTrigger().getPlugin("comp")
+    )
+    assert trigger_comp.isSetReplacedBy()
+    assert trigger_comp.getReplacedBy().getSubmodelRef() == "sub"
 
 
 def test_port_without_comp_raises_a_value_error() -> None:
