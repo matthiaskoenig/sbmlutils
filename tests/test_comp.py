@@ -1796,12 +1796,12 @@ def _nested_port_content() -> dict[str, Any]:
 #: as `port id -> (reference, target)`
 _NESTED_PORTS: dict[str, tuple[str, str]] = {
     "klaw1_port": ("idRef", "klaw1"),
-    "kf_port": ("metaIdRef", "meta_kf"),
+    "meta_kf_port": ("metaIdRef", "meta_kf"),
     "e1_port": ("idRef", "e1"),
     "t1_port": ("idRef", "t1"),
     "pr1_port": ("idRef", "pr1"),
     "d1_port": ("idRef", "d1"),
-    "ea1_port": ("metaIdRef", "meta_ea1"),
+    "meta_ea1_port": ("metaIdRef", "meta_ea1"),
     "con1_port": ("idRef", "con1"),
     "gp1_port": ("idRef", "gp1"),
     "obj1_port": ("idRef", "obj1"),
@@ -2248,6 +2248,28 @@ _UNWRITABLE_PORTS: list[Any] = [
     ),
     pytest.param(
         lambda: _reaction_model(
+            "local_parameter_with_a_metaid_which_is_no_sid",
+            Reaction(
+                "r1",
+                "S1 -> S2",
+                name="reaction",
+                formula=KineticLaw(
+                    math="kf * S1",
+                    sid="klaw1",
+                    local_parameters=[
+                        LocalParameter(
+                            "kf", 1.0, name="kf", metaId="meta.kf", port=True
+                        )
+                    ],
+                ),
+            ),
+        ),
+        "LocalParameter",
+        "no valid SBML SId",
+        id="metaid-which-is-no-sid",
+    ),
+    pytest.param(
+        lambda: _reaction_model(
             "rule_without_an_id",
             Reaction(
                 "r1",
@@ -2358,7 +2380,7 @@ _WRITABLE_PORTS: list[Any] = [
                 ),
             ),
         ),
-        {"kf_port": ("metaIdRef", "meta_kf")},
+        {"meta_kf_port": ("metaIdRef", "meta_kf")},
         [],
         id="local-parameter-with-a-metaid",
     ),
@@ -2376,7 +2398,7 @@ _WRITABLE_PORTS: list[Any] = [
                 ],
             ),
         ),
-        {"ea1_port": ("metaIdRef", "meta_ea1")},
+        {"meta_ea1_port": ("metaIdRef", "meta_ea1")},
         [],
         id="event-assignment-with-a-metaid",
     ),
@@ -2426,3 +2448,51 @@ def test_the_same_port_is_written_once_the_element_states_its_name(
     assert [r.getMessage() for r in caplog.records if "port of" in r.getMessage()] == []
     result = validate_doc(doc, options=ValidationOptions(units_consistency=False))
     assert [error.getErrorId() for error in result.errors] == errors
+
+
+def test_a_port_of_a_local_parameter_is_unique_per_kinetic_law(
+    tmp_path: Path,
+) -> None:
+    """Test that two local parameters of one id get two ports.
+
+    The id of a local parameter is scoped to its kinetic law, so two kinetic
+    laws can each hold a `kf`. A port named after the element's id gave both
+    of them the id and the metaid `kf_port`, which libsbml rejects with 1010303
+    ("Ports must have unique ids") and 10307 ("Duplicate 'metaid' attribute
+    value"). The port is named after the metaid it references instead, which
+    SBML requires to be unique in the document.
+    """
+    model = Model(
+        sid="two_local_parameters_of_one_id",
+        name="two kinetic laws which each hold a kf",
+        compartments=[Compartment("c", 1.0, name="compartment")],
+        species=[
+            Species("S1", compartment="c", initialConcentration=1.0, name="S1"),
+            Species("S2", compartment="c", initialConcentration=1.0, name="S2"),
+        ],
+        reactions=[
+            Reaction(
+                f"r{k}",
+                f"S{k} ->",
+                name=f"reaction {k}",
+                formula=KineticLaw(
+                    math=f"kf * S{k}",
+                    sid=f"klaw{k}",
+                    local_parameters=[
+                        LocalParameter(
+                            "kf", float(k), name="kf", metaId=f"meta_kf_r{k}", port=True
+                        )
+                    ],
+                ),
+            )
+            for k in (1, 2)
+        ],
+    )
+    doc = _write(model, tmp_path, validate=False)
+
+    assert _ports(doc.getModel()) == {
+        "meta_kf_r1_port": ("metaIdRef", "meta_kf_r1"),
+        "meta_kf_r2_port": ("metaIdRef", "meta_kf_r2"),
+    }
+    result = validate_doc(doc, options=ValidationOptions(units_consistency=False))
+    assert [error.getErrorId() for error in result.errors] == []

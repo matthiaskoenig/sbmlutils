@@ -866,15 +866,21 @@ class Sbase:
     def _port_id(self) -> str:
         """Get the id the `port=True` shorthand gives the port of this element.
 
+        The port is named after the name it references the element by, which
+        is unique in the document: an `SId` for `idRef` and `unitRef`, and the
+        metaid for `metaIdRef`, whose `SId` is scoped to the element it lives
+        in. Two local parameters called `kf` in two kinetic laws would
+        otherwise be given two ports called `kf_port` (libsbml 1010303, "Ports
+        must have unique ids", and 10307, "Duplicate 'metaid' attribute
+        value").
+
         Returns:
             the id, which is also the metaid of the port; the empty string
             for an element with no name a port can reference
         """
         suffix = PORT_UNIT_SUFFIX if self._port_reference == "unitRef" else PORT_SUFFIX
         target = self._port_target()
-        if target is None:
-            return ""
-        return f"{self.sid if self.sid is not None else target}{suffix}"
+        return "" if target is None else f"{target}{suffix}"
 
     def _port_loss(self, in_model: bool) -> str | None:
         """Say why the port of this element cannot be written, if it cannot.
@@ -886,13 +892,19 @@ class Sbase:
         which cannot be written declares no comp package and leaves no empty
         comp namespace behind.
 
-        Two things stop a port from being written:
+        Three things stop a port from being written:
 
         - the element is written without the `libsbml.Model` its port would
           live in, which is what happens to a key-value pair nested in an
           uncert parameter, an uncert span or a `<comp:sBaseRef>`,
         - the port references the element itself and the element does not
-          state the name that reference needs, an id or a metaid.
+          state the name that reference needs, an id or a metaid,
+        - the `port=True` shorthand would derive an id for the port which is
+          no valid `SId`, which a metaid can be: a metaid is an XML `ID`,
+          which allows `.` and `-`, and libsbml answers `setId` with
+          `LIBSBML_INVALID_ATTRIBUTE_VALUE` for such a string and leaves the
+          required `comp:id` of the port unset (measured with libsbml
+          5.21.2, which then reports 1020803 and 1090105).
 
         Args:
             in_model: whether the element is written with the
@@ -926,6 +938,15 @@ class Sbase:
                 f"{what} is not created: a port references this element by its "
                 f"{name}, which it does not state. Give it a {name}, or give "
                 f"the port a reference of its own."
+            )
+        if isinstance(self.port, bool) and not libsbml.SyntaxChecker.isValidSBMLSId(
+            self._port_id()
+        ):
+            return (
+                f"{what} is not created: the id '{self._port_id()}' derived "
+                f"from the metaid '{self.metaId}' is no valid SBML SId, which "
+                f"a port requires. Give the element a metaid which is a valid "
+                f"SId, or give the port an id and a reference of its own."
             )
         return None
 
