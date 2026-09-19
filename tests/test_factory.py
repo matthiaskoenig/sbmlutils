@@ -1,7 +1,10 @@
 """Testing the factory methods."""
 
 import logging
+import os
 import re
+import subprocess
+import sys
 import threading
 from collections.abc import Callable
 from pathlib import Path
@@ -1987,3 +1990,86 @@ def test_species_charge_which_fbc_v2_cannot_write_is_reported(
     ]
     assert len(errors) == 1, errors
     assert "S1" in errors[0] and "-2.5" in errors[0]
+
+
+#: the prefix of every package namespace and `required` attribute of an
+#: `<sbml>` start tag, in the order they are written
+_NAMESPACE_PREFIX = re.compile(r'xmlns:([a-z]+)="http://www\.sbml\.org/sbml/level3')
+_REQUIRED_PREFIX = re.compile(r"([a-z]+):required=")
+
+#: a model which declares every package sbmlutils supports; written in a
+#: process of its own by the test below
+_PACKAGE_MODEL = """
+from sbmlutils.factory import Model, Package, Parameter
+
+model = Model(
+    "packages",
+    packages=[Package.COMP_V1, Package.DISTRIB_V1, Package.FBC_V3],
+    parameters=[Parameter("p1", value=1.0)],
+)
+for line in model.get_sbml().splitlines():
+    if line.startswith("<sbml"):
+        print(line)
+        break
+"""
+
+
+def _start_tag(model: Model) -> str:
+    """Get the `<sbml>` start tag of the SBML of a model.
+
+    Args:
+        model: the model to write
+
+    Returns:
+        the line of the SBML which starts the `sbml` element
+    """
+    for line in model.get_sbml().splitlines():
+        if line.startswith("<sbml"):
+            return line
+    raise AssertionError(f"No '<sbml>' start tag in the SBML of '{model.sid}'.")
+
+
+@pytest.mark.parametrize(
+    "packages",
+    [
+        [Package.COMP_V1, Package.DISTRIB_V1, Package.FBC_V3],
+        [Package.FBC_V3, Package.DISTRIB_V1, Package.COMP_V1],
+        [Package.DISTRIB_V1, Package.FBC_V3, Package.COMP_V1],
+    ],
+)
+def test_package_namespaces_are_written_in_the_order_of_the_enum(
+    packages: list[Package],
+) -> None:
+    """Test that the packages are declared in the definition order of `Package`.
+
+    The order the packages are given in is not the order they are declared in:
+    `Model.check_packages` normalizes them and the declaration follows the
+    definition order of `Package`, which is `comp`, `distrib`, `fbc`.
+    """
+    tag = _start_tag(Model("packages", packages=packages))
+
+    assert _NAMESPACE_PREFIX.findall(tag) == ["comp", "distrib", "fbc"]
+    assert _REQUIRED_PREFIX.findall(tag) == ["comp", "distrib", "fbc"]
+
+
+def test_package_namespaces_do_not_depend_on_the_hash_seed() -> None:
+    """Test that two processes write the same `<sbml>` start tag.
+
+    The packages of a model were collected in a `set`, which the declarations
+    were written from in iteration order, so the same model definition wrote
+    a different `<sbml>` element in every process: the order of a set of
+    `Package` members depends on the hash seed of the process. Two seeds are
+    enough to show it, they produced two different tags.
+    """
+    tags = {}
+    for seed in ("0", "1"):
+        process = subprocess.run(
+            [sys.executable, "-c", _PACKAGE_MODEL],
+            capture_output=True,
+            text=True,
+            check=True,
+            env={**os.environ, "PYTHONHASHSEED": seed},
+        )
+        tags[seed] = process.stdout.strip()
+
+    assert tags["0"] == tags["1"], tags

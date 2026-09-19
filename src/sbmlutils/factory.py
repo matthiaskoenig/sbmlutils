@@ -4668,7 +4668,11 @@ class Port(SbaseRef):
 
 
 class Package(StrEnum):
-    """Supported/tested packages."""
+    """Supported/tested packages.
+
+    The definition order is the order the packages are declared on the
+    `<sbml>` element in, see `packages_in_canonical_order`.
+    """
 
     COMP = "comp"
     COMP_V1 = "comp-v1"
@@ -4677,6 +4681,29 @@ class Package(StrEnum):
     FBC = "fbc"
     FBC_V2 = "fbc-v2"
     FBC_V3 = "fbc-v3"
+
+
+def packages_in_canonical_order(packages: Iterable[Package]) -> list[Package]:
+    """Order the packages of a model canonically, without repetition.
+
+    The packages of a model were collected in a `set`, which the namespace
+    declarations and the `required` attributes of the `<sbml>` element were
+    written from in iteration order: the order of a set of `Package` members
+    depends on the hash seed, so the same model definition wrote a different
+    `<sbml>` element in every process. The declaration order of a namespace
+    carries no meaning in XML, but a file which changes between two runs
+    cannot be compared byte by byte at all. The definition order of `Package`
+    is the order used instead, which is the alphabetical one, `comp`,
+    `distrib`, `fbc`.
+
+    Args:
+        packages: the packages of a model, in any order and with repetition
+
+    Returns:
+        the packages in the definition order of `Package`, each one once
+    """
+    given = set(packages)
+    return [package for package in Package if package in given]
 
 
 class ModelDict(TypedDict, total=False):
@@ -5056,7 +5083,19 @@ class Model(Sbase, FrozenClass):
         return Document(model=self).get_sbml()
 
     def check_packages(self, packages: list[Package] | None) -> list[Package]:
-        """Check that all provided packages are supported."""
+        """Check that all provided packages are supported.
+
+        Args:
+            packages: the packages of the model definition, in any order
+
+        Returns:
+            the packages, normalized to their version and in the canonical
+            order of `packages_in_canonical_order`
+
+        Raises:
+            ValueError: if a package is not a `Package`, given twice, or not
+                supported
+        """
         if packages is None:
             packages = []
         packages_set: set[Package] = set(packages)
@@ -5097,7 +5136,7 @@ class Model(Sbase, FrozenClass):
                     f"but package '{p}' found."
                 )
 
-        return list(packages_set)
+        return packages_in_canonical_order(packages_set)
 
     def _has_comp_content(self) -> bool:
         """Determine whether writing this model requires the comp package.
@@ -5386,7 +5425,10 @@ class Document(Sbase):
         # a package on the document after it exists.
         packages = list(self.model.packages)
         if self.model._has_comp_content() and Package.COMP_V1 not in packages:
-            packages.append(Package.COMP_V1)
+            # in the canonical order, so that a model which engages comp
+            # through the shorthand declares it where a model which asks for
+            # it declares it, see `packages_in_canonical_order`
+            packages = packages_in_canonical_order([*packages, Package.COMP_V1])
 
         # create core model
         sbmlns = libsbml.SBMLNamespaces(self.sbml_level, self.sbml_version)
