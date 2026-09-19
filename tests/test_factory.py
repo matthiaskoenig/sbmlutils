@@ -2815,3 +2815,63 @@ def test_sbo_term_of_a_species_reference_is_normalized(
     sref: libsbml.SpeciesReference = doc.getModel().getReaction("R1").getReactant(0)
     assert sref.getSBOTermID() == "SBO:0000011"
     assert doc.getModel().getSpecies("S1").getSBOTermID() == "SBO:0000011"
+
+
+def test_an_sbase_attribute_of_a_package_element_advises_the_sbml_version(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test the advice for an `SBase` attribute of a package element.
+
+    A `<comp:replacedElement>` has no `comp:id` below SBML L3V2 although comp
+    version 1 is the only version of comp there is: the `id` of an element of
+    a package is the `id` of an `SBase`, which came with L3V2. The advice is
+    therefore the SBML version, not a later version of comp.
+    """
+    model = Model(
+        sid="replaced_element_id",
+        name="a model which names its replacement",
+        packages=[Package.COMP_V1],
+        model_definitions=[
+            ModelDefinition(
+                sid="md1",
+                name="a model definition",
+                parameters=[Parameter("k", 1.0, name="k")],
+            )
+        ],
+        submodels=[Submodel(sid="sub1", modelRef="md1", name="submodel")],
+        parameters=[
+            Parameter(
+                "k",
+                1.0,
+                name="k",
+                replacedBy=None,
+            )
+        ],
+        replaced_elements=[
+            ReplacedElement(
+                sid="k_RE",
+                name="the replacement of k",
+                metaId="meta_k_RE",
+                elementRef="k",
+                submodelRef="sub1",
+                idRef="k",
+            )
+        ],
+    )
+    with caplog.at_level(logging.WARNING, logger="sbmlutils"):
+        create_model(
+            model=model,
+            filepath=tmp_path / "model.xml",
+            sbml_level=3,
+            sbml_version=1,
+            validate=False,
+        )
+
+    reports = [
+        m
+        for m in _records(caplog, logging.WARNING)
+        if "<replacedElement>" in m and "'id'" in m
+    ]
+    assert len(reports) == 1, reports
+    assert "comp version 1 of an SBML L3V1 document" in reports[0]
+    assert reports[0].endswith("Write SBML Level 3 Version 2 to keep it.")

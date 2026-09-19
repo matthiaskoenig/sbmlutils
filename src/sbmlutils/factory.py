@@ -280,7 +280,9 @@ def _flavour_advice(sbase: Any) -> str:
         latest = _LATEST_PACKAGE_VERSION.get(package)
         if latest is not None and sbase.getPackageVersion() < latest:
             return f"Declare {package} version {latest} to keep it."
-        return ""
+    # an element of a package carries the attributes of an `SBase` too, and
+    # those came with SBML L3V2: a `<comp:replacedElement>` has no `comp:id`
+    # below it although comp version 1 is the only version there is
     if (sbase.getLevel(), sbase.getVersion()) < (3, 2):
         return "Write SBML Level 3 Version 2 to keep it."
     return ""
@@ -314,13 +316,13 @@ def _report_attribute_loss(key: tuple[str, ...], loss: _AttributeLoss) -> None:
     element_name, attribute = key
     logger.warning(
         "The '%s' of %s <%s> element(s) is not written: %s has no such "
-        "attribute, e.g. '%s'. %s",
+        "attribute, e.g. '%s'.%s",
         attribute,
         loss.count,
         element_name,
         loss.flavour,
         loss.example,
-        loss.advice,
+        f" {loss.advice}" if loss.advice else "",
     )
 
 
@@ -374,12 +376,13 @@ def _record_attribute_loss(
         ),
     )
     if loss is None:
+        advice = _flavour_advice(sbase)
         logger.warning(
-            "The '%s' of '%s' is not written: %s has no such attribute. %s",
+            "The '%s' of '%s' is not written: %s has no such attribute.%s",
             attribute,
             element,
             _sbml_flavour(sbase),
-            _flavour_advice(sbase),
+            f" {advice}" if advice else "",
         )
         return
     loss.count += 1
