@@ -72,25 +72,12 @@ ECOLI_CORE_DISTRIB_SBML: Path = RESOURCES_DIR / "distrib" / "e_coli_core.xml"
 ECOLI_EXPRESSION_SBML: Path = RESOURCES_DIR / "distrib" / "e_coli_core_expression.xml"
 #: the only user-defined constraints of the repository
 FBC_UDC_SBML: Path = EXAMPLES_DIR / "fbc_user_defined_constraints.xml"
+#: the key-value pairs of fbc version 3, on a parameter
+FBC_KVP_SBML: Path = EXAMPLES_DIR / "fbc" / "fbc_key_value_pair.xml"
 
 
 #: the source of a fixture: an SBML file, or a model definition built on demand
 Source = Path | Callable[[], Model]
-
-
-def _kvp_model() -> Model:
-    """Get the model of the key-value pair example.
-
-    The packaged `fbc/fbc_key_value_pair.xml` holds three `keyValuePair` elements without a key, value or uri, it predates the writer of key-value pairs. The example itself writes complete ones, so the fixture is created from it.
-
-    The example is imported here and not at the top of the module, so that a broken example fails the one test which uses it instead of the collection of every test of this module.
-
-    Returns:
-        the model definition of the example
-    """
-    from examples.fbc.fbc_key_value_pair import model
-
-    return model
 
 
 def _source_path(source: Source, tmp_path: Path) -> Path:
@@ -450,7 +437,7 @@ MUTATIONS: dict[str, Mutation] = {
         "fbc.userDefinedConstraintComponent",
     ),
     "change_key_value_pair": _mutation(
-        _kvp_model, _change_key_value_pair, "fbc.keyValuePair"
+        FBC_KVP_SBML, _change_key_value_pair, "fbc.keyValuePair"
     ),
     # comp
     "drop_port": _mutation(COMP_ICG_BODY, _drop_port, "comp.port"),
@@ -1521,10 +1508,9 @@ def test_roundtrip_keeps_an_unset_variable_type_unset(
 def test_roundtrip_preserves_key_value_pairs(tmp_path: Path) -> None:
     """Test that the fbc key-value pairs of a model survive a round trip.
 
-    A key-value pair of fbc version 3 sits on any element; the example puts one on the model, a parameter and a species. The fixture is built from the example, see `_kvp_model`.
+    A key-value pair of fbc version 3 sits on any element; `FBC_KVP_SBML` puts three of them on a parameter, each with a key, a value and a uri.
     """
-    sbml_path = _source_path(_kvp_model, tmp_path)
-    doc_in, doc_out = roundtrip_document(sbml_path, tmp_path)
+    doc_in, doc_out = roundtrip_document(FBC_KVP_SBML, tmp_path)
     assert _expected_constructs(comparable_document(doc_in))["fbc.keyValuePair"] == 3
 
     diffs = [d for d in structural_diff(doc_in, doc_out) if d.package == "fbc"]
