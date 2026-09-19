@@ -347,7 +347,7 @@ Measured at writing time: `class ModelDefinition(Sbase):` near `factory.py:3872`
 - Modify: `src/sbmlutils/factory.py`
 - Test: `tests/test_comp.py`
 
-`KineticLaw`, `LocalParameter`, `EventAssignment`, `Trigger`, `Priority`, `Delay`, `Event` and `Constraint` accept a `port` that is never written, yet it makes `Model._has_comp_content()` declare the comp package, so the document gets an empty comp namespace.
+`KineticLaw`, `LocalParameter`, `EventAssignment`, `Trigger`, `Priority`, `Delay`, `Event`, `Constraint`, and (ruling T11d, measured: 0 ports written at the top level and in a model definition alike) `FluxObjective` and `UserDefinedConstraintComponent` accept a `port` that is never written, yet it makes `Model._has_comp_content()` declare the comp package, so the document gets an empty comp namespace.
 
 - [ ] **Decide on evidence, then implement one of two options, and record the choice in the commit message.**
   - **Write the port** for each element type whose SBML element can be the target of a comp port. A port references an element by id, so an element without an id attribute at the target level cannot have one.
