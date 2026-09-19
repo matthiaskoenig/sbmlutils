@@ -67,7 +67,7 @@ create_model(
 )
 ```
 
-The round trip preserves the unit definitions and every unit reference, the function definitions, compartments, species and parameters, the reactions with their species references, modifiers and kinetic laws with local parameters, the initial assignments, rules, events and constraints, and the id, name, metaid, sboTerm, notes and annotations of each of them. An element without math, which SBML allows from L3V2 on, such as a rule, an event assignment, a kinetic law, the trigger, priority or delay of an event, or an event without a trigger, round trips without math. Writing a model which was read from a file does not log the authoring hints of `create_model`, such as `'name' should be set`: the model has what its file had.
+The round trip preserves the unit definitions and every unit reference, the function definitions, compartments, species and parameters, the reactions with their species references, modifiers and kinetic laws with local parameters, the initial assignments, rules, events with their trigger, priority, delay and event assignments, and constraints, and the id, name, metaid, sboTerm, notes and annotations of each of them. An element without math, which SBML allows from L3V2 on, such as a rule, an event assignment, a kinetic law, the trigger, priority or delay of an event, or an event without a trigger, round trips without math. Writing a model which was read from a file does not log the authoring hints of `create_model`, such as `'name' should be set`: the model has what its file had.
 
 ### Measured coverage
 
@@ -91,7 +91,7 @@ So 1372 of the 1482 cases which can be compared round trip. Of those which use n
 - **Rules are grouped by kind.** A model keeps its assignment rules, rate rules and algebraic rules in a list each, so the round trip writes them in that order rather than in the order of the file. The order of the rules has no meaning in SBML.
 - **Notes are wrapped into a body.** Notes which are a sequence of elements such as `<p>` are written inside a `<body>`, an equivalent form. Notes which are a `<body>` or a complete XHTML document rooted at `<html>` are kept as they are.
 - **Inherited species units are made explicit.** A species without `substanceUnits` is written with the `substanceUnits` of the model, which it inherits anyway.
-- **The model history** is not read, nor the metadata of the trigger, priority and delay of an event, only their math. The document gains the notes in which `create_model` records that sbmlutils wrote it.
+- **The model history** is not read. The document gains the notes in which `create_model` records that sbmlutils wrote it.
 
 A round trip writes the SBML level and version `create_model` is given, which is L3V1 by default. The coverage above is measured writing L3V2, so only the L3V2 flavour of each test case is a true round trip. Reading an L1 or L2 file and writing L3 is a conversion: the model keeps its meaning, but not the file attribute for attribute.
 

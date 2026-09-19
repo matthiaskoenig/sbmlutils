@@ -118,7 +118,7 @@ The `conftest.py` at the root of the repository selects the non-interactive matp
 
 Some tests are skipped unless what they need is there: the models of the [SBML test suite](https://github.com/sbmlteam/sbml-test-suite) and the biomodels archives are only present in a checkout, `tests/fbc/test_cobra.py` needs cobrapy (the `cobra` extra), and `tests/test_biomodels.py` queries the live BioModels service.
 
-The downloads of `sbmlutils.biomodels` go through the retrying session of pymetadata, which retries the transient error responses (429, 500, 502, 503, 504) with an exponential backoff and times out after 30 seconds; `test_download_file_retries_transient_error` covers this against a local server and needs no network. What retrying cannot fix is a service which is unreachable or which refuses the request — BioModels answers the GitHub runners with `403 Forbidden` — so those tests probe the service first and are skipped rather than failed.
+The downloads of `sbmlutils.biomodels` go through the retrying session of pymetadata, which retries the transient error responses (429, 500, 502, 503, 504) with an exponential backoff and times out after 30 seconds; `test_download_file_retries_transient_error` covers this against a local server and needs no network. What retrying cannot fix is a service which is unreachable or which refuses the request - BioModels answers the GitHub runners with `403 Forbidden` - so those tests probe the service first and are skipped rather than failed.
 
 ## Linting and formatting
 

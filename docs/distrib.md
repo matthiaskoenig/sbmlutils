@@ -83,7 +83,7 @@ The unit of the arguments matters as much as anywhere else, so a value with a un
 
 ## Examples
 
-- `examples/distrib/distrib_distributions.py` — every distribution function in an assignment
-- `examples/distrib/distrib_uncertainties.py` — uncertainties on the elements of a model
-- `examples/distrib/distrib_comp.py` — uncertainties in a hierarchical model
-- `examples/distrib/distrib_packages_examples.py` — the raw libsbml distrib elements
+- `examples/distrib/distrib_distributions.py` - every distribution function in an assignment
+- `examples/distrib/distrib_uncertainties.py` - uncertainties on the elements of a model
+- `examples/distrib/distrib_comp.py` - uncertainties in a hierarchical model
+- `examples/distrib/distrib_packages_examples.py` - the raw libsbml distrib elements

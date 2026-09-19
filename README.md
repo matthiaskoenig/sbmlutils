@@ -12,12 +12,12 @@
 
 Features include
 
-- **model creation** — a model is a python object, `create_model` writes it as validated SBML, with support for the `comp`, `fbc`, `distrib` and `layout` packages
+- **model creation** - a model is a python object, `create_model` writes it as validated SBML, with support for the `comp`, `fbc`, `distrib` and `layout` packages
 - **units** written as strings (`mmole/min/l`) and checked for consistency
-- **annotations** — MIRIAM annotations and SBO terms, in the model definition or from an annotation spreadsheet
+- **annotations** - MIRIAM annotations and SBO terms, in the model definition or from an annotation spreadsheet
 - **notes** written as markdown
-- **model composition** — hierarchical models, merging and flattening
-- **converters** — SBML to an ODE system (python, R, julia, markdown, latex), XPP to SBML, antimony in both directions
+- **model composition** - hierarchical models, merging and flattening
+- **converters** - SBML to an ODE system (python, R, julia, markdown, latex), XPP to SBML, antimony in both directions
 
 The documentation is available at [https://matthiaskoenig.github.io/sbmlutils](https://matthiaskoenig.github.io/sbmlutils).
 

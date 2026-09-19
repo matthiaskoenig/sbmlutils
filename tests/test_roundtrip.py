@@ -1335,6 +1335,182 @@ def test_roundtrip_preserves_kinetic_law_without_math(tmp_path: Path) -> None:
     assert rt_klaw.getLocalParameter(0).getId() == "k"
 
 
+def test_roundtrip_trigger_priority_delay_metadata(tmp_path: Path) -> None:
+    """Test that the metadata of a trigger, priority and delay survive a round trip.
+
+    `Event` held its trigger, priority and delay as formula strings, which
+    have no place for the id, name, metaid, sboTerm, notes and annotations of
+    the element, so the parser dropped them. No case of the test suite gives
+    them metadata, so the source is built with libsbml, and both directions
+    are checked: `sbml_to_model` reads the metadata into the `Trigger`,
+    `Priority` and `Delay`, and `create_model` writes it back out.
+    """
+    import libsbml
+
+    from sbmlutils.factory import Delay, Priority, Trigger
+    from sbmlutils.metadata import BQB
+
+    doc = libsbml.SBMLDocument(3, 2)
+    sbml_model: libsbml.Model = doc.createModel("m")
+    p1: libsbml.Parameter = sbml_model.createParameter()
+    p1.setId("p1")
+    p1.setValue(0.0)
+    p1.setConstant(False)
+    event: libsbml.Event = sbml_model.createEvent()
+    event.setId("e1")
+    event.setUseValuesFromTriggerTime(True)
+    trigger: libsbml.Trigger = event.createTrigger()
+    trigger.setMath(libsbml.parseL3Formula("time >= 10"))
+    # the two flags differ, so that a parser which swaps them fails
+    trigger.setInitialValue(True)
+    trigger.setPersistent(False)
+    priority: libsbml.Priority = event.createPriority()
+    priority.setMath(libsbml.parseL3Formula("1"))
+    delay: libsbml.Delay = event.createDelay()
+    delay.setMath(libsbml.parseL3Formula("2"))
+    ea: libsbml.EventAssignment = event.createEventAssignment()
+    ea.setVariable("p1")
+    ea.setMath(libsbml.parseL3Formula("10"))
+
+    #: the element, its id prefix and the resource of its annotation
+    children: list[tuple[Any, str, str]] = [
+        (trigger, "t", "https://identifiers.org/GO:0000001"),
+        (priority, "pr", "https://identifiers.org/GO:0000002"),
+        (delay, "d", "https://identifiers.org/GO:0000003"),
+    ]
+    for child, prefix, resource in children:
+        child.setId(f"{prefix}1")
+        child.setMetaId(f"{prefix}_meta")
+        child.setName(f"{prefix}name")
+        child.setSBOTerm("SBO:0000064")
+        child.setNotes(
+            f'<body xmlns="http://www.w3.org/1999/xhtml"><p>{prefix} notes</p></body>'
+        )
+        cv = libsbml.CVTerm()
+        cv.setQualifierType(libsbml.BIOLOGICAL_QUALIFIER)
+        cv.setBiologicalQualifierType(libsbml.BQB_IS)
+        cv.addResource(resource)
+        child.addCVTerm(cv)
+
+    source_path = tmp_path / "source.xml"
+    libsbml.writeSBMLToFile(doc, str(source_path))
+
+    # direction 1: SBML -> Model
+    model = sbml_to_model(source_path)
+    parsed = model.events[0]
+    assert isinstance(parsed.trigger, Trigger)
+    assert isinstance(parsed.priority, Priority)
+    assert isinstance(parsed.delay, Delay)
+    assert parsed.trigger.math == "time >= 10"
+    assert parsed.trigger.persistent is False
+    assert parsed.trigger.initialValue is True
+    assert parsed.priority.math == "1"
+    assert parsed.delay.math == "2"
+    for element, (_, prefix, resource) in zip(
+        (parsed.trigger, parsed.priority, parsed.delay), children, strict=True
+    ):
+        assert element.sid == f"{prefix}1"
+        assert element.metaId == f"{prefix}_meta"
+        assert element.name == f"{prefix}name"
+        assert element.sboTerm == "SBO:0000064"
+        assert element.notes is not None
+        assert f"{prefix} notes" in element.notes
+        assert element.annotations == [(BQB.IS, resource)]
+
+    # direction 2: Model -> SBML
+    roundtrip_path = tmp_path / "roundtrip.xml"
+    create_model(
+        model=model,
+        filepath=roundtrip_path,
+        sbml_level=3,
+        sbml_version=2,
+        validation_options=ValidationOptions(units_consistency=False),
+    )
+
+    rt_doc: libsbml.SBMLDocument = libsbml.readSBMLFromFile(str(roundtrip_path))
+    rt_event: libsbml.Event = rt_doc.getModel().getEvent("e1")
+    rt_trigger: libsbml.Trigger = rt_event.getTrigger()
+    assert libsbml.formulaToL3String(rt_trigger.getMath()) == "time >= 10"
+    assert rt_trigger.getPersistent() is False
+    assert rt_trigger.getInitialValue() is True
+    assert libsbml.formulaToL3String(rt_event.getPriority().getMath()) == "1"
+    assert libsbml.formulaToL3String(rt_event.getDelay().getMath()) == "2"
+    for rt_child, (_, prefix, resource) in zip(
+        (rt_trigger, rt_event.getPriority(), rt_event.getDelay()),
+        children,
+        strict=True,
+    ):
+        assert rt_child.getId() == f"{prefix}1"
+        assert rt_child.getMetaId() == f"{prefix}_meta"
+        assert rt_child.getName() == f"{prefix}name"
+        assert rt_child.getSBOTermID() == "SBO:0000064"
+        assert f"{prefix} notes" in rt_child.getNotesString()
+        assert rt_child.getNumCVTerms() == 1
+        assert rt_child.getCVTerm(0).getResourceURI(0) == resource
+
+
+def test_roundtrip_event_children_without_math_and_absent(tmp_path: Path) -> None:
+    """Test that an element without math and an absent element stay apart.
+
+    A trigger or priority without math, which SBML allows from L3V2 on, is
+    read as a `Trigger` or `Priority` whose math is `None`, and written back
+    without math. An absent trigger, priority or delay is read as `None` and
+    not written.
+    """
+    import libsbml
+
+    from sbmlutils.factory import Priority, Trigger
+
+    doc = libsbml.SBMLDocument(3, 2)
+    sbml_model: libsbml.Model = doc.createModel("m")
+    p1: libsbml.Parameter = sbml_model.createParameter()
+    p1.setId("p1")
+    p1.setValue(0.0)
+    p1.setConstant(False)
+    # an event with a trigger and a priority without math, and no delay
+    e1: libsbml.Event = sbml_model.createEvent()
+    e1.setId("e1")
+    e1.setUseValuesFromTriggerTime(True)
+    t1: libsbml.Trigger = e1.createTrigger()
+    t1.setInitialValue(False)
+    t1.setPersistent(True)
+    e1.createPriority()
+    ea1: libsbml.EventAssignment = e1.createEventAssignment()
+    ea1.setVariable("p1")
+    ea1.setMath(libsbml.parseL3Formula("1"))
+    # an event without a trigger and without a priority, with a delay
+    e2: libsbml.Event = sbml_model.createEvent()
+    e2.setId("e2")
+    e2.setUseValuesFromTriggerTime(True)
+    delay: libsbml.Delay = e2.createDelay()
+    delay.setMath(libsbml.parseL3Formula("2"))
+
+    source_path = tmp_path / "source.xml"
+    libsbml.writeSBMLToFile(doc, str(source_path))
+
+    model = sbml_to_model(source_path)
+    parsed_e1, parsed_e2 = model.events
+    assert isinstance(parsed_e1.trigger, Trigger)
+    assert parsed_e1.trigger.math is None
+    assert isinstance(parsed_e1.priority, Priority)
+    assert parsed_e1.priority.math is None
+    assert parsed_e1.delay is None
+    assert parsed_e2.trigger is None
+    assert parsed_e2.priority is None
+    assert parsed_e2.delay is not None
+    assert parsed_e2.delay.math == "2"
+
+    roundtrip_path = roundtrip_sbml(source_path, tmp_path)
+    assert sorted(_elements_with_math(roundtrip_path)) == sorted(
+        _elements_with_math(source_path)
+    )
+    rt_doc: libsbml.SBMLDocument = libsbml.readSBMLFromFile(str(roundtrip_path))
+    rt_model: libsbml.Model = rt_doc.getModel()
+    assert not rt_model.getEvent("e1").isSetDelay()
+    assert not rt_model.getEvent("e2").isSetTrigger()
+    assert not rt_model.getEvent("e2").isSetPriority()
+
+
 def test_roundtrip_constraints(tmp_path: Path) -> None:
     """Test that constraints survive a round trip.
 

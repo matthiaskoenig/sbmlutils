@@ -1,6 +1,6 @@
 # Annotations
 
-An element named `glc` means nothing to a machine. MIRIAM annotations attach a qualifier — *what is the relation?* — and a resource — *which database entry?* — to a model element: "this species **is** [CHEBI:17234](https://identifiers.org/CHEBI:17234)".
+An element named `glc` means nothing to a machine. MIRIAM annotations attach a qualifier - *what is the relation?* - and a resource - *which database entry?* - to a model element: "this species **is** [CHEBI:17234](https://identifiers.org/CHEBI:17234)".
 
 `sbmlutils` uses the annotation data structures of [pymetadata](https://matthiaskoenig.github.io/pymetadata) and offers two ways to apply them: in the model definition, or from a spreadsheet onto an existing model.
 
@@ -88,7 +88,7 @@ model = Model(
 
 ## From a spreadsheet
 
-Annotating an existing model, or keeping the annotations of a large model outside the code, is done with an annotation file — an Excel sheet, a csv or a tsv — with one annotation per row:
+Annotating an existing model, or keeping the annotations of a large model outside the code, is done with an annotation file - an Excel sheet, a csv or a tsv - with one annotation per row:
 
 | pattern | sbml_type | annotation_type | qualifier | resource | name |
 | --- | --- | --- | --- | --- | --- |

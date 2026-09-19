@@ -6,9 +6,10 @@ https://github.com/matthiaskoenig/sbmlutils/issues/469. It reads the unit
 definitions, the model units and conversionFactor, the function definitions,
 compartments, species and parameters, the reactions with their species
 references, modifiers and kinetic laws with local parameters, the initial
-assignments, rules, events and constraints, and on each of these its id,
-name, metaid, sboTerm, notes, annotations and fbc key-value pairs. An element
-without math, which SBML allows from L3V2 on, is read without math.
+assignments, rules, events with their trigger, priority, delay and event
+assignments, and constraints, and on each of these its id, name, metaid,
+sboTerm, notes, annotations and fbc key-value pairs. An element without math,
+which SBML allows from L3V2 on, is read without math.
 
 Not read are the model history, and the content of the `fbc`, `distrib`,
 `comp`, `groups` and `layout` packages: flux bounds, objectives and gene
@@ -33,6 +34,7 @@ from sbmlutils.factory import (
     AssignmentRule,
     Compartment,
     Constraint,
+    Delay,
     Event,
     EventAssignment,
     Function,
@@ -44,10 +46,12 @@ from sbmlutils.factory import (
     ModelUnits,
     Package,
     Parameter,
+    Priority,
     RateRule,
     Reaction,
     ReactionEquation,
     Species,
+    Trigger,
     Unit,
     UnitDefinition,
     create_model,
@@ -150,25 +154,6 @@ def _math(sbase: Any) -> str | None:
         which SBML allows from L3V2 on
     """
     return libsbml.formulaToL3String(sbase.getMath()) if sbase.isSetMath() else None
-
-
-def _event_math(sbase: Any | None) -> str | None:
-    """Get the math of the trigger, the priority or the delay of an event.
-
-    `Event` holds each of them as a formula string, which distinguishes an
-    element without math from no element at all.
-
-    Args:
-        sbase: the trigger, the priority or the delay, `None` if the event
-            has none
-
-    Returns:
-        `None` if the event has no such element, an empty string if the
-        element has no math, else its math as an L3 formula string
-    """
-    if sbase is None:
-        return None
-    return _math(sbase) or ""
 
 
 def sbml_to_model(
@@ -503,7 +488,25 @@ def sbml_to_model(
     # events
     e: libsbml.Event
     for e in model.getListOfEvents():
-        trigger: libsbml.Trigger | None = e.getTrigger() if e.isSetTrigger() else None
+        # an absent trigger, priority or delay is `None`, one without math is
+        # an object whose math is `None`
+        trigger: Trigger | None = None
+        if e.isSetTrigger():
+            t: libsbml.Trigger = e.getTrigger()
+            trigger = Trigger(
+                math=_math(t),
+                initialValue=t.getInitialValue() if t.isSetInitialValue() else True,
+                persistent=t.getPersistent() if t.isSetPersistent() else True,
+                **parse_sbase_kwargs(t),
+            )
+        priority: Priority | None = None
+        if e.isSetPriority():
+            pr: libsbml.Priority = e.getPriority()
+            priority = Priority(math=_math(pr), **parse_sbase_kwargs(pr))
+        delay: Delay | None = None
+        if e.isSetDelay():
+            de: libsbml.Delay = e.getDelay()
+            delay = Delay(math=_math(de), **parse_sbase_kwargs(de))
 
         assignments: list[EventAssignment] = []
         ea: libsbml.EventAssignment
@@ -518,25 +521,15 @@ def sbml_to_model(
 
         m.events.append(
             Event(
-                trigger=_event_math(trigger),
+                trigger=trigger,
                 assignments=assignments,
-                trigger_persistent=(
-                    trigger.getPersistent()
-                    if trigger is not None and trigger.isSetPersistent()
-                    else True
-                ),
-                trigger_initialValue=(
-                    trigger.getInitialValue()
-                    if trigger is not None and trigger.isSetInitialValue()
-                    else True
-                ),
                 useValuesFromTriggerTime=(
                     e.getUseValuesFromTriggerTime()
                     if e.isSetUseValuesFromTriggerTime()
                     else True
                 ),
-                priority=_event_math(e.getPriority() if e.isSetPriority() else None),
-                delay=_event_math(e.getDelay() if e.isSetDelay() else None),
+                priority=priority,
+                delay=delay,
                 **parse_sbase_kwargs(e),
             )
         )
