@@ -10,11 +10,12 @@ assignments, rules, events with their trigger, priority, delay and event
 assignments, and constraints, and on each of these its id, name, metaid,
 sboTerm, notes, annotations and fbc key-value pairs. An element without math,
 which SBML allows from L3V2 on, is read without math. It also reads
-`fbc:strict` of the model, its gene products and the gene product association
-of a reaction, as an infix string of gene product ids.
+`fbc:strict` of the model, its gene products and objectives with their flux
+objectives, and the gene product association of a reaction, as an infix string
+of gene product ids.
 
 Not read are the model history, and the rest of the content of the `fbc`,
-`distrib`, `comp`, `groups` and `layout` packages: flux bounds, objectives,
+`distrib`, `comp`, `groups` and `layout` packages: flux bounds,
 uncertainties, submodels, ports and replacements. The `fbc`,
 `distrib` and `comp` packages a document declares are declared on the model.
 Math is read as an L3 infix string, in which an id named like a MathML
@@ -39,6 +40,7 @@ from sbmlutils.factory import (
     Delay,
     Event,
     EventAssignment,
+    FluxObjective,
     Function,
     GeneProduct,
     InitialAssignment,
@@ -47,6 +49,7 @@ from sbmlutils.factory import (
     LocalParameter,
     Model,
     ModelUnits,
+    Objective,
     Package,
     Parameter,
     Priority,
@@ -267,6 +270,28 @@ def _parse_variable_kwargs(sbase: libsbml.SBase) -> dict[str, Any]:
     return kwargs
 
 
+def _variable_type(sbase: Any) -> str:
+    """Get the fbc variableType of a flux objective or a constraint component.
+
+    `variableType` was added in fbc version 3, so it is unset on every fbc
+    version 2 document. `FluxObjective` and `UserDefinedConstraintComponent`
+    take it as a required field with no `None`, and `"invalid"` is the name
+    they give `libsbml.FBC_VARIABLE_TYPE_INVALID`, which libsbml refuses to
+    set: an element read without a variable type is written without one, and
+    is not given the `"linear"` the fbc version 3 default would imply.
+
+    Args:
+        sbase: the libsbml.FluxObjective or libsbml.UserDefinedConstraintComponent to read
+
+    Returns:
+        the name of the variable type, `"invalid"` if the element has none
+    """
+    variable_type: str = (
+        sbase.getVariableTypeAsString() if sbase.isSetVariableType() else "invalid"
+    )
+    return variable_type
+
+
 def _gene_product_association(reaction: libsbml.Reaction) -> str | None:
     """Get the gene product association of a reaction as an infix string of ids.
 
@@ -302,8 +327,9 @@ def _parse_model_body(model: libsbml.Model, m: Model) -> None:
     Populates `m` with everything `sbml_to_model` parses from `model`: unit
     definitions, model units, function definitions, compartments, species,
     parameters, reactions with kinetic laws, initial assignments, rules,
-    events, constraints, `fbc:strict`, the gene products of the model and the
-    gene product association of a reaction. `model` can be any `libsbml.Model`,
+    events, constraints, `fbc:strict`, the gene products and objectives of the
+    model and the gene product association of a reaction. `model` can be any
+    `libsbml.Model`,
     including a `libsbml.ModelDefinition`, which subclasses it, so the comp
     package can recurse into a model definition with the same parser.
 
@@ -347,6 +373,36 @@ def _parse_model_body(model: libsbml.Model, m: Model) -> None:
                         else None
                     ),
                     **_parse_sbase_kwargs(gene_product),
+                )
+            )
+
+        # fbc objectives; `active` is not an attribute of an objective, it is
+        # the `activeObjective` of the list, which names at most one of them
+        objectives: libsbml.ListOfObjectives = model_fbc.getListOfObjectives()
+        active: str | None = (
+            objectives.getActiveObjective()
+            if objectives.isSetActiveObjective()
+            else None
+        )
+        objective: libsbml.Objective
+        for objective in objectives:
+            flux_objectives: list[FluxObjective] = []
+            flux_objective: libsbml.FluxObjective
+            for flux_objective in objective.getListOfFluxObjectives():
+                flux_objectives.append(
+                    FluxObjective(
+                        reaction=flux_objective.getReaction(),
+                        coefficient=flux_objective.getCoefficient(),
+                        variableType=_variable_type(flux_objective),
+                        **_parse_sbase_kwargs(flux_objective),
+                    )
+                )
+            m.objectives.append(
+                Objective(
+                    objectiveType=objective.getType(),
+                    active=objective.getIdAttribute() == active,
+                    fluxObjectives=flux_objectives,
+                    **_parse_sbase_kwargs(objective),
                 )
             )
 

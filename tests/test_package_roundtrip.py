@@ -38,7 +38,15 @@ from structural import (
 from test_roundtrip import testsuite_case
 
 from sbmlutils import RESOURCES_DIR
-from sbmlutils.factory import Model, create_model
+from sbmlutils.factory import (
+    Compartment,
+    Model,
+    Objective,
+    Package,
+    Reaction,
+    Species,
+    create_model,
+)
 from sbmlutils.resources import COMP_ICG_BODY, EXAMPLES_DIR, FBC_ECOLI_CORE_SBML
 
 #: the uncertainties of distrib, with parameters, spans and math
@@ -971,6 +979,72 @@ def test_roundtrip_preserves_gene_products(
         "fbc.geneProduct",
         "fbc.geneProductAssociation",
     )
+
+
+def test_roundtrip_preserves_objectives(
+    fbc_roundtrip: Callable[[Path], Comparison],
+) -> None:
+    """Test that the objective of a model and its flux objectives survive a round trip.
+
+    `FBC_ECOLI_CORE_SBML` maximizes the biomass reaction, which is the one thing an FBA model is run for.
+    """
+    counts, _ = fbc_roundtrip(FBC_ECOLI_CORE_SBML)
+    assert counts["fbc.objective"] == 1
+    assert counts["fbc.fluxObjective"] == 1
+
+    _assert_preserved(
+        fbc_roundtrip(FBC_ECOLI_CORE_SBML), "fbc.objective", "fbc.fluxObjective"
+    )
+
+
+def _objectives_model(active: str | None) -> Model:
+    """Get a model with two objectives, of which `active` is the active one.
+
+    Args:
+        active: the id of the objective which is the `activeObjective`, `None` for a model whose objectives are all inactive
+
+    Returns:
+        the model definition
+    """
+    return Model(
+        sid="two_objectives",
+        packages=[Package.FBC_V2],
+        compartments=[Compartment(sid="c", value=1.0)],
+        species=[Species(sid="S1", compartment="c", initialAmount=1.0)],
+        reactions=[Reaction(sid="R1", equation="S1 ->")],
+        objectives=[
+            Objective(
+                sid=sid,
+                objectiveType=objective_type,
+                active=sid == active,
+                fluxObjectives={"R1": 1.0},
+            )
+            for sid, objective_type in [("obj1", "maximize"), ("obj2", "minimize")]
+        ],
+    )
+
+
+@pytest.mark.parametrize("active", ["obj1", "obj2", None])
+def test_roundtrip_keeps_the_active_objective(
+    active: str | None, tmp_path: Path
+) -> None:
+    """Test that the `activeObjective` of a model with two objectives is the one read.
+
+    `Objective.create_sbml` writes the objectives in order and sets the model's `activeObjective` for each one whose `active` is set, so the last active objective written wins. The parser therefore has to read the `activeObjective` of the document and set `active` on that objective only: without it every objective is active, which makes the *last* one the active one, and a model whose first objective is the active one comes back optimizing the wrong thing. A model without an active objective keeps none.
+    """
+    sbml_path = _source_path(lambda: _objectives_model(active), tmp_path)
+    doc_in, doc_out = roundtrip_document(sbml_path, tmp_path)
+
+    objectives: libsbml.ListOfObjectives = _fbc(doc_in).getListOfObjectives()
+    assert [o.getIdAttribute() for o in objectives] == ["obj1", "obj2"]
+    assert objectives.isSetActiveObjective() is (active is not None)
+    assert not objectives.isSetActiveObjective() or (
+        objectives.getActiveObjective() == active
+    )
+
+    diffs = [d for d in structural_diff(doc_in, doc_out) if d.package == "fbc"]
+
+    assert [str(d) for d in diffs] == []
 
 
 # ---------------------------------------------------------------------------

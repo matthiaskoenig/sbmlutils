@@ -3910,7 +3910,20 @@ class Objective(Sbase):
         return objective_type
 
     def create_sbml(self, model: libsbml.Model) -> libsbml.Objective:
-        """Create Objective."""
+        """Create Objective.
+
+        An objective whose `active` is set becomes the `activeObjective` of
+        the model. The objectives of a model are written in the order they
+        are defined in, so of several active ones the last one written wins,
+        and a model whose objectives are all inactive gets no active
+        objective at all.
+
+        Args:
+            model: the libsbml.Model the objective is created in
+
+        Returns:
+            the created libsbml.Objective
+        """
         model_fbc: libsbml.FbcModelPlugin = model.getPlugin("fbc")
         objective: libsbml.Objective = model_fbc.createObjective()
         self._set_fields(objective, model)
