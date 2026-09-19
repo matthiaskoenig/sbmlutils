@@ -2750,19 +2750,6 @@ def test_roundtrip_writes_each_port_exactly_once(tmp_path: Path) -> None:
     ]
 
 
-def test_roundtrip_of_a_flat_model_gains_no_comp_content(
-    package_roundtrip: Callable[[Path], Comparison],
-) -> None:
-    """Test that a model without comp does not gain comp content.
-
-    `COMP_ICG_BODY_FLAT` is `COMP_ICG_BODY` with its submodel resolved into it: it declares no comp package and has no comp element at all, and the round trip of it must write none either.
-    """
-    counts, differences = package_roundtrip(COMP_ICG_BODY_FLAT)
-    assert [construct for construct in counts if construct.startswith("comp.")] == []
-
-    assert _comp_differences(differences) == []
-
-
 #: cases of the SBML test suite whose replacements exercise a shape of their
 #: own, with the constructs each of them has to preserve
 REPLACEMENT_CASES: list[tuple[str, tuple[str, ...]]] = [
@@ -2868,3 +2855,169 @@ def test_roundtrip_preserves_the_submodels_and_ports_of_a_model_definition(
         comparison = package_roundtrip(testsuite_case(case))
         assert comparison[0]["comp.modelDefinition"], f"case {case} has none"
         assert _comp_differences(comparison[1]) == [], case
+
+
+#: five external model definitions, one per submodel
+MINIMAL_MODEL_COMP_SBML: Path = EXAMPLES_DIR / "minimal_model_comp.xml"
+
+#: the fixture whose submodels replace 30 unit definitions of the top model
+DIAUXIC_TOP_SBML: Path = RESOURCES_DIR / "models" / "dfba" / "diauxic_top.xml"
+
+
+def test_roundtrip_preserves_replaced_unit_definitions(
+    package_roundtrip: Callable[[Path], Comparison],
+) -> None:
+    """Test that a replaced element on a unit definition survives.
+
+    A unit definition lives in a namespace of its own, so `model.getElementBySId` does not find it and `ReplacedElement.create_sbml` falls back to `model.getUnitDefinition`. `diauxic_top.xml` is the fixture which exercises that: 30 of its 61 replaced elements sit on a unit definition, the rest on a species, a compartment or a parameter.
+    """
+    counts, differences = package_roundtrip(DIAUXIC_TOP_SBML)
+    assert counts["comp.replacedElement"] == 61
+    assert counts["comp.externalModelDefinition"] == 3
+
+    assert _comp_differences(differences) == []
+
+
+def test_roundtrip_preserves_external_model_definitions(
+    package_roundtrip: Callable[[Path], Comparison],
+) -> None:
+    """Test that a `<comp:externalModelDefinition>` survives with its attributes.
+
+    `COMP_ICG_BODY` names its liver model in a file of its own, `MINIMAL_MODEL_COMP_SBML` names five, and the comparison compares `source`, `modelRef` and `md5` of each, with its metadata.
+    """
+    for sbml_path, count in [(COMP_ICG_BODY, 1), (MINIMAL_MODEL_COMP_SBML, 5)]:
+        comparison = package_roundtrip(sbml_path)
+        assert comparison[0]["comp.externalModelDefinition"] == count
+        _assert_preserved(comparison, "comp.externalModelDefinition")
+
+
+def _external_sbml(tmp_path: Path, source: str) -> Path:
+    """Write a document whose only comp content is one external model definition.
+
+    Args:
+        tmp_path: the directory the file is written to
+        source: the `comp:source` of the external model definition
+
+    Returns:
+        the path of the written SBML file
+    """
+    ns: libsbml.SBMLNamespaces = libsbml.SBMLNamespaces(3, 2)
+    ns.addPackageNamespace("comp", 1)
+    doc: libsbml.SBMLDocument = libsbml.SBMLDocument(ns)
+    doc.setPackageRequired("comp", True)
+    model: libsbml.Model = doc.createModel()
+    model.setId("references_an_external_model")
+    parameter: libsbml.Parameter = model.createParameter()
+    parameter.setId("p1")
+    parameter.setValue(1.0)
+    parameter.setConstant(True)
+    comp: libsbml.CompModelPlugin = model.getPlugin("comp")
+    submodel: libsbml.Submodel = comp.createSubmodel()
+    submodel.setId("sub1")
+    submodel.setModelRef("external")
+    doc_comp: libsbml.CompSBMLDocumentPlugin = doc.getPlugin("comp")
+    external: libsbml.ExternalModelDefinition = doc_comp.createExternalModelDefinition()
+    external.setId("external")
+    external.setSource(source)
+    external.setModelRef("the_external_model")
+    external.setMd5("d41d8cd98f00b204e9800998ecf8427e")
+
+    sbml_path = tmp_path / "references_an_external_model.xml"
+    assert libsbml.writeSBMLToFile(doc, str(sbml_path))
+    return sbml_path
+
+
+def _external_model_sbml(tmp_path: Path) -> Path:
+    """Write the external model a document can point at, with a telltale id.
+
+    Args:
+        tmp_path: the directory the file is written to
+
+    Returns:
+        the path of the written SBML file
+    """
+    doc: libsbml.SBMLDocument = libsbml.SBMLDocument(3, 2)
+    model: libsbml.Model = doc.createModel()
+    model.setId("the_external_model")
+    parameter: libsbml.Parameter = model.createParameter()
+    parameter.setId("only_in_the_external_model")
+    parameter.setValue(42.0)
+    parameter.setConstant(True)
+
+    sbml_path = tmp_path / "the_external_model.xml"
+    assert libsbml.writeSBMLToFile(doc, str(sbml_path))
+    return sbml_path
+
+
+def test_roundtrip_does_not_resolve_an_external_model_definition(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Test that an external model definition is preserved as a reference, unresolved.
+
+    An external model definition names a model in another file. The round trip preserves the reference and never follows it: it does not read the file, and the content of the referenced model does not end up in the document written. Both halves are asserted. The file `opened` records is every file python opens while the document is read and written, which is where `sbmlutils` would have to read it; that the content is not inlined is asserted against a file which does exist and holds a parameter of a telltale id.
+    """
+    external_path = _external_model_sbml(tmp_path)
+    sbml_path = _external_sbml(tmp_path, external_path.name)
+    opened: list[str] = []
+    real_open = Path.open
+
+    def spy(self: Path, *args: Any, **kwargs: Any) -> Any:
+        opened.append(str(self))
+        return real_open(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "open", spy)
+    doc_in, doc_out = roundtrip_document(sbml_path, tmp_path)
+    monkeypatch.undo()
+
+    assert [path for path in opened if external_path.name in path] == []
+    written = Path(tmp_path / f"{sbml_path.stem}-roundtrip.xml").read_text()
+    assert "only_in_the_external_model" not in written
+    assert structural_diff(doc_in, doc_out) == []
+
+
+def test_roundtrip_keeps_an_external_model_definition_whose_source_is_missing(
+    tmp_path: Path,
+) -> None:
+    """Test that a source which resolves to nothing round trips as it is.
+
+    A reference is preserved as a reference, whether or not the file is there, so a document whose `comp:source` names a file which does not exist round trips unchanged. libsbml reads such a document without an error and only its consistency check reports the unresolved reference, id 1090101, which `create_model` reports and does not act on.
+    """
+    sbml_path = _external_sbml(tmp_path, "does_not_exist.xml")
+
+    doc_in, doc_out = roundtrip_document(sbml_path, tmp_path)
+
+    assert structural_diff(doc_in, doc_out) == []
+    comp: libsbml.CompSBMLDocumentPlugin = doc_out.getPlugin("comp")
+    external: libsbml.ExternalModelDefinition = comp.getExternalModelDefinition(0)
+    assert external.getSource() == "does_not_exist.xml"
+    assert external.getModelRef() == "the_external_model"
+    assert external.getMd5() == "d41d8cd98f00b204e9800998ecf8427e"
+
+
+def test_roundtrip_preserves_the_comp_content_of_icg_body(
+    package_roundtrip: Callable[[Path], Comparison],
+) -> None:
+    """Test that the whole comp content of `COMP_ICG_BODY` survives a round trip.
+
+    The model is a whole-body PBPK model whose liver is a submodel of an external model definition: one submodel, 16 ports, six replaced elements and one external model definition, which is every comp construct this fixture has. Each is asserted to be in the document first, so preserving them cannot mean that the fixture has none, and every comp difference is asserted, not only those of the named constructs, so comp content the round trip *adds* fails it too.
+    """
+    counts, differences = package_roundtrip(COMP_ICG_BODY)
+    assert counts["comp.submodel"] == 1
+    assert counts["comp.port"] == 16
+    assert counts["comp.replacedElement"] == 6
+    assert counts["comp.externalModelDefinition"] == 1
+
+    assert _comp_differences(differences) == []
+
+
+def test_roundtrip_of_a_flat_model_gains_no_comp_content(
+    package_roundtrip: Callable[[Path], Comparison],
+) -> None:
+    """Test that a model without comp does not gain comp content.
+
+    `COMP_ICG_BODY_FLAT` is `COMP_ICG_BODY` with its submodel resolved into it: it declares no comp package and has no comp element at all, and the round trip of it must write none either.
+    """
+    counts, differences = package_roundtrip(COMP_ICG_BODY_FLAT)
+    assert [construct for construct in counts if construct.startswith("comp.")] == []
+
+    assert _comp_differences(differences) == []
