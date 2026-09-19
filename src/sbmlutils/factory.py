@@ -1179,15 +1179,10 @@ class Sbase:
                 without one
 
         Returns:
-            the created pairs, `None` if the element has none
+            the created pairs, `None` if the element has none or if the
+            document cannot carry them, see `KeyValuePair.create_pairs`
         """
-        if not self.keyValuePairs:
-            return None
-
-        kvps: list[libsbml.KeyValuePair] = []
-        for kvp in self.keyValuePairs:
-            kvps.append(kvp.create_sbml(sbase, model))
-        return kvps
+        return KeyValuePair.create_pairs(self.keyValuePairs, sbase, model, self)
 
 
 class KeyValuePair(Sbase):
@@ -1196,18 +1191,16 @@ class KeyValuePair(Sbase):
     An fbc version 3 `<fbc:keyValuePair>` carries its `key`, `value` and
     `uri` and, like every other `SBase`, an id, a name, a metaid, an sboTerm,
     notes and annotations; all of them are written and the document
-    validates. Measured with libsbml 5.21.2, on a document built with libsbml
-    alone, two of them survive a re-read only in part:
+    validates. The `id` and the `name` are read back from an SBML **L3V2**
+    document and not from an L3V1 one, although libsbml writes them into
+    both (measured with libsbml 5.21.2). That is a property of libsbml's
+    reader, not of the document: what is written is in the file either way.
 
-    - the `id` and the `name` are read back from an SBML **L3V2** document
-      and not from an L3V1 one, although libsbml writes them into both,
-    - a pair in an **fbc version 2** document keeps only the metaid, the
-      sboTerm, the notes and the annotation: libsbml writes no `key`,
-      `value`, `uri`, `id` or `name` there, and `setId`/`setName` answer with
-      `LIBSBML_UNEXPECTED_ATTRIBUTE`, which `check()` reports.
-
-    Both are properties of libsbml's reader, not of the document: what is
-    written is in the file either way.
+    **A document of fbc version 2, or one which declares no fbc at all, gets
+    no key-value pair**: libsbml answers every attribute of a pair with
+    `LIBSBML_UNEXPECTED_ATTRIBUTE` in fbc version 2 and attaches no fbc
+    plugin without the package. Both are reported once for the element which
+    carries the pairs, see `KeyValuePair.create_pairs`.
 
     Neither `uncertainties` nor a nested list of `keyValuePairs` is offered:
     libsbml creates both on the plugins of a `<fbc:keyValuePair>` without an
@@ -1268,10 +1261,84 @@ class KeyValuePair(Sbase):
         self.value = value
         self.uri = uri
 
+    @staticmethod
+    def create_pairs(
+        pairs: list[KeyValuePair] | None,
+        sbase: libsbml.SBase,
+        model: libsbml.Model | None,
+        element: Any,
+    ) -> list[libsbml.KeyValuePair] | None:
+        """Create the key-value pairs of an element, if the document has fbc v3.
+
+        The one place which decides whether a `<fbc:keyValuePair>` can be
+        written at all, asked by `Sbase.create_key_value_pairs` and by
+        `Reaction.create_sbml` for the pairs of a species reference, which is
+        an `EquationPart` rather than an `Sbase`.
+
+        A key-value pair is fbc **version 3**. In an fbc version 2 document
+        libsbml creates the element and answers `setKey`, `setValue`,
+        `setUri`, `setId` and `setName` with `LIBSBML_UNEXPECTED_ATTRIBUTE`
+        (measured with libsbml 5.21.2), which wrote an
+        `<fbc:listOfKeyValuePairs>` of empty `<fbc:keyValuePair/>` elements;
+        and a document which declares no fbc at all has no fbc plugin to
+        create one on. Both are reported once for the element, with the
+        number of pairs which are lost, and nothing is written.
+
+        The fbc version is read from the plugin of the created libsbml
+        object, which is the version of the document being written, rather
+        than from the packages of the `Model`, the way `Species._set_charge`
+        reads it.
+
+        Args:
+            pairs: the key-value pairs of the element, possibly none
+            sbase: the libsbml object the pairs are created on
+            model: the `libsbml.Model` the element belongs to, which the port
+                of a pair is created in; `None` for an element written
+                without one
+            element: the model element the pairs belong to, named in the
+                report
+
+        Returns:
+            the created pairs, `None` if the element has none or if the
+            document cannot carry them
+        """
+        if not pairs:
+            return None
+
+        sbase_fbc: libsbml.FbcSBasePlugin | None = sbase.getPlugin("fbc")
+        if sbase_fbc is None:
+            logger.error(
+                "The %s key-value pair(s) of '%s' are not written: the "
+                "document does not declare the fbc package. Add "
+                "`packages=[Package.FBC_V3]` to the model definition.",
+                len(pairs),
+                element,
+            )
+            return None
+        fbc_version: int = sbase_fbc.getPackageVersion()
+        if fbc_version < 3:
+            logger.error(
+                "The %s key-value pair(s) of '%s' are not written: a "
+                "<fbc:keyValuePair> is fbc version 3, the document is fbc "
+                "version %s. Use `Package.FBC_V3` for a model with key-value "
+                "pairs.",
+                len(pairs),
+                element,
+                fbc_version,
+            )
+            return None
+
+        return [pair.create_sbml(sbase, model) for pair in pairs]
+
     def create_sbml(
         self, sbase: libsbml.SBase, model: libsbml.Model | None = None
     ) -> libsbml.KeyValuePair:
         """Create the libsbml.KeyValuePair on the given element.
+
+        Written through `KeyValuePair.create_pairs`, which decides whether
+        the document can carry a pair at all; on its own this writes an empty
+        `<fbc:keyValuePair/>` into an fbc version 2 document and raises on a
+        document which declares no fbc.
 
         Args:
             sbase: the libsbml object the pair is created on
@@ -1287,6 +1354,8 @@ class KeyValuePair(Sbase):
         """
         sbase_fbc: libsbml.FbcSBasePlugin = sbase.getPlugin("fbc")
         kvp_list: libsbml.ListOfKeyValuePairs = sbase_fbc.getListOfKeyValuePairs()
+        # the xmlns of the list is fixed and `setKey` is reached only for a
+        # document which `create_pairs` established as fbc version 3
         kvp_list.setXmlns("http://sbml.org/fbc/keyvaluepair")
         kvp: libsbml.KeyValuePair = kvp_list.createKeyValuePair()
         self._set_fields(kvp, model)
@@ -2971,8 +3040,7 @@ class Reaction(Sbase):
                 annotator.ModelAnnotator.annotate_sbase(
                     sbase=sref, annotation=annotation
                 )
-            for key_value_pair in part.keyValuePairs or []:
-                key_value_pair.create_sbml(sref, model)
+            KeyValuePair.create_pairs(part.keyValuePairs, sref, model, part)
 
         # equation
         for reactant in self.equation.reactants:

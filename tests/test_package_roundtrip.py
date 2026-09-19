@@ -3538,3 +3538,119 @@ def test_roundtrip_preserves_the_metadata_of_a_key_value_pair(tmp_path: Path) ->
 
     assert [str(d) for d in diffs] == []
     assert _key_value_pair(doc_out).getName() == "a key value pair"
+
+
+def _key_value_pair_model(packages: list[Package]) -> Model:
+    """Get a model whose parameter and species reference carry key-value pairs.
+
+    Args:
+        packages: the packages the model declares
+
+    Returns:
+        the model
+    """
+    return Model(
+        sid="key_value_pairs",
+        name="a model with key-value pairs",
+        packages=packages,
+        compartments=[Compartment("c", 1.0, name="compartment")],
+        species=[
+            Species("S1", compartment="c", initialAmount=1.0, name="S1"),
+            Species("S2", compartment="c", initialAmount=0.0, name="S2"),
+        ],
+        parameters=[
+            Parameter(
+                "k",
+                1.0,
+                name="k",
+                keyValuePairs=[
+                    KeyValuePair(key="kind", value="test", uri="https://example.org"),
+                    KeyValuePair(key="other", value="42", uri=None),
+                ],
+            )
+        ],
+        reactions=[
+            Reaction(
+                "R1",
+                ReactionEquation(
+                    reactants=[
+                        EquationPart(
+                            species="S1",
+                            stoichiometry=1.0,
+                            keyValuePairs=[
+                                KeyValuePair(key="reactant-key", value="47", uri=None)
+                            ],
+                        )
+                    ],
+                    products=[EquationPart(species="S2", stoichiometry=1.0)],
+                ),
+                name="reaction",
+            )
+        ],
+    )
+
+
+def test_key_value_pairs_of_an_fbc_v2_document_are_reported_and_not_written(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that an fbc version 2 document gets no key-value pair at all.
+
+    A `<fbc:keyValuePair>` is fbc version 3. In an fbc version 2 document
+    libsbml creates the element and answers every one of `setKey`,
+    `setValue`, `setUri`, `setId` and `setName` with
+    `LIBSBML_UNEXPECTED_ATTRIBUTE`, so what used to be written was an
+    `<fbc:listOfKeyValuePairs>` of empty `<fbc:keyValuePair/>` elements, one
+    per pair, with two or three `check()` errors each and nothing saying
+    which element or which version was the problem.
+    """
+    model = _key_value_pair_model([Package.FBC_V2])
+    sbml_path = tmp_path / f"{model.sid}.xml"
+    with caplog.at_level(logging.ERROR, logger="sbmlutils"):
+        create_model(model=model, filepath=sbml_path, validate=False)
+
+    sbml = sbml_path.read_text(encoding="utf-8")
+    assert "keyValuePair" not in sbml
+    assert "listOfKeyValuePairs" not in sbml
+
+    errors = [record.getMessage() for record in caplog.records]
+    assert len(errors) == 2, errors
+    assert "2 key-value pair(s)" in errors[0]
+    assert "Parameter(k" in errors[0]
+    assert "fbc version 3" in errors[0] and "fbc version 2" in errors[0]
+    assert "1 key-value pair(s)" in errors[1]
+    assert "EquationPart(species='S1'" in errors[1]
+
+
+def test_key_value_pairs_of_an_fbc_v3_document_are_written(tmp_path: Path) -> None:
+    """Test the positive control: fbc version 3 writes every pair."""
+    model = _key_value_pair_model([Package.FBC_V3])
+    sbml_path = tmp_path / f"{model.sid}.xml"
+    create_model(model=model, filepath=sbml_path, validate=False)
+
+    sbml = sbml_path.read_text(encoding="utf-8")
+    assert sbml.count("<keyValuePair ") == 3
+    assert 'key="kind"' in sbml
+    assert 'key="reactant-key"' in sbml
+
+
+def test_key_value_pairs_need_the_fbc_package(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that a document which declares no fbc reports its pairs.
+
+    libsbml attaches no fbc plugin to an element of a document which does not
+    declare the package, so writing a pair raised `AttributeError: 'NoneType'
+    object has no attribute 'getListOfKeyValuePairs'` and no file was written
+    at all.
+    """
+    model = _key_value_pair_model([])
+    sbml_path = tmp_path / f"{model.sid}.xml"
+    with caplog.at_level(logging.ERROR, logger="sbmlutils"):
+        create_model(model=model, filepath=sbml_path, validate=False)
+
+    assert sbml_path.exists()
+    assert "keyValuePair" not in sbml_path.read_text(encoding="utf-8")
+    errors = [record.getMessage() for record in caplog.records]
+    assert len(errors) == 2, errors
+    assert "does not declare the fbc package" in errors[0]
+    assert "Parameter(k" in errors[0]
