@@ -129,3 +129,13 @@ Resolved before 0.11.0 was tagged, on the branch `fix/event-trigger-priority-del
 
 - **`docs/units.md`** now documents the explicit `Unit(kind, exponent, scale, multiplier)` form alongside the pint style.
 - **An id that shadows a MathML constant** (`pi`, `INF`, `NaN`, `time`, `avogadro`) is lost when math round trips as an L3 infix string. This is the cause of 7 of the remaining full-sweep failures and should be documented as a known limitation, or fixed by round-tripping the MathML itself rather than its infix form.
+
+## 9. Core MathML fidelity, found by the structural harness of the package work
+
+Measured by comparing the math of the main model of all 1690 test-suite cases before and after the core round trip (package branch, Task 1). None of these changes a simulation, which is why the core sweep never saw them. All come from round-tripping math as an L3 infix string instead of as MathML, like the constant shadowing in section 8.
+
+- 658 maths: a negative constant `<cn> -2 </cn>` comes back as the unary minus of an integer, `<apply><minus/><cn type="integer"> 2 </cn></apply>`.
+- 59 maths: a csymbol loses its display name, e.g. a time csymbol written as `t` comes back as `time`.
+- 11 maths: a nested n-ary `and`/`or` of the same operator is flattened.
+
+Round-tripping the MathML itself would remove all three and the constant shadowing at once.

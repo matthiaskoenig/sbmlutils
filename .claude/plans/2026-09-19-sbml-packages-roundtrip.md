@@ -174,8 +174,8 @@ Prerequisite for `fbc:strict` (Task 5), or it becomes a fifth hand-synchronized 
 A batch of small, independent fixes from the follow-up issue. Each gets its own test.
 
 **Files:**
-- Modify: `src/sbmlutils/factory.py`
-- Test: `tests/test_factory.py`
+- Modify: `src/sbmlutils/factory.py`, `src/sbmlutils/metadata/annotator.py`, and wherever the `spatialDimensions` loss turns out to be
+- Test: `tests/test_factory.py`, `tests/metadata/` or the closest existing annotation test file
 
 **Interfaces:** internal only.
 
@@ -186,6 +186,8 @@ The fixes, each with a failing test first:
 - [ ] **`Sbase._authoring_hints` becomes a `contextvars.ContextVar[bool]`.** `no_authoring_hints()` sets and resets it with the token. Test: two threads, one inside `no_authoring_hints()` writing a model and one outside writing a model with an unnamed element; the outside thread still logs its hint.
 - [ ] **The six `parseL3FormulaWithModel` call sites that skip the `None` check are routed through `ast_node_from_formula`**, so an unparsable formula logs an error instead of passing `None` on silently. Find them with `grep -n "parseL3FormulaWithModel" src/sbmlutils/factory.py`; exclude `ast_node_from_formula` itself and call sites that already check. Test: one unparsable formula per call site logs an ERROR (`caplog`).
 - [ ] **`ModelUnits.set_model_units` uses lazy `%s`** instead of an f-string passed to `logger.warning`.
+- [ ] **An annotation resource never loses its collection (ruling C1b).** `metadata/annotator.py` writes `annotation.resource_normalized`, and pymetadata returns the bare term for a collection it does not know: `http://identifiers.org/sabiork/1406` is written as `1406`, `urn:miriam:foo:bar` as `bar`. When the normalized resource carries no URI scheme, write the resource as given and log a warning (lazy `%s`) naming it. Known collections stay normalized. Failing test first: a species annotated `(BQB.IS, "http://identifiers.org/sabiork/1406")` is written with exactly that resource, and `(BQB.IS, "chebi/CHEBI:12965")` still as `https://identifiers.org/CHEBI:12965`. This is a loss in released 0.11.0: release note.
+- [ ] **A non-integral `spatialDimensions` round trips (ruling C7).** Test-suite case 01310 writes a compartment's `spatialDimensions` 2.7 back as 0.0, a core loss the simulation sweep cannot see. Reproduce it end to end on case 01310 first, find where the value is lost (the parser, the `Compartment` field type, or the factory), fix it there. Failing test first: a compartment with `spatialDimensions=2.7` round trips as 2.7.
 
 - [ ] **Verify and commit** after each fix or as one commit per fix. tox on py3.11 and py3.14, lint, 150-case report at 148/148.
 
@@ -238,6 +240,9 @@ The fixes, each with a failing test first:
 - [ ] **Gene labels are mangled by the pre-check.** The check strips `(`, `)`, `and`, `AND`, `or`, `OR` from the association string with a `str.replace` chain (measured near `factory.py:2366-2371`), so any label containing those letters is mangled and a spurious `GeneProduct missing in model` is logged. The chain is also inconsistent: `"and"` becomes a space while `"AND"`, `"or"` and `"OR"` become nothing. **Replace it with a tokenizer** that splits on whitespace and parentheses and drops only the whole tokens `and`, `AND`, `or`, `OR`. Failing test first: a gene product with label or id `ORF1` in an association `ORF1 and b0001`, where both exist, logs **no** missing-gene-product error.
 - [ ] **`EquationPart.keyValuePairs` is declared but never written.** Write them in `set_speciesref_fields`. Failing test first: a reactant with a key-value pair round trips with it.
 - [ ] **Pin the GPA normalization.** A test on `R_PFL` and `R_ATPS4r` of `FBC_ECOLI_CORE_SBML` asserts the round-tripped infix is the same-operator-flattened form, and that `structural_diff` whitelists exactly that and reports nothing else for those reactions. This makes the R5 entry visible and ensures it cannot hide anything else.
+- [ ] **Pin the GPA node metadata (ruling C5).** Every `and` and `or` node of `resources/distrib/e_coli_core.xml` and `e_coli_core_expression.xml` (22 and 32 in each) carries `sboTerm` SBO:0000173 (and) or SBO:0000174 (or) and nothing else; the term restates the node's own operator, so the infix string loses nothing that is not derivable. It is NOT whitelisted. A test asserts on both files that the only fbc difference is `fbc.geneProductAssociation.nodes`, and that every lost node metadata is exactly SBO:0000173 on an `and` or SBO:0000174 on an `or`. Any other node metadata must fail this test.
+- [ ] **The fbc charge is written for the document's fbc version (ruling C6).** libsbml keeps the fbc v2 integer charge and the fbc v3 double charge apart and writes only the one of the document's version, so today `Species(charge=-2.0)` in an fbc v2 model and `Species(charge=1)` in an fbc v3 model are both written `fbc:charge="0"`. The factory sets the charge the document's fbc version writes (v2: the integer, a non-integral charge logged as an error; v3: the double); the parser reads it by version. Failing tests first: both cases write the charge given.
+- [ ] **Regenerate the key-value-pair fixture (ruling C4).** `resources/examples/fbc/fbc_key_value_pair.xml` predates the key-value-pair writer and holds three empty `keyValuePair` elements. Regenerate it from `examples/fbc/fbc_key_value_pair.py` and point the key-value-pair fixture of `tests/test_package_roundtrip.py` at the resource instead of building it from the example.
 - [ ] **Verify and commit.** tox, lint, 148/148.
 
 ---
@@ -268,7 +273,8 @@ Measured at writing time: `class UncertParameter:` and `class UncertSpan:` have 
 - Modify: `src/sbmlutils/parser.py` (`_parse_model_body`, and the kwargs so that every element can carry its uncertainties)
 - Test: `tests/test_package_roundtrip.py`
 
-- [ ] **Step 1: Failing test:** `structural_diff` reports no distrib difference on each file under `resources/distrib/` named in the Corpus section.
+- [ ] **Step 0: Delete the three draft-syntax fixtures (ruling C2).** `resources/distrib/uncertainty_distribution.xml`, `uncertainty_uncertspan.xml` and `uncertainty_uncertvalue.xml` use a pre-release distrib syntax (`<distrib:uncertainty>` directly under the parameter, `<distrib:confidenceInterval>`, `<distrib:mean>`) which libsbml drops silently on read, so they look like coverage and contain none. Nothing references them; confirm with grep before deleting, and name the removal in the release notes.
+- [ ] **Step 1: Failing test:** `structural_diff` reports no distrib difference on each file that carries uncertainties: `distrib/uncertainty.xml`, `distrib/e_coli_core_expression.xml`, `examples/distrib_uncertainties.xml`, `examples/distrib_comp.xml`, `examples/distrib_comp_flat.xml`, `examples/model.xml` (verify the list against the resources). **The test asserts first that libsbml reads at least one uncertainty from each file**, so it cannot pass vacuously.
 - [ ] **Step 2: Parse each element's uncertainties**, with their uncertainty parameters and spans, `definitionURL`, math and metadata. Every `Sbase` can carry uncertainties, so the natural place is the shared kwargs.
 - [ ] **Step 3: Preserve `listOfUncertainties` child order.** The survey found it is currently lost. Test: a source whose uncertainty lists a span before a parameter round trips in that order.
 - [ ] **Step 4: Run the tests to verify they pass**, re-run the package report, and record the distrib rows against the baseline.
