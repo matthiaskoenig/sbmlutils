@@ -1574,3 +1574,229 @@ def test_reaction_speciesref_name_with_space_is_rejected_by_libsbml(
     assert "could not be set" in caplog.text, (
         "the rejected name should be logged, not silently dropped"
     )
+
+
+# ---------------------------------------------------------------------------
+# the gene products of a gene product association
+# ---------------------------------------------------------------------------
+def _gpa_model(association: str, gene_ids: tuple[str, ...]) -> Model:
+    """Get a model whose single reaction has a gene product association.
+
+    Args:
+        association: the association, as an infix string of gene product ids
+        gene_ids: the id of every gene product the model declares; each one
+            gets a label of its own which is no id of the model, so that a
+            check against the labels would find nothing
+
+    Returns:
+        the model definition
+    """
+    return Model(
+        sid="gene_product_association",
+        packages=[Package.FBC_V2],
+        strict=False,
+        compartments=[Compartment(sid="c", value=1.0)],
+        species=[Species(sid="S1", compartment="c", initialAmount=1.0)],
+        gene_products=[
+            GeneProduct(sid=sid, label=f"label_of_{sid}") for sid in gene_ids
+        ],
+        reactions=[
+            Reaction(sid="R1", equation="S1 ->", geneProductAssociation=association)
+        ],
+    )
+
+
+def _missing_gene_products(
+    association: str,
+    gene_ids: tuple[str, ...],
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> list[str]:
+    """Create a model with an association and collect the gene products it misses.
+
+    Args:
+        association: the association, as an infix string of gene product ids
+        gene_ids: the id of every gene product the model declares
+        tmp_path: the directory the SBML file is written to
+        caplog: pytest's log capture
+
+    Returns:
+        the message of every `GeneProduct missing in model` error, in order
+    """
+    caplog.clear()
+    with caplog.at_level(logging.ERROR, logger="sbmlutils.factory"):
+        create_model(
+            model=_gpa_model(association, gene_ids),
+            filepath=tmp_path / "gene_product_association.xml",
+            validate=False,
+        )
+    return [
+        record.getMessage()
+        for record in caplog.records
+        if "GeneProduct missing in model" in record.getMessage()
+    ]
+
+
+@pytest.mark.parametrize(
+    "association, gene_ids",
+    [
+        # an id which carries `OR`, `and` or `or` inside it
+        ("ORF1 and b0001", ("ORF1", "b0001")),
+        ("brandy and sensor", ("brandy", "sensor")),
+        ("ORF1 AND b0001", ("ORF1", "b0001")),
+        ("brandy OR sensor", ("brandy", "sensor")),
+        # the operators in both spellings, and groups
+        ("(b0001 and b0002) or b0003", ("b0001", "b0002", "b0003")),
+        ("(b0001 AND b0002) OR b0003", ("b0001", "b0002", "b0003")),
+        # a single gene product, which is no operator at all
+        ("ORF1", ("ORF1",)),
+        # nested parentheses without a space around them
+        ("(b0001 and(b0002 or b0003))", ("b0001", "b0002", "b0003")),
+    ],
+)
+def test_gene_product_association_reports_no_gene_product_it_has(
+    association: str,
+    gene_ids: tuple[str, ...],
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that an association of gene products of the model reports none as missing.
+
+    The check which warns about a gene product the model does not declare used
+    to strip `(`, `)`, `and`, `AND`, `or` and `OR` out of the association with
+    a chain of `str.replace`, which cuts those letters out of the middle of an
+    id as well: `ORF1` became `F1` and `brandy` became `br y`, and every one of
+    them was reported as a gene product missing from the model although it is
+    right there.
+    """
+    assert _missing_gene_products(association, gene_ids, tmp_path, caplog) == []
+
+
+def test_gene_product_association_reports_a_gene_product_which_is_missing(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that a gene product the model does not declare is still reported.
+
+    The check exists to catch exactly this, so the tokenizer must not make it
+    blind: only the operators are dropped, every other token is a gene product
+    id and is looked up in the model.
+    """
+    messages = _missing_gene_products(
+        "(ORF1 and b0001) or b9999", ("ORF1", "b0001"), tmp_path, caplog
+    )
+
+    assert len(messages) == 1, messages
+    assert "b9999" in messages[0]
+
+
+def test_gene_product_association_is_checked_against_the_ids_not_the_labels(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that the check resolves a token as a gene product id.
+
+    `Reaction.create_sbml` writes the association with
+    `setAssociation(infix, usingId=True, addMissingGP=False)`, so the string
+    names the gene products by their id and not by their label; the check is
+    `FbcModelPlugin.getGeneProduct`, which is the lookup by id
+    (`getGeneProductByLabel` is the one by label).
+    """
+    messages = _missing_gene_products("label_of_ORF1", ("ORF1",), tmp_path, caplog)
+
+    assert len(messages) == 1, messages
+    assert "label_of_ORF1" in messages[0]
+
+
+def _gpa_document(gene_ids: tuple[str, ...]) -> libsbml.SBMLDocument:
+    """Build an fbc document holding the given gene products.
+
+    Args:
+        gene_ids: the id of every gene product the model declares
+
+    Returns:
+        the document, which the caller has to hold for as long as it uses any
+        object of it
+    """
+    doc = libsbml.SBMLDocument(libsbml.SBMLNamespaces(3, 2, "fbc", 2))
+    doc.setPackageRequired("fbc", False)
+    model: libsbml.Model = doc.createModel()
+    model.setId("gene_product_association")
+    plugin: libsbml.FbcModelPlugin = model.getPlugin("fbc")
+    plugin.setStrict(False)
+    for sid in gene_ids:
+        gene_product: libsbml.GeneProduct = plugin.createGeneProduct()
+        gene_product.setId(sid)
+        gene_product.setLabel(f"label_of_{sid}")
+    return doc
+
+
+@pytest.mark.parametrize(
+    "operator, is_operator",
+    [
+        ("and", True),
+        ("AND", True),
+        ("And", False),
+        ("&", False),
+        ("&&", False),
+        ("or", True),
+        ("OR", True),
+        ("Or", False),
+        ("|", False),
+        ("||", False),
+    ],
+)
+def test_gene_product_association_drops_the_operators_libsbml_parses(
+    operator: str,
+    is_operator: bool,
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that the check drops exactly the operator spellings libsbml accepts.
+
+    The association is written with libsbml's own infix parser, which accepts
+    `and`, `AND`, `or` and `OR` and no other spelling of the two operators,
+    neither `And` nor `&`, `&&`, `|` or `||`. The check drops the same four
+    and reads every other token as a gene product id, so a spelling libsbml
+    would refuse is reported as the gene product it parses as instead of
+    passing silently.
+
+    What libsbml accepts is measured here rather than assumed: the expectation
+    of the parametrization is asserted against the parser first.
+    """
+    doc = _gpa_document(("b0001", "b0002"))
+    plugin: libsbml.FbcModelPlugin = doc.getModel().getPlugin("fbc")
+    infix = f"b0001 {operator} b0002"
+    parsed = libsbml.FbcAssociation.parseFbcInfixAssociation(infix, plugin, True, False)
+    assert (parsed is not None) is is_operator, infix
+
+    messages = _missing_gene_products(infix, ("b0001", "b0002"), tmp_path, caplog)
+
+    if is_operator:
+        assert messages == []
+    else:
+        assert len(messages) == 1 and operator in messages[0], messages
+
+
+def test_gene_product_association_without_a_space_before_a_group_is_refused(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that libsbml, not the check, is what refuses `and(` without a space.
+
+    The check splits the association on parentheses, so `b0001 and(b0002)`
+    names no gene product the model does not have and it says nothing.
+    libsbml's own infix parser is stricter and wants whitespace behind an
+    operator, so it refuses to parse that association at all; the user hears
+    about it through the error `check()` logs for the `setAssociation` which
+    would have written it. The check is a hint about missing gene products,
+    never the syntax check of the association.
+    """
+    caplog.clear()
+    with caplog.at_level(logging.ERROR, logger="sbmlutils"):
+        create_model(
+            model=_gpa_model("b0001 and(b0002)", ("b0001", "b0002")),
+            filepath=tmp_path / "gene_product_association.xml",
+            validate=False,
+        )
+
+    messages = [record.getMessage() for record in caplog.records]
+    assert [m for m in messages if "GeneProduct missing in model" in m] == []
+    assert [m for m in messages if "set gpa" in m] != [], messages

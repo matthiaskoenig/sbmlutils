@@ -23,6 +23,7 @@ import inspect
 import json
 import logging
 import numbers
+import re
 from collections import namedtuple
 from collections.abc import Iterable, Iterator, Sequence
 from contextlib import contextmanager
@@ -2186,6 +2187,39 @@ class KineticLaw(Sbase):
         return klaw
 
 
+#: a token of an infix gene product association: a run of characters which is
+#: neither whitespace nor a parenthesis, so that the string is split on both
+_ASSOCIATION_TOKEN: re.Pattern[str] = re.compile(r"[^\s()]+")
+
+#: the operators of an infix gene product association, in the two spellings
+#: libsbml's own infix parser accepts for each of them; every other token of an
+#: association is a gene product id
+_ASSOCIATION_OPERATORS: frozenset[str] = frozenset({"and", "AND", "or", "OR"})
+
+
+def _gene_product_ids(association: str) -> list[str]:
+    """Get the gene products an infix gene product association references.
+
+    The association is split into tokens on whitespace and on parentheses, and
+    every token which is not an operator is a gene product id. Only a whole
+    token is an operator: an id such as `ORF1`, `brandy` or `sensor` carries
+    the letters of one inside it and is a gene product like any other.
+
+    Args:
+        association: the association as an infix string of gene product ids,
+            e.g. `(ORF1 and b0001) or b0002`
+
+    Returns:
+        the id of every gene product the association references, in the order
+        of the string and with a repeated id repeated
+    """
+    return [
+        token
+        for token in _ASSOCIATION_TOKEN.findall(association)
+        if token not in _ASSOCIATION_OPERATORS
+    ]
+
+
 class Reaction(Sbase):
     """Reaction.
 
@@ -2402,18 +2436,11 @@ class Reaction(Sbase):
             # parse the string and create the respective GPA
             gpa: libsbml.GeneProductAssociation = r_fbc.createGeneProductAssociation()
 
-            # check all genes are in model
-            gpr_clean = (
-                self.geneProductAssociation.replace("(", " ")
-                .replace(")", " ")
-                .replace("and", " ")
-                .replace("AND", "")
-                .replace("or", "")
-                .replace("OR", "")
-            )
-            gps: list[str] = [g for g in gpr_clean.split(" ") if g]
+            # check all genes are in model; the association names them by id,
+            # which is what `setAssociation(usingId=True)` below writes, so the
+            # lookup is `getGeneProduct` and not `getGeneProductByLabel`
             model_fbc: libsbml.FbcModelPlugin = r.getModel().getPlugin("fbc")
-            for gp in gps:
+            for gp in _gene_product_ids(self.geneProductAssociation):
                 if not model_fbc.getGeneProduct(gp):
                     logger.error("GeneProduct missing in model: `%s`", gp)
 
