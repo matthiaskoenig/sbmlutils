@@ -353,6 +353,7 @@ Measured at writing time: `class ModelDefinition(Sbase):` near `factory.py:3872`
   - **Or stop declaring comp for a port that will not be written**, and log a warning that the port is ignored.
   - Check each element type against libsbml: can a `comp:port` reference it?
 - [ ] **Failing test first** for the chosen behaviour.
+- [ ] **The same defect class, found by the distrib work (rulings T9c and the Task 8 note): a field which is accepted and silently dropped.** `Uncertainty` accepts `port=` and drops it. `LocalParameter` and `KineticLaw` accept `uncertainties=` and never write them (both are written with `_set_fields(x, None)`, which is what keeps them from creating ports); libsbml can carry an uncertainty on both, so write them, and let the parser hand them over instead of reporting and dropping them. `KeyValuePair.create_sbml` never calls `_set_fields`, so the id, name, metaId, sboTerm, notes and annotations of a key-value pair are parsed and never written; measure with libsbml alone which of them a key-value pair can carry and survive a re-read, write those. Each with a failing test first; none occurs in the corpus, so each test builds its own document.
 - [ ] **Verify and commit.** tox, lint, 148/148.
 
 ---
