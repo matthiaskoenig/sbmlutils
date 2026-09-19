@@ -50,15 +50,27 @@ model = Model(
 )
 ```
 
-The types are the `libsbml.DISTRIB_UNCERTTYPE_*` constants: `MEAN`, `MEDIAN`, `STANDARDDEVIATION`, `VARIANCE`, `COEFFIACIENTOFVARIATION`, `SKEWNESS`, `RANGE`, `INTERQUARTILERANGE`, `CONFIDENCEINTERVAL`, `CREDIBLEINTERVAL`, `DISTRIBUTION` and `EXTERNALPARAMETER`.
+The types are the `libsbml.DISTRIB_UNCERTTYPE_*` constants. An `UncertParameter` takes the types of a single value, `MEAN`, `MEDIAN`, `MODE`, `STANDARDDEVIATION`, `STANDARDERROR`, `VARIANCE`, `COEFFIENTOFVARIATION`, `SKEWNESS`, `KURTOSIS`, `SAMPLESIZE`, `DISTRIBUTION` and `EXTERNALPARAMETER`; an `UncertSpan` takes the types of an interval, `RANGE`, `INTERQUARTILERANGE`, `CONFIDENCEINTERVAL` and `CREDIBLEINTERVAL`.
 
-An uncertainty also carries a definition URL, which is how a distribution from [ProbOnto](https://probonto.org) is referenced:
+SBML holds the parameters and the spans of an uncertainty in one list, and `uncertParameters` is that list: it takes both kinds and writes them in the order they are given in. `uncertSpans` is the second way of writing the same thing, one list per kind, whose spans are written before `uncertParameters`.
+
+An uncert parameter also carries a definition URL, which is how a distribution or a parameter of one from [ProbOnto](https://probonto.org) is referenced:
 
 ```python
 UncertParameter(
     type=libsbml.DISTRIB_UNCERTTYPE_EXTERNALPARAMETER,
     value=0.4,
     definitionURL="http://www.probonto.org/ontology#PROB_k0000789",
+)
+```
+
+An external distribution states its own parameters as `uncertParameters` of the uncert parameter which names it, and a distribution of distrib states itself as `math`:
+
+```python
+UncertParameter(
+    type=libsbml.DISTRIB_UNCERTTYPE_DISTRIBUTION,
+    definitionURL="http://www.sbml.org/sbml/symbols/distrib/normal",
+    math="normal(1 mole, 3 mole)",
 )
 ```
 
