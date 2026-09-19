@@ -1609,6 +1609,16 @@ class LocalParameter(ValueWithUnit):
     `libsbml.Model.getElementBySId`, which comp resolves a `comp:idRef` with,
     does not answer with a local parameter, so a `<comp:port>` names one by
     its metaid, see `Sbase._port_reference`.
+
+    A `<comp:replacedBy>` is not offered. libsbml writes one on a
+    `<localParameter>` and reads it back, but no such replacement is valid,
+    whichever way it names the element it is replaced by (measured with
+    libsbml 5.21.2): naming the local parameter of the submodel, by
+    `comp:metaIdRef` or through a `<comp:port>` of the submodel, makes the
+    flattened model invalid (libsbml 10216, "Cannot use a KineticLaw local
+    parameter outside of its local scope"), `comp:idRef` cannot name a local
+    parameter at all (1020702), and naming anything else is a class mismatch
+    (1021201, 1021203).
     """
 
     #: the identifier is required, unlike on `Sbase`
@@ -1631,7 +1641,6 @@ class LocalParameter(ValueWithUnit):
         keyValuePairs: list[KeyValuePair] | None = None,
         port: Any = None,
         uncertainties: list[Uncertainty] | None = None,
-        replacedBy: Any | None = None,
     ):
         """Construct LocalParameter.
 
@@ -1649,7 +1658,6 @@ class LocalParameter(ValueWithUnit):
             port: optional comp port, which names the local parameter by its
                 metaid
             uncertainties: optional distrib uncertainties
-            replacedBy: optional comp replacement
         """
         super().__init__(
             sid=sid,
@@ -1663,7 +1671,6 @@ class LocalParameter(ValueWithUnit):
             keyValuePairs=keyValuePairs,
             port=port,
             uncertainties=uncertainties,
-            replacedBy=replacedBy,
         )
 
     def create_sbml(
@@ -1674,8 +1681,8 @@ class LocalParameter(ValueWithUnit):
         Args:
             klaw: the libsbml.KineticLaw the local parameter is created in
             model: the libsbml.Model the kinetic law is created in, which
-                the port of the local parameter is created in. It has to be
-                handed down, since libsbml answers
+                the port and the uncertainties of the local parameter are
+                created in. It has to be handed down, since libsbml answers
                 `klaw.getModel()` with the model of the *document* for a
                 kinetic law inside a `<comp:modelDefinition>`, see
                 `Model._fill_sbml`. `None` falls back to that lookup, for a
@@ -1688,13 +1695,13 @@ class LocalParameter(ValueWithUnit):
         if model is None:
             model = klaw.getModel()
         lp: libsbml.LocalParameter = klaw.createLocalParameter()
-        self._set_fields(lp, None)
+        self._set_fields(lp, model)
         self.create_port(model)
         if self.value is not None:
             check(lp.setValue(float(self.value)), f"Set value on '{self.sid}'")
         return lp
 
-    def _set_fields(self, sbase: libsbml.LocalParameter, model: Any) -> None:
+    def _set_fields(self, sbase: libsbml.LocalParameter, model: libsbml.Model) -> None:
         """Set fields on libsbml.LocalParameter."""
         super()._set_fields(sbase, model)
 
@@ -2306,9 +2313,9 @@ class KineticLaw(Sbase):
         Args:
             reaction: the libsbml.Reaction the kinetic law belongs to
             model: the libsbml.Model the reaction is created in, which the
-                math is parsed against and which the port of the kinetic law
-                and of its local parameters is created in. It has to be
-                handed down, since
+                math is parsed against and which the port, the uncertainties
+                and the replacedBy of the kinetic law and of its local
+                parameters are created in. It has to be handed down, since
                 libsbml answers `reaction.getModel()` with the model of the
                 *document* for a reaction inside a `<comp:modelDefinition>`,
                 see `Model._fill_sbml`. `None` falls back to that lookup, for
@@ -2321,7 +2328,7 @@ class KineticLaw(Sbase):
         if model is None:
             model = reaction.getModel()
         klaw: libsbml.KineticLaw = reaction.createKineticLaw()
-        self._set_fields(klaw, None)
+        self._set_fields(klaw, model)
         self.create_port(model)
 
         # local parameters must exist before the math is parsed, so that the

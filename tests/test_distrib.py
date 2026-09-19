@@ -1394,3 +1394,144 @@ def test_uncert_child_without_a_type_is_written_without_one() -> None:
     assert not span.isSetType()
     assert parameter.getValue() == 3.0
     assert span.getValueLower() == 1.0
+
+
+def _kinetic_law_uncertainty_model(sid: str) -> dict[str, Any]:
+    """Get the content of a model whose kinetic law and local parameter have one.
+
+    A kinetic law and its local parameters are the two elements which are
+    written without the `libsbml.Model`, which is what
+    `Sbase.create_uncertainties` needs, so the uncertainties of both used to
+    be accepted and silently dropped.
+
+    Args:
+        sid: unused, kept so that the caller reads like the model it builds
+
+    Returns:
+        the keyword arguments of a `Model` or a `ModelDefinition`
+    """
+    return {
+        "compartments": [Compartment("c", 1.0, name="compartment")],
+        "species": [
+            Species("S1", compartment="c", initialConcentration=1.0, name="S1"),
+            Species("S2", compartment="c", initialConcentration=0.0, name="S2"),
+        ],
+        "reactions": [
+            Reaction(
+                "r1",
+                "S1 -> S2",
+                name="reaction",
+                formula=KineticLaw(
+                    math="kf * S1",
+                    sid="klaw1",
+                    uncertainties=[
+                        Uncertainty(
+                            sid="unc_klaw",
+                            name="uncertainty of the kinetic law",
+                            uncertParameters=[
+                                UncertParameter(
+                                    type=libsbml.DISTRIB_UNCERTTYPE_STANDARDDEVIATION,
+                                    value=0.2,
+                                )
+                            ],
+                        )
+                    ],
+                    local_parameters=[
+                        LocalParameter(
+                            "kf",
+                            1.0,
+                            name="kf",
+                            uncertainties=[
+                                Uncertainty(
+                                    sid="unc_kf",
+                                    name="uncertainty of the local parameter",
+                                    uncertParameters=[
+                                        UncertParameter(
+                                            type=(
+                                                libsbml.DISTRIB_UNCERTTYPE_STANDARDDEVIATION
+                                            ),
+                                            value=0.1,
+                                        )
+                                    ],
+                                )
+                            ],
+                        )
+                    ],
+                ),
+            )
+        ],
+    }
+
+
+def _kinetic_law_uncertainties(
+    model: libsbml.Model,
+) -> dict[str, tuple[str, float]]:
+    """Read the uncertainties of the kinetic law and of its local parameter.
+
+    Args:
+        model: the libsbml.Model, or libsbml.ModelDefinition, to read; its
+            document is held by the caller
+
+    Returns:
+        the id of the single uncertainty of each of the two elements, with
+        the type and value of its single child
+    """
+    klaw: libsbml.KineticLaw = model.getReaction("r1").getKineticLaw()
+    found: dict[str, tuple[str, float]] = {}
+    for element in (klaw, klaw.getLocalParameter(0)):
+        distrib: libsbml.DistribSBasePlugin = element.getPlugin("distrib")
+        for k in range(distrib.getNumUncertainties()):
+            uncertainty: libsbml.Uncertainty = distrib.getUncertainty(k)
+            child: libsbml.UncertParameter = uncertainty.getUncertParameter(0)
+            found[uncertainty.getId()] = (child.getTypeAsString(), child.getValue())
+    return found
+
+
+#: the uncertainties `_kinetic_law_uncertainty_model` states
+_KINETIC_LAW_UNCERTAINTIES: dict[str, tuple[str, float]] = {
+    "unc_klaw": ("standardDeviation", 0.2),
+    "unc_kf": ("standardDeviation", 0.1),
+}
+
+
+def test_uncertainties_of_a_kinetic_law_and_a_local_parameter_are_written() -> None:
+    """Test that both elements write the uncertainties they accept."""
+    model = Model(
+        sid="kinetic_law_uncertainties",
+        name="uncertainties inside a kinetic law",
+        packages=[Package.DISTRIB_V1],
+        **_kinetic_law_uncertainty_model("kinetic_law_uncertainties"),
+    )
+    doc: libsbml.SBMLDocument = Document(model=model).create_sbml()
+    doc_read: libsbml.SBMLDocument = libsbml.readSBMLFromString(
+        libsbml.writeSBMLToString(doc)
+    )
+
+    assert _kinetic_law_uncertainties(doc_read.getModel()) == (
+        _KINETIC_LAW_UNCERTAINTIES
+    )
+
+
+def test_uncertainties_inside_a_kinetic_law_of_a_model_definition_are_written() -> None:
+    """Test that they are written into the model definition they belong to."""
+    model = Model(
+        sid="kinetic_law_uncertainties_in_a_model_definition",
+        name="uncertainties inside the kinetic law of a model definition",
+        packages=[Package.COMP_V1],
+        model_definitions=[
+            ModelDefinition(
+                sid="md1",
+                name="a model definition",
+                **_kinetic_law_uncertainty_model("md1"),
+            )
+        ],
+    )
+    doc: libsbml.SBMLDocument = Document(model=model).create_sbml()
+    doc_read: libsbml.SBMLDocument = libsbml.readSBMLFromString(
+        libsbml.writeSBMLToString(doc)
+    )
+
+    doc_comp: libsbml.CompSBMLDocumentPlugin = doc_read.getPlugin("comp")
+    assert _kinetic_law_uncertainties(doc_comp.getModelDefinition("md1")) == (
+        _KINETIC_LAW_UNCERTAINTIES
+    )

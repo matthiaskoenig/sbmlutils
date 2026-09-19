@@ -209,21 +209,24 @@ def test_port_in_a_reaction_declares_comp(
     assert comp_model.getPort(port_sid).getIdRef() == id_ref
 
 
-def test_replaced_by_in_a_kinetic_law_declares_comp() -> None:
+def test_port_in_a_kinetic_law_declares_comp() -> None:
     """Test that comp content is found wherever an element is nested.
 
     A local parameter is neither in a list of the model nor in one of a
-    reaction, it is in the kinetic law of the reaction.
+    reaction, it is in the kinetic law of the reaction. The construct was the
+    `replacedBy` of the local parameter, which it no longer offers: no
+    `<comp:replacedBy>` on a `<localParameter>` is valid, see the class
+    docstring of `LocalParameter`. Its port is the comp construct it does
+    carry, and it is nested exactly where the replacedBy was.
     """
-    replaced_by = ReplacedBy(sid="rby", elementRef="k", submodelRef="sub")
     model = _reaction_model(
-        "nested_replaced_by",
+        "nested_port",
         Reaction(
             "r1",
             "S1 -> S2",
             formula=KineticLaw(
                 math="k * S1",
-                local_parameters=[LocalParameter("k", 1.0, replacedBy=replaced_by)],
+                local_parameters=[LocalParameter("k", 1.0, metaId="meta_k", port=True)],
             ),
         ),
     )
@@ -1923,3 +1926,87 @@ def test_roundtrip_keeps_the_port_of_a_nested_element(tmp_path: Path) -> None:
 
     assert _ports(doc_in.getModel()) == _NESTED_PORTS
     assert [str(d) for d in structural_diff(doc_in, doc_out)] == []
+
+
+def test_replaced_by_of_a_kinetic_law_is_written(tmp_path: Path) -> None:
+    """Test that the replacedBy of a kinetic law is written onto it.
+
+    A kinetic law is written without the `libsbml.Model` which
+    `Sbase.create_replaced_by` needs, so its replacedBy used to be accepted
+    and silently dropped. libsbml attaches the comp plugin of an `SBase` to a
+    `<kineticLaw>`, writes the `<comp:replacedBy>` there, reads it back and
+    validates the document.
+    """
+    model = Model(
+        sid="replaced_by_on_a_kinetic_law",
+        name="a kinetic law which is replaced by one of a submodel",
+        packages=[Package.COMP_V1],
+        model_definitions=[
+            ModelDefinition(
+                sid="md1",
+                name="the submodel",
+                compartments=[Compartment("c", 1.0, name="compartment")],
+                species=[
+                    Species("S1", compartment="c", initialConcentration=1.0, name="S1"),
+                    Species("S2", compartment="c", initialConcentration=0.0, name="S2"),
+                ],
+                reactions=[
+                    Reaction(
+                        "r1",
+                        "S1 -> S2",
+                        name="reaction of the submodel",
+                        formula=KineticLaw(math="2.0 * S1", sid="klaw_sub"),
+                    )
+                ],
+            )
+        ],
+        submodels=[Submodel(sid="sub1", modelRef="md1")],
+        compartments=[Compartment("c", 1.0, name="compartment")],
+        species=[
+            Species("S1", compartment="c", initialConcentration=1.0, name="S1"),
+            Species("S2", compartment="c", initialConcentration=0.0, name="S2"),
+        ],
+        reactions=[
+            Reaction(
+                "r1",
+                "S1 -> S2",
+                name="reaction",
+                formula=KineticLaw(
+                    math="1.0 * S1",
+                    sid="klaw_top",
+                    replacedBy=ReplacedBy(
+                        sid="rby",
+                        elementRef="klaw_top",
+                        submodelRef="sub1",
+                        idRef="klaw_sub",
+                    ),
+                ),
+            )
+        ],
+    )
+    doc = _write(model, tmp_path, validate=False)
+
+    klaw: libsbml.KineticLaw = doc.getModel().getReaction("r1").getKineticLaw()
+    klaw_comp: libsbml.CompSBasePlugin = klaw.getPlugin("comp")
+    assert klaw_comp.isSetReplacedBy()
+    replaced_by: libsbml.ReplacedBy = klaw_comp.getReplacedBy()
+    assert (replaced_by.getSubmodelRef(), replaced_by.getIdRef()) == (
+        "sub1",
+        "klaw_sub",
+    )
+
+
+@pytest.mark.parametrize("field", ["replacedBy"])
+def test_local_parameter_does_not_offer_a_replaced_by(field: str) -> None:
+    """Test that a local parameter refuses the replacedBy it cannot write.
+
+    libsbml writes a `<comp:replacedBy>` on a `<localParameter>` and reads it
+    back, but no such replacement is valid, see the class docstring of
+    `LocalParameter`. The field is refused by the constructor instead of
+    being accepted and written into a document which cannot validate. The
+    keyword is passed through a mapping, the way the same check is made in
+    `tests/test_distrib.py`: spelling it out is a type error, which is the
+    point of the test.
+    """
+    with pytest.raises(TypeError, match=field):
+        LocalParameter("kf", 1.0, **{field: None})

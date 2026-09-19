@@ -2960,7 +2960,7 @@ def test_libsbml_has_no_list_of_replaced_elements_until_one_is_added(
 def _replaced_by_sbml(tmp_path: Path) -> Path:
     """Write a document with a `<comp:replacedBy>` on the elements which lose it.
 
-    comp allows a `<comp:replacedBy>` on every SBML element, and libsbml writes and reads one back on a `<speciesReference>`, a `<localParameter>` and a `<kineticLaw>` as it does on a species, which is measured by reading the document this writes: all four carry one here. `EquationPart` has no `replacedBy` field, and a `LocalParameter` and a `KineticLaw` are written without the `libsbml.Model` which `Sbase.create_replaced_by` needs, so the first three are the elements of this document whose replacement `_drop_replaced_by` drops; the species is the control which keeps it. No document of the repository has one on such an element, so this one is built with libsbml alone.
+    comp allows a `<comp:replacedBy>` on every SBML element, and libsbml writes and reads one back on a `<speciesReference>`, a `<localParameter>` and a `<kineticLaw>` as it does on a species, which is measured by reading the document this writes: all four carry one here. `EquationPart` has no `replacedBy` field and a `LocalParameter` does not offer one, so those two are the elements of this document whose replacement `_drop_replaced_by` drops; the species and the kinetic law are the controls which keep it. No document of the repository has one on such an element, so this one is built with libsbml alone.
 
     Args:
         tmp_path: the directory the file is written to
@@ -3025,7 +3025,7 @@ def test_parser_reports_a_replaced_by_it_cannot_write(
 ) -> None:
     """Test that a replacedBy on an element which cannot carry one is reported.
 
-    comp allows a `<comp:replacedBy>` on every element and the parser reads it from every element, but a species reference is an `EquationPart` with no field for it, and a local parameter and a kinetic law are written without the `libsbml.Model` which `Sbase.create_replaced_by` needs, so those three would lose it in the writer without a word. `_drop_replaced_by` drops it where the element is known and names it instead. The species of the same document keeps its replacedBy, so the test says what is dropped and not merely that something is.
+    comp allows a `<comp:replacedBy>` on every element and the parser reads it from every element, but a species reference is an `EquationPart` with no field for it, and a `LocalParameter` does not offer one because no `<comp:replacedBy>` on a `<localParameter>` is valid, so those two would lose it in the writer without a word. `_drop_replaced_by` drops it where the element is known and names it instead. The species and the kinetic law of the same document keep their replacedBy, so the test says what is dropped and not merely that something is.
     """
     sbml_path = _replaced_by_sbml(tmp_path)
     doc: libsbml.SBMLDocument = _read(sbml_path)
@@ -3050,20 +3050,19 @@ def test_parser_reports_a_replaced_by_it_cannot_write(
         for record in caplog.records
         if "replacedBy" in record.getMessage()
     ]
-    assert len(dropped) == 3, caplog.records
+    assert len(dropped) == 2, caplog.records
     assert sorted(message.split("'")[0].split()[-1] for message in dropped) == [
-        "kineticLaw",
         "localParameter",
         "speciesReference",
     ]
-    # the species of the same document keeps its replacedBy, and none of the
-    # three elements which lost theirs carries one into the writer
+    # the species and the kinetic law of the same document keep theirs, and
+    # neither of the two elements which lost theirs carries one into the writer
     assert model.species[0].replacedBy is not None
     reactant = model.reactions[0].equation.reactants[0]
     assert not hasattr(reactant, "replacedBy")
     kinetic_law = model.reactions[0].formula
     assert kinetic_law is not None
-    assert kinetic_law.replacedBy is None
+    assert kinetic_law.replacedBy is not None
     assert kinetic_law.local_parameters[0].replacedBy is None
 
 

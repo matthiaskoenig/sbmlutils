@@ -277,11 +277,9 @@ def _drop_uncertainties(kwargs: dict[str, Any], sbase: libsbml.SBase) -> dict[st
     every element, but not every element of `sbmlutils.factory` can write them
     back: a `Model`, a `UnitDefinition`, a species reference (`EquationPart`),
     a `KeyValuePair`, an `Uncertainty` and the children of one have no
-    `uncertainties` field at all, and a `LocalParameter` and a `KineticLaw`
-    are written without the `libsbml.Model` which `Sbase.create_uncertainties`
-    needs. Passing them on would lose them silently in the writer, so they are
-    dropped here, where the element is known and the loss can be reported. No
-    document of the corpus carries one, see
+    `uncertainties` field at all. Passing them on would lose them silently in
+    the writer, so they are dropped here, where the element is known and the
+    loss can be reported. No document of the corpus carries one, see
     https://github.com/matthiaskoenig/sbmlutils/issues/469.
 
     Args:
@@ -307,19 +305,19 @@ def _drop_replaced_by(kwargs: dict[str, Any], sbase: libsbml.SBase) -> dict[str,
     """Drop the comp replacedBy of an element which cannot carry one, loudly.
 
     comp allows a `<comp:replacedBy>` on every SBML element and libsbml reads
-    it from every element, but not every element of `sbmlutils.factory` can
-    write one back: a `Model`, a species reference (`EquationPart`), an
-    `UncertParameter`, an `UncertSpan` and the comp references themselves
-    (`Port`, `ReplacedElement`, `ReplacedBy`, `Deletion`, `SbaseRef`,
-    `Submodel`, `ExternalModelDefinition`) have no `replacedBy` field at all,
-    a `KeyValuePair` is written without `Sbase._set_fields`, and a
-    `LocalParameter` and a `KineticLaw` are written without the
-    `libsbml.Model` which `Sbase.create_replaced_by` needs. Passing it on
-    would raise a `TypeError` in the constructor or lose it silently in the
-    writer, so it is dropped here, where the element is known and the loss can
-    be reported. No document of the corpus carries one on such an element: the
-    31 replacements of the corpus sit on a species, a compartment, a parameter
-    or a reaction, see
+    it from every element it attaches a `CompSBasePlugin` to, but not every
+    element of `sbmlutils.factory` can write one back: a `Model`, a species
+    reference (`EquationPart`), an `UncertParameter`, an `UncertSpan` and the
+    comp references themselves (`Port`, `ReplacedElement`, `ReplacedBy`,
+    `Deletion`, `SbaseRef`, `Submodel`, `ExternalModelDefinition`) have no
+    `replacedBy` field at all, a `LocalParameter` does not offer one because
+    no `<comp:replacedBy>` on a `<localParameter>` is valid, and a
+    `KeyValuePair` is written without `Sbase._set_fields`. Passing it on
+    would raise a `TypeError` in the
+    constructor or lose it silently in the writer, so it is dropped here,
+    where the element is known and the loss can be reported. No document of
+    the corpus carries one on such an element: the 31 replacements of the
+    corpus sit on a species, a compartment, a parameter or a reaction, see
     https://github.com/matthiaskoenig/sbmlutils/issues/469.
 
     Args:
@@ -1182,13 +1180,13 @@ def _parse_model_body(model: libsbml.Model, m: Model) -> None:
                     LocalParameter(
                         value=lp.getValue() if lp.isSetValue() else None,
                         unit=lp.getUnits() if lp.isSetUnits() else None,
-                        **_drop_unwritable(_parse_sbase_kwargs(lp), lp),
+                        **_drop_replaced_by(_parse_sbase_kwargs(lp), lp),
                     )
                 )
             kinetic_law = KineticLaw(
                 math=_math(klaw),
                 local_parameters=local_parameters,
-                **_drop_unwritable(_parse_sbase_kwargs(klaw), klaw),
+                **_parse_sbase_kwargs(klaw),
             )
 
         m.reactions.append(
