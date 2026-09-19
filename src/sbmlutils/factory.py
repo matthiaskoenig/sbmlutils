@@ -7059,6 +7059,12 @@ def create_model(
     :param create_markdown: write the markdown overview of the ODE system to `*.md`
 
     :return: FactoryResult
+
+    :raises ValueError: if `model` is neither a `Model` nor an iterable of them
+    :raises OSError: if the SBML could not be written to `filepath`, see
+        `write_sbml`. The parent directory is created if it does not exist.
+        Validation does not raise: a document which does not validate is
+        written and returned all the same.
     """
     console.rule(title="Create SBML", style="white")
     if validation_options is None:
