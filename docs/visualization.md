@@ -10,7 +10,7 @@ The visualization needs two things which do not come with `sbmlutils`:
 pip install sbmlutils[cytoscape]
 ```
 
-installs [py4cytoscape](https://py4cytoscape.readthedocs.io), which talks to the CyREST interface, and Cytoscape itself has to be **running** on the machine — download it from [cytoscape.org](https://cytoscape.org). The [cy3sbml](https://github.com/matthiaskoenig/cy3sbml) app reads the SBML, install it from the Cytoscape app store.
+installs [py4cytoscape](https://py4cytoscape.readthedocs.io), which talks to the CyREST interface, and Cytoscape itself has to be **running** on the machine - download it from [cytoscape.org](https://cytoscape.org). The [cy3sbml](https://github.com/matthiaskoenig/cy3sbml) app reads the SBML, install it from the Cytoscape app store.
 
 If py4cytoscape is not installed, or Cytoscape is not reachable, the functions log a warning and return `None`; they do not raise, so a model creation script which visualizes at the end still finishes.
 
@@ -90,7 +90,7 @@ export_image(image_path=Path("network.png"), format="PNG")
 
 ## The SBML layout package
 
-The positions of a model can also be stored *in* the model, with the SBML layout package. `sbmlutils.layout` provides the objects for it — `Layout`, `SpeciesGlyph`, `ReactionGlyph`, `CompartmentGlyph` — which are assigned to `model.layouts`:
+The positions of a model can also be stored *in* the model, with the SBML layout package. `sbmlutils.layout` provides the objects for it - `Layout`, `SpeciesGlyph`, `ReactionGlyph`, `CompartmentGlyph` - which are assigned to `model.layouts`:
 
 ```python
 import sbmlutils.layout as layout

@@ -4,7 +4,7 @@ Large models are built from smaller ones. The SBML [comp](https://sbml.org/docum
 
 ## Ports
 
-A port is the interface of a model — the elements another model is allowed to connect to. Any element is exported by setting `port=True`:
+A port is the interface of a model - the elements another model is allowed to connect to. Any element is exported by setting `port=True`:
 
 ```python
 from sbmlutils.factory import Compartment, Model, Package, Species
@@ -52,7 +52,7 @@ model.replaced_elements = [
 ]
 ```
 
-`ReplacedBy` is the other direction — an element of this model is replaced *by* one of a submodel — and `Deletion` removes an element of a submodel.
+`ReplacedBy` is the other direction - an element of this model is replaced *by* one of a submodel - and `Deletion` removes an element of a submodel.
 
 ## A grid of coupled cells
 

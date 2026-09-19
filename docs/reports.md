@@ -1,6 +1,6 @@
 # Reports
 
-An SBML file is XML: complete, but not readable. A report answers the questions a modeller actually has about a model — which species are there, what is the rate of a reaction, which units does a parameter have, what is it annotated with.
+An SBML file is XML: complete, but not readable. A report answers the questions a modeller actually has about a model - which species are there, what is the rate of a reaction, which units does a parameter have, what is it annotated with.
 
 `sbmlutils` produces the content of such a report as JSON. [sbml4humans.de](https://sbml4humans.de) renders it in the browser.
 

@@ -9,24 +9,24 @@
 
 SBML is the exchange format for computational models in systems biology ([Keating *et al.* 2020](references.md#sbml), [Hucka *et al.* 2019](references.md#sbml)), and libsbml is the reference implementation for reading and writing it. Working with libsbml directly is verbose: every element is created on the model, every attribute is set through a setter, and every call returns a status code which has to be checked. A compartment with a unit and an annotation is a dozen statements.
 
-`sbmlutils` is the layer above it. A model is written as a python object — a `Model` holding `Compartment`, `Species`, `Parameter` and `Reaction` objects — and `create_model` turns that definition into a validated SBML file. The definition is data, so it can be composed, parameterized and generated, and the units, annotations and notes belong to the element they describe instead of being applied afterwards.
+`sbmlutils` is the layer above it. A model is written as a python object - a `Model` holding `Compartment`, `Species`, `Parameter` and `Reaction` objects - and `create_model` turns that definition into a validated SBML file. The definition is data, so it can be composed, parameterized and generated, and the units, annotations and notes belong to the element they describe instead of being applied afterwards.
 
 Around this core the package collects the tasks which come with SBML models: validating them, merging them, flattening a hierarchical model, converting them to other formats, and describing them in a human readable report.
 
 ## Features
 
-- **[Model creation](creation.md)** — define a model as python objects and write it as SBML with `create_model`, with support for the `comp`, `fbc`, `distrib` and `layout` packages.
-- **[Units](units.md)** — units are written as strings (`mmole/min/l`), parsed with [pint](https://pint.readthedocs.io) and converted into SBML unit definitions; the model is checked for unit consistency.
-- **[Annotations](annotations.md)** — MIRIAM annotations and SBO terms on every element, either in the model definition or applied to an existing model from an annotation spreadsheet.
-- **[Notes](notes.md)** — element documentation written as markdown, converted to the XHTML notes SBML requires.
-- **[Validation](validation.md)** — the libsbml checks with a readable report and configurable consistency options.
-- **[Model composition](comp.md)** — hierarchical models with the `comp` package: submodels, ports, replacements, and flattening into a single model.
-- **[Flux balance constraints](fbc.md)** — `fbc` models with flux bounds, objectives, gene products and user defined constraints, and a bridge to [cobrapy](https://cobrapy.readthedocs.io).
-- **[COMBINE archives](omex.md)** — models packaged as OMEX archives through [pymetadata](https://github.com/matthiaskoenig/pymetadata).
-- **[Reports](reports.md)** — the complete content of a model as JSON, the basis of the reports on [sbml4humans.de](https://sbml4humans.de).
-- **[Converters](converters.md)** — SBML to an ODE system (python, R, julia, markdown, latex), XPP/XPPAUT `.ode` files to SBML, and antimony in both directions.
-- **[Interpolation](interpolation.md)** — a table of data points as an SBML model, with constant, linear and cubic spline interpolation.
-- **[Visualization](visualization.md)** — models rendered as a network in [Cytoscape](https://cytoscape.org).
+- **[Model creation](creation.md)** - define a model as python objects and write it as SBML with `create_model`, with support for the `comp`, `fbc`, `distrib` and `layout` packages.
+- **[Units](units.md)** - units are written as strings (`mmole/min/l`), parsed with [pint](https://pint.readthedocs.io) and converted into SBML unit definitions; the model is checked for unit consistency.
+- **[Annotations](annotations.md)** - MIRIAM annotations and SBO terms on every element, either in the model definition or applied to an existing model from an annotation spreadsheet.
+- **[Notes](notes.md)** - element documentation written as markdown, converted to the XHTML notes SBML requires.
+- **[Validation](validation.md)** - the libsbml checks with a readable report and configurable consistency options.
+- **[Model composition](comp.md)** - hierarchical models with the `comp` package: submodels, ports, replacements, and flattening into a single model.
+- **[Flux balance constraints](fbc.md)** - `fbc` models with flux bounds, objectives, gene products and user defined constraints, and a bridge to [cobrapy](https://cobrapy.readthedocs.io).
+- **[COMBINE archives](omex.md)** - models packaged as OMEX archives through [pymetadata](https://github.com/matthiaskoenig/pymetadata).
+- **[Reports](reports.md)** - the complete content of a model as JSON, the basis of the reports on [sbml4humans.de](https://sbml4humans.de).
+- **[Converters](converters.md)** - SBML to an ODE system (python, R, julia, markdown, latex), XPP/XPPAUT `.ode` files to SBML, and antimony in both directions.
+- **[Interpolation](interpolation.md)** - a table of data points as an SBML model, with constant, linear and cubic spline interpolation.
+- **[Visualization](visualization.md)** - models rendered as a network in [Cytoscape](https://cytoscape.org).
 
 The specifications behind the language and its packages are cited in [References](references.md).
 
@@ -133,6 +133,6 @@ If you use `sbmlutils` please cite the archived software on [Zenodo](https://doi
 
 ## Funding
 
-Matthias König is supported by the German Research Foundation (DFG) within the Research Unit Programme FOR 5151 "QuaLiPerF (Quantifying Liver Perfusion-Function Relationship in Complex Resection — A Systems Medicine Approach)" by grant number 436883643 and by grant number 465194077 (Priority Programme SPP 2311, Subproject SimLivA).
+Matthias König is supported by the German Research Foundation (DFG) within the Research Unit Programme FOR 5151 "QuaLiPerF (Quantifying Liver Perfusion-Function Relationship in Complex Resection - A Systems Medicine Approach)" by grant number 436883643 and by grant number 465194077 (Priority Programme SPP 2311, Subproject SimLivA).
 
 Matthias König was supported by the Federal Ministry of Education and Research (BMBF, Germany) within the research network Systems Medicine of the Liver (**LiSyM**, grant number 031L0054). SBML4Humans was funded as part of [Google Summer of Code 2021](https://summerofcode.withgoogle.com/). Matthias König has received funding from the EOSCsecretariat.eu which has received funding from the European Union's Horizon Programme call H2020-INFRAEOSC-05-2018-2019, grant Agreement number 831644.
