@@ -4679,7 +4679,22 @@ class Submodel(Sbase):
         submodel = cmodel.createSubmodel()
         self._set_fields(submodel, model)
 
-        submodel.setModelRef(self.modelRef)
+        if self.modelRef is None:
+            # comp:modelRef is a required attribute; libsbml raises a
+            # SWIG TypeError for `setModelRef(None)` rather than reporting
+            # an invalid value, so the guard has to sit in front of the
+            # call. The document is written anyway (`create_model` reports,
+            # it never blocks) and is caught by validation instead, which
+            # reports id 1020607 ("Allowed <submodel> attributes") naming
+            # 'comp:modelRef' as a missing required attribute, once for
+            # every consistency check `ValidationOptions` runs.
+            logger.error(
+                "Submodel '%s' has no modelRef, which is a required "
+                "attribute; the written document will not validate.",
+                self.sid,
+            )
+        else:
+            submodel.setModelRef(self.modelRef)
         if self.timeConversionFactor:
             submodel.setTimeConversionFactor(self.timeConversionFactor)
         if self.extentConversionFactor:

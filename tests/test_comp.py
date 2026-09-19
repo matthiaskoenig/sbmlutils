@@ -12,7 +12,7 @@ from sbmlutils.factory import *
 from sbmlutils.factory import PortType, create_objects
 from sbmlutils.io import read_sbml
 from sbmlutils.metadata import SBO
-from sbmlutils.validation import ValidationOptions
+from sbmlutils.validation import ValidationOptions, validate_doc
 
 
 def create_port_doc() -> libsbml.SBMLDocument:
@@ -316,3 +316,34 @@ def test_port_needs_an_id(caplog: pytest.LogCaptureFixture) -> None:
     comp_model: libsbml.CompModelPlugin = model.getPlugin("comp")
     assert comp_model.getNumPorts() == 0
     assert any("port" in record.getMessage() for record in caplog.records)
+
+
+def test_submodel_without_model_ref_is_written_without_raising(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that a `Submodel` without a `modelRef` does not raise.
+
+    `comp:modelRef` is a required attribute, so a `Submodel` without one
+    writes a document which is not valid, but `create_model` reports, it
+    never blocks (see the module docstring of `validation.py`): the
+    libsbml `TypeError` this used to raise (`Submodel_setModelRef` refuses
+    a null string) is guarded, one ERROR names the submodel instead, and
+    validation reports the missing attribute on the written document.
+    """
+    model = Model(sid="submodel_without_model_ref", submodels=[Submodel(sid="sub1")])
+
+    with caplog.at_level(logging.ERROR, logger="sbmlutils"):
+        doc = _write(model, tmp_path)
+
+    assert any("sub1" in record.getMessage() for record in caplog.records), (
+        "no ERROR named the submodel"
+    )
+
+    cmodel: libsbml.CompModelPlugin = doc.getModel().getPlugin("comp")
+    submodel: libsbml.Submodel = cmodel.getSubmodel("sub1")
+    assert not submodel.isSetModelRef()
+
+    result = validate_doc(doc, options=ValidationOptions(units_consistency=False))
+    assert any(error.getErrorId() == 1020607 for error in result.errors), (
+        "validation did not report the missing comp:modelRef"
+    )
