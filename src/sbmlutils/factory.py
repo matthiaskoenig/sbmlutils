@@ -159,7 +159,7 @@ _ID_ATTRIBUTE_TYPECODES: frozenset[int] = frozenset(
 )
 
 
-def _create_object(obj: Any, container: Any) -> libsbml.SBase:
+def _create_object(obj: Any, container: Any) -> libsbml.SBase | None:
     """Create one object in its container, naming it if the creation fails.
 
     Args:
@@ -169,7 +169,8 @@ def _create_object(obj: Any, container: Any) -> libsbml.SBase:
             `ModelDefinition`, which is a child of the `<sbml>` element
 
     Returns:
-        the created libsbml object
+        the created libsbml object, `None` for an element which the document
+        cannot carry at all and whose writer reported it
 
     Raises:
         Exception: whatever `create_sbml` raises, after reporting which
@@ -205,7 +206,12 @@ def create_objects(
                 sbml_objects,
             )
 
-        sbml_obj: libsbml.SBase = _create_object(obj, model)
+        sbml_obj: libsbml.SBase | None = _create_object(obj, model)
+        if sbml_obj is None:
+            # the document cannot carry the element at all and the writer
+            # which refused it has reported why, e.g. an
+            # `<fbc:userDefinedConstraint>` in an fbc version 2 document
+            continue
         # FIXME: what happens for objects without id?
         sbml_objects[sbml_obj.getId()] = sbml_obj
 
@@ -424,6 +430,49 @@ def _check_attribute(
         _record_attribute_loss(sbase, attribute, value, element)
         return False
     return check(status, f"Set {attribute} '{value}' on '{element}'")
+
+
+def _fbc_version_loss(
+    plugin: Any, needed: int, what: str, count: int, element: Any
+) -> str | None:
+    """Say why the fbc version of a document cannot carry this content.
+
+    The one place which answers whether content of a later fbc version can be
+    written. A `<fbc:keyValuePair>` and an `<fbc:userDefinedConstraint>` are
+    both fbc version 3, and in an fbc version 2 document libsbml creates the
+    element and answers every attribute of it with
+    `LIBSBML_UNEXPECTED_ATTRIBUTE` (measured with libsbml 5.21.2), so what
+    gets written is an empty element which no reader can use. The version is
+    read from the plugin of the created libsbml object, which is the version
+    of the document being written, rather than from the packages of the
+    `Model`, the way `Species._set_charge` reads it.
+
+    Args:
+        plugin: the fbc plugin the content would be created on, `None` for a
+            document which does not declare fbc at all
+        needed: the fbc version the content needs
+        what: the content, named in the report, e.g. `key-value pair(s)`
+        count: how many of them are lost
+        element: the model element the content belongs to
+
+    Returns:
+        the reason, as a sentence which names the element and says what to do
+        about it, `None` if the document can carry the content
+    """
+    if plugin is None:
+        return (
+            f"The {count} {what} of '{element}' are not written: the document "
+            f"does not declare the fbc package. Add "
+            f"`packages=[Package.FBC_V{needed}]` to the model definition."
+        )
+    have: int = plugin.getPackageVersion()
+    if have < needed:
+        return (
+            f"The {count} {what} of '{element}' are not written: the content "
+            f"is fbc version {needed}, the document is fbc version {have}. "
+            f"Use `Package.FBC_V{needed}` for a model with it."
+        )
+    return None
 
 
 def _set_math(sbase: Any, math: str | None, model: libsbml.Model) -> None:
@@ -1379,7 +1428,9 @@ class KeyValuePair(Sbase):
     no key-value pair**: libsbml answers every attribute of a pair with
     `LIBSBML_UNEXPECTED_ATTRIBUTE` in fbc version 2 and attaches no fbc
     plugin without the package. Both are reported once for the element which
-    carries the pairs, see `KeyValuePair.create_pairs`.
+    carries the pairs, see `KeyValuePair.create_pairs` and
+    `_fbc_version_loss`, which answers the same question for an
+    `<fbc:userDefinedConstraint>`.
 
     Neither `uncertainties` nor a nested list of `keyValuePairs` is offered:
     libsbml creates both on the plugins of a `<fbc:keyValuePair>` without an
@@ -1490,26 +1541,9 @@ class KeyValuePair(Sbase):
             return None
 
         sbase_fbc: libsbml.FbcSBasePlugin | None = sbase.getPlugin("fbc")
-        if sbase_fbc is None:
-            logger.error(
-                "The %s key-value pair(s) of '%s' are not written: the "
-                "document does not declare the fbc package. Add "
-                "`packages=[Package.FBC_V3]` to the model definition.",
-                len(pairs),
-                element,
-            )
-            return None
-        fbc_version: int = sbase_fbc.getPackageVersion()
-        if fbc_version < 3:
-            logger.error(
-                "The %s key-value pair(s) of '%s' are not written: a "
-                "<fbc:keyValuePair> is fbc version 3, the document is fbc "
-                "version %s. Use `Package.FBC_V3` for a model with key-value "
-                "pairs.",
-                len(pairs),
-                element,
-                fbc_version,
-            )
+        loss = _fbc_version_loss(sbase_fbc, 3, "key-value pair(s)", len(pairs), element)
+        if loss is not None:
+            logger.error("%s", loss)
             return None
 
         return [pair.create_sbml(sbase, model) for pair in pairs]
@@ -5205,15 +5239,37 @@ class UserDefinedConstraint(Sbase):
                         component.variableType = variableType
                     self.components.append(component)
 
-    def create_sbml(self, model: libsbml.Model) -> libsbml.UserDefinedConstraint:
-        """Create UserDefinedConstraint."""
-        model_fbc: libsbml.FbcModelPlugin = model.getPlugin("fbc")
+    def create_sbml(self, model: libsbml.Model) -> libsbml.UserDefinedConstraint | None:
+        """Create the libsbml.UserDefinedConstraint in the model.
+
+        An `<fbc:userDefinedConstraint>` is fbc **version 3**. In an fbc
+        version 2 document libsbml creates the element and answers every one
+        of `setUpperBound`, `setLowerBound`, `setVariable`, `setCoefficient`
+        and `setVariableType` with `LIBSBML_UNEXPECTED_ATTRIBUTE`, so all
+        that would be written is an empty `<fbc:userDefinedConstraint/>`,
+        which is invalid. Such a document is reported once for the constraint
+        and gets no element, the way a key-value pair is refused, see
+        `_fbc_version_loss`.
+
+        Args:
+            model: the libsbml.Model the constraint is created in
+
+        Returns:
+            the created constraint, `None` if the fbc version of the document
+            cannot carry one
+        """
+        model_fbc: libsbml.FbcModelPlugin | None = model.getPlugin("fbc")
+        loss = _fbc_version_loss(model_fbc, 3, "user defined constraint(s)", 1, self)
+        if loss is not None:
+            logger.error("%s", loss)
+            return None
+        # a document without an fbc plugin is one of the reasons
+        # `_fbc_version_loss` answers with, so the plugin is there
+        assert model_fbc is not None
+
         udc: libsbml.UserDefinedConstraint = model_fbc.createUserDefinedConstraint()
         self._set_fields(udc, model)
         self.create_port(model)
-        # an `<fbc:userDefinedConstraint>` is fbc version 3; in an fbc
-        # version 2 document libsbml creates the element and refuses every
-        # attribute of it with `LIBSBML_UNEXPECTED_ATTRIBUTE`
         _check_attribute(
             udc.setUpperBound(self.upperBound),
             udc,

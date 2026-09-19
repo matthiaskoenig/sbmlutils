@@ -52,6 +52,8 @@ from sbmlutils.factory import (
     Reaction,
     ReactionEquation,
     Species,
+    UserDefinedConstraint,
+    UserDefinedConstraintComponent,
     create_model,
 )
 from sbmlutils.parser import sbml_to_model
@@ -3681,3 +3683,80 @@ def test_key_value_pairs_without_an_fbc_plugin_are_reported(
     assert "does not declare the fbc package" in errors[0]
     assert "Parameter(k" in errors[0]
     assert "keyValuePair" not in libsbml.writeSBMLToString(doc)
+
+
+def _user_defined_constraint_model(packages: list[Package]) -> Model:
+    """Get a model with one user defined constraint.
+
+    Args:
+        packages: the packages the model declares
+
+    Returns:
+        the model
+    """
+    return Model(
+        sid="user_defined_constraints",
+        name="a model with a user defined constraint",
+        packages=packages,
+        compartments=[Compartment("c", 1.0, name="compartment")],
+        species=[
+            Species("S1", compartment="c", initialAmount=1.0, name="S1"),
+            Species("S2", compartment="c", initialAmount=0.0, name="S2"),
+        ],
+        parameters=[
+            Parameter("lb", -1000.0, name="lower bound"),
+            Parameter("ub", 1000.0, name="upper bound"),
+            Parameter("k", 1.0, name="k"),
+        ],
+        reactions=[Reaction("R1", "S1 -> S2", name="reaction")],
+        user_defined_constraints=[
+            UserDefinedConstraint(
+                sid="udc1",
+                name="user defined constraint",
+                lowerBound="lb",
+                upperBound="ub",
+                components=[
+                    UserDefinedConstraintComponent(
+                        variable="R1", coefficient="k", sid="udcc1", name="component"
+                    )
+                ],
+            )
+        ],
+    )
+
+
+def test_user_defined_constraints_of_an_fbc_v2_document_are_reported(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that an fbc version 2 document gets no user defined constraint.
+
+    An `<fbc:userDefinedConstraint>` is fbc version 3. In an fbc version 2
+    document libsbml creates the element and answers every one of
+    `setUpperBound`, `setLowerBound`, `setVariable`, `setCoefficient` and
+    `setVariableType` with `LIBSBML_UNEXPECTED_ATTRIBUTE`, so what was
+    written was an empty `<fbc:userDefinedConstraint/>`, which is invalid.
+    """
+    model = _user_defined_constraint_model([Package.FBC_V2])
+    sbml_path = tmp_path / f"{model.sid}.xml"
+    with caplog.at_level(logging.ERROR, logger="sbmlutils"):
+        create_model(model=model, filepath=sbml_path, validate=False)
+
+    sbml = sbml_path.read_text(encoding="utf-8")
+    assert "userDefinedConstraint" not in sbml
+    errors = [record.getMessage() for record in caplog.records]
+    assert len(errors) == 1, errors
+    assert "1 user defined constraint(s)" in errors[0]
+    assert "fbc version 3, the document is fbc version 2" in errors[0]
+
+
+def test_user_defined_constraints_of_an_fbc_v3_document_are_written(
+    tmp_path: Path,
+) -> None:
+    """Test the positive control: fbc version 3 writes the constraint."""
+    model = _user_defined_constraint_model([Package.FBC_V3])
+    sbml_path = tmp_path / f"{model.sid}.xml"
+    create_model(model=model, filepath=sbml_path, validate=False)
+
+    sbml = sbml_path.read_text(encoding="utf-8")
+    assert "<fbc:userDefinedConstraint " in sbml
+    assert 'fbc:lowerBound="lb"' in sbml
