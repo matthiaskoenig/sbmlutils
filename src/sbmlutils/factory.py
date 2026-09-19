@@ -5509,6 +5509,27 @@ class Model(Sbase, FrozenClass):
         for model_definition in self.model_definitions:
             _create_object(model_definition, model.getSBMLDocument())
 
+        # `fbc:strict` cannot be written on a model definition, see
+        # `ModelDefinition`. Reported once for the document and only for a
+        # model definition which claims `True`: `False` is what a reader of
+        # the written document sees for an unset `fbc:strict` anyway. After
+        # the model definitions were written, so that a model definition
+        # which is rejected reports nothing but its rejection.
+        strict_definitions = [
+            model_definition.sid
+            for model_definition in self.model_definitions
+            if model_definition.strict
+        ]
+        if strict_definitions:
+            logger.warning(
+                "'strict' is not written on the model definitions %s: libsbml "
+                "writes 'fbc:strict' twice on a <comp:modelDefinition>, which "
+                "makes the written document unreadable, so a reader sees "
+                "'fbc:strict' unset on them. See the class docstring of "
+                "`ModelDefinition`.",
+                strict_definitions,
+            )
+
         # lists ofs
         for attr in [
             "submodels",
@@ -5834,21 +5855,16 @@ class ModelDefinition(Model):
             the created and filled libsbml.ModelDefinition
 
         Raises:
-            ValueError: if the document does not declare the comp package, or
-                if a field a model definition does not support is set
+            ValueError: if a field a model definition does not support is set,
+                or if the document does not declare the comp package
         """
+        # checked before anything is created, so that a model definition
+        # which is rejected leaves no empty `<comp:modelDefinition>` behind
+        self._check_fields()
         doc_comp: libsbml.CompSBMLDocumentPlugin = _comp_plugin(
             doc, f"The model definition '{self.sid}'"
         )
         model_definition: libsbml.ModelDefinition = doc_comp.createModelDefinition()
-        if self.strict is not None:
-            logger.warning(
-                "'strict' is not written on model definition '%s': libsbml "
-                "writes 'fbc:strict' twice on a <comp:modelDefinition>, which "
-                "makes the written document unreadable. See the class "
-                "docstring of `ModelDefinition`.",
-                self.sid,
-            )
         self._fill_sbml(model_definition)
         return model_definition
 

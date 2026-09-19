@@ -1334,3 +1334,71 @@ def test_math_of_a_model_definition_is_parsed_against_it(tmp_path: Path) -> None
             continue
         assert "symbols/time" not in mathml, key
         assert "symbols/avogadro" not in mathml, key
+
+
+def test_strict_of_a_model_definition_is_reported_once(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that the dropped `fbc:strict` is reported once per document.
+
+    A reader of the written document sees `fbc:strict` unset on every model
+    definition, so only a model definition which claims `True` loses
+    something, and the document says it once however many model definitions
+    claim it.
+    """
+    model = Model(
+        sid="strict_reported_once",
+        name="a model with three model definitions",
+        packages=[Package.COMP_V1, Package.FBC_V3],
+        parameters=[Parameter("k_top", 1.0, name="parameter of the main model")],
+        model_definitions=[
+            ModelDefinition(sid="md_strict_1", name="first", strict=True),
+            ModelDefinition(sid="md_strict_2", name="second", strict=True),
+            ModelDefinition(sid="md_not_strict", name="third", strict=False),
+            ModelDefinition(sid="md_silent", name="fourth"),
+        ],
+    )
+    with caplog.at_level(logging.WARNING, logger="sbmlutils"):
+        _write(model, tmp_path)
+
+    warnings = [
+        record.getMessage()
+        for record in caplog.records
+        if "strict" in record.getMessage() and record.levelname == "WARNING"
+    ]
+    assert len(warnings) == 1, warnings
+    assert "md_strict_1" in warnings[0]
+    assert "md_strict_2" in warnings[0]
+    assert "md_not_strict" not in warnings[0]
+    assert "md_silent" not in warnings[0]
+
+
+def test_a_rejected_model_definition_reports_nothing_else(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that a rejected model definition is rejected before anything is written.
+
+    The fields of a model definition are checked before the libsbml object is
+    created, so a model definition which is rejected neither leaves an empty
+    `<comp:modelDefinition>` behind nor reports its dropped `strict`.
+    """
+    model_definition = ModelDefinition(sid="md_rejected", name="rejected", strict=True)
+    model_definition.packages = [Package.FBC_V3]
+    model = Model(
+        sid="rejected_before_writing",
+        name="a model with a rejected model definition",
+        packages=[Package.COMP_V1],
+        model_definitions=[model_definition],
+    )
+
+    with (
+        caplog.at_level(logging.WARNING, logger="sbmlutils"),
+        pytest.raises(ValueError, match="'packages' is not supported"),
+    ):
+        create_model(
+            model=model,
+            filepath=tmp_path / "rejected_before_writing.xml",
+            validation_options=ValidationOptions(units_consistency=False),
+        )
+
+    assert not [record for record in caplog.records if "strict" in record.getMessage()]
