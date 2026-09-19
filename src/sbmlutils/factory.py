@@ -2352,7 +2352,9 @@ class Reaction(Sbase):
             A `libsbml.ModifierSpeciesReference` has no `constant` or
             `stoichiometry` attribute (only its sibling `SpeciesReference`,
             used for reactants and products, does), so those two are only
-            set when `sref` actually is one.
+            set when `sref` actually is one. Everything else an `SBase`
+            carries, the key-value pairs of fbc version 3 included, is
+            written for all three roles alike.
             """
             if part.species is not None:
                 sref.setSpecies(part.species)
@@ -2406,6 +2408,8 @@ class Reaction(Sbase):
                 annotator.ModelAnnotator.annotate_sbase(
                     sbase=sref, annotation=annotation
                 )
+            for key_value_pair in part.keyValuePairs or []:
+                key_value_pair.create_sbml(sref)
 
         # equation
         for reactant in self.equation.reactants:

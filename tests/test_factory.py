@@ -1800,3 +1800,82 @@ def test_gene_product_association_without_a_space_before_a_group_is_refused(
     messages = [record.getMessage() for record in caplog.records]
     assert [m for m in messages if "GeneProduct missing in model" in m] == []
     assert [m for m in messages if "set gpa" in m] != [], messages
+
+
+def _fbc_reaction_test_model() -> tuple[libsbml.SBMLDocument, libsbml.Model]:
+    """Build a minimal L3V2 fbc version 3 model with species 'A', 'B' and 'M'.
+
+    fbc version 3 is the version which defines the key-value pair, so it is
+    the version a species reference can carry one in.
+
+    Returns:
+        the document and its model; the caller has to hold the document for as
+        long as it uses any object of it
+    """
+    doc = libsbml.SBMLDocument(libsbml.SBMLNamespaces(3, 2, "fbc", 3))
+    doc.setPackageRequired("fbc", False)
+    model: libsbml.Model = doc.createModel()
+    model.setId("reaction_key_value_pairs")
+    plugin: libsbml.FbcModelPlugin = model.getPlugin("fbc")
+    plugin.setStrict(False)
+    model.createCompartment().setId("c")
+    for sid in ("A", "B", "M"):
+        species: libsbml.Species = model.createSpecies()
+        species.setId(sid)
+        species.setCompartment("c")
+    return doc, model
+
+
+def test_reaction_speciesref_keeps_key_value_pairs() -> None:
+    """Test that the key-value pairs of a reactant, product and modifier are written.
+
+    `EquationPart.keyValuePairs` was declared and never read:
+    `set_speciesref_fields` wrote the species, id, stoichiometry, metaId,
+    sboTerm, name, notes and annotations of a part and dropped its key-value
+    pairs, for all three roles alike. A `ModifierSpeciesReference` is an
+    `SBase` like a `SpeciesReference` and carries them just as well.
+    """
+    _doc, model = _fbc_reaction_test_model()
+    equation = ReactionEquation(
+        reactants=[
+            EquationPart(
+                species="A",
+                keyValuePairs=[
+                    KeyValuePair(key="kr", value="1", uri="https://example.org/kr")
+                ],
+            )
+        ],
+        products=[
+            EquationPart(
+                species="B",
+                keyValuePairs=[KeyValuePair(key="kp", value="2", uri=None)],
+            )
+        ],
+        modifiers=[
+            EquationPart(
+                species="M",
+                keyValuePairs=[KeyValuePair(key="km", value="3", uri=None)],
+            )
+        ],
+    )
+    Reaction("r1", equation).create_sbml(model)
+
+    reaction: libsbml.Reaction = model.getReaction("r1")
+    written: dict[str, tuple[str, str | None]] = {}
+    for sref in (
+        reaction.getReactant(0),
+        reaction.getProduct(0),
+        reaction.getModifier(0),
+    ):
+        plugin: libsbml.FbcSBasePlugin = sref.getPlugin("fbc")
+        for kvp in plugin.getListOfKeyValuePairs():
+            written[kvp.getKey()] = (
+                kvp.getValue(),
+                kvp.getUri() if kvp.isSetUri() else None,
+            )
+
+    assert written == {
+        "kr": ("1", "https://example.org/kr"),
+        "kp": ("2", None),
+        "km": ("3", None),
+    }

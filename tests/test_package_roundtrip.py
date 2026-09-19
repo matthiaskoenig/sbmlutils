@@ -42,11 +42,14 @@ from test_roundtrip import SEMANTIC_DIR, requires_testsuite, testsuite_case
 from sbmlutils import RESOURCES_DIR
 from sbmlutils.factory import (
     Compartment,
+    EquationPart,
+    KeyValuePair,
     Model,
     Objective,
     Package,
     Parameter,
     Reaction,
+    ReactionEquation,
     Species,
     create_model,
 )
@@ -1359,6 +1362,181 @@ def test_roundtrip_preserves_key_value_pairs(tmp_path: Path) -> None:
     diffs = [d for d in structural_diff(doc_in, doc_out) if d.package == "fbc"]
 
     assert [str(d) for d in diffs] == []
+
+
+def _speciesref_kvp_model() -> Model:
+    """Get a model whose reactant, product and modifier each carry a key-value pair.
+
+    A species reference is an `SBase` and carries the key-value pairs of fbc
+    version 3 like any other element; `EquationPart` holds them for all three
+    roles, a `ModifierSpeciesReference` included.
+
+    Returns:
+        the model definition
+    """
+    return Model(
+        sid="speciesref_key_value_pair",
+        packages=[Package.FBC_V3],
+        strict=False,
+        compartments=[Compartment(sid="c", value=1.0)],
+        species=[
+            Species(sid=sid, compartment="c", initialAmount=1.0)
+            for sid in ("S1", "S2", "M1")
+        ],
+        reactions=[
+            Reaction(
+                sid="R1",
+                equation=ReactionEquation(
+                    reactants=[
+                        EquationPart(
+                            species="S1",
+                            stoichiometry=1.0,
+                            keyValuePairs=[
+                                KeyValuePair(
+                                    key="reactant-key",
+                                    value="47",
+                                    uri="https://example.org/keys",
+                                )
+                            ],
+                        )
+                    ],
+                    products=[
+                        EquationPart(
+                            species="S2",
+                            stoichiometry=1.0,
+                            keyValuePairs=[
+                                KeyValuePair(key="product-key", value="48", uri=None)
+                            ],
+                        )
+                    ],
+                    modifiers=[
+                        EquationPart(
+                            species="M1",
+                            keyValuePairs=[
+                                KeyValuePair(key="modifier-key", value="49", uri=None)
+                            ],
+                        )
+                    ],
+                    reversible=False,
+                ),
+            )
+        ],
+    )
+
+
+#: the `key` of a `keyValuePair` element, as libsbml writes it
+_KEY_ATTRIBUTE = re.compile(r"<keyValuePair[^>]*\skey=\"([^\"]*)\"")
+
+
+def _written_keys(sbml_path: Path) -> set[str]:
+    """Get the key of every key-value pair of an SBML file, from its text.
+
+    The keys are read from the file rather than through libsbml, which does
+    not read back the pairs of a reactant or a product, see
+    `test_libsbml_reads_the_key_value_pairs_of_a_modifier_only`.
+
+    Args:
+        sbml_path: path of the SBML file
+
+    Returns:
+        the key of every `keyValuePair` element of the file
+    """
+    return set(_KEY_ATTRIBUTE.findall(sbml_path.read_text(encoding="utf-8")))
+
+
+def test_roundtrip_preserves_key_value_pairs_of_a_species_reference(
+    tmp_path: Path,
+) -> None:
+    """Test that the key-value pairs of a species reference survive a round trip.
+
+    `EquationPart.keyValuePairs` was declared and never written, so a reactant,
+    product or modifier lost its pairs on the way into SBML. All three are
+    written now, which the file of the fixture shows; of the three libsbml
+    reads only the one of the modifier back, so that is the one whose round
+    trip can be compared, and the census of the document read is what says so.
+    """
+    sbml_path = _source_path(_speciesref_kvp_model, tmp_path)
+    assert _written_keys(sbml_path) == {"reactant-key", "product-key", "modifier-key"}
+
+    doc_in, doc_out = roundtrip_document(sbml_path, tmp_path)
+    assert _expected_constructs(comparable_document(doc_in))["fbc.keyValuePair"] == 1
+
+    diffs = [d for d in structural_diff(doc_in, doc_out) if d.package == "fbc"]
+
+    assert [str(d) for d in diffs] == []
+    modifier: libsbml.ModifierSpeciesReference = (
+        doc_out.getModel().getReaction("R1").getModifier(0)
+    )
+    plugin: libsbml.FbcSBasePlugin = modifier.getPlugin("fbc")
+    pair: libsbml.KeyValuePair = plugin.getKeyValuePair(0)
+    assert (pair.getKey(), pair.getValue()) == ("modifier-key", "49")
+
+
+def test_libsbml_reads_the_key_value_pairs_of_a_modifier_only(tmp_path: Path) -> None:
+    """Test the libsbml defect which hides the key-value pairs of a reactant or product.
+
+    libsbml 5.21.2 writes the `listOfKeyValuePairs` annotation of fbc version 3
+    on a `speciesReference` and never reads it back; on a
+    `modifierSpeciesReference` it reads it as it should. The pairs are in the
+    file either way, which `_written_keys` shows, so nothing is lost on the way
+    out; they are lost on the way back in, inside libsbml, before any code of
+    this package sees them. This is why the round trip of a reactant or product
+    pair cannot be compared and why `structural_diff` reports nothing for it:
+    the comparison sees what libsbml reads, see the docstring of
+    `tests/structural.py`.
+
+    The document is built with libsbml alone, so that the defect is pinned
+    where it lives rather than through the factory.
+    """
+    doc: libsbml.SBMLDocument = libsbml.SBMLDocument(
+        libsbml.SBMLNamespaces(3, 2, "fbc", 3)
+    )
+    doc.setPackageRequired("fbc", False)
+    model: libsbml.Model = doc.createModel()
+    model.setId("libsbml_key_value_pairs")
+    model_fbc: libsbml.FbcModelPlugin = model.getPlugin("fbc")
+    model_fbc.setStrict(False)
+    compartment: libsbml.Compartment = model.createCompartment()
+    compartment.setId("c")
+    compartment.setConstant(True)
+    for sid in ("A", "M"):
+        species: libsbml.Species = model.createSpecies()
+        species.setId(sid)
+        species.setCompartment("c")
+        species.setConstant(False)
+        species.setBoundaryCondition(False)
+        species.setHasOnlySubstanceUnits(False)
+    reaction: libsbml.Reaction = model.createReaction()
+    reaction.setId("R1")
+    reaction.setReversible(False)
+    reactant: libsbml.SpeciesReference = reaction.createReactant()
+    reactant.setSpecies("A")
+    reactant.setStoichiometry(1.0)
+    reactant.setConstant(True)
+    modifier: libsbml.ModifierSpeciesReference = reaction.createModifier()
+    modifier.setSpecies("M")
+    for sref, key in ((reactant, "reactant-key"), (modifier, "modifier-key")):
+        plugin: libsbml.FbcSBasePlugin = sref.getPlugin("fbc")
+        pairs: libsbml.ListOfKeyValuePairs = plugin.getListOfKeyValuePairs()
+        pairs.setXmlns("http://sbml.org/fbc/keyvaluepair")
+        pair: libsbml.KeyValuePair = pairs.createKeyValuePair()
+        assert pair.setKey(key) == libsbml.LIBSBML_OPERATION_SUCCESS
+        assert pair.setValue("1") == libsbml.LIBSBML_OPERATION_SUCCESS
+
+    sbml_path = tmp_path / "libsbml_key_value_pairs.xml"
+    assert libsbml.writeSBMLToFile(doc, str(sbml_path))
+    assert _written_keys(sbml_path) == {"reactant-key", "modifier-key"}
+
+    doc_again: libsbml.SBMLDocument = libsbml.readSBMLFromFile(str(sbml_path))
+    reaction_again: libsbml.Reaction = doc_again.getModel().getReaction("R1")
+    reactant_plugin: libsbml.FbcSBasePlugin = reaction_again.getReactant(0).getPlugin(
+        "fbc"
+    )
+    modifier_plugin: libsbml.FbcSBasePlugin = reaction_again.getModifier(0).getPlugin(
+        "fbc"
+    )
+    assert reactant_plugin.getNumKeyValuePairs() == 0
+    assert modifier_plugin.getNumKeyValuePairs() == 1
 
 
 #: every fbc fixture of the repository whose content round trips unchanged,
