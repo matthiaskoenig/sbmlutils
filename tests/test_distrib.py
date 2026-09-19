@@ -1171,3 +1171,22 @@ def test_uncert_parameter_which_states_a_value_is_not_reported(
         for record in caplog.records
         if "states nothing about the value" in record.getMessage()
     ] == []
+
+
+def test_uncertainty_of_a_rayleigh_formula_writes_its_definition_url() -> None:
+    """Test that the rayleigh distribution is recognized by the formula shortcut.
+
+    The list of distributions the shortcut recognizes spelled it `raleigh`,
+    which no formula of the distribution contains: `rayleigh(0.5)` was written
+    as an uncert parameter of the type `distribution` without a definitionURL
+    and without math, and a formula with the misspelling was given the URL
+    `.../distrib/raleigh`, which distrib does not define. libsbml writes the
+    csymbol `.../distrib/rayleigh`, see `examples/distrib_distributions.xml`.
+    """
+    doc = _uncertainty_document(Uncertainty(formula="rayleigh(0.5)"))
+
+    (child,) = _children(doc)
+    assert (
+        child.getDefinitionURL() == "http://www.sbml.org/sbml/symbols/distrib/rayleigh"
+    )
+    assert libsbml.formulaToL3String(child.getMath()) == "rayleigh(0.5)"

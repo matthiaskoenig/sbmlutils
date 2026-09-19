@@ -3841,7 +3841,7 @@ _DISTRIBUTIONS: tuple[str, ...] = (
     "laplace",
     "lognormal",
     "poisson",
-    "raleigh",
+    "rayleigh",
 )
 
 
