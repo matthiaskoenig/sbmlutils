@@ -1778,6 +1778,21 @@ def _evaluate(infix: str, genes: dict[str, bool]) -> bool:
 
 
 #: the associations of e_coli_core which libsbml does not write back as read,
+#: as the source states them
+NESTED: dict[str, str] = {
+    "R_PFL": (
+        "(((G_b0902 and G_b0903) and G_b2579) or (G_b0902 and G_b0903) or "
+        "(G_b0902 and G_b3114) or (G_b3951 and G_b3952))"
+    ),
+    "R_ATPS4r": (
+        "(((G_b3736 and G_b3737 and G_b3738) and (G_b3731 and G_b3732 and "
+        "G_b3733 and G_b3734 and G_b3735)) or ((G_b3736 and G_b3737 and "
+        "G_b3738) and (G_b3731 and G_b3732 and G_b3733 and G_b3734 and "
+        "G_b3735) and G_b3739))"
+    ),
+}
+
+#: the associations of e_coli_core which libsbml does not write back as read,
 #: with the form it writes them in
 FLATTENED: dict[str, str] = {
     "R_PFL": (
@@ -1829,6 +1844,46 @@ def test_gpa_flattening_is_what_libsbml_does_and_means_the_same(
     for state in product([False, True], repeat=len(genes)):
         assignment = dict(zip(genes, state, strict=True))
         assert _evaluate(association, assignment) == _evaluate(flattened, assignment)
+
+
+def test_roundtrip_flattens_exactly_the_two_pinned_associations(
+    tmp_path: Path,
+) -> None:
+    """Test that the whitelist hides the flattening of a real round trip and nothing else.
+
+    `gpa-flattening` is the one whitelist entry the fbc round trip relies on,
+    and `R_PFL` and `R_ATPS4r` of `FBC_ECOLI_CORE_SBML` are the only two
+    associations of that fixture it applies to, see
+    `test_gpa_flattening_pins_every_association_libsbml_changes`. Both forms
+    are spelled out here, so a round trip which changes an association in any
+    other way fails this even where the entry would accept it; the entry
+    itself is held to the two strings as well.
+
+    The entry hides that flattening and nothing more, which the synthetic
+    change at the end shows: one gene of the association written back is
+    replaced, and the comparison reports exactly that reaction.
+    """
+    doc_in, doc_out = roundtrip_document(FBC_ECOLI_CORE_SBML, tmp_path)
+    pinned = {f"model/reaction:{reaction_id}" for reaction_id in FLATTENED}
+    for reaction_id, flattened in FLATTENED.items():
+        assert _association(doc_in, reaction_id) == NESTED[reaction_id]
+        assert _association(doc_out, reaction_id) == flattened
+        assert flattened != NESTED[reaction_id]
+        assert _normalization("gpa-flattening").equivalent(
+            NESTED[reaction_id], flattened
+        )
+
+    differences = structural_diff(doc_in, doc_out)
+
+    assert [str(d) for d in differences if d.element_id in pinned] == []
+
+    _set_association(doc_out, "R_PFL", FLATTENED["R_PFL"].replace("G_b3114", "G_b3115"))
+
+    changed = structural_diff(doc_in, doc_out)
+
+    assert [(d.construct, d.element_id, d.attribute) for d in changed] == [
+        ("fbc.geneProductAssociation", "model/reaction:R_PFL", "association")
+    ]
 
 
 @pytest.mark.parametrize(
