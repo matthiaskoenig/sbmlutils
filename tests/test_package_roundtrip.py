@@ -2929,6 +2929,34 @@ def test_parser_names_a_replaced_element_by_an_unambiguous_metaid(
     assert [r.elementRef for r in model.replaced_elements] == ["rule_meta"]
 
 
+def test_libsbml_has_no_list_of_replaced_elements_until_one_is_added(
+    tmp_path: Path,
+) -> None:
+    """Test the libsbml behaviour the parser has to count around.
+
+    libsbml 5.21.2 creates the `<comp:listOfReplacedElements>` of an element
+    only when its first replaced element is added, and answers
+    `getListOfReplacedElements()` with `None` until then, on a fresh document
+    and on one read from a file alike. Iterating that getter is therefore a
+    `TypeError` on every element which has no replacement, which is nearly
+    every element of every document, so `_parse_replaced_elements` counts with
+    `getNumReplacedElements()` instead. `tests/structural.py` handles the same
+    thing in `_items`. This is pinned so that the count is not tidied back
+    into an iteration.
+    """
+    sbml_path = _rule_replacement_sbml(tmp_path, "a_rule_with_a_metaid", "rule_meta")
+    doc: libsbml.SBMLDocument = _read(sbml_path)
+    model: libsbml.Model = doc.getModel()
+
+    parameter_comp: libsbml.CompSBasePlugin = model.getParameter("p1").getPlugin("comp")
+    assert parameter_comp.getNumReplacedElements() == 0
+    assert parameter_comp.getListOfReplacedElements() is None
+
+    rule_comp: libsbml.CompSBasePlugin = model.getRule("p1").getPlugin("comp")
+    assert rule_comp.getNumReplacedElements() == 1
+    assert rule_comp.getListOfReplacedElements() is not None
+
+
 def _replaced_by_sbml(tmp_path: Path) -> Path:
     """Write a document with a `<comp:replacedBy>` on the elements which lose it.
 
