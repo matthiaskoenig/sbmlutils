@@ -115,3 +115,21 @@ def test_model_without_fbc_writes_no_strict() -> None:
     doc: libsbml.SBMLDocument = Document(model=model).create_sbml()
 
     assert doc.getPlugin("fbc") is None
+
+
+@pytest.mark.parametrize("strict", [True, False])
+def test_a_stated_strict_declares_fbc(strict: bool) -> None:
+    """Test that a model which states `strict` declares fbc for it.
+
+    `fbc:strict` is an attribute of the fbc plugin of the model, so a model
+    which says anything about strictness needs the package. Without other fbc
+    content the statement used to be dropped in silence: no fbc namespace, no
+    `fbc:strict`, no report. A model which states neither leaves `strict`
+    `None` and declares nothing.
+    """
+    model = Model("m", strict=strict)
+
+    doc: libsbml.SBMLDocument = Document(model=model).create_sbml()
+
+    assert doc.getPlugin("fbc") is not None
+    assert _fbc_strict(model) is strict

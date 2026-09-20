@@ -60,7 +60,7 @@ from sbmlutils.factory import Model, Package
 model = Model(sid="strict_model", packages=[Package.FBC_V3], strict=True)
 ```
 
-An unset `strict` is written as `false`, which is the weakest claim and always valid. fbc version 1 has no such attribute, so a document read from fbc version 1 comes back as `fbc:strict="false"` rather than claiming a strictness its source never stated.
+A model which states `strict` declares fbc for it, with `packages=` or without: the attribute lives on the fbc plugin of the model, so a model which says anything about strictness needs the package. An unset `strict` says nothing and is written as `false` wherever fbc is declared, which is the weakest claim and always valid. fbc version 1 has no such attribute, so a document read from fbc version 1 comes back as `fbc:strict="false"` rather than claiming a strictness its source never stated.
 
 ## Exchange reactions
 

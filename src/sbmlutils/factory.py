@@ -7169,6 +7169,16 @@ class Model(Sbase, FrozenClass):
         if self._has_comp_content(level, version):
             packages.add(Package.COMP_V1)
 
+        # `fbc:strict` is an attribute of the fbc plugin of the model, so a
+        # model which says anything about strictness engages fbc, `False`
+        # included: that is a claim of its own, and a model which makes
+        # neither claim leaves `strict` at `None`. A model definition is not
+        # counted, since libsbml cannot write `fbc:strict` on one at all and
+        # the package would be declared for an attribute nobody gets, see
+        # `ModelDefinition` and `_fill_sbml`.
+        if self.strict is not None and not isinstance(self, ModelDefinition):
+            packages.add(Package.FBC_V3)
+
         for sbase in _iter_sbases(self):
             if getattr(sbase, "uncertainties", None):
                 packages.add(Package.DISTRIB_V1)
