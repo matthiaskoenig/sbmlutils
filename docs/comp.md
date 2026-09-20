@@ -87,7 +87,7 @@ model.replaced_elements = [
 ]
 ```
 
-A replacement takes no id: libsbml writes the core `id` and `name` of a `<comp:replacedElement>` into no document, see below, so `ReplacedElement`, `ReplacedBy` and `SbaseRef` are written without one and a value given for either is reported. The `metaId` is written and is what an annotation of the replacement refers to.
+A replacement takes no id: libsbml writes the core `id` and the core `name` of a `<comp:replacedElement>` into no document, see below, so `ReplacedElement`, `ReplacedBy` and `SbaseRef` are written without either, and a value given for one of the two is reported. The `metaId` is written and is what an annotation of the replacement refers to.
 
 `ReplacedBy` is the other direction - an element of this model is replaced *by* one of a submodel - and `Deletion` removes an element of a submodel.
 
