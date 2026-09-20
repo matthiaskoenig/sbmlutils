@@ -77,6 +77,14 @@ check time (s)           : 0.012
 
 The messages go through the logging of the package, so an application decides where they end up, see [Installation](installation.md#logging).
 
+## What writing a model reports
+
+Validation judges the document which was written. Writing it reports what libsbml would not take, which no validation of the result can show, because what is not in the file cannot be found in it:
+
+- **A value libsbml refuses** is an error naming the element, the attribute and the value, e.g. a charge which is not a whole number in an fbc version 2 document.
+- **An attribute the document has no place for** - one which the SBML level and version, or the version of the package, does not have at all - is one warning per kind of element and attribute, with the count, an example and what to write instead, see [Reading and writing](io.md#round-tripping). One decision fixes all of them, so it is reported once rather than per element; the detail of each element is logged at debug.
+- **An annotation resource which is written as given** is one warning per collection, see [Annotations](annotations.md#resources-which-are-written-as-given).
+
 ## Checking a libsbml call
 
 `check` is the helper the package itself uses around libsbml calls, which return a status code instead of raising:

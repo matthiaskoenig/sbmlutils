@@ -74,6 +74,18 @@ UncertParameter(
 )
 ```
 
+An `Uncertainty`, an `UncertParameter` and an `UncertSpan` are elements of the model like any other, so each carries its own `sid`, `name`, `metaId`, `sboTerm`, notes and annotations:
+
+```python
+UncertParameter(
+    type=libsbml.DISTRIB_UNCERTTYPE_MEAN,
+    value=5.0,
+    sid="p1_mean",
+    name="mean of p1",
+    metaId="meta_p1_mean",
+)
+```
+
 ## Distributions in formulas
 
 distrib also adds distribution functions to MathML, which are written in a formula like any other function:
@@ -92,6 +104,22 @@ model = Model(
 The supported functions are `normal`, `uniform`, `bernoulli`, `binomial`, `cauchy`, `chisquare`, `exponential`, `gamma`, `laplace`, `lognormal`, `poisson` and `rayleigh`, with the truncated forms taking the bounds as additional arguments, e.g. `normal(0, 1, -2, 2)`.
 
 The unit of the arguments matters as much as anywhere else, so a value with a unit is written as `normal(0 mM, 1 mM)`.
+
+## What round trips
+
+`sbml_to_model` reads the distrib content of a document, so a model with uncertainties can be read, changed in python and written back, see [Reading and writing](io.md#the-packages):
+
+| Construct | After a round trip |
+| --- | --- |
+| the uncertainties of an element | preserved, in the order of the document |
+| uncert parameters and spans | preserved, in the order of the document, with type, value, variable, bounds and unit |
+| `definitionURL`, `math` and the nested parameters of a distribution | preserved |
+| the metadata of an uncertainty, a parameter and a span | preserved |
+| a distribution in a formula, e.g. `normal(0, 1)` | preserved |
+
+SBML lets every element carry an uncertainty, and a few of them have no `uncertainties` in a python model definition: the model itself, a unit definition, a species reference, a key-value pair, and an uncertainty or one of its children. Such an uncertainty is reported while the file is read, where the element is still known, rather than being dropped in silence.
+
+The SBML test suite has no distrib case at all, so the round trip of distrib is verified on the files of this repository under `resources/distrib/` and `resources/examples/`. Those were written to show what `sbmlutils` can express, so they test what their authors already believed; a distrib construct which no file of the repository uses is not covered by a measurement.
 
 ## Examples
 
