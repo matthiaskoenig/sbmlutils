@@ -1606,6 +1606,19 @@ class KeyValuePair(Sbase):
         self.value = value
         self.uri = uri
 
+    def __repr__(self) -> str:
+        """Get the string representation of the key value pair.
+
+        `Sbase.__str__` of the element which carries the pairs prints the
+        list of them, and a list prints its items with `repr`, so without
+        this a message which names that element puts the address of the pair
+        in front of a user.
+
+        Returns:
+            the key and the value of the pair
+        """
+        return f"KeyValuePair({self.key} = {self.value})"
+
     @staticmethod
     def create_pairs(
         pairs: list[KeyValuePair] | None,
@@ -5041,6 +5054,21 @@ class Uncertainty(Sbase):
         ]
         if formula:
             self.uncertParameters.append(_distribution_parameter(formula))
+
+    def __repr__(self) -> str:
+        """Get the string representation of the uncertainty.
+
+        `Sbase.__str__` of the element which carries the uncertainties prints
+        the list of them, and a list prints its items with `repr`, so without
+        this a message which names that element puts the address of the
+        uncertainty in front of a user.
+
+        Returns:
+            the id of the uncertainty, if it has one, and its children
+        """
+        sid = f"{self.sid}, " if self.sid else ""
+        children = ", ".join(repr(child) for child in self.uncertParameters)
+        return f"Uncertainty({sid}{children})"
 
     def create_sbml(
         self, sbase: libsbml.SBase, model: libsbml.Model

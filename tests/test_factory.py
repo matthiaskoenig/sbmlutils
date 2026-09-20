@@ -2789,6 +2789,51 @@ def test_the_declared_fbc_version_wins_over_the_content(
     errors = _records(caplog, logging.ERROR)
     assert len(errors) == 1, errors
     assert "fbc version 3, the document is fbc version 2" in errors[0]
+    # the message names the element which carries the pairs, which prints
+    # its fields, the list of pairs among them
+    assert "object at 0x" not in errors[0], errors[0]
+    assert "KeyValuePair(kind = test)" in errors[0], errors[0]
+
+
+@pytest.mark.parametrize(
+    "element, expected",
+    [
+        (
+            KeyValuePair(key="kind", value="test", uri="https://x.org"),
+            "KeyValuePair(kind = test)",
+        ),
+        (
+            Uncertainty(
+                sid="u1",
+                uncertParameters=[
+                    UncertParameter(type=libsbml.DISTRIB_UNCERTTYPE_MEAN, value=1.0)
+                ],
+            ),
+            "Uncertainty(u1, UncertParameter(",
+        ),
+        (Uncertainty(), "Uncertainty()"),
+    ],
+)
+def test_element_of_a_list_field_is_named_without_its_address(
+    element: Sbase, expected: str
+) -> None:
+    """Test that an element of a list field prints itself, not its address.
+
+    `Sbase.__str__` names an element by its fields, and the two fields which
+    hold a list, `keyValuePairs` and `uncertainties`, print their items with
+    `repr`. Without a `__repr__` on the item the messages which name the
+    element which carries them, such as the report of a key-value pair an
+    fbc version 2 document cannot hold, show a memory address.
+    """
+    assert repr(element).startswith(expected), repr(element)
+    assert "object at 0x" not in repr(element)
+
+    owner = Parameter("p1", 1.0)
+    field = "keyValuePairs" if isinstance(element, KeyValuePair) else "uncertainties"
+    setattr(owner, field, [element])
+
+    assert "object at 0x" not in str(owner), str(owner)
+    assert expected in str(owner), str(owner)
 
 
 @pytest.mark.parametrize("sbo_term", ["SBO:0000011", "SBO_0000011"])

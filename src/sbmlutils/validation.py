@@ -39,9 +39,8 @@ class ScopedLossCollector(Generic[K, V]):
     with a fresh context in which the variable holds its default, so writing
     one document does not collect into the report of another.
 
-    Type parameters:
-        K: the key the losses are grouped under, a string or a tuple of them
-        V: what is collected for one key
+    The type variable `K` is the key the losses are grouped under, a string
+    or a tuple of them, and `V` is what is collected for one key.
     """
 
     def __init__(self, name: str, report: Callable[[K, V], None]) -> None:
