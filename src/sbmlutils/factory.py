@@ -26,7 +26,7 @@ import numbers
 import re
 from collections import namedtuple
 from collections.abc import Iterable, Iterator, Sequence
-from contextlib import contextmanager
+from contextlib import AbstractContextManager, contextmanager
 from contextvars import ContextVar
 from copy import deepcopy
 from dataclasses import dataclass
@@ -562,6 +562,104 @@ def _check_attribute(
     return check(status, f"Set {attribute} '{value}' on '{element}'")
 
 
+@dataclass
+class _ContentLoss:
+    """The content of one kind which a document cannot carry.
+
+    Attributes:
+        count: how many pieces of the content are lost, e.g. 7 key-value pairs
+        elements: how many elements carried them
+        example: the first of those elements, named in the report
+        needed: the fbc version which would carry the content
+    """
+
+    count: int = 0
+    elements: int = 0
+    example: str = ""
+    needed: int = 0
+
+
+def _report_content_loss(key: tuple[str, ...], loss: _ContentLoss) -> None:
+    """Report the content of one kind which a document cannot carry.
+
+    Args:
+        key: what the content is and why the document cannot carry it, as
+            collected
+        loss: the count, the number of elements, the example and the version
+    """
+    what, reason = key
+    logger.error(
+        "The %s %s of %s element(s) are not written: %s, e.g. '%s'. Declare "
+        "fbc version %s to keep them.",
+        loss.count,
+        what,
+        loss.elements,
+        reason,
+        loss.example,
+        loss.needed,
+    )
+
+
+#: the fbc content the document being written cannot carry, collected per
+#: document so that one decision, declaring a later fbc version, is reported
+#: once, see `collect_content_losses`
+_content_losses: ScopedLossCollector[tuple[str, ...], _ContentLoss] = (
+    ScopedLossCollector("sbmlutils_content_losses", _report_content_loss)
+)
+
+
+def collect_content_losses() -> AbstractContextManager[None]:
+    """Report the content a document cannot carry once per kind.
+
+    Content which the version of a package does not have at all is lost on
+    every element which carries it, and declaring the version which has it is
+    one decision which keeps all of them, exactly as writing a later SBML
+    level and version is for an attribute, see `collect_attribute_losses`.
+    Inside this context every such loss is collected and one report per kind
+    of content is emitted when the context ends. Outside it, the content of
+    every element is reported on its own.
+
+    The context is entered by the code which writes a whole document,
+    `Document.create_sbml` and `create_model`; a context inside an active one
+    collects into it and reports nothing of its own.
+
+    Returns:
+        the context manager
+    """
+    return _content_losses.scope()
+
+
+def _record_content_loss(
+    what: str, reason: str, needed: int, count: int, element: Any
+) -> None:
+    """Record content the document being written cannot carry.
+
+    Args:
+        what: the content, named in the report, e.g. `key-value pair(s)`
+        reason: why the document cannot carry it, a clause of the report
+        needed: the fbc version which would carry the content
+        count: how many pieces of the content are lost
+        element: the model element the content belongs to
+    """
+    loss = _content_losses.group(
+        (what, reason), lambda: _ContentLoss(example=str(element), needed=needed)
+    )
+    if loss is None:
+        logger.error(
+            "The %s %s of '%s' are not written: %s. Declare fbc version %s to "
+            "keep them.",
+            count,
+            what,
+            element,
+            reason,
+            needed,
+        )
+        return
+    loss.count += count
+    loss.elements += 1
+    logger.debug("The %s %s of '%s' are not written: %s.", count, what, element, reason)
+
+
 def _fbc_version_allows(
     plugin: Any, needed: int, what: str, count: int, element: Any
 ) -> bool:
@@ -577,6 +675,13 @@ def _fbc_version_allows(
     of the document being written, rather than from the packages of the
     `Model`, the way `Species._set_charge` reads it.
 
+    Declaring that version is one decision which keeps the content of every
+    element of the document, so the loss is collected and reported once per
+    kind of content and per reason, see `collect_content_losses`. A charge
+    which fbc version 2 cannot express is the other case and stays one report
+    per species: it is a refused **value**, different on each of them, and no
+    decision about the document rounds it, see `Species._set_charge`.
+
     Args:
         plugin: the fbc plugin the content would be created on, `None` for a
             document which does not declare fbc at all
@@ -590,28 +695,22 @@ def _fbc_version_allows(
         nothing is to be written
     """
     if plugin is None:
-        logger.error(
-            "The %s %s of '%s' are not written: the document does not "
-            "declare the fbc package. Add `packages=[Package.FBC_V%s]` to "
-            "the model definition.",
-            count,
+        _record_content_loss(
             what,
-            element,
+            "the document does not declare the fbc package",
             needed,
+            count,
+            element,
         )
         return False
     have: int = plugin.getPackageVersion()
     if have < needed:
-        logger.error(
-            "The %s %s of '%s' are not written: the content is fbc version "
-            "%s, the document is fbc version %s. Use `Package.FBC_V%s` for a "
-            "model with it.",
-            count,
+        _record_content_loss(
             what,
+            f"the content is fbc version {needed}, the document is fbc version {have}",
+            needed,
+            count,
             element,
-            needed,
-            have,
-            needed,
         )
         return False
     return True
@@ -7553,15 +7652,21 @@ class Document(Sbase):
     def create_sbml(self) -> libsbml.SBMLDocument:
         """Create the libsbml.SBMLDocument of the model.
 
-        This writes a whole document, so an annotation resource which cannot
-        be canonicalized is reported once for its collection rather than once
-        for every element it is written on, see
-        `annotator.collect_resource_losses`.
+        This writes a whole document, so a loss which one decision fixes for
+        every element at once is reported once rather than once per element:
+        an annotation resource which cannot be canonicalized, see
+        `annotator.collect_resource_losses`, an attribute the document has no
+        place for, see `collect_attribute_losses`, and content its fbc version
+        cannot carry, see `collect_content_losses`.
 
         Returns:
             the created libsbml.SBMLDocument
         """
-        with annotator.collect_resource_losses(), collect_attribute_losses():
+        with (
+            annotator.collect_resource_losses(),
+            collect_attribute_losses(),
+            collect_content_losses(),
+        ):
             return self._create_sbml()
 
     def _create_sbml(self) -> libsbml.SBMLDocument:
@@ -7740,9 +7845,14 @@ def create_model(
     # create and write SBML; creating the document and annotating it from a
     # file both write annotation resources, and one call writes one document,
     # so both report into one collector, see `collect_resource_losses`. The
-    # attributes the document has no place for are collected the same way,
-    # see `collect_attribute_losses`
-    with annotator.collect_resource_losses(), collect_attribute_losses():
+    # attributes the document has no place for and the content its fbc
+    # version cannot carry are collected the same way, see
+    # `collect_attribute_losses` and `collect_content_losses`
+    with (
+        annotator.collect_resource_losses(),
+        collect_attribute_losses(),
+        collect_content_losses(),
+    ):
         doc: libsbml.SBMLDocument = Document(
             model=m,
             sbml_level=sbml_level,

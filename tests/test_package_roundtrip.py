@@ -3663,13 +3663,92 @@ def test_key_value_pairs_of_an_fbc_v2_document_are_reported_and_not_written(
     assert "keyValuePair" not in sbml
     assert "listOfKeyValuePairs" not in sbml
 
+    # the pairs of the whole document are one decision, so they are one
+    # report: three pairs on two elements, with an example of them
     errors = [record.getMessage() for record in caplog.records]
-    assert len(errors) == 2, errors
-    assert "2 key-value pair(s)" in errors[0]
+    assert len(errors) == 1, errors
+    assert "3 key-value pair(s) of 2 element(s)" in errors[0]
     assert "Parameter(k" in errors[0]
     assert "fbc version 3" in errors[0] and "fbc version 2" in errors[0]
-    assert "1 key-value pair(s)" in errors[1]
-    assert "EquationPart(species='S1'" in errors[1]
+    assert errors[0].endswith("Declare fbc version 3 to keep them.")
+
+
+def test_content_an_fbc_v2_document_cannot_carry_is_reported_once(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that the same loss on many elements is one report, not one each.
+
+    Declaring fbc version 3 is one decision which keeps the content of every
+    element at once, the way writing SBML L3V2 keeps every attribute which
+    needs it, so it is reported once per kind of content and per document,
+    with the count, an example and what to declare. One report per element
+    buried that one decision: a model with a pair on every element wrote a
+    page of errors which all say the same thing.
+    """
+    model = Model(
+        sid="fbc_v2_cannot_carry",
+        name="a model whose compartments carry key-value pairs",
+        packages=[Package.FBC_V2],
+        compartments=[
+            Compartment(
+                f"c{k}",
+                1.0,
+                name=f"compartment {k}",
+                keyValuePairs=[
+                    KeyValuePair(key="kind", value=str(k), uri="https://example.org")
+                ],
+            )
+            for k in range(3)
+        ],
+    )
+    sbml_path = tmp_path / f"{model.sid}.xml"
+    with caplog.at_level(logging.ERROR, logger="sbmlutils"):
+        create_model(model=model, filepath=sbml_path, validate=False)
+
+    assert "keyValuePair" not in sbml_path.read_text(encoding="utf-8")
+    errors = [record.getMessage() for record in caplog.records]
+    assert len(errors) == 1, errors
+    assert "3 key-value pair(s) of 3 element(s)" in errors[0]
+    assert "Compartment(c0" in errors[0]
+    assert errors[0].endswith("Declare fbc version 3 to keep them.")
+
+
+def test_a_fractional_charge_is_reported_for_every_species(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that a charge an fbc version 2 document cannot express stays per element.
+
+    A charge which is not a whole number is a refused **value**, different on
+    every species and not fixed by one decision about the document: each of
+    them is named with its own charge, unlike the content which fbc version 3
+    would carry for all of them at once.
+    """
+    model = Model(
+        sid="fractional_charges",
+        name="a model with fractional charges",
+        packages=[Package.FBC_V2],
+        compartments=[Compartment("c", 1.0, name="compartment")],
+        species=[
+            Species(
+                f"S{k}",
+                compartment="c",
+                initialAmount=1.0,
+                name=f"S{k}",
+                charge=0.5 + k,
+            )
+            for k in range(3)
+        ],
+    )
+    with caplog.at_level(logging.ERROR, logger="sbmlutils"):
+        create_model(
+            model=model, filepath=tmp_path / f"{model.sid}.xml", validate=False
+        )
+
+    errors = [record.getMessage() for record in caplog.records]
+    assert len(errors) == 3, errors
+    for k, error in enumerate(errors):
+        assert f"Species 'S{k}'" in error
+        assert f"charge {0.5 + k}" in error
 
 
 def test_key_value_pairs_of_an_fbc_v3_document_are_written(tmp_path: Path) -> None:

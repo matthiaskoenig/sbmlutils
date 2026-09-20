@@ -163,7 +163,7 @@ Parameter(
 )
 ```
 
-A reactant, product or modifier takes them too, through the `keyValuePairs` of its `EquationPart`. The pairs are only written into a document which declares fbc version 3: in an fbc version 2 document, or in one without fbc, libsbml has no place for them, so they are reported once for the element which carries them and nothing is written. libsbml writes the `id` and the `name` of a pair into any document but reads them back only from an SBML Level 3 Version 2 one, so write L3V2 for a pair whose id has to survive being read again.
+A reactant, product or modifier takes them too, through the `keyValuePairs` of its `EquationPart`. The pairs are only written into a document which declares fbc version 3: in an fbc version 2 document, or in one without fbc, libsbml has no place for them, so nothing is written and the loss is reported once for the document, with how many pairs on how many elements, an example and what to declare. libsbml writes the `id` and the `name` of a pair into any document but reads them back only from an SBML Level 3 Version 2 one, so write L3V2 for a pair whose id has to survive being read again.
 
 ## User defined constraints (fbc v3)
 
@@ -188,7 +188,7 @@ model.user_defined_constraints = [
 ]
 ```
 
-The bounds and the coefficients are references to parameters, not numbers: fbc version 3 declares them as `SIdRef`, so the constraint above reads as `uc1 <= 1.0 * RGLX - 1.0 * RXLG <= uc1`.
+The bounds and the coefficients are references to parameters, not numbers: fbc version 3 declares them as `SIdRef`, so the constraint above reads as `uc1 <= 1.0 * RGLX - 1.0 * RXLG <= uc1`. A constraint is written into a document which declares fbc version 3 and is reported for one which does not, like a key-value pair and with the same report.
 
 ## What round trips
 
