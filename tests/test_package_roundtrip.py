@@ -46,6 +46,7 @@ from sbmlutils.factory import (
     EquationPart,
     ExternalModelDefinition,
     FluxObjective,
+    GeneProduct,
     KeyValuePair,
     Model,
     Objective,
@@ -3749,6 +3750,124 @@ def test_a_fractional_charge_is_reported_for_every_species(
     for k, error in enumerate(errors):
         assert f"Species 'S{k}'" in error
         assert f"charge {0.5 + k}" in error
+
+
+#: the fbc content whose writer dereferences the fbc plugin of an element,
+#: as `(name, build, what the message names)`
+_FBC_WITHOUT_A_PLUGIN: list[Any] = [
+    pytest.param(
+        lambda: [
+            Parameter("lb", -1.0, name="lower bound"),
+            Parameter("ub", 1.0, name="upper bound"),
+            Reaction(
+                "R1", "S1 ->", name="reaction", lowerFluxBound="lb", upperFluxBound="ub"
+            ),
+        ],
+        "Reaction(R1",
+        id="flux-bounds",
+    ),
+    pytest.param(
+        lambda: [
+            Reaction("R1", "S1 ->", name="reaction", geneProductAssociation="g1"),
+            GeneProduct(sid="g1", label="g1", name="gene product"),
+        ],
+        "GeneProduct(g1",
+        id="gene-product",
+    ),
+    pytest.param(
+        lambda: [
+            Reaction("R1", "S1 ->", name="reaction"),
+            Objective(sid="o1", fluxObjectives={"R1": 1.0}, name="objective"),
+        ],
+        "Objective(o1",
+        id="objective",
+    ),
+]
+
+
+@pytest.mark.parametrize("objects, named", _FBC_WITHOUT_A_PLUGIN)
+def test_fbc_content_without_an_fbc_plugin_names_the_element(
+    objects: Callable[[], list[Any]], named: str, tmp_path: Path
+) -> None:
+    """Test what fbc content says in a document which cannot carry the package.
+
+    fbc is an SBML Level 3 package, so libsbml attaches no fbc plugin to any
+    element of an SBML Level 2 document however the model declares its
+    packages. Writing flux bounds, a gene product or an objective into one
+    dereferenced that plugin and ended in `AttributeError: 'NoneType' object
+    has no attribute 'setUpperFluxBound'`, which names neither the element,
+    nor the package, nor why it is absent.
+    """
+    model = Model(
+        sid="fbc_without_a_plugin",
+        name="a model with fbc content",
+        packages=[Package.FBC_V3],
+        compartments=[Compartment("c", 1.0, name="compartment")],
+        species=[Species("S1", compartment="c", initialAmount=1.0, name="S1")],
+        objects=objects(),
+    )
+
+    with pytest.raises(ValueError, match="fbc package") as raised:
+        create_model(
+            model=model,
+            filepath=tmp_path / f"{model.sid}.xml",
+            sbml_level=2,
+            sbml_version=4,
+            validate=False,
+        )
+
+    message = str(raised.value)
+    assert named in message, message
+    assert "cannot declare" in message, message
+
+
+def test_a_species_without_an_fbc_plugin_is_reported(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test what the charge of a species says where there is no fbc plugin.
+
+    The report said `add packages = ['fbc'] to model definition`, which a
+    model which declares fbc has done and which does not help: an SBML Level
+    2 document cannot declare the package at all. The charge and the formula
+    are reported and the rest of the species is written, which is what this
+    always did.
+    """
+    model = Model(
+        sid="species_without_an_fbc_plugin",
+        name="a model with a charged species",
+        packages=[Package.FBC_V3],
+        compartments=[Compartment("c", 1.0, name="compartment")],
+        species=[
+            Species(
+                "S1",
+                compartment="c",
+                initialAmount=1.0,
+                name="S1",
+                charge=1.0,
+                chemicalFormula="H2O",
+            )
+        ],
+    )
+    sbml_path = tmp_path / f"{model.sid}.xml"
+    with caplog.at_level(logging.ERROR, logger="sbmlutils.factory"):
+        create_model(
+            model=model,
+            filepath=sbml_path,
+            sbml_level=2,
+            sbml_version=4,
+            validate=False,
+        )
+
+    errors = [
+        record.getMessage()
+        for record in caplog.records
+        if record.name == "sbmlutils.factory"
+    ]
+    assert len(errors) == 1, errors
+    assert "Species(S1" in errors[0]
+    assert "fbc package" in errors[0] and "cannot declare" in errors[0]
+    assert "packages = ['fbc']" not in errors[0]
+    assert '<species id="S1"' in sbml_path.read_text(encoding="utf-8")
 
 
 def test_key_value_pairs_of_an_fbc_v3_document_are_written(tmp_path: Path) -> None:

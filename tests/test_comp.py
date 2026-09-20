@@ -1025,6 +1025,45 @@ def test_submodel_instantiates_a_model_definition(tmp_path: Path) -> None:
     assert model_flat.getParameter("sub1__k").getUnits() == "sub1__per_min"
 
 
+def test_a_deletion_of_a_submodel_which_does_not_exist_is_named(
+    tmp_path: Path,
+) -> None:
+    """Test that a deletion names the submodel it does not find.
+
+    A `<comp:deletion>` is written inside the submodel its `submodelRef`
+    names, so a name which is no submodel of the model has nowhere to write
+    it. That ended in `AttributeError: 'NoneType' object has no attribute
+    'createDeletion'`, which names neither the deletion nor the submodel,
+    where a `ReplacedElement` whose `elementRef` names nothing raises a
+    `ValueError` which names both.
+    """
+    model = Model(
+        sid="deletion_without_a_submodel",
+        name="a model whose deletion names no submodel",
+        packages=[Package.COMP_V1],
+        model_definitions=[
+            ModelDefinition(
+                sid="md1",
+                name="a model definition",
+                parameters=[Parameter("k", 1.0, name="k")],
+            )
+        ],
+        submodels=[Submodel(sid="sub1", modelRef="md1", name="submodel")],
+        deletions=[
+            Deletion(sid="del1", submodelRef="nope", idRef="k", name="deletion")
+        ],
+    )
+
+    with pytest.raises(ValueError, match="nope") as raised:
+        create_model(
+            model=model,
+            filepath=tmp_path / "deletion_without_a_submodel.xml",
+            validate=False,
+        )
+
+    assert "Deletion(del1" in str(raised.value)
+
+
 def test_flatten_leaves_the_working_directory_where_it_was(
     tmp_path: Path, caplog: pytest.LogCaptureFixture
 ) -> None:

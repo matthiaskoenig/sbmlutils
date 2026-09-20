@@ -1056,6 +1056,58 @@ def date_now() -> libsbml.Date:
     return libsbml.Date(timestr)
 
 
+def _no_plugin_reason(sbase: Any, package: str) -> str:
+    """Say why a libsbml object has no plugin of a package.
+
+    libsbml attaches the plugin of a package to an element of a document
+    which declares that package, and a package can only be declared on an
+    SBML Level 3 document, so there are exactly two reasons, and the one
+    which applies is what a caller can do something about.
+
+    Args:
+        sbase: the libsbml object, or plugin, which has no such plugin
+        package: the name of the package, e.g. `fbc`
+
+    Returns:
+        the reason as a clause, without a leading or trailing stop
+    """
+    level: int = sbase.getLevel()
+    if level < 3:
+        return (
+            f"an SBML L{level}V{sbase.getVersion()} document cannot declare "
+            f"the {package} package"
+        )
+    return f"the document does not declare the {package} package"
+
+
+def _package_plugin(sbase: libsbml.SBase, package: str, what: str) -> Any:
+    """Get the plugin of a package on a libsbml object, or say why there is none.
+
+    The one place which dereferences a package plugin, so that an element
+    whose content needs a package it does not have says which element, which
+    package and why the package is absent, instead of ending in an
+    `AttributeError` on `None` from wherever the plugin was first used.
+
+    Args:
+        sbase: the libsbml object the content would be created on
+        package: the name of the package, e.g. `fbc`
+        what: the element whose content needs the package, for the message
+
+    Returns:
+        the plugin of the package on the libsbml object
+
+    Raises:
+        ValueError: if the object has no plugin of the package, see
+            `_no_plugin_reason`
+    """
+    plugin = sbase.getPlugin(package)
+    if plugin is None:
+        raise ValueError(
+            f"{what} cannot be written: {_no_plugin_reason(sbase, package)}."
+        )
+    return plugin
+
+
 def _comp_plugin(sbase: libsbml.SBase, what: str) -> Any:
     """Get the comp plugin of a libsbml object for a port or a replacement.
 
@@ -1068,16 +1120,32 @@ def _comp_plugin(sbase: libsbml.SBase, what: str) -> Any:
         the comp plugin of the libsbml object
 
     Raises:
-        ValueError: if the document does not declare the comp package, which
-            `create_model` does for every model with comp content, see
+        ValueError: if the object has no comp plugin, which `create_model`
+            gives every model with comp content, see
             `Model._has_comp_content`
     """
-    plugin = sbase.getPlugin("comp")
-    if plugin is None:
-        raise ValueError(
-            f"{what} needs the comp package, which the document does not declare."
-        )
-    return plugin
+    return _package_plugin(sbase, "comp", what)
+
+
+def _fbc_plugin(sbase: libsbml.SBase, what: str) -> Any:
+    """Get the fbc plugin of a libsbml object for the fbc content of an element.
+
+    Args:
+        sbase: the libsbml object the fbc content is created on, the model
+            for a gene product or an objective, the reaction for its flux
+            bounds and its gene product association
+        what: the element whose fbc content needs the package, for the error
+            message
+
+    Returns:
+        the fbc plugin of the libsbml object
+
+    Raises:
+        ValueError: if the object has no fbc plugin, which `create_model`
+            gives every model with fbc content of an SBML Level 3 document,
+            see `Model._required_packages`
+    """
+    return _package_plugin(sbase, "fbc", what)
 
 
 def _iter_sbases_with_model(
@@ -2872,11 +2940,18 @@ class Species(Sbase):
 
         # fbc
         if (self.charge is not None) or (self.chemicalFormula is not None):
-            obj_fbc: libsbml.FbcSpeciesPlugin = sbase.getPlugin("fbc")
+            obj_fbc: libsbml.FbcSpeciesPlugin | None = sbase.getPlugin("fbc")
             if obj_fbc is None:
+                # reported rather than raised, unlike every other element
+                # whose fbc content needs the plugin: the rest of the species
+                # is written and only the two fbc attributes are lost. A
+                # model with a charge declares fbc itself, so the only
+                # document which gets here is one whose level cannot declare
+                # a package at all, see `_no_plugin_reason`
                 logger.error(
-                    "FbcSpeciesPlugin does not exist, add `packages = ['fbc']` "
-                    "to model definition."
+                    "The fbc charge and chemical formula of '%s' are not written: %s.",
+                    self,
+                    _no_plugin_reason(sbase, "fbc"),
                 )
             else:
                 if self.charge is not None:
@@ -3534,7 +3609,10 @@ class Reaction(Sbase):
         # reaction
         r: libsbml.Reaction = model.createReaction()
         self._set_fields(r, model)
-        r_fbc: libsbml.FbcReactionPlugin = r.getPlugin("fbc")
+        # the fbc plugin of the reaction is only dereferenced for a reaction
+        # which has fbc content, so a reaction without one is written into a
+        # document which declares no fbc, as it has to be
+        r_fbc: libsbml.FbcReactionPlugin | None = r.getPlugin("fbc")
 
         def set_speciesref_fields(
             sref: libsbml.SpeciesReference | libsbml.ModifierSpeciesReference,
@@ -3639,18 +3717,23 @@ class Reaction(Sbase):
 
         # add fbc bounds
         if self.upperFluxBound or self.lowerFluxBound:
+            bounds_fbc: libsbml.FbcReactionPlugin = (
+                r_fbc
+                if r_fbc is not None
+                else _fbc_plugin(r, f"The flux bounds of '{self}'")
+            )
             if self.upperFluxBound:
                 _check_attribute(
-                    r_fbc.setUpperFluxBound(self.upperFluxBound),
-                    r_fbc,
+                    bounds_fbc.setUpperFluxBound(self.upperFluxBound),
+                    bounds_fbc,
                     "upperFluxBound",
                     self.upperFluxBound,
                     self,
                 )
             if self.lowerFluxBound:
                 _check_attribute(
-                    r_fbc.setLowerFluxBound(self.lowerFluxBound),
-                    r_fbc,
+                    bounds_fbc.setLowerFluxBound(self.lowerFluxBound),
+                    bounds_fbc,
                     "lowerFluxBound",
                     self.lowerFluxBound,
                     self,
@@ -3658,8 +3741,15 @@ class Reaction(Sbase):
 
         # add gpa
         if self.geneProductAssociation:
+            association_fbc: libsbml.FbcReactionPlugin = (
+                r_fbc
+                if r_fbc is not None
+                else _fbc_plugin(r, f"The gene product association of '{self}'")
+            )
             # parse the string and create the respective GPA
-            gpa: libsbml.GeneProductAssociation = r_fbc.createGeneProductAssociation()
+            gpa: libsbml.GeneProductAssociation = (
+                association_fbc.createGeneProductAssociation()
+            )
 
             # check all genes are in model; the association names them by id,
             # which is what `setAssociation(usingId=True)` below writes, so the
@@ -3668,7 +3758,9 @@ class Reaction(Sbase):
             # `r.getModel()` returns the model of the document even for a
             # reaction inside a `<comp:modelDefinition>` (measured with
             # libsbml 5.21.2), whose gene products are its own.
-            model_fbc: libsbml.FbcModelPlugin = model.getPlugin("fbc")
+            model_fbc: libsbml.FbcModelPlugin = _fbc_plugin(
+                model, f"The gene product association of '{self}'"
+            )
             for gp in _gene_product_ids(self.geneProductAssociation):
                 if not model_fbc.getGeneProduct(gp):
                     logger.error("GeneProduct missing in model: `%s`", gp)
@@ -5451,8 +5543,20 @@ class GeneProduct(Sbase):
         self.label = label
 
     def create_sbml(self, model: libsbml.Model) -> libsbml.GeneProduct:
-        """Create GeneProduct."""
-        model_fbc: libsbml.FbcModelPlugin = model.getPlugin("fbc")
+        """Create the libsbml.GeneProduct in the model.
+
+        Args:
+            model: the libsbml.Model the gene product is created in
+
+        Returns:
+            the created libsbml.GeneProduct
+
+        Raises:
+            ValueError: if the model has no fbc plugin, see `_fbc_plugin`
+        """
+        model_fbc: libsbml.FbcModelPlugin = _fbc_plugin(
+            model, f"The gene product '{self}'"
+        )
         gene_product: libsbml.GeneProduct = model_fbc.createGeneProduct()
         self._set_fields(gene_product, model=model)
 
@@ -5890,8 +5994,13 @@ class Objective(Sbase):
 
         Returns:
             the created libsbml.Objective
+
+        Raises:
+            ValueError: if the model has no fbc plugin, see `_fbc_plugin`
         """
-        model_fbc: libsbml.FbcModelPlugin = model.getPlugin("fbc")
+        model_fbc: libsbml.FbcModelPlugin = _fbc_plugin(
+            model, f"The objective '{self}'"
+        )
         objective: libsbml.Objective = model_fbc.createObjective()
         self._set_fields(objective, model)
         self.create_port(model)
@@ -6472,9 +6581,29 @@ class Deletion(SbaseRef):
         self.submodelRef = submodelRef
 
     def create_sbml(self, model: libsbml.Model) -> libsbml.Deletion:
-        """Create SBML Deletion."""
-        cmodel: libsbml.CompModelPlugin = model.getPlugin("comp")
-        submodel: libsbml.Submodel = cmodel.getSubmodel(self.submodelRef)
+        """Create the libsbml.Deletion inside the submodel it deletes from.
+
+        Args:
+            model: the libsbml.Model, or libsbml.ModelDefinition, the
+                submodel of the deletion lives in
+
+        Returns:
+            the created libsbml.Deletion
+
+        Raises:
+            ValueError: if the document does not declare the comp package, or
+                if `submodelRef` names no submodel of the model
+        """
+        cmodel: libsbml.CompModelPlugin = _comp_plugin(model, f"The deletion '{self}'")
+        submodel: libsbml.Submodel | None = cmodel.getSubmodel(self.submodelRef)
+        if submodel is None:
+            # a `<comp:deletion>` is written inside the submodel it names, so
+            # a name which is no submodel of this model has nowhere to go;
+            # named the way `ReplacedElement` names an `elementRef` it cannot
+            # resolve
+            raise ValueError(
+                f"No submodel found for submodelRef: '{self.submodelRef}' in '{self}'"
+            )
         deletion: libsbml.Deletion = submodel.createDeletion()
         self._set_fields(deletion, model)
 
