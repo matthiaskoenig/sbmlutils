@@ -118,7 +118,7 @@ def fixtures() -> list[tuple[str, Path]]:
 
 def _write_result(case_dir: Path, result: dict[str, object]) -> None:
     """Record the stage and the result of a case, in the worker."""
-    (case_dir / RESULT_FILE).write_text(json.dumps(result))
+    (case_dir / RESULT_FILE).write_text(json.dumps(result), encoding="utf-8")
 
 
 def run_worker(sbml_path: Path, case_dir: Path) -> None:
@@ -205,7 +205,7 @@ def read_result(result_path: Path) -> tuple[dict[str, object], str]:
     if not result_path.exists():
         return {}, ""
     try:
-        recorded: object = json.loads(result_path.read_text())
+        recorded: object = json.loads(result_path.read_text(encoding="utf-8"))
     except (ValueError, OSError) as err:
         return {}, f"{RESULT_FILE} unreadable: {type(err).__name__}"
     if not isinstance(recorded, dict):

@@ -1552,7 +1552,7 @@ def test_roundtrip_constraint_math_and_message(tmp_path: Path) -> None:
     No semantic test-suite case carries a constraint with both a `<math>` and
     a `<message>`, so this builds one directly with libsbml, following the
     pattern of `test_roundtrip_rule_keeps_its_own_id`. It also guards against
-    the message-nesting failure mode Task 3 found for notes: libsbml's
+    the message-nesting failure mode the notes of the core round trip hit: libsbml's
     `Constraint.getMessageString()` returns the message already wrapped in
     its own `<message>` element, and feeding that string back into
     `Constraint.setMessage` unchanged would double-wrap it, exactly as an
@@ -1833,7 +1833,9 @@ def test_roundtrip_spatial_dimensions_of_a_definition(
     roundtrip_dir.mkdir()
     roundtrip_path = roundtrip_sbml(sbml_path, roundtrip_dir)
     assert _spatial_dimensions(roundtrip_path) == [float(dimensions)]
-    assert f'spatialDimensions="{dimensions:g}"' in roundtrip_path.read_text()
+    assert f'spatialDimensions="{dimensions:g}"' in roundtrip_path.read_text(
+        encoding="utf-8"
+    )
 
 
 if __name__ == "__main__":

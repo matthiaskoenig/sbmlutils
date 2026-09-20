@@ -965,10 +965,11 @@ def test_roundtrip_preserves_fbc_strict(tmp_path: Path) -> None:
     """Test that `fbc:strict="true"` of the source survives the round trip.
 
     `FBC_ECOLI_CORE_SBML` declares `fbc:strict="true"`. `Document.create_sbml`
-    used to hardcode `setStrict(False)`, which lost it on every round trip;
-    other constructs of this fixture still differ today (gene products and
-    the rest of the objective are parsed by a later task), so this only
-    asserts on `fbc.strict`, never on an empty diff.
+    used to hardcode `setStrict(False)`, which lost it on every round trip.
+    This asserts on `fbc.strict` alone, never on an empty diff: what the rest
+    of the fixture round trips is the subject of the sweep, and one construct
+    which starts to differ must not turn this test red for something it is
+    not about.
     """
     doc_in, doc_out = roundtrip_document(FBC_ECOLI_CORE_SBML, tmp_path)
 
@@ -1015,7 +1016,7 @@ def test_roundtrip_of_every_fbc_v1_case_is_valid_and_not_strict(
 ) -> None:
     """Test that an fbc v1 case round trips to a valid document which is not strict.
 
-    fbc version 1 has no `fbc:strict` attribute, so such a source says nothing about strictness, but libsbml's `convert fbc v1 to fbc v2` converter sets `fbc:strict="true"` on every one of them. Under that claim the `constant="false"` species references these models use are an error, libsbml 2020714, and 11 of the 12 cases are valid as they are and invalid as converted, with 54 errors each. The round trip therefore writes `fbc:strict="false"`, the weakest claim, rather than agreeing with the converter: a round trip must never turn a valid model into an invalid one (ruling T5c).
+    fbc version 1 has no `fbc:strict` attribute, so such a source says nothing about strictness, but libsbml's `convert fbc v1 to fbc v2` converter sets `fbc:strict="true"` on every one of them. Under that claim the `constant="false"` species references these models use are an error, libsbml 2020714, and 11 of the 12 cases are valid as they are and invalid as converted, with 54 errors each. The round trip therefore writes `fbc:strict="false"`, the weakest claim, rather than agreeing with the converter: a round trip must never turn a valid model into an invalid one.
     """
     cases = fbc_v1_cases()
     assert cases, "no fbc version 1 case in the vendored SBML test suite"
@@ -1835,7 +1836,7 @@ def test_roundtrip_preserves_the_whole_fbc_content(
 
 
 # ---------------------------------------------------------------------------
-# the whitelist, ruling R5
+# the whitelist, R5 of the design spec
 # ---------------------------------------------------------------------------
 def _normalization(name: str) -> Normalization:
     """Get a whitelist entry by name."""
@@ -1846,7 +1847,7 @@ def _normalization(name: str) -> Normalization:
 def test_whitelist_is_exactly_ruling_r5() -> None:
     """Test that the whitelist holds the three normalizations of R5, each with a reason.
 
-    A whitelist is where a real loss hides, so an entry is added by a ruling, never on the way.
+    A whitelist is where a real loss hides, so an entry is added by a decision of the design, never on the way.
     """
     assert [(entry.name, entry.construct, entry.attribute) for entry in WHITELIST] == [
         ("gpa-flattening", "fbc.geneProductAssociation", "association"),
@@ -2129,7 +2130,7 @@ _URNS: list[str] = [
 ]
 
 #: classic identifiers.org URLs, as the corpus spells them; pymetadata
-#: canonicalizes them exactly as it canonicalizes a URN, see ruling C1a
+#: canonicalizes them exactly as it canonicalizes a URN, measured
 _CLASSIC_URLS: list[str] = [
     "http://identifiers.org/chebi/CHEBI:12965",
     "http://identifiers.org/uniprot/P03023",
@@ -2145,7 +2146,7 @@ _CLASSIC_URLS: list[str] = [
 ]
 
 #: the `http` spelling of the compact URL, as the corpus spells it; pymetadata
-#: writes it as the `https` one, see ruling C1c
+#: writes it as the `https` one, measured
 _COMPACT_URLS: list[str] = [
     "http://identifiers.org/BTO:0000131",
     "http://identifiers.org/SBO:0000625",
@@ -2158,7 +2159,7 @@ _COMPACT_URLS: list[str] = [
 ]
 
 #: bare compact identifiers, as the corpus spells them; pymetadata writes the
-#: compact URL of them, see ruling C1c
+#: compact URL of them, measured
 _BARE_IDENTIFIERS: list[str] = [
     "UO:0000021",
     "CHEBI:33699",
@@ -2174,7 +2175,7 @@ _BARE_IDENTIFIERS: list[str] = [
 def test_identifiers_org_is_what_pymetadata_does(resource: str) -> None:
     """Test the normalization against the canonicalization of pymetadata.
 
-    `create_model` writes a resource as pymetadata normalizes it whenever the normalization keeps the collection and the term of the resource, and as given when it does not, see `_resource_for_cvterm` of `sbmlutils.metadata.annotator`. Whenever it does normalize, it writes exactly what pymetadata writes, so the whitelist entry has to accept that for each of the four source forms of ruling R5: a MIRIAM URN, a classic identifiers.org URL, the `http` spelling of the compact URL and a bare compact identifier. The expectation is measured, never spelled out here. This is about the whitelist entry, not about which resources are written that way, which is `tests/metadata/test_annotator.py`.
+    `create_model` writes a resource as pymetadata normalizes it whenever the normalization keeps the collection and the term of the resource, and as given when it does not, see `_resource_for_cvterm` of `sbmlutils.metadata.annotator`. Whenever it does normalize, it writes exactly what pymetadata writes, so the whitelist entry has to accept that for each of the four source forms: a MIRIAM URN, a classic identifiers.org URL, the `http` spelling of the compact URL and a bare compact identifier. The expectation is measured, never spelled out here. This is about the whitelist entry, not about which resources are written that way, which is `tests/metadata/test_annotator.py`.
     """
     url = RDFAnnotation(BQB.IS, resource, validate=False).resource_normalized
     before = (("bqbiol:is", resource),)
@@ -2195,7 +2196,7 @@ def test_identifiers_org_is_what_pymetadata_does(resource: str) -> None:
             ("bqbiol:is", "urn:miriam:uniprot:P03023"),
             ("bqbiol:is", "https://identifiers.org/uniprot:P03023"),
         ),
-        # a classic identifiers.org URL, ruling C1a
+        # a classic identifiers.org URL
         (
             ("bqbiol:is", "http://identifiers.org/chebi/CHEBI:12965"),
             ("bqbiol:is", "https://identifiers.org/CHEBI:12965"),
@@ -2217,7 +2218,7 @@ def test_identifiers_org_is_what_pymetadata_does(resource: str) -> None:
             ("bqbiol:is", "http://identifiers.org/biomodels.sbo/SBO:0000247"),
             ("bqbiol:is", "https://identifiers.org/SBO:0000247"),
         ),
-        # the http spelling of the compact URL, ruling C1c
+        # the http spelling of the compact URL
         (
             ("bqbiol:is", "http://identifiers.org/BTO:0000131"),
             ("bqbiol:is", "https://identifiers.org/BTO:0000131"),
@@ -2226,7 +2227,7 @@ def test_identifiers_org_is_what_pymetadata_does(resource: str) -> None:
             ("bqbiol:is", "http://identifiers.org/uniprot:P03023"),
             ("bqbiol:is", "https://identifiers.org/uniprot:P03023"),
         ),
-        # the bare compact identifier, ruling C1c
+        # the bare compact identifier
         (
             ("bqbiol:is", "UO:0000021"),
             ("bqbiol:is", "https://identifiers.org/UO:0000021"),
@@ -2273,7 +2274,7 @@ def test_identifiers_org_accepts_every_source_form(
             ("bqbiol:is", "https://identifiers.org/kegg.drug:C00031"),
         ),
         # the bare term pymetadata writes for a collection it does not know is a
-        # loss of the collection, not a normalization, see rulings C1b and C1d
+        # loss of the collection, not a normalization
         (("bqbiol:is", "urn:miriam:foo:bar"), ("bqbiol:is", "bar")),
         (("bqbiol:is", "http://identifiers.org/foo/bar"), ("bqbiol:is", "bar")),
         (("bqbiol:is", "http://identifiers.org/sabiork/1406"), ("bqbiol:is", "1406")),
@@ -2301,7 +2302,7 @@ def test_identifiers_org_accepts_every_source_form(
             ("bqbiol:is", "https://identifiers.org/000000035"),
         ),
         # pymetadata shortens a term which repeats its collection, which changes
-        # the term, see ruling C1d
+        # the term
         (
             ("bqbiol:is", "http://identifiers.org/reactome/REACTOME:R-HSA-70355.1"),
             ("bqbiol:is", "https://identifiers.org/reactome:R-HSA-70355.1"),
@@ -2457,7 +2458,7 @@ def test_package_report_survives_an_unreadable_result(
 
     result_path = tmp_path / "result.json"
     if content is not None:
-        result_path.write_text(content)
+        result_path.write_text(content, encoding="utf-8")
 
     recorded, unreadable = read_result(result_path)
 
@@ -3297,11 +3298,11 @@ def test_roundtrip_does_not_inline_an_external_model_definition(
     """
     external_path = _external_model_sbml(tmp_path)
     sbml_path = _external_sbml(tmp_path, external_path.name)
-    assert "only_in_the_external_model" in external_path.read_text()
+    assert "only_in_the_external_model" in external_path.read_text(encoding="utf-8")
 
     doc_in, doc_out = roundtrip_document(sbml_path, tmp_path)
 
-    written = (tmp_path / f"{sbml_path.stem}-roundtrip.xml").read_text()
+    written = (tmp_path / f"{sbml_path.stem}-roundtrip.xml").read_text(encoding="utf-8")
     assert "only_in_the_external_model" not in written
     comp: libsbml.CompSBMLDocumentPlugin = doc_out.getPlugin("comp")
     assert comp.getNumModelDefinitions() == 0

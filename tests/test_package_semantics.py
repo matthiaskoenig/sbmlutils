@@ -425,7 +425,7 @@ def test_comp_semantics_of_icg_body(tmp_path: Path) -> None:
 
     comparison = comp_semantic_diff(COMP_ICG_BODY, roundtrip_path, tmp_path)
 
-    assert "LI__" in (tmp_path / ORIGINAL_FLAT).read_text(), (
+    assert "LI__" in (tmp_path / ORIGINAL_FLAT).read_text(encoding="utf-8"), (
         "the liver submodel was not resolved into the flat original"
     )
     assert comparison == CompComparison("", [])
