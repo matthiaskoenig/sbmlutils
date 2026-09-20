@@ -106,11 +106,22 @@ tox run-parallel
 
 This needs the interpreters to be available, which uv installs with `uv python install 3.11 3.12 3.13 3.14`. Continuous integration runs the same environments as `uvx --with tox-uv tox -e py3.14`.
 
+What follows `--` is passed on to pytest, so a single module or test can be run in the environment of a tox run rather than against the development environment, which is what continuous integration runs:
+
+```bash
+tox r -e py3.14 -- tests/test_factory.py
+tox r -e py3.14 -- tests/test_factory.py::test_model_units -x
+```
+
+Without it the whole suite runs, with the `sbml_testsuite` sweep deselected, which is what the environments do in continuous integration.
+
 The `cobra` environment is the one which installs cobrapy, the optional `cobra` extra, and runs the tests which need it, i.e., the flux balance comparison of `tests/test_package_semantics.py` and `tests/fbc/test_cobra.py`; it is pinned to python 3.14 and has a job of its own in `ci-cd.yml`, which informs and is not part of the required `tests` check.
 
 ```bash
 tox r -e cobra
 ```
+
+Here `--` replaces those two modules, so `tox r -e cobra -- tests/fbc/test_cobra.py` runs that one.
 
 To run the tests directly against the development environment use
 

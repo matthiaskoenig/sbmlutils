@@ -18,6 +18,7 @@ pytest                                        # all tests
 pytest tests/test_factory.py                  # single file
 pytest tests/test_factory.py::test_model_units  # single test
 tox r -e py3.14                               # single tox env (py3.11-3.14 available)
+tox r -e py3.14 -- tests/test_factory.py      # one file in that env, `--` passes through to pytest
 tox r -e cobra                                # the tests which need cobrapy, on python 3.14
 tox run-parallel                              # full matrix + ty + cobra
 
