@@ -2116,6 +2116,14 @@ def test_cn_integer_is_narrow(before: str, after: str) -> None:
     assert not _normalization("cn-integer").equivalent(_math(before), _math(after))
 
 
+#: a collection of this test suite, which the identifiers.org registry does
+#: not know and never will: it holds the namespaces of real, resolvable data
+#: providers, and this names no database at all. A resource of a real
+#: collection which is unknown today, `sabiork` or `unit`, would say something
+#: else on the day it is registered, and pymetadata downloads and refreshes
+#: that registry, so it is not the installed version which decides
+UNKNOWN_COLLECTION: str = "sbmlutils.test.collection1"
+
 #: MIRIAM URNs, as the corpus and the examples of pymetadata spell them
 _URNS: list[str] = [
     "urn:miriam:chebi:CHEBI%3A33699",
@@ -2274,31 +2282,45 @@ def test_identifiers_org_accepts_every_source_form(
             ("bqbiol:is", "https://identifiers.org/kegg.drug:C00031"),
         ),
         # the bare term pymetadata writes for a collection it does not know is a
-        # loss of the collection, not a normalization
-        (("bqbiol:is", "urn:miriam:foo:bar"), ("bqbiol:is", "bar")),
-        (("bqbiol:is", "http://identifiers.org/foo/bar"), ("bqbiol:is", "bar")),
-        (("bqbiol:is", "http://identifiers.org/sabiork/1406"), ("bqbiol:is", "1406")),
+        # loss of the collection, not a normalization. The collection is one of
+        # this test suite, which names no database and is therefore never
+        # registered, see `UNKNOWN_COLLECTION` of `tests/metadata/test_annotator.py`
+        (
+            ("bqbiol:is", f"urn:miriam:{UNKNOWN_COLLECTION}:bar"),
+            ("bqbiol:is", "bar"),
+        ),
+        (
+            ("bqbiol:is", f"http://identifiers.org/{UNKNOWN_COLLECTION}/bar"),
+            ("bqbiol:is", "bar"),
+        ),
+        (
+            ("bqbiol:is", f"http://identifiers.org/{UNKNOWN_COLLECTION}/1406"),
+            ("bqbiol:is", "1406"),
+        ),
         # a bare term which carries its own prefix reads like a URI, and is a
         # loss of the collection all the same
-        (("bqbiol:is", "urn:miriam:foo:BAR%3A123"), ("bqbiol:is", "BAR:123")),
         (
-            ("bqbiol:is", "http://identifiers.org/foo/BAR:123"),
+            ("bqbiol:is", f"urn:miriam:{UNKNOWN_COLLECTION}:BAR%3A123"),
             ("bqbiol:is", "BAR:123"),
         ),
         (
-            ("bqbiol:is", "http://identifiers.org/unit/UO:0000040"),
-            ("bqbiol:is", "UO:0000040"),
+            ("bqbiol:is", f"http://identifiers.org/{UNKNOWN_COLLECTION}/BAR:123"),
+            ("bqbiol:is", "BAR:123"),
+        ),
+        (
+            ("bqbiol:is", f"http://identifiers.org/{UNKNOWN_COLLECTION}/XX:0000040"),
+            ("bqbiol:is", "XX:0000040"),
         ),
         # a compact URL pymetadata reduces to its bare term, the same loss from a
         # resource which was canonical already
         (
-            ("bqbiol:is", "https://identifiers.org/CMO:0000012"),
-            ("bqbiol:is", "CMO:0000012"),
+            ("bqbiol:is", "https://identifiers.org/SBMLUTILS.TEST.COLLECTION1:0000012"),
+            ("bqbiol:is", "SBMLUTILS.TEST.COLLECTION1:0000012"),
         ),
-        # pymetadata drops the collection of a term which does not carry it, for
-        # a collection whose namespace the registry says is embedded in the term
+        # pymetadata drops the collection of a term which does not match the
+        # pattern the registry gives it, `^CHEBI:\d+$` for `chebi`
         (
-            ("bqbiol:is", "http://identifiers.org/slm/000000035"),
+            ("bqbiol:is", "http://identifiers.org/chebi/000000035"),
             ("bqbiol:is", "https://identifiers.org/000000035"),
         ),
         # pymetadata shortens a term which repeats its collection, which changes
@@ -2319,7 +2341,10 @@ def test_identifiers_org_accepts_every_source_form(
         ),
         # a collection and term without a colon, and an arbitrary URL, are no
         # compact identifier
-        (("bqbiol:is", "foo/bar"), ("bqbiol:is", "https://identifiers.org/foo/bar")),
+        (
+            ("bqbiol:is", "chebi/bar"),
+            ("bqbiol:is", "https://identifiers.org/chebi/bar"),
+        ),
         (
             ("bqbiol:is", "https://doi.org/10.1101/2021.06.15.448411"),
             ("bqbiol:is", "https://identifiers.org/10.1101/2021.06.15.448411"),

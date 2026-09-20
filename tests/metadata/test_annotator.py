@@ -276,17 +276,30 @@ def _annotator_records(
     ]
 
 
+#: a collection of this test suite, and a second one, which the
+#: identifiers.org registry does not know. Both name no database at all: the
+#: registry holds the namespaces of real, resolvable data providers, so
+#: neither of these is ever registered. A real collection which is unknown
+#: today, `sabiork` or `unit`, would turn every test below red on the day it
+#: is registered, without a line of code changing here - the registry is
+#: downloaded and refreshed by pymetadata, so it is not the installed version
+#: which decides what these tests see.
+UNKNOWN_COLLECTION: str = "sbmlutils.test.collection1"
+OTHER_UNKNOWN_COLLECTION: str = "sbmlutils.test.collection2"
+
 #: resources pymetadata cannot canonicalize without losing their collection,
 #: measured with pymetadata 0.6.2: the first three and the fifth normalize to
-#: the bare term `1406`, `UO:0000040`, `CMO:0000012` and `bar`, which name no
-#: collection at all, and the fourth to `https://identifiers.org/000000035`, a
-#: URL the `slm` collection has been dropped from
+#: the bare term `1406`, `XX:0000040`, `SBMLUTILS.TEST.COLLECTION1:0000012`
+#: and `bar`, which name no collection at all, and the fourth to
+#: `https://identifiers.org/000000035`, a URL the `chebi` collection has been
+#: dropped from because its term does not match the `^CHEBI:\d+$` of the
+#: registry
 LOSSY_RESOURCES: list[str] = [
-    "http://identifiers.org/sabiork/1406",
-    "http://identifiers.org/unit/UO:0000040",
-    "https://identifiers.org/CMO:0000012",
-    "http://identifiers.org/slm/000000035",
-    "urn:miriam:foo:bar",
+    f"http://identifiers.org/{UNKNOWN_COLLECTION}/1406",
+    f"http://identifiers.org/{UNKNOWN_COLLECTION}/XX:0000040",
+    "https://identifiers.org/SBMLUTILS.TEST.COLLECTION1:0000012",
+    "http://identifiers.org/chebi/000000035",
+    f"urn:miriam:{UNKNOWN_COLLECTION}:bar",
 ]
 
 
@@ -357,14 +370,14 @@ def test_annotation_resource_of_an_arbitrary_url_is_unchanged(
     assert not _annotator_records(caplog, "WARNING"), caplog.text
 
 
-#: three resources of the unknown collection `sabiork` and two of `slm`,
-#: enough to tell a per-collection report from a per-resource one
+#: three resources of one unknown collection and two of another, enough to
+#: tell a per-collection report from a per-resource one
 TWO_LOSSY_COLLECTIONS: list[str] = [
-    "http://identifiers.org/sabiork/1406",
-    "http://identifiers.org/sabiork/1407",
-    "http://identifiers.org/sabiork/1408",
-    "http://identifiers.org/slm/000000035",
-    "http://identifiers.org/slm/000000036",
+    f"http://identifiers.org/{UNKNOWN_COLLECTION}/1406",
+    f"http://identifiers.org/{UNKNOWN_COLLECTION}/1407",
+    f"http://identifiers.org/{UNKNOWN_COLLECTION}/1408",
+    f"http://identifiers.org/{OTHER_UNKNOWN_COLLECTION}/000000035",
+    f"http://identifiers.org/{OTHER_UNKNOWN_COLLECTION}/000000036",
 ]
 
 
@@ -384,13 +397,14 @@ def test_annotation_losses_are_reported_once_per_collection(
 
     warnings = [record.getMessage() for record in _annotator_records(caplog, "WARNING")]
     assert len(warnings) == 2, caplog.text
-    # the report is sorted by collection, so `sabiork` comes before `slm`
-    assert "'sabiork'" in warnings[0] and "'slm'" in warnings[1]
+    # the report is sorted by collection, so the first one comes first
+    assert f"'{UNKNOWN_COLLECTION}'" in warnings[0]
+    assert f"'{OTHER_UNKNOWN_COLLECTION}'" in warnings[1]
     # each names how many resources of its collection were written as given
     assert warnings[0].startswith("3 ") and warnings[1].startswith("2 ")
     # each names an example resource of its own collection
-    assert "http://identifiers.org/sabiork/140" in warnings[0]
-    assert "http://identifiers.org/slm/00000003" in warnings[1]
+    assert f"http://identifiers.org/{UNKNOWN_COLLECTION}/140" in warnings[0]
+    assert f"http://identifiers.org/{OTHER_UNKNOWN_COLLECTION}/00000003" in warnings[1]
 
     # the detail of every single resource is still available, at debug
     details = [record.getMessage() for record in _annotator_records(caplog, "DEBUG")]
@@ -419,25 +433,30 @@ def test_annotation_losses_do_not_leak_between_documents(
             record.getMessage() for record in _annotator_records(caplog, "WARNING")
         ]
 
-    assert len(first) == 1 and "'sabiork'" in first[0] and first[0].startswith("3 ")
-    assert len(second) == 1 and "'slm'" in second[0] and second[0].startswith("2 ")
+    assert len(first) == 1 and first[0].startswith("3 ")
+    assert f"'{UNKNOWN_COLLECTION}'" in first[0]
+    assert len(second) == 1 and second[0].startswith("2 ")
+    assert f"'{OTHER_UNKNOWN_COLLECTION}'" in second[0]
 
 
-def test_annotation_loss_of_an_unknown_collection_is_reported(
+def test_annotation_loss_of_a_compact_url_is_grouped_by_its_collection(
     tmp_path: Path, caplog: pytest.LogCaptureFixture
 ) -> None:
-    """Test that a resource pymetadata parses no collection from is reported.
+    """Test that a compact URL is reported under the collection of its term.
 
-    Such a resource has no collection to group it under, and dropping it
-    would hide it entirely.
+    The collection of such a resource is the prefix of its term, which the
+    report groups it under like any other; dropping a resource whose
+    collection the registry does not know would hide it entirely.
     """
     sbml_path = tmp_path / "annotation.xml"
     with caplog.at_level(logging.WARNING, logger="sbmlutils.metadata.annotator"):
-        _annotated_model(["https://identifiers.org/CMO:0000012"], sbml_path)
+        _annotated_model(
+            ["https://identifiers.org/SBMLUTILS.TEST.COLLECTION1:0000012"], sbml_path
+        )
 
     warnings = [record.getMessage() for record in _annotator_records(caplog, "WARNING")]
     assert len(warnings) == 1, caplog.text
-    assert "'cmo'" in warnings[0], warnings
+    assert f"'{UNKNOWN_COLLECTION}'" in warnings[0], warnings
 
 
 def test_annotation_loss_outside_a_document_is_reported_per_resource(
@@ -455,7 +474,7 @@ def test_annotation_loss_outside_a_document_is_reported_per_resource(
     compartment.setId("c")
     compartment.setConstant(True)
 
-    resource = "http://identifiers.org/sabiork/1406"
+    resource = f"http://identifiers.org/{UNKNOWN_COLLECTION}/1406"
     with caplog.at_level(logging.WARNING, logger="sbmlutils.metadata.annotator"):
         ModelAnnotator.annotate_sbase(compartment, Annotation(BQB.IS, resource))
 

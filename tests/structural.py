@@ -96,7 +96,7 @@ Through the libsbml getters, the `isSet` getter first: an unset attribute is `No
 
   Accepted when every resource which differs is one of those on one side and on the other side exactly `https://identifiers.org/<collection>:<term>`, or `https://identifiers.org/<term>` if the term carries the collection as its own prefix, with the same qualifier, the term unchanged except for the `%3A` of a URN decoded to `:`, and the collection unchanged except for the two legacy renames pymetadata applies, `obo.go` to `go` and `biomodels.sbo` to `sbo`. A source of form 3 or 4 carries its collection as the prefix of its term already, so its only accepted result is the identifiers.org URI written in front of it, unchanged in prefix and term.
 
-  A result which is not that compact URL is a loss and is never accepted, whichever form it came from: the bare term pymetadata writes for a collection its registry does not know, which carries neither the collection nor a URI scheme (`http://identifiers.org/sabiork/1406` as `1406`, `https://identifiers.org/CMO:0000012` as `CMO:0000012`), a resource stripped of its collection (`http://identifiers.org/slm/000000035` as `https://identifiers.org/000000035`), and a term whose repeated collection prefix was shortened away.
+  A result which is not that compact URL is a loss and is never accepted, whichever form it came from: the bare term pymetadata writes for a collection its registry does not know, which carries neither the collection nor a URI scheme (`http://identifiers.org/sbmlutils.test.collection1/1406` as `1406`), a resource stripped of its collection, which pymetadata does for a term which does not match the pattern the registry gives its collection (`http://identifiers.org/chebi/000000035` as `https://identifiers.org/000000035`), and a term whose repeated collection prefix was shortened away.
 """
 
 import math
@@ -472,8 +472,8 @@ def _identifiers_org(before: object, after: object) -> bool:
         return False
     # every resource written has to be the compact identifiers.org URI of the one
     # read: the bare term pymetadata writes for a collection its registry does not
-    # know, `1406` for `http://identifiers.org/sabiork/1406`, carries neither the
-    # collection nor a URI scheme, which is a loss and no normalization
+    # know, `1406` for a `<collection>/1406` of an unknown collection, carries
+    # neither the collection nor a URI scheme, which is a loss and no normalization
     if any(
         not resource.startswith(_IDENTIFIERS_ORG) for _, resource in unmatched_after
     ):
