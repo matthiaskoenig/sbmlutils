@@ -19,7 +19,6 @@ Layer 3 needs cobrapy, which is the optional `cobra` extra: its tests skip when 
 """
 
 import math
-import os
 import re
 import shutil
 import sys
@@ -163,9 +162,9 @@ def roundtrip_comp_document(sbml_path: Path, out_dir: Path) -> Path:
 
 
 def flatten(sbml_path: Path, flat_path: Path) -> Path:
-    """Flatten a comp document, leaving the working directory as it was.
+    """Flatten a comp document from an absolute path.
 
-    `sbmlutils.comp.flatten_sbml` changes the working directory to the directory of the file, so that libsbml resolves a `comp:source` relative to it, and changes it back when it returns - but not when the flattening raises. The working directory is therefore restored here, and both paths are made absolute before the call, since a relative output path would be written relative to the source directory instead of the one the caller means.
+    `sbmlutils.comp.flatten_sbml` changes the working directory to the directory of the file, so that libsbml resolves a `comp:source` relative to it, which is why both paths are made absolute before the call: a relative output path would be written relative to the source directory instead of the one the caller means.
 
     Args:
         sbml_path: path of the comp SBML file
@@ -177,12 +176,7 @@ def flatten(sbml_path: Path, flat_path: Path) -> Path:
     Raises:
         ValueError: if libsbml cannot flatten the document
     """
-    working_dir = Path.cwd()
-    absolute = flat_path.resolve()
-    try:
-        flatten_sbml(sbml_path.resolve(), absolute)
-    finally:
-        os.chdir(working_dir)
+    flatten_sbml(sbml_path.resolve(), flat_path.resolve())
     return flat_path
 
 

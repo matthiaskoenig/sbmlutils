@@ -1,7 +1,6 @@
 """Tests for the comp package."""
 
 import logging
-import os
 import re
 from collections.abc import Callable
 from pathlib import Path
@@ -1008,11 +1007,7 @@ def test_submodel_instantiates_a_model_definition(tmp_path: Path) -> None:
     )
 
     flat_path = tmp_path / "model_definition_submodel_flat.xml"
-    working_dir = os.getcwd()
-    try:
-        comp.flatten_sbml(sbml_path=sbml_path, sbml_flat_path=flat_path)
-    finally:
-        os.chdir(working_dir)
+    comp.flatten_sbml(sbml_path=sbml_path, sbml_flat_path=flat_path)
 
     doc_flat = read_sbml(flat_path)
     model_flat: libsbml.Model = doc_flat.getModel()
@@ -1028,6 +1023,47 @@ def test_submodel_instantiates_a_model_definition(tmp_path: Path) -> None:
     )
     assert unit_definition is not None
     assert model_flat.getParameter("sub1__k").getUnits() == "sub1__per_min"
+
+
+def test_flatten_leaves_the_working_directory_where_it_was(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that a flatten which raises leaves the process where it was.
+
+    `flatten_sbml` changes the working directory to the directory of the
+    document, so that libsbml resolves the `comp:source` of an external model
+    definition relative to it. A document which cannot be flattened raises,
+    and the process stayed in that directory: every relative path of the
+    caller then pointed somewhere else, and on Windows the directory could
+    not be deleted while a process sits in it.
+    """
+    model = Model(
+        sid="unflattenable",
+        packages=[Package.COMP_V1],
+        external_model_definitions=[
+            ExternalModelDefinition(
+                sid="emd1",
+                source="no_such_file.xml",
+                modelRef="m",
+                name="a definition whose file does not exist",
+            )
+        ],
+        submodels=[Submodel(sid="sub1", modelRef="emd1", name="submodel")],
+        parameters=[Parameter("k", 1.0, name="k")],
+    )
+    sbml_path = tmp_path / "unflattenable.xml"
+    create_model(model=model, filepath=sbml_path, validate=False)
+
+    working_dir = Path.cwd()
+    with (
+        caplog.at_level(logging.ERROR, logger="sbmlutils"),
+        pytest.raises(ValueError, match="could not be flattend"),
+    ):
+        comp.flatten_sbml(
+            sbml_path=sbml_path, sbml_flat_path=tmp_path / "unflattenable_flat.xml"
+        )
+
+    assert Path.cwd() == working_dir
 
 
 def test_document_declares_the_packages_its_model_definitions_need(
@@ -1544,11 +1580,7 @@ def test_a_model_definition_can_instantiate_another_one(tmp_path: Path) -> None:
     )
 
     flat_path = tmp_path / "nested_model_definitions_flat.xml"
-    working_dir = os.getcwd()
-    try:
-        comp.flatten_sbml(sbml_path=sbml_path, sbml_flat_path=flat_path)
-    finally:
-        os.chdir(working_dir)
+    comp.flatten_sbml(sbml_path=sbml_path, sbml_flat_path=flat_path)
 
     doc_flat = read_sbml(flat_path)
     model_flat: libsbml.Model = doc_flat.getModel()
