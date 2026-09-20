@@ -453,8 +453,10 @@ def test_nested_sbaseref_chain_is_written(tmp_path: Path) -> None:
     _assert_nested_sbaseref_chain(deletion.getSBaseRef(), "del")
 
 
-def test_replaced_element_sets_id_once(caplog: pytest.LogCaptureFixture) -> None:
-    """Test that `SbaseRef._set_fields` sets the id of the created object once.
+def test_a_port_sets_its_id_once_and_a_replaced_element_not_at_all(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test how often `SbaseRef._set_fields` sets the id of the created object.
 
     `SbaseRef._set_fields` used to set the id both through the base class
     (`Sbase._set_fields`, which routes it through `setId`/`setIdAttribute`
@@ -467,6 +469,10 @@ def test_replaced_element_sets_id_once(caplog: pytest.LogCaptureFixture) -> None
     a visible symptom; it was simply dead code, which this test pins down by
     counting the calls directly. No ERROR is logged either, which is
     asserted too since that was the originally reported symptom.
+
+    A `<comp:port>` has a `comp:id` of its own and gets exactly one call. A
+    `<comp:replacedElement>` gets none: libsbml writes the core id of one
+    into no document, so the value is reported instead of being set.
     """
     sbmlns = libsbml.SBMLNamespaces(3, 2, "comp", 1)
     doc = libsbml.SBMLDocument(sbmlns)
@@ -478,24 +484,35 @@ def test_replaced_element_sets_id_once(caplog: pytest.LogCaptureFixture) -> None
     c.setSpatialDimensions(3.0)
     c.setSize(1.0)
     cplugin: libsbml.CompSBasePlugin = c.getPlugin("comp")
-    obj: libsbml.ReplacedElement = cplugin.createReplacedElement()
+    port: libsbml.Port = model.getPlugin("comp").createPort()
+    replaced: libsbml.ReplacedElement = cplugin.createReplacedElement()
 
-    set_id_calls: list[str] = []
-    original_set_id = obj.setId
+    calls: dict[str, list[str]] = {"port": [], "replacedElement": []}
 
-    def _spy_set_id(value: str) -> int:
-        set_id_calls.append(value)
-        return original_set_id(value)
+    def _spy(obj: Any, key: str) -> None:
+        """Count the `setId` calls of one created libsbml object."""
+        original = obj.setId
 
-    obj.setId = _spy_set_id  # ty: ignore[invalid-assignment]
+        def _set_id(value: str) -> int:
+            calls[key].append(value)
+            return int(original(value))
 
-    replaced_element = ReplacedElement(sid="re1", elementRef="c1", submodelRef="sub1")
+        obj.setId = _set_id
+
+    _spy(port, "port")
+    _spy(replaced, "replacedElement")
+
     with caplog.at_level(logging.DEBUG, logger="sbmlutils"):
-        replaced_element._set_fields(obj, model)
+        Port(sid="p1", idRef="c1")._set_fields(port, model)
+        ReplacedElement(sid="re1", elementRef="c1", submodelRef="sub1")._set_fields(
+            replaced, model
+        )
 
-    assert set_id_calls == ["re1"]
+    assert calls == {"port": ["p1"], "replacedElement": []}
     assert [r for r in caplog.records if r.levelname == "ERROR"] == []
-    assert obj.getId() == "re1"
+    assert port.getId() == "p1"
+    assert not replaced.isSetIdAttribute()
+    del doc
 
 
 def test_submodel_without_model_ref_is_written_without_raising(

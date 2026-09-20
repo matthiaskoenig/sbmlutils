@@ -26,7 +26,7 @@ import numbers
 import re
 from collections import namedtuple
 from collections.abc import Iterable, Iterator, Sequence
-from contextlib import AbstractContextManager, contextmanager
+from contextlib import contextmanager
 from contextvars import ContextVar
 from copy import deepcopy
 from dataclasses import dataclass
@@ -155,6 +155,23 @@ _ID_ATTRIBUTE_TYPECODES: frozenset[int] = frozenset(
         libsbml.SBML_ALGEBRAIC_RULE,
         libsbml.SBML_INITIAL_ASSIGNMENT,
         libsbml.SBML_EVENT_ASSIGNMENT,
+    }
+)
+
+#: the libsbml types whose core `id` and `name` libsbml writes into no
+#: document. Measured with libsbml 5.21.2 on a `<comp:replacedElement>`, a
+#: `<comp:replacedBy>` and a nested `<comp:sBaseRef>`: below SBML L3V2 both
+#: setters answer `LIBSBML_UNEXPECTED_ATTRIBUTE`, at L3V2 both answer success,
+#: and the document written carries neither attribute at either version. So no
+#: level and no package version keeps them and neither is written, see
+#: `_record_unwritten_attribute`. A `<comp:port>` and a `<comp:deletion>` are
+#: not affected: comp gives both an id and a name of their own, written as the
+#: package attributes `comp:id` and `comp:name`.
+_UNWRITTEN_ID_TYPECODES: frozenset[int] = frozenset(
+    {
+        libsbml.SBML_COMP_REPLACEDELEMENT,
+        libsbml.SBML_COMP_REPLACEDBY,
+        libsbml.SBML_COMP_SBASEREF,
     }
 )
 
@@ -358,25 +375,111 @@ _attribute_losses: ScopedLossCollector[tuple[str, ...], _AttributeLoss] = (
 )
 
 
-def collect_attribute_losses() -> AbstractContextManager[None]:
-    """Report the attributes a document has no place for once per kind.
+@dataclass
+class _UnwrittenAttribute:
+    """The elements of one kind whose attribute libsbml does not write.
 
-    An attribute which the SBML level and version of the document, or the
-    version of the package, does not have at all is lost for every element
-    which carries it, and the caller fixes all of them with one decision:
-    write SBML Level 3 Version 2, or declare a later version of the package.
-    Inside this context every such loss is collected and logged at debug, and
-    one warning per element kind and attribute is emitted when the context
-    ends. Outside it, every loss is warned about on its own.
+    Attributes:
+        count: how many elements of the kind lost the attribute
+        example: the first of them, named in the report
+    """
+
+    count: int = 0
+    example: str = ""
+
+
+def _report_unwritten_attribute(
+    key: tuple[str, ...], loss: _UnwrittenAttribute
+) -> None:
+    """Report the elements of one kind whose attribute libsbml does not write.
+
+    Args:
+        key: the SBML element name and the attribute, as collected
+        loss: the count and the example
+    """
+    element_name, attribute = key
+    logger.warning(
+        "The '%s' of %s <%s> element(s) is not written: libsbml writes no "
+        "core id or name on this element at any SBML level, e.g. '%s'.",
+        attribute,
+        loss.count,
+        element_name,
+        loss.example,
+    )
+
+
+#: the elements whose core id or name libsbml does not write, collected per
+#: document so that the loss is reported once per kind of element, see
+#: `_UNWRITTEN_ID_TYPECODES`
+_unwritten_attributes: ScopedLossCollector[tuple[str, ...], _UnwrittenAttribute] = (
+    ScopedLossCollector("sbmlutils_unwritten_attributes", _report_unwritten_attribute)
+)
+
+
+@contextmanager
+def collect_attribute_losses() -> Iterator[None]:
+    """Report the attributes a document does not carry once per kind.
+
+    An attribute is lost for the same reason on every element which carries
+    it, and a report per element buries that one reason under thousands of
+    lines. Inside this context every such loss is collected and logged at
+    debug, and one warning per element kind and attribute is emitted when the
+    context ends. Outside it, every loss is warned about on its own. Two
+    kinds are collected:
+
+    - an attribute which the SBML level and version of the document, or the
+      version of the package, does not have at all, which the caller fixes
+      for every element at once by writing SBML Level 3 Version 2 or by
+      declaring a later version of the package, see `_record_attribute_loss`;
+    - an attribute which libsbml writes into no document whatever the level,
+      the core id and name of a comp reference, which the caller can do
+      nothing about and which is therefore reported without advice, see
+      `_record_unwritten_attribute`.
 
     The context is entered by the code which writes a whole document,
     `Document.create_sbml` and `create_model`; a context inside an active one
     collects into it and reports nothing of its own.
 
-    Returns:
-        the context manager
+    Yields:
+        None
     """
-    return _attribute_losses.scope()
+    with _attribute_losses.scope(), _unwritten_attributes.scope():
+        yield
+
+
+def _record_unwritten_attribute(
+    sbase: Any, attribute: str, value: Any, element: Any
+) -> None:
+    """Record an attribute libsbml writes into no document.
+
+    Args:
+        sbase: the libsbml object the attribute would be set on
+        attribute: the name of the SBML attribute, `id` or `name`
+        value: the value which is not written
+        element: the model element the attribute belongs to
+    """
+    element_name: str = _sbml_element_name(sbase)
+    loss = _unwritten_attributes.group(
+        (element_name, attribute), lambda: _UnwrittenAttribute(example=str(element))
+    )
+    if loss is None:
+        logger.warning(
+            "The '%s' of '%s' is not written: libsbml writes no core id or "
+            "name on a <%s> at any SBML level.",
+            attribute,
+            element,
+            element_name,
+        )
+        return
+    loss.count += 1
+    logger.debug(
+        "The '%s' of '%s' is not written with the value '%s': libsbml writes "
+        "no core id or name on a <%s> at any SBML level.",
+        attribute,
+        element,
+        value,
+        element_name,
+    )
 
 
 def _record_attribute_loss(
@@ -1138,14 +1241,24 @@ class Sbase:
             # the document, which one decision fixes for all of them, so it
             # is reported with every other such attribute, see
             # `collect_attribute_losses`
-            if sbase.getTypeCode() in _ID_ATTRIBUTE_TYPECODES:
+            if sbase.getTypeCode() in _UNWRITTEN_ID_TYPECODES:
+                # a comp reference whose id libsbml writes into no document,
+                # which the setter says at one level and not at the other:
+                # reported here, so that the loss is the same at both
+                _record_unwritten_attribute(sbase, "id", self.sid, self)
+            elif sbase.getTypeCode() in _ID_ATTRIBUTE_TYPECODES:
                 _check_attribute(
                     sbase.setIdAttribute(self.sid), sbase, "id", self.sid, self
                 )
             else:
                 _check_attribute(sbase.setId(self.sid), sbase, "id", self.sid, self)
         if self.name is not None:
-            _check_attribute(sbase.setName(self.name), sbase, "name", self.name, self)
+            if sbase.getTypeCode() in _UNWRITTEN_ID_TYPECODES:
+                _record_unwritten_attribute(sbase, "name", self.name, self)
+            else:
+                _check_attribute(
+                    sbase.setName(self.name), sbase, "name", self.name, self
+                )
         elif Sbase._authoring_hints.get() and not isinstance(
             self,
             (
@@ -5809,12 +5922,16 @@ class SbaseRef(Sbase):
     holds that nested reference, an `SbaseRef` in its own right so the chain
     can continue.
 
-    `sid` is set on every level (`Sbase._set_fields` sets it through the
-    generic `id` SBase core added in SBML L3V2), but libsbml's comp writer
-    does not serialize that generic `id`/`name` on a `ReplacedElement`, a
-    `ReplacedBy` or a nested `<comp:sBaseRef>`: measured with libsbml 5.21.2,
-    `isSetIdAttribute()` is `True` right after `_set_fields`, and `False` once
-    the document is written and read back. `metaId`, `sboTerm`, notes and
+    **A `ReplacedElement`, a `ReplacedBy` and a nested `<comp:sBaseRef>` carry
+    no `sid` and no `name` into any document**, which is why both are
+    optional on them. The two are the generic `id` and `name` SBML core gave
+    every `SBase` in L3V2, and libsbml's comp writer serializes neither:
+    measured with libsbml 5.21.2, `setIdAttribute` and `setName` answer
+    `LIBSBML_UNEXPECTED_ATTRIBUTE` below L3V2 and success at L3V2, and the
+    document written carries neither attribute at either version. Writing
+    L3V2 is therefore no remedy, and an `sid` or a `name` given on one of the
+    three is reported once per document and per kind of element, without
+    advice, see `_UNWRITTEN_ID_TYPECODES`. `metaId`, `sboTerm`, notes and
     annotations are unaffected (they predate L3V2 and are written normally),
     and so are the `sid` and `name` of a `Port` and of a `Deletion`, since
     comp gives both elements an `id` and a `name` of their own, written as the
@@ -5833,7 +5950,7 @@ class SbaseRef(Sbase):
 
     def __init__(
         self,
-        sid: str,
+        sid: str | None = None,
         portRef: str | None = None,
         idRef: str | None = None,
         unitRef: str | None = None,
@@ -5955,9 +6072,9 @@ class ReplacedElement(SbaseRef):
 
     def __init__(
         self,
-        sid: str,
-        elementRef: str,
-        submodelRef: str,
+        sid: str | None = None,
+        elementRef: str = "",
+        submodelRef: str = "",
         deletion: str | None = None,
         conversionFactor: str | None = None,
         portRef: str | None = None,
@@ -5972,7 +6089,39 @@ class ReplacedElement(SbaseRef):
         keyValuePairs: list[KeyValuePair] | None = None,
         sBaseRef: SbaseRef | None = None,
     ):
-        """Create a ReplacedElement."""
+        """Create a ReplacedElement.
+
+        Args:
+            sid: the id of the replacement, which libsbml writes into no
+                document, see the class docstring of `SbaseRef`
+            elementRef: the element of this model which is replaced, see the
+                class docstring. comp requires it, and it carries an empty
+                default only because the optional `sid` keeps its position in
+                front of it; a replacement whose `elementRef` names no element
+                of the model is refused when it is written
+            submodelRef: the id of the submodel the replacing element lives
+                in, `comp:submodelRef`. comp requires it, and it carries an
+                empty default for the same reason; the empty string is what
+                the parser hands over for a document which states none, and
+                libsbml leaves the attribute unset for it
+            deletion: the id of the deletion of the submodel this replacement
+                refers to
+            conversionFactor: the id of the parameter the values of the
+                replaced element are converted with
+            portRef: the port of the submodel which names the replacing element
+            idRef: the id of the replacing element in the submodel
+            unitRef: the id of the replacing unit definition in the submodel
+            metaIdRef: the metaid of the replacing element in the submodel
+            name: the name of the replacement, which libsbml writes into no
+                document either
+            sboTerm: the SBO term of the replacement
+            metaId: the meta id of the replacement
+            annotations: the annotations of the replacement
+            notes: the notes of the replacement
+            keyValuePairs: the fbc key value pairs of the replacement
+            sBaseRef: the nested `<comp:sBaseRef>` which continues the
+                reference into a submodel of the submodel
+        """
         super().__init__(
             sid=sid,
             portRef=portRef,
@@ -6053,13 +6202,13 @@ class ReplacedElement(SbaseRef):
 
 
 class ReplacedBy(SbaseRef):
-    """ReplacedBy."""
+    """ReplacedBy: an element of this model is replaced by one of a submodel."""
 
     def __init__(
         self,
-        sid: str,
-        elementRef: str,
-        submodelRef: str,
+        sid: str | None = None,
+        elementRef: str = "",
+        submodelRef: str = "",
         portRef: str | None = None,
         idRef: str | None = None,
         unitRef: str | None = None,
@@ -6072,7 +6221,35 @@ class ReplacedBy(SbaseRef):
         keyValuePairs: list[KeyValuePair] | None = None,
         sBaseRef: SbaseRef | None = None,
     ):
-        """Create a ReplacedElement."""
+        """Create a ReplacedBy.
+
+        Args:
+            sid: the id of the replacement, which libsbml writes into no
+                document, see the class docstring of `SbaseRef`
+            elementRef: the element of this model which is replaced. A
+                `<comp:replacedBy>` is written inside that element, which
+                `create_sbml` is handed, so this is a pointer inside sbmlutils
+                and is not written; it carries an empty default only because
+                the optional `sid` keeps its position in front of it
+            submodelRef: the id of the submodel the replacing element lives
+                in, `comp:submodelRef`. comp requires it, and it carries an
+                empty default for the same reason; the empty string is what
+                the parser hands over for a document which states none, and
+                libsbml leaves the attribute unset for it
+            portRef: the port of the submodel which names the replacing element
+            idRef: the id of the replacing element in the submodel
+            unitRef: the id of the replacing unit definition in the submodel
+            metaIdRef: the metaid of the replacing element in the submodel
+            name: the name of the replacement, which libsbml writes into no
+                document either
+            sboTerm: the SBO term of the replacement
+            metaId: the meta id of the replacement
+            annotations: the annotations of the replacement
+            notes: the notes of the replacement
+            keyValuePairs: the fbc key value pairs of the replacement
+            sBaseRef: the nested `<comp:sBaseRef>` which continues the
+                reference into a submodel of the submodel
+        """
         super().__init__(
             sid=sid,
             portRef=portRef,

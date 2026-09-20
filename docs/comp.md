@@ -79,7 +79,6 @@ from sbmlutils.factory import PORT_SUFFIX, ReplacedElement
 
 model.replaced_elements = [
     ReplacedElement(
-        sid="cell0_RE",
         metaId="cell0_RE",
         elementRef="cell0",  # the element of this model
         submodelRef="submodel0",  # the submodel it replaces in
@@ -87,6 +86,8 @@ model.replaced_elements = [
     ),
 ]
 ```
+
+A replacement takes no id: libsbml writes the core `id` and `name` of a `<comp:replacedElement>` into no document, see below, so `ReplacedElement`, `ReplacedBy` and `SbaseRef` are written without one and a value given for either is reported. The `metaId` is written and is what an annotation of the replacement refers to.
 
 `ReplacedBy` is the other direction - an element of this model is replaced *by* one of a submodel - and `Deletion` removes an element of a submodel.
 
@@ -96,12 +97,11 @@ A reference reaches one level deep by itself. To continue it into a submodel of 
 from sbmlutils.factory import ReplacedElement, SbaseRef
 
 ReplacedElement(
-    sid="S1_RE",
     metaId="S1_RE",
     elementRef="S1",
     submodelRef="submodel0",  # the submodel of this model
     idRef="submodel1",  # the submodel inside it
-    sBaseRef=SbaseRef(sid="inner", idRef="S1"),  # the element in there
+    sBaseRef=SbaseRef(idRef="S1"),  # the element in there
 )
 ```
 
@@ -192,7 +192,7 @@ from sbmlutils.factory import create_model
 create_model(model=model, filepath=Path("model_comp.xml"), sbml_level=3, sbml_version=1)
 ```
 - **`fbc:strict` on a model definition.** libsbml 5.21.2 writes the attribute twice on a `<comp:modelDefinition>`, and the file then fails to parse, so it is not written there. A document whose model definition carries fbc content keeps the validation error which says the attribute is missing, and the loss is reported once per document.
-- **The core `id` and `name` of a `ReplacedElement`, a `ReplacedBy`, a `Deletion` and a nested `sBaseRef`.** They are set, and libsbml 5.21.2 does not write them into the file. The comp `comp:id` and `comp:name` of a `Port` and of a `Deletion` are written normally, and so are the metaid, the SBO term, the notes and the annotations of every one of them.
+- **The core `id` and `name` of a `ReplacedElement`, a `ReplacedBy`, a `Deletion` and a nested `sBaseRef`.** libsbml 5.21.2 writes them into no document, whatever the SBML level: measured at Level 3 Version 1 and at Version 2, where the setter answers success and the attribute is in neither file. Writing a later version is therefore no remedy, both are optional on all three classes, and a value given for either is reported once per document and per kind of element. The comp `comp:id` and `comp:name` of a `Port` and of a `Deletion` are written normally, and so are the metaid, the SBO term, the notes and the annotations of every one of them.
 
 The verification uses the 123 comp cases of the [SBML test suite](https://github.com/sbmlteam/sbml-test-suite) - three of which nest an `sBaseRef`, to a depth of three - and the comp files of the repository, among them the whole-body model `icg_body.xml` with its external model definition.
 

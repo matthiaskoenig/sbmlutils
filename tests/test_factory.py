@@ -2881,15 +2881,19 @@ def test_sbo_term_of_a_species_reference_is_normalized(
     assert doc.getModel().getSpecies("S1").getSBOTermID() == "SBO:0000011"
 
 
-def test_an_sbase_attribute_of_a_package_element_advises_the_sbml_version(
-    tmp_path: Path, caplog: pytest.LogCaptureFixture
+@pytest.mark.parametrize("sbml_version", [1, 2])
+def test_the_core_id_of_a_comp_reference_is_reported_at_every_version(
+    sbml_version: int, tmp_path: Path, caplog: pytest.LogCaptureFixture
 ) -> None:
-    """Test the advice for an `SBase` attribute of a package element.
+    """Test what a replaced element says about the id and name it cannot write.
 
-    A `<comp:replacedElement>` has no `comp:id` below SBML L3V2 although comp
-    version 1 is the only version of comp there is: the `id` of an element of
-    a package is the `id` of an `SBase`, which came with L3V2. The advice is
-    therefore the SBML version, not a later version of comp.
+    libsbml 5.21.2 writes the core `id` and `name` of a
+    `<comp:replacedElement>`, a `<comp:replacedBy>` and a nested
+    `<comp:sBaseRef>` into no document: measured, `setIdAttribute` and
+    `setName` answer `LIBSBML_UNEXPECTED_ATTRIBUTE` below SBML L3V2 and
+    success at L3V2, and the written document carries neither attribute at
+    either version. So the SBML version is no remedy for it, and the report
+    says what is true of every version rather than advising one.
     """
     model = Model(
         sid="replaced_element_id",
@@ -2922,23 +2926,72 @@ def test_an_sbase_attribute_of_a_package_element_advises_the_sbml_version(
             )
         ],
     )
+    sbml_path = tmp_path / "model.xml"
     with caplog.at_level(logging.WARNING, logger="sbmlutils"):
         create_model(
             model=model,
-            filepath=tmp_path / "model.xml",
+            filepath=sbml_path,
             sbml_level=3,
-            sbml_version=1,
+            sbml_version=sbml_version,
             validate=False,
         )
 
-    reports = [
-        m
-        for m in _records(caplog, logging.WARNING)
-        if "<replacedElement>" in m and "'id'" in m
-    ]
-    assert len(reports) == 1, reports
-    assert "comp version 1 of an SBML L3V1 document" in reports[0]
-    assert reports[0].endswith("Write SBML Level 3 Version 2 to keep it.")
+    messages = _records(caplog, logging.WARNING)
+    for attribute in ("id", "name"):
+        reports = [
+            m for m in messages if "<replacedElement>" in m and f"'{attribute}'" in m
+        ]
+        assert len(reports) == 1, (attribute, messages)
+        assert "libsbml writes no core id or name" in reports[0], reports[0]
+        assert "Write SBML Level 3 Version 2" not in reports[0], reports[0]
+
+    # neither attribute is in the document, at either version
+    doc: libsbml.SBMLDocument = read_sbml(source=sbml_path, validate=False)
+    parameter: libsbml.Parameter = doc.getModel().getParameter("k")
+    replaced: libsbml.ReplacedElement = parameter.getPlugin("comp").getReplacedElement(
+        0
+    )
+    assert not replaced.isSetIdAttribute()
+    assert not replaced.isSetName()
+    del doc
+
+
+def test_a_comp_reference_takes_no_id(tmp_path: Path) -> None:
+    """Test that a replacement can be written without an id, which is not written.
+
+    `ReplacedElement`, `ReplacedBy` and `SbaseRef` took `sid` as a required
+    first positional argument, so every author of a comp model had to invent
+    an id which libsbml then wrote into no document, see the test above. The
+    id is optional on all three.
+    """
+    model = Model(
+        sid="replacement_without_an_id",
+        name="a model whose replacement has no id",
+        packages=[Package.COMP_V1],
+        model_definitions=[
+            ModelDefinition(
+                sid="md1",
+                name="a model definition",
+                parameters=[Parameter("k", 1.0, name="k")],
+            )
+        ],
+        submodels=[Submodel(sid="sub1", modelRef="md1", name="submodel")],
+        parameters=[Parameter("k", 1.0, name="k")],
+        replaced_elements=[
+            ReplacedElement(elementRef="k", submodelRef="sub1", idRef="k")
+        ],
+    )
+    sbml_path = tmp_path / "model.xml"
+    create_model(model=model, filepath=sbml_path, validate=False)
+
+    doc: libsbml.SBMLDocument = read_sbml(source=sbml_path, validate=False)
+    parameter: libsbml.Parameter = doc.getModel().getParameter("k")
+    replaced: libsbml.ReplacedElement = parameter.getPlugin("comp").getReplacedElement(
+        0
+    )
+    assert replaced.getSubmodelRef() == "sub1"
+    assert replaced.getIdRef() == "k"
+    del doc
 
 
 @pytest.mark.parametrize(
