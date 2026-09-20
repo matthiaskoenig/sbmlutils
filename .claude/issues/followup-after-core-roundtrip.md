@@ -46,6 +46,10 @@ So gene products, GPAs, user-defined constraints, key-value pairs and all of dis
 
 ## 1. Package round-tripping: fbc, distrib, comp
 
+**Done in 0.12.0** (branch `feat/469-packages-roundtrip`, design `.claude/specs/2026-09-19-sbml-packages-roundtrip-design.md`). `sbml_to_model` reads all three packages. Measured over 265 documents, the 157 l3v2 test-suite cases which declare a package and 108 package files of `sbmlutils.resources`, every construct of every package is preserved in every document which has it, except the SBO terms of the `and`/`or` nodes of a gene product association in two files, which the infix string has no place for. Layer 2: all 113 of the 123 comp test-suite cases which roadrunner can simulate agree after flattening, as does `icg_body`; layer 3: `e_coli_core` and `Recon3D` solve to the same objective in cobrapy, and 29 of the 34 fbc cases agree, cobrapy refusing the other five as models. The full core sweep is 1465 of 1482, up from 1372, because the comp cases round trip now.
+
+What is left of this section is named in section 14.
+
 Sizing below is relative to the 14-task core effort.
 
 ### fbc, about 0.5
@@ -79,6 +83,8 @@ Reported upstream to libsbml; see "Decisions already taken". Numbering is kept s
 
 ## 3. Data model cleanups
 
+**Done in 0.12.0**, every item below: `_keys` is derived from the field annotations of `Model`, `get_uid_for_unit` has its type guard back and a bad `Species.substanceUnits` or `SbaseRef.unitRef` warns, `Model.units` is deep-copied in `merge_models`, `Sbase._authoring_hints` is a `ContextVar`, `ModelDefinition` is a `Model` and creates its unit definitions, and a port which cannot be written is reported and no longer declares an empty comp namespace. The single source of truth for `Model`'s field set is not reached: see section 14.
+
 - **Three hand-synchronized copies of `Model`'s field set.** The class-level field annotations, the `_keys` ClassVar used by `merge_models`, the `ModelDict` TypedDict and the constructor signature must all be kept in sync by hand. `Model` is no longer a pydantic `BaseModel` since the core branch, so the annotations are plain type hints, but the duplication remains.
 - **`_keys["units"]` is deliberately `None`** while the declared field is `list[UnitDefinition]`, and the mismatch carries weight: correcting it to `list` would switch `merge_models` to extend-with-deepcopy and write duplicate unit ids. A comment says so, but the design is fragile and a single source of truth would remove the trap.
 - **`ModelDefinition` still takes `type[Units]`** and never creates unit definitions. See comp above.
@@ -88,6 +94,10 @@ Reported upstream to libsbml; see "Decisions already taken". Numbering is kept s
 - **An empty comp namespace for ports that are never written.** `Event`, `Constraint`, `KineticLaw`, `LocalParameter`, `EventAssignment`, `Trigger`, `Priority` and `Delay` accept a `port` that is never written (only the elements which call `Sbase.create_port` write one), and `KineticLaw` and `LocalParameter` accept a `replacedBy` that is never written, yet either now makes the model declare comp. The document is valid, but a port the user asked for is silently not created.
 
 ## 4. Robustness and consistency
+
+**Done in 0.12.0**, the item this section is about: the `set*` calls of `factory.py` were enumerated by reading the AST and by running every one of them, and of the 90 unwrapped calls the 62 which answer with a failing status on a value the factory can pass are wrapped, while the 28 which cannot fail are left alone. An attribute which the level and version, or the version of a package, has no place for is reported once per kind of element and attribute rather than once per element, which turns the loss of 57 rule names into one decision instead of 57 lines.
+
+The two items about `parseL3FormulaWithModel` and the lazy `%s` in `set_model_units` were **already fixed in 0.11.0**, in the core round-tripping work; this branch only pinned them with tests. Still open, see section 14: the model history, the `LocalParameter.sid` annotation and the port-without-id message, which no longer reads `AssignmentRule(True)` but still names a rule which has no id as `'None'` rather than by the variable it assigns.
 
 The original version of this section said that `delay.setMath()`, `priority.setMath()` and the trigger's `setMath`, `setInitialValue` and `setPersistent` should be wrapped in `check()`. **That diagnosis was wrong.** Measured, those calls cannot fail: they return success even when given `None`. The real defects are:
 
@@ -163,3 +173,31 @@ Measured with python-libsbml 5.21.2 alone (package branch, comp data model). The
 ## 13. libsbml: fbc:strict cannot be written on a comp model definition
 
 Measured with python-libsbml 5.21.2 alone (package branch, `ModelDefinition` as a `Model`). Setting `strict` on the fbc plugin of a `<comp:modelDefinition>` writes the `fbc:strict` attribute twice, and the file then fails to parse with "Duplicate XML attribute". sbmlutils therefore does not write `fbc:strict` on a model definition, and a document whose model definition carries fbc content validates with libsbml error 2020209 (the required attribute is missing): a validation error which a reader survives, instead of a file which no reader can open. `comp/flatten.py` copy-constructs a `libsbml.ModelDefinition` and is affected by the same defect. To report upstream at [sbmlteam/libsbml](https://github.com/sbmlteam/libsbml).
+
+## 14. What remains after the package round trip
+
+Sections 1, 3 and 4 are done in 0.12.0. What was deliberately left out of that branch, or found while doing it:
+
+### Deliberately out of scope, decided by the user
+
+- **The `factory.py` split**, still deferred to its own pure-refactor change. The module is 7500 lines now, up from 3700 before the round-tripping work, so the case for it is stronger and the seams are visible: the elements, the packages, the model and the document write themselves through one `_fill_sbml` which now states its own rule.
+- **A structured `GeneProductAssociation`.** `Reaction.geneProductAssociation` stays an infix string, and the branch measured what that costs: in each of `distrib/e_coli_core.xml` and `e_coli_core_expression.xml` all 22 `and` and 32 `or` nodes, spread over 42 of the 69 associations, carry an `sboTerm`, `SBO:0000173` for `and` and `SBO:0000174` for `or`, which the string cannot hold. The term only restates the operator of the node it is on, so nothing which is not derivable is lost today; a fixture with node metadata which is not derivable would be. A structured tree would preserve it and is the only way to.
+- **Resolving external model definitions.** The parser keeps `source`, `modelRef` and `md5` and never opens the file, which is what makes the round trip faithful. Resolution stays `comp.flatten_sbml`'s job. Two consequences are documented rather than fixed: a hierarchical model has to be written next to the files it references, and libsbml resolves a `comp:source` only against a document of the same level and version.
+- **The single source of truth for `Model`'s field set.** `_keys` is derived from the field annotations now, which removes one of the four copies; `ModelDict` and the constructor signature are still kept in sync by hand. Making `Model` a dataclass is the honest answer and is entangled with `FrozenClass`, the `objects` fan-out and `ModelDefinition`.
+
+### Found while doing the package work
+
+- **The shipped comp examples are written at SBML Level 3 Version 1**, so they lose what L3V1 has no place for: `examples/icg/model_body.py` names 55 assignment rules and 2 rate rules and `icg_body.xml` has never carried those names, and three comp examples lose the core `id` of their replaced elements. Each is one warning now which says what to do. Writing the examples at L3V2 would keep them, but the whole `icg` set has to move together, since libsbml resolves a `comp:source` only at the same level and version.
+- **`create_model` writes SBML Level 3 Version 1 by default**, which is what makes the point above bite, and which is older than the elements this library models: an id on a rule, a kinetic law, a trigger, a priority, a delay or a constraint only exists from L3V2 on. Whether the default should move to L3V2 is a decision of its own, with a release note, and it changes every shipped example file.
+- **`merge_models` accepts a `ModelDefinition` inside the iterable given to `create_model`** and writes its content as the main model, which bypasses the rejection a `ModelDefinition` gets as the model of a document. Pre-existing merge behaviour, no caller in this repository does it.
+- **An objective which omits the required `fbc:type` is read as `maximize`**, with an error, because `Objective` requires a type. A value is invented for an invalid document; `None` would be the more honest reading, as it is for the `fbc:strict` of an fbc version 1 source.
+- **`comp:substanceConversionFactor` is not read.** libsbml reads and compares it on a submodel although comp version 1 does not define it; `Submodel` has no field for it. No submodel of the corpus sets one.
+- **`ReplacedElement.elementRef` falls back to the metaid** of an element which has no id, which is ambiguous in principle if a metaid equals another element's SId. A dedicated `elementMetaIdRef` field would be unambiguous if the data model is revisited.
+- **`report/sbmlinfo.py` does not show the new distrib fields** (`definitionURL`, `math` and the nested parameters of an uncert parameter) in the sbml4humans report.
+- **The ten comp test-suite cases which reference an external file are expected failures of the simulation sweep** because `roundtrip_sbml` writes into a bare temporary directory. Copying the siblings of the source next to the round trip would make all ten pass and is a change to the core harness.
+- **The griffe warnings of the documentation build**: `ScopedLossCollector` declares its type parameters in the docstring and `Generic[K, V]` in the signature, which griffe reports as `Type parameter 'K' does not appear in the class signature`. PEP 695 syntax would remove it and needs python 3.12, which is above the supported minimum.
+- **`LocalParameter.sid` is typed as a required `str`** while the parser passes `None` for a document which leaves the mandatory id out, and the message for a port which cannot be written names a rule without an id as `'None'` rather than by the variable it assigns.
+
+### Upstream reports
+
+Sections 10 to 13 are the reports this branch owes: `resource_normalized` of pymetadata, and three defects of python-libsbml 5.21.2, the key-value pairs of a `<speciesReference>`, the core `id` and `name` of a comp reference, and `fbc:strict` on a `<comp:modelDefinition>`. Each is measured with the library alone, without sbmlutils, and each is pinned by a test here, so a fixed version is noticed.
