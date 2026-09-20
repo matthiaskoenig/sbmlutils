@@ -49,7 +49,7 @@ Every construct also compares the metadata of its element, where the element has
 
 - `comp.package` (the document): `version`, `required`.
 - `comp.modelDefinition`: the model attributes `substanceUnits`, `timeUnits`, `volumeUnits`, `areaUnits`, `lengthUnits`, `extentUnits`, `conversionFactor`, and recursively everything in it: every package construct of this list, under the path of the model definition, and every core element as `comp.modelDefinition.<element>` with all its L3V2 core attributes and its math (see `_CORE_ATTRIBUTES`). The core content of the main model is not compared here, it is the subject of `tests/test_roundtrip.py`; the core content of a model definition is compared because nothing else sees it.
-- `comp.externalModelDefinition`: `source`, `modelRef`, `md5`. The referenced file is not opened: an external model definition is a reference and is preserved as one.
+- `comp.externalModelDefinition`: `source`, `modelRef`, `md5`, and everything below it: an external model definition is an `SBase` and carries the children every element can have, its key-value pairs above all. The referenced file is not opened: an external model definition is a reference and is preserved as one.
 - `comp.submodel`: `modelRef`, `timeConversionFactor`, `extentConversionFactor`, and `substanceConversionFactor`, which libsbml reads although comp version 1 does not define it.
 - `comp.deletion` (under its submodel, where SBML places it): `portRef`, `idRef`, `unitRef`, `metaIdRef`.
 - `comp.port`: `portRef`, `idRef`, `unitRef`, `metaIdRef`.
@@ -1249,7 +1249,7 @@ def snapshot(doc: libsbml.SBMLDocument, compare_strict: bool = True) -> Snapshot
             comp.getListOfExternalModelDefinitions(),
             _by_id("externalModelDefinition"),
         ):
-            _record_package(snap, definition, path.lstrip("/"), model)
+            _visit(snap, definition, path.lstrip("/"), model, core=False)
         for path, definition in _items(
             "", comp.getListOfModelDefinitions(), _by_id("modelDefinition")
         ):

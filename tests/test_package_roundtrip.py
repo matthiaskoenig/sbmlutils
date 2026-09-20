@@ -44,6 +44,7 @@ from sbmlutils import RESOURCES_DIR
 from sbmlutils.factory import (
     Compartment,
     EquationPart,
+    ExternalModelDefinition,
     FluxObjective,
     KeyValuePair,
     Model,
@@ -53,6 +54,7 @@ from sbmlutils.factory import (
     Reaction,
     ReactionEquation,
     Species,
+    Submodel,
     UserDefinedConstraint,
     UserDefinedConstraintComponent,
     create_model,
@@ -286,6 +288,47 @@ def _change_external_model_definition(doc: libsbml.SBMLDocument) -> None:
     assert definition.setSource("other.xml") == libsbml.LIBSBML_OPERATION_SUCCESS
 
 
+def _change_external_model_definition_key_value_pair(
+    doc: libsbml.SBMLDocument,
+) -> None:
+    """Change the value of the key-value pair of an external model definition."""
+    plugin: libsbml.CompSBMLDocumentPlugin = doc.getPlugin("comp")
+    definition: libsbml.ExternalModelDefinition = plugin.getExternalModelDefinition(0)
+    kvp: libsbml.KeyValuePair = definition.getPlugin("fbc").getKeyValuePair(0)
+    assert kvp.setValue("48") == libsbml.LIBSBML_OPERATION_SUCCESS
+
+
+def _external_model_definition_kvp_model() -> Model:
+    """Get a model whose external model definition carries a key-value pair.
+
+    An `<comp:externalModelDefinition>` is an `SBase`, so fbc version 3 lets
+    it carry key-value pairs like every other element, and the round trip
+    keeps them. Nothing of the corpus has one, so the fixture is built here.
+
+    Returns:
+        the model definition
+    """
+    return Model(
+        sid="external_model_definition_key_value_pair",
+        packages=[Package.COMP_V1, Package.FBC_V3],
+        strict=False,
+        external_model_definitions=[
+            ExternalModelDefinition(
+                sid="emd1",
+                source="other.xml",
+                modelRef="m",
+                keyValuePairs=[
+                    KeyValuePair(
+                        key="kind", value="test", uri="https://example.org/keys"
+                    )
+                ],
+            )
+        ],
+        submodels=[Submodel(sid="sub1", modelRef="emd1")],
+        parameters=[Parameter(sid="k", value=1.0)],
+    )
+
+
 def _truncate_sbaseref_chain(doc: libsbml.SBMLDocument) -> None:
     """Remove the innermost level of a nested `sBaseRef` chain."""
     sbaseref: libsbml.SBaseRef = _first(
@@ -463,6 +506,11 @@ MUTATIONS: dict[str, Mutation] = {
         COMP_ICG_BODY,
         _change_external_model_definition,
         "comp.externalModelDefinition",
+    ),
+    "change_external_model_definition_key_value_pair": _mutation(
+        _external_model_definition_kvp_model,
+        _change_external_model_definition_key_value_pair,
+        "fbc.keyValuePair",
     ),
     "truncate_sbaseref_chain": _mutation(
         testsuite_case("01132"), _truncate_sbaseref_chain, "comp.sBaseRef"
