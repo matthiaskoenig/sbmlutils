@@ -1844,7 +1844,7 @@ def _normalization(name: str) -> Normalization:
     return entry
 
 
-def test_whitelist_is_exactly_ruling_r5() -> None:
+def test_whitelist_is_exactly_the_three_normalizations_of_r5() -> None:
     """Test that the whitelist holds the three normalizations of R5, each with a reason.
 
     A whitelist is where a real loss hides, so an entry is added by a decision of the design, never on the way.
