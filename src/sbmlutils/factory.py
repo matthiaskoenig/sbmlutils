@@ -1870,9 +1870,11 @@ class KeyValuePair(Sbase):
             metaId: optional SBML metaid
             notes: optional notes, as markdown, XHTML or a `Notes` object
             annotations: optional RDF annotations
-            port: optional comp port, which names the pair by its id; a
-                pair nested in an uncert parameter, an uncert span or a
-                `<comp:sBaseRef>` gets none, see the class docstring
+            port: optional comp port, which names the pair by its `fbc:id` in
+                an SBML L3V2 document and by its metaid below one, see
+                `Sbase._port_reference_for`; a pair nested in an uncert
+                parameter, an uncert span or a `<comp:sBaseRef>` gets none,
+                see the class docstring
         """
         super().__init__(
             sid=sid,
@@ -1965,11 +1967,9 @@ class KeyValuePair(Sbase):
         Args:
             sbase: the libsbml object the pair is created on
             model: the libsbml.Model the element belongs to, which the port of
-                the pair is created in. It has to be handed down, since
-                libsbml answers `getModel()` of an element inside a
-                `<comp:modelDefinition>` with the model of the *document*, see
-                `Model._fill_sbml`. `None` is for a caller which writes a pair
-                without a model, which is reported if the pair has a port
+                the pair is created in. It has to be handed down rather than
+                looked up, and `None` writes the pair without a model, which
+                reports a port of it; both are stated in `Model._fill_sbml`
 
         Returns:
             the created libsbml.KeyValuePair
@@ -2700,12 +2700,10 @@ class LocalParameter(ValueWithUnit):
             klaw: the libsbml.KineticLaw the local parameter is created in
             model: the libsbml.Model the kinetic law is created in, which
                 the port and the uncertainties of the local parameter are
-                created in. It has to be handed down, since libsbml answers
-                `klaw.getModel()` with the model of the *document* for a
-                kinetic law inside a `<comp:modelDefinition>`, see
-                `Model._fill_sbml`. `None` falls back to that lookup, for a
-                caller which creates a local parameter in a kinetic law of the
-                model of a document, where the two are the same model
+                created in. It has to be handed down rather than looked up,
+                and `None` falls back to `klaw.getModel()`, which is the same
+                model outside a `<comp:modelDefinition>` and the wrong one
+                inside one; both are stated in `Model._fill_sbml`
 
         Returns:
             the created libsbml.LocalParameter
@@ -3420,12 +3418,11 @@ class KineticLaw(Sbase):
             model: the libsbml.Model the reaction is created in, which the
                 math is parsed against and which the port, the uncertainties
                 and the replacedBy of the kinetic law and of its local
-                parameters are created in. It has to be handed down, since
-                libsbml answers `reaction.getModel()` with the model of the
-                *document* for a reaction inside a `<comp:modelDefinition>`,
-                see `Model._fill_sbml`. `None` falls back to that lookup, for
-                a caller which creates a kinetic law on a reaction of the
-                model of a document, where the two are the same model
+                parameters are created in. It has to be handed down rather
+                than looked up, and `None` falls back to
+                `reaction.getModel()`, which is the same model outside a
+                `<comp:modelDefinition>` and the wrong one inside one; both
+                are stated in `Model._fill_sbml`
 
         Returns:
             the created libsbml.KineticLaw
@@ -4844,14 +4841,13 @@ class _UncertChild(Sbase):
             sbase: the libsbml.UncertParameter or libsbml.UncertSpan created
                 by `create_sbml`
             model: the libsbml.Model the uncertainty is created in, which the
-                math of the child is parsed against; `None` falls back to the
-                model of the created object, which is attached to its parent
-                already. It is handed down rather than looked up, since
-                libsbml answers that lookup with the model of the *document*
-                for an element inside a `<comp:modelDefinition>`, see
-                `Model._fill_sbml`. It is never passed on to
+                math of the child is parsed against. It is handed down rather
+                than looked up, and `None` falls back to the model of the
+                created object, which is attached to its parent already; both
+                are stated in `Model._fill_sbml`. It is never passed on to
                 `Sbase._set_fields`, which is what keeps it from descending
-                into the `uncertainties` and the comp fields of a child.
+                into the `uncertainties` and the comp fields of a child, and
+                is the second meaning `None` has there.
         """
         super()._set_fields(sbase, None)
         if self.type is not None:
@@ -5634,11 +5630,10 @@ class UserDefinedConstraintComponent(Sbase):
                 belongs to
             model: the libsbml.Model the constraint is created in, which the
                 fields of the component are written with. It has to be handed
-                down, since libsbml answers `constraint.getModel()` with the
-                model of the *document* for a constraint inside a
-                `<comp:modelDefinition>`, see `Model._fill_sbml`. `None` falls
-                back to that lookup, for a caller which creates a component in
-                a constraint of the model of a document
+                down rather than looked up, and `None` falls back to
+                `constraint.getModel()`, which is the same model outside a
+                `<comp:modelDefinition>` and the wrong one inside one; both
+                are stated in `Model._fill_sbml`
 
         Returns:
             the created libsbml.UserDefinedConstraintComponent
@@ -5862,11 +5857,10 @@ class FluxObjective(Sbase):
             objective: the libsbml.Objective the flux objective belongs to
             model: the libsbml.Model the objective is created in, which the
                 fields of the flux objective are written with. It has to be
-                handed down, since libsbml answers `objective.getModel()` with
-                the model of the *document* for an objective inside a
-                `<comp:modelDefinition>`, see `Model._fill_sbml`. `None` falls
-                back to that lookup, for a caller which creates a flux
-                objective in an objective of the model of a document
+                handed down rather than looked up, and `None` falls back to
+                `objective.getModel()`, which is the same model outside a
+                `<comp:modelDefinition>` and the wrong one inside one; both
+                are stated in `Model._fill_sbml`
 
         Returns:
             the created libsbml.FluxObjective
@@ -6242,10 +6236,9 @@ class SbaseRef(Sbase):
                 `libsbml.ReplacedBy`, `libsbml.Deletion` or, for a nested
                 reference, `libsbml.SBaseRef` itself
             model: the `libsbml.Model` the object belongs to; `None` for a
-                nested reference, which lives inside another `SbaseRef`
-                rather than in a list of the model, following the pattern
-                `LocalParameter`/`UncertParameter`/`UncertSpan` use for an
-                element nested inside another
+                nested reference, which is written without a model, the
+                meaning `None` has for a `KeyValuePair` and for the children
+                of an uncertainty, see `Model._fill_sbml`
         """
         super()._set_fields(sbase, model)
 
@@ -6288,12 +6281,12 @@ class SbaseRef(Sbase):
             # level, and a `ReplacedElement`/`ReplacedBy` passed here would
             # otherwise raise `AttributeError` on `setSubmodelRef`, which
             # `libsbml.SBaseRef` does not implement). `model` is passed as
-            # `None`, the pattern `LocalParameter.create_sbml` and
-            # `KineticLaw.create_sbml` use for an element nested inside
-            # another: none of the four subclasses exposes `port`,
-            # `uncertainties` or `replacedBy` through its constructor, so
-            # this is currently only a safety net, not an observed
-            # difference.
+            # `None`, which means the nested level is written without a
+            # model, see `Model._fill_sbml`: none of the four subclasses
+            # exposes `port`, `uncertainties` or `replacedBy` through its
+            # constructor, so the only child a nested level carries is a
+            # key-value pair, whose own port has nowhere to be created and
+            # is reported, see `Sbase._port_loss`.
             SbaseRef._set_fields(self.sBaseRef, nested, None)
 
 
@@ -7138,6 +7131,29 @@ class Model(Sbase, FrozenClass):
         of its own passes the model on, as `Reaction` does to its
         `KineticLaw`, `Uncertainty` to its children, `Objective` to its flux
         objectives and `UserDefinedConstraint` to its components.
+
+        **What `model=None` means**, which is the default of every writer
+        which is handed the model and is stated here rather than in each of
+        them. Nothing in this package passes it: it is for a caller outside
+        which creates one element on a libsbml object of its own, and it
+        means one of two things, decided by what the writer does with the
+        model:
+
+        - *look it up*, `model.getModel()` of the object the element is
+          created on: `LocalParameter`, `KineticLaw`, `FluxObjective` and
+          `UserDefinedConstraintComponent`. That lookup is the one which
+          answers with the model of the document inside a
+          `<comp:modelDefinition>`, so it is a fallback and never right in
+          one;
+        - *written without a model*: `KeyValuePair` and `Sbase.create_port`,
+          which need the model only to create the `<comp:listOfPorts>` a port
+          lives in, so `None` means the element has nowhere to put a port and
+          the port is reported, see `Sbase._port_loss`.
+
+        `_UncertChild._set_fields` is both at once: it hands `None` down to
+        `Sbase._set_fields`, which is what keeps a child of an uncertainty
+        from writing a port, and falls back to the lookup for the model its
+        math is parsed against.
 
         Args:
             model: the created libsbml.Model, or the libsbml.ModelDefinition

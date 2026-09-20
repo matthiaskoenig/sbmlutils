@@ -1076,7 +1076,6 @@ def _parse_model_body(model: libsbml.Model, m: Model) -> None:
     p: libsbml.Parameter
     for p in model.getListOfParameters():
         d = _parse_sbase_kwargs(p)
-        # print(d)
         m.parameters.append(
             Parameter(
                 value=p.getValue() if p.isSetValue() else None,
@@ -1337,8 +1336,8 @@ def _parse_model_body(model: libsbml.Model, m: Model) -> None:
 
     # fbc, on the plugin of this `model` rather than on one passed in by
     # `sbml_to_model`: the fbc model plugin attaches to a comp
-    # `ModelDefinition` as well, which a later task parses by recursing into
-    # this function
+    # `ModelDefinition` as well, which is parsed by recursing into this
+    # function, see `_parse_comp_document`
     model_fbc: libsbml.FbcModelPlugin | None = model.getPlugin("fbc")
     if model_fbc is not None:
         _parse_fbc_model(model_fbc, m)
