@@ -95,7 +95,7 @@ Reported upstream to libsbml; see "Decisions already taken". Numbering is kept s
 
 ## 4. Robustness and consistency
 
-**Done in 0.12.0**, the item this section is about: the `set*` calls of `factory.py` were enumerated by reading the AST and by running every one of them, and of the 90 unwrapped calls the 62 which answer with a failing status on a value the factory can pass are wrapped, while the 28 which cannot fail are left alone. An attribute which the level and version, or the version of a package, has no place for is reported once per kind of element and attribute rather than once per element, which turns the loss of 57 rule names into one decision instead of 57 lines.
+**Done in 0.12.0**, the item this section is about: the `set*` calls of `factory.py` were enumerated by reading the AST and by running every one of them, and the ones which answer with a failing status on a value the factory can pass are wrapped, while the ones which cannot fail are left alone. Counted from the AST as the call expressions whose status a `check` or a `_check_attribute` reads, `factory.py` has 94 checked setter calls against the 34 of 0.11.0, 60 more; 37 setter calls are unchecked, against 109 before. An attribute which the level and version, or the version of a package, has no place for is reported once per kind of element and attribute rather than once per element, which turns the loss of 57 rule names into one decision instead of 57 lines.
 
 The two items about `parseL3FormulaWithModel` and the lazy `%s` in `set_model_units` were **already fixed in 0.11.0**, in the core round-tripping work; this branch only pinned them with tests. Still open, see section 14: the model history, the `LocalParameter.sid` annotation and the port-without-id message, which no longer reads `AssignmentRule(True)` but still names a rule which has no id as `'None'` rather than by the variable it assigns.
 
@@ -195,7 +195,6 @@ Sections 1, 3 and 4 are done in 0.12.0. What was deliberately left out of that b
 - **`ReplacedElement.elementRef` falls back to the metaid** of an element which has no id, which is ambiguous in principle if a metaid equals another element's SId. A dedicated `elementMetaIdRef` field would be unambiguous if the data model is revisited.
 - **`report/sbmlinfo.py` does not show the new distrib fields** (`definitionURL`, `math` and the nested parameters of an uncert parameter) in the sbml4humans report.
 - **The ten comp test-suite cases which reference an external file are expected failures of the simulation sweep** because `roundtrip_sbml` writes into a bare temporary directory. Copying the siblings of the source next to the round trip would make all ten pass and is a change to the core harness.
-- **The griffe warnings of the documentation build**: `ScopedLossCollector` declares its type parameters in the docstring and `Generic[K, V]` in the signature, which griffe reports as `Type parameter 'K' does not appear in the class signature`. PEP 695 syntax would remove it and needs python 3.12, which is above the supported minimum.
 - **`LocalParameter.sid` is typed as a required `str`** while the parser passes `None` for a document which leaves the mandatory id out, and the message for a port which cannot be written names a rule without an id as `'None'` rather than by the variable it assigns.
 
 ### Upstream reports
