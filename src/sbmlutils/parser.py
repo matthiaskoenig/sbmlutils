@@ -89,6 +89,7 @@ from sbmlutils.factory import (
     ReactionEquation,
     ReplacedBy,
     ReplacedElement,
+    Sbase,
     SbaseRef,
     Species,
     Submodel,
@@ -1489,20 +1490,28 @@ def sbml_to_model(
     if not model:
         logger.error("No model in SBMLDocument.")
 
-    m = Model(**_drop_unwritable(_parse_sbase_kwargs(model), model))
-    # the packages are declared on the `<sbml>` element, so they belong to the
-    # document rather than to one of its models; everything which is per model
-    # is parsed by `_parse_model_body`, which the model definitions of the
-    # document go through as well
-    m.packages = _packages_of_document(doc)
+    # every element is constructed without the authoring hints, which are
+    # advice for a model definition being written and say nothing about a
+    # document which is being read: a source which libsbml accepts must be
+    # read without a word, and what the source does not state is reported by
+    # validating it, here and on the document written from it. `Model.parsed`
+    # is the same suppression for the writing of the model, which happens
+    # outside this context, see `Model.create_sbml`.
+    with Sbase.no_authoring_hints():
+        m = Model(**_drop_unwritable(_parse_sbase_kwargs(model), model))
+        # the packages are declared on the `<sbml>` element, so they belong to
+        # the document rather than to one of its models; everything which is
+        # per model is parsed by `_parse_model_body`, which the model
+        # definitions of the document go through as well
+        m.packages = _packages_of_document(doc)
 
-    _parse_model_body(model, m)
+        _parse_model_body(model, m)
 
-    # the two document level lists of comp, which are children of the `<sbml>`
-    # element and not of a model
-    doc_comp: libsbml.CompSBMLDocumentPlugin | None = doc.getPlugin("comp")
-    if doc_comp is not None:
-        _parse_comp_document(doc_comp, m)
+        # the two document level lists of comp, which are children of the
+        # `<sbml>` element and not of a model
+        doc_comp: libsbml.CompSBMLDocumentPlugin | None = doc.getPlugin("comp")
+        if doc_comp is not None:
+            _parse_comp_document(doc_comp, m)
 
     return m
 

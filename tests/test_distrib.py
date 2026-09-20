@@ -1210,6 +1210,55 @@ def test_uncert_span_which_states_its_interval_is_not_reported(
     assert _bound_errors(caplog) == []
 
 
+def test_parsing_a_valid_document_reports_nothing(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that reading a document which libsbml accepts says nothing.
+
+    distrib requires neither a value nor anything else of an uncert
+    parameter, so a `<distrib:uncertParameter type="mean"/>` is a document
+    libsbml reads without a single error. The checks which say that such an
+    element states nothing about the value, and that a span states one of its
+    bounds only, are hints about a hand written model: the parser has to be
+    able to hold every document libsbml reads, and it reported the source as
+    if its author had just written it.
+    """
+    sbml = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<sbml xmlns="http://www.sbml.org/sbml/level3/version2/core" '
+        'xmlns:distrib="http://www.sbml.org/sbml/level3/version1/distrib/version1" '
+        'level="3" version="2" distrib:required="true">\n'
+        '  <model id="uncert_without_a_value">\n'
+        "    <listOfParameters>\n"
+        '      <parameter id="p1" value="1" constant="true">\n'
+        "        <distrib:listOfUncertainties>\n"
+        "          <distrib:uncertainty>\n"
+        '            <distrib:uncertParameter distrib:type="mean"/>\n'
+        '            <distrib:uncertSpan distrib:type="range" '
+        'distrib:valueLower="0"/>\n'
+        "          </distrib:uncertainty>\n"
+        "        </distrib:listOfUncertainties>\n"
+        "      </parameter>\n"
+        "    </listOfParameters>\n"
+        "  </model>\n"
+        "</sbml>\n"
+    )
+    sbml_path = tmp_path / "uncert_without_a_value.xml"
+    sbml_path.write_text(sbml, encoding="utf-8")
+    doc: libsbml.SBMLDocument = libsbml.readSBMLFromFile(str(sbml_path))
+    assert doc.getNumErrors() == 0, doc.getErrorLog().toString()
+    del doc
+
+    with caplog.at_level(logging.WARNING, logger="sbmlutils"):
+        model = sbml_to_model(sbml_path)
+
+    assert [record.getMessage() for record in caplog.records] == []
+    uncertainties = model.parameters[0].uncertainties
+    assert uncertainties is not None
+    (uncertainty,) = uncertainties
+    assert len(uncertainty.uncertParameters) == 2
+
+
 def test_distrib_fixtures_report_no_missing_bound(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
