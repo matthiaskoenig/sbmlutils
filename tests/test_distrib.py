@@ -1347,6 +1347,58 @@ def test_uncertainty_of_a_formula_which_calls_no_distribution_writes_no_url(
     assert "not a call of a distribution" in errors[0]
 
 
+def test_a_formula_assigned_after_construction_is_written() -> None:
+    """Test that an uncertainty written from a formula follows a later assignment.
+
+    `formula` is the shortcut for the uncert parameter of the type
+    `distribution`, and the uncertainty is written from `uncertParameters`
+    alone, so the shortcut is normalized into one such parameter. That
+    normalization used to happen in the constructor only: a formula assigned
+    afterwards was written nowhere and the distribution given first was
+    written instead, in silence. The assignment replaces the parameter the
+    formula stands for, and leaves every other child of the uncertainty
+    alone.
+    """
+    uncertainty = Uncertainty(
+        uncertParameters=[
+            UncertParameter(type=libsbml.DISTRIB_UNCERTTYPE_MEAN, value=1.0)
+        ],
+        formula="normal(0, 1)",
+    )
+    uncertainty.formula = "uniform(0, 1)"
+
+    assert len(uncertainty.uncertParameters) == 2
+    doc = _uncertainty_document(uncertainty)
+    mean, distribution = _children(doc)
+    assert mean.getTypeAsString() == "mean"
+    assert distribution.getTypeAsString() == "distribution"
+    assert (
+        distribution.getDefinitionURL()
+        == "http://www.sbml.org/sbml/symbols/distrib/uniform"
+    )
+    assert libsbml.formulaToL3String(distribution.getMath()) == "uniform(0, 1)"
+
+
+def test_a_formula_unset_after_construction_writes_no_distribution() -> None:
+    """Test that an uncertainty whose formula is unset loses the distribution.
+
+    The parameter the shortcut stands for belongs to the formula, so it goes
+    with it; the children the caller gave stay.
+    """
+    uncertainty = Uncertainty(
+        uncertParameters=[
+            UncertParameter(type=libsbml.DISTRIB_UNCERTTYPE_MEAN, value=1.0)
+        ],
+        formula="normal(0, 1)",
+    )
+    uncertainty.formula = None
+
+    assert uncertainty.formula is None
+    doc = _uncertainty_document(uncertainty)
+    (mean,) = _children(doc)
+    assert mean.getTypeAsString() == "mean"
+
+
 def test_uncertainty_of_an_unparsable_formula_is_reported(
     caplog: pytest.LogCaptureFixture,
 ) -> None:

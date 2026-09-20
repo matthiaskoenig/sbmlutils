@@ -3734,6 +3734,41 @@ def test_key_value_pairs_without_an_fbc_plugin_are_reported(
     assert "keyValuePair" not in libsbml.writeSBMLToString(doc)
 
 
+def test_key_value_pairs_are_written_without_a_model(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that the model an element is written in is optional for its pairs.
+
+    Every writer which this release hands the model it is created in takes it
+    as the last argument and defaults it to `None`, the lookup an out-of-tree
+    caller used to get; `Sbase.create_key_value_pairs` required it, which
+    breaks such a caller for no reason. `None` means the pairs are written
+    without a model, which is where the port of a pair would live, so the
+    pairs are written and only a port would be reported.
+    """
+    ns = libsbml.SBMLNamespaces(3, 2)
+    ns.addPackageNamespace("fbc", 3)
+    doc: libsbml.SBMLDocument = libsbml.SBMLDocument(ns)
+    libsbml_model: libsbml.Model = doc.createModel()
+    libsbml_model.setId("m")
+    parameter: libsbml.Parameter = libsbml_model.createParameter()
+    parameter.setId("k")
+
+    element = Parameter(
+        "k",
+        1.0,
+        name="k",
+        keyValuePairs=[KeyValuePair(key="kind", value="test", uri=None)],
+    )
+    with caplog.at_level(logging.WARNING, logger="sbmlutils"):
+        pairs = element.create_key_value_pairs(parameter)
+
+    assert pairs is not None and len(pairs) == 1
+    assert pairs[0].getKey() == "kind"
+    assert [record.getMessage() for record in caplog.records] == []
+    del doc
+
+
 def _user_defined_constraint_model(packages: list[Package]) -> Model:
     """Get a model with one user defined constraint.
 

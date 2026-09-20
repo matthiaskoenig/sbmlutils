@@ -1701,6 +1701,32 @@ def test_a_model_definition_cannot_be_written_as_a_document(tmp_path: Path) -> N
         model_definition.get_sbml()
 
 
+def test_create_sbml_of_a_model_says_what_it_takes() -> None:
+    """Test that a model handed to `create_sbml` is named as the wrong argument.
+
+    `ModelDefinition.create_sbml(model)` used to take the `libsbml.Model` the
+    definition was written in. A model definition is a `Model` now and
+    inherits `Model.create_sbml(doc)`, which takes the document the model is
+    created on, so an out-of-tree caller which passes a model reaches the
+    comp plugin of that model and fails with an `AttributeError` about
+    `createModelDefinition`, which names neither the argument nor the call.
+    """
+    doc = libsbml.SBMLDocument(libsbml.SBMLNamespaces(3, 2, "comp", 1))
+    libsbml_model: libsbml.Model = doc.createModel()
+    libsbml_model.setId("m")
+    model_definition = ModelDefinition(sid="md1", name="a model definition")
+
+    # the wrong argument is what this test is about, so the type checker is
+    # told that each call is deliberate
+    with pytest.raises(ValueError, match=re.escape("libsbml.SBMLDocument")):
+        model_definition.create_sbml(libsbml_model)  # ty: ignore[invalid-argument-type]
+    with pytest.raises(ValueError, match=re.escape("libsbml.SBMLDocument")):
+        Model(sid="m2", name="a model").create_sbml(
+            libsbml_model  # ty: ignore[invalid-argument-type]
+        )
+    del doc
+
+
 def test_a_model_definition_id_which_collides_is_reported(tmp_path: Path) -> None:
     """Test a model definition whose id collides with another model.
 

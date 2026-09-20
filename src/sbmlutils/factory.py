@@ -1619,15 +1619,16 @@ class Sbase:
         return self.replacedBy.create_sbml(sbase, model)
 
     def create_key_value_pairs(
-        self, sbase: libsbml.SBase, model: libsbml.Model | None
+        self, sbase: libsbml.SBase, model: libsbml.Model | None = None
     ) -> list[libsbml.KeyValuePair] | None:
         """Create the fbc:keyValuePair elements of the element.
 
         Args:
             sbase: the libsbml object the pairs are created on
             model: the `libsbml.Model` the element belongs to, which the port
-                of a pair is created in; `None` for an element written
-                without one
+                of a pair is created in, see `Model._fill_sbml`; `None` writes
+                the pairs without a model, which reports the port of a pair
+                which has one
 
         Returns:
             the created pairs, `None` if the element has none or if the
@@ -5159,14 +5160,58 @@ class Uncertainty(Sbase):
             port=port,
         )
 
-        # Object on which the uncertainty is written
-        self.formula = formula
         self.uncertParameters: list[UncertParameter | UncertSpan] = [
             *(uncertSpans if uncertSpans else []),
             *(uncertParameters if uncertParameters else []),
         ]
-        if formula:
-            self.uncertParameters.append(_distribution_parameter(formula))
+        #: the parameter the current `formula` was normalized into, which an
+        #: assignment to `formula` replaces; `None` for an uncertainty
+        #: without a formula
+        self._formula_parameter: UncertParameter | None = None
+        self._formula: str | None = None
+        self.formula = formula
+
+    @property
+    def formula(self) -> str | None:
+        """Get the distribution of the value as an SBML L3 formula.
+
+        Returns:
+            the formula, `None` for an uncertainty which states none
+        """
+        return self._formula
+
+    @formula.setter
+    def formula(self, formula: str | None) -> None:
+        """Normalize a formula into the uncert parameter it stands for.
+
+        An uncertainty is written from `uncertParameters` and from nothing
+        else, so the shortcut is normalized into one parameter of the type
+        `distribution`, see `_distribution_parameter`. It is a property so
+        that a formula assigned after the uncertainty was constructed is
+        written: the assignment replaces the parameter of the formula it
+        replaces, in its place, and leaves every other child alone. Without
+        it the value assigned was kept and never written, and the
+        distribution given first was written instead, in silence.
+
+        Args:
+            formula: the distribution of the value as an SBML L3 formula,
+                e.g. `normal(2.0, 2.0)`; `None` or the empty string removes
+                the parameter of the formula which was set before
+        """
+        self._formula = formula
+        previous = self._formula_parameter
+        parameter = _distribution_parameter(formula) if formula else None
+        self._formula_parameter = parameter
+
+        if previous is None:
+            if parameter is not None:
+                self.uncertParameters.append(parameter)
+            return
+        position = self.uncertParameters.index(previous)
+        if parameter is None:
+            del self.uncertParameters[position]
+        else:
+            self.uncertParameters[position] = parameter
 
     def __repr__(self) -> str:
         """Get the string representation of the uncertainty.
@@ -6802,7 +6847,31 @@ class Model(Sbase, FrozenClass):
         To create the complete SBMLDocument with the model use:
 
           doc = Document(model=model).create_sbml()
+
+        Args:
+            doc: the libsbml.SBMLDocument the model is created on. A
+                `ModelDefinition` is created on the comp plugin of the
+                document as well, which is what it inherits this from
+
+        Returns:
+            the created and filled libsbml.Model
+
+        Raises:
+            ValueError: if `doc` is not a libsbml.SBMLDocument. A model
+                definition used to be created in the `libsbml.Model` it
+                belonged to, and a caller which still passes one would
+                otherwise reach the comp plugin of that model and fail with
+                an `AttributeError` about `createModelDefinition`
         """
+        if not isinstance(doc, libsbml.SBMLDocument):
+            raise ValueError(
+                f"`{type(self).__name__}.create_sbml` takes the "
+                f"libsbml.SBMLDocument the model is created on, but got a "
+                f"'{type(doc).__name__}'. A model definition is created on "
+                f"the document next to the model of the document, and is "
+                f"written by putting it in the `model_definitions` of a "
+                f"`Model`."
+            )
         if self.parsed:
             with Sbase.no_authoring_hints():
                 return self._create_sbml(doc)
