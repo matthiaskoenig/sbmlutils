@@ -182,7 +182,15 @@ External model definitions are resolved relative to the file they are referenced
 
 What the round trip does not keep:
 
-- **An external model definition is never resolved.** The file it names is not opened and its content is not pulled into the document, which is what makes the round trip faithful; resolving is what `flatten_sbml` is for. A hierarchical model therefore has to be written next to the files it references to be simulated or fully validated. libsbml resolves a `comp:source` only against a document of the same SBML level and version, so a Level 3 Version 1 model whose external files are Level 3 Version 1 has to be written as Level 3 Version 1 as well, or those files have to be converted with it.
+- **An external model definition is never resolved.** The file it names is not opened and its content is not pulled into the document, which is what makes the round trip faithful; resolving is what `flatten_sbml` is for. A hierarchical model therefore has to be written next to the files it references to be simulated or fully validated. libsbml resolves a `comp:source` only against a document of the same SBML level and version, so a model whose external files are Level 3 Version 1 has to be written as Level 3 Version 1 as well, or those files have to be converted with it. `create_model` writes the level and version it is given:
+
+```python
+from pathlib import Path
+
+from sbmlutils.factory import create_model
+
+create_model(model=model, filepath=Path("model_comp.xml"), sbml_level=3, sbml_version=1)
+```
 - **`fbc:strict` on a model definition.** libsbml 5.21.2 writes the attribute twice on a `<comp:modelDefinition>`, and the file then fails to parse, so it is not written there. A document whose model definition carries fbc content keeps the validation error which says the attribute is missing, and the loss is reported once per document.
 - **The core `id` and `name` of a `ReplacedElement`, a `ReplacedBy`, a `Deletion` and a nested `sBaseRef`.** They are set, and libsbml 5.21.2 does not write them into the file. The comp `comp:id` and `comp:name` of a `Port` and of a `Deletion` are written normally, and so are the metaid, the SBO term, the notes and the annotations of every one of them.
 

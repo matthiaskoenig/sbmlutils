@@ -207,10 +207,10 @@ The bounds and the coefficients are references to parameters, not numbers: fbc v
 
 What the round trip does not keep:
 
-- **The metadata of the nodes of a gene product association.** `Reaction.geneProductAssociation` is the association as an infix string over the gene product ids, which has no place for an id, a name, a metaid or an SBO term on an `and`, an `or` or a `geneProductRef` node. Such metadata is lost; the logical rule itself is not. libsbml also writes a nested group of the same operator back without the inner parentheses, `((a and b) and c)` as `(a and b and c)`, which is the same rule.
+- **The metadata of the nodes of a gene product association.** `Reaction.geneProductAssociation` is the association as an infix string over the gene product ids, which has no place for an id, a name, a metaid or an SBO term on an `and`, an `or` or a `geneProductRef` node. Such metadata is lost, and there is no way around it today; the logical rule itself is not lost. libsbml also writes a nested group of the same operator back without the inner parentheses, `((a and b) and c)` as `(a and b and c)`, which is the same rule.
 - **The key value pairs of a reactant or a product.** They are written into the document, but libsbml 5.21.2 does not read the `<fbc:listOfKeyValuePairs>` of a `<speciesReference>` back, so they are gone for every reader, this one included. The pairs of a modifier are read back normally.
 - **`fbc:strict` on a model definition.** libsbml 5.21.2 writes the attribute twice on a `<comp:modelDefinition>`, which leaves a file no reader can open, so it is not written there and the loss is reported once per document.
-- **The strictness of an fbc version 1 model**, which such a document does not state, see above.
+- **The strictness of an fbc version 1 model**, which such a document does not state, see above. A model which really is strict gets it back with `model.strict = True` after reading, and validating what is written then says whether the claim holds.
 
 The verification uses the 34 fbc cases of the [SBML test suite](https://github.com/sbmlteam/sbml-test-suite) and the fbc files of the repository. The test-suite cases are uniform and contain no gene products, associations, user defined constraints or key value pairs; those come from `e_coli_core`, `Recon3D` and the example files under `resources/examples/`.
 
