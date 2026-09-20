@@ -37,6 +37,16 @@ Species(
 
 A resource is written as `collection/term` (`chebi/CHEBI:17234`), as an identifiers.org URL, as a `urn:miriam:*` URN or as an arbitrary URL. pymetadata normalizes it to an identifiers.org compact identifier and validates the term against the [identifiers.org](https://identifiers.org) registry.
 
+### Resources which are written as given
+
+The normalization keeps the collection and the term of a resource and only changes how they are spelled, so `urn:miriam:chebi:CHEBI%3A17234` and `http://identifiers.org/chebi/CHEBI:17234` are both written as `https://identifiers.org/CHEBI:17234`. For a collection which is not in the registry it cannot do that: `http://identifiers.org/sabiork/1406` would come out as the bare `1406`, which resolves to nothing and no longer says where the term comes from.
+
+Such a resource is written exactly as it was given instead. Because this is a property of the collection rather than of a single resource, and a large model can hold tens of thousands of resources of one collection, it is reported once per collection when the document is written, with the count and one example:
+
+```
+2 annotation resource(s) of the collection 'sabiork' are written as given, e.g. 'http://identifiers.org/sabiork/1406': pymetadata shortens the resource to a bare term, which names no collection.
+```
+
 ## Qualifiers
 
 `BQB` (biological) and `BQM` (model) are the MIRIAM qualifiers, re-exported from pymetadata:

@@ -39,10 +39,11 @@ from enum import StrEnum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+import libsbml
 import numpy as np
 import pytest
 
-from sbmlutils.factory import create_model
+from sbmlutils.factory import Compartment, Model, create_model
 from sbmlutils.parser import sbml_to_model
 from sbmlutils.resources import SBML_TESTSUITE_DIR
 from sbmlutils.validation import ValidationOptions
@@ -70,6 +71,10 @@ SEMANTIC_DIR: Path = (
     / "models"
     / Path(SBML_TESTSUITE_DIR).name
     / "semantic"
+)
+
+requires_testsuite = pytest.mark.skipif(
+    not SEMANTIC_DIR.is_dir(), reason="requires the vendored SBML test suite"
 )
 
 #: uniform timecourse the round-trip comparison simulates
@@ -512,25 +517,18 @@ NONDETERMINISTIC: dict[str, str] = dict.fromkeys(
     "events with the same or no priority trigger at once, their order is random",
 )  # fmt: skip
 
-#: the comp cases which fail: `sbml_to_model` drops the submodels,
-#: replacements, deletions and ports, so the model roadrunner flattens loses
-#: their content. Every one declares a `comp:submodel`, and every one passes
-#: when the original is flattened with libsbml before the round trip.
+#: the cases which fail: each declares a `<comp:externalModelDefinition>`
+#: whose `comp:source` names a sibling file of the case, and the round trip
+#: preserves that reference rather than resolving it, as a reference is
+#: preserved. `roundtrip_sbml` writes into `tmp_path`, where the file the
+#: source names is not, so roadrunner cannot flatten the model it writes;
+#: every one of them loads once the file is next to it.
+#: Every other comp case round trips and simulates since `sbml_to_model` reads
+#: the comp package, see https://github.com/matthiaskoenig/sbmlutils/issues/469.
 # fmt: off
-CASES_COMP: list[str] = [
-    "01126", "01127", "01128", "01129", "01130", "01131", "01132", "01133",
-    "01134", "01135", "01136", "01137", "01138", "01139", "01140", "01143",
-    "01144", "01145", "01146", "01147", "01152", "01153", "01154", "01155",
-    "01156", "01157", "01158", "01159", "01160", "01161", "01164", "01165",
-    "01167", "01168", "01169", "01170", "01171", "01172", "01175", "01177",
-    "01178", "01179", "01180", "01181", "01182", "01183", "01344", "01345",
-    "01346", "01347", "01348", "01349", "01351", "01352", "01353", "01354",
-    "01355", "01356", "01357", "01358", "01360", "01361", "01362", "01363",
-    "01364", "01365", "01366", "01367", "01369", "01370", "01371", "01372",
-    "01373", "01374", "01375", "01376", "01378", "01379", "01380", "01381",
-    "01382", "01383", "01384", "01385", "01387", "01388", "01390", "01391",
-    "01392", "01393", "01394", "01467", "01468", "01469", "01470", "01471",
-    "01472", "01473", "01474", "01475", "01476", "01477", "01778",
+CASES_EXTERNAL_MODEL: list[str] = [
+    "01165", "01167", "01168", "01471", "01472", "01473", "01475", "01476",
+    "01477", "01778",
 ]
 # fmt: on
 
@@ -543,7 +541,11 @@ _SHADOWED = "an id shadows a MathML constant in the L3 infix math"
 #: cases which do not round trip yet, with the reason, see
 #: https://github.com/matthiaskoenig/sbmlutils/issues/469
 KNOWN_FAILURES: dict[str, str] = {
-    **dict.fromkeys(CASES_COMP, "comp is not round tripped, it is out of scope"),
+    **dict.fromkeys(
+        CASES_EXTERNAL_MODEL,
+        "the external model definition it references is not next to the "
+        "round trip, which preserves the reference rather than resolving it",
+    ),
     "01760": (
         f"{_SHADOWED}: the local parameter `avogadro` comes back as the "
         "avogadro csymbol, local parameters are not in scope of the parser"
@@ -1550,7 +1552,7 @@ def test_roundtrip_constraint_math_and_message(tmp_path: Path) -> None:
     No semantic test-suite case carries a constraint with both a `<math>` and
     a `<message>`, so this builds one directly with libsbml, following the
     pattern of `test_roundtrip_rule_keeps_its_own_id`. It also guards against
-    the message-nesting failure mode Task 3 found for notes: libsbml's
+    the message-nesting failure mode the notes of the core round trip hit: libsbml's
     `Constraint.getMessageString()` returns the message already wrapped in
     its own `<message>` element, and feeding that string back into
     `Constraint.setMessage` unchanged would double-wrap it, exactly as an
@@ -1762,6 +1764,78 @@ def test_roundtrip_species_reference_metadata(tmp_path: Path) -> None:
     assert "a modifier" in rt_modifier.getNotesString()
     assert rt_modifier.getNumCVTerms() == 1
     assert "P35557" in rt_modifier.getCVTerm(0).getResourceURI(0)
+
+
+def _spatial_dimensions(sbml_path: Path) -> list[float | None]:
+    """Collect the spatialDimensions of every compartment of a model.
+
+    Args:
+        sbml_path: path of the SBML file
+
+    Returns:
+        the spatialDimensions of every compartment in document order, `None`
+        for a compartment which does not set them
+    """
+    doc: libsbml.SBMLDocument = libsbml.readSBMLFromFile(str(sbml_path))
+    dimensions: list[float | None] = []
+    compartment: libsbml.Compartment
+    for compartment in doc.getModel().getListOfCompartments():
+        dimensions.append(
+            compartment.getSpatialDimensionsAsDouble()
+            if compartment.isSetSpatialDimensions()
+            else None
+        )
+    return dimensions
+
+
+@requires_testsuite
+def test_roundtrip_non_integral_spatial_dimensions(tmp_path: Path) -> None:
+    """Test that a compartment of 2.7 spatial dimensions keeps them.
+
+    SBML declares `spatialDimensions` a double, and case 01310 uses 2.7.
+    `libsbml.Compartment.getSpatialDimensions` is the accessor of the
+    unsigned integer attribute of SBML L2 and returns 0 for a value which is
+    not integral, so the round trip wrote `spatialDimensions="0"`. Neither
+    the simulation sweep nor validation sees that: the attribute changes no
+    trajectory and 0 is a valid value.
+    """
+    sbml_path = testsuite_case("01310")
+    assert _spatial_dimensions(sbml_path) == [2.7]
+
+    assert _spatial_dimensions(roundtrip_sbml(sbml_path, tmp_path)) == [2.7]
+
+
+@pytest.mark.parametrize("dimensions", [2.7, 3.0, 3, 0.0])
+def test_roundtrip_spatial_dimensions_of_a_definition(
+    dimensions: float, tmp_path: Path
+) -> None:
+    """Test that the spatial dimensions of a model definition survive.
+
+    The test suite has one case with a non-integral value and none with an
+    integral one written as a float, so the source is built with the factory.
+    An integral value stays an integer in the document: libsbml writes the
+    double `3.0` as `spatialDimensions="3"`.
+    """
+    sbml_path = tmp_path / "source.xml"
+    create_model(
+        model=Model(
+            "spatial_dimensions",
+            compartments=[Compartment("c", 4.0, spatialDimensions=dimensions)],
+        ),
+        filepath=sbml_path,
+        sbml_level=3,
+        sbml_version=2,
+        validation_options=ValidationOptions(units_consistency=False),
+    )
+    assert _spatial_dimensions(sbml_path) == [float(dimensions)]
+
+    roundtrip_dir = tmp_path / "roundtrip"
+    roundtrip_dir.mkdir()
+    roundtrip_path = roundtrip_sbml(sbml_path, roundtrip_dir)
+    assert _spatial_dimensions(roundtrip_path) == [float(dimensions)]
+    assert f'spatialDimensions="{dimensions:g}"' in roundtrip_path.read_text(
+        encoding="utf-8"
+    )
 
 
 if __name__ == "__main__":

@@ -1,16 +1,22 @@
 """Test annotation functions and annotating of SBML models."""
 
+import logging
 import re
 from collections.abc import Iterable
 from pathlib import Path
 
 import libsbml
+import pytest
 
 from examples import annotation as annotation_example
 from sbmlutils.factory import *
 from sbmlutils.io.sbml import read_sbml
 from sbmlutils.metadata import BQB, SBO, annotator
-from sbmlutils.metadata.annotator import ExternalAnnotation, ModelAnnotator
+from sbmlutils.metadata.annotator import (
+    Annotation,
+    ExternalAnnotation,
+    ModelAnnotator,
+)
 from sbmlutils.resources import (
     DEMO_ANNOTATIONS,
     DEMO_SBML_NO_ANNOTATIONS,
@@ -194,3 +200,285 @@ def test_galactose_annotation(tmp_path: Path) -> None:
         annotations_path=GALACTOSE_ANNOTATIONS,
         filepath=tmp_sbml_path,
     )
+
+
+def _written_resources(sbml_path: Path, sid: str) -> list[str]:
+    """Collect the annotation resources written for an element.
+
+    Args:
+        sbml_path: path of the SBML file
+        sid: id of the species the annotation is on
+
+    Returns:
+        every resource of every CVTerm of the species
+    """
+    doc: libsbml.SBMLDocument = read_sbml(source=sbml_path)
+    sbase: libsbml.Species = doc.getModel().getSpecies(sid)
+    return [
+        sbase.getCVTerm(k).getResourceURI(i)
+        for k in range(sbase.getNumCVTerms())
+        for i in range(sbase.getCVTerm(k).getNumResources())
+    ]
+
+
+def _annotated_model(resources: list[str], sbml_path: Path) -> None:
+    """Write a model with one species per given annotation resource.
+
+    Args:
+        resources: the annotation resources, as a model definition gives them
+        sbml_path: path the SBML is written to
+    """
+    create_model(
+        model=Model(
+            sid="annotation",
+            compartments=[Compartment("c", 1.0)],
+            species=[
+                Species(
+                    f"s{k}",
+                    compartment="c",
+                    initialAmount=1.0,
+                    annotations=[(BQB.IS, resource)],
+                )
+                for k, resource in enumerate(resources, start=1)
+            ],
+        ),
+        filepath=sbml_path,
+        validation_options=ValidationOptions(units_consistency=False),
+    )
+
+
+def _annotated_species(resource: str, sbml_path: Path) -> None:
+    """Write a model with a single species annotated with the given resource.
+
+    Args:
+        resource: the annotation resource, as a model definition gives it
+        sbml_path: path the SBML is written to
+    """
+    _annotated_model([resource], sbml_path)
+
+
+def _annotator_records(
+    caplog: pytest.LogCaptureFixture, level: str
+) -> list[logging.LogRecord]:
+    """Get the records the annotator logged at the given level.
+
+    Args:
+        caplog: the pytest log capture fixture
+        level: the level name, e.g. `WARNING`
+
+    Returns:
+        every record of the annotator logger at that level
+    """
+    return [
+        record
+        for record in caplog.records
+        if record.name == "sbmlutils.metadata.annotator" and record.levelname == level
+    ]
+
+
+#: a collection of this test suite, and a second one, which the
+#: identifiers.org registry does not know. Both name no database at all: the
+#: registry holds the namespaces of real, resolvable data providers, so
+#: neither of these is ever registered. A real collection which is unknown
+#: today, `sabiork` or `unit`, would turn every test below red on the day it
+#: is registered, without a line of code changing here - the registry is
+#: downloaded and refreshed by pymetadata, so it is not the installed version
+#: which decides what these tests see.
+UNKNOWN_COLLECTION: str = "sbmlutils.test.collection1"
+OTHER_UNKNOWN_COLLECTION: str = "sbmlutils.test.collection2"
+
+#: resources pymetadata cannot canonicalize without losing their collection,
+#: measured with pymetadata 0.6.2: the first three and the fifth normalize to
+#: the bare term `1406`, `XX:0000040`, `SBMLUTILS.TEST.COLLECTION1:0000012`
+#: and `bar`, which name no collection at all, and the fourth to
+#: `https://identifiers.org/000000035`, a URL the `chebi` collection has been
+#: dropped from because its term does not match the `^CHEBI:\d+$` of the
+#: registry
+LOSSY_RESOURCES: list[str] = [
+    f"http://identifiers.org/{UNKNOWN_COLLECTION}/1406",
+    f"http://identifiers.org/{UNKNOWN_COLLECTION}/XX:0000040",
+    "https://identifiers.org/SBMLUTILS.TEST.COLLECTION1:0000012",
+    "http://identifiers.org/chebi/000000035",
+    f"urn:miriam:{UNKNOWN_COLLECTION}:bar",
+]
+
+
+@pytest.mark.parametrize("resource", LOSSY_RESOURCES)
+def test_annotation_resource_which_cannot_be_normalized_is_written_as_given(
+    resource: str, tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that a resource is written as given rather than losing its collection.
+
+    An annotation is written as `RDFAnnotation.resource_normalized`, which is
+    the identifiers.org compact URL for a collection of the registry and the
+    bare term for one which is not in it. The bare term is not a resolvable
+    resource and no longer names the collection, so the annotation says
+    something else than the model definition did.
+    """
+    sbml_path = tmp_path / "annotation.xml"
+    with caplog.at_level(logging.WARNING, logger="sbmlutils.metadata.annotator"):
+        _annotated_species(resource, sbml_path)
+
+    assert _written_resources(sbml_path, "s1") == [resource]
+    warnings = _annotator_records(caplog, "WARNING")
+    assert len(warnings) == 1, caplog.text
+    assert resource in warnings[0].getMessage()
+
+
+#: resources which pymetadata canonicalizes to the compact identifiers.org
+#: URL of their collection and term, one per form: a classic URL, a MIRIAM
+#: URN, the `http` spelling of the compact URL and a bare compact identifier
+NORMALIZED_RESOURCES: list[tuple[str, str]] = [
+    ("chebi/CHEBI:12965", "https://identifiers.org/CHEBI:12965"),
+    ("urn:miriam:chebi:CHEBI%3A33699", "https://identifiers.org/CHEBI:33699"),
+    ("http://identifiers.org/BTO:0000131", "https://identifiers.org/BTO:0000131"),
+    ("UO:0000021", "https://identifiers.org/UO:0000021"),
+]
+
+
+@pytest.mark.parametrize("resource, expected", NORMALIZED_RESOURCES)
+def test_annotation_resource_of_a_known_collection_is_normalized(
+    resource: str, expected: str, tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that a resource which keeps its collection is still normalized.
+
+    Every one of these normalizes to the compact identifiers.org URL of the
+    collection and term it was given with, so nothing is lost and no warning
+    is due.
+    """
+    sbml_path = tmp_path / "annotation.xml"
+    with caplog.at_level(logging.WARNING, logger="sbmlutils.metadata.annotator"):
+        _annotated_species(resource, sbml_path)
+
+    assert _written_resources(sbml_path, "s1") == [expected]
+    assert not _annotator_records(caplog, "WARNING"), caplog.text
+
+
+def test_annotation_resource_of_an_arbitrary_url_is_unchanged(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that a URL outside identifiers.org is written as given, silently.
+
+    pymetadata keeps such a URL as it is, so there is nothing to warn about.
+    """
+    resource = "http://example.com/my/resource"
+    sbml_path = tmp_path / "annotation.xml"
+    with caplog.at_level(logging.WARNING, logger="sbmlutils.metadata.annotator"):
+        _annotated_species(resource, sbml_path)
+
+    assert _written_resources(sbml_path, "s1") == [resource]
+    assert not _annotator_records(caplog, "WARNING"), caplog.text
+
+
+#: three resources of one unknown collection and two of another, enough to
+#: tell a per-collection report from a per-resource one
+TWO_LOSSY_COLLECTIONS: list[str] = [
+    f"http://identifiers.org/{UNKNOWN_COLLECTION}/1406",
+    f"http://identifiers.org/{UNKNOWN_COLLECTION}/1407",
+    f"http://identifiers.org/{UNKNOWN_COLLECTION}/1408",
+    f"http://identifiers.org/{OTHER_UNKNOWN_COLLECTION}/000000035",
+    f"http://identifiers.org/{OTHER_UNKNOWN_COLLECTION}/000000036",
+]
+
+
+def test_annotation_losses_are_reported_once_per_collection(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that a document reports one warning per collection, not per resource.
+
+    The defect is a property of the collection, not of the single resource:
+    pymetadata does not know it. Writing one warning per resource buried every
+    other message, 19853 of them for the Recon3D fixture, and taught users to
+    silence the logger. The detail of each resource stays available at debug.
+    """
+    sbml_path = tmp_path / "annotation.xml"
+    with caplog.at_level(logging.DEBUG, logger="sbmlutils.metadata.annotator"):
+        _annotated_model(TWO_LOSSY_COLLECTIONS, sbml_path)
+
+    warnings = [record.getMessage() for record in _annotator_records(caplog, "WARNING")]
+    assert len(warnings) == 2, caplog.text
+    # the report is sorted by collection, so the first one comes first
+    assert f"'{UNKNOWN_COLLECTION}'" in warnings[0]
+    assert f"'{OTHER_UNKNOWN_COLLECTION}'" in warnings[1]
+    # each names how many resources of its collection were written as given
+    assert warnings[0].startswith("3 ") and warnings[1].startswith("2 ")
+    # each names an example resource of its own collection
+    assert f"http://identifiers.org/{UNKNOWN_COLLECTION}/140" in warnings[0]
+    assert f"http://identifiers.org/{OTHER_UNKNOWN_COLLECTION}/00000003" in warnings[1]
+
+    # the detail of every single resource is still available, at debug
+    details = [record.getMessage() for record in _annotator_records(caplog, "DEBUG")]
+    for k, resource in enumerate(TWO_LOSSY_COLLECTIONS, start=1):
+        assert any(resource in detail for detail in details), (resource, details)
+        assert _written_resources(sbml_path, f"s{k}") == [resource]
+
+
+def test_annotation_losses_do_not_leak_between_documents(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that each written document reports its own resources.
+
+    The collector is installed per document. A collector kept beyond the
+    document it was installed for would add the resources of the first
+    document to the report of the second.
+    """
+    with caplog.at_level(logging.WARNING, logger="sbmlutils.metadata.annotator"):
+        _annotated_model(TWO_LOSSY_COLLECTIONS[:3], tmp_path / "first.xml")
+        first = [
+            record.getMessage() for record in _annotator_records(caplog, "WARNING")
+        ]
+        caplog.clear()
+        _annotated_model(TWO_LOSSY_COLLECTIONS[3:], tmp_path / "second.xml")
+        second = [
+            record.getMessage() for record in _annotator_records(caplog, "WARNING")
+        ]
+
+    assert len(first) == 1 and first[0].startswith("3 ")
+    assert f"'{UNKNOWN_COLLECTION}'" in first[0]
+    assert len(second) == 1 and second[0].startswith("2 ")
+    assert f"'{OTHER_UNKNOWN_COLLECTION}'" in second[0]
+
+
+def test_annotation_loss_of_a_compact_url_is_grouped_by_its_collection(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that a compact URL is reported under the collection of its term.
+
+    The collection of such a resource is the prefix of its term, which the
+    report groups it under like any other; dropping a resource whose
+    collection the registry does not know would hide it entirely.
+    """
+    sbml_path = tmp_path / "annotation.xml"
+    with caplog.at_level(logging.WARNING, logger="sbmlutils.metadata.annotator"):
+        _annotated_model(
+            ["https://identifiers.org/SBMLUTILS.TEST.COLLECTION1:0000012"], sbml_path
+        )
+
+    warnings = [record.getMessage() for record in _annotator_records(caplog, "WARNING")]
+    assert len(warnings) == 1, caplog.text
+    assert f"'{UNKNOWN_COLLECTION}'" in warnings[0], warnings
+
+
+def test_annotation_loss_outside_a_document_is_reported_per_resource(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that a single annotation written on its own reports itself.
+
+    `ModelAnnotator.annotate_sbase` annotates one element at a time and is
+    called directly. There is no document scope then, and nothing would ever
+    report a resource which was only collected.
+    """
+    doc = libsbml.SBMLDocument(3, 2)
+    model: libsbml.Model = doc.createModel("m")
+    compartment: libsbml.Compartment = model.createCompartment()
+    compartment.setId("c")
+    compartment.setConstant(True)
+
+    resource = f"http://identifiers.org/{UNKNOWN_COLLECTION}/1406"
+    with caplog.at_level(logging.WARNING, logger="sbmlutils.metadata.annotator"):
+        ModelAnnotator.annotate_sbase(compartment, Annotation(BQB.IS, resource))
+
+    warnings = [record.getMessage() for record in _annotator_records(caplog, "WARNING")]
+    assert len(warnings) == 1, caplog.text
+    assert resource in warnings[0]
+    del doc

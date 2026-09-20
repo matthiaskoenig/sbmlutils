@@ -21,6 +21,10 @@ A model declares the comp package when it has comp content: a `port` or a `repla
 
 The port of an element gets the id of the element plus `PORT_SUFFIX` (`_port`), so the port of `cell` is `cell_port`. A unit port uses `PORT_UNIT_SUFFIX` (`_unit_port`). A `Port` object is created explicitly when the id or the reference has to be different.
 
+A port names most elements by their id (`comp:idRef`), a unit definition by `comp:unitRef`, and an initial assignment, a rule, an event assignment and a local parameter by their metaid (`comp:metaIdRef`): libsbml resolves a `comp:idRef` with `Model.getElementBySId`, which answers with none of those four. Such an element needs a `metaId` for its port, which its port is then named after; an element without one is reported and gets no port.
+
+A kinetic law, a trigger, a priority, a delay, a constraint and a key-value pair are named by their id from SBML Level 3 Version 2 on and by their metaid below it, where an SBML document carries no id for them. `create_model` writes Level 3 Version 1 by default, so a port on one of those needs a `metaId` unless the document is written as Level 3 Version 2.
+
 ## Submodels
 
 A submodel refers to a model definition, which is either inside the same file (`ModelDefinition`) or in another file (`ExternalModelDefinition`):
@@ -34,6 +38,38 @@ model.external_model_definitions = [
 model.submodels = [Submodel(sid="submodel0", modelRef="emd0")]
 ```
 
+A `ModelDefinition` is a `Model`, so it takes everything a model takes - unit definitions, compartments, species, parameters, reactions, rules, events, its own submodels and ports, and the fbc and distrib content of the model - and all of it is written into the `<comp:modelDefinition>`:
+
+```python
+from sbmlutils.factory import (
+    Compartment,
+    Model,
+    ModelDefinition,
+    Package,
+    Parameter,
+    Reaction,
+    Species,
+    Submodel,
+)
+
+cell = ModelDefinition(
+    sid="cell",
+    compartments=[Compartment("c", value=1.0, port=True)],
+    species=[Species("S1", compartment="c", initialConcentration=10.0, port=True)],
+    parameters=[Parameter("k1", value=0.1)],
+    reactions=[Reaction(sid="J0", equation="S1 ->", formula="k1 * S1")],
+)
+
+tissue = Model(
+    sid="tissue",
+    packages=[Package.COMP_V1],
+    model_definitions=[cell],
+    submodels=[Submodel(sid="cell1", modelRef="cell")],
+)
+```
+
+The document declares the packages the content of a model definition needs, so a model definition with gene products or uncertainties does not have to repeat them. `packages`, `model_definitions` and `external_model_definitions` belong to the document and are refused on a model definition.
+
 ## Replacements
 
 A replacement says that an element of the parent model *is* an element of a submodel, so the two are one element after flattening:
@@ -43,7 +79,6 @@ from sbmlutils.factory import PORT_SUFFIX, ReplacedElement
 
 model.replaced_elements = [
     ReplacedElement(
-        sid="cell0_RE",
         metaId="cell0_RE",
         elementRef="cell0",  # the element of this model
         submodelRef="submodel0",  # the submodel it replaces in
@@ -52,7 +87,25 @@ model.replaced_elements = [
 ]
 ```
 
+A replacement takes no id: libsbml writes the core `id` and the core `name` of a `<comp:replacedElement>` into no document, see below, so `ReplacedElement`, `ReplacedBy` and `SbaseRef` are written without either, and a value given for one of the two is reported. The `metaId` is written and is what an annotation of the replacement refers to.
+
 `ReplacedBy` is the other direction - an element of this model is replaced *by* one of a submodel - and `Deletion` removes an element of a submodel.
+
+A reference reaches one level deep by itself. To continue it into a submodel of the submodel it names, a `Port`, a `ReplacedElement`, a `ReplacedBy` and a `Deletion` take a nested `sBaseRef`, which is an `SbaseRef` of its own and can be nested again to any depth:
+
+```python
+from sbmlutils.factory import ReplacedElement, SbaseRef
+
+ReplacedElement(
+    metaId="S1_RE",
+    elementRef="S1",
+    submodelRef="submodel0",  # the submodel of this model
+    idRef="submodel1",  # the submodel inside it
+    sBaseRef=SbaseRef(idRef="S1"),  # the element in there
+)
+```
+
+A nested level is written as a plain `<comp:sBaseRef>`, which has only the four reference attributes, so a `Port` or a `ReplacedElement` reused as one drops what a `<comp:sBaseRef>` does not have.
 
 ## A grid of coupled cells
 
@@ -113,6 +166,35 @@ flatten_sbml(sbml_path="model_comp.xml", sbml_flat_path="model_flat.xml")
 `leave_ports=False` removes the ports from the flat model as well. `flatten_sbml_doc` does the same for a document which is already read.
 
 External model definitions are resolved relative to the file they are referenced from, so the comp model and the models it includes stay together.
+
+## What round trips
+
+`sbml_to_model` reads the comp content of a document, so a hierarchical model can be read, changed in python and written back, see [Reading and writing](io.md#the-packages):
+
+| Construct | After a round trip |
+| --- | --- |
+| submodels | preserved, with their time and extent conversion factors |
+| deletions | preserved |
+| ports | preserved |
+| replaced elements and `replacedBy` | preserved, with the whole nested `sBaseRef` chain |
+| model definitions | preserved, with everything inside them, core as well as fbc and distrib |
+| external model definitions | preserved as the reference they are, `source`, `modelRef` and `md5` |
+
+What the round trip does not keep:
+
+- **An external model definition is never resolved.** The file it names is not opened and its content is not pulled into the document, which is what makes the round trip faithful; resolving is what `flatten_sbml` is for. A hierarchical model therefore has to be written next to the files it references to be simulated or fully validated. libsbml resolves a `comp:source` only against a document of the same SBML level and version, so a model whose external files are Level 3 Version 1 has to be written as Level 3 Version 1 as well, or those files have to be converted with it. `create_model` writes the level and version it is given:
+
+```python
+from pathlib import Path
+
+from sbmlutils.factory import create_model
+
+create_model(model=model, filepath=Path("model_comp.xml"), sbml_level=3, sbml_version=1)
+```
+- **`fbc:strict` on a model definition.** libsbml 5.21.2 writes the attribute twice on a `<comp:modelDefinition>`, and the file then fails to parse, so it is not written there. A document whose model definition carries fbc content keeps the validation error which says the attribute is missing, and the loss is reported once per document.
+- **The core `id` and `name` of a `ReplacedElement`, a `ReplacedBy` and a nested `sBaseRef`.** libsbml 5.21.2 writes them into no document, whatever the SBML level: measured at Level 3 Version 1 and at Version 2, where the setter answers success and the attribute is in neither file. Writing a later version is therefore no remedy, both are optional on all three classes, and a value given for either is reported once per document and per kind of element. A `Port` and a `Deletion` are not affected: comp gives both an id and a name of their own, written as `comp:id` and `comp:name` and measured at both versions. The metaid, the SBO term, the notes and the annotations of every one of the five are written normally.
+
+The verification uses the 123 comp cases of the [SBML test suite](https://github.com/sbmlteam/sbml-test-suite) - three of which nest an `sBaseRef`, to a depth of three - and the comp files of the repository, among them the whole-body model `icg_body.xml` with its external model definition.
 
 ## Merging models
 

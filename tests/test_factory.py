@@ -1,5 +1,12 @@
 """Testing the factory methods."""
 
+import logging
+import os
+import re
+import subprocess
+import sys
+import threading
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -9,9 +16,10 @@ import pytest
 
 from sbmlutils import factory
 from sbmlutils.factory import *
+from sbmlutils.factory import Sbase, SbaseRef
 from sbmlutils.io import read_sbml
 from sbmlutils.metadata import BQB
-from sbmlutils.reaction_equation import EquationPart
+from sbmlutils.reaction_equation import EquationPart, ReactionEquation
 from sbmlutils.validation import ValidationOptions
 
 compartment_value_data = [
@@ -373,9 +381,113 @@ def test_model_units_accepts_units_class() -> None:
     assert any(udef.sid == "mM" for udef in model.units)
 
 
+def test_model_units_hint_names_the_missing_unit_lazily(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test the hint for a model unit which is not set.
+
+    A strongly recommended unit warns, an optional one informs, and the key
+    is a log argument rather than part of the message, so that every hint
+    reaches a handler under one message template. `set_model_units` built the
+    message with an f-string, which loses the template.
+    """
+    model = Model(
+        "model_units",
+        model_units=ModelUnits(
+            substance=Units.mole, extent=Units.mole, volume=Units.litre
+        ),
+    )
+    with caplog.at_level(logging.INFO, logger="sbmlutils.factory"):
+        create_model(
+            model=model,
+            filepath=tmp_path / "model.xml",
+            validation_options=ValidationOptions(units_consistency=False),
+        )
+
+    hints = {
+        record.args[0]: (record.levelname, record.msg)
+        for record in caplog.records
+        if isinstance(record.args, tuple)
+        and "should be set in 'model_units'" in record.msg
+    }
+    assert hints == {
+        "time": ("WARNING", "'%s' should be set in 'model_units'."),
+        "length": ("INFO", "'%s' should be set in 'model_units'."),
+        "area": ("INFO", "'%s' should be set in 'model_units'."),
+    }, caplog.text
+
+
 def test_unit_reference_by_id() -> None:
     """Test that a unit can be referenced by its id string."""
     assert UnitDefinition.get_uid_for_unit("mymole") == "mymole"
+
+
+def test_unit_reference_without_unit() -> None:
+    """Test that no unit at all is no error."""
+    assert UnitDefinition.get_uid_for_unit(None) is None
+
+
+#: a unit of a type the annotations forbid, as it reaches the factory from
+#: untyped data; declared `Any` so that the type checker does not flag the
+#: deliberate misuse which the runtime guard is tested with
+BAD_UNIT: Any = 1.0
+
+
+def test_bad_unit_type_raises_value_error(tmp_path: Path) -> None:
+    """Test that a unit which is neither a UnitDefinition nor an id is refused.
+
+    `1.0` reached `libsbml.Parameter.setUnits` and surfaced as a SWIG
+    `TypeError` about `argument 2 of type 'std::string const &'`, which names
+    neither the offending value nor the element it was set on.
+    """
+    model = Model(sid="m", parameters=[Parameter("p", value=1.0, unit=BAD_UNIT)])
+    with pytest.raises(ValueError, match="UnitDefinition"):
+        create_model(
+            model=model,
+            filepath=tmp_path / "m.xml",
+            validation_options=ValidationOptions(units_consistency=False),
+        )
+
+
+@pytest.mark.parametrize(
+    "create",
+    [
+        lambda: Parameter("p", value=1.0, unit=BAD_UNIT),
+        lambda: Species("s", compartment="c", substanceUnit=BAD_UNIT),
+        lambda: SbaseRef("ref", unitRef=BAD_UNIT),
+        lambda: UncertParameter(
+            type=libsbml.DISTRIB_UNCERTTYPE_MEAN, value=1.0, unit=BAD_UNIT
+        ),
+        lambda: UncertSpan(
+            type=libsbml.DISTRIB_UNCERTTYPE_RANGE,
+            valueLower=1.0,
+            valueUpper=2.0,
+            unit=BAD_UNIT,
+        ),
+    ],
+    ids=[
+        "Parameter.unit",
+        "Species.substanceUnit",
+        "SbaseRef.unitRef",
+        "UncertParameter.unit",
+        "UncertSpan.unit",
+    ],
+)
+def test_bad_unit_type_warns_on_construction(
+    create: Callable[[], object], caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that a unit of a bad type is reported when the element is built.
+
+    `ValueWithUnit` warned about it, every other unit attribute passed the
+    value on silently until it reached `get_uid_for_unit`, which now raises.
+    """
+    with caplog.at_level(logging.WARNING, logger="sbmlutils.factory"):
+        create()
+    assert any(
+        "must be a UnitDefinition or a unit id" in record.message
+        and "float" in record.message
+        for record in caplog.records
+    ), caplog.text
 
 
 def test_unit_definition_name() -> None:
@@ -948,6 +1060,64 @@ def test_nested_elements_log_no_authoring_hints(
     del doc
 
 
+def test_no_authoring_hints_is_confined_to_its_thread(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that suppressing the hints in one thread does not silence another.
+
+    `sbmlutils.parser` writes a parsed model inside `no_authoring_hints()`.
+    While the suppression was a class attribute it was global: a model
+    definition written in another thread at the same time lost its hints,
+    which are the only report it gets about a missing name or sboTerm.
+
+    One thread writes a model inside the context, the main thread writes an
+    equally unnamed model while that thread is provably still inside it. The
+    threads are synchronized with events rather than with sleeps, and the log
+    records are told apart by the thread which emitted them.
+    """
+    written = threading.Event()
+    release = threading.Event()
+    failure: list[BaseException] = []
+
+    def write_without_hints() -> None:
+        try:
+            with Sbase.no_authoring_hints():
+                create_model(
+                    model=Model("suppressed", compartments=[Compartment("c", 1.0)]),
+                    filepath=tmp_path / "suppressed.xml",
+                    validation_options=ValidationOptions(units_consistency=False),
+                )
+                written.set()
+                assert release.wait(timeout=30.0)
+        except BaseException as err:
+            failure.append(err)
+        finally:
+            written.set()
+
+    thread = threading.Thread(target=write_without_hints, name="suppressed")
+    with caplog.at_level(logging.WARNING, logger="sbmlutils.factory"):
+        thread.start()
+        try:
+            assert written.wait(timeout=30.0)
+            create_model(
+                model=Model("hinted", compartments=[Compartment("c", 1.0)]),
+                filepath=tmp_path / "hinted.xml",
+                validation_options=ValidationOptions(units_consistency=False),
+            )
+        finally:
+            release.set()
+            thread.join(timeout=30.0)
+
+    assert not failure, failure
+    assert not thread.is_alive()
+    hints = {
+        record.threadName
+        for record in caplog.records
+        if "'name' should be set" in record.message
+    }
+    assert hints == {threading.current_thread().name}, caplog.text
+
+
 @pytest.mark.parametrize(
     "flag, value, attribute, getter",
     [
@@ -1208,6 +1378,75 @@ def test_constraint_unparsable_math_logs_an_error(
     del doc
 
 
+@pytest.mark.parametrize(
+    "create, formula",
+    [
+        (
+            lambda: Model(
+                "kinetic_law",
+                compartments=[Compartment("c", 1.0)],
+                species=[
+                    Species("A", compartment="c", initialAmount=1.0),
+                    Species("B", compartment="c", initialAmount=0.0),
+                ],
+                reactions=[Reaction("r1", "A => B", formula="A >")],
+            ),
+            "A >",
+        ),
+        (
+            lambda: Model(
+                "event_assignment",
+                parameters=[Parameter("p1", value=0.0, constant=False)],
+                events=[Event("e1", trigger="time >= 10", assignments={"p1": "p1 >"})],
+            ),
+            "p1 >",
+        ),
+        (
+            lambda: Model(
+                "uncertainty",
+                packages=[Package.DISTRIB_V1],
+                parameters=[
+                    Parameter(
+                        "p1",
+                        value=1.0,
+                        uncertainties=[Uncertainty(formula="normal(")],
+                    )
+                ],
+            ),
+            "normal(",
+        ),
+    ],
+    ids=["KineticLaw", "EventAssignment", "Uncertainty"],
+)
+def test_unparsable_math_is_logged_at_every_formula_call_site(
+    create: Callable[[], Model],
+    formula: str,
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that every formula which does not parse is reported as an error.
+
+    `libsbml.parseL3FormulaWithModel` returns `None` for math which does not
+    parse, and `libsbml.SBase.setMath(None)` leaves the element without math
+    without failing. Each of the places which parses math on its own rather
+    than through `ast_node_from_formula` must therefore check the result, so
+    that math which does not parse is never dropped silently.
+    """
+    with caplog.at_level(logging.ERROR, logger="sbmlutils.factory"):
+        create_model(
+            model=create(),
+            filepath=tmp_path / "model.xml",
+            validation_options=ValidationOptions(units_consistency=False),
+        )
+
+    errors = [
+        record.getMessage()
+        for record in caplog.records
+        if record.levelname == "ERROR" and record.name == "sbmlutils.factory"
+    ]
+    assert any(formula in message for message in errors), errors
+
+
 def test_reaction_reversible_overrides_the_equation() -> None:
     """Test that an explicit `reversible` is honoured.
 
@@ -1339,3 +1578,1625 @@ def test_reaction_speciesref_name_with_space_is_rejected_by_libsbml(
     assert "could not be set" in caplog.text, (
         "the rejected name should be logged, not silently dropped"
     )
+
+
+# ---------------------------------------------------------------------------
+# the gene products of a gene product association
+# ---------------------------------------------------------------------------
+def _gpa_model(association: str, gene_ids: tuple[str, ...]) -> Model:
+    """Get a model whose single reaction has a gene product association.
+
+    Args:
+        association: the association, as an infix string of gene product ids
+        gene_ids: the id of every gene product the model declares; each one
+            gets a label of its own which is no id of the model, so that a
+            check against the labels would find nothing
+
+    Returns:
+        the model definition
+    """
+    return Model(
+        sid="gene_product_association",
+        packages=[Package.FBC_V2],
+        strict=False,
+        compartments=[Compartment(sid="c", value=1.0)],
+        species=[Species(sid="S1", compartment="c", initialAmount=1.0)],
+        gene_products=[
+            GeneProduct(sid=sid, label=f"label_of_{sid}") for sid in gene_ids
+        ],
+        reactions=[
+            Reaction(sid="R1", equation="S1 ->", geneProductAssociation=association)
+        ],
+    )
+
+
+def _missing_gene_products(
+    association: str,
+    gene_ids: tuple[str, ...],
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> list[str]:
+    """Create a model with an association and collect the gene products it misses.
+
+    Args:
+        association: the association, as an infix string of gene product ids
+        gene_ids: the id of every gene product the model declares
+        tmp_path: the directory the SBML file is written to
+        caplog: pytest's log capture
+
+    Returns:
+        the message of every `GeneProduct missing in model` error, in order
+    """
+    caplog.clear()
+    with caplog.at_level(logging.ERROR, logger="sbmlutils.factory"):
+        create_model(
+            model=_gpa_model(association, gene_ids),
+            filepath=tmp_path / "gene_product_association.xml",
+            validate=False,
+        )
+    return [
+        record.getMessage()
+        for record in caplog.records
+        if "GeneProduct missing in model" in record.getMessage()
+    ]
+
+
+@pytest.mark.parametrize(
+    "association, gene_ids",
+    [
+        # an id which carries `OR`, `and` or `or` inside it
+        ("ORF1 and b0001", ("ORF1", "b0001")),
+        ("brandy and sensor", ("brandy", "sensor")),
+        ("ORF1 AND b0001", ("ORF1", "b0001")),
+        ("brandy OR sensor", ("brandy", "sensor")),
+        # the operators in both spellings, and groups
+        ("(b0001 and b0002) or b0003", ("b0001", "b0002", "b0003")),
+        ("(b0001 AND b0002) OR b0003", ("b0001", "b0002", "b0003")),
+        # a single gene product, which is no operator at all
+        ("ORF1", ("ORF1",)),
+        # nested parentheses without a space around them
+        ("(b0001 and(b0002 or b0003))", ("b0001", "b0002", "b0003")),
+    ],
+)
+def test_gene_product_association_reports_no_gene_product_it_has(
+    association: str,
+    gene_ids: tuple[str, ...],
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that an association of gene products of the model reports none as missing.
+
+    The check which warns about a gene product the model does not declare used
+    to strip `(`, `)`, `and`, `AND`, `or` and `OR` out of the association with
+    a chain of `str.replace`, which cuts those letters out of the middle of an
+    id as well: `ORF1` became `F1` and `brandy` became `br y`, and every one of
+    them was reported as a gene product missing from the model although it is
+    right there.
+    """
+    assert _missing_gene_products(association, gene_ids, tmp_path, caplog) == []
+
+
+def test_gene_product_association_reports_a_gene_product_which_is_missing(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that a gene product the model does not declare is still reported.
+
+    The check exists to catch exactly this, so the tokenizer must not make it
+    blind: only the operators are dropped, every other token is a gene product
+    id and is looked up in the model.
+    """
+    messages = _missing_gene_products(
+        "(ORF1 and b0001) or b9999", ("ORF1", "b0001"), tmp_path, caplog
+    )
+
+    assert len(messages) == 1, messages
+    assert "b9999" in messages[0]
+
+
+def test_gene_product_association_is_checked_against_the_ids_not_the_labels(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that the check resolves a token as a gene product id.
+
+    `Reaction.create_sbml` writes the association with
+    `setAssociation(infix, usingId=True, addMissingGP=False)`, so the string
+    names the gene products by their id and not by their label; the check is
+    `FbcModelPlugin.getGeneProduct`, which is the lookup by id
+    (`getGeneProductByLabel` is the one by label).
+    """
+    messages = _missing_gene_products("label_of_ORF1", ("ORF1",), tmp_path, caplog)
+
+    assert len(messages) == 1, messages
+    assert "label_of_ORF1" in messages[0]
+
+
+def _gpa_document(gene_ids: tuple[str, ...]) -> libsbml.SBMLDocument:
+    """Build an fbc document holding the given gene products.
+
+    Args:
+        gene_ids: the id of every gene product the model declares
+
+    Returns:
+        the document, which the caller has to hold for as long as it uses any
+        object of it
+    """
+    doc = libsbml.SBMLDocument(libsbml.SBMLNamespaces(3, 2, "fbc", 2))
+    doc.setPackageRequired("fbc", False)
+    model: libsbml.Model = doc.createModel()
+    model.setId("gene_product_association")
+    plugin: libsbml.FbcModelPlugin = model.getPlugin("fbc")
+    plugin.setStrict(False)
+    for sid in gene_ids:
+        gene_product: libsbml.GeneProduct = plugin.createGeneProduct()
+        gene_product.setId(sid)
+        gene_product.setLabel(f"label_of_{sid}")
+    return doc
+
+
+@pytest.mark.parametrize(
+    "operator, is_operator",
+    [
+        ("and", True),
+        ("AND", True),
+        ("And", False),
+        ("&", False),
+        ("&&", False),
+        ("or", True),
+        ("OR", True),
+        ("Or", False),
+        ("|", False),
+        ("||", False),
+    ],
+)
+def test_gene_product_association_drops_the_operators_libsbml_parses(
+    operator: str,
+    is_operator: bool,
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that the check drops exactly the operator spellings libsbml accepts.
+
+    The association is written with libsbml's own infix parser, which accepts
+    `and`, `AND`, `or` and `OR` and no other spelling of the two operators,
+    neither `And` nor `&`, `&&`, `|` or `||`. The check drops the same four
+    and reads every other token as a gene product id, so a spelling libsbml
+    would refuse is reported as the gene product it parses as instead of
+    passing silently.
+
+    What libsbml accepts is measured here rather than assumed: the expectation
+    of the parametrization is asserted against the parser first.
+    """
+    doc = _gpa_document(("b0001", "b0002"))
+    plugin: libsbml.FbcModelPlugin = doc.getModel().getPlugin("fbc")
+    infix = f"b0001 {operator} b0002"
+    parsed = libsbml.FbcAssociation.parseFbcInfixAssociation(infix, plugin, True, False)
+    assert (parsed is not None) is is_operator, infix
+
+    messages = _missing_gene_products(infix, ("b0001", "b0002"), tmp_path, caplog)
+
+    if is_operator:
+        assert messages == []
+    else:
+        assert len(messages) == 1 and operator in messages[0], messages
+
+
+def test_gene_product_association_without_a_space_before_a_group_is_refused(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that libsbml, not the check, is what refuses `and(` without a space.
+
+    The check splits the association on parentheses, so `b0001 and(b0002)`
+    names no gene product the model does not have and it says nothing.
+    libsbml's own infix parser is stricter and wants whitespace behind an
+    operator, so it refuses to parse that association at all; the user hears
+    about it through the error `check()` logs for the `setAssociation` which
+    would have written it. The check is a hint about missing gene products,
+    never the syntax check of the association.
+    """
+    caplog.clear()
+    with caplog.at_level(logging.ERROR, logger="sbmlutils"):
+        create_model(
+            model=_gpa_model("b0001 and(b0002)", ("b0001", "b0002")),
+            filepath=tmp_path / "gene_product_association.xml",
+            validate=False,
+        )
+
+    messages = [record.getMessage() for record in caplog.records]
+    assert [m for m in messages if "GeneProduct missing in model" in m] == []
+    assert [m for m in messages if "set gpa" in m] != [], messages
+
+
+def _fbc_reaction_test_model() -> tuple[libsbml.SBMLDocument, libsbml.Model]:
+    """Build a minimal L3V2 fbc version 3 model with species 'A', 'B' and 'M'.
+
+    fbc version 3 is the version which defines the key-value pair, so it is
+    the version a species reference can carry one in.
+
+    Returns:
+        the document and its model; the caller has to hold the document for as
+        long as it uses any object of it
+    """
+    doc = libsbml.SBMLDocument(libsbml.SBMLNamespaces(3, 2, "fbc", 3))
+    doc.setPackageRequired("fbc", False)
+    model: libsbml.Model = doc.createModel()
+    model.setId("reaction_key_value_pairs")
+    plugin: libsbml.FbcModelPlugin = model.getPlugin("fbc")
+    plugin.setStrict(False)
+    model.createCompartment().setId("c")
+    for sid in ("A", "B", "M"):
+        species: libsbml.Species = model.createSpecies()
+        species.setId(sid)
+        species.setCompartment("c")
+    return doc, model
+
+
+def test_reaction_speciesref_keeps_key_value_pairs() -> None:
+    """Test that the key-value pairs of a reactant, product and modifier are written.
+
+    `EquationPart.keyValuePairs` was declared and never read:
+    `set_speciesref_fields` wrote the species, id, stoichiometry, metaId,
+    sboTerm, name, notes and annotations of a part and dropped its key-value
+    pairs, for all three roles alike. A `ModifierSpeciesReference` is an
+    `SBase` like a `SpeciesReference` and carries them just as well.
+    """
+    _doc, model = _fbc_reaction_test_model()
+    equation = ReactionEquation(
+        reactants=[
+            EquationPart(
+                species="A",
+                keyValuePairs=[
+                    KeyValuePair(key="kr", value="1", uri="https://example.org/kr")
+                ],
+            )
+        ],
+        products=[
+            EquationPart(
+                species="B",
+                keyValuePairs=[KeyValuePair(key="kp", value="2", uri=None)],
+            )
+        ],
+        modifiers=[
+            EquationPart(
+                species="M",
+                keyValuePairs=[KeyValuePair(key="km", value="3", uri=None)],
+            )
+        ],
+    )
+    Reaction("r1", equation).create_sbml(model)
+
+    reaction: libsbml.Reaction = model.getReaction("r1")
+    written: dict[str, tuple[str, str | None]] = {}
+    for sref in (
+        reaction.getReactant(0),
+        reaction.getProduct(0),
+        reaction.getModifier(0),
+    ):
+        plugin: libsbml.FbcSBasePlugin = sref.getPlugin("fbc")
+        for kvp in plugin.getListOfKeyValuePairs():
+            written[kvp.getKey()] = (
+                kvp.getValue(),
+                kvp.getUri() if kvp.isSetUri() else None,
+            )
+
+    assert written == {
+        "kr": ("1", "https://example.org/kr"),
+        "kp": ("2", None),
+        "km": ("3", None),
+    }
+
+
+# ---------------------------------------------------------------------------
+# the fbc charge, which libsbml keeps apart by fbc version
+# ---------------------------------------------------------------------------
+def _charge_document(fbc_version: int, charge: float | None) -> libsbml.SBMLDocument:
+    """Create a species with a charge in a document of the given fbc version.
+
+    Args:
+        fbc_version: the fbc package version of the document, 2 or 3
+        charge: the charge of the species, `None` for a species without one
+
+    Returns:
+        the document, which the caller has to hold for as long as it uses any
+        object of it
+    """
+    doc = libsbml.SBMLDocument(libsbml.SBMLNamespaces(3, 2, "fbc", fbc_version))
+    doc.setPackageRequired("fbc", False)
+    model: libsbml.Model = doc.createModel()
+    model.setId("charge")
+    plugin: libsbml.FbcModelPlugin = model.getPlugin("fbc")
+    plugin.setStrict(False)
+    compartment: libsbml.Compartment = model.createCompartment()
+    compartment.setId("c")
+    compartment.setConstant(True)
+    Species(sid="S1", compartment="c", initialAmount=1.0, charge=charge).create_sbml(
+        model
+    )
+    return doc
+
+
+def _written_charge(doc: libsbml.SBMLDocument) -> str | None:
+    """Get the `fbc:charge` libsbml writes for the species `S1` of a document.
+
+    The charge is read out of the SBML rather than through a getter, since the
+    getter of the version the document is not at returns 0 for a charge which
+    is set, which is the very confusion this is about.
+
+    Args:
+        doc: the document, which the caller holds
+
+    Returns:
+        the value of the `fbc:charge` attribute, `None` if the species has none
+    """
+    match = re.search(
+        r'<species [^>]*fbc:charge="([^"]*)"', libsbml.writeSBMLToString(doc)
+    )
+    return match.group(1) if match is not None else None
+
+
+@pytest.mark.parametrize(
+    "fbc_version, charge, written",
+    [
+        # fbc version 2 writes an integer charge; an integral float is one
+        (2, -2.0, "-2"),
+        (2, 1, "1"),
+        (2, 0, "0"),
+        (2, 0.0, "0"),
+        (2, None, None),
+        # fbc version 3 writes a double charge, integral or not
+        (3, 1, "1"),
+        (3, -2.0, "-2"),
+        (3, -2.5, "-2.5"),
+        (3, 0, "0"),
+        (3, None, None),
+    ],
+)
+def test_species_charge_is_written_for_the_fbc_version_of_the_document(
+    fbc_version: int, charge: float | None, written: str | None
+) -> None:
+    """Test that the charge given is the charge written, in both fbc versions.
+
+    libsbml keeps the integer charge of fbc version 2 and the double charge of
+    fbc version 3 apart and writes only the one of the version of the
+    document, and `FbcSpeciesPlugin.setCharge` picks which of the two it sets
+    from the python type of its argument. `Species._set_fields` passed the
+    `charge` field through as it was, so a `float` in an fbc version 2 model
+    and an `int` in an fbc version 3 model each set the charge of the other
+    version: `fbc:charge` came out as `0` while the charge was reported as
+    set. A charge of `0` and a species without a charge stay apart.
+    """
+    doc = _charge_document(fbc_version, charge)
+
+    assert _written_charge(doc) == written
+
+
+def test_species_charge_which_fbc_v2_cannot_write_is_reported(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that a non-integral charge in an fbc version 2 model is reported, not rounded.
+
+    `fbc:charge` is an integer in fbc version 2, so a charge of `-2.5` cannot
+    be written into such a document at all. Rounding it would write a charge
+    the model never stated, so it is left unset and the species and the charge
+    are named in an error.
+    """
+    with caplog.at_level(logging.ERROR, logger="sbmlutils.factory"):
+        doc = _charge_document(2, -2.5)
+
+    assert _written_charge(doc) is None
+    errors = [
+        record.getMessage()
+        for record in caplog.records
+        if record.levelno >= logging.ERROR
+    ]
+    assert len(errors) == 1, errors
+    assert "S1" in errors[0] and "-2.5" in errors[0]
+
+
+#: the prefix of every package namespace and `required` attribute of an
+#: `<sbml>` start tag, in the order they are written
+_NAMESPACE_PREFIX = re.compile(r'xmlns:([a-z]+)="http://www\.sbml\.org/sbml/level3')
+_REQUIRED_PREFIX = re.compile(r"([a-z]+):required=")
+
+#: a model which declares every package sbmlutils supports; written in a
+#: process of its own by the test below
+_PACKAGE_MODEL = """
+from sbmlutils.factory import Model, Package, Parameter
+
+model = Model(
+    "packages",
+    packages=[Package.COMP_V1, Package.DISTRIB_V1, Package.FBC_V3],
+    parameters=[Parameter("p1", value=1.0)],
+)
+for line in model.get_sbml().splitlines():
+    if line.startswith("<sbml"):
+        print(line)
+        break
+"""
+
+
+def _start_tag(model: Model) -> str:
+    """Get the `<sbml>` start tag of the SBML of a model.
+
+    Args:
+        model: the model to write
+
+    Returns:
+        the line of the SBML which starts the `sbml` element
+    """
+    for line in model.get_sbml().splitlines():
+        if line.startswith("<sbml"):
+            return line
+    raise AssertionError(f"No '<sbml>' start tag in the SBML of '{model.sid}'.")
+
+
+@pytest.mark.parametrize(
+    "packages",
+    [
+        [Package.COMP_V1, Package.DISTRIB_V1, Package.FBC_V3],
+        [Package.FBC_V3, Package.DISTRIB_V1, Package.COMP_V1],
+        [Package.DISTRIB_V1, Package.FBC_V3, Package.COMP_V1],
+    ],
+)
+def test_package_namespaces_are_written_in_the_order_of_the_enum(
+    packages: list[Package],
+) -> None:
+    """Test that the packages are declared in the definition order of `Package`.
+
+    The order the packages are given in is not the order they are declared in:
+    `Model.check_packages` normalizes them and the declaration follows the
+    definition order of `Package`, which is `comp`, `distrib`, `fbc`.
+    """
+    tag = _start_tag(Model("packages", packages=packages))
+
+    assert _NAMESPACE_PREFIX.findall(tag) == ["comp", "distrib", "fbc"]
+    assert _REQUIRED_PREFIX.findall(tag) == ["comp", "distrib", "fbc"]
+
+
+def test_package_namespaces_do_not_depend_on_the_hash_seed() -> None:
+    """Test that two processes write the same `<sbml>` start tag.
+
+    The packages of a model were collected in a `set`, which the declarations
+    were written from in iteration order, so the same model definition wrote
+    a different `<sbml>` element in every process: the order of a set of
+    `Package` members depends on the hash seed of the process. Two seeds are
+    enough to show it, they produced two different tags.
+    """
+    tags = {}
+    for seed in ("0", "1"):
+        process = subprocess.run(
+            [sys.executable, "-c", _PACKAGE_MODEL],
+            capture_output=True,
+            text=True,
+            check=True,
+            env={**os.environ, "PYTHONHASHSEED": seed},
+        )
+        tags[seed] = process.stdout.strip()
+
+    # a child which printed nothing would make two empty strings equal
+    for seed, tag in tags.items():
+        assert tag.startswith("<sbml "), (seed, process.stderr)
+        assert _NAMESPACE_PREFIX.findall(tag) == ["comp", "distrib", "fbc"], tag
+    assert tags["0"] == tags["1"], tags
+
+
+@pytest.mark.parametrize("field", ["keyValuePairs"])
+def test_document_does_not_offer_key_value_pairs(field: str) -> None:
+    """Test that a document refuses the key-value pairs it cannot write.
+
+    fbc version 3 gives a `<fbc:keyValuePair>` to every `SBase`, but libsbml
+    5.21.2 attaches an `FbcSBMLDocumentPlugin` to the `<sbml>` element, which
+    has no key-value-pair accessor at all: the pairs of a document could not
+    be written (`create_sbml` failed with an `AttributeError` on the plugin)
+    and a `<listOfKeyValuePairs>` written into the XML of an `<sbml>` element
+    by hand is read without an error and is invisible afterwards. The keyword
+    is passed through a mapping, the way the same check is made in
+    `tests/test_distrib.py`: spelling it out is a type error, which is the
+    point of the test.
+    """
+    model = Model(sid="document_key_value_pairs", name="a model")
+    kwargs: dict[str, Any] = {field: None}
+    with pytest.raises(TypeError, match=field):
+        Document(model=model, **kwargs)
+
+
+def _minimal_content() -> dict[str, Any]:
+    """Get the content of a model which writes at every SBML level and version.
+
+    Returns:
+        the keyword arguments of a `Model`
+    """
+    return {
+        "compartments": [Compartment("c", 1.0, name="compartment")],
+        "species": [
+            Species("S1", compartment="c", initialAmount=1.0, name="S1"),
+        ],
+    }
+
+
+#: one case per kind of libsbml failure the survey of the unwrapped setters
+#: found, as `(build, level, version, fragments of the one error)`. Every case
+#: is a **value** which `factory.py` passes on to libsbml unchanged and which
+#: libsbml refuses with a status code, so that the attribute was dropped in
+#: silence before it was wrapped. An attribute the document has no place for
+#: at all is the other half, see `_ATTRIBUTES_WITHOUT_A_PLACE`.
+_SWALLOWED_ATTRIBUTES: list[Any] = [
+    pytest.param(
+        lambda: Model(
+            sid="invalid_sid",
+            name="a model",
+            compartments=[Compartment("c", 1.0, name="compartment")],
+            species=[
+                Species("S1", compartment="not an sid", initialAmount=1.0, name="S1")
+            ],
+        ),
+        3,
+        1,
+        ["compartment", "not an sid", "Species(S1"],
+        id="invalid-sid",
+    ),
+    pytest.param(
+        lambda: Model(
+            sid="invalid_sbo_term",
+            name="a model",
+            parameters=[Parameter("p1", 1.0, name="p1", sboTerm="not an sbo term")],
+            **_minimal_content(),
+        ),
+        3,
+        1,
+        ["sboTerm", "not an sbo term", "Parameter(p1"],
+        id="invalid-sbo-term",
+    ),
+    pytest.param(
+        lambda: Model(
+            sid="invalid_metaid",
+            name="a model",
+            parameters=[Parameter("p1", 1.0, name="p1", metaId="meta id")],
+            **_minimal_content(),
+        ),
+        3,
+        1,
+        ["metaid", "meta id", "Parameter(p1"],
+        id="invalid-metaid",
+    ),
+    pytest.param(
+        lambda: Model(
+            sid="invalid_unit_id",
+            name="a model",
+            model_units=ModelUnits(
+                time="not an sid",
+                extent=Units.mole,
+                substance=Units.mole,
+                volume=Units.litre,
+            ),
+            **_minimal_content(),
+        ),
+        3,
+        1,
+        ["timeUnits", "not an sid", "Model(invalid_unit_id)"],
+        id="invalid-unit-id",
+    ),
+    pytest.param(
+        lambda: Model(
+            sid="value_outside_an_enumeration",
+            name="a model",
+            packages=[Package.FBC_V3],
+            objectives=[
+                Objective(
+                    sid="obj1",
+                    name="objective",
+                    objectiveType="maximize",
+                    fluxObjectives=[
+                        FluxObjective(
+                            reaction="R1",
+                            coefficient=1.0,
+                            name="flux objective",
+                            variableType="invalid",
+                        )
+                    ],
+                )
+            ],
+            reactions=[Reaction("R1", "S1 ->", name="reaction")],
+            **_minimal_content(),
+        ),
+        3,
+        1,
+        ["variableType", "FluxObjective("],
+        id="value-outside-an-enumeration",
+    ),
+    pytest.param(
+        lambda: Model(
+            sid="invalid_chemical_formula",
+            name="a model",
+            packages=[Package.FBC_V3],
+            compartments=[Compartment("c", 1.0, name="compartment")],
+            species=[
+                Species(
+                    "S1",
+                    compartment="c",
+                    initialAmount=1.0,
+                    name="S1",
+                    chemicalFormula="not a formula",
+                )
+            ],
+        ),
+        3,
+        1,
+        ["chemicalFormula", "not a formula", "Species(S1"],
+        id="invalid-chemical-formula",
+    ),
+    pytest.param(
+        lambda: Model(
+            sid="reference_the_element_cannot_carry",
+            name="a model",
+            packages=[Package.COMP_V1],
+            ports=[Port(sid="p1_port", name="a port", portRef="another_port")],
+            parameters=[Parameter("p1", 1.0, name="p1")],
+            **_minimal_content(),
+        ),
+        3,
+        1,
+        ["portRef", "another_port", "Port(p1_port"],
+        id="reference-the-element-cannot-carry",
+    ),
+    pytest.param(
+        lambda: Model(
+            sid="package_of_a_later_level",
+            name="a model",
+            packages=[Package.COMP_V1],
+            **_minimal_content(),
+        ),
+        2,
+        4,
+        ["comp-v1", "SBML L2V4"],
+        id="package-of-a-later-level",
+    ),
+]
+
+
+@pytest.mark.parametrize("build, level, version, fragments", _SWALLOWED_ATTRIBUTES)
+def test_attribute_libsbml_refuses_is_reported(
+    build: Callable[[], Model],
+    level: int,
+    version: int,
+    fragments: list[str],
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that an attribute libsbml refuses to write is reported once.
+
+    A libsbml setter answers with a status code instead of raising, so an
+    attribute it refuses used to be dropped in silence: the model definition
+    asked for it, the written document did not carry it and validated. Every
+    case here is one kind of refusal the survey of `factory.py` found: an
+    invalid SId, an invalid SBO term, an invalid metaid, an invalid unit id,
+    a value outside an enumeration, an invalid chemical formula, a reference
+    the element cannot carry, and a package the SBML level cannot declare.
+    An attribute the document has no place for at all is not an error per
+    element, see `test_attribute_the_document_has_no_place_for_is_reported_once`.
+
+    The document is written either way, which the file on disk shows.
+    """
+    model = build()
+    sbml_path = tmp_path / f"{model.sid}.xml"
+    with caplog.at_level(logging.ERROR, logger="sbmlutils"):
+        create_model(
+            model=model,
+            filepath=sbml_path,
+            sbml_level=level,
+            sbml_version=version,
+            validate=False,
+        )
+
+    # `check` logs the status code as a record of its own, which belongs to
+    # the report before it rather than being a report of its own
+    errors = [
+        record.getMessage()
+        for record in caplog.records
+        if record.levelno >= logging.ERROR
+        and not record.getMessage().startswith("LibSBML returned error code")
+    ]
+    assert len(errors) == 1, errors
+    for fragment in fragments:
+        assert fragment in errors[0], errors[0]
+
+    # the rest of the document is written all the same
+    assert sbml_path.exists()
+    doc: libsbml.SBMLDocument = read_sbml(source=sbml_path, validate=False)
+    sbml_model: libsbml.Model = doc.getModel()
+    assert sbml_model.getId() == model.sid
+    assert sbml_model.getNumCompartments() == 1
+
+
+#: one case per kind of attribute the document has no place for, as
+#: `(build, level, version, fragments of the one warning)`. This is the other
+#: half of `_SWALLOWED_ATTRIBUTES`: the value is fine and the document has
+#: nowhere to put it, which one decision fixes for every element at once.
+_ATTRIBUTES_WITHOUT_A_PLACE: list[Any] = [
+    pytest.param(
+        lambda: Model(
+            sid="attribute_of_a_later_level",
+            name="a model",
+            parameters=[Parameter("p1", 1.0, name="p1")],
+            compartments=[Compartment("c", 1.0, name="compartment")],
+            species=[
+                Species(
+                    "S1",
+                    compartment="c",
+                    initialAmount=1.0,
+                    name="S1",
+                    conversionFactor="p1",
+                )
+            ],
+        ),
+        2,
+        4,
+        [
+            "'conversionFactor'",
+            "1 <species>",
+            "Species(S1",
+            "SBML L2V4 has no such attribute",
+            "Write SBML Level 3 Version 2",
+        ],
+        id="attribute-of-a-later-level",
+    ),
+    pytest.param(
+        lambda: Model(
+            sid="attribute_of_a_later_package_version",
+            name="a model",
+            packages=[Package.FBC_V2],
+            objectives=[
+                Objective(
+                    sid="obj1",
+                    name="objective",
+                    objectiveType="maximize",
+                    # `linear` is what an fbc version 2 document means
+                    # anyway, `quadratic` is what it cannot express
+                    fluxObjectives=[
+                        FluxObjective(
+                            reaction="R1",
+                            coefficient=1.0,
+                            name="flux objective",
+                            variableType="quadratic",
+                        )
+                    ],
+                )
+            ],
+            reactions=[Reaction("R1", "S1 ->", name="reaction")],
+            **_minimal_content(),
+        ),
+        3,
+        1,
+        [
+            "'variableType'",
+            "1 <fluxObjective>",
+            "fbc version 2",
+            "has no such attribute",
+            "Declare fbc version 3",
+        ],
+        id="attribute-of-a-later-package-version",
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "build, level, version, fragments", _ATTRIBUTES_WITHOUT_A_PLACE
+)
+def test_attribute_the_document_has_no_place_for_is_reported_once(
+    build: Callable[[], Model],
+    level: int,
+    version: int,
+    fragments: list[str],
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that an attribute the document cannot carry is one warning.
+
+    The value is fine; the SBML level and version of the document, or the
+    version of the package, has no such attribute, which the caller fixes
+    with one decision for every element at once. Such a loss is collected for
+    the document and reported once per element kind and attribute, not as an
+    error per element.
+    """
+    model = build()
+    sbml_path = tmp_path / f"{model.sid}.xml"
+    with caplog.at_level(logging.WARNING, logger="sbmlutils"):
+        create_model(
+            model=model,
+            filepath=sbml_path,
+            sbml_level=level,
+            sbml_version=version,
+            validate=False,
+        )
+
+    warnings = [m for m in _records(caplog, logging.WARNING) if "not written" in m]
+    assert len(warnings) == 1, warnings
+    for fragment in fragments:
+        assert fragment in warnings[0], warnings[0]
+    assert _records(caplog, logging.ERROR) == []
+    assert sbml_path.exists()
+
+
+def test_create_model_writes_into_a_directory_which_does_not_exist(
+    tmp_path: Path,
+) -> None:
+    """Test that `create_model` writes the file a caller asks for.
+
+    `libsbml.SBMLWriter.writeSBMLToFile` answers `False` for a path whose
+    parent directory does not exist and writes nothing, which the writer
+    discarded: `create_model` then validated the *path*, read an empty
+    document from the file which was never written, printed `valid: TRUE`
+    and returned a `FactoryResult` whose `sbml_path` does not exist.
+    """
+    sbml_path = tmp_path / "does" / "not" / "exist" / "model.xml"
+    model = Model(
+        sid="missing_directory",
+        name="a model",
+        compartments=[Compartment("c", 1.0, name="compartment")],
+        species=[Species("S1", compartment="c", initialAmount=1.0, name="S1")],
+    )
+
+    result = create_model(
+        model=model,
+        filepath=sbml_path,
+        validation_options=ValidationOptions(units_consistency=False),
+    )
+
+    assert result.sbml_path.exists()
+    doc: libsbml.SBMLDocument = read_sbml(source=sbml_path, validate=False)
+    assert doc.getModel().getId() == "missing_directory"
+
+
+def test_create_model_raises_for_a_file_it_cannot_write(tmp_path: Path) -> None:
+    """Test that a write which cannot be repaired stops `create_model`.
+
+    A caller who asks for a file and gets none must not be told that the
+    model is valid. This is about the file, not about the validation
+    results: a document which does not validate is still written, and
+    `create_model` still returns.
+    """
+    blocking_file = tmp_path / "a_file"
+    blocking_file.write_text("not a directory", encoding="utf-8")
+    sbml_path = blocking_file / "model.xml"
+    model = Model(sid="unwritable", name="a model")
+
+    with pytest.raises(OSError, match=re.escape(str(sbml_path))):
+        create_model(model=model, filepath=sbml_path, validate=False)
+
+
+def _named_rules_model() -> Model:
+    """Get a model whose three assignment rules carry a name.
+
+    A `<rule>` has no `name` attribute below SBML L3V2, so the names of this
+    model are written at L3V2 and lost at L3V1.
+
+    Returns:
+        the model
+    """
+    return Model(
+        sid="named_rules",
+        name="a model whose rules carry a name",
+        compartments=[Compartment("c", 1.0, name="compartment")],
+        parameters=[
+            Parameter("k1", 1.0, name="k1", constant=False),
+            Parameter("k2", 1.0, name="k2", constant=False),
+            Parameter("k3", 1.0, name="k3", constant=False),
+        ],
+        rules=[
+            AssignmentRule("k1", "2.0", name="the first rule"),
+            AssignmentRule("k2", "3.0", name="the second rule"),
+            AssignmentRule("k3", "4.0", name="the third rule"),
+        ],
+    )
+
+
+def _records(caplog: pytest.LogCaptureFixture, level: int) -> list[str]:
+    """Get the messages logged at exactly the given level.
+
+    Args:
+        caplog: the pytest log capture
+        level: the level to filter on
+
+    Returns:
+        the formatted messages
+    """
+    return [r.getMessage() for r in caplog.records if r.levelno == level]
+
+
+def test_attribute_of_a_later_level_is_reported_once_per_document(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that one decision is reported once, not once per element.
+
+    A `<rule>` has no `name` below SBML L3V2, which `create_model` writes by
+    default, so a model whose rules carry a name loses every one of them.
+    Reporting each on its own buried the one decision which fixes all of them
+    (write L3V2) under one error per rule; `examples/icg/model_body.py` alone
+    produced 57 of them. The losses are collected for the document and
+    reported once per element kind and attribute.
+    """
+    model = _named_rules_model()
+    with caplog.at_level(logging.DEBUG, logger="sbmlutils"):
+        create_model(
+            model=model,
+            filepath=tmp_path / "model.xml",
+            sbml_level=3,
+            sbml_version=1,
+            validate=False,
+        )
+
+    warnings = [m for m in _records(caplog, logging.WARNING) if "not written" in m]
+    assert len(warnings) == 1, warnings
+    assert "assignmentRule" in warnings[0]
+    assert "'name'" in warnings[0]
+    assert "3 " in warnings[0]
+    assert "SBML L3V1" in warnings[0]
+    assert "Level 3 Version 2" in warnings[0]
+    assert _records(caplog, logging.ERROR) == []
+    # the detail of every single loss is available at debug
+    assert (
+        len([m for m in _records(caplog, logging.DEBUG) if "the first rule" in m]) == 1
+    )
+
+
+def test_the_same_model_written_at_l3v2_keeps_the_names(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test the positive control: at SBML L3V2 a rule carries its name."""
+    model = _named_rules_model()
+    sbml_path = tmp_path / "model.xml"
+    with caplog.at_level(logging.WARNING, logger="sbmlutils"):
+        create_model(
+            model=model,
+            filepath=sbml_path,
+            sbml_level=3,
+            sbml_version=2,
+            validate=False,
+        )
+
+    assert [m for m in _records(caplog, logging.WARNING) if "not written" in m] == []
+    assert _records(caplog, logging.ERROR) == []
+    assert "the first rule" in sbml_path.read_text(encoding="utf-8")
+
+
+def test_attribute_of_a_later_level_is_reported_for_a_parameter(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test the same report for an SBML Level 1 document.
+
+    A `<parameter>` of an SBML L1 document has no `constant` attribute, so a
+    `constant=False` parameter silently becomes a constant one.
+    """
+    model = Model(
+        sid="l1_parameters",
+        name="a model with parameters which are not constant",
+        compartments=[Compartment("c", 1.0, name="compartment")],
+        parameters=[
+            Parameter("k1", 1.0, name="k1", constant=False, metaId="meta_k1"),
+            Parameter("k2", 1.0, name="k2", constant=False, metaId="meta_k2"),
+        ],
+    )
+    with caplog.at_level(logging.WARNING, logger="sbmlutils"):
+        create_model(
+            model=model,
+            filepath=tmp_path / "model.xml",
+            sbml_level=1,
+            sbml_version=2,
+            validate=False,
+        )
+
+    constant = [
+        m
+        for m in _records(caplog, logging.WARNING)
+        if "'constant'" in m and "<parameter>" in m
+    ]
+    assert len(constant) == 1, constant
+    assert "2 <parameter> element(s)" in constant[0]
+    assert "SBML L1V2" in constant[0]
+
+    # the attribute is named as the document spells it, `metaid` and not the
+    # `metaId` of the model definition, see
+    # `test_the_reported_attribute_name_is_the_one_in_the_document`
+    metaid = [
+        m
+        for m in _records(caplog, logging.WARNING)
+        if "<parameter>" in m and "'metaid'" in m
+    ]
+    assert len(metaid) == 1, _records(caplog, logging.WARNING)
+
+
+def test_two_documents_report_only_their_own_attribute_losses(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that the collection of one document does not reach the next.
+
+    The collection is held in a `ContextVar` which is reset when the scope
+    of the document ends, so a second `create_model` starts empty.
+    """
+    with caplog.at_level(logging.WARNING, logger="sbmlutils"):
+        create_model(
+            model=_named_rules_model(),
+            filepath=tmp_path / "first.xml",
+            sbml_level=3,
+            sbml_version=1,
+            validate=False,
+        )
+        first = [m for m in _records(caplog, logging.WARNING) if "not written" in m]
+        caplog.clear()
+        create_model(
+            model=_named_rules_model(),
+            filepath=tmp_path / "second.xml",
+            sbml_level=3,
+            sbml_version=1,
+            validate=False,
+        )
+        second = [m for m in _records(caplog, logging.WARNING) if "not written" in m]
+
+    assert len(first) == 1, first
+    assert second == first
+
+
+#: a model whose only package content is one construct, without `packages=`,
+#: as `(build, namespace fragment, content fragment)`
+_PACKAGE_FROM_CONTENT: list[Any] = [
+    pytest.param(
+        lambda: Model(
+            sid="only_a_gene_product",
+            name="a model with a gene product",
+            gene_products=[GeneProduct(sid="g1", label="G1", name="gene")],
+            **_minimal_content(),
+        ),
+        "fbc/version3",
+        "<fbc:geneProduct",
+        id="gene-product",
+    ),
+    pytest.param(
+        lambda: Model(
+            sid="only_an_objective",
+            name="a model with an objective",
+            objectives=[
+                Objective(
+                    sid="obj1",
+                    name="objective",
+                    objectiveType="maximize",
+                    fluxObjectives={"R1": 1.0},
+                )
+            ],
+            reactions=[Reaction("R1", "S1 ->", name="reaction")],
+            **_minimal_content(),
+        ),
+        "fbc/version3",
+        "<fbc:objective",
+        id="objective",
+    ),
+    pytest.param(
+        lambda: Model(
+            sid="only_key_value_pairs",
+            name="a model with key-value pairs",
+            parameters=[
+                Parameter(
+                    "k",
+                    1.0,
+                    name="k",
+                    keyValuePairs=[
+                        KeyValuePair(key="kind", value="test", uri="https://x.org")
+                    ],
+                )
+            ],
+            **_minimal_content(),
+        ),
+        "fbc/version3",
+        "<keyValuePair",
+        id="key-value-pairs",
+    ),
+    pytest.param(
+        lambda: Model(
+            sid="only_an_uncertainty",
+            name="a model with an uncertainty",
+            parameters=[
+                Parameter(
+                    "k",
+                    1.0,
+                    name="k",
+                    uncertainties=[
+                        Uncertainty(
+                            sid="unc1",
+                            name="uncertainty",
+                            uncertParameters=[
+                                UncertParameter(
+                                    type=libsbml.DISTRIB_UNCERTTYPE_MEAN, value=1.0
+                                )
+                            ],
+                        )
+                    ],
+                )
+            ],
+            **_minimal_content(),
+        ),
+        "distrib/version1",
+        "<distrib:uncertainty",
+        id="uncertainty",
+    ),
+]
+
+
+@pytest.mark.parametrize("build, namespace, content", _PACKAGE_FROM_CONTENT)
+def test_model_declares_the_package_its_content_needs(
+    build: Callable[[], Model],
+    namespace: str,
+    content: str,
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that the main model declares the package its content engages.
+
+    `Model._required_packages` reads off which packages the content of a
+    model needs and was only asked of the model definitions of a document,
+    never of the model itself. A top level model whose only fbc content was a
+    gene product, an objective or a key-value pair therefore declared no fbc,
+    and writing it reached a plugin which does not exist: the key-value pair
+    raised `AttributeError`, the gene product and the objective wrote
+    nothing.
+    """
+    model = build()
+    sbml_path = tmp_path / f"{model.sid}.xml"
+    with caplog.at_level(logging.ERROR, logger="sbmlutils"):
+        create_model(
+            model=model,
+            filepath=sbml_path,
+            validation_options=ValidationOptions(units_consistency=False),
+        )
+
+    sbml = sbml_path.read_text(encoding="utf-8")
+    assert namespace in sbml, sbml
+    assert content in sbml, sbml
+    assert _records(caplog, logging.ERROR) == []
+
+
+def test_the_declared_fbc_version_wins_over_the_content(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that an explicit fbc version is not raised by the content.
+
+    A key-value pair needs fbc version 3, but a model which asks for fbc
+    version 2 gets fbc version 2: the caller stated the version of the
+    document. The pairs which cannot be written there are reported, see
+    `KeyValuePair.create_pairs`.
+    """
+    model = Model(
+        sid="explicit_fbc_v2",
+        name="a model which asks for fbc version 2",
+        packages=[Package.FBC_V2],
+        parameters=[
+            Parameter(
+                "k",
+                1.0,
+                name="k",
+                keyValuePairs=[
+                    KeyValuePair(key="kind", value="test", uri="https://x.org")
+                ],
+            )
+        ],
+        **_minimal_content(),
+    )
+    sbml_path = tmp_path / "model.xml"
+    with caplog.at_level(logging.ERROR, logger="sbmlutils"):
+        create_model(model=model, filepath=sbml_path, validate=False)
+
+    sbml = sbml_path.read_text(encoding="utf-8")
+    assert "fbc/version2" in sbml
+    assert "fbc/version3" not in sbml
+    assert "keyValuePair" not in sbml
+    errors = _records(caplog, logging.ERROR)
+    assert len(errors) == 1, errors
+    assert "fbc version 3, the document is fbc version 2" in errors[0]
+    # the message names the element which carries the pairs, which prints
+    # its fields, the list of pairs among them
+    assert "object at 0x" not in errors[0], errors[0]
+    assert "KeyValuePair(kind = test)" in errors[0], errors[0]
+
+
+@pytest.mark.parametrize(
+    "element, expected",
+    [
+        (
+            KeyValuePair(key="kind", value="test", uri="https://x.org"),
+            "KeyValuePair(kind = test)",
+        ),
+        (
+            Uncertainty(
+                sid="u1",
+                uncertParameters=[
+                    UncertParameter(type=libsbml.DISTRIB_UNCERTTYPE_MEAN, value=1.0)
+                ],
+            ),
+            "Uncertainty(u1, UncertParameter(",
+        ),
+        (Uncertainty(), "Uncertainty()"),
+    ],
+)
+def test_element_of_a_list_field_is_named_without_its_address(
+    element: Sbase, expected: str
+) -> None:
+    """Test that an element of a list field prints itself, not its address.
+
+    `Sbase.__str__` names an element by its fields, and the two fields which
+    hold a list, `keyValuePairs` and `uncertainties`, print their items with
+    `repr`. Without a `__repr__` on the item the messages which name the
+    element which carries them, such as the report of a key-value pair an
+    fbc version 2 document cannot hold, show a memory address.
+    """
+    assert repr(element).startswith(expected), repr(element)
+    assert "object at 0x" not in repr(element)
+
+    owner = Parameter("p1", 1.0)
+    field = "keyValuePairs" if isinstance(element, KeyValuePair) else "uncertainties"
+    setattr(owner, field, [element])
+
+    assert "object at 0x" not in str(owner), str(owner)
+    assert expected in str(owner), str(owner)
+
+
+@pytest.mark.parametrize("sbo_term", ["SBO:0000011", "SBO_0000011"])
+def test_sbo_term_of_a_species_reference_is_normalized(
+    sbo_term: str, tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that a species reference takes an SBO term in either spelling.
+
+    `Sbase._set_fields` turns the `SBO_0000011` of a model definition into
+    the `SBO:0000011` an SBML document is written with, and an `EquationPart`
+    handed its `sboTerm` over as it was, so the same string was accepted on a
+    species and refused by libsbml on a reactant.
+    """
+    model = Model(
+        sid="species_reference_sbo_term",
+        name="a model whose reactant states an sboTerm",
+        compartments=[Compartment("c", 1.0, name="compartment")],
+        species=[
+            Species(
+                "S1", compartment="c", initialAmount=1.0, name="S1", sboTerm=sbo_term
+            ),
+            Species("S2", compartment="c", initialAmount=0.0, name="S2"),
+        ],
+        reactions=[
+            Reaction(
+                "R1",
+                ReactionEquation(
+                    reactants=[
+                        EquationPart(species="S1", stoichiometry=1.0, sboTerm=sbo_term)
+                    ],
+                    products=[EquationPart(species="S2", stoichiometry=1.0)],
+                ),
+                name="reaction",
+            )
+        ],
+    )
+    sbml_path = tmp_path / "model.xml"
+    with caplog.at_level(logging.ERROR, logger="sbmlutils"):
+        create_model(model=model, filepath=sbml_path, validate=False)
+
+    assert _records(caplog, logging.ERROR) == []
+    doc: libsbml.SBMLDocument = read_sbml(source=sbml_path, validate=False)
+    sref: libsbml.SpeciesReference = doc.getModel().getReaction("R1").getReactant(0)
+    assert sref.getSBOTermID() == "SBO:0000011"
+    assert doc.getModel().getSpecies("S1").getSBOTermID() == "SBO:0000011"
+
+
+@pytest.mark.parametrize("sbml_version", [1, 2])
+def test_the_core_id_of_a_comp_reference_is_reported_at_every_version(
+    sbml_version: int, tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test what a replaced element says about the id and name it cannot write.
+
+    libsbml 5.21.2 writes the core `id` and `name` of a
+    `<comp:replacedElement>`, a `<comp:replacedBy>` and a nested
+    `<comp:sBaseRef>` into no document: measured, `setIdAttribute` and
+    `setName` answer `LIBSBML_UNEXPECTED_ATTRIBUTE` below SBML L3V2 and
+    success at L3V2, and the written document carries neither attribute at
+    either version. So the SBML version is no remedy for it, and the report
+    says what is true of every version rather than advising one.
+    """
+    model = Model(
+        sid="replaced_element_id",
+        name="a model which names its replacement",
+        packages=[Package.COMP_V1],
+        model_definitions=[
+            ModelDefinition(
+                sid="md1",
+                name="a model definition",
+                parameters=[Parameter("k", 1.0, name="k")],
+            )
+        ],
+        submodels=[Submodel(sid="sub1", modelRef="md1", name="submodel")],
+        parameters=[
+            Parameter(
+                "k",
+                1.0,
+                name="k",
+                replacedBy=None,
+            )
+        ],
+        replaced_elements=[
+            ReplacedElement(
+                sid="k_RE",
+                name="the replacement of k",
+                metaId="meta_k_RE",
+                elementRef="k",
+                submodelRef="sub1",
+                idRef="k",
+            )
+        ],
+    )
+    sbml_path = tmp_path / "model.xml"
+    with caplog.at_level(logging.WARNING, logger="sbmlutils"):
+        create_model(
+            model=model,
+            filepath=sbml_path,
+            sbml_level=3,
+            sbml_version=sbml_version,
+            validate=False,
+        )
+
+    messages = _records(caplog, logging.WARNING)
+    for attribute in ("id", "name"):
+        reports = [
+            m for m in messages if "<replacedElement>" in m and f"'{attribute}'" in m
+        ]
+        assert len(reports) == 1, (attribute, messages)
+        assert "libsbml writes no core id or name" in reports[0], reports[0]
+        assert "Write SBML Level 3 Version 2" not in reports[0], reports[0]
+
+    # neither attribute is in the document, at either version
+    doc: libsbml.SBMLDocument = read_sbml(source=sbml_path, validate=False)
+    parameter: libsbml.Parameter = doc.getModel().getParameter("k")
+    replaced: libsbml.ReplacedElement = parameter.getPlugin("comp").getReplacedElement(
+        0
+    )
+    assert not replaced.isSetIdAttribute()
+    assert not replaced.isSetName()
+    del doc
+
+
+def test_a_comp_reference_takes_no_id(tmp_path: Path) -> None:
+    """Test that a replacement can be written without an id, which is not written.
+
+    `ReplacedElement`, `ReplacedBy` and `SbaseRef` took `sid` as a required
+    first positional argument, so every author of a comp model had to invent
+    an id which libsbml then wrote into no document, see the test above. The
+    id is optional on all three.
+    """
+    model = Model(
+        sid="replacement_without_an_id",
+        name="a model whose replacement has no id",
+        packages=[Package.COMP_V1],
+        model_definitions=[
+            ModelDefinition(
+                sid="md1",
+                name="a model definition",
+                parameters=[Parameter("k", 1.0, name="k")],
+            )
+        ],
+        submodels=[Submodel(sid="sub1", modelRef="md1", name="submodel")],
+        parameters=[Parameter("k", 1.0, name="k")],
+        replaced_elements=[
+            ReplacedElement(elementRef="k", submodelRef="sub1", idRef="k")
+        ],
+    )
+    sbml_path = tmp_path / "model.xml"
+    create_model(model=model, filepath=sbml_path, validate=False)
+
+    doc: libsbml.SBMLDocument = read_sbml(source=sbml_path, validate=False)
+    parameter: libsbml.Parameter = doc.getModel().getParameter("k")
+    replaced: libsbml.ReplacedElement = parameter.getPlugin("comp").getReplacedElement(
+        0
+    )
+    assert replaced.getSubmodelRef() == "sub1"
+    assert replaced.getIdRef() == "k"
+    del doc
+
+
+@pytest.mark.parametrize(
+    "plugin_of, element_name",
+    [("species", "species"), ("reaction", "reaction"), ("model", "model")],
+)
+def test_an_attribute_of_a_plugin_is_reported_and_does_not_raise(
+    plugin_of: str,
+    element_name: str,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that the report names the element of a libsbml plugin.
+
+    `_check_attribute` is handed the object the attribute was set on, which
+    for the fbc attributes of a species, of a reaction and of a model is the
+    fbc **plugin** of the element. A plugin has no `getElementName` at all
+    (measured with libsbml 5.21.2), so building the report from it raised
+    `AttributeError`, which `_create_object` re-raises and which would take
+    the whole file with it: the report would be the failure. No input
+    reaches that branch today, since the three plugin setters answer success
+    at every fbc version, so the branch is forced here.
+    """
+    ns = libsbml.SBMLNamespaces(3, 1)
+    ns.addPackageNamespace("fbc", 2)
+    doc: libsbml.SBMLDocument = libsbml.SBMLDocument(ns)
+    libsbml_model: libsbml.Model = doc.createModel()
+    libsbml_model.setId("m")
+    species: libsbml.Species = libsbml_model.createSpecies()
+    species.setId("S1")
+    reaction: libsbml.Reaction = libsbml_model.createReaction()
+    reaction.setId("R1")
+    owner = {
+        "species": species,
+        "reaction": reaction,
+        "model": libsbml_model,
+    }[plugin_of]
+    plugin = owner.getPlugin("fbc")
+
+    with caplog.at_level(logging.WARNING, logger="sbmlutils"):
+        written = factory._check_attribute(
+            libsbml.LIBSBML_UNEXPECTED_ATTRIBUTE,
+            plugin,
+            "chemicalFormula",
+            "H2O",
+            "an element",
+        )
+
+    assert written is False
+    messages = _records(caplog, logging.WARNING)
+    assert len(messages) == 1, messages
+    assert "'chemicalFormula' of 'an element'" in messages[0]
+    assert "fbc version 2 of an SBML L3V1 document" in messages[0]
+
+    # inside a document the same loss is grouped under the element of the
+    # plugin, which is what the element name of the report has to be
+    with (
+        factory.collect_attribute_losses(),
+        caplog.at_level(logging.WARNING, logger="sbmlutils"),
+    ):
+        caplog.clear()
+        factory._check_attribute(
+            libsbml.LIBSBML_UNEXPECTED_ATTRIBUTE,
+            plugin,
+            "chemicalFormula",
+            "H2O",
+            "an element",
+        )
+    grouped = _records(caplog, logging.WARNING)
+    assert len(grouped) == 1, grouped
+    assert f"<{element_name}> element(s)" in grouped[0]
+
+
+#: the start tag of a serialized libsbml element, up to the first `>`
+_START_TAG = re.compile(r"<[^>]*>")
+#: an attribute of a start tag, with its package prefix stripped
+_XML_ATTRIBUTE = re.compile(r"(?:[A-Za-z][A-Za-z0-9]*:)?([A-Za-z][A-Za-z0-9]*)\s*=")
+
+
+def _xml_attributes(sbase: Any) -> set[str]:
+    """Get the attribute names of the start tag a libsbml object writes.
+
+    Args:
+        sbase: the libsbml object to serialize; its document is held by the
+            caller
+
+    Returns:
+        the attribute names, each without the prefix of its package
+    """
+    match = _START_TAG.search(sbase.toSBML())
+    assert match is not None, sbase.toSBML()
+    return set(_XML_ATTRIBUTE.findall(match.group(0)))
+
+
+def _fbc_document() -> tuple[libsbml.SBMLDocument, libsbml.Model]:
+    """Build an SBML L3V2 document which declares fbc version 3.
+
+    Returns:
+        the document, which the caller holds, and its model
+    """
+    ns = libsbml.SBMLNamespaces(3, 2)
+    ns.addPackageNamespace("fbc", 3)
+    doc: libsbml.SBMLDocument = libsbml.SBMLDocument(ns)
+    model: libsbml.Model = doc.createModel()
+    model.setId("m")
+    return doc, model
+
+
+def _reported_attribute(caplog: pytest.LogCaptureFixture) -> str:
+    """Get the attribute name of the one report in the captured log.
+
+    Args:
+        caplog: the pytest log capture, holding exactly one report
+
+    Returns:
+        the name between the first pair of single quotes of the message
+    """
+    messages = _records(caplog, logging.WARNING)
+    assert len(messages) == 1, messages
+    quoted = re.search(r"'([^']*)'", messages[0])
+    assert quoted is not None, messages[0]
+    return quoted.group(1)
+
+
+def test_the_reported_attribute_name_is_the_one_in_the_document(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that a report names the attribute as the XML spells it.
+
+    The attribute name is half of the key the report groups by and what
+    somebody looking for a loss greps for, so it has to be the name the
+    attribute has in the **document**, not the name of the libsbml method
+    which writes it: `FbcModelPlugin.setActiveObjectiveId` writes
+    `fbc:activeObjective`, and `SBase.setMetaId` writes `metaid`.
+
+    Each case sets the attribute on a libsbml object which accepts it,
+    serializes that object and asserts that the name the writer reports is
+    one of the attributes of the start tag. The refused branch is forced,
+    since these setters answer success for the values used here.
+    """
+    # `_doc` is held for the whole test: a libsbml proxy does not keep its
+    # document alive, and everything below is read from it
+    _doc, model = _fbc_document()
+    species: libsbml.Species = model.createSpecies()
+    species.setId("S1")
+    reaction: libsbml.Reaction = model.createReaction()
+    reaction.setId("R1")
+    parameter: libsbml.Parameter = model.createParameter()
+    parameter.setId("p1")
+    model_fbc: libsbml.FbcModelPlugin = model.getPlugin("fbc")
+    objective: libsbml.Objective = model_fbc.createObjective()
+    objective.setId("obj1")
+    objective.setType("maximize")
+
+    #: `(what is set, the object `_check_attribute` is handed, the object
+    #: which writes the attribute, the name the writer reports)`
+    cases: list[tuple[Callable[[], Any], Any, Any, str]] = [
+        (lambda: model.setTimeUnits("second"), model, model, "timeUnits"),
+        (lambda: model.setExtentUnits("mole"), model, model, "extentUnits"),
+        (lambda: model.setSubstanceUnits("mole"), model, model, "substanceUnits"),
+        (lambda: model.setLengthUnits("metre"), model, model, "lengthUnits"),
+        (lambda: model.setAreaUnits("metre"), model, model, "areaUnits"),
+        (lambda: model.setVolumeUnits("litre"), model, model, "volumeUnits"),
+        (
+            lambda: model_fbc.setActiveObjectiveId("obj1"),
+            model_fbc,
+            model_fbc.getListOfObjectives(),
+            "activeObjective",
+        ),
+        (
+            lambda: reaction.getPlugin("fbc").setUpperFluxBound("p1"),
+            reaction.getPlugin("fbc"),
+            reaction,
+            "upperFluxBound",
+        ),
+        (
+            lambda: reaction.getPlugin("fbc").setLowerFluxBound("p1"),
+            reaction.getPlugin("fbc"),
+            reaction,
+            "lowerFluxBound",
+        ),
+        (
+            lambda: species.getPlugin("fbc").setChemicalFormula("H2O"),
+            species.getPlugin("fbc"),
+            species,
+            "chemicalFormula",
+        ),
+        (lambda: parameter.setName("a name"), parameter, parameter, "name"),
+        (lambda: parameter.setConstant(True), parameter, parameter, "constant"),
+        (lambda: parameter.setMetaId("meta_p1"), parameter, parameter, "metaid"),
+    ]
+
+    for write, target, writes_onto, reported in cases:
+        assert write() == libsbml.LIBSBML_OPERATION_SUCCESS, reported
+        assert reported in _xml_attributes(writes_onto), (
+            reported,
+            sorted(_xml_attributes(writes_onto)),
+        )
+
+        caplog.clear()
+        with caplog.at_level(logging.WARNING, logger="sbmlutils"):
+            factory._check_attribute(
+                libsbml.LIBSBML_UNEXPECTED_ATTRIBUTE,
+                target,
+                reported,
+                "a value",
+                "an element",
+            )
+        assert _reported_attribute(caplog) == reported

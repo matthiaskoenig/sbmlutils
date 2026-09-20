@@ -145,6 +145,8 @@ model = Model(
 | `Package.FBC_V2`, `Package.FBC_V3` | [Flux balance constraints](fbc.md) |
 | `Package.DISTRIB_V1` | [Distributions and uncertainties](distrib.md) |
 
+A model also declares what its content needs: gene products, an objective or key value pairs declare fbc, an uncertainty declares distrib, and a port, a submodel or a replacement declares comp, in the main model as well as in a model definition. `packages` states the version to use and declares a package for content which is only added later, e.g. by `sbmlutils.comp.create_ports` on the written document.
+
 The layout package needs no entry in `packages`: assigning `model.layouts` with the objects of `sbmlutils.layout` activates it.
 
 ## Several models at once

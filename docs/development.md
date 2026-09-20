@@ -106,6 +106,23 @@ tox run-parallel
 
 This needs the interpreters to be available, which uv installs with `uv python install 3.11 3.12 3.13 3.14`. Continuous integration runs the same environments as `uvx --with tox-uv tox -e py3.14`.
 
+What follows `--` is passed on to pytest, so a single module or test can be run in the environment of a tox run rather than against the development environment, which is what continuous integration runs:
+
+```bash
+tox r -e py3.14 -- tests/test_factory.py
+tox r -e py3.14 -- tests/test_factory.py::test_model_units -x
+```
+
+Without it the whole suite runs, with the `sbml_testsuite` sweep deselected, which is what the environments do in continuous integration.
+
+The `cobra` environment is the one which installs cobrapy, the optional `cobra` extra, and runs the tests which need it, i.e., the flux balance comparison of `tests/test_package_semantics.py` and `tests/fbc/test_cobra.py`; it is pinned to python 3.14 and has a job of its own in `ci-cd.yml`, which informs and is not part of the required `tests` check.
+
+```bash
+tox r -e cobra
+```
+
+Here `--` replaces those two modules, so `tox r -e cobra -- tests/fbc/test_cobra.py` runs that one.
+
 To run the tests directly against the development environment use
 
 ```bash
@@ -116,7 +133,7 @@ pytest tests/test_factory.py::test_model_units  # a single test
 
 The `conftest.py` at the root of the repository selects the non-interactive matplotlib backend for the session and puts the repository on `sys.path`, so that `tests/examples/` can import the examples.
 
-Some tests are skipped unless what they need is there: the models of the [SBML test suite](https://github.com/sbmlteam/sbml-test-suite) and the biomodels archives are only present in a checkout, `tests/fbc/test_cobra.py` needs cobrapy (the `cobra` extra), and `tests/test_biomodels.py` queries the live BioModels service.
+Some tests are skipped unless what they need is there: the models of the [SBML test suite](https://github.com/sbmlteam/sbml-test-suite) and the biomodels archives are only present in a checkout, `tests/fbc/test_cobra.py` and the flux balance comparison of `tests/test_package_semantics.py` need cobrapy (the `cobra` extra, which the tox `cobra` environment installs), and `tests/test_biomodels.py` queries the live BioModels service.
 
 The downloads of `sbmlutils.biomodels` go through the retrying session of pymetadata, which retries the transient error responses (429, 500, 502, 503, 504) with an exponential backoff and times out after 30 seconds; `test_download_file_retries_transient_error` covers this against a local server and needs no network. What retrying cannot fix is a service which is unreachable or which refuses the request - BioModels answers the GitHub runners with `403 Forbidden` - so those tests probe the service first and are skipped rather than failed.
 

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" xmlns:fbc="http://www.sbml.org/sbml/level3/version1/fbc/version3" xmlns:comp="http://www.sbml.org/sbml/level3/version1/comp/version1" level="3" version="1" fbc:required="false" comp:required="true">
+<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" xmlns:fbc="http://www.sbml.org/sbml/level3/version1/fbc/version3" level="3" version="1" fbc:required="false">
   <notes>
     <body xmlns="http://www.w3.org/1999/xhtml">
       <p>Created with <a href="https://github.com/matthiaskoenig/sbmlutils">https://github.com/matthiaskoenig/sbmlutils</a>.
@@ -8,8 +8,16 @@
       </body>
     </notes>
   <model id="fbc_user_defined_constraints" fbc:strict="false">
+    <notes>
+      <body xmlns="http://www.w3.org/1999/xhtml">
+        <h1>Model with the user defined constraints of fbc version 3</h1>
+        <p>A user defined constraint bounds a linear combination of fluxes and
+variables, i.e., <code>uc1 &lt;= 1.0 * RGLX - 1.0 * RXLG &lt;= uc1</code>. The bounds and the
+coefficients of the combination are parameters of the model.</p>
+      </body>
+    </notes>
     <listOfCompartments>
-      <compartment id="cell" spatialDimensions="3" size="1" constant="true"/>
+      <compartment id="cell" size="1" constant="true"/>
     </listOfCompartments>
     <listOfSpecies>
       <species id="S1" compartment="cell" initialAmount="NaN" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
@@ -19,6 +27,9 @@
       <parameter id="uc2lb" value="2" constant="true"/>
       <parameter id="uc2ub" value="INF" constant="true"/>
       <parameter id="Avar" value="NaN" constant="false"/>
+      <parameter id="coef_plus_one" value="1" constant="true"/>
+      <parameter id="coef_minus_one" value="-1" constant="true"/>
+      <parameter id="coef_two" value="2" constant="true"/>
     </listOfParameters>
     <listOfReactions>
       <reaction id="RGLX" reversible="false" fast="false">
@@ -40,14 +51,14 @@
     <fbc:listOfUserDefinedConstraints>
       <fbc:userDefinedConstraint fbc:lowerBound="uc1" fbc:upperBound="uc1">
         <fbc:listOfUserDefinedConstraintComponents>
-          <fbc:userDefinedConstraintComponent fbc:coefficient="1" fbc:variable="RGLX" fbc:variableType="linear"/>
-          <fbc:userDefinedConstraintComponent fbc:coefficient="-1" fbc:variable="RXLG" fbc:variableType="linear"/>
+          <fbc:userDefinedConstraintComponent fbc:coefficient="coef_plus_one" fbc:variable="RGLX" fbc:variableType="linear"/>
+          <fbc:userDefinedConstraintComponent fbc:coefficient="coef_minus_one" fbc:variable="RXLG" fbc:variableType="linear"/>
         </fbc:listOfUserDefinedConstraintComponents>
       </fbc:userDefinedConstraint>
       <fbc:userDefinedConstraint fbc:lowerBound="uc2lb" fbc:upperBound="uc2ub">
         <fbc:listOfUserDefinedConstraintComponents>
-          <fbc:userDefinedConstraintComponent fbc:coefficient="2" fbc:variable="Avar" fbc:variableType="linear"/>
-          <fbc:userDefinedConstraintComponent fbc:coefficient="-1" fbc:variable="RGDP" fbc:variableType="linear"/>
+          <fbc:userDefinedConstraintComponent fbc:coefficient="coef_two" fbc:variable="Avar" fbc:variableType="linear"/>
+          <fbc:userDefinedConstraintComponent fbc:coefficient="coef_minus_one" fbc:variable="RGDP" fbc:variableType="linear"/>
         </fbc:listOfUserDefinedConstraintComponents>
       </fbc:userDefinedConstraint>
     </fbc:listOfUserDefinedConstraints>
