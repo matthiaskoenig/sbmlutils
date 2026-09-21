@@ -287,19 +287,17 @@ def _annotator_records(
 UNKNOWN_COLLECTION: str = "sbmlutils.test.collection1"
 OTHER_UNKNOWN_COLLECTION: str = "sbmlutils.test.collection2"
 
-#: resources pymetadata cannot canonicalize without losing their collection,
-#: measured with pymetadata 0.6.2: the first three and the fifth normalize to
-#: the bare term `1406`, `XX:0000040`, `SBMLUTILS.TEST.COLLECTION1:0000012`
-#: and `bar`, which name no collection at all, and the fourth to
-#: `https://identifiers.org/000000035`, a URL the `chebi` collection has been
-#: dropped from because its term does not match the `^CHEBI:\d+$` of the
-#: registry
+#: resources pymetadata cannot canonicalize without changing what they say,
+#: measured with pymetadata 0.6.4. All of them are malformed: the first three
+#: name a collection and no term, so there is no canonical resource at all,
+#: and the last names a term and an empty collection, whose canonical
+#: resource `https://identifiers.org//bar` no longer parses as a resource of
+#: identifiers.org
 LOSSY_RESOURCES: list[str] = [
-    f"http://identifiers.org/{UNKNOWN_COLLECTION}/1406",
-    f"http://identifiers.org/{UNKNOWN_COLLECTION}/XX:0000040",
-    "https://identifiers.org/SBMLUTILS.TEST.COLLECTION1:0000012",
-    "http://identifiers.org/chebi/000000035",
-    f"urn:miriam:{UNKNOWN_COLLECTION}:bar",
+    f"urn:miriam:{UNKNOWN_COLLECTION}",
+    f"urn:miriam:{UNKNOWN_COLLECTION}:",
+    f"{UNKNOWN_COLLECTION}/",
+    "urn:miriam::bar",
 ]
 
 
@@ -307,13 +305,13 @@ LOSSY_RESOURCES: list[str] = [
 def test_annotation_resource_which_cannot_be_normalized_is_written_as_given(
     resource: str, tmp_path: Path, caplog: pytest.LogCaptureFixture
 ) -> None:
-    """Test that a resource is written as given rather than losing its collection.
+    """Test that a resource is written as given rather than as something else.
 
-    An annotation is written as `RDFAnnotation.resource_normalized`, which is
-    the identifiers.org compact URL for a collection of the registry and the
-    bare term for one which is not in it. The bare term is not a resolvable
-    resource and no longer names the collection, so the annotation says
-    something else than the model definition did.
+    An annotation is written as `RDFAnnotation.resource_normalized`, which
+    does not exist for a resource without a term and is not a resource of
+    identifiers.org any more for one without a collection. Writing either
+    would make the annotation say something else than the model definition
+    did.
     """
     sbml_path = tmp_path / "annotation.xml"
     with caplog.at_level(logging.WARNING, logger="sbmlutils.metadata.annotator"):
@@ -325,14 +323,40 @@ def test_annotation_resource_which_cannot_be_normalized_is_written_as_given(
     assert resource in warnings[0].getMessage()
 
 
-#: resources which pymetadata canonicalizes to the compact identifiers.org
-#: URL of their collection and term, one per form: a classic URL, a MIRIAM
-#: URN, the `http` spelling of the compact URL and a bare compact identifier
+#: resources which pymetadata canonicalizes to an identifiers.org URL of
+#: their collection and term. The first four are the forms of a collection
+#: of the registry, which are written as the compact URL: a classic URL, a
+#: MIRIAM URN, the `http` spelling of the compact URL and a bare compact
+#: identifier. The others cannot be written as a compact URL, because the
+#: registry does not know the collection or because the term does not carry
+#: the prefix of its collection, and keep the classic form
+#: `https://identifiers.org/<collection>/<term>`; up to pymetadata 0.6.3
+#: those lost their collection and were written as given instead
 NORMALIZED_RESOURCES: list[tuple[str, str]] = [
     ("chebi/CHEBI:12965", "https://identifiers.org/CHEBI:12965"),
     ("urn:miriam:chebi:CHEBI%3A33699", "https://identifiers.org/CHEBI:33699"),
     ("http://identifiers.org/BTO:0000131", "https://identifiers.org/BTO:0000131"),
     ("UO:0000021", "https://identifiers.org/UO:0000021"),
+    (
+        f"http://identifiers.org/{UNKNOWN_COLLECTION}/1406",
+        f"https://identifiers.org/{UNKNOWN_COLLECTION}/1406",
+    ),
+    (
+        f"http://identifiers.org/{UNKNOWN_COLLECTION}/XX:0000040",
+        f"https://identifiers.org/{UNKNOWN_COLLECTION}/XX:0000040",
+    ),
+    (
+        "https://identifiers.org/SBMLUTILS.TEST.COLLECTION1:0000012",
+        "https://identifiers.org/SBMLUTILS.TEST.COLLECTION1:0000012",
+    ),
+    (
+        "http://identifiers.org/chebi/000000035",
+        "https://identifiers.org/chebi/000000035",
+    ),
+    (
+        f"urn:miriam:{UNKNOWN_COLLECTION}:bar",
+        f"https://identifiers.org/{UNKNOWN_COLLECTION}/bar",
+    ),
 ]
 
 
@@ -340,11 +364,10 @@ NORMALIZED_RESOURCES: list[tuple[str, str]] = [
 def test_annotation_resource_of_a_known_collection_is_normalized(
     resource: str, expected: str, tmp_path: Path, caplog: pytest.LogCaptureFixture
 ) -> None:
-    """Test that a resource which keeps its collection is still normalized.
+    """Test that a resource which keeps its collection and term is normalized.
 
-    Every one of these normalizes to the compact identifiers.org URL of the
-    collection and term it was given with, so nothing is lost and no warning
-    is due.
+    Every one of these normalizes to an identifiers.org URL of the collection
+    and term it was given with, so nothing is lost and no warning is due.
     """
     sbml_path = tmp_path / "annotation.xml"
     with caplog.at_level(logging.WARNING, logger="sbmlutils.metadata.annotator"):
@@ -370,14 +393,14 @@ def test_annotation_resource_of_an_arbitrary_url_is_unchanged(
     assert not _annotator_records(caplog, "WARNING"), caplog.text
 
 
-#: three resources of one unknown collection and two of another, enough to
-#: tell a per-collection report from a per-resource one
+#: three resources without a term of one collection and two of another,
+#: enough to tell a per-collection report from a per-resource one
 TWO_LOSSY_COLLECTIONS: list[str] = [
-    f"http://identifiers.org/{UNKNOWN_COLLECTION}/1406",
-    f"http://identifiers.org/{UNKNOWN_COLLECTION}/1407",
-    f"http://identifiers.org/{UNKNOWN_COLLECTION}/1408",
-    f"http://identifiers.org/{OTHER_UNKNOWN_COLLECTION}/000000035",
-    f"http://identifiers.org/{OTHER_UNKNOWN_COLLECTION}/000000036",
+    f"urn:miriam:{UNKNOWN_COLLECTION}",
+    f"urn:miriam:{UNKNOWN_COLLECTION}:",
+    f"{UNKNOWN_COLLECTION}/",
+    f"urn:miriam:{OTHER_UNKNOWN_COLLECTION}",
+    f"{OTHER_UNKNOWN_COLLECTION}/",
 ]
 
 
@@ -386,10 +409,10 @@ def test_annotation_losses_are_reported_once_per_collection(
 ) -> None:
     """Test that a document reports one warning per collection, not per resource.
 
-    The defect is a property of the collection, not of the single resource:
-    pymetadata does not know it. Writing one warning per resource buried every
-    other message, 19853 of them for the Recon3D fixture, and taught users to
-    silence the logger. The detail of each resource stays available at debug.
+    Writing one warning per resource buried every other message, 19853 of
+    them for the Recon3D fixture while pymetadata up to 0.6.3 lost the
+    collections the registry does not know, and taught users to silence the
+    logger. The detail of each resource stays available at debug.
     """
     sbml_path = tmp_path / "annotation.xml"
     with caplog.at_level(logging.DEBUG, logger="sbmlutils.metadata.annotator"):
@@ -403,8 +426,8 @@ def test_annotation_losses_are_reported_once_per_collection(
     # each names how many resources of its collection were written as given
     assert warnings[0].startswith("3 ") and warnings[1].startswith("2 ")
     # each names an example resource of its own collection
-    assert f"http://identifiers.org/{UNKNOWN_COLLECTION}/140" in warnings[0]
-    assert f"http://identifiers.org/{OTHER_UNKNOWN_COLLECTION}/00000003" in warnings[1]
+    assert f"'urn:miriam:{UNKNOWN_COLLECTION}'" in warnings[0]
+    assert f"'urn:miriam:{OTHER_UNKNOWN_COLLECTION}'" in warnings[1]
 
     # the detail of every single resource is still available, at debug
     details = [record.getMessage() for record in _annotator_records(caplog, "DEBUG")]
@@ -439,24 +462,22 @@ def test_annotation_losses_do_not_leak_between_documents(
     assert f"'{OTHER_UNKNOWN_COLLECTION}'" in second[0]
 
 
-def test_annotation_loss_of_a_compact_url_is_grouped_by_its_collection(
+def test_annotation_loss_without_a_collection_is_grouped_as_such(
     tmp_path: Path, caplog: pytest.LogCaptureFixture
 ) -> None:
-    """Test that a compact URL is reported under the collection of its term.
+    """Test that a resource with an empty collection is still reported.
 
-    The collection of such a resource is the prefix of its term, which the
-    report groups it under like any other; dropping a resource whose
-    collection the registry does not know would hide it entirely.
+    There is no collection to group such a resource under, and dropping it
+    from the report for that reason would hide it entirely, so all of them
+    are reported together under a placeholder.
     """
     sbml_path = tmp_path / "annotation.xml"
     with caplog.at_level(logging.WARNING, logger="sbmlutils.metadata.annotator"):
-        _annotated_model(
-            ["https://identifiers.org/SBMLUTILS.TEST.COLLECTION1:0000012"], sbml_path
-        )
+        _annotated_model(["urn:miriam::bar", "urn:miriam::baz"], sbml_path)
 
     warnings = [record.getMessage() for record in _annotator_records(caplog, "WARNING")]
     assert len(warnings) == 1, caplog.text
-    assert f"'{UNKNOWN_COLLECTION}'" in warnings[0], warnings
+    assert warnings[0].startswith("2 ") and "'<no collection>'" in warnings[0], warnings
 
 
 def test_annotation_loss_outside_a_document_is_reported_per_resource(
@@ -474,7 +495,7 @@ def test_annotation_loss_outside_a_document_is_reported_per_resource(
     compartment.setId("c")
     compartment.setConstant(True)
 
-    resource = f"http://identifiers.org/{UNKNOWN_COLLECTION}/1406"
+    resource = f"urn:miriam:{UNKNOWN_COLLECTION}"
     with caplog.at_level(logging.WARNING, logger="sbmlutils.metadata.annotator"):
         ModelAnnotator.annotate_sbase(compartment, Annotation(BQB.IS, resource))
 

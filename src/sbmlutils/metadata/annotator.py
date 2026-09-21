@@ -41,9 +41,6 @@ _UNKNOWN_COLLECTION: str = "<no collection>"
 #: why the canonical resource of an annotation cannot be written, one
 #: constant per kind of loss so that no message is built for a resource
 _NO_TERM: str = "pymetadata parses no term from the resource"
-_BARE_TERM: str = (
-    "pymetadata shortens the resource to a bare term, which names no collection"
-)
 _DROPPED_COLLECTION: str = "pymetadata writes the resource without its collection"
 _NOT_PARSED_AGAIN: str = "the canonical resource cannot be parsed again"
 
@@ -92,9 +89,9 @@ def collect_resource_losses() -> AbstractContextManager[None]:
     """Report the resources written as given once per collection.
 
     An annotation resource which pymetadata cannot canonicalize without
-    losing its collection is written as given, see `_resource_for_cvterm`.
-    That is a property of the collection, not of the single resource, and a
-    document can hold tens of thousands of resources of one such collection.
+    changing what it says is written as given, see `_resource_for_cvterm`.
+    A document can hold tens of thousands of resources of one collection, and
+    what is malformed in one of them is as a rule malformed in all of them.
     Inside this context each of them is collected and logged as a single
     warning per collection, in the order of the collection ids; the detail of
     every single resource is logged at debug. Outside it, every resource is
@@ -151,27 +148,28 @@ def _record_loss(annotation: Annotation, normalized: str | None, reason: str) ->
 def _resource_for_cvterm(annotation: Annotation) -> str:
     """Get the resource an annotation is written into a CVTerm with.
 
-    pymetadata canonicalizes a resource to the compact identifiers.org URL of
-    its collection and term, which is what should be written:
+    pymetadata canonicalizes a resource to an identifiers.org URL of its
+    collection and term, which is what should be written:
     `urn:miriam:chebi:CHEBI%3A33699` and `chebi/CHEBI:12965` become
     `https://identifiers.org/CHEBI:33699` and
-    `https://identifiers.org/CHEBI:12965`.
+    `https://identifiers.org/CHEBI:12965`, and a collection the
+    identifiers.org registry does not know keeps the classic form,
+    `https://identifiers.org/sabiork/1406` for
+    `http://identifiers.org/sabiork/1406`.
 
-    For a collection the identifiers.org registry does not know it returns
-    the bare term instead, `1406` for `http://identifiers.org/sabiork/1406`
-    and `UO:0000040` for `http://identifiers.org/unit/UO:0000040`, and for a
-    collection whose terms embed no prefix it can return a URL the collection
-    has been dropped from, `https://identifiers.org/000000035` for
-    `http://identifiers.org/slm/000000035`. None of those three is the
-    annotation the model definition made: the collection is gone, and with it
-    the only way back to the database entry.
+    What is left is the resource which is malformed to begin with: pymetadata
+    parses a collection and no term from `urn:miriam:chebi` and `chebi/`, so
+    there is no canonical resource, and it parses an empty collection from
+    `urn:miriam::1406`, whose canonical resource
+    `https://identifiers.org//1406` no longer reads as an identifiers.org
+    resource. Neither can be written without changing what the model
+    definition said.
 
-    The canonical resource is therefore written only when it is an
-    `http(s)://` URL - a bare term is no resource a reader can resolve - and
-    parsing it again yields the same collection and term as the resource
-    given, which is what it means for the canonicalization to have lost
-    nothing. Otherwise the resource is written exactly as given, and the loss
-    is reported by `_record_loss`.
+    The canonical resource is therefore written only when parsing it again
+    yields the same collection and term as the resource given, which is what
+    it means for the canonicalization to have lost nothing. Otherwise the
+    resource is written exactly as given, and the loss is reported by
+    `_record_loss`.
 
     Args:
         annotation: the annotation to write
@@ -198,13 +196,11 @@ def _resource_for_cvterm(annotation: Annotation) -> str:
 def _reparse_loss(annotation: Annotation, normalized: str) -> str | None:
     """Say what the canonical resource of an annotation loses.
 
-    A canonical resource which is not an `http(s)://` URL is a bare term,
-    which no reader can resolve. One which is such a URL loses nothing if
-    parsing it again gives the collection and the term the annotation was
-    parsed into. The second parse is a probe rather than an annotation of
-    its own, so it does not validate: validating it would report the
-    canonical resource as an invalid annotation, which is neither news to
-    the user nor something they wrote.
+    A canonical resource loses nothing if parsing it again gives the
+    collection and the term the annotation was parsed into. The second parse
+    is a probe rather than an annotation of its own, so it does not validate:
+    validating it would report the canonical resource as an invalid
+    annotation, which is neither news to the user nor something they wrote.
 
     pymetadata refuses a resource which is not a non-empty string, which the
     canonical resource of an annotation always is; the refusal is caught
@@ -223,8 +219,6 @@ def _reparse_loss(annotation: Annotation, normalized: str) -> str | None:
         why the canonical resource cannot be written, `None` if it loses
         nothing
     """
-    if not normalized.startswith(("http://", "https://")):
-        return _BARE_TERM
     try:
         reparsed = Annotation(
             qualifier=annotation.qualifier, resource=normalized, validate=False

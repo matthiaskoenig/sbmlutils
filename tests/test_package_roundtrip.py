@@ -2135,6 +2135,9 @@ _URNS: list[str] = [
     "urn:miriam:pubmed:10643997",
     "urn:miriam:ec-code:1.1.1.1",
     "urn:miriam:reactome:REACT_1234",
+    # a collection the registry does not know is written in the classic form
+    f"urn:miriam:{UNKNOWN_COLLECTION}:bar",
+    f"urn:miriam:{UNKNOWN_COLLECTION}:BAR%3A123",
 ]
 
 #: classic identifiers.org URLs, as the corpus spells them; pymetadata
@@ -2151,6 +2154,15 @@ _CLASSIC_URLS: list[str] = [
     "http://identifiers.org/asap/ABE-0000027",
     # the https flavour of the classic form
     "https://identifiers.org/taxonomy/9606",
+    # a collection whose id carries a `-` or a `_`
+    "http://identifiers.org/ec-code/1.1.1.1",
+    "http://identifiers.org/refseq_synonym/yaaK",
+    # what cannot be written as a compact URL keeps the classic form: a
+    # collection the registry does not know, and a term without the prefix
+    # its collection embeds
+    f"http://identifiers.org/{UNKNOWN_COLLECTION}/1406",
+    f"http://identifiers.org/{UNKNOWN_COLLECTION}/XX:0000040",
+    "http://identifiers.org/chebi/000000035",
 ]
 
 #: the `http` spelling of the compact URL, as the corpus spells it; pymetadata
@@ -2281,9 +2293,9 @@ def test_identifiers_org_accepts_every_source_form(
             ("bqbiol:is", "http://identifiers.org/kegg.compound/C00031"),
             ("bqbiol:is", "https://identifiers.org/kegg.drug:C00031"),
         ),
-        # the bare term pymetadata writes for a collection it does not know is a
-        # loss of the collection, not a normalization. The collection is one of
-        # this test suite, which names no database and is therefore never
+        # the bare term pymetadata wrote up to 0.6.3 for a collection it does not
+        # know is a loss of the collection, not a normalization. The collection
+        # is one of this test suite, which names no database and is therefore never
         # registered, see `UNKNOWN_COLLECTION` of `tests/metadata/test_annotator.py`
         (
             ("bqbiol:is", f"urn:miriam:{UNKNOWN_COLLECTION}:bar"),
@@ -2311,14 +2323,14 @@ def test_identifiers_org_accepts_every_source_form(
             ("bqbiol:is", f"http://identifiers.org/{UNKNOWN_COLLECTION}/XX:0000040"),
             ("bqbiol:is", "XX:0000040"),
         ),
-        # a compact URL pymetadata reduces to its bare term, the same loss from a
-        # resource which was canonical already
+        # a compact URL reduced to its bare term, the same loss from a resource
+        # which was canonical already
         (
             ("bqbiol:is", "https://identifiers.org/SBMLUTILS.TEST.COLLECTION1:0000012"),
             ("bqbiol:is", "SBMLUTILS.TEST.COLLECTION1:0000012"),
         ),
-        # pymetadata drops the collection of a term which does not match the
-        # pattern the registry gives it, `^CHEBI:\d+$` for `chebi`
+        # the collection of a term which does not match the pattern the registry
+        # gives it, `^CHEBI:\d+$` for `chebi`, is dropped
         (
             ("bqbiol:is", "http://identifiers.org/chebi/000000035"),
             ("bqbiol:is", "https://identifiers.org/000000035"),
