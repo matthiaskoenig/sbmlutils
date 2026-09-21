@@ -86,6 +86,10 @@ Validation judges the document which was written. Writing it reports what libsbm
 - **Content the document cannot carry** - the key value pairs and the user defined constraints of fbc version 3 in an fbc version 2 document, or in one which declares no fbc - is one error per kind of content, with how many pieces on how many elements, an example and the version to declare. Declaring fbc version 3 keeps all of them at once, so this too is reported once rather than per element.
 - **An annotation resource which is written as given** is one warning per collection, see [Annotations](annotations.md#resources-which-are-written-as-given).
 
+Writing a model definition also gives advice on the definition itself, which is not repeated for a model which was parsed from a file:
+
+- **A parameter or compartment which is `constant=False` and never changed** is one warning per kind of element, with every id. Changing a value takes an assignment rule, a rate rule, an algebraic rule, an event assignment or, for a parameter, a user defined constraint of fbc which names it as a variable; an initial assignment does not count. An element of the comp interface - one with a port, or one which replaces an element of a submodel or is replaced by one - is left out, because what changes it can live in another model. The usual cause is a rule which was forgotten or a target which was misspelled.
+
 ## Checking a libsbml call
 
 `check` is the helper the package itself uses around libsbml calls, which return a status code instead of raising:
