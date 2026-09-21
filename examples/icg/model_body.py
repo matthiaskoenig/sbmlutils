@@ -534,7 +534,7 @@ _m.parameters = [
         "Fblood",
         0.02,
         U.dimensionless,
-        constant=False,
+        constant=True,
         name="blood fraction of organ volume",
         sboTerm=SBO.QUANTITATIVE_SYSTEMS_DESCRIPTION_PARAMETER,
         notes="""

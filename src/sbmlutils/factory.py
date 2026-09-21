@@ -6805,6 +6805,146 @@ class ModelDict(TypedDict, total=False):
     layouts: list | None
 
 
+def _math_symbols(math: libsbml.ASTNode | None) -> set[str]:
+    """Get the names the math refers to.
+
+    Args:
+        math: the math, `None` for an element without math
+
+    Returns:
+        the name of every `AST_NAME` node of the math
+    """
+    if math is None:
+        return set()
+    symbols: set[str] = set()
+    nodes: list[libsbml.ASTNode] = [math]
+    while nodes:
+        node = nodes.pop()
+        if node.getType() == libsbml.AST_NAME:
+            symbols.add(node.getName())
+        nodes.extend(node.getChild(k) for k in range(node.getNumChildren()))
+    return symbols
+
+
+def _has_comp_replacement(sbase: libsbml.SBase) -> bool:
+    """Say whether an element replaces an element of a submodel or is replaced.
+
+    Args:
+        sbase: the element
+
+    Returns:
+        `True` if the element carries a `<comp:replacedElement>` or a
+        `<comp:replacedBy>`, `False` if not or if the document has no comp
+    """
+    plugin: libsbml.CompSBasePlugin | None = sbase.getPlugin("comp")
+    if plugin is None:
+        return False
+    return bool(plugin.getNumReplacedElements() > 0 or plugin.isSetReplacedBy())
+
+
+def _warn_never_changed(model: libsbml.Model) -> None:
+    """Report the parameters and compartments which vary and never change.
+
+    `constant=False` says that the value of a parameter or the size of a
+    compartment changes during the simulation. That takes something which
+    changes it: an assignment rule or a rate rule with the element as its
+    variable, an event assignment to it, or an algebraic rule, which names no
+    variable and determines one of the symbols of its math, so that every one
+    of them counts. A parameter which is the variable of a component of a
+    `<fbc:userDefinedConstraint>` counts as well: it is a variable of the
+    optimization problem, whose value the solver determines, which is why fbc
+    requires it to be `constant=False`. An initial assignment does not count,
+    it sets the value once and does so for a constant as well. An element with none of them is
+    a constant which says it is not, which is as a rule the trace of a rule
+    which was forgotten or of a target which was misspelled.
+
+    In a hierarchical model what changes an element can live in another
+    model, so the elements of the comp interface are left out: one with a
+    `<comp:port>` is there to be replaced by the model which instantiates
+    this one, and one which replaces an element of a submodel, or is replaced
+    by one, is the target of the rules of that submodel.
+
+    This reads the created libsbml model rather than the model definition,
+    because that is where the targets are complete: a `Parameter` with a
+    formula creates its assignment rule, and a rule creates the parameter it
+    assigns to if it is missing. It reports once per kind of element, with
+    every id, and changes nothing: whether the rule or the `constant` is
+    wrong is not something which can be decided here.
+
+    It is an authoring hint, advice for a model definition being written. A
+    model which was parsed from a file says what its source said, so nothing
+    is reported inside `Sbase.no_authoring_hints`.
+
+    Args:
+        model: the libsbml model after all of its content was created
+    """
+    if not Sbase._authoring_hints.get():
+        return
+
+    changed: set[str] = set()
+    for k in range(model.getNumRules()):
+        rule: libsbml.Rule = model.getRule(k)
+        if rule.isAlgebraic():
+            changed |= _math_symbols(rule.getMath())
+        else:
+            changed.add(rule.getVariable())
+    for k in range(model.getNumEvents()):
+        event: libsbml.Event = model.getEvent(k)
+        for j in range(event.getNumEventAssignments()):
+            event_assignment: libsbml.EventAssignment = event.getEventAssignment(j)
+            changed.add(event_assignment.getVariable())
+
+    fbc_model: libsbml.FbcModelPlugin | None = model.getPlugin("fbc")
+    if fbc_model is not None:
+        for k in range(fbc_model.getNumUserDefinedConstraints()):
+            constraint: libsbml.UserDefinedConstraint = (
+                fbc_model.getUserDefinedConstraint(k)
+            )
+            for j in range(constraint.getNumUserDefinedConstraintComponents()):
+                component: libsbml.UserDefinedConstraintComponent = (
+                    constraint.getUserDefinedConstraintComponent(j)
+                )
+                changed.add(component.getVariable())
+
+    comp_model: libsbml.CompModelPlugin | None = model.getPlugin("comp")
+    if comp_model is not None:
+        for k in range(comp_model.getNumPorts()):
+            port: libsbml.Port = comp_model.getPort(k)
+            if port.isSetIdRef():
+                changed.add(port.getIdRef())
+
+    compartments: list[libsbml.Compartment] = [
+        model.getCompartment(k) for k in range(model.getNumCompartments())
+    ]
+    parameters: list[libsbml.Parameter] = [
+        model.getParameter(k) for k in range(model.getNumParameters())
+    ]
+    elements: dict[str, list[libsbml.Compartment] | list[libsbml.Parameter]] = {
+        "Compartment": compartments,
+        "Parameter": parameters,
+    }
+    for kind, sbases in elements.items():
+        never_changed: list[str] = [
+            sbase.getId()
+            for sbase in sbases
+            if not sbase.getConstant()
+            and sbase.getId() not in changed
+            and not _has_comp_replacement(sbase)
+        ]
+        if never_changed:
+            logger.warning(
+                "%s '%s' element(s) %s of the model '%s' are 'constant=False', "
+                "but none is ever changed by an assignment rule, a rate rule, "
+                "an algebraic rule, an event assignment or a user defined "
+                "constraint of fbc. Set 'constant=True' or add what changes "
+                "them.",
+                len(never_changed),
+                kind,
+                never_changed,
+                model.getId(),
+            )
+
+
 class Model(Sbase, FrozenClass):
     """Model.
 
@@ -7252,6 +7392,9 @@ class Model(Sbase, FrozenClass):
                 objects = getattr(self, attr)
                 if objects:
                     create_objects(model, obj_iter=objects, key=attr)
+
+        # after everything which can change a value was created
+        _warn_never_changed(model)
 
     def get_sbml(self) -> str:
         """Create SBML model."""

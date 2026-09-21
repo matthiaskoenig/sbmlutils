@@ -19,6 +19,7 @@ from sbmlutils.factory import *
 from sbmlutils.factory import Sbase, SbaseRef
 from sbmlutils.io import read_sbml
 from sbmlutils.metadata import BQB
+from sbmlutils.parser import sbml_to_model
 from sbmlutils.reaction_equation import EquationPart, ReactionEquation
 from sbmlutils.validation import ValidationOptions
 
@@ -3200,3 +3201,214 @@ def test_the_reported_attribute_name_is_the_one_in_the_document(
                 "an element",
             )
         assert _reported_attribute(caplog) == reported
+
+
+def _never_changed(
+    model: Model, tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> dict[str, list[str]]:
+    """Get the ids `create_model` reports as `constant=False` and never changed.
+
+    Args:
+        model: the model definition to create
+        tmp_path: directory the SBML is written into
+        caplog: the pytest log capture fixture
+
+    Returns:
+        the reported ids by the kind of element, `Parameter` or `Compartment`
+    """
+    with caplog.at_level(logging.WARNING, logger="sbmlutils.factory"):
+        create_model(
+            model=model,
+            filepath=tmp_path / f"{model.sid}.xml",
+            validation_options=ValidationOptions(units_consistency=False),
+        )
+    reported: dict[str, list[str]] = {}
+    for record in caplog.records:
+        if isinstance(record.args, tuple) and "is ever changed by" in record.msg:
+            kind, ids = record.args[1], record.args[2]
+            assert isinstance(kind, str) and isinstance(ids, list)
+            reported[kind] = ids
+    return reported
+
+
+def test_a_variable_which_nothing_changes_is_reported(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test the warning for `constant=False` without anything which changes it.
+
+    `constant=False` says that the value of a parameter or the size of a
+    compartment changes during the simulation, which takes an assignment
+    rule, a rate rule, an algebraic rule or an event assignment. Without one
+    the element is a constant which claims not to be, which is almost always
+    a rule which was forgotten or a target which was misspelled. It is
+    reported once per kind of element, with every id.
+    """
+    model = Model(
+        "never_changed",
+        compartments=[
+            Compartment("c_constant", 1.0),
+            Compartment("c_forgotten", 1.0, constant=False),
+            Compartment("c_forgotten_too", 1.0, constant=False),
+        ],
+        parameters=[
+            Parameter("p_constant", 1.0),
+            Parameter("p_forgotten", 1.0, constant=False),
+        ],
+    )
+    assert _never_changed(model, tmp_path, caplog) == {
+        "Compartment": ["c_forgotten", "c_forgotten_too"],
+        "Parameter": ["p_forgotten"],
+    }
+
+
+def test_a_variable_which_something_changes_is_not_reported(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that every construct which changes a value counts as a target.
+
+    An assignment rule, a rate rule and an event assignment name their
+    variable. An algebraic rule names none: it determines one of the symbols
+    of its math, so every one of them may be the one which changes. An
+    initial assignment is no target, it sets the value once and works on a
+    constant as well.
+    """
+    model = Model(
+        "changed",
+        compartments=[
+            Compartment("c_rate", 1.0, constant=False),
+            Compartment("c_event", 1.0, constant=False),
+        ],
+        parameters=[
+            Parameter("p_assignment", 1.0, constant=False),
+            Parameter("p_formula", "2.0 * p_rate", constant=False),
+            Parameter("p_rate", 1.0, constant=False),
+            Parameter("p_event", 1.0, constant=False),
+            Parameter("p_algebraic", 1.0, constant=False),
+            Parameter("p_initial", 1.0, constant=False),
+        ],
+        assignments=[InitialAssignment("p_initial", "2.0")],
+        rules=[AssignmentRule("p_assignment", "2.0 * p_rate")],
+        rate_rules=[RateRule("p_rate", "1.0"), RateRule("c_rate", "1.0")],
+        algebraic_rules=[AlgebraicRule("algebraic", "p_algebraic - p_rate")],
+        events=[
+            Event(
+                "event", trigger="time >= 10", assignments={"p_event": 2, "c_event": 2}
+            )
+        ],
+    )
+    assert _never_changed(model, tmp_path, caplog) == {"Parameter": ["p_initial"]}
+
+
+def test_a_variable_of_the_comp_interface_is_not_reported(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that an element another model can change is not reported.
+
+    What changes a value may live in another model of a hierarchical model:
+    a parameter with a port is there to be replaced by the model which
+    instantiates this one, and one which replaces an element of a submodel,
+    or is replaced by one, is the target of the rules of that submodel.
+    """
+    model = Model(
+        "interface",
+        packages=[Package.COMP_V1],
+        parameters=[
+            Parameter("p_port", 1.0, constant=False, port=True),
+            Parameter("p_replaces", 1.0, constant=False),
+            Parameter(
+                "p_replaced",
+                1.0,
+                constant=False,
+                replacedBy=ReplacedBy(submodelRef="sub", idRef="q"),
+            ),
+            Parameter("p_forgotten", 1.0, constant=False),
+        ],
+        model_definitions=[
+            ModelDefinition(
+                "definition",
+                parameters=[
+                    Parameter("p", 1.0, constant=False),
+                    Parameter("q", 1.0, constant=False),
+                    Parameter("p_forgotten_in_definition", 1.0, constant=False),
+                ],
+                rate_rules=[RateRule("p", "1.0"), RateRule("q", "1.0")],
+            )
+        ],
+        submodels=[Submodel("sub", modelRef="definition")],
+        replaced_elements=[
+            ReplacedElement(elementRef="p_replaces", submodelRef="sub", idRef="p")
+        ],
+    )
+    with caplog.at_level(logging.WARNING, logger="sbmlutils.factory"):
+        create_model(
+            model=model,
+            filepath=tmp_path / "interface.xml",
+            validation_options=ValidationOptions(units_consistency=False),
+        )
+    reported = [
+        (record.args[3], record.args[2])
+        for record in caplog.records
+        if isinstance(record.args, tuple) and "is ever changed by" in record.msg
+    ]
+    assert sorted(reported) == [
+        ("definition", ["p_forgotten_in_definition"]),
+        ("interface", ["p_forgotten"]),
+    ]
+
+
+def test_a_parsed_model_reports_no_variable_which_nothing_changes(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that the warning is an authoring hint and spares a parsed model.
+
+    A model which was read from a file says what its source said, and many
+    published models declare `constant=False` on what never changes. Writing
+    such a model back out is no place for advice on how to write it.
+    """
+    source = tmp_path / "source.xml"
+    create_model(
+        model=Model(
+            "parsed", parameters=[Parameter("p_forgotten", 1.0, constant=False)]
+        ),
+        filepath=source,
+        validation_options=ValidationOptions(units_consistency=False),
+    )
+    parsed = sbml_to_model(source)
+    caplog.clear()
+
+    assert _never_changed(parsed, tmp_path, caplog) == {}
+
+
+def test_a_variable_of_a_user_defined_constraint_is_not_reported(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that the variable of an fbc user defined constraint counts as changed.
+
+    A component of a `<fbc:userDefinedConstraint>` names a reaction or a
+    parameter as its variable. Such a parameter is a variable of the
+    optimization problem, its value is what the solver determines, which is
+    why fbc requires it to be `constant=False`.
+    """
+    model = Model(
+        "user_defined_constraint",
+        packages=[Package.FBC_V3],
+        compartments=[Compartment("cell", 1.0)],
+        species=[Species("S1", initialAmount=NaN, compartment="cell")],
+        parameters=[
+            Parameter("lb", 2.0),
+            Parameter("ub", 5.0),
+            Parameter("coefficient", 1.0),
+            Parameter("variable", NaN, constant=False),
+            Parameter("p_forgotten", 1.0, constant=False),
+        ],
+        reactions=[Reaction("R1", equation="S1 ->")],
+        user_defined_constraints=[
+            UserDefinedConstraint(
+                lowerBound="lb",
+                upperBound="ub",
+                components={"variable": "coefficient", "R1": "coefficient"},
+                variableType="linear",
+            )
+        ],
+    )
+    assert _never_changed(model, tmp_path, caplog) == {"Parameter": ["p_forgotten"]}

@@ -39,16 +39,16 @@ model = Model(
 )
 model.compartments = [
     Compartment(
-        sid="e", value=1e-06, unit=U.m3, constant=False, name="external compartment"
+        sid="e", value=1e-06, unit=U.m3, constant=True, name="external compartment"
     ),
     Compartment(
-        sid="c", value=1e-06, unit=U.m3, constant=False, name="cell compartment"
+        sid="c", value=1e-06, unit=U.m3, constant=True, name="cell compartment"
     ),
     Compartment(
         sid="m",
         value=1,
         unit=U.m2,
-        constant=False,
+        constant=True,
         spatialDimensions=2,
         name="plasma membrane",
     ),
