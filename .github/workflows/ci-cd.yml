@@ -27,7 +27,8 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ["3.11", "3.12", "3.13", "3.14"]
-        # linux covers the full range, windows and macos only the newest version
+        # Linux covers the full range with simulation support; Windows and
+        # macOS cover its newest version. Core-only 3.15 jobs are added below.
         exclude:
           - os: windows-latest
             python-version: "3.11"
@@ -41,6 +42,15 @@ jobs:
             python-version: "3.12"
           - os: macos-latest
             python-version: "3.13"
+        # Keep the full suite on 3.14 while libroadrunner lacks 3.15 wheels.
+        # uv currently provides the 3.15 macOS interpreter for Intel only.
+        include:
+          - os: ubuntu-latest
+            python-version: "3.15"
+          - os: windows-latest
+            python-version: "3.15"
+          - os: macos-15-intel
+            python-version: "3.15"
 
     steps:
     - uses: actions/checkout@v7

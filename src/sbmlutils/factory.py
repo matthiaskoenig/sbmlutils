@@ -7611,6 +7611,7 @@ class Model(Sbase, FrozenClass):
         """
         if isinstance(models, Model):
             return models
+        models = list(models)
         if not models:
             raise ValueError("No models are provided.")
         model = Model("template")
