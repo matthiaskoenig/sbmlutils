@@ -3,8 +3,23 @@
 from pathlib import Path
 
 import libsbml
+import pytest
 
 from sbmlutils.factory import *
+
+
+def test_merge_rejects_empty_iterator() -> None:
+    """An empty iterator must fail like an empty list of models."""
+    with pytest.raises(ValueError, match="No models are provided"):
+        Model.merge_models(iter(()))
+
+
+def test_merge_consumes_generator() -> None:
+    """Checking for empty input must preserve every model in a generator."""
+    models = (Model(sid, parameters=[Parameter(sid, 1)]) for sid in ["m1", "m2"])
+    merged = Model.merge_models(models)
+    assert merged.sid == "m2"
+    assert [p.sid for p in merged.parameters] == ["m1", "m2"]
 
 
 def test_model_keys_pinned() -> None:
