@@ -35,6 +35,13 @@ SCRIPTS = [
 @pytest.mark.parametrize("module", SCRIPTS)
 def test_example_script(module: str, tmp_path: Path) -> None:
     """Every example runs without an error and writes into the working directory."""
+    if module in {
+        "examples.converters.xpp",
+        "examples.interpolation.interpolation",
+        "examples.interpolation.pancreas",
+        "examples.tiny.simulation",
+    }:
+        pytest.importorskip("roadrunner")
     env = dict(os.environ, PYTHONPATH=str(REPO_DIR), MPLBACKEND="Agg")
     result = subprocess.run(
         [sys.executable, "-m", module],

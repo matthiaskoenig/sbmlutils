@@ -19,7 +19,7 @@ A pull request can only be merged once the four required checks are green:
 
 | check   | workflow      | content                                                              |
 | ------- | ------------- | -------------------------------------------------------------------- |
-| `tests` | `ci-cd.yml`   | the test matrix, linux, macos and windows with python 3.11 to 3.14    |
+| `tests` | `ci-cd.yml`   | the test matrix, linux with python 3.11 to 3.15, macos and windows with 3.14 and 3.15 |
 | `ruff`  | `ruff.yml`    | `ruff check` and `ruff format --check`                                |
 | `ty`    | `ty.yml`      | `tox r -e ty`                                                         |
 | `docs`  | `docs.yml`    | the zensical build including the api reference and the agent files    |
@@ -92,7 +92,7 @@ From now on every commit is checked with ruff (lint and format) and ty, i.e., th
 
 The tests are written with pytest, tox runs them against every supported python version.
 
-The tox environments are named after the interpreter (`py3.11` to `py3.14`, see `envlist` in `tox.ini`), a single one is run with
+The tox environments are named after the interpreter (`py3.11` to `py3.15`, see `envlist` in `tox.ini`), a single one is run with
 
 ```bash
 tox r -e py3.14
@@ -104,7 +104,7 @@ and the complete matrix, including the `ty` environment, in parallel with
 tox run-parallel
 ```
 
-This needs the interpreters to be available, which uv installs with `uv python install 3.11 3.12 3.13 3.14`. Continuous integration runs the same environments as `uvx --with tox-uv tox -e py3.14`.
+This needs the interpreters to be available, which uv installs with `uv python install 3.11 3.12 3.13 3.14 3.15`. Continuous integration runs the same environments as `uvx --with tox-uv tox -e py3.15`.
 
 What follows `--` is passed on to pytest, so a single module or test can be run in the environment of a tox run rather than against the development environment, which is what continuous integration runs:
 
@@ -114,6 +114,8 @@ tox r -e py3.14 -- tests/test_factory.py::test_model_units -x
 ```
 
 Without it the whole suite runs, with the `sbml_testsuite` sweep deselected, which is what the environments do in continuous integration.
+
+Python 3.15 tests the core package without the `examples` extra because libroadrunner does not yet publish CPython 3.15 wheels. Tests requiring simulation skip in that environment; Python 3.11 to 3.14 still install the extra and run them. Python 3.15 uses an Intel macOS runner because uv currently provides its macOS interpreter only for Intel.
 
 The `cobra` environment is the one which installs cobrapy, the optional `cobra` extra, and runs the tests which need it, i.e., the flux balance comparison of `tests/test_package_semantics.py` and `tests/fbc/test_cobra.py`; it is pinned to python 3.14 and has a job of its own in `ci-cd.yml`, which informs and is not part of the required `tests` check.
 
