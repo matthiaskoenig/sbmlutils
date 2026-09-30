@@ -1438,12 +1438,7 @@ class Sbase:
             else:
                 _check_attribute(sbase.setId(self.sid), sbase, "id", self.sid, self)
         if self.name is not None:
-            if sbase.getTypeCode() in _UNWRITTEN_ID_TYPECODES:
-                _record_unwritten_attribute(sbase, "name", self.name, self)
-            else:
-                _check_attribute(
-                    sbase.setName(self.name), sbase, "name", self.name, self
-                )
+            self._set_name(sbase, self.name)
         elif Sbase._authoring_hints.get() and self._hint_name:
             logger.warning("'name' should be set on '%s'", self)
         if self.sboTerm is not None:
@@ -1475,6 +1470,18 @@ class Sbase:
 
         if self.keyValuePairs is not None:
             self.create_key_value_pairs(sbase, model)
+
+    def _set_name(self, sbase: Any, name: str) -> None:
+        """Set the name on the created libsbml object.
+
+        Args:
+            sbase: the libsbml object created by `create_sbml`
+            name: the name to set
+        """
+        if sbase.getTypeCode() in _UNWRITTEN_ID_TYPECODES:
+            _record_unwritten_attribute(sbase, "name", name, self)
+        else:
+            _check_attribute(sbase.setName(name), sbase, "name", name, self)
 
     @classmethod
     def _port_reference_for(
@@ -3428,6 +3435,115 @@ def _gene_product_ids(association: str) -> list[str]:
     ]
 
 
+class _SpeciesReference(Sbase):
+    """The species reference a `Reaction` writes for one part of its equation.
+
+    A part of a reaction equation is an `EquationPart`, which cannot be an
+    `Sbase` because `sbmlutils.reaction_equation` is imported by this module.
+    Its `SBase` fields are written through this class, so that a species
+    reference gets them exactly as every other element does, its notes
+    normalized by `Sbase._process_notes` included.
+    """
+
+    # a species reference is written from an equation string, which has no
+    # place for its name or sboTerm
+    _hint_name: ClassVar[bool] = False
+    _hint_sbo_term: ClassVar[bool] = False
+
+    def __init__(self, part: EquationPart):
+        """Construct the species reference of a part of an equation.
+
+        Args:
+            part: the reactant, product or modifier of the equation
+        """
+        super().__init__(
+            sid=part.sid,
+            name=part.name,
+            sboTerm=part.sboTerm,
+            metaId=part.metaId,
+            annotations=part.annotations,
+            notes=part.notes,
+            keyValuePairs=part.keyValuePairs,
+        )
+        self.part = part
+
+    def __str__(self) -> str:
+        """Get the string of the part, which names it in every report."""
+        return str(self.part)
+
+    def _set_fields(
+        self,
+        sbase: libsbml.SpeciesReference | libsbml.ModifierSpeciesReference,
+        model: libsbml.Model,
+    ) -> None:
+        """Set the fields on the species reference.
+
+        A `libsbml.ModifierSpeciesReference` has no `constant` or
+        `stoichiometry` attribute (only its sibling `SpeciesReference`, used
+        for reactants and products, does), so those two are only set when
+        `sbase` actually is one. Everything else an `SBase` carries, the
+        key-value pairs of fbc version 3 included, is written for all three
+        roles alike.
+
+        Args:
+            sbase: the libsbml species reference created for the part
+            model: the libsbml.Model the reaction belongs to
+        """
+        part = self.part
+        if part.species is not None:
+            _check_attribute(
+                sbase.setSpecies(part.species), sbase, "species", part.species, self
+            )
+        super()._set_fields(sbase, model)
+        if isinstance(sbase, libsbml.SpeciesReference):
+            if part.constant is not None:
+                _check_attribute(
+                    sbase.setConstant(part.constant),
+                    sbase,
+                    "constant",
+                    part.constant,
+                    self,
+                )
+            if part.stoichiometry is not None:
+                # a stoichiometry is a plain double, which libsbml accepts at
+                # every level and version
+                sbase.setStoichiometry(part.stoichiometry)
+
+    def _set_name(self, sbase: Any, name: str) -> None:
+        """Set the name, which libsbml rejects on a species reference with a space.
+
+        `SimpleSpeciesReference::setName` (libsbml 5.21.1) erroneously
+        applies SId syntax validation to `name`, which SBML L3 defines as a
+        plain `string`, not an `SId`; `Species.setName`/`Reaction.setName` do
+        not do this. Verified live: `SpeciesReference.setName('reactant
+        name')` returns rc=-4 (LIBSBML_INVALID_ATTRIBUTE_VALUE) and leaves
+        `getName()` empty, while `SpeciesReference.setName('reactantname')`
+        (no space) returns rc=0 and is set. This is a libsbml defect specific
+        to `SimpleSpeciesReference` (the base of both `SpeciesReference` and
+        `ModifierSpeciesReference`), and there is nothing correct to do about
+        it here short of mangling the name, which this deliberately does not
+        do. Logged as a warning rather than routed through `check()` (which
+        always logs at error level): the name is unfixable from the caller's
+        side, and any name containing a space, one of the most common cases,
+        would otherwise log as an error on every single reaction.
+
+        Args:
+            sbase: the libsbml species reference created for the part
+            name: the name to set
+        """
+        rc = sbase.setName(name)
+        if rc != libsbml.LIBSBML_OPERATION_SUCCESS:
+            logger.warning(
+                "Name '%s' could not be set on species reference for species "
+                "'%s': rejected by libsbml with code %s (a known "
+                "SimpleSpeciesReference.setName defect which applies SId "
+                "syntax validation to the string-typed 'name' attribute).",
+                name,
+                self.part.species,
+                rc,
+            )
+
+
 class Reaction(Sbase):
     """Reaction.
 
@@ -3554,102 +3670,15 @@ class Reaction(Sbase):
         # document which declares no fbc, as it has to be
         r_fbc: libsbml.FbcReactionPlugin | None = r.getPlugin("fbc")
 
-        def set_speciesref_fields(
-            sref: libsbml.SpeciesReference | libsbml.ModifierSpeciesReference,
-            part: EquationPart,
-        ) -> None:
-            """Set the fields on the SpeciesReference.
-
-            A `libsbml.ModifierSpeciesReference` has no `constant` or
-            `stoichiometry` attribute (only its sibling `SpeciesReference`,
-            used for reactants and products, does), so those two are only
-            set when `sref` actually is one. Everything else an `SBase`
-            carries, the key-value pairs of fbc version 3 included, is
-            written for all three roles alike.
-            """
-            if part.species is not None:
-                _check_attribute(
-                    sref.setSpecies(part.species), sref, "species", part.species, part
-                )
-            if part.sid is not None:
-                _check_attribute(sref.setId(part.sid), sref, "id", part.sid, part)
-            if isinstance(sref, libsbml.SpeciesReference):
-                if part.constant is not None:
-                    _check_attribute(
-                        sref.setConstant(part.constant),
-                        sref,
-                        "constant",
-                        part.constant,
-                        part,
-                    )
-                if part.stoichiometry is not None:
-                    # a stoichiometry is a plain double, which libsbml accepts
-                    # at every level and version
-                    sref.setStoichiometry(part.stoichiometry)
-            if part.metaId is not None:
-                _check_attribute(
-                    sref.setMetaId(part.metaId), sref, "metaid", part.metaId, part
-                )
-            if part.sboTerm is not None:
-                # normalized like the sboTerm of every other element, see
-                # `_sbo_term`
-                sbo_term = _sbo_term(part.sboTerm)
-                _check_attribute(
-                    sref.setSBOTerm(sbo_term), sref, "sboTerm", sbo_term, part
-                )
-            if part.name is not None:
-                # `SimpleSpeciesReference::setName` (libsbml 5.21.1)
-                # erroneously applies SId syntax validation to `name`,
-                # which SBML L3 defines as a plain `string`, not an `SId`;
-                # `Species.setName`/`Reaction.setName` do not do this.
-                # Verified live: `SpeciesReference.setName('reactant
-                # name')` returns rc=-4 (LIBSBML_INVALID_ATTRIBUTE_VALUE)
-                # and leaves `getName()` empty, while
-                # `SpeciesReference.setName('reactantname')` (no space)
-                # returns rc=0 and is set; `Species.setName('a species
-                # name')` (the control) returns rc=0. This is a libsbml
-                # defect specific to `SimpleSpeciesReference` (the base of
-                # both `SpeciesReference` and `ModifierSpeciesReference`),
-                # not a bug in this package, and there is nothing correct
-                # to do about it here short of mangling the name, which
-                # this deliberately does not do. Logged as a warning
-                # rather than routed through `check()` (which always logs
-                # at error level): the name is unfixable from the caller's
-                # side, and any name containing a space, one of the most
-                # common cases, would otherwise log as an error on every
-                # single reaction.
-                rc = sref.setName(part.name)
-                if rc != libsbml.LIBSBML_OPERATION_SUCCESS:
-                    logger.warning(
-                        "Name '%s' could not be set on species reference "
-                        "for species '%s': rejected by libsbml with code "
-                        "%s (a known SimpleSpeciesReference.setName defect "
-                        "which applies SId syntax validation to the "
-                        "string-typed 'name' attribute).",
-                        part.name,
-                        part.species,
-                        rc,
-                    )
-            if part.notes is not None and part.notes.strip():
-                set_notes(sref, part.notes, format=detect_format(part.notes))
-            for annotation in Sbase._process_annotations(part.annotations or []):
-                annotator.ModelAnnotator.annotate_sbase(
-                    sbase=sref, annotation=annotation
-                )
-            KeyValuePair.create_pairs(part.keyValuePairs, sref, model, part)
-
         # equation
         for reactant in self.equation.reactants:
-            rref: libsbml.SpeciesReference = r.createReactant()
-            set_speciesref_fields(sref=rref, part=reactant)
+            _SpeciesReference(reactant)._set_fields(r.createReactant(), model)
 
         for product in self.equation.products:
-            pref: libsbml.SpeciesReference = r.createProduct()
-            set_speciesref_fields(sref=pref, part=product)
+            _SpeciesReference(product)._set_fields(r.createProduct(), model)
 
         for modifier in self.equation.modifiers:
-            mref: libsbml.ModifierSpeciesReference = r.createModifier()
-            set_speciesref_fields(sref=mref, part=modifier)
+            _SpeciesReference(modifier)._set_fields(r.createModifier(), model)
 
         # kinetics
         if self.formula is not None:
