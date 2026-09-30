@@ -33,7 +33,9 @@ jobs:
         with:
           python-version: "3.14"
           enable-cache: true
-      - name: Install dependencies
+      - name: Install the locked dependencies (fails if uv.lock is out of date with pyproject.toml, run `uv lock`)
+        # `--locked` refuses to update the lock: a change of the dependencies
+        # in pyproject.toml has to come with the `uv lock` which records it
         run: uv sync --locked --extra dev
       - name: Build the documentation
         # the API reference is rendered from the docstrings by mkdocstrings,

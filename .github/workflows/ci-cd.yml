@@ -27,6 +27,9 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ["3.11", "3.12", "3.13", "3.14"]
+        # `py` (or none, as in the entries below) runs the environment of the
+        # python version, e.g. `py3.14`; another value runs that environment
+        tox-env: [py]
         # Linux covers the full range with simulation support; Windows and
         # macOS cover its newest version. Core-only 3.15 jobs are added below.
         exclude:
@@ -51,6 +54,11 @@ jobs:
             python-version: "3.15"
           - os: macos-15-intel
             python-version: "3.15"
+          # the suite against the lower bounds of the dependencies, see the
+          # `lowest` environment of tox.ini, which is pinned to python 3.11
+          - os: ubuntu-latest
+            python-version: "3.11"
+            tox-env: lowest
 
     steps:
     - uses: actions/checkout@v7
@@ -74,53 +82,23 @@ jobs:
         enable-cache: true
     - name: Test with tox
       run:
-        uvx --with tox-uv tox -e py${{ matrix.python-version }}
-
-  lowest:
-    # the suite against the oldest versions the lower bounds of the
-    # dependencies allow, see the `lowest` environment of tox.ini
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
-
-    steps:
-    - uses: actions/checkout@v7
-      with:
-        persist-credentials: false
-    - name: Install the python dev files
-      # the extension of libroadrunner links against libpython, which the
-      # standalone interpreters do not put on the library search path
-      run: |
-        sudo add-apt-repository -y ppa:deadsnakes/ppa
-        sudo apt-get update
-        sudo apt-get install -y python3.11-dev
-      shell: bash
-    - name: Install uv and set the python version
-      # the `lowest` environment is pinned to python 3.11, see tox.ini
-      uses: astral-sh/setup-uv@v10.2.0
-      with:
-        python-version: "3.11"
-        enable-cache: true
-    - name: Test with tox
-      run:
-        uvx --with tox-uv tox -e lowest
+        uvx --with tox-uv tox -e ${{ matrix.tox-env != 'py' && matrix.tox-env || format('py{0}', matrix.python-version) }}
 
   tests:
     # the one check the branch protection requires; the names of the matrix
     # jobs change with the matrix, this name does not
     name: tests
-    needs: [test, lowest]
+    needs: test
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-    - name: Check the result of the test matrix and of the lowest versions
+    - name: Check the result of the test matrix
       env:
         RESULT: ${{ needs.test.result }}
-        LOWEST: ${{ needs.lowest.result }}
       run: |
-        echo "test matrix: $RESULT, lowest versions: $LOWEST"
+        echo "test matrix: $RESULT"
         test "$RESULT" = "success"
-        test "$LOWEST" = "success"
 
   cobra:
     # the tests which need cobrapy, the optional `cobra` extra, see the `cobra`
