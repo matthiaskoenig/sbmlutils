@@ -302,14 +302,25 @@ class SBMLDocumentInfo:
         """Key of an element, unique in its document and stable across runs.
 
         The key is the id of the element, else its metaId. An element with
-        neither is keyed by the element which owns it and its place there:
-        `R1.kineticLaw` for the kinetic law of the reaction `R1`,
-        `event.0` for the first event of the model, which keeps two
-        identical elements without id apart. The elements of the model of
-        the document are keyed without the model, those of a comp model
-        definition below its key. An id or metaId never contains a '.', so a
-        derived key never equals one of them. Only an element which belongs
-        to no document is keyed by the digest of its xml.
+        neither is keyed by the element which owns it and its place there,
+        separated by '/': `R1/kineticLaw` for the kinetic law of the reaction
+        `R1`, `R1/listOfReactants/0` and `R1/listOfProducts/0` for its first
+        reactant and product, `listOfEvents/0` for the first event of the
+        model, which keeps two identical elements without id apart. The
+        elements of the model of the document are keyed without the model,
+        those of a comp model definition below its key. Neither an SId nor a
+        metaId (an XML NCName) can contain a '/', so such a key never equals
+        an id or a metaId; the only derived key without it is the one of a
+        single child of the model, the only element of its type there. Only
+        an element which belongs to no document is keyed by the digest of
+        its xml.
+
+        The place in a list is found by walking the list, so a list of n
+        elements without id costs n^2 comparisons (1.6 s for 2000
+        constraints). A cached index would have to live outside the
+        instance, since `sbase_dict` is also called without one by
+        `sbmlutils.parser`, keyed by the addresses of libsbml objects whose
+        lifetime this function does not see.
 
         Args:
             sbase: the element
@@ -326,11 +337,12 @@ class SBMLDocumentInfo:
         if parent is None:
             return SBMLDocumentInfo._uuid(sbase.toSBML())
 
-        key: str = sbase.getElementName()
         if isinstance(parent, libsbml.ListOf):
             index = next(k for k, item in enumerate(parent) if item == sbase)
-            key = f"{key}.{index}"
+            key = f"{parent.getElementName()}/{index}"
             parent = parent.getParentSBMLObject()
+        else:
+            key = sbase.getElementName()
 
         if parent is None or isinstance(parent, libsbml.SBMLDocument):
             return key
@@ -338,7 +350,7 @@ class SBMLDocumentInfo:
             parent, libsbml.ModelDefinition
         ):
             return key
-        return f"{SBMLDocumentInfo._pk_key(parent)}.{key}"
+        return f"{SBMLDocumentInfo._pk_key(parent)}/{key}"
 
     @staticmethod
     def _uuid(xml: str) -> str:

@@ -89,7 +89,7 @@ def test_primary_keys_unique_for_identical_elements() -> None:
     events = info.info["model"]["events"]
     assert len(events) == 2
     assert events[0]["pk"] != events[1]["pk"]
-    assert [e["pk"] for e in events] == ["Event:event.0", "Event:event.1"]
+    assert [e["pk"] for e in events] == ["Event:listOfEvents/0", "Event:listOfEvents/1"]
 
 
 def test_primary_keys_stable() -> None:
@@ -106,9 +106,36 @@ def test_primary_key_of_nested_element() -> None:
     reaction: libsbml.Reaction = model.createReaction()
     reaction.setId("R1")
     law: libsbml.KineticLaw = reaction.createKineticLaw()
-    sr: libsbml.SpeciesReference = reaction.createProduct()
-    assert SBMLDocumentInfo._get_pk(law) == "KineticLaw:R1.kineticLaw"
-    assert SBMLDocumentInfo._get_pk(sr) == "SpeciesReference:R1.speciesReference.0"
+    reactant: libsbml.SpeciesReference = reaction.createReactant()
+    product: libsbml.SpeciesReference = reaction.createProduct()
+    assert SBMLDocumentInfo._get_pk(law) == "KineticLaw:R1/kineticLaw"
+    assert SBMLDocumentInfo._get_pk(reactant) == "SpeciesReference:R1/listOfReactants/0"
+    assert SBMLDocumentInfo._get_pk(product) == "SpeciesReference:R1/listOfProducts/0"
+
+
+def test_primary_keys_of_reactant_and_product_differ() -> None:
+    """A reactant and a product without id of one reaction have distinct keys."""
+    doc = libsbml.SBMLDocument(3, 2)
+    model: libsbml.Model = doc.createModel()
+    reaction: libsbml.Reaction = model.createReaction()
+    reaction.setId("R1")
+    for sr in [reaction.createReactant(), reaction.createProduct()]:
+        sr.setSpecies("x")
+        sr.setStoichiometry(1.0)
+    assert SBMLDocumentInfo._get_pk(
+        reaction.getReactant(0)
+    ) != SBMLDocumentInfo._get_pk(reaction.getProduct(0))
+
+
+def test_primary_key_not_a_metaid() -> None:
+    """A derived key never equals a metaId, which may contain a '.'."""
+    doc = libsbml.SBMLDocument(3, 2)
+    model: libsbml.Model = doc.createModel()
+    first: libsbml.Event = model.createEvent()
+    first.setMetaId("listOfEvents.1")
+    model.createEvent()
+    keys = [SBMLDocumentInfo._get_pk(e) for e in model.getListOfEvents()]
+    assert keys == ["Event:listOfEvents.1", "Event:listOfEvents/1"]
 
 
 def test_equation_without_modifiers() -> None:
