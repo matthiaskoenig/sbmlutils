@@ -23,6 +23,48 @@ short_names = {
 }
 
 
+#: units which are named for a multiple of an SBML base unit, as
+#: (kind, factor, name); a factor is compared to the unit, never the text
+_NAMED_UNITS: list[tuple[str, float, str]] = [
+    ("second", 60.0, "min"),
+    ("second", 3600.0, "hr"),
+    ("second", 86400.0, "day"),
+    ("metre", 0.01, "cm"),
+]
+
+
+def _unit_term_to_string(factor: float, kind: str) -> str:
+    """Render a unit term `factor * kind` without its exponent.
+
+    A factor which names a unit of its own (60 second is `min`) is rendered by
+    that name. Otherwise the term is brought to the closest SI prefix and a
+    magnitude which is not 1 is kept as a number in front of the unit,
+    `160 s` or `2.1 g`. A dimensionless term is rendered by its magnitude
+    only, and by the empty string if that is 1.
+
+    Args:
+        factor: the multiplier times ten to the power of the scale of the unit
+        kind: the SBML unit kind, as `libsbml.UnitKind_toString` names it
+
+    Returns:
+        the short string of the term
+    """
+    for named_kind, named_factor, name in _NAMED_UNITS:
+        if kind == named_kind and np.isclose(factor, named_factor):
+            return name
+
+    term = Q_(factor, kind)
+    with contextlib.suppress(KeyError):
+        term = term.to_compact()
+
+    unit = f"{term.units:~}"
+    magnitude = float(term.magnitude)
+    if np.isclose(magnitude, 1.0):
+        return unit
+    number = f"{magnitude:g}"
+    return f"{number} {unit}" if unit else number
+
+
 def udef_to_string(
     udef: libsbml.UnitDefinition | str | None,
     model: libsbml.Model | None = None,
@@ -66,27 +108,14 @@ def udef_to_string(
             e = u.getExponent()
             k = libsbml.UnitKind_toString(u.getKind())
 
-            # (m * 10^s *k)^e
-            # parse with pint
-            term = Q_(float(m) * 10**s, k) ** float(abs(e))
-            with contextlib.suppress(KeyError):
-                term = term.to_compact()
-
-            if np.isclose(term.magnitude, 1.0):
-                term = Q_(1, term.units)
-
-            us = f"{term:~}"  # short formating
-            # handle min and hr
-            us = us.replace("60.0 s", "1 min")
-            us = us.replace("3600.0 s", "1 hr")
-            us = us.replace("3.6 ks", "1 hr")
-            us = us.replace("86.4 ks", "1 day")
-            us = us.replace("10.0 mm", "1 cm")
-
-            # remove 1.0 prefixes
-            us = us.replace("1 ", "")
-            # exponent
-            us = us.replace(" ** ", "^")
+            # (m * 10^s * k)^e
+            us = _unit_term_to_string(factor=float(m) * 10**s, kind=k)
+            if not us or e == 0.0:
+                continue
+            if abs(e) != 1.0:
+                exponent = f"{abs(e):g}"
+                # the exponent applies to the magnitude as well: (2.1 g)^2
+                us = f"({us})^{exponent}" if " " in us else f"{us}^{exponent}"
 
             if e >= 0.0:
                 nom = us if nom == "" else f"{nom}*{us}"

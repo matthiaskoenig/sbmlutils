@@ -52,3 +52,44 @@ def test_unit_definition_latex(uid: str, definition: str, expected: str) -> None
     unit = UnitDefinition(uid, definition)
     unit_def = unit.create_sbml(model)
     assert udef_to_string(unit_def, model=model, format="latex") == expected
+
+
+#: units written with a multiplier, scale and exponent of their own, as
+#: (kind, multiplier, scale, exponent), with the string they render to
+testdata_units = [
+    ([(libsbml.UNIT_KIND_SECOND, 160, 0, 1)], "160 s"),
+    ([(libsbml.UNIT_KIND_GRAM, 2.1, 0, 1)], "2.1 g"),
+    ([(libsbml.UNIT_KIND_SECOND, 11, 0, 1)], "11 s"),
+    ([(libsbml.UNIT_KIND_SECOND, 0.5, 0, 1)], "500 ms"),
+    ([(libsbml.UNIT_KIND_SECOND, 60, 0, 1)], "min"),
+    ([(libsbml.UNIT_KIND_SECOND, 60, 0, -1)], "1/min"),
+    ([(libsbml.UNIT_KIND_SECOND, 60, 0, 2)], "min^2"),
+    ([(libsbml.UNIT_KIND_SECOND, 3600, 0, 1)], "hr"),
+    ([(libsbml.UNIT_KIND_SECOND, 3600, 0, -2)], "1/hr^2"),
+    ([(libsbml.UNIT_KIND_SECOND, 86400, 0, 1)], "day"),
+    ([(libsbml.UNIT_KIND_METRE, 1, -2, 1)], "cm"),
+    ([(libsbml.UNIT_KIND_METRE, 10, -3, 1)], "cm"),
+    ([(libsbml.UNIT_KIND_METRE, 1, -2, 3)], "cm^3"),
+    ([(libsbml.UNIT_KIND_LITRE, 1, -3, 1)], "ml"),
+    ([(libsbml.UNIT_KIND_GRAM, 1, 3, -1), (libsbml.UNIT_KIND_SECOND, 1, 0, 1)], "s/kg"),
+    ([(libsbml.UNIT_KIND_GRAM, 2.1, 0, 2)], "(2.1 g)^2"),
+    ([(libsbml.UNIT_KIND_DIMENSIONLESS, 1, 0, 1)], "-"),
+]
+
+
+@pytest.mark.parametrize("units, expected", testdata_units)
+def test_unit_multiplier_str(
+    units: list[tuple[int, float, int, float]], expected: str
+) -> None:
+    """A multiplier is rendered as a number, a named unit only for its exact factor."""
+    doc = libsbml.SBMLDocument(3, 2)
+    model: libsbml.Model = doc.createModel()
+    unit_def: libsbml.UnitDefinition = model.createUnitDefinition()
+    unit_def.setId("u")
+    for kind, multiplier, scale, exponent in units:
+        unit: libsbml.Unit = unit_def.createUnit()
+        unit.setKind(kind)
+        unit.setMultiplier(multiplier)
+        unit.setScale(scale)
+        unit.setExponent(exponent)
+    assert udef_to_string(unit_def, model=model, format="str") == expected
