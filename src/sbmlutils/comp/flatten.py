@@ -1,7 +1,6 @@
 """Helpers for model flattening."""
 
 import logging
-import os
 import time
 from pathlib import Path
 
@@ -15,13 +14,14 @@ logger = logging.getLogger(__name__)
 
 
 def flatten_sbml(
-    sbml_path: Path, sbml_flat_path: Path, leave_ports: bool = True
+    sbml_path: Path | str, sbml_flat_path: Path | str, leave_ports: bool = True
 ) -> libsbml.SBMLDocument:
     """Flatten given SBML file.
 
-    The working directory is changed to the directory of the document while it
-    is flattened, and is restored whatever happens, a document which cannot be
-    flattened included.
+    A relative path is relative to the working directory, which is never
+    changed. libsbml resolves the `comp:source` of an external model definition
+    against the location of the document which names it, i.e. relative to the
+    directory of `sbml_path`, and of the external files in turn.
 
     :param sbml_path: input path to SBML file to flatten (should be a comp model)
     :param sbml_flat_path: output path for flat SBML
@@ -32,25 +32,10 @@ def flatten_sbml(
     :raises ValueError: if libsbml cannot flatten the document, see
         `flatten_sbml_doc`
     """
-    # FIXME: not working with relative paths,
-    # necessary to change the working directory to the sbml file directory
-    # to resolve relative links to external model definitions.
-    if not isinstance(sbml_path, Path):
-        sbml_path = Path(sbml_path)
-
-    working_dir = os.getcwd()
-    os.chdir(str(sbml_path.parent))
-
-    try:
-        doc = read_sbml(source=sbml_path)
-        return flatten_sbml_doc(
-            doc, leave_ports=leave_ports, sbml_flat_path=sbml_flat_path
-        )
-    finally:
-        # a document which cannot be flattened raises, and a caller left in
-        # another directory resolves every relative path of its own against
-        # it; on Windows the directory cannot be deleted either
-        os.chdir(working_dir)
+    doc = read_sbml(source=Path(sbml_path))
+    return flatten_sbml_doc(
+        doc, leave_ports=leave_ports, sbml_flat_path=Path(sbml_flat_path)
+    )
 
 
 def flatten_sbml_doc(

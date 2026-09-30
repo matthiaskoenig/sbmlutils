@@ -1070,9 +1070,9 @@ def test_flatten_leaves_the_working_directory_where_it_was(
 ) -> None:
     """Test that a flatten which raises leaves the process where it was.
 
-    `flatten_sbml` changes the working directory to the directory of the
-    document, so that libsbml resolves the `comp:source` of an external model
-    definition relative to it. A document which cannot be flattened raises,
+    `flatten_sbml` once changed the working directory to the directory of the
+    document, so that libsbml resolved the `comp:source` of an external model
+    definition relative to it. A document which could not be flattened raised,
     and the process stayed in that directory: every relative path of the
     caller then pointed somewhere else, and on Windows the directory could
     not be deleted while a process sits in it.
