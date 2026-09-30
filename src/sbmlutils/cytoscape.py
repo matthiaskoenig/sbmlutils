@@ -25,7 +25,6 @@ from typing import TYPE_CHECKING
 
 from requests.exceptions import RequestException
 
-from sbmlutils.console import console
 from sbmlutils.parser import antimony_to_sbml
 
 # py4cytoscape is the optional `cytoscape` extra
@@ -96,7 +95,7 @@ def visualize_sbml(sbml_path: Path, delete_session: bool = False) -> int | None:
         return None
 
     try:
-        console.print(p4c.cytoscape_version_info())
+        logger.info("Cytoscape version info: %s", p4c.cytoscape_version_info())
 
         if delete_session:
             p4c.session.close_session(save_before_closing=False)

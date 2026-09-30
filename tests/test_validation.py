@@ -220,3 +220,18 @@ def test_sbml_error_info_severity_predicates() -> None:
         assert info.isWarning() == err.isWarning()
         assert info.isError() == err.isError()
         assert info.isFatal() == err.isFatal()
+
+
+def test_validate_doc_logs_report_and_does_not_print(
+    caplog: pytest.LogCaptureFixture, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """The validation report is logged and nothing is written to stdout."""
+    doc = libsbml.SBMLDocument(3, 2)
+    doc.createModel()
+    with caplog.at_level(logging.INFO, logger="sbmlutils.validation"):
+        validate_doc(doc)
+    assert any(
+        r.levelno == logging.INFO and "Validate SBML" in r.getMessage()
+        for r in caplog.records
+    ), caplog.text
+    assert capsys.readouterr().out == ""

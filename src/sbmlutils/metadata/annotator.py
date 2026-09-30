@@ -26,7 +26,6 @@ from pymetadata.core.annotation import RDFAnnotation as Annotation
 from pymetadata.core.miriam import BQB, BQM
 
 from sbmlutils import utils
-from sbmlutils.console import console
 from sbmlutils.io.sbml import read_sbml, write_sbml
 
 from ..validation import ScopedLossCollector, check
@@ -254,7 +253,7 @@ def annotate_sbml(
     # write annotated sbml
     write_sbml(doc, filepath=filepath)
 
-    console.print(f"Model annotated: file://{filepath}", style="success")
+    logger.info("Model annotated: file://%s", filepath)
     return doc
 
 

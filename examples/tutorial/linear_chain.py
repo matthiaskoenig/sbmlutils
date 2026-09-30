@@ -50,6 +50,10 @@ for k in range(n_chain):
     )
 
 if __name__ == "__main__":
+    from sbmlutils import log
+
+    log.enable_rich_logging()
+
     results = create_model(
         model=model,
         filepath=Path.cwd() / f"{model.sid}.xml",

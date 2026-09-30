@@ -439,6 +439,10 @@ def create(output_dir: Path) -> FactoryResult:
 
 
 if __name__ == "__main__":
+    from sbmlutils import log
+
+    log.enable_rich_logging()
+
     # The MEMOTE report can be created via
     #   memote report snapshot --filename "report.html" path/to/model.xml
     create(output_dir=Path.cwd())

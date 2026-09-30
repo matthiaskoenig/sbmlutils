@@ -3630,3 +3630,23 @@ def test_the_objects_of_a_model_do_not_change_the_lists_passed_to_it() -> None:
     assert [p.sid for p in parameters] == ["p1"]
     assert len(model.units) == 2
     assert len(units) == 1
+
+
+def test_create_model_show_sbml_logs_the_sbml(
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """`show_sbml` logs the created SBML once, and nothing is printed."""
+    model = Model("show_sbml", compartments=[Compartment("C", value=1.0)])
+    with caplog.at_level(logging.INFO, logger="sbmlutils.factory"):
+        create_model(model, tmp_path / "m.xml", show_sbml=True)
+    shown = [r for r in caplog.records if r.getMessage().startswith("Created SBML")]
+    assert len(shown) == 1
+    assert "<sbml" in shown[0].getMessage()
+    assert capsys.readouterr().out == ""
+
+    caplog.clear()
+    with caplog.at_level(logging.INFO, logger="sbmlutils.factory"):
+        create_model(model, tmp_path / "m.xml")
+    assert "Created SBML" not in caplog.text

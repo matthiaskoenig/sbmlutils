@@ -6,7 +6,6 @@ from pathlib import Path
 
 import libsbml
 
-from sbmlutils.console import console
 from sbmlutils.io import read_sbml, write_sbml
 from sbmlutils.validation import log_sbml_errors_for_doc, validate_doc
 
@@ -101,12 +100,9 @@ def flatten_sbml_doc(
     info = "\n".join(lines)
 
     if flattened_status:
-        console.rule("Flatten SBML", style="success")
-        console.print(info, style="success")
-        console.rule(style="success")
+        logger.info("Flatten SBML\n%s", info)
     else:
-        console.rule("Flatten SBML", style="error")
-        console.print(info, style="error")
+        logger.error("Flatten SBML\n%s", info)
         log_sbml_errors_for_doc(doc)
         raise ValueError("SBML could not be flattend due to errors.")
 

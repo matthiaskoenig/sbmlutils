@@ -1389,6 +1389,10 @@ for sid, sdict in SUBSTANCES_BODY.items():
 model_body = _m
 
 if __name__ == "__main__":
+    from sbmlutils import log
+
+    log.enable_rich_logging()
+
     results = create_model(
         model=model_body,
         filepath=Path.cwd() / f"{model_body.sid}.xml",

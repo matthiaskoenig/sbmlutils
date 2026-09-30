@@ -42,6 +42,10 @@ for k in range(n_links):
 # -------------------------------------------------------------------------------------
 
 if __name__ == "__main__":
+    from sbmlutils import log
+
+    log.enable_rich_logging()
+
     fac_result: FactoryResult = create_model(
         model=model,
         filepath=Path.cwd() / f"{model.sid}.xml",

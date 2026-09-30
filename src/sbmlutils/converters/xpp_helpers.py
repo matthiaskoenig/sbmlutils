@@ -3,15 +3,17 @@
 alp(Vm) = abar / (1 + k1 * exp(-2 * d1 * 96.485 * Vm / 8.313424 / (310)) / c)
 """
 
+import logging
 import re
 
 import libsbml
 
+logger = logging.getLogger(__name__)
+
 
 def ast_info(ast: libsbml.ASTNode) -> None:
-    """Print ASTNode information."""
-    print(ast)
-    print(ast.getType(), ast.getName())
+    """Log ASTNode information."""
+    logger.info("%s %s %s", ast, ast.getType(), ast.getName())
 
 
 def find_names_in_ast(
@@ -72,9 +74,6 @@ def replace_formula(
             old_phrase = fid + "(" + content + ")"
             new_phrase = fid + "(" + content + "," + ",".join(new_args) + ")"
             new_formula = new_formula.replace(old_phrase, new_phrase)
-        if False:
-            print("new_formula:\t", new_formula)
-            print("-" * 80)
 
     return new_formula
 

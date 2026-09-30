@@ -41,10 +41,11 @@ Not supported:
 
 import html
 import itertools
+import logging
 import re
 import warnings
 from pathlib import Path
-from pprint import pprint
+from pprint import pformat
 from typing import Any
 
 import libsbml
@@ -55,6 +56,8 @@ from sbmlutils.factory import Event
 from sbmlutils.io import sbml
 from sbmlutils.notes import NotesFormat
 from sbmlutils.validation import ValidationOptions
+
+logger = logging.getLogger(__name__)
 
 XPP_ODE = "ode"
 XPP_DE = "difference equation"  # x(t+1)=F(x,y,...)
@@ -189,9 +192,7 @@ def xpp2sbml(
     :param validate: perform validation on the generated SBML file
     :return:
     """
-    print("-" * 80)
-    print("xpp2sbml: ", xpp_file, "->", sbml_file)
-    print("-" * 80)
+    logger.info("xpp2sbml: '%s' -> '%s'", xpp_file, sbml_file)
     doc = libsbml.SBMLDocument(3, 1)
     model = doc.createModel()
 
@@ -379,8 +380,7 @@ def xpp2sbml(
 
             parsed_lines.append(line)
     if debug:
-        print("\n\nFUNCTION_DEFINITIONS")
-        pprint(function_definitions)
+        logger.debug("FUNCTION_DEFINITIONS\n%s", pformat(function_definitions))
 
     # functions can use functions so this also must be replaced
     changes = True
@@ -392,8 +392,7 @@ def xpp2sbml(
         fdata["new_args"] = sorted(set(fdata["new_args"]))
 
     if debug:
-        print("\nREPLACED FUNCTION_DEFINITIONS")
-        pprint(function_definitions)
+        logger.debug("REPLACED FUNCTION_DEFINITIONS\n%s", pformat(function_definitions))
 
     # Create function definitions
     for fdata in function_definitions:
@@ -408,9 +407,7 @@ def xpp2sbml(
     # Second iteration
     ###########################################################################
     if debug:
-        print("\nPARSED LINES")
-        pprint(parsed_lines)
-        print("\n\n")
+        logger.debug("PARSED LINES\n%s", pformat(parsed_lines))
     for line in parsed_lines:
         # replace function definitions in lines
         new_line = line
@@ -420,14 +417,11 @@ def xpp2sbml(
             )
 
         if new_line != line:
-            if False:
-                print("\nReplaced FD", fdata["fid"], ":", new_line)
-                print("->", new_line, "\n")
             line = new_line
 
         if debug:
             # line after function replacements
-            print("*" * 3, line, "*" * 3)
+            logger.debug("*** %s ***", line)
 
         ################################
         # Start parsing the given line
@@ -474,10 +468,6 @@ def xpp2sbml(
                     " ".join(items[1:]) + "=" + "=".join(tokens[1:])
                 )  # full expression after keyword
                 parts = parts_from_expression(expression)
-                if False:
-                    print("xid:", xid)
-                    print("expression:", expression)
-                    print("parts:", parts)
 
                 # parameter & numbers
                 if xpp_type in [XPP_PAR, XPP_NUM]:

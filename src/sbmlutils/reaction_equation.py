@@ -44,10 +44,13 @@ Examples of valid equations with variable stoichiometries are:
 
 from __future__ import annotations
 
+import logging
 import re
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from typing import Any, Final
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -258,16 +261,15 @@ class ReactionEquation:
         return " ".join([left, sep, right])
 
     def info(self) -> None:
-        """Print overview of parsed equation."""
+        """Log overview of parsed equation."""
         lines = [
             f"{'equation':<10s}: {self.to_string(modifiers=True)}",
             f"{'reversible':<10s}: {self.reversible}",
             f"{'reactants':<10s}: {self.reactants}",
             f"{'products':<10s}: {self.products}",
             f"{'modifiers':<10s}: {self.modifiers}",
-            "\n",
         ]
-        print("\n".join(lines))
+        logger.info("\n".join(lines))
 
     @staticmethod
     def help() -> str:

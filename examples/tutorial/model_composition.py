@@ -31,5 +31,9 @@ def create(output_dir: Path) -> FactoryResult:
 
 
 if __name__ == "__main__":
+    from sbmlutils import log
+
+    log.enable_rich_logging()
+
     fac_result = create(output_dir=Path.cwd())
     visualize_sbml(sbml_path=fac_result.sbml_path)

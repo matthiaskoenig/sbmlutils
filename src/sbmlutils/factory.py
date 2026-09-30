@@ -51,7 +51,6 @@ from numpy import nan as NaN
 from pint import UndefinedUnitError, UnitRegistry
 from pymetadata.core.creator import Creator
 
-from sbmlutils.console import console
 from sbmlutils.converters.odefac import SBML2ODE
 from sbmlutils.io import sbml_to_antimony, write_sbml
 from sbmlutils.metadata import (
@@ -2267,7 +2266,6 @@ class UnitDefinition(Sbase):
         try:
             quantity = Q_(self.definition)
         except UndefinedUnitError as err:
-            console.print_exception(show_locals=False)
             logger.error(
                 "Unit definition '%s' is not valid pint syntax, %s.",
                 self.definition,
@@ -8169,7 +8167,6 @@ def create_model(
         Validation does not raise: a document which does not validate is
         written and returned all the same.
     """
-    console.rule(title="Create SBML", style="white")
     if validation_options is None:
         validation_options = ValidationOptions()
 
@@ -8225,16 +8222,10 @@ def create_model(
         SBML2ODE.from_file(filepath).to_markdown(md_file=markdown_path)
         logger.info("Markdown written to '%s'", markdown_path)
 
-    console.rule(style="white")
-
-    # print created sbml
+    # log created sbml
     if show_sbml:
-        with open(filepath, encoding="utf-8") as f_sbml:
-            sbml_str = f_sbml.read()
+        logger.info("Created SBML:\n%s", filepath.read_text(encoding="utf-8"))
 
-        console.log(sbml_str)
-
-    console.rule(style="white")
     return FactoryResult(
         sbml_path=filepath,
         model=m,

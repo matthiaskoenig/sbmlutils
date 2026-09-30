@@ -169,10 +169,10 @@ def query_curated_biomodels() -> list[str]:
     response = session.get(url)
     response.raise_for_status()
     json = response.json()
-    console.print(url)
+    logger.debug("Query: %s", url)
 
     matches: int = json["matches"]
-    console.print(f"Curated biomodels: {matches}")
+    logger.info("Curated biomodels: %s", matches)
     offset: int = 0
     num_results: int = 100
     biomodel_ids = []
@@ -182,7 +182,7 @@ def query_curated_biomodels() -> list[str]:
         response.raise_for_status()
         json = response.json()
         ids = [model["id"] for model in json["models"]]
-        console.print(f"n={len(ids)} ids, {url}")
+        logger.debug("n=%s ids, %s", len(ids), url)
         biomodel_ids.extend(ids)
         offset += num_results
 
@@ -194,15 +194,15 @@ def _create_biomodels_testfiles(
     biomodel_ids: Sequence[str], output_dir: Path, caching: bool = True
 ) -> None:
     """Download all curated biomodels and create omex files."""
-    console.print(f"Number of models: {len(biomodel_ids)}")
+    logger.info("Number of models: %s", len(biomodel_ids))
     for biomodel_id in biomodel_ids:
         if caching and (output_dir / f"{biomodel_id}.omex").exists():
-            console.print(f"Skip cached biomodel '{biomodel_id}'", style="grey0")
+            logger.info("Skip cached biomodel '%s'", biomodel_id)
             continue
 
         # download SBML model as omex
         try:
-            console.print(f"Download biomodel '{biomodel_id}'", style="blue")
+            logger.info("Download biomodel '%s'", biomodel_id)
             download_biomodel_sbml(biomodel_id, output_dir, output_format="omex")
         except HTTPError as err:
             logger.error("Could not retrieve OMEX for biomodel: '%s'", biomodel_id)
