@@ -120,3 +120,36 @@ def test_write_sbml_raises_when_the_file_cannot_be_written(tmp_path: Path) -> No
         write_sbml(doc=doc, filepath=sbml_path)
 
     assert not sbml_path.exists()
+
+
+_SBML_WITHOUT_MODEL = (
+    '<?xml version="1.0" encoding="UTF-8"?>'
+    '<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" '
+    'level="3" version="1"/>'
+)
+
+
+@pytest.mark.parametrize("promote", [False, True])
+def test_read_sbml_raises_for_a_file_which_does_not_exist(
+    tmp_path: Path, promote: bool
+) -> None:
+    """An unreadable file raises with the libsbml error instead of only logging it.
+
+    The error used to be logged and a document without a model returned, on
+    which the promotion of local parameters crashed with an AttributeError.
+    """
+    with pytest.raises(ValueError, match=r"does_not_exist\.xml"):
+        read_sbml(tmp_path / "does_not_exist.xml", promote=promote)
+
+
+@pytest.mark.parametrize(
+    "source",
+    [
+        pytest.param("<sbml garbage", id="unreadable"),
+        pytest.param(_SBML_WITHOUT_MODEL, id="without-model"),
+    ],
+)
+def test_read_sbml_raises_for_a_string_without_a_model(source: str) -> None:
+    """A document without a model raises and names the libsbml errors."""
+    with pytest.raises(ValueError, match=r"no model.*\n.*E\d+"):
+        read_sbml(source)

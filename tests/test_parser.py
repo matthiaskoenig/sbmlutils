@@ -198,3 +198,9 @@ def test_uncertainty_of_an_element_which_cannot_carry_one_is_reported(
     ]
     assert len(errors) == 1, caplog.records
     assert "unitDefinition" in errors[0] and "mM" in errors[0]
+
+
+def test_sbml_to_model_raises_for_a_file_which_does_not_exist(tmp_path: Path) -> None:
+    """An unreadable source raises a `ValueError`, not a late AttributeError."""
+    with pytest.raises(ValueError, match=r"does_not_exist\.xml"):
+        sbml_to_model(tmp_path / "does_not_exist.xml")

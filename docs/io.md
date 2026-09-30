@@ -1,6 +1,6 @@
 # Reading and writing
 
-`sbmlutils.io` wraps the libsbml reader and writer, so a model is read from a path, a string or a URL and written with the metadata SBML expects.
+`sbmlutils.io` wraps the libsbml reader and writer, so a model is read from a path or a string and written with the metadata SBML expects.
 
 ## Reading
 
@@ -9,10 +9,9 @@ from sbmlutils.io import read_sbml
 
 doc = read_sbml("model.xml")  # a path
 doc = read_sbml(sbml_str)  # an SBML string
-doc = read_sbml("https://.../model.xml")  # a URL
 ```
 
-`read_sbml` returns a libsbml `SBMLDocument`. It validates on request:
+`read_sbml` returns a libsbml `SBMLDocument`. A source which cannot be read or holds no model raises a `ValueError` with the errors libsbml reported; the errors of a document with a model are logged. It validates on request:
 
 ```python
 from sbmlutils.validation import ValidationOptions

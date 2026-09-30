@@ -35,9 +35,15 @@ def read_sbml(
     :param validation_options: options for validation
 
     :return: libsbml.SBMLDocument
+
+    :raises ValueError: if the source cannot be read or holds no model, with
+        the errors libsbml reported for it. Errors in a document which has a
+        model are logged (or validated with `validate`), not raised.
     """
     doc: libsbml.SBMLDocument
+    label: str
     if isinstance(source, str) and "<sbml" in source:
+        label = "SBML string"
         doc = libsbml.readSBMLFromString(source)
     else:
         if not isinstance(source, Path):
@@ -47,6 +53,7 @@ def read_sbml(
                 source,
             )
             source = Path(source)
+        label = f"SBML file '{source}'"
 
         # libsbml records the path it reads as the location of the document
         # and resolves the `comp:source` of an external model definition
@@ -54,24 +61,30 @@ def read_sbml(
         # set as a percent-encoded URI (`Path.as_uri`) is not decoded
         doc = libsbml.readSBMLFromFile(str(source.resolve()))
 
+    if doc.getModel() is None:
+        # nothing can be done with a document without a model, and every
+        # caller which went on with it crashed later on the missing model
+        errors: list[str] = [
+            f"  E{error.getErrorId()} ({error.getSeverityAsString()}): "
+            f"{error.getMessage().strip()}"
+            for error in (doc.getError(k) for k in range(doc.getNumErrors()))
+        ]
+        raise ValueError(
+            f"{label} could not be read, the document has no model:\n"
+            + "\n".join(errors)
+        )
+
     # promote local parameters
     if promote:
         doc = promote_local_variables(doc)
 
     # check for errors
     if doc.getNumErrors() > 0:
-        if doc.getError(0).getErrorId() == libsbml.XMLFileUnreadable:
-            err_message = "Unreadable SBML file"
-        elif doc.getError(0).getErrorId() == libsbml.XMLFileOperationError:
-            err_message = "Problems reading SBML file: XMLFileOperationError"
-        else:
-            err_message = "SBMLDocumentErrors encountered while reading the SBML file."
-
         if not validate:
             # with `validate` the read errors are part of the validation
             # result, which logs them once
             log_sbml_errors_for_doc(doc)
-        logger.error("`read_sbml` error '%s': %s", source, err_message)
+        logger.error("`read_sbml`: errors encountered while reading the %s.", label)
 
     if validate:
         validate_doc(
