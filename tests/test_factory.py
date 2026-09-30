@@ -16,7 +16,7 @@ import pytest
 
 from sbmlutils import factory
 from sbmlutils.factory import *
-from sbmlutils.factory import Q_, Sbase, SbaseRef
+from sbmlutils.factory import Q_, Sbase, SbaseRef, core_elements
 from sbmlutils.io import read_sbml
 from sbmlutils.metadata import BQB
 from sbmlutils.parser import sbml_to_model
@@ -1517,7 +1517,7 @@ def test_unparsable_math_is_logged_at_every_formula_call_site(
     errors = [
         record.getMessage()
         for record in caplog.records
-        if record.levelname == "ERROR" and record.name == "sbmlutils.factory"
+        if record.levelname == "ERROR" and record.name.startswith("sbmlutils.factory")
     ]
     assert any(formula in message for message in errors), errors
 
@@ -3110,7 +3110,7 @@ def test_an_attribute_of_a_plugin_is_reported_and_does_not_raise(
     plugin = owner.getPlugin("fbc")
 
     with caplog.at_level(logging.WARNING, logger="sbmlutils"):
-        written = factory._check_attribute(
+        written = core_elements._check_attribute(
             libsbml.LIBSBML_UNEXPECTED_ATTRIBUTE,
             plugin,
             "chemicalFormula",
@@ -3131,7 +3131,7 @@ def test_an_attribute_of_a_plugin_is_reported_and_does_not_raise(
         caplog.at_level(logging.WARNING, logger="sbmlutils"),
     ):
         caplog.clear()
-        factory._check_attribute(
+        core_elements._check_attribute(
             libsbml.LIBSBML_UNEXPECTED_ATTRIBUTE,
             plugin,
             "chemicalFormula",
@@ -3271,7 +3271,7 @@ def test_the_reported_attribute_name_is_the_one_in_the_document(
 
         caplog.clear()
         with caplog.at_level(logging.WARNING, logger="sbmlutils"):
-            factory._check_attribute(
+            core_elements._check_attribute(
                 libsbml.LIBSBML_UNEXPECTED_ATTRIBUTE,
                 target,
                 reported,

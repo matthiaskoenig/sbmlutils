@@ -3910,7 +3910,7 @@ def test_a_species_without_an_fbc_plugin_is_reported(
     errors = [
         record.getMessage()
         for record in caplog.records
-        if record.name == "sbmlutils.factory"
+        if record.name.startswith("sbmlutils.factory")
     ]
     assert len(errors) == 1, errors
     assert "Species(S1" in errors[0]
