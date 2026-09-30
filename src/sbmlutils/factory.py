@@ -2034,7 +2034,7 @@ class Unit:
     """A single unit of a `UnitDefinition`.
 
     Corresponds to the information in a `libsbml.Unit`, i.e. one factor of a
-    unit definition. An SBML unit is `multiplier * 10^scale * kind^exponent`.
+    unit definition. An SBML unit is `(multiplier * 10^scale * kind)^exponent`.
     """
 
     def __init__(
@@ -2105,8 +2105,6 @@ class UnitDefinition(Sbase):
     Corresponds to the information in the libsbml.UnitDefinition.
     """
 
-    # definition: str = (None,)
-
     #: the unit definitions of a model live in a namespace of their own, which
     #: comp names by `comp:unitRef`, see `Sbase._port_reference`
     _port_reference: ClassVar[Literal["idRef", "unitRef", "metaIdRef"]] = "unitRef"
@@ -2167,7 +2165,7 @@ class UnitDefinition(Sbase):
     def __init__(
         self,
         sid: str,
-        definition: str | None = None,
+        definition: str | int | None = None,
         units: list[Unit] | None = None,
         name: str | None = None,
         sboTerm: str | None = None,
@@ -2186,8 +2184,9 @@ class UnitDefinition(Sbase):
 
         Args:
             sid: the id of the unit definition
-            definition: the pint expression, e.g. `"mmole/liter"`; defaults to
-                `sid`
+            definition: the pint expression, e.g. `"mmole/liter"`, or a
+                libsbml unit kind (`libsbml.UNIT_KIND_*`) for a base unit,
+                which writes no unit definition; defaults to `sid`
             units: the explicit units of the definition; they take precedence
                 over `definition`
             name: the name of the unit definition
@@ -2212,11 +2211,11 @@ class UnitDefinition(Sbase):
         )
 
         self.units = units
-        self.definition = definition if definition is not None else sid
-        if not self.name and units is None:
+        self.definition: str | int = definition if definition is not None else sid
+        if not self.name and units is None and isinstance(self.definition, str):
             # the pint expression is the readable label of the definition; with
             # explicit units the definition is only the id and would make a
-            # meaningless name
+            # meaningless name, and a unit kind is a number
             self.name = self.definition
 
     def create_sbml(self, model: libsbml.Model) -> libsbml.UnitDefinition | None:
@@ -2250,7 +2249,9 @@ class UnitDefinition(Sbase):
 
         Raises:
             UndefinedUnitError: if the expression is not valid pint syntax
-            ValueError: if a unit of the expression has no SBML unit kind
+            ValueError: if a unit of the expression has no SBML unit kind, or
+                the magnitude has no finite, non-zero root under the exponent
+                of the first unit
         """
         # parse the string into pint
         try:
@@ -2273,15 +2274,27 @@ class UnitDefinition(Sbase):
             for k, item in enumerate(units):
                 prefix, unit_name, _suffix = ureg.parse_unit_name(item[0])[0]
                 exponent = float(item[1])
-                # first unit gets the multiplier
+                # An SBML unit is (multiplier * 10^scale * kind)^exponent, so
+                # the factors of the unit itself (prefix, conversion to the
+                # kind) go into the multiplier as they are, and the magnitude
+                # of the expression, which the first unit carries, is rooted
+                # by the signed exponent to come out of the power unchanged.
                 multiplier = 1.0
                 if k == 0:
-                    multiplier = magnitude
+                    # a magnitude without a real root is checked right below
+                    with np.errstate(invalid="ignore", divide="ignore"):
+                        multiplier = float(np.power(magnitude, 1.0 / exponent))
+                    if not np.isfinite(multiplier) or multiplier == 0.0:
+                        msg = (
+                            f"The magnitude '{magnitude}' of unit definition "
+                            f"'{self.definition}' cannot be carried by the "
+                            f"unit '{item[0]}' with exponent '{exponent}'."
+                        )
+                        logger.error(msg)
+                        raise ValueError(msg)
 
                 if prefix:
                     multiplier = multiplier * self.__class__._prefixes[prefix]
-
-                multiplier = np.power(multiplier, 1 / abs(exponent))
 
                 # the pint path cannot resolve a scale, it is part of the
                 # multiplier; only a parsed unit definition carries a scale
@@ -2289,7 +2302,8 @@ class UnitDefinition(Sbase):
                 # resolve the kind (this is already a unit known by libsbml)
                 kind = self.__class__._pint2sbml.get(unit_name, None)
                 if kind is None:
-                    # we have to bring the unit to base units
+                    # we have to bring the unit to base units, the conversion
+                    # factor belongs to one unit and is not rooted either
                     uq = Q_(unit_name).to_base_units()
                     multiplier = multiplier * uq.magnitude
                     kind = self.__class__._pint2sbml.get(str(uq.units), None)

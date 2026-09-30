@@ -35,7 +35,7 @@ The class is passed to the model as `units=U` and its definitions are written in
 
 A pint expression compiles into the units SBML stores, but not every unit definition can be written as one. pint folds a prefix into the multiplier: `mmole` is written as `mole` with `multiplier="0.001"` and `scale="0"`, so a definition with `scale="-3"` cannot be reproduced. And some SBML unit kinds, such as `katal`, `becquerel` or `lux`, have no pint expression which maps onto them.
 
-`Unit(kind, exponent, scale, multiplier)` is one `<unit>` of a definition, exactly as SBML stores it: the unit is `multiplier * 10^scale * kind^exponent`, and `kind` is an SBML base unit kind. `UnitDefinition(sid, units=[...])` lists them, and the explicit units take precedence over a pint expression:
+`Unit(kind, exponent, scale, multiplier)` is one `<unit>` of a definition, exactly as SBML stores it: the unit is `(multiplier * 10^scale * kind)^exponent`, and `kind` is an SBML base unit kind. `UnitDefinition(sid, units=[...])` lists them, and the explicit units take precedence over a pint expression:
 
 ```python
 from sbmlutils.factory import Unit, UnitDefinition, Units

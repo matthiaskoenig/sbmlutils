@@ -16,7 +16,7 @@ import pytest
 
 from sbmlutils import factory
 from sbmlutils.factory import *
-from sbmlutils.factory import Sbase, SbaseRef
+from sbmlutils.factory import Q_, Sbase, SbaseRef
 from sbmlutils.io import read_sbml
 from sbmlutils.metadata import BQB
 from sbmlutils.parser import sbml_to_model
@@ -514,6 +514,80 @@ def test_unit_definition_from_units_writes_no_name() -> None:
     UnitDefinition("substance", units=[Unit("mole")]).create_sbml(model)
 
     assert not model.getUnitDefinition("substance").isSetName()
+
+
+unit_factor_definitions = [
+    "mm**2",
+    "cm**3",
+    "10/l",
+    "1e-3/min",
+    "mmole/min/l",
+    "mg/dl",
+    "1/s",
+    "meter^2",
+    "ml/min/kg",
+    "kg**2",
+    "1/min**2",
+    "0.5 mmole/cm**3",
+]
+
+
+@pytest.mark.parametrize("definition", unit_factor_definitions)
+def test_unit_definition_factor_matches_pint(definition: str, tmp_path: Path) -> None:
+    """Test that a written unit definition has the factor pint gives.
+
+    An SBML unit is `(multiplier * 10^scale * kind)^exponent`. The prefix of a
+    unit with an exponent used to be rooted by the exponent (`mm**2` became
+    1e-3 m^2) and the magnitude was rooted with the absolute exponent (`10/l`
+    became 0.1/l), so the unit definitions written by `create_model` were off
+    by orders of magnitude.
+    """
+
+    class U(Units):
+        """Units of the test model."""
+
+        u = UnitDefinition("u", definition)
+
+    filepath = tmp_path / "units.xml"
+    create_model(Model("units", units=U), filepath=filepath, validate=False)
+    # the document must stay referenced, libsbml frees its children with it
+    doc: libsbml.SBMLDocument = read_sbml(filepath)
+    udef: libsbml.UnitDefinition = doc.getModel().getUnitDefinition("u")
+
+    written = Q_(1.0, "dimensionless")
+    for unit in udef.getListOfUnits():
+        kind = libsbml.UnitKind_toString(unit.getKind())
+        written = written * (
+            Q_(unit.getMultiplier() * 10 ** unit.getScale(), kind) ** unit.getExponent()
+        )
+    written = written.to_base_units()
+    expected = Q_(definition).to_base_units()
+
+    assert written.units == expected.units
+    assert written.magnitude == pytest.approx(expected.magnitude, rel=1e-12)
+
+
+def test_unit_definition_magnitude_without_real_root_raises() -> None:
+    """Test that a magnitude which has no real root under the exponent raises.
+
+    `-1/m**2` needs the multiplier `(-1)^(-1/2)` on the metre, which is not a
+    real number and would be written as `NaN`.
+    """
+    doc = libsbml.SBMLDocument(3, 2)
+    model = doc.createModel()
+    with pytest.raises(ValueError, match="cannot be carried"):
+        UnitDefinition("u", "-1/m**2").create_sbml(model)
+
+
+def test_unit_definition_of_unit_kind() -> None:
+    """Test that a definition by libsbml unit kind writes nothing and gets no name."""
+    doc = libsbml.SBMLDocument(3, 2)
+    model = doc.createModel()
+    udef = UnitDefinition("mole", libsbml.UNIT_KIND_MOLE)
+
+    assert udef.name is None
+    assert udef.create_sbml(model) is None
+    assert model.getNumUnitDefinitions() == 0
 
 
 def test_reaction_formula_string_is_a_kinetic_law() -> None:
