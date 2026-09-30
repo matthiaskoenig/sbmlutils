@@ -78,6 +78,7 @@ jobs:
     - name: Install uv and set the python version
       uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7  # v10.2.0
       with:
+        version: "0.12.21"
         python-version: ${{ matrix.python-version }}
         # a release run restores no cache, which zizmor cannot tell from the
         # expression; the distributions are built without one, see `build`
@@ -137,6 +138,7 @@ jobs:
       # the `cobra` environment is pinned to python 3.14, see tox.ini
       uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7  # v10.2.0
       with:
+        version: "0.12.21"
         python-version: "3.14"
         # a release run restores no cache, which zizmor cannot tell from the
         # expression; the distributions are built without one, see `build`
@@ -165,9 +167,13 @@ jobs:
     - name: Install uv
       uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7  # v10.2.0
       with:
+        version: "0.12.21"
         python-version: "3.14"
         # a release is built from a clean state, never from a restored cache
         enable-cache: false
+    - name: Check the release notes exist
+      # found here rather than in `github-release`, which runs after the upload to PyPI
+      run: test -f "release-notes/${GITHUB_REF_NAME}.md"
     - name: Build the package
       # --no-sources: built the way a user builds it, without uv specific sources
       run: uv build --no-sources
