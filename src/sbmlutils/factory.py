@@ -2028,9 +2028,6 @@ class Value(Sbase):
         )
         self.value = value
 
-    def _set_fields(self, sbase: Any, model: libsbml.Model) -> None:
-        super()._set_fields(sbase, model)
-
 
 class Unit:
     """A single unit of a `UnitDefinition`.
@@ -2337,10 +2334,6 @@ class UnitDefinition(Sbase):
             )
 
         return sbml_units
-
-    def _set_fields(self, sbase: libsbml.UnitDefinition, model: libsbml.Model) -> None:
-        """Set fields on libsbml.UnitDefinition."""
-        super()._set_fields(sbase, model)
 
     @staticmethod
     def get_uid_for_unit(unit: UnitDefinition | str | None) -> str | None:
@@ -2717,10 +2710,6 @@ class LocalParameter(ValueWithUnit):
         if self.value is not None:
             check(lp.setValue(float(self.value)), f"Set value on '{self.sid}'")
         return lp
-
-    def _set_fields(self, sbase: libsbml.LocalParameter, model: libsbml.Model) -> None:
-        """Set fields on libsbml.LocalParameter."""
-        super()._set_fields(sbase, model)
 
 
 class Compartment(ValueWithUnit):
@@ -3808,6 +3797,11 @@ class EventAssignment(Value):
     """EventAssignment of an Event.
 
     Assigns the value of the expression to the variable when the event fires.
+
+    The id is set by `Sbase._set_fields` through `setIdAttribute`, see
+    `_ID_ATTRIBUTE_TYPECODES`, which never touches `variable`: an L3V1
+    document has no place for the id of an event assignment, an L3V2 one
+    writes it next to `variable`.
     """
 
     #: `libsbml.Model.getElementBySId`, which comp resolves a `comp:idRef`
@@ -3898,28 +3892,6 @@ class EventAssignment(Value):
         else:
             check(ea.setMath(ast_node), f"Set math on '{self.variable}'")
         return ea
-
-    def _set_fields(self, sbase: libsbml.EventAssignment, model: libsbml.Model) -> None:
-        """Set fields on libsbml.EventAssignment.
-
-        No override of the id handling is needed here: `SBML_EVENT_ASSIGNMENT`
-        is already in `Sbase._ID_ATTRIBUTE_TYPECODES`, so `Sbase._set_fields`
-        already routes `self.sid` through `setIdAttribute` rather than
-        `setId`, and `setIdAttribute` never touches `variable`. Verified
-        against live libsbml: on an L3V1 object `setIdAttribute` returns
-        success but writes nothing (`EventAssignment` has no `id` attribute
-        before L3V2, so it is silently dropped, exactly the "silently
-        skipped on an older level/version" behaviour `KineticLaw` documents);
-        on L3V2+ it writes a real, separately-serialized `id` distinct from
-        `variable`. Nulling `self.sid` unconditionally, as an earlier draft
-        of this method did, would have thrown away that L3V2 case for no
-        benefit.
-
-        Args:
-            sbase: the libsbml.EventAssignment created by `create_sbml`
-            model: the libsbml.Model the event assignment belongs to
-        """
-        super()._set_fields(sbase, model)
 
 
 class Trigger(Sbase):
@@ -6154,9 +6126,6 @@ class Submodel(Sbase):
 
         return submodel
 
-    def _set_fields(self, sbase: libsbml.Submodel, model: libsbml.Model) -> None:
-        super()._set_fields(sbase, model)
-
 
 class SbaseRef(Sbase):
     """SBaseRef.
@@ -6602,10 +6571,6 @@ class Deletion(SbaseRef):
 
         return deletion
 
-    def _set_fields(self, sbase: libsbml.Deletion, model: libsbml.Model) -> None:
-        """Set fields on Deletion."""
-        super()._set_fields(sbase, model)
-
 
 class PortType(StrEnum):
     """Supported port types."""
@@ -6693,10 +6658,6 @@ class Port(SbaseRef):
             p.setSBOTerm(sbo.value.replace("_", ":"))
 
         return p
-
-    def _set_fields(self, sbase: libsbml.Port, model: libsbml.Model) -> None:
-        """Set fields on Port."""
-        super()._set_fields(sbase, model)
 
 
 class Package(StrEnum):
