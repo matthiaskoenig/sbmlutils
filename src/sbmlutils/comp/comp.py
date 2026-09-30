@@ -42,19 +42,22 @@ def add_submodel_from_emd(
 ) -> libsbml.Submodel:
     """Add submodel to the model from given ExternalModelDefinition.
 
+    The `comp:modelRef` of a submodel is the id of the external model
+    definition in the same document, not the `comp:modelRef` of the definition,
+    which is the id of the model in the external document.
+
     :param model_comp: Model comp plugin
-    :param submodel_id:
-    :param emd:
-    :return:
+    :param submodel_id: id of the submodel
+    :param emd: external model definition the submodel instantiates
+    :return: the created submodel
     """
-    model_ref = emd.getModelRef()
     submodel: libsbml.Submodel = model_comp.createSubmodel()
     submodel.setId(submodel_id)
-    submodel.setModelRef(model_ref)
+    submodel.setModelRef(emd.getId())
 
-    model_comp = emd.getReferencedModel()
-    if model_comp and model_comp.isSetSBOTerm():
-        submodel.setSBOTerm(model_comp.getSBOTerm())
+    referenced_model: libsbml.Model | None = emd.getReferencedModel()
+    if referenced_model and referenced_model.isSetSBOTerm():
+        submodel.setSBOTerm(referenced_model.getSBOTerm())
     return submodel
 
 

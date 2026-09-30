@@ -1,10 +1,15 @@
 """Test model merging functionality."""
 
+import os
+import shutil
 from pathlib import Path
+
+import libsbml
+import pytest
 
 from examples.merge_models.merge_models import merge_models_example
 from sbmlutils import comp, validation
-from sbmlutils.io import write_sbml
+from sbmlutils.io import read_sbml, write_sbml
 from sbmlutils.manipulation import merge
 from sbmlutils.resources import TESTDATA_DIR
 from sbmlutils.validation import ValidationOptions
@@ -56,3 +61,177 @@ def test_biomodel_merge(tmp_path: Path) -> None:
     merged_sbml_path = out_dir / "merged_flat.xml"
     write_sbml(doc_flat, filepath=merged_sbml_path)
     assert merged_sbml_path.exists()
+
+
+MERGE_DIR = TESTDATA_DIR / "manipulation" / "merge"
+
+
+def forbid_chdir(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Fail the test as soon as anything changes the working directory.
+
+    Args:
+        monkeypatch: the fixture which undoes the patch after the test
+    """
+
+    def chdir(path: str | os.PathLike[str]) -> None:
+        """Refuse to change the working directory."""
+        raise AssertionError(f"working directory changed to '{path}'")
+
+    monkeypatch.setattr(os, "chdir", chdir)
+
+
+def two_models(model_dir: Path) -> dict[str, Path]:
+    """Copy two biomodels into a directory.
+
+    Args:
+        model_dir: directory the models are copied to
+
+    Returns:
+        the ids of the models and their paths
+    """
+    model_dir.mkdir(parents=True, exist_ok=True)
+    model_paths: dict[str, Path] = {}
+    for model_id in ["BIOMD0000000001", "BIOMD0000000002"]:
+        model_paths[model_id] = model_dir / f"{model_id}.xml"
+        shutil.copy(MERGE_DIR / f"{model_id}.xml", model_paths[model_id])
+    return model_paths
+
+
+def emd_sources(doc: libsbml.SBMLDocument) -> list[str]:
+    """Get the sources of the external model definitions of a document.
+
+    Args:
+        doc: comp document
+
+    Returns:
+        the `comp:source` of every external model definition
+    """
+    emds = doc.getPlugin("comp").getListOfExternalModelDefinitions()
+    return [emds.get(k).getSource() for k in range(emds.size())]
+
+
+def test_merge_models_relative_paths(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Relative paths are relative to the working directory, which is kept."""
+    two_models(tmp_path / "models")
+    (tmp_path / "out").mkdir()
+    monkeypatch.chdir(tmp_path)
+    forbid_chdir(monkeypatch)
+    model_paths = {
+        "BIOMD0000000001": Path("models/BIOMD0000000001.xml"),
+        "BIOMD0000000002": Path("models/BIOMD0000000002.xml"),
+    }
+
+    doc = merge.merge_models(model_paths, output_dir=Path("out"))
+
+    assert Path.cwd() == tmp_path
+    out_dir = tmp_path / "out"
+    assert (out_dir / "merged.xml").exists()
+    assert (out_dir / "merged_flat.xml").exists()
+    assert emd_sources(doc) == ["BIOMD0000000001_L3.xml", "BIOMD0000000002_L3.xml"]
+    assert emd_sources(read_sbml(out_dir / "merged.xml")) == emd_sources(doc)
+    assert not (out_dir / "out").exists()
+
+
+def test_merge_models_str_paths(tmp_path: Path) -> None:
+    """Paths given as `str` are accepted like `Path`."""
+    model_paths = {mid: str(p) for mid, p in two_models(tmp_path / "models").items()}
+    out_dir = tmp_path / "out"
+    out_dir.mkdir()
+
+    doc = merge.merge_models(model_paths, output_dir=str(out_dir), flatten=False)
+
+    assert doc is not None
+    assert (out_dir / "merged.xml").exists()
+
+
+def test_merge_models_keeps_model_paths(tmp_path: Path) -> None:
+    """The dictionary of the caller is not changed."""
+    model_paths = two_models(tmp_path / "models")
+    expected = dict(model_paths)
+
+    merge.merge_models(model_paths, output_dir=tmp_path, flatten=False)
+
+    assert model_paths == expected
+
+
+@pytest.mark.parametrize("sbml_version", [1, 2])
+def test_merge_models_level_and_version(tmp_path: Path, sbml_version: int) -> None:
+    """The merged model and its external models have the requested version."""
+    model_paths = two_models(tmp_path / "models")
+
+    doc = merge.merge_models(
+        model_paths, output_dir=tmp_path, flatten=False, sbml_version=sbml_version
+    )
+
+    assert (doc.getLevel(), doc.getVersion()) == (3, sbml_version)
+    for path in [tmp_path / "merged.xml", tmp_path / "BIOMD0000000001_L3.xml"]:
+        doc_written = read_sbml(path)
+        assert (doc_written.getLevel(), doc_written.getVersion()) == (3, sbml_version)
+
+
+def test_merge_models_unconvertible_model(tmp_path: Path) -> None:
+    """A model which cannot be converted to the requested version raises."""
+    doc = libsbml.SBMLDocument(3, 2)
+    model: libsbml.Model = doc.createModel()
+    model.setId("rate_of")
+    k: libsbml.Parameter = model.createParameter()
+    k.setId("k")
+    k.setValue(1.0)
+    k.setConstant(True)
+    x: libsbml.Parameter = model.createParameter()
+    x.setId("x")
+    x.setValue(1.0)
+    x.setConstant(False)
+    rule: libsbml.RateRule = model.createRateRule()
+    rule.setVariable("x")
+    rule.setMath(libsbml.parseL3Formula("rateOf(k)"))
+    path = tmp_path / "rate_of.xml"
+    write_sbml(doc, filepath=path)
+
+    with pytest.raises(ValueError, match="cannot be converted to SBML L3V1"):
+        merge.merge_models({"rate_of": path}, output_dir=tmp_path, flatten=False)
+
+
+@pytest.mark.parametrize(("sbml_level", "sbml_version"), [(2, 4), (3, 3)])
+def test_merge_models_unsupported_level_and_version(
+    tmp_path: Path, sbml_level: int, sbml_version: int
+) -> None:
+    """Only SBML L3V1 and L3V2 can hold a comp model."""
+    with pytest.raises(ValueError, match="SBML L3V1 or L3V2"):
+        merge.merge_models(
+            two_models(tmp_path / "models"),
+            output_dir=tmp_path,
+            sbml_level=sbml_level,
+            sbml_version=sbml_version,
+        )
+
+
+def test_merge_models_ids_differ_from_model_ids(tmp_path: Path) -> None:
+    """The ids of the external models need not be the ids of their models."""
+    model_paths = two_models(tmp_path / "models")
+    renamed = {"first": model_paths["BIOMD0000000001"]}
+    renamed["second"] = model_paths["BIOMD0000000002"]
+
+    doc = merge.merge_models(renamed, output_dir=tmp_path)
+
+    vresults = validation.validate_doc(
+        doc, options=ValidationOptions(units_consistency=False)
+    )
+    assert vresults.error_count == 0
+    assert (tmp_path / "merged_flat.xml").exists()
+
+
+def test_merge_models_submodel_sbo_term(tmp_path: Path) -> None:
+    """A submodel has the SBO term of the model it instantiates."""
+    model_paths = two_models(tmp_path / "models")
+    doc = read_sbml(model_paths["BIOMD0000000001"])
+    doc.getModel().setSBOTerm("SBO:0000062")
+    write_sbml(doc, filepath=model_paths["BIOMD0000000001"])
+
+    merged_doc = merge.merge_models(model_paths, output_dir=tmp_path, flatten=False)
+
+    comp_model: libsbml.CompModelPlugin = merged_doc.getModel().getPlugin("comp")
+    assert comp_model.getSubmodel("BIOMD0000000001").getSBOTermID() == "SBO:0000062"
+    assert not comp_model.getSubmodel("BIOMD0000000002").isSetSBOTerm()
