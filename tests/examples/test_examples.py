@@ -13,8 +13,17 @@ from sbmlutils.validation import ValidationOptions, ValidationResult
 
 @pytest.mark.parametrize("module", examples_create)
 def test_create_example_create(tmp_path: Path, module: Any) -> None:
-    """Test create model."""
+    """Test that an example writes models and that every one of them is valid."""
     module.create(output_dir=tmp_path)
+
+    sbml_paths = sorted(tmp_path.glob("**/*.xml"))
+    assert sbml_paths, f"'{module.__name__}' wrote no model"
+    for sbml_path in sbml_paths:
+        vresults: ValidationResult = validate_sbml(
+            source=sbml_path,
+            validation_options=ValidationOptions(units_consistency=False),
+        )
+        assert vresults.error_count == 0, f"'{sbml_path.name}' is invalid"
 
 
 @pytest.mark.parametrize("module", examples_models)

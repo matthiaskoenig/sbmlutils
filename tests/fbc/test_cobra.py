@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+import libsbml
 import pytest
 
 from sbmlutils.fbc.cobra import (
@@ -60,5 +61,23 @@ def test_mass_balance(tmp_path: Path) -> None:
 
 @pytest.mark.skipif(cobra is None, reason="requires cobrapy")
 def test_check_mass_balance() -> None:
-    """Test check mass balance."""
-    check_mass_balance(sbml_path=DEMO_SBML)
+    """Test that every reaction of the demo model is balanced."""
+    assert check_mass_balance(sbml_path=DEMO_SBML) == {}
+
+
+@pytest.mark.skipif(cobra is None, reason="requires cobrapy")
+def test_check_mass_balance_finds_unbalanced_reactions(tmp_path: Path) -> None:
+    """Test that the reactions of a species with another formula are unbalanced."""
+    doc: libsbml.SBMLDocument = read_sbml(DEMO_SBML)
+    model: libsbml.Model = doc.getModel()
+    species: libsbml.Species = model.getSpecies("c__B")
+    species_fbc: libsbml.FbcSpeciesPlugin = species.getPlugin("fbc")
+    species_fbc.setChemicalFormula("C6H12O5")
+    sbml_path = tmp_path / "unbalanced.xml"
+    write_sbml(doc, filepath=sbml_path)
+
+    unbalanced = check_mass_balance(sbml_path=sbml_path)
+
+    # c__B lacks an oxygen: it is a product of v1 and v4, which lose one, and
+    # the reactant of the transport bB, which gains one
+    assert unbalanced == {"bB": {"O": 1.0}, "v1": {"O": -1.0}, "v4": {"O": -1.0}}

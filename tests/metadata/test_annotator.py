@@ -192,14 +192,46 @@ def test_demo_annotation(tmp_path: Path) -> None:
             assert len(cvterms) == 1
 
 
+def _annotated_elements(doc: libsbml.SBMLDocument) -> list[str]:
+    """Collect the ids of the elements of a document which carry a CVTerm.
+
+    Args:
+        doc: the SBML document
+
+    Returns:
+        the ids of the annotated elements
+    """
+    elements: libsbml.SBaseList = doc.getListOfAllElements()
+    return [
+        element.getId()
+        for element in elements
+        if isinstance(element, libsbml.SBase) and element.getNumCVTerms() > 0
+    ]
+
+
 def test_galactose_annotation(tmp_path: Path) -> None:
-    """Annotate the galactose network."""
+    """Annotate the galactose network from the annotations of a spreadsheet."""
+    assert (
+        _annotated_elements(read_sbml(GALACTOSE_SINGLECELL_SBML_NO_ANNOTATIONS)) == []
+    )
+
     tmp_sbml_path = tmp_path / "sbml_annotated.xml"
     annotator.annotate_sbml(
         GALACTOSE_SINGLECELL_SBML_NO_ANNOTATIONS,
         annotations_path=GALACTOSE_ANNOTATIONS,
         filepath=tmp_sbml_path,
     )
+
+    doc: libsbml.SBMLDocument = read_sbml(source=tmp_sbml_path)
+    assert len(_annotated_elements(doc)) > 100
+    model: libsbml.Model = doc.getModel()
+    taxa = [
+        cvterm.getResourceURI(k)
+        for cvterm in model.getCVTerms()
+        if cvterm.getBiologicalQualifierType() == libsbml.BQB_HAS_TAXON
+        for k in range(cvterm.getNumResources())
+    ]
+    assert taxa == ["https://identifiers.org/taxonomy:9606"]
 
 
 def _written_resources(sbml_path: Path, sid: str) -> list[str]:

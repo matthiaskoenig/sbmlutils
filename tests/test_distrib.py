@@ -46,14 +46,40 @@ class U(Units):
     mM = UnitDefinition("mM", "mmole/liter")
 
 
-def test_distrib_examples() -> None:
-    """Test distrib examples."""
-    distrib_packages_examples.create_examples()
+def test_distrib_examples(tmp_path: Path) -> None:
+    """Test that the raw libsbml distrib examples are written and valid."""
+    distrib_packages_examples.create_examples(output_dir=tmp_path)
+
+    sbml_paths = sorted(tmp_path.glob("*.xml"))
+    assert [p.name for p in sbml_paths] == [
+        "distrib_all.xml",
+        "distrib_normal.xml",
+        "uncertainty.xml",
+    ]
+    for sbml_path in sbml_paths:
+        doc: libsbml.SBMLDocument = libsbml.readSBMLFromFile(str(sbml_path))
+        assert doc.isPackageEnabled("distrib")
+        vresults = validate_doc(doc, options=ValidationOptions(units_consistency=False))
+        assert vresults.error_count == 0, sbml_path.name
 
 
-def test_add_uncertainty_example() -> None:
-    """Test add uncertainty example."""
-    distrib_uncertainty.add_uncertainty_example()
+def test_add_uncertainty_example(tmp_path: Path) -> None:
+    """Test that the example writes the mean of a gene product as its uncertainty."""
+    distrib_uncertainty.add_uncertainty_example(output_dir=tmp_path)
+
+    doc: libsbml.SBMLDocument = libsbml.readSBMLFromFile(
+        str(tmp_path / "e_coli_core_expression.xml")
+    )
+    model: libsbml.Model = doc.getModel()
+    model_fbc: libsbml.FbcModelPlugin = model.getPlugin("fbc")
+    gp: libsbml.GeneProduct = model_fbc.getGeneProduct(0)
+    gp_distrib: libsbml.DistribSBasePlugin = gp.getPlugin("distrib")
+    assert gp_distrib.getNumUncertainties() == 1
+    uncertainty: libsbml.Uncertainty = gp_distrib.getUncertainty(0)
+    mean: libsbml.UncertParameter = uncertainty.getUncertParameterByType(
+        libsbml.DISTRIB_UNCERTTYPE_MEAN
+    )
+    assert mean.getValue() == 2.5
 
 
 def check_model(model: Model) -> libsbml.SBMLDocument:

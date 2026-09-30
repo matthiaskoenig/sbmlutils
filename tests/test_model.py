@@ -9,7 +9,9 @@ from sbmlutils.factory import *
 def test_model_existing_attribute() -> None:
     """Test model access existing attribute."""
     m = Model("tests")
-    m.reactions = []
+    reactions: list[Reaction] = [Reaction("r1", equation="A -> B")]
+    m.reactions = reactions
+    assert m.reactions is reactions
 
 
 def test_model_new_attribute() -> None:

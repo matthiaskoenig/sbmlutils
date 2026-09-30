@@ -110,10 +110,6 @@ def suite_case(case: str, level_version: str = "l3v2") -> Path:
     return SEMANTIC_DIR / case / f"{case}-sbml-{level_version}.xml"
 
 
-#: not a test despite the name, pytest's default collection matches on the
-#: "test" prefix alone and would otherwise try to collect this helper
-suite_case.__test__ = False  # ty: ignore[unresolved-attribute]
-
 #: the selection names and the data of a simulation
 Simulation = tuple[list[str], np.ndarray]
 
