@@ -2652,7 +2652,7 @@ class LocalParameter(ValueWithUnit):
         )
 
     def create_sbml(
-        self, klaw: libsbml.KineticLaw, model: libsbml.Model | None = None
+        self, klaw: libsbml.KineticLaw, model: libsbml.Model
     ) -> libsbml.LocalParameter:
         """Create the libsbml.LocalParameter in the given kinetic law.
 
@@ -2660,16 +2660,12 @@ class LocalParameter(ValueWithUnit):
             klaw: the libsbml.KineticLaw the local parameter is created in
             model: the libsbml.Model the kinetic law is created in, which
                 the port and the uncertainties of the local parameter are
-                created in. It has to be handed down rather than looked up,
-                and `None` falls back to `klaw.getModel()`, which is the same
-                model outside a `<comp:modelDefinition>` and the wrong one
-                inside one; both are stated in `Model._fill_sbml`
+                created in; handed down, never looked up, see
+                `Model._fill_sbml`
 
         Returns:
             the created libsbml.LocalParameter
         """
-        if model is None:
-            model = klaw.getModel()
         lp: libsbml.LocalParameter = klaw.createLocalParameter()
         self._set_fields(lp, model)
         self.create_port(model)
@@ -3521,7 +3517,7 @@ class KineticLaw(Sbase):
         return f"KineticLaw({self.math})"
 
     def create_sbml(
-        self, reaction: libsbml.Reaction, model: libsbml.Model | None = None
+        self, reaction: libsbml.Reaction, model: libsbml.Model
     ) -> libsbml.KineticLaw:
         """Create the libsbml.KineticLaw on the given reaction.
 
@@ -3530,17 +3526,12 @@ class KineticLaw(Sbase):
             model: the libsbml.Model the reaction is created in, which the
                 math is parsed against and which the port, the uncertainties
                 and the replacedBy of the kinetic law and of its local
-                parameters are created in. It has to be handed down rather
-                than looked up, and `None` falls back to
-                `reaction.getModel()`, which is the same model outside a
-                `<comp:modelDefinition>` and the wrong one inside one; both
-                are stated in `Model._fill_sbml`
+                parameters are created in; handed down, never looked up,
+                see `Model._fill_sbml`
 
         Returns:
             the created libsbml.KineticLaw
         """
-        if model is None:
-            model = reaction.getModel()
         klaw: libsbml.KineticLaw = reaction.createKineticLaw()
         self._set_fields(klaw, model)
         self.create_port(model)
@@ -4956,7 +4947,7 @@ class _UncertChild(Sbase):
         )
         return False
 
-    def _set_fields(self, sbase: Any, model: Any) -> None:
+    def _set_fields(self, sbase: Any, model: libsbml.Model) -> None:
         """Set the shared fields on the created libsbml object.
 
         `sbase` is declared `Any` for the reason `Sbase._set_fields` declares
@@ -4968,13 +4959,11 @@ class _UncertChild(Sbase):
             sbase: the libsbml.UncertParameter or libsbml.UncertSpan created
                 by `create_sbml`
             model: the libsbml.Model the uncertainty is created in, which the
-                math of the child is parsed against. It is handed down rather
-                than looked up, and `None` falls back to the model of the
-                created object, which is attached to its parent already; both
-                are stated in `Model._fill_sbml`. It is never passed on to
-                `Sbase._set_fields`, which is what keeps it from descending
-                into the `uncertainties` and the comp fields of a child, and
-                is the second meaning `None` has there.
+                math of the child is parsed against; handed down, never
+                looked up, see `Model._fill_sbml`. It is never passed on to
+                `Sbase._set_fields`, which gets `None`: that is what keeps it
+                from descending into the `uncertainties` and the comp fields
+                of a child.
         """
         super()._set_fields(sbase, None)
         if self.type is not None:
@@ -4984,7 +4973,7 @@ class _UncertChild(Sbase):
                 sbase.setDefinitionURL(self.definitionURL),
                 f"Set definitionURL '{self.definitionURL}' on {sbase}",
             )
-        _set_math(sbase, self.math, model if model is not None else sbase.getModel())
+        _set_math(sbase, self.math, model)
         if self.unit:
             uid = UnitDefinition.get_uid_for_unit(unit=self.unit)
             check(sbase.setUnits(uid), f"Set unit '{uid}' on {sbase}")
@@ -5098,7 +5087,7 @@ class UncertParameter(_UncertChild):
     def create_sbml(
         self,
         parent: libsbml.Uncertainty | libsbml.UncertParameter,
-        model: libsbml.Model | None = None,
+        model: libsbml.Model,
     ) -> libsbml.UncertParameter | None:
         """Create the libsbml.UncertParameter in the given parent.
 
@@ -5118,7 +5107,7 @@ class UncertParameter(_UncertChild):
         self._set_fields(up, model)
         return up
 
-    def _set_fields(self, sbase: libsbml.UncertParameter, model: Any) -> None:
+    def _set_fields(self, sbase: libsbml.UncertParameter, model: libsbml.Model) -> None:
         """Set the fields on the libsbml.UncertParameter.
 
         Args:
@@ -5272,7 +5261,7 @@ class UncertSpan(_UncertChild):
     def create_sbml(
         self,
         parent: libsbml.Uncertainty | libsbml.UncertParameter,
-        model: libsbml.Model | None = None,
+        model: libsbml.Model,
     ) -> libsbml.UncertSpan | None:
         """Create the libsbml.UncertSpan in the given parent.
 
@@ -5292,7 +5281,7 @@ class UncertSpan(_UncertChild):
         self._set_fields(span, model)
         return span
 
-    def _set_fields(self, sbase: libsbml.UncertSpan, model: Any) -> None:
+    def _set_fields(self, sbase: libsbml.UncertSpan, model: libsbml.Model) -> None:
         """Set the fields on the libsbml.UncertSpan.
 
         Args:
@@ -5754,7 +5743,7 @@ class UserDefinedConstraintComponent(Sbase):
     def create_sbml(
         self,
         constraint: libsbml.UserDefinedConstraint,
-        model: libsbml.Model | None = None,
+        model: libsbml.Model,
     ) -> libsbml.UserDefinedConstraintComponent:
         """Create the libsbml.UserDefinedConstraintComponent in the constraint.
 
@@ -5762,11 +5751,8 @@ class UserDefinedConstraintComponent(Sbase):
             constraint: the libsbml.UserDefinedConstraint the component
                 belongs to
             model: the libsbml.Model the constraint is created in, which the
-                fields of the component are written with. It has to be handed
-                down rather than looked up, and `None` falls back to
-                `constraint.getModel()`, which is the same model outside a
-                `<comp:modelDefinition>` and the wrong one inside one; both
-                are stated in `Model._fill_sbml`
+                fields of the component are written with; handed down, never
+                looked up, see `Model._fill_sbml`
 
         Returns:
             the created libsbml.UserDefinedConstraintComponent
@@ -5774,8 +5760,6 @@ class UserDefinedConstraintComponent(Sbase):
         component: libsbml.UserDefinedConstraintComponent = (
             constraint.createUserDefinedConstraintComponent()
         )
-        if model is None:
-            model = constraint.getModel()
         self._set_fields(component, model)
         self.create_port(model)
 
@@ -5982,25 +5966,20 @@ class FluxObjective(Sbase):
         return variable_type
 
     def create_sbml(
-        self, objective: libsbml.Objective, model: libsbml.Model | None = None
+        self, objective: libsbml.Objective, model: libsbml.Model
     ) -> libsbml.FluxObjective:
         """Create the libsbml.FluxObjective in the objective.
 
         Args:
             objective: the libsbml.Objective the flux objective belongs to
             model: the libsbml.Model the objective is created in, which the
-                fields of the flux objective are written with. It has to be
-                handed down rather than looked up, and `None` falls back to
-                `objective.getModel()`, which is the same model outside a
-                `<comp:modelDefinition>` and the wrong one inside one; both
-                are stated in `Model._fill_sbml`
+                fields of the flux objective are written with; handed down,
+                never looked up, see `Model._fill_sbml`
 
         Returns:
             the created libsbml.FluxObjective
         """
         flux_objective: libsbml.FluxObjective = objective.createFluxObjective()
-        if model is None:
-            model = objective.getModel()
         self._set_fields(flux_objective, model)
         self.create_port(model)
 
@@ -7430,28 +7409,17 @@ class Model(Sbase, FrozenClass):
         `KineticLaw`, `Uncertainty` to its children, `Objective` to its flux
         objectives and `UserDefinedConstraint` to its components.
 
-        **What `model=None` means**, which is the default of every writer
-        which is handed the model and is stated here rather than in each of
-        them. Nothing in this package passes it: it is for a caller outside
-        which creates one element on a libsbml object of its own, and it
-        means one of two things, decided by what the writer does with the
-        model:
-
-        - *look it up*, `model.getModel()` of the object the element is
-          created on: `LocalParameter`, `KineticLaw`, `FluxObjective` and
-          `UserDefinedConstraintComponent`. That lookup is the one which
-          answers with the model of the document inside a
-          `<comp:modelDefinition>`, so it is a fallback and never right in
-          one;
-        - *written without a model*: `KeyValuePair` and `Sbase.create_port`,
-          which need the model only to create the `<comp:listOfPorts>` a port
-          lives in, so `None` means the element has nowhere to put a port and
-          the port is reported, see `Sbase._port_loss`.
-
-        `_UncertChild._set_fields` is both at once: it hands `None` down to
-        `Sbase._set_fields`, which is what keeps a child of an uncertainty
-        from writing a port, and falls back to the lookup for the model its
-        math is parsed against.
+        **The model is a required argument** of every writer which parses
+        math against it or creates something in it, `LocalParameter`,
+        `KineticLaw`, `FluxObjective`, `UserDefinedConstraintComponent` and
+        the children of an `Uncertainty` included, so that no writer falls
+        back to the lookup. **`model=None` has one meaning**, *written
+        without a model*, for `KeyValuePair` and `Sbase.create_port`, which
+        need the model only to create the `<comp:listOfPorts>` a port lives
+        in: the element has nowhere to put a port and the port is reported,
+        see `Sbase._port_loss`. `_UncertChild._set_fields` hands `None` down
+        to `Sbase._set_fields` for that reason, which is what keeps a child
+        of an uncertainty from writing a port.
 
         Args:
             model: the created libsbml.Model, or the libsbml.ModelDefinition
