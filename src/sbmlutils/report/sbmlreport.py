@@ -1,4 +1,4 @@
-"""SBML report using https://sbml4humans.de."""
+"""SBML report using a local sbml4humans instance."""
 
 import http.server
 import logging
@@ -84,13 +84,15 @@ def start_server(path: Path, port: int = 5115) -> http.server.ThreadingHTTPServe
         name="daemon_server", target=httpd.serve_forever, daemon=True
     ).start()
     # shutdown() called before serve_forever() is running would block forever
-    httpd.serving.wait(timeout=5)
+    if not httpd.serving.wait(timeout=5):
+        httpd.server_close()
+        raise RuntimeError("The file server did not start serving within 5 seconds.")
     return httpd
 
 
 def create_online_report(
     sbml_path: Path,
-    server: str = "https://sbml4humans.de",
+    server: str = "http://localhost:3456",
     fileserver_duration: int = 10,
     fileserver_port: int = 5115,
 ) -> None:
@@ -100,7 +102,7 @@ def create_online_report(
     Local parameters can be promoted during report generation.
 
     :param sbml_path: path to SBML file
-    :param server: server to use for report, for local development use `localhost:3456`
+    :param server: server to use for report, an sbml4humans instance running on the same machine, with scheme and port
     :param fileserver_duration: duration of file server in seconds
     :param fileserver_port: port of file server
 
@@ -149,5 +151,4 @@ def create_online_report(
 if __name__ == "__main__":
     from sbmlutils.resources import REPRESSILATOR_SBML
 
-    # create_online_report(sbml_path=REPRESSILATOR_SBML)
-    create_online_report(sbml_path=REPRESSILATOR_SBML, server="localhost:3456")
+    create_online_report(sbml_path=REPRESSILATOR_SBML, server="http://localhost:3456")

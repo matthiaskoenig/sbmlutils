@@ -84,6 +84,6 @@ The content of a model for a human reader, see [Reports](../reports.md).
 | module | description |
 | --- | --- |
 | [report.sbmlinfo](report.sbmlinfo.md) | the complete content of a document as JSON |
-| [report.sbmlreport](report.sbmlreport.md) | a report on sbml4humans.de |
+| [report.sbmlreport](report.sbmlreport.md) | a report on a local sbml4humans |
 | [report.units](report.units.md) | unit definitions rendered as a string or latex |
 | [report.mathml](report.mathml.md) | math rendered as latex |

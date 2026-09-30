@@ -227,6 +227,27 @@ def test_invalid_model_id_is_rejected(language: str) -> None:
         convert()
 
 
+@pytest.mark.parametrize("language", ["python", "R", "julia"])
+def test_species_without_compartment_is_no_invalid_sid(language: str) -> None:
+    """A species without compartment is not reported as the invalid id ''."""
+    sbml = (
+        _sbml("k*A")
+        .replace(' compartment="c"', "", 1)
+        .replace('hasOnlySubstanceUnits="false"', 'hasOnlySubstanceUnits="true"')
+        .replace("initialConcentration", "initialAmount")
+    )
+    sbml2ode = SBML2ODE(read_sbml(sbml))
+    convert = {
+        "python": sbml2ode.to_python,
+        "R": sbml2ode.to_R,
+        "julia": sbml2ode.to_julia,
+    }[language]
+    try:
+        convert()
+    except ValueError as err:
+        assert "SId" not in str(err), err
+
+
 def test_python_local_parameter_is_not_supported() -> None:
     """An identifier which is no symbol of the python code is never written raw."""
     sbml = _sbml("kl*A").replace(

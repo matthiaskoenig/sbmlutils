@@ -1114,7 +1114,9 @@ class SBML2ODE:
         model: libsbml.Model = self.doc.getModel()
         if model.isSetId():
             check_sid(model.getId())
-        for sid in [*self.dx_ast, *self.p, *self.y_ast, *self.x_compartments.values()]:
+        # a species without compartment (invalid, but read) has the empty id
+        compartments = [cid for cid in self.x_compartments.values() if cid]
+        for sid in [*self.dx_ast, *self.p, *self.y_ast, *compartments]:
             check_sid(sid)
 
     # names the python code uses besides the assigned variables

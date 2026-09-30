@@ -13,7 +13,9 @@ from sbmlutils.resources import REPRESSILATOR_SBML
 
 
 def _get(url: str) -> bytes:
-    with urllib.request.urlopen(url, timeout=5) as response:
+    """Fetch a url directly, ignoring any http_proxy of the environment."""
+    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+    with opener.open(url, timeout=5) as response:
         return bytes(response.read())
 
 
@@ -50,7 +52,19 @@ def test_create_online_report_stops_server() -> None:
             REPRESSILATOR_SBML, fileserver_duration=0, fileserver_port=0
         )
     url = opened.call_args.args[0]
-    assert url.startswith("https://sbml4humans.de/report?url=http%3A%2F%2F127.0.0.1%3A")
+    assert url.startswith("http://localhost:3456/report?url=http%3A%2F%2F127.0.0.1%3A")
     inner = urllib.parse.unquote(url.split("url=")[1])
     with pytest.raises(urllib.error.URLError):
         _get(inner)
+
+
+def test_start_server_raises_if_not_serving(tmp_path: Path) -> None:
+    """A server which never starts serving raises instead of blocking shutdown."""
+    model = tmp_path / "model.xml"
+    model.write_text("<sbml/>")
+    with (
+        mock.patch("threading.Thread"),
+        mock.patch("threading.Event.wait", return_value=False),
+        pytest.raises(RuntimeError, match="did not start"),
+    ):
+        sbmlreport.start_server(model, port=0)
