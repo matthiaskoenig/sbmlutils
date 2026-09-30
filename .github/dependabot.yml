@@ -1,4 +1,4 @@
-# Keep the GitHub Actions used in the workflows up to date.
+# Keep the GitHub Actions, the locked python dependencies and the pre-commit hooks up to date.
 # See https://docs.github.com/code-security/dependabot/dependabot-version-updates
 version: 2
 updates:
@@ -9,6 +9,32 @@ updates:
     # a single pull request for all action updates instead of one per action
     groups:
       github-actions:
+        patterns:
+          - "*"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "ci"
+
+  # the locked python dependencies (uv.lock), bumped together
+  - package-ecosystem: "uv"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      python-dependencies:
+        patterns:
+          - "*"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "build"
+
+  # the hook revisions in .pre-commit-config.yaml (ruff and ty are also locked in uv.lock, see the ruff workflow)
+  - package-ecosystem: "pre-commit"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      pre-commit-hooks:
         patterns:
           - "*"
     open-pull-requests-limit: 5
