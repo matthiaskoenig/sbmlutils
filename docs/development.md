@@ -44,6 +44,7 @@ The protection is implemented with [repository rulesets](https://docs.github.com
 | `develop.json`          | `develop`  | pull request required, the four checks above, resolved conversations, linear history, no force push, no deletion. **No bypass, for anybody.** |
 | `main.json`             | `main`     | linear history, no force push, no deletion, no bypass. The fast-forward of the release workflow needs none, only a force push or a merge commit would be rejected |
 | `tags.json`             | all tags   | a tag cannot be deleted or moved, so a release tag keeps pointing at what was released                                                       |
+| `tag-creation.json`     | all tags   | only a repository admin can create a tag. Every tag starts the release, so a tag is a release to PyPI. A ruleset of its own, since the bypass of the admins must not extend to `tags.json` |
 
 Changing a policy means changing the json and applying it:
 
