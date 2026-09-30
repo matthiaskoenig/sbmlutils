@@ -31,8 +31,6 @@ class _SingleFileHandler(http.server.BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-Type", "application/xml")
         self.send_header("Content-Length", str(len(content)))
-        # the report page is served from another origin and fetches the model in the browser
-        self.send_header("Access-Control-Allow-Origin", "*")
         self.end_headers()
         if with_body:
             self.wfile.write(content)
@@ -60,7 +58,8 @@ class _Server(http.server.ThreadingHTTPServer):
 
     def service_actions(self) -> None:
         """Called on every iteration of the serve loop."""
-        self.serving.set()
+        if not self.serving.is_set():
+            self.serving.set()
 
 
 def start_server(path: Path, port: int = 5115) -> http.server.ThreadingHTTPServer:
@@ -105,6 +104,10 @@ def create_online_report(
     :param fileserver_duration: duration of file server in seconds
     :param fileserver_port: port of file server
 
+    The model is served on the loopback address (127.0.0.1) and fetched from there by
+    the report server, so this works with an sbml4humans running on the same machine
+    (the `server` parameter). A remote server cannot reach the model.
+
     :return: None
     """
     # validate and check arguments
@@ -126,18 +129,21 @@ def create_online_report(
     timer.daemon = True
     timer.start()
 
-    # post file via url to sbml4humans server (the url is encoded twice, as the report expects)
-    url = f"http://127.0.0.1:{httpd.server_address[1]}/{urllib.parse.quote(sbml_path.name)}"
-    url_encoded = urllib.parse.quote(urllib.parse.quote(url, safe=""), safe="")
-    sbml4humans_url = f"{server}/model_url?url={url_encoded}"
-    logger.info("Create report: `%s`", sbml4humans_url)
+    try:
+        # post file via url to sbml4humans server
+        url = f"http://127.0.0.1:{httpd.server_address[1]}/{urllib.parse.quote(sbml_path.name)}"
+        sbml4humans_url = f"{server}/report?url={urllib.parse.quote(url, safe='')}"
+        logger.info("Create report: `%s`", sbml4humans_url)
 
-    # open in browser
-    webbrowser.open(sbml4humans_url, new=0)
+        # open in browser
+        webbrowser.open(sbml4humans_url, new=0)
 
-    # give some time to render report (the fileserver must stay alive)
-    timer.join()
-    httpd.server_close()
+        # give some time to render report (the fileserver must stay alive)
+        timer.join()
+    finally:
+        timer.cancel()
+        httpd.shutdown()
+        httpd.server_close()
 
 
 if __name__ == "__main__":

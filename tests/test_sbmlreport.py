@@ -50,9 +50,7 @@ def test_create_online_report_stops_server() -> None:
             REPRESSILATOR_SBML, fileserver_duration=0, fileserver_port=0
         )
     url = opened.call_args.args[0]
-    assert url.startswith(
-        "https://sbml4humans.de/model_url?url=http%253A%252F%252F127.0.0.1%253A"
-    )
-    inner = urllib.parse.unquote(urllib.parse.unquote(url.split("url=")[1]))
+    assert url.startswith("https://sbml4humans.de/report?url=http%3A%2F%2F127.0.0.1%3A")
+    inner = urllib.parse.unquote(url.split("url=")[1])
     with pytest.raises(urllib.error.URLError):
         _get(inner)

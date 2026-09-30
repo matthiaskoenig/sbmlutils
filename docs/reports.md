@@ -75,6 +75,6 @@ from sbmlutils.report.sbmlreport import create_online_report
 create_online_report(sbml_path=Path("model.xml"))
 ```
 
-The model is served from your machine for the duration of `fileserver_duration` (10 seconds by default) so that the site can fetch it; nothing is uploaded permanently. `server="localhost:3456"` points it at a local instance of the frontend.
+The model is served from your machine for the duration of `fileserver_duration` (10 seconds by default) so that the report server can fetch it; nothing is uploaded permanently. The model is served only on the loopback address (127.0.0.1) and only that one file, so the report server must run on the same machine (`server` parameter); a remote server such as sbml4humans.de cannot reach it. `server="localhost:3456"` points it at a local instance of the frontend.
 
 The frontend and the http api behind sbml4humans.de live in [matthiaskoenig/sbml4humans](https://github.com/matthiaskoenig/sbml4humans); the report itself, i.e. `SBMLDocumentInfo`, is part of sbmlutils and is what that api serves.
