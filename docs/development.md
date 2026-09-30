@@ -134,6 +134,10 @@ The `lowest` environment installs the oldest version of every dependency which t
 tox r -e lowest
 ```
 
+On Linux the tests run with the standalone interpreters of uv (`UV_PYTHON_PREFERENCE=only-managed`). The extension of libroadrunner links against `libpython3.X.so.1.0`, which these interpreters ship in their `lib` directory but, being linked statically, never load; the workflow puts that directory on `LD_LIBRARY_PATH`, which tox passes on to the tests. Locally the same import error (`libpython3.X.so.1.0: cannot open shared object file`) is solved by that variable or by the `libpython3.X` package of the distribution.
+
+The workflows pin every action to the full commit SHA of a release, with the version in a comment; dependabot updates both. The tools run with `uvx` (tox, tox-uv, twine) are pinned in the `env` of `ci-cd.yml` and `ty.yml`, which dependabot does not update, so they are raised by hand.
+
 To run the tests directly against the development environment use
 
 ```bash
@@ -244,7 +248,7 @@ A release is made from `develop`. Since `develop` only accepts pull requests, th
     git push origin x.y.z
     ```
 
-    This starts the `CI-CD` workflow, which runs the test matrix, publishes to [pypi](https://pypi.org/project/sbmlutils/), creates the GitHub release from `release-notes/x.y.z.md` and fast-forwards `main` to the tagged commit. Check the version before pushing, a tag cannot be moved or deleted afterwards.
+    Only a repository admin can push a tag, see `tag-creation.json`. This starts the `CI-CD` workflow, which runs the test matrix, builds the distributions in a job without write permissions (`build`), publishes them to [pypi](https://pypi.org/project/sbmlutils/) with attestations by trusted publishing from the `pypi` environment (`publish`), creates the GitHub release from `release-notes/x.y.z.md` (`github-release`) and fast-forwards `main` to the tagged commit (`sync-main`). Check the version before pushing, a tag cannot be moved or deleted afterwards.
 
 8. test the installation from pypi in a fresh environment:
 

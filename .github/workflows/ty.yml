@@ -22,11 +22,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           persist-credentials: false
       - name: Install uv and set the python version
-        uses: astral-sh/setup-uv@v10.2.0
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7  # v10.2.0
         with:
           python-version: "3.14"
           enable-cache: true
@@ -34,5 +34,8 @@ jobs:
         env:
           # render diagnostics as GitHub Actions workflow annotations
           TY_OUTPUT_FORMAT: github
-        run:
-          uvx --with tox-uv tox -e ty
+          # the tools run with uvx are pinned, dependabot does not update them,
+          # keep them equal to the versions in ci-cd.yml
+          TOX_VERSION: "4.64.5"
+          TOX_UV_VERSION: "1.36.0"
+        run: uvx --with "tox-uv==${TOX_UV_VERSION}" "tox@${TOX_VERSION}" -e ty
