@@ -62,7 +62,10 @@ def read_sbml(
         else:
             err_message = "SBMLDocumentErrors encountered while reading the SBML file."
 
-        log_sbml_errors_for_doc(doc)
+        if not validate:
+            # with `validate` the read errors are part of the validation
+            # result, which logs them once
+            log_sbml_errors_for_doc(doc)
         logger.error("`read_sbml` error '%s': %s", source, err_message)
 
     if validate:

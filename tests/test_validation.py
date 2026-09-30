@@ -1,5 +1,6 @@
 """Test SBML validation."""
 
+import gc
 import logging
 from pathlib import Path
 
@@ -153,3 +154,21 @@ def test_scoped_loss_collector_does_not_mask_body_exception() -> None:
     with pytest.raises(KeyError), collector.scope():
         collector.group("a", lambda: 1)
         raise KeyError("body")
+
+
+def test_validation_result_outlives_the_document() -> None:
+    """The errors of a result are snapshots, not references into a freed log."""
+    sbml = _SBML_TEMPLATE.format(model_id="m", attributes=' foo="1"')
+    result = validate_sbml(sbml, ValidationOptions(log_errors=False))
+    gc.collect()
+    assert _error_ids(result) == [libsbml.AllowedAttributesOnModel]
+    assert "foo" in result.errors[0].getMessage()
+    assert result.errors[0].getSeverity() == libsbml.LIBSBML_SEV_ERROR
+
+
+def test_read_errors_are_logged_once(caplog: pytest.LogCaptureFixture) -> None:
+    """With `validate` the read errors are logged by the validation only."""
+    sbml = _SBML_TEMPLATE.format(model_id="m", attributes=' foo="1"')
+    with caplog.at_level(logging.ERROR, logger="sbmlutils"):
+        read_sbml(sbml, promote=False, validate=True)
+    assert caplog.text.count("Invalid attribute found on the Model object") == 1

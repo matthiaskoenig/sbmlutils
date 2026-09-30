@@ -216,13 +216,96 @@ class ValidationOptions:
     modeling_practice: bool = True
 
 
+@dataclass(frozen=True)
+class SBMLErrorInfo:
+    """Immutable snapshot of a libsbml `SBMLError`.
+
+    A libsbml error belongs to the error log of its document and is gone with
+    the document, so a `ValidationResult` which holds the libsbml objects
+    returns garbage once the validated document is freed. The snapshot holds
+    plain values and offers the getters of `libsbml.SBMLError` which are used
+    on results, so code written against the libsbml object keeps working.
+    """
+
+    error_id: int
+    severity: int
+    severity_string: str
+    category: int
+    category_string: str
+    line: int
+    column: int
+    message: str
+    short_message: str
+    package: str
+
+    @staticmethod
+    def from_error(error: libsbml.SBMLError) -> "SBMLErrorInfo":
+        """Take a snapshot of a libsbml error."""
+        return SBMLErrorInfo(
+            error_id=error.getErrorId(),
+            severity=error.getSeverity(),
+            severity_string=error.getSeverityAsString(),
+            category=error.getCategory(),
+            category_string=error.getCategoryAsString(),
+            line=error.getLine(),
+            column=error.getColumn(),
+            message=error.getMessage(),
+            short_message=error.getShortMessage(),
+            package=error.getPackage(),
+        )
+
+    def getErrorId(self) -> int:
+        """Get the error id."""
+        return self.error_id
+
+    def getSeverity(self) -> int:
+        """Get the severity code."""
+        return self.severity
+
+    def getSeverityAsString(self) -> str:
+        """Get the severity as string."""
+        return self.severity_string
+
+    def getCategory(self) -> int:
+        """Get the category code."""
+        return self.category
+
+    def getCategoryAsString(self) -> str:
+        """Get the category as string."""
+        return self.category_string
+
+    def getLine(self) -> int:
+        """Get the line."""
+        return self.line
+
+    def getColumn(self) -> int:
+        """Get the column."""
+        return self.column
+
+    def getMessage(self) -> str:
+        """Get the message."""
+        return self.message
+
+    def getShortMessage(self) -> str:
+        """Get the short message."""
+        return self.short_message
+
+    def getPackage(self) -> str:
+        """Get the package."""
+        return self.package
+
+
 class ValidationResult:
-    """Results of an SBMLDocument validation."""
+    """Results of an SBMLDocument validation.
+
+    The errors and warnings are snapshots, they stay valid when the validated
+    document is freed.
+    """
 
     def __init__(
         self,
-        errors: list[libsbml.SBMLError] | None = None,
-        warnings: list[libsbml.SBMLError] | None = None,
+        errors: list[SBMLErrorInfo] | None = None,
+        warnings: list[SBMLErrorInfo] | None = None,
     ):
         """Initialize ValidationResult."""
         if errors is None:
@@ -280,7 +363,9 @@ def log_sbml_errors_for_doc(doc: libsbml.SBMLDocument) -> None:
         log_sbml_error(error=doc.getError(k))
 
 
-def log_sbml_error(error: libsbml.SBMLError, index: int | None = None) -> None:
+def log_sbml_error(
+    error: libsbml.SBMLError | SBMLErrorInfo, index: int | None = None
+) -> None:
     """Log SBMLError."""
     msg, severity = error_string(error=error, index=index)
     if severity == libsbml.LIBSBML_SEV_WARNING:
@@ -291,7 +376,9 @@ def log_sbml_error(error: libsbml.SBMLError, index: int | None = None) -> None:
         logger.info(msg, extra={"markup": True})
 
 
-def error_string(error: libsbml.SBMLError, index: int | None = None) -> tuple:
+def error_string(
+    error: libsbml.SBMLError | SBMLErrorInfo, index: int | None = None
+) -> tuple:
     """Get string representation and severity of SBMLError."""
     package: str = error.getPackage()
     if package == "":
@@ -448,7 +535,7 @@ def _errors_to_result(doc: libsbml.SBMLDocument, start: int) -> ValidationResult
     errors = []
     warnings = []
     for i in range(start, doc.getNumErrors()):
-        error = doc.getError(i)
+        error = SBMLErrorInfo.from_error(doc.getError(i))
         severity = error.getSeverity()
         if severity in (libsbml.LIBSBML_SEV_ERROR, libsbml.LIBSBML_SEV_FATAL):
             errors.append(error)
