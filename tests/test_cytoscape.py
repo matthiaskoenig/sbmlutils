@@ -4,9 +4,9 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
-from py4cytoscape.exceptions import CyError
 
 from sbmlutils import cytoscape
+from sbmlutils.cytoscape import CyError
 
 
 def test_visualize_sbml_survives_cyerror(

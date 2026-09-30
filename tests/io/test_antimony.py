@@ -63,3 +63,9 @@ def test_antimony_to_sbml_missing_path_raises(tmp_path: Path) -> None:
     """A Path which does not exist raises a FileNotFoundError."""
     with pytest.raises(FileNotFoundError):
         antimony_to_sbml(tmp_path / "missing.ant")
+
+
+def test_antimony_to_sbml_missing_file_name() -> None:
+    """A string which looks like a file name and names no file is a missing file."""
+    with pytest.raises(FileNotFoundError, match=r"model\.ant"):
+        antimony_to_sbml("model.ant")

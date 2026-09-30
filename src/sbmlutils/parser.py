@@ -124,6 +124,17 @@ def _is_file(source: str) -> bool:
         return False
 
 
+def _looks_like_file_name(source: str) -> bool:
+    """Check if a string which names no existing file was meant as a file name.
+
+    A single line without `;` and with a suffix (`model.ant`) is no antimony.
+    """
+    text = source.strip()
+    return (
+        bool(text) and "\n" not in text and ";" not in text and bool(Path(text).suffix)
+    )
+
+
 def antimony_to_sbml(
     source: Path | str,
 ) -> str:
@@ -141,7 +152,9 @@ def antimony_to_sbml(
         The SBML string.
 
     Raises:
-        FileNotFoundError: if `source` is a `Path` which is not an existing file.
+        FileNotFoundError: if `source` is a `Path` which is not an existing file,
+            or a `str` which looks like a file name (one line, no ';', with a
+            suffix) and names no existing file.
         ValueError: if antimony cannot parse the source, with the antimony error.
     """
     if isinstance(source, Path) or _is_file(source):
@@ -150,6 +163,11 @@ def antimony_to_sbml(
             raise FileNotFoundError(f"Antimony file does not exist: {path}")
         status: int = antimony.loadAntimonyFile(str(path))
     else:
+        if _looks_like_file_name(source):
+            raise FileNotFoundError(
+                f"Antimony file does not exist: {source} (a single line without "
+                "';' and with a suffix is taken as a file name, not as antimony)"
+            )
         status = antimony.loadAntimonyString(source)
 
     # antimony returns -1 on failure, otherwise the index of the loaded module

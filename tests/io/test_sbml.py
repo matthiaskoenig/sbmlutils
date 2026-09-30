@@ -196,3 +196,14 @@ def test_read_sbml_reads_a_document_with_errors_in_its_content() -> None:
     )
     assert doc.getModel().getId() == "m"
     assert doc.getError(0).getErrorId() == libsbml.AllowedAttributesOnModel
+
+
+def test_read_sbml_error_does_not_repeat_long_source() -> None:
+    """A non-SBML string treated as a path is shortened in the message."""
+    from sbmlutils.io.sbml import validate_sbml
+
+    source = "x" * 5000
+    with pytest.raises(FileNotFoundError) as excinfo:
+        validate_sbml(source)
+    assert len(str(excinfo.value)) < 300
+    assert "..." in str(excinfo.value)

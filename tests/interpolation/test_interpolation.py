@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+import libsbml
 import pandas as pd
 import pytest
 
@@ -105,3 +106,13 @@ def test_example() -> None:
     figure = interpolation_example()
     assert figure
     plt.close(figure)
+
+
+@pytest.mark.parametrize("method", ["constant", "linear", "cubic spline"])
+def test_interpolation_model_id_is_valid(method: str) -> None:
+    """The model id is a valid SId for every method."""
+    interpolation = ip.Interpolation(data=data1, method=method)
+    sbml_str = interpolation.write_sbml_to_string()
+    assert sbml_str is not None
+    doc = libsbml.readSBMLFromString(sbml_str)
+    assert doc.getModel().getId() == "Interpolation_" + method.replace(" ", "_")

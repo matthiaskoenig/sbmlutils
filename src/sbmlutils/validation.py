@@ -294,6 +294,25 @@ class SBMLErrorInfo:
         """Get the package."""
         return self.package
 
+    def isInfo(self) -> bool:
+        """Check if the severity is informational (libsbml `isInfo`)."""
+        return self.severity in (
+            libsbml.LIBSBML_SEV_INFO,
+            libsbml.LIBSBML_SEV_NOT_APPLICABLE,
+        )
+
+    def isWarning(self) -> bool:
+        """Check if the severity is warning (libsbml `isWarning`)."""
+        return self.severity == libsbml.LIBSBML_SEV_WARNING
+
+    def isError(self) -> bool:
+        """Check if the severity is error or fatal (libsbml `isError`)."""
+        return self.severity in (libsbml.LIBSBML_SEV_ERROR, libsbml.LIBSBML_SEV_FATAL)
+
+    def isFatal(self) -> bool:
+        """Check if the severity is fatal (libsbml `isFatal`)."""
+        return self.severity == libsbml.LIBSBML_SEV_FATAL
+
 
 class ValidationResult:
     """Results of an SBMLDocument validation.
@@ -426,6 +445,11 @@ def validate_doc(
     title: str | None = None,
 ) -> ValidationResult:
     """Validate SBMLDocument.
+
+    The error log of the document is cleared and restored during the validation,
+    so an `SBMLError` proxy obtained from `doc.getError()` before the call is
+    invalid afterwards; take a new one from the document (or use the snapshots
+    of the result).
 
     :param doc: SBMLDocument to check
     :param title: identifier or path for validation report

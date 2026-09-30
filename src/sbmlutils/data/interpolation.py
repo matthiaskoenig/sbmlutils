@@ -19,7 +19,7 @@ import libsbml
 import pandas as pd
 
 from sbmlutils.io.sbml import write_sbml
-from sbmlutils.validation import ValidationOptions, validate_doc
+from sbmlutils.validation import ValidationOptions, check, validate_doc
 
 logger = logging.getLogger(__name__)
 
@@ -379,7 +379,9 @@ class Interpolation:
         model: libsbml.Model = doc.createModel()
 
         model.setNotes(notes)
-        model.setId(f"Interpolation_{self.method}")
+        # the method can contain spaces ("cubic spline"), which an SId does not allow
+        model_id = f"Interpolation_{self.method}".replace(" ", "_")
+        check(model.setId(model_id), f"set model id '{model_id}'")
         model.setName(f"Interpolation_{self.method}")
         self.model = model
         return doc, model

@@ -82,6 +82,12 @@ _XML_DECLARATION_ERRORS: frozenset[int] = frozenset(
 )
 
 
+def _shorten(source: Path | str, limit: int = 200) -> str:
+    """Shorten a source for a message, a string which is not a path can be a document."""
+    text = str(source)
+    return text if len(text) <= limit else text[:limit] + "..."
+
+
 def _read_document(source: Path | str) -> tuple[libsbml.SBMLDocument, str]:
     """Read an SBMLDocument from a path or an SBML string without raising.
 
@@ -100,7 +106,7 @@ def _read_document(source: Path | str) -> tuple[libsbml.SBMLDocument, str]:
         logger.error(
             "All SBML paths should be of type 'Path', but '%s' found for: %s",
             type(source),
-            source,
+            _shorten(source),
         )
         source = Path(source)
 
@@ -108,7 +114,9 @@ def _read_document(source: Path | str) -> tuple[libsbml.SBMLDocument, str]:
     # and resolves the `comp:source` of an external model definition
     # against it; a relative location is resolved wrongly, and a location
     # set as a percent-encoded URI (`Path.as_uri`) is not decoded
-    return libsbml.readSBMLFromFile(str(source.resolve())), f"SBML file '{source}'"
+    return libsbml.readSBMLFromFile(
+        str(source.resolve())
+    ), f"SBML file '{_shorten(source)}'"
 
 
 def _read_failures(doc: libsbml.SBMLDocument) -> list[libsbml.SBMLError]:
@@ -232,7 +240,7 @@ def validate_sbml(
         not (isinstance(source, str) and "<sbml" in source)
         and not Path(source).exists()
     ):
-        raise FileNotFoundError(f"SBML file does not exist: '{source}'")
+        raise FileNotFoundError(f"SBML file does not exist: '{_shorten(source)}'")
     doc, _ = _read_document(source)
     return validate_doc(
         doc=doc,

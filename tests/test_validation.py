@@ -201,3 +201,22 @@ def test_validate_sbml_raises_for_a_path_which_does_not_exist(tmp_path: Path) ->
     """A path which does not exist is not a document which can be reported on."""
     with pytest.raises(FileNotFoundError, match=r"does_not_exist\.xml"):
         validate_sbml(tmp_path / "does_not_exist.xml")
+
+
+def test_sbml_error_info_severity_predicates() -> None:
+    """The snapshot answers the severity questions like the libsbml error."""
+    from sbmlutils.validation import SBMLErrorInfo
+
+    for severity in (
+        libsbml.LIBSBML_SEV_NOT_APPLICABLE,
+        libsbml.LIBSBML_SEV_INFO,
+        libsbml.LIBSBML_SEV_WARNING,
+        libsbml.LIBSBML_SEV_ERROR,
+        libsbml.LIBSBML_SEV_FATAL,
+    ):
+        err = libsbml.SBMLError(10101, 3, 2, "msg", 0, 0, severity, 0)
+        info = SBMLErrorInfo.from_error(err)
+        assert info.isInfo() == err.isInfo()
+        assert info.isWarning() == err.isWarning()
+        assert info.isError() == err.isError()
+        assert info.isFatal() == err.isFatal()
