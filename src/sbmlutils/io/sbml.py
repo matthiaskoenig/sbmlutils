@@ -30,7 +30,8 @@ def read_sbml(
 
     :param source: SBML path or string
     :param promote: promote local parameters to global parameters
-    :param validate: validate file
+    :param validate: validate file; the read errors are then logged by the
+        validation, according to `ValidationOptions.log_errors`
     :param validation_options: options for validation
 
     :return: libsbml.SBMLDocument

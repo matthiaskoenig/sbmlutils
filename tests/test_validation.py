@@ -19,7 +19,7 @@ from sbmlutils.resources import (
     GALACTOSE_SINGLECELL_SBML,
     VDP_SBML,
 )
-from sbmlutils.validation import ScopedLossCollector, file_uri, validate_doc
+from sbmlutils.validation import ScopedLossCollector, _file_uri, validate_doc
 
 
 @pytest.mark.parametrize(
@@ -85,7 +85,11 @@ def test_validation_reports_read_errors_once() -> None:
 
 
 def test_validation_reports_new_errors_of_each_check() -> None:
-    """The errors of a check are the ones it added to the log, not the first ones."""
+    """The errors of a check are the ones it added to the log, not the first ones.
+
+    The internal consistency check finds the read-time error again, so it is
+    reported by the read and by the check.
+    """
     sbml = _SBML_TEMPLATE.format(model_id="1m", attributes="")
     doc = read_sbml(sbml, promote=False, validate=False)
     assert doc.getNumErrors() == 1
@@ -113,9 +117,9 @@ def test_validation_of_valid_model_has_no_errors() -> None:
         ("model.xml", "model.xml"),
     ],
 )
-def test_file_uri(path: str, uri: str) -> None:
+def test__file_uri(path: str, uri: str) -> None:
     """Paths, including windows paths, become file URIs, other titles stay."""
-    assert file_uri(path) == uri
+    assert _file_uri(path) == uri
 
 
 def test_scoped_loss_collector_reports_remaining_groups_on_failure(
@@ -172,3 +176,15 @@ def test_read_errors_are_logged_once(caplog: pytest.LogCaptureFixture) -> None:
     with caplog.at_level(logging.ERROR, logger="sbmlutils"):
         read_sbml(sbml, promote=False, validate=True)
     assert caplog.text.count("Invalid attribute found on the Model object") == 1
+
+
+def test_validate_doc_twice_gives_equal_results() -> None:
+    """Validating leaves the error log of the document as it was."""
+    sbml = _SBML_TEMPLATE.format(model_id="1m", attributes=' foo="1"')
+    doc = read_sbml(sbml, promote=False, validate=False)
+    n_log = doc.getNumErrors()
+    options = ValidationOptions(log_errors=False)
+    first = _error_ids(validate_doc(doc, options))
+    second = _error_ids(validate_doc(doc, options))
+    assert first == second
+    assert doc.getNumErrors() == n_log

@@ -401,7 +401,7 @@ def error_string(
 _WINDOWS_PATH = re.compile(r"^[A-Za-z]:[\\/]")
 
 
-def file_uri(title: str) -> str:
+def _file_uri(title: str) -> str:
     """Get the file URI of a title which is an absolute path.
 
     Posix and windows paths are converted, everything else (URLs, the string
@@ -438,7 +438,13 @@ def validate_doc(
 
     if not title:
         title = str(doc)
-    title = file_uri(str(title))
+    title = _file_uri(str(title))
+
+    # the checks append to the error log of the document, validating leaves the
+    # log as it found it: the entries are copied here and restored below (a
+    # clone of the document is not an option, it is checked differently)
+    results_read = _errors_to_result(doc, 0)
+    saved_log = libsbml.SBMLErrorLog(doc.getErrorLog())
 
     # set the consistency
     doc.setConsistencyChecks(
@@ -463,21 +469,23 @@ def validate_doc(
     # time
     current = time.perf_counter()
 
-    # the errors which are in the log before the first check, i.e. the ones of
-    # reading the document, are part of the result exactly once; every check
-    # below reports only what it added to the log
-    results_read = _errors_to_result(doc, 0)
-
+    # the errors in the log of `doc`, i.e. the ones of reading it, are part of
+    # the result exactly once; every check below reports only what it added
     # check the document
-    results_internal: ValidationResult
-    if options.internal_consistency:
-        results_internal = _check_consistency(doc, internal_consistency=True)
-    else:
-        results_internal = ValidationResult()
+    try:
+        results_internal: ValidationResult
+        if options.internal_consistency:
+            results_internal = _check_consistency(doc, internal_consistency=True)
+        else:
+            results_internal = ValidationResult()
 
-    results_not_internal = _check_consistency(
-        doc, internal_consistency=False, units_consistency=options.units_consistency
-    )
+        results_not_internal = _check_consistency(
+            doc, internal_consistency=False, units_consistency=options.units_consistency
+        )
+    finally:
+        doc.getErrorLog().clearLog()
+        for i in range(saved_log.getNumErrors()):
+            doc.getErrorLog().add(saved_log.getError(i))
 
     # sum up
     vresults = ValidationResult.from_results(
