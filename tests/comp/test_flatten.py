@@ -1,6 +1,5 @@
 """Tests for flattening a comp model from its file."""
 
-import os
 import shutil
 from pathlib import Path
 
@@ -10,23 +9,6 @@ import pytest
 from sbmlutils.comp import flatten_sbml
 from sbmlutils.io import read_sbml
 from sbmlutils.resources import COMP_ICG_BODY, COMP_ICG_LIVER
-
-
-def forbid_chdir(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Fail the test as soon as anything changes the working directory.
-
-    The working directory is global to the process, a library function which
-    changes it breaks every other thread of the process.
-
-    Args:
-        monkeypatch: the fixture which undoes the patch after the test
-    """
-
-    def chdir(path: str | os.PathLike[str]) -> None:
-        """Refuse to change the working directory."""
-        raise AssertionError(f"working directory changed to '{path}'")
-
-    monkeypatch.setattr(os, "chdir", chdir)
 
 
 def write_icg_body(model_dir: Path, liver_dir: str = "") -> Path:
@@ -54,63 +36,70 @@ def write_icg_body(model_dir: Path, liver_dir: str = "") -> Path:
     return body_path
 
 
+#: directories of the model relative to the working directory, one with a
+#: space and a non-ASCII character, which a file URI percent-encodes
+MODEL_DIRS = ["models", "sp ace/ü"]
+
+
+@pytest.mark.parametrize("model_dir", MODEL_DIRS)
 @pytest.mark.parametrize("liver_dir", ["", "liver"])
 def test_flatten_sbml_relative_paths(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, liver_dir: str
+    forbid_chdir: Path, model_dir: str, liver_dir: str
 ) -> None:
     """A relative input and output path are relative to the working directory."""
-    write_icg_body(tmp_path / "models", liver_dir=liver_dir)
-    monkeypatch.chdir(tmp_path)
-    forbid_chdir(monkeypatch)
+    write_icg_body(forbid_chdir / model_dir, liver_dir=liver_dir)
 
-    doc = flatten_sbml(Path("models/icg_body.xml"), Path("flat/icg_body_flat.xml"))
+    doc = flatten_sbml(Path(model_dir, "icg_body.xml"), Path("flat/icg_body_flat.xml"))
 
-    assert Path.cwd() == tmp_path
-    assert (tmp_path / "flat" / "icg_body_flat.xml").exists()
-    assert not (tmp_path / "models" / "flat").exists()
-    doc_flat = read_sbml(tmp_path / "flat" / "icg_body_flat.xml")
+    assert Path.cwd() == forbid_chdir
+    flat_path = forbid_chdir / "flat" / "icg_body_flat.xml"
+    assert flat_path.exists()
+    assert not (forbid_chdir / model_dir / "flat").exists()
+    doc_flat = read_sbml(flat_path)
     assert doc_flat.getModel().getNumSpecies() == doc.getModel().getNumSpecies() > 0
 
 
-def test_flatten_sbml_str_paths(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+@pytest.mark.parametrize("model_dir", MODEL_DIRS)
+def test_flatten_sbml_absolute_paths(tmp_path: Path, model_dir: str) -> None:
+    """An absolute path is flattened wherever the working directory is."""
+    body_path = write_icg_body(tmp_path / model_dir, liver_dir="liver")
+
+    flatten_sbml(body_path, tmp_path / model_dir / "icg_body_flat.xml")
+
+    assert (tmp_path / model_dir / "icg_body_flat.xml").exists()
+
+
+def test_flatten_sbml_str_paths(forbid_chdir: Path) -> None:
     """Paths given as `str` are accepted like `Path`."""
-    write_icg_body(tmp_path / "models")
-    monkeypatch.chdir(tmp_path)
-    forbid_chdir(monkeypatch)
+    write_icg_body(forbid_chdir / "models")
 
     flatten_sbml("models/icg_body.xml", "icg_body_flat.xml")
 
-    assert (tmp_path / "icg_body_flat.xml").exists()
+    assert (forbid_chdir / "icg_body_flat.xml").exists()
 
 
-def test_flatten_sbml_error_keeps_working_directory(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_flatten_sbml_error_keeps_working_directory(forbid_chdir: Path) -> None:
     """A model which cannot be flattened raises and leaves the working directory."""
-    body_path = write_icg_body(tmp_path / "models")
+    body_path = write_icg_body(forbid_chdir / "models")
     (body_path.parent / "icg_liver.xml").unlink()
-    monkeypatch.chdir(tmp_path)
-    forbid_chdir(monkeypatch)
 
     with pytest.raises(ValueError, match="could not be flattend"):
         flatten_sbml(Path("models/icg_body.xml"), Path("icg_body_flat.xml"))
 
-    assert Path.cwd() == tmp_path
-    assert not (tmp_path / "icg_body_flat.xml").exists()
+    assert Path.cwd() == forbid_chdir
+    assert not (forbid_chdir / "icg_body_flat.xml").exists()
 
 
-def test_read_sbml_location_is_absolute(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+@pytest.mark.parametrize("model_dir", MODEL_DIRS)
+def test_read_sbml_resolves_external_definitions(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, model_dir: str
 ) -> None:
     """A document read from a relative path resolves its external definitions."""
-    write_icg_body(tmp_path / "models", liver_dir="liver")
+    write_icg_body(tmp_path / model_dir, liver_dir="liver")
     monkeypatch.chdir(tmp_path)
 
-    doc = read_sbml(Path("models/icg_body.xml"))
+    doc = read_sbml(Path(model_dir, "icg_body.xml"))
 
-    assert doc.getLocationURI() == (tmp_path / "models" / "icg_body.xml").as_uri()
     emd: libsbml.ExternalModelDefinition = (
         doc.getPlugin("comp").getListOfExternalModelDefinitions().get(0)
     )

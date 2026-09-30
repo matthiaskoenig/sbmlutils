@@ -1,6 +1,5 @@
 """Test model merging functionality."""
 
-import os
 import shutil
 from pathlib import Path
 
@@ -66,20 +65,6 @@ def test_biomodel_merge(tmp_path: Path) -> None:
 MERGE_DIR = TESTDATA_DIR / "manipulation" / "merge"
 
 
-def forbid_chdir(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Fail the test as soon as anything changes the working directory.
-
-    Args:
-        monkeypatch: the fixture which undoes the patch after the test
-    """
-
-    def chdir(path: str | os.PathLike[str]) -> None:
-        """Refuse to change the working directory."""
-        raise AssertionError(f"working directory changed to '{path}'")
-
-    monkeypatch.setattr(os, "chdir", chdir)
-
-
 def two_models(model_dir: Path) -> dict[str, Path]:
     """Copy two biomodels into a directory.
 
@@ -110,28 +95,25 @@ def emd_sources(doc: libsbml.SBMLDocument) -> list[str]:
     return [emds.get(k).getSource() for k in range(emds.size())]
 
 
-def test_merge_models_relative_paths(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+@pytest.mark.parametrize("out_dir", ["out", "sp ace/ü"])
+def test_merge_models_relative_paths(forbid_chdir: Path, out_dir: str) -> None:
     """Relative paths are relative to the working directory, which is kept."""
-    two_models(tmp_path / "models")
-    (tmp_path / "out").mkdir()
-    monkeypatch.chdir(tmp_path)
-    forbid_chdir(monkeypatch)
+    two_models(forbid_chdir / "models")
+    (forbid_chdir / out_dir).mkdir(parents=True)
     model_paths = {
         "BIOMD0000000001": Path("models/BIOMD0000000001.xml"),
         "BIOMD0000000002": Path("models/BIOMD0000000002.xml"),
     }
 
-    doc = merge.merge_models(model_paths, output_dir=Path("out"))
+    doc = merge.merge_models(model_paths, output_dir=Path(out_dir))
 
-    assert Path.cwd() == tmp_path
-    out_dir = tmp_path / "out"
-    assert (out_dir / "merged.xml").exists()
-    assert (out_dir / "merged_flat.xml").exists()
+    assert Path.cwd() == forbid_chdir
+    out_path = forbid_chdir / out_dir
+    assert (out_path / "merged.xml").exists()
+    assert (out_path / "merged_flat.xml").exists()
     assert emd_sources(doc) == ["BIOMD0000000001_L3.xml", "BIOMD0000000002_L3.xml"]
-    assert emd_sources(read_sbml(out_dir / "merged.xml")) == emd_sources(doc)
-    assert not (out_dir / "out").exists()
+    assert emd_sources(read_sbml(out_path / "merged.xml")) == emd_sources(doc)
+    assert not (out_path / out_dir).exists()
 
 
 def test_merge_models_str_paths(tmp_path: Path) -> None:
@@ -223,14 +205,18 @@ def test_merge_models_ids_differ_from_model_ids(tmp_path: Path) -> None:
     assert (tmp_path / "merged_flat.xml").exists()
 
 
-def test_merge_models_submodel_sbo_term(tmp_path: Path) -> None:
+@pytest.mark.parametrize("out_dir", ["out", "sp ace/ü"])
+def test_merge_models_submodel_sbo_term(tmp_path: Path, out_dir: str) -> None:
     """A submodel has the SBO term of the model it instantiates."""
     model_paths = two_models(tmp_path / "models")
     doc = read_sbml(model_paths["BIOMD0000000001"])
     doc.getModel().setSBOTerm("SBO:0000062")
     write_sbml(doc, filepath=model_paths["BIOMD0000000001"])
+    (tmp_path / out_dir).mkdir(parents=True)
 
-    merged_doc = merge.merge_models(model_paths, output_dir=tmp_path, flatten=False)
+    merged_doc = merge.merge_models(
+        model_paths, output_dir=tmp_path / out_dir, flatten=False
+    )
 
     comp_model: libsbml.CompModelPlugin = merged_doc.getModel().getPlugin("comp")
     assert comp_model.getSubmodel("BIOMD0000000001").getSBOTermID() == "SBO:0000062"

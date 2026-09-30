@@ -51,7 +51,7 @@ def add_default_flux_bounds(
         p: libsbml.Parameter = model.createParameter()
         p.setId(bound_id)
         p.setValue(value)
-        p.setName(f"{sid} flux bound")
+        p.setName(f"{bound_id} flux bound")
         p.setSBOTerm("SBO:0000626")  # default flux bound
         p.setConstant(True)
         return bound_id

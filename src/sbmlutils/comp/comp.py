@@ -18,19 +18,25 @@ logger = logging.getLogger(__name__)
 
 
 def create_ExternalModelDefinition(
-    doc_comp: libsbml.CompSBMLDocumentPlugin, emd_id: str, source: str
+    doc_comp: libsbml.CompSBMLDocumentPlugin,
+    emd_id: str,
+    source: str,
+    model_ref: str | None = None,
 ) -> libsbml.ExternalModelDefinition:
     """Create comp ExternalModelDefinition.
 
     :param doc_comp: SBMLDocument comp plugin
     :param emd_id: id of external model definition
-    :param source: source
-    :return:
+    :param source: source, resolved relative to the location of the document
+    :param model_ref: id of the model in the external document; without it the
+        definition is the main model of the external document
+    :return: the created external model definition
     """
     extdef: libsbml.ExternalModelDefinition = doc_comp.createExternalModelDefinition()
     extdef.setId(emd_id)
     extdef.setName(emd_id)
-    extdef.setModelRef(emd_id)
+    if model_ref is not None:
+        extdef.setModelRef(model_ref)
     extdef.setSource(source)
     return extdef
 

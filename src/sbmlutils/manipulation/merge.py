@@ -155,7 +155,9 @@ def _create_merged_doc(
     sbmlns.addPackageNamespace("comp", 1)
     doc: libsbml.SBMLDocument = libsbml.SBMLDocument(sbmlns)
     doc.setPackageRequired("comp", True)
-    doc.setLocationURI(merged_path.resolve().as_uri())
+    # the form libsbml records for a document read from a file, libsbml does
+    # not decode a percent-encoded URI (`Path.as_uri`)
+    doc.setLocationURI(f"file:{merged_path.resolve()}")
 
     model: libsbml.Model = doc.createModel()
     model.setId(merged_id)
@@ -164,13 +166,11 @@ def _create_merged_doc(
     comp_model: libsbml.CompModelPlugin = model.getPlugin("comp")
 
     for emd_id, source in sources.items():
-        # create ExternalModelDefinition
+        # create ExternalModelDefinition, without a modelRef it is the main
+        # model of the external document, whose id need not be `emd_id`
         emd: libsbml.ExternalModelDefinition = comp.create_ExternalModelDefinition(
             comp_doc, emd_id, source=source
         )
-        # without a modelRef the definition is the model of the external
-        # document, whose id is not the id of the definition
-        emd.unsetModelRef()
 
         # add submodel which references the external model definition
         comp.add_submodel_from_emd(comp_model, submodel_id=emd_id, emd=emd)

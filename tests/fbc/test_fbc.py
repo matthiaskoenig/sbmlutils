@@ -56,6 +56,8 @@ def test_add_default_flux_bounds_existing_ids() -> None:
     assert vresult.error_count == 0
     assert model.getParameter("lower").getValue() == 0.0
     assert model.getParameter("upper").getValue() == 0.0
+    assert model.getParameter("lower_1").getName() == "lower_1 flux bound"
+    assert model.getParameter("upper_1").getName() == "upper_1 flux bound"
     assert flux_bound_values(doc) == {(-10.0, 20.0)}
 
 

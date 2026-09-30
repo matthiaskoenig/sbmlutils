@@ -48,11 +48,11 @@ def read_sbml(
             )
             source = Path(source)
 
-        doc = libsbml.readSBMLFromFile(str(source))
-        # libsbml records the path as it was given, and resolves the
-        # `comp:source` of an external model definition against it; a relative
-        # location is resolved wrongly, so the document gets its absolute one
-        doc.setLocationURI(source.resolve().as_uri())
+        # libsbml records the path it reads as the location of the document
+        # and resolves the `comp:source` of an external model definition
+        # against it; a relative location is resolved wrongly, and a location
+        # set as a percent-encoded URI (`Path.as_uri`) is not decoded
+        doc = libsbml.readSBMLFromFile(str(source.resolve()))
 
     # promote local parameters
     if promote:
