@@ -76,8 +76,8 @@ for k in range(n_cells):
     _m.external_model_definitions.append(
         ExternalModelDefinition(
             sid=f"emd{k}",
-            source=f"{_m.sid}.xml",
-            modelRef=f"{_m.sid}",
+            source=f"{model.sid}.xml",
+            modelRef=f"{model.sid}",
         ),
     )
     _m.submodels.append(Submodel(sid=f"submodel{k}", modelRef=f"emd{k}"))
