@@ -7,19 +7,19 @@
 The units of the ODE system are\\
 \tiny
 \begin{align*}
-&time \quad \text{[{{model_units["time"]}}]}\\
-&substance \quad \text{[{{model_units["substance"]}}]}\\
-&extent \quad \text{[{{model_units["extent"]}}]}\\
-&volume \quad \text{[{{model_units["volume"]}}]}\\
-&area \quad \text{[{{model_units["area"]}}]}\\
-&length \quad \text{[{{model_units["length"]}}]}
+&time \quad \text{[{{model_units["time"] | tex_text}}]}\\
+&substance \quad \text{[{{model_units["substance"] | tex_text}}]}\\
+&extent \quad \text{[{{model_units["extent"] | tex_text}}]}\\
+&volume \quad \text{[{{model_units["volume"] | tex_text}}]}\\
+&area \quad \text{[{{model_units["area"] | tex_text}}]}\\
+&length \quad \text{[{{model_units["length"] | tex_text}}]}
 \end{align*}
 \normalsize
 The parameters are\\
 \tiny
 \begin{align*}
 {% for id in pids %}
-{{ id.replace("_", "\_") }} &= {{p[id]}} \quad \text{[{{units[id]}}] {{names[id]}}}\\
+{{ id | tex_text }} &= {{p[id]}} \quad \text{[{{units[id] | tex_text}}] {{names[id] | tex_text}}}\\
 {% endfor %}
 \end{align*}
 \normalsize
@@ -28,7 +28,7 @@ The rules and reactions are\\
 \begin{dgroup*}
 {% for id in yids %}
 \begin{dmath*}[compact]
-{{ id.replace("_", "\_") }} = {{y[id].replace("_", "\_").replace(" * ", " \cdot ")}}\quad \text{[{{units[id]}}] {{names[id]}}}
+{{ id | tex_text }} = {{y[id].replace("_", "\\_").replace(" * ", " \\cdot ")}}\quad \text{[{{units[id] | tex_text}}] {{names[id] | tex_text}}}
 \end{dmath*}
 {% endfor %}
 \end{dgroup*}
@@ -37,7 +37,7 @@ The resulting ODE system is\\
 \tiny
 \begin{align*}
 {% for id in xids %}
-\frac{d {{ id.replace("_", "\_") }}}{dt} &= {{ dx[id] }}\\
+\frac{d {{ id | tex_text }}}{dt} &= {{ dx[id] | string | replace("_", "\\_") }}\\
 {% endfor %}
 \end{align*}
 \normalsize
