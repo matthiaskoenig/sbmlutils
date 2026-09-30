@@ -68,6 +68,33 @@ def download_biomodel_omex(biomodel_id: str, omex_path: Path) -> Path:
     return omex_path
 
 
+def _contained_path(output_dir: Path, location: str) -> Path:
+    """Resolve the location of a manifest entry below the output directory.
+
+    The location comes from the manifest of a downloaded archive and is not
+    trusted: an absolute location or one which climbs out with `..` must not
+    make the download write outside of the output directory.
+
+    Args:
+        output_dir: directory the file has to stay in
+        location: location of the entry in the archive, e.g. `./model.xml`
+
+    Returns:
+        The path of the file in the output directory.
+
+    Raises:
+        ValueError: if the location leaves the output directory
+    """
+    root = output_dir.resolve()
+    path = (root / location).resolve()
+    if not path.is_relative_to(root) or path == root:
+        raise ValueError(
+            f"The location '{location}' of the archive entry is outside of "
+            f"the output directory '{output_dir}'."
+        )
+    return path
+
+
 def download_biomodel_sbml(
     biomodel_id: str, output_dir: Path, output_format: str = "sbml"
 ) -> list[str]:
@@ -81,7 +108,8 @@ def download_biomodel_sbml(
 
     :return: list of location strings
     Raises :class:`HTTPError`, if one occurred, i.e. if the model does not exist.
-    Raises :class:`ValueError`, if invalid format string is provided.
+    Raises :class:`ValueError`, if invalid format string is provided or if the
+    location of an entry in the archive is outside of `output_dir`.
     """
     with tempfile.TemporaryDirectory() as f_tmp:
         tmp_path = Path(f_tmp)
@@ -109,12 +137,13 @@ def download_biomodel_sbml(
                     ),
                 )
             omex_out.to_omex(omex_out_path)
-            logger.info("Save '%s'", omex_path)
+            logger.info("Save '%s'", omex_out_path)
 
         elif output_format == "sbml":
             for sbml_entry in sbml_entries:
                 entry_path = omex.get_path(sbml_entry.location)
-                sbml_path = Path(output_dir) / sbml_entry.location
+                sbml_path = _contained_path(Path(output_dir), sbml_entry.location)
+                sbml_path.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(src=entry_path, dst=sbml_path)
                 logger.info("Save '%s'", sbml_path)
         else:
