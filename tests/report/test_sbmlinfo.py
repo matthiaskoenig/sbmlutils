@@ -59,3 +59,74 @@ def test_half_equation_nan_without_id() -> None:
     sr.setSpecies("x")
     sr.setStoichiometry(float("nan"))
     assert SBMLDocumentInfo._half_equation(reaction.getListOfReactants()) == "? x"
+
+
+def _anonymous_events_doc() -> libsbml.SBMLDocument:
+    """Document with two identical events without id or metaId."""
+    doc = libsbml.SBMLDocument(3, 2)
+    model: libsbml.Model = doc.createModel()
+    model.setId("m")
+    p: libsbml.Parameter = model.createParameter()
+    p.setId("p")
+    p.setValue(0.0)
+    p.setConstant(False)
+    for _ in range(2):
+        event: libsbml.Event = model.createEvent()
+        event.setUseValuesFromTriggerTime(True)
+        trigger: libsbml.Trigger = event.createTrigger()
+        trigger.setInitialValue(False)
+        trigger.setPersistent(True)
+        trigger.setMath(libsbml.parseL3Formula("time > 10"))
+        assignment: libsbml.EventAssignment = event.createEventAssignment()
+        assignment.setVariable("p")
+        assignment.setMath(libsbml.parseL3Formula("1"))
+    return doc
+
+
+def test_primary_keys_unique_for_identical_elements() -> None:
+    """Identical elements without id or metaId get distinct primary keys."""
+    info = SBMLDocumentInfo(doc=_anonymous_events_doc())
+    events = info.info["model"]["events"]
+    assert len(events) == 2
+    assert events[0]["pk"] != events[1]["pk"]
+    assert [e["pk"] for e in events] == ["Event:event.0", "Event:event.1"]
+
+
+def test_primary_keys_stable() -> None:
+    """The primary keys of the same document are the same in every run."""
+    first = SBMLDocumentInfo(doc=_anonymous_events_doc()).info["model"]["events"]
+    second = SBMLDocumentInfo(doc=_anonymous_events_doc()).info["model"]["events"]
+    assert [e["pk"] for e in first] == [e["pk"] for e in second]
+
+
+def test_primary_key_of_nested_element() -> None:
+    """An element without id is keyed below the element which owns it."""
+    doc = libsbml.SBMLDocument(3, 2)
+    model: libsbml.Model = doc.createModel()
+    reaction: libsbml.Reaction = model.createReaction()
+    reaction.setId("R1")
+    law: libsbml.KineticLaw = reaction.createKineticLaw()
+    sr: libsbml.SpeciesReference = reaction.createProduct()
+    assert SBMLDocumentInfo._get_pk(law) == "KineticLaw:R1.kineticLaw"
+    assert SBMLDocumentInfo._get_pk(sr) == "SpeciesReference:R1.speciesReference.0"
+
+
+def test_equation_without_modifiers() -> None:
+    """A reaction without modifiers has no trailing separator in its equation."""
+    doc = libsbml.SBMLDocument(3, 2)
+    model: libsbml.Model = doc.createModel()
+    reaction: libsbml.Reaction = model.createReaction()
+    reaction.setReversible(False)
+    for sr in [reaction.createReactant(), reaction.createProduct()]:
+        sr.setStoichiometry(1.0)
+    reaction.getReactant(0).setSpecies("x")
+    reaction.getProduct(0).setSpecies("y")
+    assert (
+        SBMLDocumentInfo._equation_from_reaction(reaction, modifiers=True)
+        == "x &#10142; y"
+    )
+    reaction.createModifier().setSpecies("e")
+    assert (
+        SBMLDocumentInfo._equation_from_reaction(reaction, modifiers=True)
+        == "x &#10142; y [e]"
+    )
