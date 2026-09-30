@@ -23,7 +23,9 @@ doc = read_sbml(
 )
 ```
 
-Compressed files are read as they are: a `.xml.gz` path is decompressed transparently.
+Compressed files are read as they are: a `.gz`, `.bz2` or `.zip` path is decompressed transparently, as libsbml does it.
+
+Files are read and written by python, libsbml only parses and serializes the SBML, so any path works on every platform; libsbml itself cannot open a path with a non-ASCII character on Windows. The one file libsbml still opens itself is the file of a comp external model definition, see [comp](comp.md#flattening).
 
 ## Writing
 
@@ -34,7 +36,7 @@ write_sbml(doc, filepath="model.xml")
 sbml_str = write_sbml(doc, filepath=None)  # returns the SBML as a string
 ```
 
-`write_sbml` records how the file was created in the notes of the document, and validates the result when asked to.
+`write_sbml` records how the file was created in the notes of the document, and validates the result when asked to. A `.gz`, `.bz2` or `.zip` path is compressed, as libsbml does it.
 
 The parent directory of `filepath` is created if it does not exist, and a write which fails all the same raises an `OSError` naming the path: a caller who asks for a file and gets none must not be told that the model is valid. This is about the file, not about the validation results, which are reported and never block.
 

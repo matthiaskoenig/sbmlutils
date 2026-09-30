@@ -103,6 +103,7 @@ from sbmlutils.factory import (
     UserDefinedConstraintComponent,
     create_model,
 )
+from sbmlutils.io.files import is_file
 from sbmlutils.io.sbml import read_sbml
 from sbmlutils.metadata import BQB, BQM
 from sbmlutils.reaction_equation import EquationPart
@@ -110,18 +111,6 @@ from sbmlutils.report.sbmlinfo import SBMLDocumentInfo
 from sbmlutils.validation import ValidationOptions
 
 logger = logging.getLogger(__name__)
-
-
-def _is_file(source: str) -> bool:
-    """Check if a string is the path of an existing file.
-
-    Antimony content can be long and contain characters which are invalid in a
-    path, so any `OSError` of the file system check means "not a file".
-    """
-    try:
-        return Path(source).is_file()
-    except (OSError, ValueError):
-        return False
 
 
 def _looks_like_file_name(source: str) -> bool:
@@ -157,7 +146,7 @@ def antimony_to_sbml(
             suffix) and names no existing file.
         ValueError: if antimony cannot parse the source, with the antimony error.
     """
-    if isinstance(source, Path) or _is_file(source):
+    if isinstance(source, Path) or is_file(source):
         path = Path(source)
         if not path.is_file():
             raise FileNotFoundError(f"Antimony file does not exist: {path}")

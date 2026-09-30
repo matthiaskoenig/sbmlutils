@@ -3331,7 +3331,7 @@ def test_roundtrip_does_not_inline_an_external_model_definition(
 
     An external model definition names a model in another file, and the round trip preserves that reference rather than resolving it. The file here does exist and its model holds a parameter of a telltale id, so a round trip which read it and wrote its content into the document, in a `<comp:modelDefinition>` or inline, would be caught by the id turning up in the file written.
 
-    That libsbml itself opens no file cannot be asserted from python: it reads and writes through `libsbml.readSBMLFromFile` and `libsbml.writeSBMLToFile`, whose file IO happens in C++ and passes no python file API, so a spy on `open` records nothing whatever libsbml does and could never fail. What the round trip writes is the observable half, and it is what this test and `test_roundtrip_keeps_an_external_model_definition_whose_source_is_missing` assert between them.
+    That libsbml itself opens no file cannot be asserted from python: libsbml resolves an external model definition by opening its file in C++, which passes no python file API, so a spy on `open` records nothing whatever libsbml does and could never fail. What the round trip writes is the observable half, and it is what this test and `test_roundtrip_keeps_an_external_model_definition_whose_source_is_missing` assert between them.
     """
     external_path = _external_model_sbml(tmp_path)
     sbml_path = _external_sbml(tmp_path, external_path.name)

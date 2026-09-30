@@ -1,6 +1,7 @@
 """Tests for flattening a comp model from its file."""
 
 import shutil
+import sys
 from pathlib import Path
 
 import libsbml
@@ -36,9 +37,23 @@ def write_icg_body(model_dir: Path, liver_dir: str = "") -> Path:
     return body_path
 
 
-#: directories of the model relative to the working directory, one with a
-#: space and a non-ASCII character, which a file URI percent-encodes
-MODEL_DIRS = ["models", "sp ace/ü"]
+#: libsbml opens the file of an external model definition itself, with the
+#: narrow (ANSI) file API on Windows, which cannot open a non-ASCII path
+NON_ASCII_EXTERNAL_ON_WINDOWS = pytest.mark.xfail(
+    sys.platform == "win32",
+    reason="libsbml cannot open an external model definition in a non-ASCII "
+    "directory on Windows",
+    strict=True,
+)
+
+#: directories of the model relative to the working directory: a plain one, one
+#: with a space, which a file URI percent-encodes, and one with a non-ASCII
+#: character
+MODEL_DIRS = [
+    "models",
+    "sp ace",
+    pytest.param("ü", marks=NON_ASCII_EXTERNAL_ON_WINDOWS),
+]
 
 
 @pytest.mark.parametrize("model_dir", MODEL_DIRS)
@@ -67,6 +82,45 @@ def test_flatten_sbml_absolute_paths(tmp_path: Path, model_dir: str) -> None:
     flatten_sbml(body_path, tmp_path / model_dir / "icg_body_flat.xml")
 
     assert (tmp_path / model_dir / "icg_body_flat.xml").exists()
+
+
+#: a comp model whose submodel instantiates a model definition of the same
+#: document, so flattening it opens no other file
+_SBML_COMP_INTERNAL = (
+    '<?xml version="1.0" encoding="UTF-8"?>'
+    '<sbml xmlns="http://www.sbml.org/sbml/level3/version2/core" '
+    'xmlns:comp="http://www.sbml.org/sbml/level3/version1/comp/version1" '
+    'level="3" version="2" comp:required="true">'
+    '<model id="top"><comp:listOfSubmodels>'
+    '<comp:submodel comp:id="sub" comp:modelRef="md"/>'
+    "</comp:listOfSubmodels></model>"
+    "<comp:listOfModelDefinitions>"
+    '<comp:modelDefinition id="md"><listOfParameters>'
+    '<parameter id="k" value="1" constant="true"/>'
+    "</listOfParameters></comp:modelDefinition>"
+    "</comp:listOfModelDefinitions></sbml>"
+)
+
+
+@pytest.mark.parametrize("model_dir", ["sp ace", "ü"])
+def test_flatten_sbml_without_external_definitions(
+    tmp_path: Path, model_dir: str
+) -> None:
+    """A model which names no other file is flattened in any directory.
+
+    The files are read and written by python, so a non-ASCII directory works
+    on every platform as long as libsbml has no external file to open.
+    """
+    sbml_path = tmp_path / model_dir / "top.xml"
+    sbml_path.parent.mkdir(parents=True)
+    sbml_path.write_text(_SBML_COMP_INTERNAL, encoding="utf-8")
+    flat_path = tmp_path / model_dir / "top_flat.xml"
+
+    flatten_sbml(sbml_path, flat_path)
+
+    model: libsbml.Model = read_sbml(flat_path).getModel()
+    assert model.getNumParameters() == 1
+    assert model.getParameter(0).getId() == "sub__k"
 
 
 def test_flatten_sbml_str_paths(forbid_chdir: Path) -> None:

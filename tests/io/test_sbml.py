@@ -1,6 +1,7 @@
 """Test SBML reading and writing."""
 
 import re
+import zipfile
 from pathlib import Path
 
 import libsbml
@@ -207,3 +208,128 @@ def test_read_sbml_error_does_not_repeat_long_source() -> None:
         validate_sbml(source)
     assert len(str(excinfo.value)) < 300
     assert "..." in str(excinfo.value)
+
+
+def _raise_name_too_long(self: Path, *args: object, **kwargs: object) -> bool:
+    """Answer a file system check as python < 3.14 does for a very long name."""
+    raise OSError(36, "File name too long", str(self))
+
+
+def test_validate_sbml_raises_for_a_long_string_the_file_system_rejects(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A string the file system rejects as a path is no file, it does not crash.
+
+    Before python 3.14 `Path.exists()` and `Path.is_file()` raise
+    `OSError: [Errno 36] File name too long` for a string longer than a file
+    name may be, instead of answering `False`; the check is emulated here so
+    that the behaviour of every python version is tested on every version.
+    """
+    from sbmlutils.io.sbml import validate_sbml
+
+    monkeypatch.setattr(Path, "exists", _raise_name_too_long)
+    monkeypatch.setattr(Path, "is_file", _raise_name_too_long)
+    with pytest.raises(FileNotFoundError, match="SBML file does not exist"):
+        validate_sbml("x" * 5000)
+
+
+#: directories with a character a path handling may get wrong: a space, which a
+#: file URI percent-encodes, and a non-ASCII character, which libsbml cannot
+#: open on Windows, where it passes the path to the narrow (ANSI) file API
+PATH_DIRS = ["sp ace", "ü"]
+
+
+def _model_doc(model_id: str = "m") -> libsbml.SBMLDocument:
+    """Create a document with a model which has a non-ASCII name."""
+    doc: libsbml.SBMLDocument = libsbml.SBMLDocument(3, 2)
+    model: libsbml.Model = doc.createModel()
+    model.setId(model_id)
+    model.setName("über")
+    return doc
+
+
+@pytest.mark.parametrize("path_dir", PATH_DIRS)
+def test_write_and_read_sbml_in_a_directory_with_a_special_character(
+    tmp_path: Path, path_dir: str
+) -> None:
+    """A path with a space or a non-ASCII character is written, read and validated."""
+    from sbmlutils.io.sbml import validate_sbml
+
+    sbml_path = tmp_path / path_dir / "model.xml"
+    write_sbml(_model_doc(), filepath=sbml_path, validate=True)
+
+    doc = read_sbml(sbml_path)
+    assert doc.getModel().getName() == "über"
+    assert doc.getLocationURI() == f"file:{sbml_path.resolve()}"
+    assert validate_sbml(sbml_path).is_valid()
+
+
+def test_write_sbml_does_not_use_the_file_writer_of_libsbml(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The file is written by python, libsbml only serializes the document.
+
+    `libsbml.SBMLWriter.writeSBMLToFile` refuses a path with a non-ASCII
+    character on Windows; its refusal is emulated here so that the write is
+    known not to depend on it on every platform.
+    """
+    monkeypatch.setattr(libsbml.SBMLWriter, "writeSBMLToFile", lambda *args: False)
+    sbml_path = tmp_path / "model.xml"
+
+    write_sbml(_model_doc(), filepath=sbml_path)
+
+    assert libsbml.readSBMLFromString(sbml_path.read_text("utf-8")).getModel()
+
+
+def test_read_sbml_does_not_use_the_file_reader_of_libsbml(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The file is read by python, libsbml only parses its content.
+
+    `libsbml.readSBMLFromFile` cannot open a path with a non-ASCII character
+    on Windows, it answers "File unreadable"; its failure is emulated here.
+    """
+    sbml_path = tmp_path / "model.xml"
+    sbml_path.write_text(libsbml.writeSBMLToString(_model_doc("m1")), encoding="utf-8")
+    monkeypatch.setattr(
+        libsbml, "readSBMLFromFile", lambda *args: libsbml.readSBMLFromString("")
+    )
+
+    assert read_sbml(sbml_path).getModel().getId() == "m1"
+
+
+@pytest.mark.parametrize("filename", ["m.xml.gz", "m.xml.bz2", "m.xml.zip", "m.zip"])
+def test_compressed_files_are_compatible_with_libsbml(
+    tmp_path: Path, filename: str
+) -> None:
+    """A compressed file is written and read as libsbml writes and reads it.
+
+    libsbml compresses by the suffix of the path, `.gz`, `.bz2` or `.zip`, and
+    names the entry of a zip archive after the path without `.zip`, with `.xml`
+    added unless it ends in `.xml` or `.sbml`.
+    """
+    ours = tmp_path / "ours" / filename
+    theirs = tmp_path / "theirs" / filename
+    theirs.parent.mkdir()
+    write_sbml(_model_doc("ours"), filepath=ours)
+    assert libsbml.writeSBMLToFile(_model_doc("theirs"), str(theirs))
+
+    assert libsbml.readSBMLFromFile(str(ours)).getModel().getId() == "ours"
+    assert read_sbml(theirs).getModel().getId() == "theirs"
+    if filename.endswith(".zip"):
+        with zipfile.ZipFile(ours) as z_ours, zipfile.ZipFile(theirs) as z_theirs:
+            assert z_ours.namelist() == z_theirs.namelist()
+
+
+def test_read_sbml_raises_for_a_file_which_is_not_utf8(tmp_path: Path) -> None:
+    """SBML is UTF-8, a file in another encoding cannot be read."""
+    sbml_path = tmp_path / "latin1.xml"
+    sbml_path.write_bytes(
+        libsbml.writeSBMLToString(_model_doc())
+        .encode("utf-8")
+        .replace("ü".encode(), "ü".encode("latin-1"))
+    )
+    with pytest.raises(
+        ValueError, match=r"latin1\.xml.*could not be read:\n.*E1017 .*UTF-8"
+    ):
+        read_sbml(sbml_path)

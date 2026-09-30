@@ -23,6 +23,13 @@ def flatten_sbml(
     against the location of the document which names it, i.e. relative to the
     directory of `sbml_path`, and of the external files in turn.
 
+    libsbml opens the file of an external model definition itself, and on
+    Windows it does so with the narrow (ANSI) file API, which cannot open a
+    path with a non-ASCII character: a model with external model definitions
+    in such a directory cannot be flattened on Windows. `sbml_path` and
+    `sbml_flat_path` themselves are read and written by python and may be
+    any path.
+
     :param sbml_path: input path to SBML file to flatten (should be a comp model)
     :param sbml_flat_path: output path for flat SBML
     :param leave_ports: boolean flag to leave ports in flattened model.

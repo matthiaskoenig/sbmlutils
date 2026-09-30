@@ -43,6 +43,12 @@ def merge_models(
     it by its file name. A relative path is relative to the working directory,
     which is never changed.
 
+    The merged model names the converted models as external model definitions,
+    whose files libsbml opens itself, with the narrow (ANSI) file API on
+    Windows. On Windows `output_dir` must therefore be a path without non-ASCII
+    characters, otherwise the submodels do not resolve and the merged model
+    cannot be flattened.
+
     The created model is either in SBML L3V1 (default) or SBML L3V2.
 
     :param model_paths: paths to models

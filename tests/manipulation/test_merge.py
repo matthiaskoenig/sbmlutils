@@ -1,6 +1,7 @@
 """Test model merging functionality."""
 
 import shutil
+import sys
 from pathlib import Path
 
 import libsbml
@@ -12,6 +13,25 @@ from sbmlutils.io import read_sbml, write_sbml
 from sbmlutils.manipulation import merge
 from sbmlutils.resources import TESTDATA_DIR
 from sbmlutils.validation import ValidationOptions
+
+#: output directories relative to the working directory: a plain one, one with
+#: a space, which a file URI percent-encodes, and one with a non-ASCII
+#: character. libsbml opens the file of an external model definition itself,
+#: with the narrow (ANSI) file API on Windows, which cannot open a non-ASCII
+#: path, so the merged model does not resolve its submodels there.
+OUT_DIRS = [
+    "out",
+    "sp ace",
+    pytest.param(
+        "ü",
+        marks=pytest.mark.xfail(
+            sys.platform == "win32",
+            reason="libsbml cannot open an external model definition in a "
+            "non-ASCII directory on Windows",
+            strict=True,
+        ),
+    ),
+]
 
 
 def test_merge_models_example(tmp_path: Path) -> None:
@@ -95,7 +115,7 @@ def emd_sources(doc: libsbml.SBMLDocument) -> list[str]:
     return [emds.get(k).getSource() for k in range(emds.size())]
 
 
-@pytest.mark.parametrize("out_dir", ["out", "sp ace/ü"])
+@pytest.mark.parametrize("out_dir", OUT_DIRS)
 def test_merge_models_relative_paths(forbid_chdir: Path, out_dir: str) -> None:
     """Relative paths are relative to the working directory, which is kept."""
     two_models(forbid_chdir / "models")
@@ -205,7 +225,7 @@ def test_merge_models_ids_differ_from_model_ids(tmp_path: Path) -> None:
     assert (tmp_path / "merged_flat.xml").exists()
 
 
-@pytest.mark.parametrize("out_dir", ["out", "sp ace/ü"])
+@pytest.mark.parametrize("out_dir", OUT_DIRS)
 def test_merge_models_submodel_sbo_term(tmp_path: Path, out_dir: str) -> None:
     """A submodel has the SBO term of the model it instantiates."""
     model_paths = two_models(tmp_path / "models")

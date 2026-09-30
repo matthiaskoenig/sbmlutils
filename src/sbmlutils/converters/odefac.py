@@ -31,6 +31,7 @@ import libsbml
 from sbmlutils import RESOURCES_DIR
 from sbmlutils.console import console
 from sbmlutils.converters.mathml import evaluableMathML
+from sbmlutils.io import read_sbml
 from sbmlutils.report.units import udef_to_string
 
 logger = logging.getLogger(__name__)
@@ -102,7 +103,7 @@ class SBML2ODE:
     @classmethod
     def from_file(cls, sbml_file: Path) -> SBML2ODE:
         """Create converter from SBML file."""
-        doc: libsbml.SBMLDocument = libsbml.readSBMLFromFile(str(sbml_file))
+        doc: libsbml.SBMLDocument = read_sbml(sbml_file)
         return cls(doc)
 
     def _create_odes(self) -> None:

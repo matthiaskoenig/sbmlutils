@@ -167,6 +167,8 @@ flatten_sbml(sbml_path="model_comp.xml", sbml_flat_path="model_flat.xml")
 
 External model definitions are resolved relative to the file they are referenced from, so the comp model and the models it includes stay together.
 
+libsbml opens the file of an external model definition itself, and on Windows it does so with the narrow (ANSI) file API, which cannot open a path with a non-ASCII character. On Windows a comp model with external model definitions, and the output directory of `merge_models`, must therefore be in a directory without non-ASCII characters; a comp model whose definitions are all in the document is flattened in any directory.
+
 ## What round trips
 
 `sbml_to_model` reads the comp content of a document, so a hierarchical model can be read, changed in python and written back, see [Reading and writing](io.md#the-packages):
