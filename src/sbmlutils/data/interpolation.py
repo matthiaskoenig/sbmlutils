@@ -12,6 +12,7 @@ models in a simple manner.
 from __future__ import annotations
 
 import logging
+from enum import StrEnum
 from pathlib import Path
 
 import libsbml
@@ -53,10 +54,23 @@ notes = libsbml.XMLNode.convertStringToXMLNode(
 """
 )
 
-# available interpolation methods
-INTERPOLATION_CONSTANT = "constant"
-INTERPOLATION_LINEAR = "linear"
-INTERPOLATION_CUBIC_SPLINE = "cubic spline"
+
+class InterpolationMethod(StrEnum):
+    """Available interpolation methods.
+
+    The members are strings, so the plain value (`"linear"`) is accepted and
+    compares equal wherever a method is expected.
+    """
+
+    CONSTANT = "constant"
+    LINEAR = "linear"
+    CUBIC_SPLINE = "cubic spline"
+
+
+# aliases of the methods, kept for backwards compatibility
+INTERPOLATION_CONSTANT = InterpolationMethod.CONSTANT
+INTERPOLATION_LINEAR = InterpolationMethod.LINEAR
+INTERPOLATION_CUBIC_SPLINE = InterpolationMethod.CUBIC_SPLINE
 
 
 class Interpolator:
@@ -69,12 +83,21 @@ class Interpolator:
         self,
         x: pd.Series,
         y: pd.Series,
-        method: str = INTERPOLATION_CONSTANT,
+        method: InterpolationMethod | str = InterpolationMethod.CONSTANT,
     ):
-        """Initialize Interpolator."""
-        self.x: pd.Series = x
-        self.y: pd.Series = y
-        self.method = method
+        """Initialize Interpolator.
+
+        Args:
+            x: The independent variable, in ascending order.
+            y: The values interpolated against x.
+            method: The interpolation method.
+
+        Raises:
+            ValueError: If the method is not an interpolation method.
+        """
+        self.x: pd.Series = x.reset_index(drop=True)
+        self.y: pd.Series = y.reset_index(drop=True)
+        self.method: InterpolationMethod = InterpolationMethod(method)
 
     def __str__(self) -> str:
         """Convert to string."""
@@ -99,14 +122,13 @@ class Interpolator:
 
     def formula(self) -> str:
         """Get formula string."""
-        formula: str
-        if self.method is INTERPOLATION_CONSTANT:
-            formula = Interpolator._formula_constant(self.x, self.y)
-        elif self.method is INTERPOLATION_LINEAR:
-            formula = Interpolator._formula_linear(self.x, self.y)
-        elif self.method is INTERPOLATION_CUBIC_SPLINE:
-            formula = Interpolator._formula_cubic_spline(self.x, self.y)
-        return formula
+        match self.method:
+            case InterpolationMethod.CONSTANT:
+                return Interpolator._formula_constant(self.x, self.y)
+            case InterpolationMethod.LINEAR:
+                return Interpolator._formula_linear(self.x, self.y)
+            case InterpolationMethod.CUBIC_SPLINE:
+                return Interpolator._formula_cubic_spline(self.x, self.y)
 
     @staticmethod
     def _formula_cubic_spline(x: pd.Series, y: pd.Series) -> str:
@@ -160,7 +182,8 @@ class Interpolator:
         """
         np1 = len(X)
         n = np1 - 1
-        a = Y[:]
+        a = Y.reset_index(drop=True)
+        X = X.reset_index(drop=True)
         b = [0.0] * n
         d = [0.0] * n
         h = [X[i + 1] - X[i] for i in range(n)]
@@ -248,12 +271,20 @@ class Interpolation:
     The second to last components are interpolated against the first component.
     """
 
-    def __init__(self, data: pd.DataFrame, method: str = "linear"):
-        """Initialize Interpolation."""
+    def __init__(
+        self,
+        data: pd.DataFrame,
+        method: InterpolationMethod | str = InterpolationMethod.LINEAR,
+    ):
+        """Initialize Interpolation.
+
+        Raises:
+            ValueError: If the method is not an interpolation method.
+        """
         self.doc: libsbml.SBMLDocument | None = None
         self.model: libsbml.Model | None = None
         self.data: pd.DataFrame = data
-        self.method: str = method
+        self.method: InterpolationMethod = InterpolationMethod(method)
         self.interpolators: list[Interpolator] = []
 
         self.validate_data()
@@ -284,7 +315,9 @@ class Interpolation:
 
         if not is_sorted(self.data, colname=self.data.columns[0]):
             logger.warning("First column should contain ascending values.")
-            self.data = self.data.sort_values(by=self.data.columns[0])
+            self.data = self.data.sort_values(by=self.data.columns[0]).reset_index(
+                drop=True
+            )
 
     @staticmethod
     def from_csv(
@@ -352,7 +385,9 @@ class Interpolation:
         return doc, model
 
     @staticmethod
-    def create_interpolators(data: pd.DataFrame, method: str) -> list[Interpolator]:
+    def create_interpolators(
+        data: pd.DataFrame, method: InterpolationMethod | str
+    ) -> list[Interpolator]:
         """Create all interpolators for the given data set.
 
         The columns 1, ... (Ncol-1) are interpolated against
@@ -383,7 +418,8 @@ class Interpolation:
         # add xid if needed
         xid = interpolator.xid
         xobj = model.getElementBySId(xid)
-        if not xobj:
+        # the time of the simulation is the csymbol, it must not be shadowed by a parameter
+        if not xobj and xid != "time":
             px: libsbml.Parameter = model.createParameter()
             px.setId(xid)
             px.setName(xid)

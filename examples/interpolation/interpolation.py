@@ -39,7 +39,7 @@ def interpolation_example() -> Figure:
     x = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0]
     y = [0.0, 2.0, 1.0, 1.5, 2.5, 3.5]
     z = [10.0, 5.0, 2.5, 1.25, 0.6, 0.3]
-    data1 = pd.DataFrame({"x": x, "y": y, "z": z})
+    data1 = pd.DataFrame({"time": x, "y": y, "z": z})
 
     f: Figure
     ax1: Axes
