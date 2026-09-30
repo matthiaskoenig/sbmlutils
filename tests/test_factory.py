@@ -1558,13 +1558,13 @@ def _reaction_test_model() -> tuple[libsbml.SBMLDocument, libsbml.Model]:
 def test_reaction_modifier_keeps_sbase_fields() -> None:
     """Test that a modifier's metaId, sboTerm, name, notes and annotation survive.
 
-    `set_speciesref_fields` used to only set `species`, `sid`, `constant`,
-    `stoichiometry`, `metaId` and `sboTerm` on a species reference; `name`,
-    `notes` and `annotations` were silently dropped, for reactants, products
-    and modifiers alike. This asserts against the actual created
+    The writer of a species reference used to only set `species`, `sid`,
+    `constant`, `stoichiometry`, `metaId` and `sboTerm`; `name`, `notes` and
+    `annotations` were silently dropped, for reactants, products and
+    modifiers alike. This asserts against the actual created
     `libsbml.ModifierSpeciesReference`, not against the python `EquationPart`
-    it was built from, so it fails if `set_speciesref_fields` stops writing
-    any of these.
+    it was built from, so it fails if `_SpeciesReference` stops writing any
+    of these.
     """
     _doc, model = _reaction_test_model()
     equation = ReactionEquation(
@@ -1631,7 +1631,7 @@ def test_reaction_speciesref_name_with_space_is_rejected_by_libsbml(
     syntax validation to `name`, which SBML defines as a plain `string`, so
     any name that is not a valid SId, such as one containing a space, is
     rejected with rc=-4 and never set. This is a libsbml defect, not a bug in
-    this package (see the comment in `set_speciesref_fields`), but it must be
+    this package (see `_SpeciesReference._set_name`), but it must be
     surfaced as a warning rather than fail completely silently, and this
     pins that behaviour with a test rather than leaving it to be
     rediscovered by surprise.
@@ -1909,10 +1909,10 @@ def _fbc_reaction_test_model() -> tuple[libsbml.SBMLDocument, libsbml.Model]:
 def test_reaction_speciesref_keeps_key_value_pairs() -> None:
     """Test that the key-value pairs of a reactant, product and modifier are written.
 
-    `EquationPart.keyValuePairs` was declared and never read:
-    `set_speciesref_fields` wrote the species, id, stoichiometry, metaId,
-    sboTerm, name, notes and annotations of a part and dropped its key-value
-    pairs, for all three roles alike. A `ModifierSpeciesReference` is an
+    `EquationPart.keyValuePairs` was declared and never read: the writer of a
+    species reference wrote the species, id, stoichiometry, metaId, sboTerm,
+    name, notes and annotations of a part and dropped its key-value pairs,
+    for all three roles alike. A `ModifierSpeciesReference` is an
     `SBase` like a `SpeciesReference` and carries them just as well.
     """
     _doc, model = _fbc_reaction_test_model()

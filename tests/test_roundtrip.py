@@ -1658,7 +1658,7 @@ def test_roundtrip_species_reference_metadata(tmp_path: Path) -> None:
     name, metaId, sboTerm, notes or annotation (case 00063's modifier, for
     example, is a bare species reference), so
     `test_roundtrip_species_references` above would pass identically even if
-    `set_speciesref_fields`/`parse_sbase_kwargs` wrote or parsed none of that
+    the writer or the parser of a species reference wrote or read none of that
     metadata. This builds a source document with a fully annotated reactant
     and modifier directly with libsbml, following the pattern of
     `test_roundtrip_constraint_math_and_message`, and checks both directions:

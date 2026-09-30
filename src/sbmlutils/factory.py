@@ -724,8 +724,9 @@ def _sbo_term(sbo_term: Any) -> Any:
     A model definition may state an SBO term as an `SBO` member, as the
     `SBO:0000011` of the document or as the `SBO_0000011` of the ontology
     file; libsbml accepts only the first spelling and answers the second with
-    `LIBSBML_INVALID_ATTRIBUTE_VALUE`. Every element normalizes through this,
-    the `Sbase` ones and the `EquationPart` of a species reference alike.
+    `LIBSBML_INVALID_ATTRIBUTE_VALUE`. Every element normalizes through this in
+    `Sbase._set_fields`, the species reference of an `EquationPart` included,
+    see `_SpeciesReference`.
 
     Args:
         sbo_term: the SBO term as the model definition states it
@@ -1883,9 +1884,9 @@ class KeyValuePair(Sbase):
         """Create the key-value pairs of an element, if the document has fbc v3.
 
         The one place which decides whether a `<fbc:keyValuePair>` can be
-        written at all, asked by `Sbase.create_key_value_pairs` and by
-        `Reaction.create_sbml` for the pairs of a species reference, which is
-        an `EquationPart` rather than an `Sbase`.
+        written at all, asked by `Sbase.create_key_value_pairs` for every
+        element, the species reference a `Reaction` writes for each
+        `EquationPart` of its equation included, see `_SpeciesReference`.
 
         A key-value pair is fbc **version 3**. In an fbc version 2 document
         libsbml creates the element and answers `setKey`, `setValue`,
