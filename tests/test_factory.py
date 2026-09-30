@@ -3655,3 +3655,18 @@ def test_create_model_show_sbml_logs_the_sbml(
     with caplog.at_level(logging.INFO, logger="sbmlutils.factory"):
         create_model(model, tmp_path / "m.xml")
     assert "Created SBML" not in caplog.text
+
+
+def test_create_model_str_filepath_show_sbml(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """A filepath given as str is accepted, also with `show_sbml`."""
+    filepath = str(tmp_path / "model.xml")
+    with caplog.at_level(logging.INFO, logger="sbmlutils.factory"):
+        result = create_model(
+            model=Model(sid="str_path"),
+            filepath=filepath,  # ty: ignore[invalid-argument-type]
+            show_sbml=True,
+        )
+    assert result.sbml_path == Path(filepath)
+    assert "Created SBML" in caplog.text

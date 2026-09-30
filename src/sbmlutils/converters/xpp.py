@@ -147,11 +147,6 @@ def parts_from_expression(expression: str) -> list[str]:
 
     :return: list of cleaned parts
     """
-    # replace all separators with comma
-    # groups = re.findall('(.+?=.+?)[,\s]+', expression)
-    # print('groups', groups)
-    # return groups
-
     tokens = expression.split("=")
     if len(tokens) == 2:
         return [expression]

@@ -21,6 +21,8 @@ logger = logging.getLogger(__name__)
 
 #: compiled once, an XSLT object is reusable
 XSLT_CMML2PMML = ET.XSLT(ET.parse(str(RESOURCES_DIR / "xslt" / "ctopff.xsl")))
+
+#: compiled once, an XSLT object is reusable
 XSLT_PMML2TEX = ET.XSLT(ET.parse(str(RESOURCES_DIR / "xslt" / "xsltml" / "mmltex.xsl")))
 
 
@@ -98,10 +100,6 @@ def cmathml_to_latex(cmml_str: str) -> str:
 
     # cleanup symbols
     return _fix_mathit_symbols(tex_str)
-
-    # print(tex_str)
-    # pmml_bytes = ET.tostring(pmml_dom, pretty_print=True)
-    # pmml_str = pmml_bytes.decode("UTF-8")
 
 
 # symbols replaced in latex

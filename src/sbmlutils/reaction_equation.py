@@ -261,7 +261,12 @@ class ReactionEquation:
         return " ".join([left, sep, right])
 
     def info(self) -> None:
-        """Log overview of parsed equation."""
+        """Log overview of parsed equation.
+
+        The overview is logged at INFO level on the `sbmlutils.reaction_equation`
+        logger, nothing is shown unless logging is enabled, see
+        `sbmlutils.log.enable_rich_logging`.
+        """
         lines = [
             f"{'equation':<10s}: {self.to_string(modifiers=True)}",
             f"{'reversible':<10s}: {self.reversible}",

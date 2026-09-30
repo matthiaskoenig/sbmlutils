@@ -38,7 +38,6 @@ def create_metaid(sbase: libsbml.SBase) -> str:
 def create_hash_id(sbase: libsbml.SBase) -> str:
     """Create hash code."""
     # FIXME: issues with assignment rules in pancreas model
-
     if sbase and hasattr(sbase, "getId") and sbase.isSetId():
         hash_key = sbase.getId()
     else:

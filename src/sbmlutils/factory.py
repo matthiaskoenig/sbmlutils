@@ -8125,7 +8125,7 @@ def create_model(
     :param sbml_version: set SBML version for model generation
     :param validate: boolean flag to validate the SBML file
     :param validation_options: options for model validation
-    :param show_sbml: boolean flag to show SBML
+    :param show_sbml: boolean flag to log the created SBML at INFO level on the `sbmlutils.factory` logger, nothing is shown unless logging is enabled, see `sbmlutils.log.enable_rich_logging`
     :param annotations: Path to annotations file
     :param create_antimony: write the antimony serialization to `*.ant`
     :param create_markdown: write the markdown overview of the ODE system to `*.md`
@@ -8138,6 +8138,7 @@ def create_model(
         Validation does not raise: a document which does not validate is
         written and returned all the same.
     """
+    filepath = Path(filepath)
     if validation_options is None:
         validation_options = ValidationOptions()
 

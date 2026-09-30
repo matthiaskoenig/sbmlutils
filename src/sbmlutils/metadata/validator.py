@@ -30,12 +30,10 @@ def validate_sbml_annotations(source: Path | str) -> pd.DataFrame:
             cvterm: libsbml.CVTerm
             cvterms = element.getCVTerms()
 
-            # console.rule(f"id='{element.id}' | {type(element)} | '{element.name}'", align="left", style="bold white")
             for cvterm in cvterms:
                 cvterm.getQualifierType()
                 for k in range(cvterm.getNumResources()):
                     resource_uri = cvterm.getResourceURI(k)
-                    # console.print(f"{qualifier_type} | {resource_uri}")
                     annotation = RDFAnnotation(
                         qualifier=BQB.IS, resource=resource_uri, validate=False
                     )
