@@ -1295,6 +1295,18 @@ class Sbase:
     #: default.
     _port_id_needs_l3v2: ClassVar[bool] = False
 
+    #: whether `_set_fields` hints that `name` should be set when it is not.
+    #: Switched off on the classes a name is unusual on: those identified by
+    #: what they reference or by their key and value (an fbc version 2
+    #: document cannot even carry the name of a key value pair), and those
+    #: created from a formula string in the authoring style, which has no
+    #: place for a name, see `no_authoring_hints` for the other suppression
+    _hint_name: ClassVar[bool] = True
+
+    #: whether `_set_fields` hints that `sboTerm` should be set when it is
+    #: not, switched off on the classes an sboTerm is unusual on
+    _hint_sbo_term: ClassVar[bool] = True
+
     #: authoring hints are logged for a hand written model definition, they are
     #: noise for a model which was parsed from a file, see
     #: `Sbase.no_authoring_hints`. A `ContextVar` rather than a class attribute:
@@ -1432,57 +1444,12 @@ class Sbase:
                 _check_attribute(
                     sbase.setName(self.name), sbase, "name", self.name, self
                 )
-        elif Sbase._authoring_hints.get() and not isinstance(
-            self,
-            (
-                Document,
-                Port,
-                ReplacedBy,
-                ReplacedElement,
-                AssignmentRule,
-                EventAssignment,
-                # identified by its key and its value; an fbc version 2
-                # document cannot carry its name at all
-                KeyValuePair,
-                # created from a formula string in the authoring style, which
-                # has no place for their name or sboTerm
-                KineticLaw,
-                Trigger,
-                Priority,
-                Delay,
-                # identified by their type and their value, a name and an
-                # sboTerm are unusual on them
-                UncertParameter,
-                UncertSpan,
-            ),
-        ):
+        elif Sbase._authoring_hints.get() and self._hint_name:
             logger.warning("'name' should be set on '%s'", self)
         if self.sboTerm is not None:
             sbo = _sbo_term(self.sboTerm)
             _check_attribute(sbase.setSBOTerm(sbo), sbase, "sboTerm", sbo, self)
-        elif Sbase._authoring_hints.get() and not isinstance(
-            self,
-            (
-                Document,
-                Port,
-                UnitDefinition,
-                Model,
-                ReplacedBy,
-                ReplacedElement,
-                AssignmentRule,
-                RateRule,
-                ExternalModelDefinition,
-                Submodel,
-                EventAssignment,
-                KeyValuePair,
-                KineticLaw,
-                Trigger,
-                Priority,
-                Delay,
-                UncertParameter,
-                UncertSpan,
-            ),
-        ):
+        elif Sbase._authoring_hints.get() and self._hint_sbo_term:
             logger.warning("'sboTerm' should be set on '%s'", self)
         if self.metaId is not None:
             _check_attribute(
@@ -1844,6 +1811,9 @@ class KeyValuePair(Sbase):
     resolvable; this package writes a port for neither.
     """
 
+    _hint_name: ClassVar[bool] = False
+    _hint_sbo_term: ClassVar[bool] = False
+
     #: libsbml writes the `fbc:id` of a `<fbc:keyValuePair>` into an SBML
     #: L3V1 document but does not read it back, so a port names a pair by its
     #: metaid there, see `Sbase._port_id_needs_l3v2`
@@ -2105,6 +2075,8 @@ class UnitDefinition(Sbase):
 
     Corresponds to the information in the libsbml.UnitDefinition.
     """
+
+    _hint_sbo_term: ClassVar[bool] = False
 
     #: the unit definitions of a model live in a namespace of their own, which
     #: comp names by `comp:unitRef`, see `Sbase._port_reference`
@@ -3215,6 +3187,9 @@ class RuleWithVariable(ValueWithUnit, Generic[_VariableRuleT]):
 class AssignmentRule(RuleWithVariable[libsbml.AssignmentRule]):
     """AssignmentRule, the variable is the value of the math at any time."""
 
+    _hint_name: ClassVar[bool] = False
+    _hint_sbo_term: ClassVar[bool] = False
+
     def __repr__(self) -> str:
         """Get string representation."""
         return f"{self.variable} = {self.value} [{self.unit}]"
@@ -3226,6 +3201,8 @@ class AssignmentRule(RuleWithVariable[libsbml.AssignmentRule]):
 
 class RateRule(RuleWithVariable[libsbml.RateRule]):
     """RateRule, the math is the rate of change of the variable."""
+
+    _hint_sbo_term: ClassVar[bool] = False
 
     def __repr__(self) -> str:
         """Get string representation."""
@@ -3305,6 +3282,9 @@ class KineticLaw(Sbase):
     Corresponds to the information in a `libsbml.KineticLaw`: the rate math,
     and the local parameters which are scoped to it.
     """
+
+    _hint_name: ClassVar[bool] = False
+    _hint_sbo_term: ClassVar[bool] = False
 
     #: a `<kineticLaw>` has no id in an SBML L3V1 document, so a port names it by
     #: its metaid there, see `Sbase._port_id_needs_l3v2`
@@ -3776,6 +3756,9 @@ class EventAssignment(Value):
     writes it next to `variable`.
     """
 
+    _hint_name: ClassVar[bool] = False
+    _hint_sbo_term: ClassVar[bool] = False
+
     #: `libsbml.Model.getElementBySId`, which comp resolves a `comp:idRef`
     #: with, does not answer with an event assignment, so a port names one by
     #: its metaid, see `Sbase._port_reference`
@@ -3872,6 +3855,9 @@ class Trigger(Sbase):
     Corresponds to a `libsbml.Trigger`: the condition whose change from false
     to true fires the event, and the two flags which qualify it.
     """
+
+    _hint_name: ClassVar[bool] = False
+    _hint_sbo_term: ClassVar[bool] = False
 
     #: a `<trigger>` has no id in an SBML L3V1 document, so a port names it by
     #: its metaid there, see `Sbase._port_id_needs_l3v2`
@@ -3999,6 +3985,9 @@ class Priority(Sbase):
     `Sbase.create_replaced_by`.
     """
 
+    _hint_name: ClassVar[bool] = False
+    _hint_sbo_term: ClassVar[bool] = False
+
     #: a `<priority>` has no id in an SBML L3V1 document, so a port names it by
     #: its metaid there, see `Sbase._port_id_needs_l3v2`
     _port_id_needs_l3v2: ClassVar[bool] = True
@@ -4096,6 +4085,9 @@ class Delay(Sbase):
     Corresponds to a `libsbml.Delay`: the math of the time between the firing
     of the event and the execution of its assignments.
     """
+
+    _hint_name: ClassVar[bool] = False
+    _hint_sbo_term: ClassVar[bool] = False
 
     #: a `<delay>` has no id in an SBML L3V1 document, so a port names it by
     #: its metaid there, see `Sbase._port_id_needs_l3v2`
@@ -4824,6 +4816,9 @@ class UncertParameter(_UncertChild):
     offers, are documented in `_UncertChild`.
     """
 
+    _hint_name: ClassVar[bool] = False
+    _hint_sbo_term: ClassVar[bool] = False
+
     _types: ClassVar[frozenset[int]] = frozenset(
         {
             libsbml.DISTRIB_UNCERTTYPE_COEFFIENTOFVARIATION,
@@ -4960,6 +4955,9 @@ class UncertSpan(_UncertChild):
     read back from the `listOfUncertParameters`. The shared fields, and the
     fields neither class offers, are documented in `_UncertChild`.
     """
+
+    _hint_name: ClassVar[bool] = False
+    _hint_sbo_term: ClassVar[bool] = False
 
     _types: ClassVar[frozenset[int]] = frozenset(
         {
@@ -5970,6 +5968,8 @@ class ExternalModelDefinition(Sbase):
     reported.
     """
 
+    _hint_sbo_term: ClassVar[bool] = False
+
     def __init__(
         self,
         sid: str,
@@ -6023,6 +6023,8 @@ class ExternalModelDefinition(Sbase):
 
 class Submodel(Sbase):
     """Submodel."""
+
+    _hint_sbo_term: ClassVar[bool] = False
 
     def __init__(
         self,
@@ -6257,6 +6259,9 @@ class ReplacedElement(SbaseRef):
     see `_replaced_element_ref`.
     """
 
+    _hint_name: ClassVar[bool] = False
+    _hint_sbo_term: ClassVar[bool] = False
+
     def __init__(
         self,
         sid: str | None = None,
@@ -6390,6 +6395,9 @@ class ReplacedElement(SbaseRef):
 
 class ReplacedBy(SbaseRef):
     """ReplacedBy: an element of this model is replaced by one of a submodel."""
+
+    _hint_name: ClassVar[bool] = False
+    _hint_sbo_term: ClassVar[bool] = False
 
     def __init__(
         self,
@@ -6567,6 +6575,9 @@ class Port(SbaseRef):
     document either carries an sboTerm or it does not, and inventing one would
     make a round trip of a port without an sboTerm write one.
     """
+
+    _hint_name: ClassVar[bool] = False
+    _hint_sbo_term: ClassVar[bool] = False
 
     #: the SBO term which stands for each port type
     _SBO_FOR_PORT_TYPE: ClassVar[dict[PortType, SBO]] = {
@@ -6887,6 +6898,8 @@ class Model(Sbase, FrozenClass):
     no validation ever ran and `deepcopy`, `==` and `model_dump` raised.
     `FrozenClass` rejects unknown attributes, which is what the freeze was for.
     """
+
+    _hint_sbo_term: ClassVar[bool] = False
 
     sid: str
     name: str | None
@@ -7817,6 +7830,9 @@ class Document(Sbase):
     written into the XML of an `<sbml>` element by hand is read without an
     error and is invisible afterwards.
     """
+
+    _hint_name: ClassVar[bool] = False
+    _hint_sbo_term: ClassVar[bool] = False
 
     def __init__(
         self,
