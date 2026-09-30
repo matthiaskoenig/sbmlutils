@@ -3486,3 +3486,126 @@ def test_a_variable_of_a_user_defined_constraint_is_not_reported(
         ],
     )
     assert _never_changed(model, tmp_path, caplog) == {"Parameter": ["p_forgotten"]}
+
+
+@pytest.mark.parametrize(
+    "annotations",
+    [
+        pytest.param(["chebi/CHEBI:15422"], id="first"),
+        pytest.param([(BQB.IS, "chebi/CHEBI:15422"), "chebi/CHEBI:15422"], id="second"),
+    ],
+)
+def test_an_annotation_which_is_neither_an_annotation_nor_a_tuple_raises(
+    tmp_path: Path, annotations: list[Any]
+) -> None:
+    """An annotation entry of an unsupported type raises instead of failing late.
+
+    As the first entry it raised an `UnboundLocalError`, after another entry
+    it silently duplicated the annotation before it.
+    """
+    model = Model(
+        "m",
+        parameters=[Parameter("p", 1.0, annotations=annotations)],
+    )
+    with pytest.raises(ValueError, match="chebi/CHEBI:15422"):
+        create_model(model, filepath=tmp_path / "model.xml", validate=False)
+
+
+def test_the_objects_of_a_model_are_sorted_into_their_fields() -> None:
+    """Every element with a field on `Model` is accepted in `objects`."""
+    from sbmlutils.layout import Layout
+
+    unit = UnitDefinition("mM", "mmole/l")
+    external = ExternalModelDefinition(
+        sid="ext", source="external.xml", modelRef="ext_model"
+    )
+    definition = ModelDefinition("md")
+    layout = Layout("layout", width=100, height=100)
+    model = Model(
+        "m",
+        packages=[Package.COMP_V1],
+        objects=[unit, external, definition, layout],
+    )
+    assert model.units == [unit]
+    assert model.external_model_definitions == [external]
+    assert model.model_definitions == [definition]
+    assert model.layouts == [layout]
+
+
+@pytest.mark.parametrize(
+    "obj",
+    [
+        pytest.param(None, id="None"),
+        pytest.param("p", id="str"),
+        pytest.param(Model("inner"), id="Model"),
+    ],
+)
+def test_an_object_of_a_model_without_a_field_raises(obj: Any) -> None:
+    """An object which `Model` has no field for is not dropped in silence."""
+    with pytest.raises(ValueError, match="objects"):
+        Model("m", objects=[Parameter("p", 1.0), obj])
+
+
+def test_a_none_object_raises(tmp_path: Path) -> None:
+    """A `None` in a list of objects, e.g. from a stray comma, names the list."""
+    model = Model("m", parameters=[Parameter("p1", 1.0), None])  # ty: ignore[invalid-argument-type]
+    with pytest.raises(ValueError, match="parameters"):
+        create_model(model, filepath=tmp_path / "model.xml", validate=False)
+
+
+@pytest.mark.parametrize(
+    "rules",
+    [
+        pytest.param(
+            [AssignmentRule("x", "1"), AssignmentRule("x", "2")], id="assignment"
+        ),
+        pytest.param([AssignmentRule("x", "1"), RateRule("x", "2")], id="rate"),
+    ],
+)
+def test_a_second_rule_for_a_variable_raises(
+    tmp_path: Path, rules: list[Sbase]
+) -> None:
+    """A second rule for the same variable makes the model invalid, it raises.
+
+    The factory used to log that the existing rule would be overwritten and
+    then created the second rule next to it.
+    """
+    model = Model("m", objects=[Parameter("x", 1.0, constant=False), *rules])
+    with pytest.raises(ValueError, match="'x'"):
+        create_model(model, filepath=tmp_path / "model.xml", validate=False)
+
+
+def test_a_second_initial_assignment_for_a_symbol_raises(tmp_path: Path) -> None:
+    """A second initial assignment for the same symbol makes the model invalid."""
+    model = Model(
+        "m",
+        parameters=[Parameter("x", 1.0)],
+        assignments=[InitialAssignment("x", "1"), InitialAssignment("x", "2")],
+    )
+    with pytest.raises(ValueError, match="'x'"):
+        create_model(model, filepath=tmp_path / "model.xml", validate=False)
+
+
+@pytest.mark.parametrize(
+    "objects",
+    [
+        pytest.param([Function("f", "1 +* ")], id="Function"),
+        pytest.param([InitialAssignment("x", "1 +* ")], id="InitialAssignment"),
+        pytest.param([AssignmentRule("y", "1 +* ")], id="AssignmentRule"),
+        pytest.param([RateRule("y", "1 +* ")], id="RateRule"),
+        pytest.param([AlgebraicRule("a", "1 +* ")], id="AlgebraicRule"),
+    ],
+)
+def test_a_formula_which_does_not_parse_is_reported_and_leaves_no_math(
+    objects: list[Sbase], caplog: pytest.LogCaptureFixture
+) -> None:
+    """An unparseable formula is logged and the element is created without math."""
+    doc = libsbml.SBMLDocument(3, 2)
+    model: libsbml.Model = doc.createModel()
+    Parameter("x", 1.0).create_sbml(model)
+    with caplog.at_level(logging.ERROR, logger="sbmlutils"):
+        sbml_objects = factory.create_objects(model, obj_iter=objects)
+    assert "Formula could not be parsed: '1 +* '" in caplog.text
+    elements: list[Any] = list(sbml_objects.values()) or [model.getRule(0)]
+    assert len(elements) == 1
+    assert not elements[0].isSetMath()

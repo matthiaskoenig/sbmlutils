@@ -213,14 +213,15 @@ def create_objects(
     :param obj_iter: iterator of given model object classes like Parameter, ...
     :param key: object key
     :return: dictionary of SBML objects
+    :raises ValueError: if an object is `None`
     """
     sbml_objects: dict[str, libsbml.SBase] = {}
 
     for obj in obj_iter:
         if obj is None:
-            logger.error(
-                "Trying to create None object, check for incorrect terminating ',' on objects: '%s'",
-                sbml_objects,
+            raise ValueError(
+                f"An object of '{key or 'objects'}' is 'None', check for an "
+                f"incorrect terminating ',' after the objects: {list(sbml_objects)}"
             )
 
         sbml_obj: libsbml.SBase | None = _create_object(obj, model)
@@ -1347,16 +1348,25 @@ class Sbase:
 
         Various annotation formats are supported which have to be unified at some
         point. This function is performing the annotation normalization.
+
+        Raises:
+            ValueError: if an entry is neither an `Annotation` nor a
+                `(qualifier, resource)` tuple
         """
         annotations: list[Annotation] = []
         if annotation_objects is not None:
             for annotation_obj in annotation_objects:
-                annotation: Annotation
                 if isinstance(annotation_obj, Annotation):
-                    annotation = annotation_obj
+                    annotations.append(annotation_obj)
                 elif isinstance(annotation_obj, (tuple, list, set)):
-                    annotation = Annotation.from_tuple(annotation_obj)
-                annotations.append(annotation)
+                    annotations.append(Annotation.from_tuple(annotation_obj))
+                else:
+                    raise ValueError(
+                        f"An annotation is an 'Annotation' or a "
+                        f"'(qualifier, resource)' tuple, but "
+                        f"'{type(annotation_obj).__name__}' was given: "
+                        f"'{annotation_obj}'."
+                    )
         return annotations
 
     @staticmethod
@@ -2555,8 +2565,7 @@ class Function(Sbase):
         self, sbase: libsbml.FunctionDefinition, model: libsbml.Model
     ) -> None:
         super()._set_fields(sbase, model)
-        if self.formula is not None:
-            sbase.setMath(ast_node_from_formula(model, self.formula))
+        _set_math(sbase, self.formula, model)
 
 
 class Parameter(ValueWithUnit):
@@ -3074,7 +3083,17 @@ class InitialAssignment(Value):
 
         Creates a required parameter if the symbol for the
         initial assignment does not exist in the model.
+
+        Raises:
+            ValueError: if the model has an initial assignment for the symbol
+                already; a second one makes the model invalid
         """
+        if model.getInitialAssignmentBySymbol(self.symbol):
+            raise ValueError(
+                f"An InitialAssignment for symbol '{self.symbol}' exists already, "
+                f"a second one with value '{self.value}' makes the model invalid."
+            )
+
         # Create parameter if not existing
         if (
             (not model.getParameter(self.symbol))
@@ -3090,19 +3109,11 @@ class InitialAssignment(Value):
                 name=self.name,
             ).create_sbml(model)
 
-        # Check if rule exists
-        if model.getInitialAssignmentBySymbol(self.symbol):
-            logger.error(
-                "InitialAssignment for symbol '%s' already exists in model: . InitialAssignment will be overwritten '%s'",
-                self.symbol,
-                self.value,
-            )
-
         obj: libsbml.InitialAssignment = model.createInitialAssignment()
         self._set_fields(obj, model)
         _check_attribute(obj.setSymbol(self.symbol), obj, "symbol", self.symbol, self)
         if self.value is not None:
-            obj.setMath(ast_node_from_formula(model, str(self.value)))
+            _set_math(obj, str(self.value), model)
 
         self.create_port(model)
         return obj
@@ -3120,9 +3131,21 @@ class RuleWithVariable:
     def check_model_for_rule(self, model: libsbml.Model) -> None:
         """Check model for rule requirements.
 
-        Creates a required parameter if the symbol for the
-        initial assignment does not exist in the model.
+        Creates a required parameter if the variable of the rule does not
+        exist in the model, and makes a parameter it changes non-constant.
+
+        Raises:
+            ValueError: if the model has a rule for the variable already; a
+                second rule makes the model invalid
         """
+        rule_type: str = type(self).__name__
+        if model.getRuleByVariable(self.variable):
+            raise ValueError(
+                f"A rule for variable '{self.variable}' exists already, the "
+                f"{rule_type} with value '{self.value}' would be a second one "
+                f"and make the model invalid."
+            )
+
         # Create parameter if not existing
         if (
             (not model.getParameter(self.variable))
@@ -3142,20 +3165,13 @@ class RuleWithVariable:
         p: libsbml.Parameter = model.getParameter(self.variable)
         if p is not None and p.getConstant() is True:
             logger.warning(
-                "Parameter affected by AssignmentRule must be 'constant=False', but '%s' is 'constant=%s'.",
+                "Parameter changed by a %s must be 'constant=False', but '%s' "
+                "is 'constant=True'; it is set to 'constant=False'.",
+                rule_type,
                 p.getId(),
-                p.getConstant(),
             )
             _check_attribute(
                 p.setConstant(False), p, "constant", False, f"Parameter({p.getId()})"
-            )
-
-        # Check if rule exists
-        if model.getRuleByVariable(self.variable):
-            logger.error(
-                "Rule with target variable `%s` already exists in model: . Existing rule will be overwritten with `%s`.",
-                self.variable,
-                self.value,
             )
 
 
@@ -3220,7 +3236,7 @@ class AssignmentRule(ValueWithUnit, RuleWithVariable):
             obj.setVariable(self.variable), obj, "variable", self.variable, self
         )
         if self.value is not None:
-            obj.setMath(ast_node_from_formula(model, str(self.value)))
+            _set_math(obj, str(self.value), model)
         self.create_port(model)
         return obj
 
@@ -3283,7 +3299,7 @@ class RateRule(ValueWithUnit, RuleWithVariable):
             obj.setVariable(self.variable), obj, "variable", self.variable, self
         )
         if self.value is not None:
-            obj.setMath(ast_node_from_formula(model, str(self.value)))
+            _set_math(obj, str(self.value), model)
         self.create_port(model)
         return obj
 
@@ -3340,7 +3356,7 @@ class AlgebraicRule(ValueWithUnit, RuleWithVariable):
         rule: libsbml.AlgebraicRule = model.createAlgebraicRule()
         self._set_fields(rule, model)
         if self.value is not None:
-            rule.setMath(ast_node_from_formula(model, str(self.value)))
+            _set_math(rule, str(self.value), model)
         self.create_port(model)
         return rule
 
@@ -7137,46 +7153,61 @@ class Model(Sbase, FrozenClass):
         self.parsed = False
 
         if objects:
-            for sbase in objects:
-                if isinstance(sbase, Submodel):
-                    self.submodels.append(sbase)
-                elif isinstance(sbase, Function):
-                    self.functions.append(sbase)
-                elif isinstance(sbase, Compartment):
-                    self.compartments.append(sbase)
-                elif isinstance(sbase, Species):
-                    self.species.append(sbase)
-                elif isinstance(sbase, Parameter):
-                    self.parameters.append(sbase)
-                elif isinstance(sbase, InitialAssignment):
-                    self.assignments.append(sbase)
-                elif isinstance(sbase, AssignmentRule):
-                    self.rules.append(sbase)
-                elif isinstance(sbase, RateRule):
-                    self.rate_rules.append(sbase)
-                elif isinstance(sbase, AlgebraicRule):
-                    self.algebraic_rules.append(sbase)
-                elif isinstance(sbase, Reaction):
-                    self.reactions.append(sbase)
-                elif isinstance(sbase, Event):
-                    self.events.append(sbase)
-                elif isinstance(sbase, Constraint):
-                    self.constraints.append(sbase)
-                elif isinstance(sbase, Port):
-                    self.ports.append(sbase)
-                elif isinstance(sbase, ReplacedElement):
-                    self.replaced_elements.append(sbase)
-                elif isinstance(sbase, Deletion):
-                    self.deletions.append(sbase)
-                elif isinstance(sbase, UserDefinedConstraint):
-                    self.user_defined_constraints.append(sbase)
-                elif isinstance(sbase, Objective):
-                    self.objectives.append(sbase)
-                elif isinstance(sbase, GeneProduct):
-                    self.gene_products.append(sbase)
+            self._sort_objects(objects)
 
         self._check_fields()
         self._freeze()  # no new attributes after this point
+
+    def _sort_objects(self, objects: list[Sbase]) -> None:
+        """Append each of the `objects` to the field of `Model` for its type.
+
+        Args:
+            objects: the elements of the model, in any order
+
+        Raises:
+            ValueError: if an object has no field on `Model`, which would
+                otherwise be dropped from the model in silence
+        """
+        # the layout package builds on the factory, so it is imported here
+        # rather than at the top of the module, which it imports
+        from sbmlutils.layout.layout import Layout
+
+        fields: list[tuple[type, str]] = [
+            (UnitDefinition, "units"),
+            (ExternalModelDefinition, "external_model_definitions"),
+            (ModelDefinition, "model_definitions"),
+            (Submodel, "submodels"),
+            (Function, "functions"),
+            (Compartment, "compartments"),
+            (Species, "species"),
+            (Parameter, "parameters"),
+            (InitialAssignment, "assignments"),
+            (AssignmentRule, "rules"),
+            (RateRule, "rate_rules"),
+            (AlgebraicRule, "algebraic_rules"),
+            (Reaction, "reactions"),
+            (Event, "events"),
+            (Constraint, "constraints"),
+            (Port, "ports"),
+            (ReplacedElement, "replaced_elements"),
+            (Deletion, "deletions"),
+            (UserDefinedConstraint, "user_defined_constraints"),
+            (Objective, "objectives"),
+            (GeneProduct, "gene_products"),
+            (Layout, "layouts"),
+        ]
+        for sbase in objects:
+            for object_type, field in fields:
+                if isinstance(sbase, object_type):
+                    if field == "layouts" and self.layouts is None:
+                        self.layouts = []
+                    getattr(self, field).append(sbase)
+                    break
+            else:
+                raise ValueError(
+                    f"'{type(sbase).__name__}' in the objects of model "
+                    f"'{self.sid}' has no field on 'Model': '{sbase}'"
+                )
 
     @staticmethod
     def _normalize_units(
