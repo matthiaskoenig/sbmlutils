@@ -2956,6 +2956,183 @@ class Species(Sbase):
             )
 
 
+class _ModelSymbols:
+    """The ids the rules and initial assignments of a model are checked against.
+
+    A rule or an initial assignment checks that its variable has no rule or
+    initial assignment yet and creates a parameter for a variable which is
+    no symbol of the model. libsbml answers each of these lookups by walking
+    a list of the model, which makes writing the rules of a model quadratic
+    in its size. While `Model._fill_sbml` writes the rules and the initial
+    assignments, `indexed` therefore keeps the ids in sets which are built
+    once and kept up to date by the writers; outside of it, e.g. for the
+    rule of a `Parameter` with a math value or for an element written into a
+    libsbml model by a caller of its own, `for_model` answers with the
+    libsbml lookups, which is what an index is equal to.
+
+    The sets answer exactly what the libsbml lookups answer:
+    `getParameter`, `getSpecies`, `getCompartment` and `getSpeciesReference`
+    (the reactants and products of every reaction, not the modifiers) for a
+    symbol, `getRuleByVariable` for a rule, which also finds an algebraic
+    rule by the empty variable, and `getInitialAssignmentBySymbol`.
+    """
+
+    #: the index of the model which is being filled, see `indexed`
+    _active: ClassVar[ContextVar[_ModelSymbols | None]] = ContextVar(
+        "sbmlutils_model_symbols", default=None
+    )
+
+    def __init__(self, model: libsbml.Model, indexed: bool) -> None:
+        """Answer the lookups for a model, from sets or from libsbml.
+
+        Args:
+            model: the libsbml.Model the lookups are made in
+            indexed: whether the ids are collected into sets now, which the
+                writers must keep up to date, or looked up with libsbml
+        """
+        self.model = model
+        self._is_index = indexed
+        self._parameters: dict[str, libsbml.Parameter] = {}
+        self._symbols: set[str] = set()
+        self._rule_variables: set[str] = set()
+        self._assignment_symbols: set[str] = set()
+        if not indexed:
+            return
+        for parameter in model.getListOfParameters():
+            self._parameters.setdefault(parameter.getId(), parameter)
+        self._symbols.update(s.getId() for s in model.getListOfSpecies())
+        self._symbols.update(c.getId() for c in model.getListOfCompartments())
+        for reaction in model.getListOfReactions():
+            self._symbols.update(sr.getId() for sr in reaction.getListOfReactants())
+            self._symbols.update(sr.getId() for sr in reaction.getListOfProducts())
+        self._rule_variables.update(r.getVariable() for r in model.getListOfRules())
+        self._assignment_symbols.update(
+            a.getSymbol() for a in model.getListOfInitialAssignments()
+        )
+
+    @classmethod
+    @contextmanager
+    def indexed(cls, model: libsbml.Model) -> Iterator[None]:
+        """Index the ids of the model for the writers inside the context.
+
+        Only the rules, initial assignments and the parameters they create
+        may be written inside the context, since only those keep the index
+        up to date.
+
+        Args:
+            model: the libsbml.Model whose rules and initial assignments are
+                written inside the context
+
+        Yields:
+            None
+        """
+        token = cls._active.set(cls(model, indexed=True))
+        try:
+            yield
+        finally:
+            cls._active.reset(token)
+
+    @classmethod
+    def for_model(cls, model: libsbml.Model) -> _ModelSymbols:
+        """Get the lookups for the model, the index if it is being filled.
+
+        Args:
+            model: the libsbml.Model the lookups are made in
+
+        Returns:
+            the index of `indexed` for the model, else the libsbml lookups
+        """
+        active = cls._active.get()
+        if active is not None and active.model is model:
+            return active
+        return cls(model, indexed=False)
+
+    def has_symbol(self, sid: str) -> bool:
+        """Check whether a rule or an assignment can change the id as it is.
+
+        Args:
+            sid: the variable of a rule or the symbol of an assignment
+
+        Returns:
+            whether the id is a parameter, species, compartment or the
+            species reference of a reactant or product of the model
+        """
+        if self._is_index:
+            return sid in self._parameters or sid in self._symbols
+        return bool(
+            self.model.getParameter(sid)
+            or self.model.getSpecies(sid)
+            or self.model.getCompartment(sid)
+            or self.model.getSpeciesReference(sid)
+        )
+
+    def parameter(self, sid: str) -> libsbml.Parameter | None:
+        """Get the parameter of the model with the id.
+
+        Args:
+            sid: the id of the parameter
+
+        Returns:
+            the parameter, `None` if the model has none with the id
+        """
+        if self._is_index:
+            return self._parameters.get(sid)
+        return self.model.getParameter(sid)
+
+    def has_rule(self, variable: str) -> bool:
+        """Check whether the model has a rule for the variable.
+
+        Args:
+            variable: the variable of the rule
+
+        Returns:
+            whether the model has a rule for the variable
+        """
+        if self._is_index:
+            return variable in self._rule_variables
+        return bool(self.model.getRuleByVariable(variable))
+
+    def has_initial_assignment(self, symbol: str) -> bool:
+        """Check whether the model has an initial assignment for the symbol.
+
+        Args:
+            symbol: the symbol of the initial assignment
+
+        Returns:
+            whether the model has an initial assignment for the symbol
+        """
+        if self._is_index:
+            return symbol in self._assignment_symbols
+        return bool(self.model.getInitialAssignmentBySymbol(symbol))
+
+    def add_parameter(self, parameter: libsbml.Parameter) -> None:
+        """Record a parameter which was created in the model.
+
+        Args:
+            parameter: the created libsbml.Parameter
+        """
+        if self._is_index:
+            self._parameters.setdefault(parameter.getId(), parameter)
+
+    def add_rule(self, rule: libsbml.Rule) -> None:
+        """Record a rule which was created in the model.
+
+        Args:
+            rule: the created libsbml rule, its variable set
+        """
+        if self._is_index:
+            self._rule_variables.add(rule.getVariable())
+
+    def add_initial_assignment(self, assignment: libsbml.InitialAssignment) -> None:
+        """Record an initial assignment which was created in the model.
+
+        Args:
+            assignment: the created libsbml.InitialAssignment, its symbol set
+        """
+        if self._is_index:
+            self._assignment_symbols.add(assignment.getSymbol())
+
+
 class InitialAssignment(Value):
     """InitialAssignments.
 
@@ -3015,30 +3192,29 @@ class InitialAssignment(Value):
             ValueError: if the model has an initial assignment for the symbol
                 already; a second one makes the model invalid
         """
-        if model.getInitialAssignmentBySymbol(self.symbol):
+        symbols = _ModelSymbols.for_model(model)
+        if symbols.has_initial_assignment(self.symbol):
             raise ValueError(
                 f"An InitialAssignment for symbol '{self.symbol}' exists already, "
                 f"a second one with value '{self.value}' makes the model invalid."
             )
 
         # Create parameter if not existing
-        if (
-            (not model.getParameter(self.symbol))
-            and (not model.getSpecies(self.symbol))
-            and (not model.getCompartment(self.symbol))
-            and (not model.getSpeciesReference(self.symbol))
-        ):
-            Parameter(
-                sid=self.symbol,
-                value=None,
-                unit=self.unit,
-                constant=True,
-                name=self.name,
-            ).create_sbml(model)
+        if not symbols.has_symbol(self.symbol):
+            symbols.add_parameter(
+                Parameter(
+                    sid=self.symbol,
+                    value=None,
+                    unit=self.unit,
+                    constant=True,
+                    name=self.name,
+                ).create_sbml(model)
+            )
 
         obj: libsbml.InitialAssignment = model.createInitialAssignment()
         self._set_fields(obj, model)
         _check_attribute(obj.setSymbol(self.symbol), obj, "symbol", self.symbol, self)
+        symbols.add_initial_assignment(obj)
         if self.value is not None:
             _set_math(obj, str(self.value), model)
 
@@ -3120,7 +3296,8 @@ class RuleWithVariable(ValueWithUnit, Generic[_VariableRuleT]):
                 second rule makes the model invalid
         """
         rule_type: str = type(self).__name__
-        if model.getRuleByVariable(self.variable):
+        symbols = _ModelSymbols.for_model(model)
+        if symbols.has_rule(self.variable):
             raise ValueError(
                 f"A rule for variable '{self.variable}' exists already, the "
                 f"{rule_type} with value '{self.value}' would be a second one "
@@ -3128,22 +3305,19 @@ class RuleWithVariable(ValueWithUnit, Generic[_VariableRuleT]):
             )
 
         # Create parameter if not existing
-        if (
-            (not model.getParameter(self.variable))
-            and (not model.getSpecies(self.variable))
-            and (not model.getCompartment(self.variable))
-            and (not model.getSpeciesReference(self.variable))
-        ):
-            Parameter(
-                sid=self.variable,
-                value=None,
-                unit=self.unit,
-                constant=False,
-                name=self.name,
-            ).create_sbml(model)
+        if not symbols.has_symbol(self.variable):
+            symbols.add_parameter(
+                Parameter(
+                    sid=self.variable,
+                    value=None,
+                    unit=self.unit,
+                    constant=False,
+                    name=self.name,
+                ).create_sbml(model)
+            )
 
         # Make sure the parameter is const=False
-        p: libsbml.Parameter = model.getParameter(self.variable)
+        p: libsbml.Parameter | None = symbols.parameter(self.variable)
         if p is not None and p.getConstant() is True:
             logger.warning(
                 "Parameter changed by a %s must be 'constant=False', but '%s' "
@@ -3170,6 +3344,7 @@ class RuleWithVariable(ValueWithUnit, Generic[_VariableRuleT]):
         _check_attribute(
             obj.setVariable(self.variable), obj, "variable", self.variable, self
         )
+        _ModelSymbols.for_model(model).add_rule(obj)
         if self.value is not None:
             _set_math(obj, str(self.value), model)
         self.create_port(model)
@@ -3256,6 +3431,8 @@ class AlgebraicRule(ValueWithUnit):
     def create_sbml(self, model: libsbml.Model) -> libsbml.AlgebraicRule:
         """Create AlgebraicRule."""
         rule: libsbml.AlgebraicRule = model.createAlgebraicRule()
+        # libsbml finds an algebraic rule by the empty variable
+        _ModelSymbols.for_model(model).add_rule(rule)
         self._set_fields(rule, model)
         if self.value is not None:
             _set_math(rule, str(self.value), model)
@@ -7346,34 +7523,52 @@ class Model(Sbase, FrozenClass):
             )
 
         # lists ofs
-        for attr in [
-            "submodels",
-            "functions",
-            "parameters",
-            "compartments",
-            "species",
-            "gene_products",
-            "reactions",
-            "assignments",
-            "rules",
-            "rate_rules",
-            "algebraic_rules",
-            "events",
-            "constraints",
-            "ports",
-            "replaced_elements",
-            "deletions",
-            "user_defined_constraints",
-            "objectives",
-            "layouts",
-        ]:
-            # create the respective objects
-            objects = getattr(self, attr)
-            if objects:
-                create_objects(model, obj_iter=objects, key=attr)
+        self._create_lists(
+            model,
+            [
+                "submodels",
+                "functions",
+                "parameters",
+                "compartments",
+                "species",
+                "gene_products",
+                "reactions",
+            ],
+        )
+        # the rules and initial assignments check their variables against
+        # the ids of the model, which are indexed once for all of them
+        with _ModelSymbols.indexed(model):
+            self._create_lists(
+                model, ["assignments", "rules", "rate_rules", "algebraic_rules"]
+            )
+        self._create_lists(
+            model,
+            [
+                "events",
+                "constraints",
+                "ports",
+                "replaced_elements",
+                "deletions",
+                "user_defined_constraints",
+                "objectives",
+                "layouts",
+            ],
+        )
 
         # after everything which can change a value was created
         _warn_never_changed(model)
+
+    def _create_lists(self, model: libsbml.Model, attrs: list[str]) -> None:
+        """Create the elements of the lists of this model, in the given order.
+
+        Args:
+            model: the created libsbml.Model the elements are created in
+            attrs: the names of the lists, e.g. `parameters`
+        """
+        for attr in attrs:
+            objects = getattr(self, attr)
+            if objects:
+                create_objects(model, obj_iter=objects, key=attr)
 
     def get_sbml(self) -> str:
         """Create SBML model."""

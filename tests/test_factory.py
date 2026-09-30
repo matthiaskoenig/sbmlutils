@@ -3591,6 +3591,73 @@ def test_a_second_initial_assignment_for_a_symbol_raises(tmp_path: Path) -> None
         create_model(model, filepath=tmp_path / "model.xml", validate=False)
 
 
+def _model_with_rules(
+    rules: list[Sbase], assignments: list[InitialAssignment] | None = None
+) -> libsbml.Model:
+    """Write a model with symbols of every kind and the given rules into libsbml.
+
+    The rules and the initial assignments of a model are checked against an
+    index of its ids while it is filled, see `factory._ModelSymbols`; the
+    parameter `q` gets its assignment rule while the parameters are written,
+    before the index is built.
+    """
+    model = Model(
+        "m",
+        compartments=[Compartment("c", 1.0)],
+        species=[
+            Species(sid, compartment="c", initialConcentration=1.0)
+            for sid in ["A", "B"]
+        ],
+        parameters=[Parameter("k", 1.0), Parameter("q", "2 * k", constant=False)],
+        reactions=[
+            Reaction(
+                "r",
+                equation=ReactionEquation(
+                    reactants=[EquationPart(species="A", sid="sr_A", constant=False)],
+                    products=[EquationPart(species="B")],
+                ),
+                formula="k * A",
+            )
+        ],
+        assignments=assignments or [],
+        rules=[r for r in rules if isinstance(r, AssignmentRule)],
+        rate_rules=[r for r in rules if isinstance(r, RateRule)],
+    )
+    return Document(model=model).create_sbml().getModel()
+
+
+def test_a_rule_for_a_species_reference_creates_no_parameter() -> None:
+    """The id of a species reference is a symbol a rule can change as it is."""
+    model = _model_with_rules([AssignmentRule("sr_A", "2")])
+    assert model.getParameter("sr_A") is None
+    assert model.getRuleByVariable("sr_A") is not None
+
+
+def test_a_rule_for_a_variable_with_a_rule_of_a_parameter_raises() -> None:
+    """The rule a parameter writes for its math is seen by the index."""
+    with pytest.raises(ValueError, match="'q'"):
+        _model_with_rules([AssignmentRule("q", "3")])
+
+
+def test_a_rate_rule_makes_its_constant_parameter_variable() -> None:
+    """The parameter the index answers with is the one of the model."""
+    model = _model_with_rules([RateRule("k", "1")])
+    assert model.getParameter("k").getConstant() is False
+
+
+def test_a_rule_for_the_parameter_of_an_initial_assignment() -> None:
+    """The parameter an initial assignment creates is recorded in the index.
+
+    The rule finds it instead of creating a second parameter with the same
+    id, and makes it variable.
+    """
+    model = _model_with_rules(
+        [RateRule("x", "k")], assignments=[InitialAssignment("x", "1")]
+    )
+    assert model.getNumParameters() == 3
+    assert model.getParameter("x").getConstant() is False
+
+
 @pytest.mark.parametrize(
     "objects",
     [
