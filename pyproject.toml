@@ -24,6 +24,7 @@ classifiers = [
 	"Programming Language :: Python :: Implementation :: CPython",
 	"Topic :: Scientific/Engineering",
 	"Topic :: Scientific/Engineering :: Bio-Informatics",
+	"Typing :: Typed",
 ]
 keywords = [
 	"SBML",
@@ -40,19 +41,18 @@ dependencies = [
 	# the win_amd64 wheel of antimony 3.2.0 raises a C++ exception in loadAntimonyString
 	"antimony!=3.2.0; sys_platform == 'win32'",
 	# data structures, units and output
-	"pydantic>=2.13.5",
 	"pint>=0.25.3",
 	"numpy>=2.2.2",
-	"pandas>=2.2.0",
-	"rich>=15.0.0",
+	"pandas>=2.2.2",
+	"rich>=13.0.0",
 	# model reports, notes and converters
-	"lxml>=6.0.0",
+	"lxml>=6.1.0",
 	"jinja2>=3.1.6",
-	"markdown-it-py>=4.2.0",
+	"markdown-it-py>=3.0.0",
 	"xmltodict>=1.0.2",
 	# annotation spreadsheets, visualization
 	"openpyxl>=3.1.5",
-	"requests>=2.34.2",
+	"requests>=2.32.4",
 ]
 
 [project.optional-dependencies]
@@ -93,6 +93,22 @@ path = "./src/sbmlutils/__init__.py"
 exclude = [
 	"src/sbmlutils/resources/models/sbml-test-suite-3.4.0",
 	"src/sbmlutils/resources/models/biomodels",
+]
+
+[tool.hatch.build.targets.sdist]
+# the package with what builds and tests it, nothing else of the repository:
+# the tests import `examples` and `scripts.package_report`, the documentation,
+# the presentations, `misc/` and the files of the tooling stay out
+only-include = [
+	"src",
+	"tests",
+	"examples",
+	"scripts",
+	"conftest.py",
+	"tox.ini",
+	"README.md",
+	"LICENSE",
+	"CITATION.cff",
 ]
 
 [tool.hatch.build.targets.wheel]

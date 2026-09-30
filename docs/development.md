@@ -68,6 +68,8 @@ A single sync creates the virtual environment in `.venv`, installs `sbmlutils` i
 uv sync --extra dev
 ```
 
+The environment is resolved from `uv.lock`, which is committed, so development and the documentation build use the same versions, while the tox environments resolve from `pyproject.toml`; the lower bounds in `pyproject.toml` are what a user of the library installs against. `uv lock --upgrade` moves the lock to the newest releases, the `documentation` workflow syncs with `uv sync --locked`, which fails when `pyproject.toml` and the lock disagree.
+
 The `dev` extra contains everything used below, i.e., pytest, ruff, ty, tox, pre-commit, zensical and bump-my-version, so nothing has to be installed separately. The python version is taken from `.python-version` (currently 3.14); to work against the oldest supported version instead use `uv sync --extra dev --python 3.11`, which replaces the environment.
 
 The tools are then run either with `uv run <command>`, which uses the environment without activating it, or from the activated environment:
@@ -124,6 +126,12 @@ tox r -e cobra
 ```
 
 Here `--` replaces those two modules, so `tox r -e cobra -- tests/fbc/test_cobra.py` runs that one.
+
+The `lowest` environment installs the oldest version of every dependency which the lower bounds in `pyproject.toml` allow (`uv_resolution = lowest-direct`, their own dependencies stay at the newest) on python 3.11 and runs the suite against it, so a lower bound is only ever raised or lowered together with a run of it. Where a dependency requires a newer version of a package than sbmlutils does (`pymetadata` requires `rich` and `requests` of their latest releases), the environment installs that newer version. It has a job of its own in `ci-cd.yml`, which is part of the required `tests` check.
+
+```bash
+tox r -e lowest
+```
 
 To run the tests directly against the development environment use
 

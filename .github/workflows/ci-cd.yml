@@ -76,21 +76,51 @@ jobs:
       run:
         uvx --with tox-uv tox -e py${{ matrix.python-version }}
 
+  lowest:
+    # the suite against the oldest versions the lower bounds of the
+    # dependencies allow, see the `lowest` environment of tox.ini
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        persist-credentials: false
+    - name: Install the python dev files
+      # the extension of libroadrunner links against libpython, which the
+      # standalone interpreters do not put on the library search path
+      run: |
+        sudo add-apt-repository -y ppa:deadsnakes/ppa
+        sudo apt-get update
+        sudo apt-get install -y python3.11-dev
+      shell: bash
+    - name: Install uv and set the python version
+      # the `lowest` environment is pinned to python 3.11, see tox.ini
+      uses: astral-sh/setup-uv@v10.2.0
+      with:
+        python-version: "3.11"
+        enable-cache: true
+    - name: Test with tox
+      run:
+        uvx --with tox-uv tox -e lowest
+
   tests:
     # the one check the branch protection requires; the names of the matrix
     # jobs change with the matrix, this name does not
     name: tests
-    needs: test
+    needs: [test, lowest]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-    - name: Check the result of the test matrix
+    - name: Check the result of the test matrix and of the lowest versions
       env:
         RESULT: ${{ needs.test.result }}
+        LOWEST: ${{ needs.lowest.result }}
       run: |
-        echo "test matrix: $RESULT"
+        echo "test matrix: $RESULT, lowest versions: $LOWEST"
         test "$RESULT" = "success"
+        test "$LOWEST" = "success"
 
   cobra:
     # the tests which need cobrapy, the optional `cobra` extra, see the `cobra`
