@@ -546,3 +546,27 @@ def test_annotate_sbml_doc_raises_for_a_document_without_a_model() -> None:
     doc = libsbml.SBMLDocument(3, 2)
     with pytest.raises(ValueError, match="without a model cannot be annotated"):
         annotator.annotate_sbml_doc(doc, [])
+
+
+@pytest.mark.parametrize(
+    "annotations_path",
+    [
+        pytest.param(None, id="directory"),
+        pytest.param(Path("a" * 5000 + ".xlsx"), id="name-too-long"),
+    ],
+)
+def test_annotate_sbml_requires_an_annotation_file(
+    tmp_path: Path, annotations_path: Path | None
+) -> None:
+    """Test that a path which is not a file is reported as a missing annotation file.
+
+    A directory passed the check for existence and failed later on its empty
+    suffix as an unsupported annotation format, and before python 3.14 a name
+    longer than the file system allows raised `File name too long`.
+    """
+    with pytest.raises(OSError, match="Annotation file does not exist"):
+        annotator.annotate_sbml(
+            GALACTOSE_SINGLECELL_SBML_NO_ANNOTATIONS,
+            annotations_path=annotations_path or tmp_path,
+            filepath=tmp_path / "annotated.xml",
+        )

@@ -25,6 +25,7 @@ from pymetadata.core.annotation import RDFAnnotation as Annotation
 from pymetadata.core.miriam import BQB, BQM
 
 from sbmlutils import utils
+from sbmlutils.io.files import is_file
 from sbmlutils.io.sbml import read_sbml, write_sbml
 
 from ..validation import ScopedLossCollector, check
@@ -242,7 +243,7 @@ def annotate_sbml(
     doc: libsbml.SBMLDocument = read_sbml(source=source)
 
     # annotate
-    if not Path(annotations_path).exists():
+    if not is_file(annotations_path):
         raise OSError(f"Annotation file does not exist: {annotations_path}")
     external_annotations = ModelAnnotator.read_annotations(
         annotations_path, file_format="*"
