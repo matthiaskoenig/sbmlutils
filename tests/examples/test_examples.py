@@ -5,7 +5,7 @@ from typing import Any
 
 import pytest
 
-from examples import examples_create, examples_models
+from examples.registry import examples_create, examples_models
 from sbmlutils.factory import create_model
 from sbmlutils.io import validate_sbml
 from sbmlutils.validation import ValidationOptions, ValidationResult

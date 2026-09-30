@@ -38,6 +38,7 @@ from typing import (
     ClassVar,
     Literal,
     TypeAlias,
+    TypedDict,
     Union,
     get_args,
     get_origin,
@@ -64,12 +65,6 @@ from sbmlutils.notes import Notes, NotesFormat, detect_format
 from sbmlutils.reaction_equation import EquationPart, ReactionEquation
 from sbmlutils.utils import FrozenClass, create_metaid
 from sbmlutils.validation import ScopedLossCollector, ValidationOptions, check
-
-try:
-    from typing import TypedDict
-except ImportError:
-    from typing_extensions import TypedDict
-
 
 logger = logging.getLogger(__name__)
 
@@ -2418,19 +2413,6 @@ class Units:
             a for a in attributes if not (a[0].startswith("__") and a[0].endswith("__"))
         ]
 
-    @classmethod
-    def create_unit_definitions(cls, model: libsbml.Model) -> None:
-        """Create the libsbml.UnitDefinitions in the model.
-
-        Deprecated, `Model` normalizes its units to a list of
-        `UnitDefinition` and creates them directly.
-
-        Args:
-            model: the libsbml.Model the unit definitions are created in
-        """
-        for udef in Model._normalize_units(cls):
-            udef.create_sbml(model=model)
-
 
 def _check_unit_type(unit: Any, attribute: str, owner: object) -> None:
     """Warn if a unit attribute is neither a `UnitDefinition` nor a unit id.
@@ -2864,12 +2846,6 @@ class Species(Sbase):
             replacedBy=replacedBy,
         )
 
-        # overkill for fbc networks
-        # if (initialAmount is None) and (initialConcentration is None):
-        #     logger.warning(
-        #         f"Either initialAmount or initialConcentration should be set "
-        #         f"for species: `{sid}`."
-        #     )
         if initialAmount and initialConcentration:
             raise ValueError(
                 f"Either initialAmount or initialConcentration can be set on "
@@ -3815,8 +3791,6 @@ class Reaction(Sbase):
                 self.compartment,
                 self,
             )
-        # else:
-        #    logger.info(f"'compartment' should be set on '{self}'}")
         reversible = (
             self.reversible if self.reversible is not None else self.equation.reversible
         )
@@ -7416,7 +7390,6 @@ class Model(Sbase, FrozenClass):
         # lists ofs
         for attr in [
             "submodels",
-            # "units",
             "functions",
             "parameters",
             "compartments",
@@ -7437,10 +7410,9 @@ class Model(Sbase, FrozenClass):
             "layouts",
         ]:
             # create the respective objects
-            if hasattr(self, attr):
-                objects = getattr(self, attr)
-                if objects:
-                    create_objects(model, obj_iter=objects, key=attr)
+            objects = getattr(self, attr)
+            if objects:
+                create_objects(model, obj_iter=objects, key=attr)
 
         # after everything which can change a value was created
         _warn_never_changed(model)

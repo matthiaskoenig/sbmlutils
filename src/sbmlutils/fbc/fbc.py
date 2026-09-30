@@ -1,18 +1,10 @@
 """Helper functions for working with FBC and cobrapy models."""
 
 import logging
-import warnings
 
 import libsbml
 
 logger = logging.getLogger(__name__)
-
-
-def set_flux_bounds(reaction: libsbml.Reaction, lb: float, ub: float) -> None:
-    """Set flux bounds on given reaction."""
-    rplugin = reaction.getPlugin("fbc")
-    rplugin.setLowerFluxBound(lb)
-    rplugin.setUpperFluxBound(ub)
 
 
 def add_default_flux_bounds(
@@ -65,13 +57,3 @@ def add_default_flux_bounds(
             rfbc.setLowerFluxBound(lower_id)
         if not rfbc.isSetUpperFluxBound():
             rfbc.setUpperFluxBound(upper_id)
-
-
-def set_boundary_conditions_false(doc: libsbml.SBMLDocument) -> None:
-    """Set all boundaryConditions to False in the model."""
-    model: libsbml.Model = doc.getModel()
-    for k in range(model.getNumSpecies()):
-        s: libsbml.Species = model.getSpecies(k)
-        if s.getBoundaryCondition():
-            warnings.warn(f"boundaryCondition changed {s}", stacklevel=1)
-            s.setBoundaryCondition(False)

@@ -56,9 +56,7 @@ from typing import Any
 
 import antimony
 import libsbml
-from pymetadata.omex import ManifestEntry, Omex
 
-from sbmlutils.console import console
 from sbmlutils.factory import (
     AlgebraicRule,
     AssignmentRule,
@@ -101,7 +99,6 @@ from sbmlutils.factory import (
     UnitDefinition,
     UserDefinedConstraint,
     UserDefinedConstraintComponent,
-    create_model,
 )
 from sbmlutils.io.files import is_file
 from sbmlutils.io.sbml import read_sbml
@@ -1542,31 +1539,3 @@ def sbml_to_model(
             _parse_comp_document(doc_comp, m)
 
     return m
-
-
-if __name__ == "__main__":
-    from sbmlutils.resources import BIOMODELS_CURATED_PATH, REPRESSILATOR_SBML
-
-    omex_path: Path = BIOMODELS_CURATED_PATH / "BIOMD0000000003.omex"
-
-    omex = Omex().from_omex(omex_path)
-    entry: ManifestEntry
-    for entry in omex.manifest.entries:
-        if entry.is_sbml():
-            sbml_path: Path = omex.get_path(entry.location)
-
-            m = sbml_to_model(REPRESSILATOR_SBML)
-            console.print(m)
-            create_model(
-                model=m,
-                filepath=sbml_path,
-                sbml_level=3,
-                sbml_version=2,
-                validation_options=ValidationOptions(units_consistency=False),
-            )
-            SBMLDocumentInfo.from_sbml(sbml_path)
-            model = sbml_to_model(
-                source=sbml_path,
-                validate=True,
-                validation_options=ValidationOptions(units_consistency=False),
-            )
