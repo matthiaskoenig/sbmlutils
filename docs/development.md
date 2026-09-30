@@ -138,6 +138,8 @@ On Linux the tests run with the standalone interpreters of uv (`UV_PYTHON_PREFER
 
 The workflows pin every action to the full commit SHA of a release, with the version in a comment; dependabot updates both. The tools run with `uvx` (tox, tox-uv, twine) are pinned in the `env` of `ci-cd.yml` and `ty.yml`, which dependabot does not update, so they are raised by hand.
 
+Dependabot also bumps the locked python dependencies (`uv.lock`) and the hook revisions in `.pre-commit-config.yaml`, each as one grouped weekly pull request. The `ruff` workflow installs the ruff version locked in `uv.lock`, so CI and `uv run ruff` agree, and the ruff and ty hook revisions are expected to match the lock; after merging one of these pull requests, raise the other to the same version if it lags.
+
 To run the tests directly against the development environment use
 
 ```bash
