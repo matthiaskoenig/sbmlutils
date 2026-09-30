@@ -92,10 +92,15 @@ def _shorten(source: Path | str, limit: int = 200) -> str:
 def _read_document(source: Path | str) -> tuple[libsbml.SBMLDocument, str]:
     """Read an SBMLDocument from a path or an SBML string without raising.
 
-    A file is read by python, see `sbmlutils.io.files`; a file which cannot
-    be read is recorded in the document as libsbml's reader records it, as
-    the error `XMLFileUnreadable`, or `XMLBadUTF8Content` for content which
-    is not UTF-8.
+    A file is read by libsbml, a path libsbml cannot open on Windows, one
+    with a non-ASCII character, by python, see `sbmlutils.io.files`. The
+    python fallback reads UTF-8, the encoding SBML requires, with or without
+    a byte order mark; a document without an XML declaration gets one from
+    `libsbml.readSBMLFromString`, so its missing declaration is not reported
+    and the line numbers of its errors are one higher than libsbml's reader
+    reports them. A file python cannot read is recorded in the document as
+    libsbml's reader records it, as the error `XMLFileUnreadable`, or
+    `XMLBadUTF8Content` for content which is not UTF-8.
 
     Args:
         source: SBML path or SBML string
@@ -117,10 +122,17 @@ def _read_document(source: Path | str) -> tuple[libsbml.SBMLDocument, str]:
         source = Path(source)
 
     label = f"SBML file '{_shorten(source)}'"
+    # libsbml records the path it reads as the location of the document and
+    # resolves the `comp:source` of an external model definition against it;
+    # a relative location is resolved wrongly, and a location set as a
+    # percent-encoded URI (`Path.as_uri`) is not decoded
+    path: Path = source.resolve()
+    if files.libsbml_can_open(path):
+        return libsbml.readSBMLFromFile(str(path)), label
+
     doc: libsbml.SBMLDocument
     try:
-        # read by python, libsbml cannot open a non-ASCII path on Windows
-        doc = libsbml.readSBMLFromString(files.read_text(source))
+        doc = libsbml.readSBMLFromString(files.read_text(path))
     except (OSError, ValueError) as err:
         # the error libsbml's own reader reports for the file, so that the
         # failure is part of the document as every other read error
@@ -128,18 +140,15 @@ def _read_document(source: Path | str) -> tuple[libsbml.SBMLDocument, str]:
         doc.getErrorLog().add(
             libsbml.SBMLError(
                 libsbml.XMLBadUTF8Content
-                if isinstance(err, ValueError)
+                if isinstance(err, UnicodeDecodeError)
                 else libsbml.XMLFileUnreadable,
                 doc.getLevel(),
                 doc.getVersion(),
                 str(err),
             )
         )
-    # the location `libsbml.readSBMLFromFile` records for an absolute path;
-    # libsbml resolves the `comp:source` of an external model definition
-    # against it. A relative location is resolved wrongly, and a location set
-    # as a percent-encoded URI (`Path.as_uri`) is not decoded.
-    doc.setLocationURI(f"file:{source.resolve()}")
+    # the location `libsbml.readSBMLFromFile` records for an absolute path
+    doc.setLocationURI(f"file:{path}")
     return doc, label
 
 
@@ -202,8 +211,9 @@ def write_sbml(
         that the model is valid, which is what happened while the result of
         libsbml's writer was ignored: it answers `False` and writes nothing,
         and the validation which follows re-reads the path, gets an empty
-        document from a file which is not there and reports it as valid. The
-        file is written by python, see `sbmlutils.io.files`, and compressed
+        document from a file which is not there and reports it as valid. A
+        path with a non-ASCII character, which libsbml cannot open on
+        Windows, is written by python, see `sbmlutils.io.files`, compressed
         by its suffix as libsbml does (`.gz`, `.bz2`, `.zip`).
     """
     writer = libsbml.SBMLWriter()
@@ -220,17 +230,19 @@ def write_sbml(
         source = str(sbml_str)
     else:
         filepath = Path(filepath)
-        # serialized by libsbml, written by python: libsbml's writer cannot
-        # open a non-ASCII path on Windows
-        text: str = writer.writeSBMLToString(doc)
-        if not text:
-            raise OSError(
-                f"SBML could not be written to '{filepath}': libsbml could not "
-                f"serialize the document."
-            )
         try:
             filepath.parent.mkdir(parents=True, exist_ok=True)
-            files.write_text(filepath, text)
+            if files.libsbml_can_open(filepath):
+                written: bool = writer.writeSBMLToFile(doc, str(filepath))
+                if not written:
+                    raise OSError("libsbml's writer refused the path.")
+            else:
+                # libsbml cannot open a non-ASCII path on Windows, it only
+                # serializes the document, which python writes
+                text: str = writer.writeSBMLToString(doc)
+                if not text:
+                    raise OSError("libsbml could not serialize the document.")
+                files.write_text(filepath, text)
         except OSError as err:
             raise OSError(f"SBML could not be written to '{filepath}': {err}") from err
         source = filepath
@@ -262,12 +274,16 @@ def validate_sbml(
     :param title: title for validation report (should be filname or model name)
     :return: ValidationResult
 
+    :raises IsADirectoryError: if `source` is a directory
     :raises FileNotFoundError: if `source` is no SBML string and no existing file
     """
-    if not (isinstance(source, str) and "<sbml" in source) and not files.is_file(
-        source
-    ):
-        raise FileNotFoundError(f"SBML file does not exist: '{_shorten(source)}'")
+    if not (isinstance(source, str) and "<sbml" in source):
+        if files.is_dir(source):
+            raise IsADirectoryError(
+                f"SBML source is a directory, not an SBML file: '{source}'"
+            )
+        if not files.is_file(source):
+            raise FileNotFoundError(f"SBML file does not exist: '{_shorten(source)}'")
     doc, _ = _read_document(source)
     return validate_doc(
         doc=doc,

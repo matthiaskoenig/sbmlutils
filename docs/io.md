@@ -25,7 +25,7 @@ doc = read_sbml(
 
 Compressed files are read as they are: a `.gz`, `.bz2` or `.zip` path is decompressed transparently, as libsbml does it.
 
-Files are read and written by python, libsbml only parses and serializes the SBML, so any path works on every platform; libsbml itself cannot open a path with a non-ASCII character on Windows. The one file libsbml still opens itself is the file of a comp external model definition, see [comp](comp.md#flattening).
+Files are read and written by libsbml. libsbml cannot open a path with a non-ASCII character on Windows, so such a path is read and written by python and libsbml only parses and serializes the SBML; any path works on every platform. The python fallback reads UTF-8, the encoding SBML requires. The one file libsbml still opens itself is the file of a comp external model definition, see [comp](comp.md#flattening).
 
 ## Writing
 

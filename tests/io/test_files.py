@@ -64,5 +64,41 @@ def test_read_text_raises_for_content_which_is_not_utf8(tmp_path: Path) -> None:
     """SBML is UTF-8, other content cannot be read."""
     path = tmp_path / "m.xml"
     path.write_bytes("<sbml name='über'/>".encode("latin-1"))
-    with pytest.raises(ValueError, match="not UTF-8"):
+    with pytest.raises(UnicodeDecodeError):
         read_text(path)
+
+
+def test_read_text_raises_for_a_truncated_gzip_file(tmp_path: Path) -> None:
+    """A truncated `.gz` file raises an `OSError`, not an `EOFError`."""
+    path = tmp_path / "m.xml.gz"
+    write_text(path, "<sbml/>" * 100)
+    path.write_bytes(path.read_bytes()[:-20])
+    with pytest.raises(OSError, match="could not be decompressed"):
+        read_text(path)
+
+
+def test_read_text_raises_for_a_corrupt_zip_entry(tmp_path: Path) -> None:
+    """A zip archive whose entry is corrupt raises an `OSError`."""
+    path = tmp_path / "m.zip"
+    write_text(path, "<sbml/>" * 100)
+    content = bytearray(path.read_bytes())
+    # the deflated data of the entry follows its 30 byte local header and name
+    start = 30 + len("m.xml")
+    content[start : start + 8] = b"\xff" * 8
+    path.write_bytes(bytes(content))
+    with pytest.raises(OSError, match="could not be decompressed"):
+        read_text(path)
+
+
+def test_read_text_reads_a_byte_order_mark(tmp_path: Path) -> None:
+    """A UTF-8 byte order mark is not part of the text."""
+    path = tmp_path / "m.xml"
+    path.write_bytes(b"\xef\xbb\xbf<sbml/>")
+    assert read_text(path) == "<sbml/>"
+
+
+def test_write_text_compresses_by_lower_case_suffixes_only(tmp_path: Path) -> None:
+    """As libsbml, an upper case `.GZ` is no gzip file."""
+    path = tmp_path / "m.xml.GZ"
+    write_text(path, "<sbml/>")
+    assert path.read_bytes() == b"<sbml/>"

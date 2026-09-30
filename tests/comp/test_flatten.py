@@ -1,11 +1,11 @@
 """Tests for flattening a comp model from its file."""
 
 import shutil
-import sys
 from pathlib import Path
 
 import libsbml
 import pytest
+from paths import NON_ASCII_DIR, NON_ASCII_DIR_WITH_EXTERNALS, SPACE_DIR
 
 from sbmlutils.comp import flatten_sbml
 from sbmlutils.io import read_sbml
@@ -37,23 +37,7 @@ def write_icg_body(model_dir: Path, liver_dir: str = "") -> Path:
     return body_path
 
 
-#: libsbml opens the file of an external model definition itself, with the
-#: narrow (ANSI) file API on Windows, which cannot open a non-ASCII path
-NON_ASCII_EXTERNAL_ON_WINDOWS = pytest.mark.xfail(
-    sys.platform == "win32",
-    reason="libsbml cannot open an external model definition in a non-ASCII "
-    "directory on Windows",
-    strict=True,
-)
-
-#: directories of the model relative to the working directory: a plain one, one
-#: with a space, which a file URI percent-encodes, and one with a non-ASCII
-#: character
-MODEL_DIRS = [
-    "models",
-    "sp ace",
-    pytest.param("ü", marks=NON_ASCII_EXTERNAL_ON_WINDOWS),
-]
+MODEL_DIRS = ["models", SPACE_DIR, NON_ASCII_DIR_WITH_EXTERNALS]
 
 
 @pytest.mark.parametrize("model_dir", MODEL_DIRS)
@@ -102,13 +86,13 @@ _SBML_COMP_INTERNAL = (
 )
 
 
-@pytest.mark.parametrize("model_dir", ["sp ace", "ü"])
+@pytest.mark.parametrize("model_dir", [SPACE_DIR, NON_ASCII_DIR])
 def test_flatten_sbml_without_external_definitions(
     tmp_path: Path, model_dir: str
 ) -> None:
     """A model which names no other file is flattened in any directory.
 
-    The files are read and written by python, so a non-ASCII directory works
+    A non-ASCII path is read and written by python, so such a directory works
     on every platform as long as libsbml has no external file to open.
     """
     sbml_path = tmp_path / model_dir / "top.xml"

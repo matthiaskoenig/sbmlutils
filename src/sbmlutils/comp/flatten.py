@@ -27,8 +27,8 @@ def flatten_sbml(
     Windows it does so with the narrow (ANSI) file API, which cannot open a
     path with a non-ASCII character: a model with external model definitions
     in such a directory cannot be flattened on Windows. `sbml_path` and
-    `sbml_flat_path` themselves are read and written by python and may be
-    any path.
+    `sbml_flat_path` themselves may be any path, a path libsbml cannot open
+    is read and written by python.
 
     :param sbml_path: input path to SBML file to flatten (should be a comp model)
     :param sbml_flat_path: output path for flat SBML

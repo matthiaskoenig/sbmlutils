@@ -1,11 +1,11 @@
 """Test model merging functionality."""
 
 import shutil
-import sys
 from pathlib import Path
 
 import libsbml
 import pytest
+from paths import NON_ASCII_DIR_WITH_EXTERNALS, SPACE_DIR
 
 from examples.merge_models.merge_models import merge_models_example
 from sbmlutils import comp, validation
@@ -14,24 +14,9 @@ from sbmlutils.manipulation import merge
 from sbmlutils.resources import TESTDATA_DIR
 from sbmlutils.validation import ValidationOptions
 
-#: output directories relative to the working directory: a plain one, one with
-#: a space, which a file URI percent-encodes, and one with a non-ASCII
-#: character. libsbml opens the file of an external model definition itself,
-#: with the narrow (ANSI) file API on Windows, which cannot open a non-ASCII
-#: path, so the merged model does not resolve its submodels there.
-OUT_DIRS = [
-    "out",
-    "sp ace",
-    pytest.param(
-        "ü",
-        marks=pytest.mark.xfail(
-            sys.platform == "win32",
-            reason="libsbml cannot open an external model definition in a "
-            "non-ASCII directory on Windows",
-            strict=True,
-        ),
-    ),
-]
+#: output directories relative to the working directory, the merged model
+#: resolves its submodels as external model definitions in them
+OUT_DIRS = ["out", SPACE_DIR, NON_ASCII_DIR_WITH_EXTERNALS]
 
 
 def test_merge_models_example(tmp_path: Path) -> None:

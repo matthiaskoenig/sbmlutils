@@ -102,7 +102,17 @@ class SBML2ODE:
 
     @classmethod
     def from_file(cls, sbml_file: Path) -> SBML2ODE:
-        """Create converter from SBML file."""
+        """Create converter from SBML file.
+
+        Args:
+            sbml_file: path of the SBML file
+
+        Returns:
+            the converter of the model of the file
+
+        Raises:
+            ValueError: if the file cannot be read, see `read_sbml`
+        """
         doc: libsbml.SBMLDocument = read_sbml(sbml_file)
         return cls(doc)
 

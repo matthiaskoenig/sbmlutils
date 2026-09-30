@@ -8,7 +8,16 @@ from sbmlutils.io import read_sbml, write_sbml
 
 
 def write_ids_to_names(input_path: Path, output_path: Path) -> None:
-    """Write SBML ids as names."""
+    """Write SBML ids as names.
+
+    Args:
+        input_path: path of the SBML file to read
+        output_path: path of the SBML file to write
+
+    Raises:
+        ValueError: if the input file cannot be read, see `read_sbml`
+        OSError: if the output file cannot be written, see `write_sbml`
+    """
     doc: libsbml.SBMLDocument = read_sbml(input_path)
     elements = doc.getListOfAllElements()
     for element in elements:
