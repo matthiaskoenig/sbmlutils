@@ -69,17 +69,10 @@ def flatten_sbml_doc(
             "SBML without a model cannot be flattened, a document with only "
             "model definitions has no model to flatten them into."
         )
-    error_count = doc.getNumErrors()
-    if error_count > 0:
-        if doc.getError(0).getErrorId() == libsbml.XMLFileUnreadable:
-            # Handle case of unreadable file here.
-            logger.error("SBML error in doc: libsbml.XMLFileUnreadable")
-        elif doc.getError(0).getErrorId() == libsbml.XMLFileOperationError:
-            # Handle case of other file error here.
-            logger.error("SBML error in doc: libsbml.XMLFileOperationError")
-        else:
-            # Handle other error cases here.
-            logger.error("SBML errors in doc, see SBMLDocument error log.")
+    # a file which could not be read or opened has no model and is rejected
+    # above, so an error here comes from the content of the document
+    if doc.getNumErrors() > 0:
+        logger.error("SBML errors in doc, see SBMLDocument error log.")
 
     # converter options
     props = libsbml.ConversionProperties()
