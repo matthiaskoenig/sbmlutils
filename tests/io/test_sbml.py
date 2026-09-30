@@ -448,3 +448,56 @@ def test_validate_sbml_raises_for_a_directory(tmp_path: Path) -> None:
 
     with pytest.raises(IsADirectoryError, match="is a directory"):
         validate_sbml(tmp_path)
+
+
+_SBML_NO_DECLARATION = _SBML_WITHOUT_MODEL.removeprefix(
+    '<?xml version="1.0" encoding="UTF-8"?>'
+)
+
+
+@pytest.mark.parametrize(
+    "content",
+    [
+        pytest.param(
+            _SBML_NO_DECLARATION.replace("/>", '><model id="m"/></sbml>'),
+            id="model",
+        ),
+        pytest.param(
+            _SBML_COMP_LIBRARY.removeprefix('<?xml version="1.0" encoding="UTF-8"?>'),
+            id="comp-library",
+        ),
+    ],
+)
+def test_read_sbml_reads_a_file_without_an_xml_declaration(
+    tmp_path: Path, content: str
+) -> None:
+    """A missing declaration is an error of the document, it was read in full.
+
+    libsbml reports `MissingXMLEncoding` and `BadXMLDecl` for it, both of
+    severity error; the document is kept with them for the validation.
+    """
+    sbml_path = tmp_path / "model.xml"
+    sbml_path.write_text(content, encoding="utf-8")
+
+    doc = read_sbml(sbml_path)
+
+    assert doc.getModel() is not None or (
+        doc.getPlugin("comp").getNumModelDefinitions() == 1
+    )
+    assert libsbml.BadXMLDecl in {e[0] for e in _errors(doc)}
+
+
+@pytest.mark.parametrize("encoding", ["FOO", "UTF-16"])
+def test_read_sbml_raises_for_a_file_with_an_unknown_encoding(
+    tmp_path: Path, encoding: str
+) -> None:
+    """A declaration libsbml cannot read leaves no document, which raises."""
+    sbml_path = tmp_path / "model.xml"
+    sbml_path.write_text(
+        _SBML_WITHOUT_MODEL.replace("UTF-8", encoding).replace(
+            "/>", '><model id="m"/></sbml>'
+        ),
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match=r"could not be read:\n.*E1003 "):
+        read_sbml(sbml_path)

@@ -162,12 +162,22 @@ def _read_failures(doc: libsbml.SBMLDocument) -> list[libsbml.SBMLError]:
     element does not have, are not among them: the document was read and
     what is wrong with it is for the validation to report.
 
+    `BadXMLDecl` is both: libsbml reports it for a file without an XML
+    declaration, which it reads in full, and for a declaration it cannot
+    read, e.g. an unknown encoding, which leaves an empty document. It is
+    therefore a failure only if the document holds nothing, neither a model
+    nor a comp model definition.
+
     Args:
         doc: the document as libsbml read it
 
     Returns:
         the errors which made the document unreadable, empty if it was read
     """
+    comp_doc: libsbml.CompSBMLDocumentPlugin | None = doc.getPlugin("comp")
+    was_read: bool = doc.getModel() is not None or (
+        comp_doc is not None and comp_doc.getNumModelDefinitions() > 0
+    )
     failures: list[libsbml.SBMLError] = []
     for k in range(doc.getNumErrors()):
         error: libsbml.SBMLError = doc.getError(k)
@@ -176,6 +186,7 @@ def _read_failures(doc: libsbml.SBMLDocument) -> list[libsbml.SBMLError]:
             and error.getCategory()
             in (libsbml.LIBSBML_CAT_SYSTEM, libsbml.LIBSBML_CAT_XML)
             and error.getErrorId() not in _XML_DECLARATION_ERRORS
+            and not (was_read and error.getErrorId() == libsbml.BadXMLDecl)
         ):
             failures.append(error)
     return failures
