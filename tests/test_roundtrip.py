@@ -97,7 +97,7 @@ RTOL: float = 1e-4
 ATOL: float = 1e-6
 
 
-def testsuite_case(case: str, level_version: str = "l3v2") -> Path:
+def suite_case(case: str, level_version: str = "l3v2") -> Path:
     """Resolve a semantic test suite case to its SBML path.
 
     Args:
@@ -112,7 +112,7 @@ def testsuite_case(case: str, level_version: str = "l3v2") -> Path:
 
 #: not a test despite the name, pytest's default collection matches on the
 #: "test" prefix alone and would otherwise try to collect this helper
-testsuite_case.__test__ = False  # ty: ignore[unresolved-attribute]
+suite_case.__test__ = False  # ty: ignore[unresolved-attribute]
 
 #: the selection names and the data of a simulation
 Simulation = tuple[list[str], np.ndarray]
@@ -466,7 +466,7 @@ sys.exit(3)
 
 
 @pytest.mark.parametrize(
-    "ending, timeout, outcome",
+    ("ending", "timeout", "outcome"),
     [
         ("crash", 60.0, Outcome.CRASHED),
         ("hang", 1.0, Outcome.TIMED_OUT),
@@ -503,7 +503,7 @@ CASES_BASELINE: list[str] = ["00001", "00002", "00003", "00004", "00005", "00006
 @requires_testsuite
 def test_roundtrip_baseline(case: str, tmp_path: Path) -> None:
     """Test that cases which round trip today keep round tripping."""
-    assert_roundtrip_simulates_equal(testsuite_case(case), tmp_path)
+    assert_roundtrip_simulates_equal(suite_case(case), tmp_path)
 
 
 #: every l3v2 semantic case of the vendored suite
@@ -637,7 +637,7 @@ def test_roundtrip_emits_no_authoring_warnings(
     whatever the file had, so the hints are noise, see
     https://github.com/matthiaskoenig/sbmlutils/issues/469
     """
-    model = sbml_to_model(testsuite_case("00001"))
+    model = sbml_to_model(suite_case("00001"))
     with caplog.at_level(logging.WARNING, logger="sbmlutils"):
         create_model(
             model=model,
@@ -855,7 +855,7 @@ CASES_UNITS: list[str] = ["00001", "00002", "00003", "00004"]
 @requires_testsuite
 def test_roundtrip_units(case: str, tmp_path: Path) -> None:
     """Test that unit definitions and unit references survive a round trip."""
-    assert_roundtrip_simulates_equal(testsuite_case(case), tmp_path)
+    assert_roundtrip_simulates_equal(suite_case(case), tmp_path)
 
 
 def _unit_references(sbml_path: Path) -> dict[str, Any]:
@@ -918,7 +918,7 @@ def test_roundtrip_preserves_unit_definitions(case: str, tmp_path: Path) -> None
     multiplier, the references by the unit id of the model attributes, of
     every compartment, species and parameter.
     """
-    sbml_path = testsuite_case(case)
+    sbml_path = suite_case(case)
     roundtrip_path = roundtrip_sbml(sbml_path, tmp_path)
 
     references = _unit_references(sbml_path)
@@ -1013,7 +1013,7 @@ def test_roundtrip_function_definitions(case: str, tmp_path: Path) -> None:
     Dropping them produced libsbml error 10214, `a <ci> element in this
     context must refer to a function definition`, in 48 of 150 cases.
     """
-    assert_roundtrip_simulates_equal(testsuite_case(case), tmp_path)
+    assert_roundtrip_simulates_equal(suite_case(case), tmp_path)
 
 
 @requires_testsuite
@@ -1023,7 +1023,7 @@ def test_roundtrip_core_model_declares_no_fbc(tmp_path: Path) -> None:
     `parser.py` hardcoded `m.packages = [Package.FBC_V3]`, so every parsed
     model came back declaring xmlns:fbc and fbc:strict.
     """
-    model = sbml_to_model(testsuite_case("00001"))
+    model = sbml_to_model(suite_case("00001"))
     roundtrip_path = tmp_path / "roundtrip.xml"
     create_model(
         model=model,
@@ -1045,7 +1045,7 @@ def test_roundtrip_invents_no_nan(tmp_path: Path) -> None:
     after it. "00048" declares a zero-dimensional compartment with no
     `size`, which the writer used to fill in as `size="NaN"`.
     """
-    model = sbml_to_model(testsuite_case("00048"))
+    model = sbml_to_model(suite_case("00048"))
     roundtrip_path = tmp_path / "roundtrip.xml"
     create_model(
         model=model,
@@ -1067,7 +1067,7 @@ CASES_CONVERSION_FACTOR: list[str] = ["00976", "00977", "01000"]
 @requires_testsuite
 def test_roundtrip_conversion_factor(case: str, tmp_path: Path) -> None:
     """Test that a species conversionFactor survives a round trip."""
-    assert_roundtrip_simulates_equal(testsuite_case(case), tmp_path)
+    assert_roundtrip_simulates_equal(suite_case(case), tmp_path)
 
 
 #: cases which use events
@@ -1079,7 +1079,7 @@ CASES_EVENTS: list[str] = ["00026", "00041", "00071", "00072", "00073", "00074"]
 @requires_testsuite
 def test_roundtrip_events(case: str, tmp_path: Path) -> None:
     """Test that events survive a round trip."""
-    assert_roundtrip_simulates_equal(testsuite_case(case), tmp_path)
+    assert_roundtrip_simulates_equal(suite_case(case), tmp_path)
 
 
 @requires_testsuite
@@ -1095,7 +1095,7 @@ def test_parse_algebraic_rule_without_id() -> None:
     simulate algebraic rules, so this only checks that parsing succeeds and
     that no spurious id was invented.
     """
-    model = sbml_to_model(testsuite_case("00039"))
+    model = sbml_to_model(suite_case("00039"))
 
     assert len(model.algebraic_rules) == 1
     assert model.algebraic_rules[0].sid is None
@@ -1118,16 +1118,14 @@ def _optional_ids(sbml_path: Path) -> list[tuple[str, str, str | None]]:
 
     doc: libsbml.SBMLDocument = libsbml.readSBMLFromFile(str(sbml_path))
     model: libsbml.Model = doc.getModel()
-    ids: list[tuple[str, str, str | None]] = []
-    rule: libsbml.Rule
-    for rule in model.getListOfRules():
-        ids.append(
-            (
-                rule.getElementName(),
-                rule.getVariable(),
-                rule.getIdAttribute() if rule.isSetIdAttribute() else None,
-            )
+    ids: list[tuple[str, str, str | None]] = [
+        (
+            rule.getElementName(),
+            rule.getVariable(),
+            rule.getIdAttribute() if rule.isSetIdAttribute() else None,
         )
+        for rule in model.getListOfRules()
+    ]
     event: libsbml.Event
     for event in model.getListOfEvents():
         trigger = (
@@ -1162,7 +1160,7 @@ def test_roundtrip_invents_no_ids(case: str, tmp_path: Path) -> None:
     id `event<k>`. A generated id changes nothing in a simulation, so only a
     structural comparison sees it.
     """
-    sbml_path = testsuite_case(case)
+    sbml_path = suite_case(case)
     source = _optional_ids(sbml_path)
     assert source, f"'{case}' has no rule or event, it would not test them"
     assert all(sid is None for _, _, sid in source), source
@@ -1232,7 +1230,7 @@ def test_roundtrip_local_parameters(case: str, tmp_path: Path) -> None:
     Dropping them produced libsbml error 10215, `a <ci> element in this
     context must refer to a model component`.
     """
-    assert_roundtrip_simulates_equal(testsuite_case(case), tmp_path)
+    assert_roundtrip_simulates_equal(suite_case(case), tmp_path)
 
 
 def _elements_with_math(sbml_path: Path) -> list[tuple[str, str, bool]]:
@@ -1309,7 +1307,7 @@ def test_roundtrip_preserves_elements_without_math(case: str, tmp_path: Path) ->
     semantics, so the simulation sweep passed these cases; only a structural
     comparison sees the loss.
     """
-    sbml_path = testsuite_case(case)
+    sbml_path = suite_case(case)
     source = _elements_with_math(sbml_path)
     if case == "01239":
         assert all(name != "trigger" for name, _, _ in source), source
@@ -1556,7 +1554,7 @@ def test_roundtrip_constraints(tmp_path: Path) -> None:
     """
     import libsbml
 
-    sbml_path = testsuite_case("01247")
+    sbml_path = suite_case("01247")
     model = sbml_to_model(sbml_path)
     roundtrip_path = tmp_path / "roundtrip.xml"
     create_model(
@@ -1654,7 +1652,7 @@ CASES_VARIABLE_STOICHIOMETRY: list[str] = ["00969", "00970", "00971"]
 @requires_testsuite
 def test_roundtrip_species_references(case: str, tmp_path: Path) -> None:
     """Test that modifiers and variable stoichiometry survive a round trip."""
-    assert_roundtrip_simulates_equal(testsuite_case(case), tmp_path)
+    assert_roundtrip_simulates_equal(suite_case(case), tmp_path)
 
 
 def test_roundtrip_species_reference_metadata(tmp_path: Path) -> None:
@@ -1809,14 +1807,12 @@ def _spatial_dimensions(sbml_path: Path) -> list[float | None]:
         for a compartment which does not set them
     """
     doc: libsbml.SBMLDocument = libsbml.readSBMLFromFile(str(sbml_path))
-    dimensions: list[float | None] = []
-    compartment: libsbml.Compartment
-    for compartment in doc.getModel().getListOfCompartments():
-        dimensions.append(
-            compartment.getSpatialDimensionsAsDouble()
-            if compartment.isSetSpatialDimensions()
-            else None
-        )
+    dimensions: list[float | None] = [
+        compartment.getSpatialDimensionsAsDouble()
+        if compartment.isSetSpatialDimensions()
+        else None
+        for compartment in doc.getModel().getListOfCompartments()
+    ]
     return dimensions
 
 
@@ -1831,7 +1827,7 @@ def test_roundtrip_non_integral_spatial_dimensions(tmp_path: Path) -> None:
     the simulation sweep nor validation sees that: the attribute changes no
     trajectory and 0 is a valid value.
     """
-    sbml_path = testsuite_case("01310")
+    sbml_path = suite_case("01310")
     assert _spatial_dimensions(sbml_path) == [2.7]
 
     assert _spatial_dimensions(roundtrip_sbml(sbml_path, tmp_path)) == [2.7]

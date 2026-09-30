@@ -89,7 +89,7 @@ notes_data = [
 ]
 
 
-@pytest.mark.parametrize("note, expected", notes_data)
+@pytest.mark.parametrize(("note", "expected"), notes_data)
 def test_note_markdown(note: str, expected: str) -> None:
     """Test note HTML creation from markdown."""
     notes = Notes(note)
@@ -98,8 +98,8 @@ def test_note_markdown(note: str, expected: str) -> None:
     assert match
 
 
-@pytest.mark.parametrize("notes, expected", notes_data)
-def test_note_sbml(notes: str, expected: str) -> None:
+@pytest.mark.parametrize("notes", [notes for notes, _expected in notes_data])
+def test_note_sbml(notes: str) -> None:
     """Test note setting on SBML object."""
     doc: libsbml.SBMLDocument = libsbml.SBMLDocument()
     model: libsbml.Model = doc.createModel()

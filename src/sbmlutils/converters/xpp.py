@@ -278,7 +278,7 @@ def xpp2sbml(
     # First iteration to parse relevant lines and get the replacement patterns
     ###########################################################################
     parsed_lines = []
-    with open(xpp_file, encoding="utf-8") as f:
+    with Path(xpp_file).open(encoding="utf-8") as f:
         lines = f.readlines()
 
         # add info to sbml
@@ -379,7 +379,7 @@ def xpp2sbml(
                 continue
 
             parsed_lines.append(line)
-    if debug:
+    if debug and logger.isEnabledFor(logging.DEBUG):
         logger.debug("FUNCTION_DEFINITIONS\n%s", pformat(function_definitions))
 
     # functions can use functions so this also must be replaced
@@ -391,7 +391,7 @@ def xpp2sbml(
     for fdata in function_definitions:
         fdata["new_args"] = sorted(set(fdata["new_args"]))
 
-    if debug:
+    if debug and logger.isEnabledFor(logging.DEBUG):
         logger.debug("REPLACED FUNCTION_DEFINITIONS\n%s", pformat(function_definitions))
 
     # Create function definitions
@@ -406,7 +406,7 @@ def xpp2sbml(
     ###########################################################################
     # Second iteration
     ###########################################################################
-    if debug:
+    if debug and logger.isEnabledFor(logging.DEBUG):
         logger.debug("PARSED LINES\n%s", pformat(parsed_lines))
     for line in parsed_lines:
         # replace function definitions in lines

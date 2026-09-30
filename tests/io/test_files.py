@@ -32,7 +32,7 @@ def test_is_file_is_false_when_the_file_system_check_raises(
     holds a null byte instead of answering `False`.
     """
 
-    def raise_error(self: Path) -> bool:
+    def raise_error(_self: Path) -> bool:
         raise error
 
     monkeypatch.setattr(Path, "is_file", raise_error)

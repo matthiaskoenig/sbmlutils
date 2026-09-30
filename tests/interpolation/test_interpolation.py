@@ -58,9 +58,9 @@ def test_unknown_method_raises() -> None:
     """An unknown method is rejected on construction."""
     x_ser = pd.Series([0.0, 1.0, 2.0], name="time")
     y_ser = pd.Series([0.0, 1.0, 0.0], name="y")
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="quadratic"):
         ip.Interpolator(x=x_ser, y=y_ser, method="quadratic")
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="quadratic"):
         ip.Interpolation(data=pd.DataFrame({"time": x, "y": y}), method="quadratic")
 
 

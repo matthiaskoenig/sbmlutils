@@ -20,7 +20,7 @@ testdata_str = [
 ]
 
 
-@pytest.mark.parametrize("uid, definition, expected", testdata_str)
+@pytest.mark.parametrize(("uid", "definition", "expected"), testdata_str)
 def test_unit_definition_str(uid: str, definition: str, expected: str) -> None:
     """Test unit conversion to string."""
     doc = libsbml.SBMLDocument()
@@ -44,7 +44,7 @@ testdata_latex = [
 ]
 
 
-@pytest.mark.parametrize("uid, definition, expected", testdata_latex)
+@pytest.mark.parametrize(("uid", "definition", "expected"), testdata_latex)
 def test_unit_definition_latex(uid: str, definition: str, expected: str) -> None:
     """Test unit conversion to latex."""
     doc = libsbml.SBMLDocument()
@@ -92,7 +92,7 @@ testdata_units = [
 ]
 
 
-@pytest.mark.parametrize("units, expected", testdata_units)
+@pytest.mark.parametrize(("units", "expected"), testdata_units)
 def test_unit_multiplier_str(
     units: list[tuple[int, float, int, float]], expected: str
 ) -> None:
@@ -127,7 +127,7 @@ testdata_units_latex = [
 ]
 
 
-@pytest.mark.parametrize("units, expected", testdata_units_latex)
+@pytest.mark.parametrize(("units", "expected"), testdata_units_latex)
 def test_unit_multiplier_latex(
     units: list[tuple[int, float, int, float]], expected: str
 ) -> None:

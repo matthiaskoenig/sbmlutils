@@ -87,7 +87,7 @@ compartment_value_data = [
 ]
 
 
-@pytest.mark.parametrize("value,constant,expected", compartment_value_data)
+@pytest.mark.parametrize(("value", "constant", "expected"), compartment_value_data)
 def test_compartment_value(
     value: Any, constant: bool, expected: dict, tmp_path: Path
 ) -> None:
@@ -126,7 +126,7 @@ parameter_value_data = [
 ]
 
 
-@pytest.mark.parametrize("value,constant,expected", parameter_value_data)
+@pytest.mark.parametrize(("value", "constant", "expected"), parameter_value_data)
 def test_parameter_value(
     value: Any, constant: bool, expected: dict, tmp_path: Path
 ) -> None:
@@ -870,7 +870,7 @@ EVENT_TRIGGER_FLAGS_SBML = """<event sboTerm="SBO:0000231" id="e1" name="e" useV
 
 @pytest.mark.parametrize("version", [1, 2])
 @pytest.mark.parametrize(
-    "kwargs, expected",
+    ("kwargs", "expected"),
     [
         (
             {
@@ -948,7 +948,7 @@ def test_event_trigger_flags_configure_a_string_trigger() -> None:
 
 
 @pytest.mark.parametrize(
-    "flag, value, attribute",
+    ("flag", "value", "attribute"),
     [
         ("trigger_persistent", False, "persistent"),
         ("trigger_initialValue", True, "initialValue"),
@@ -1194,7 +1194,7 @@ def test_no_authoring_hints_is_confined_to_its_thread(
 
 
 @pytest.mark.parametrize(
-    "flag, value, attribute, getter",
+    ("flag", "value", "attribute", "getter"),
     [
         ("trigger_persistent", False, "persistent", "getPersistent"),
         ("trigger_initialValue", True, "initialValue", "getInitialValue"),
@@ -1243,7 +1243,7 @@ def test_event_trigger_flag_set_without_a_trigger_warns(
 
 
 @pytest.mark.parametrize(
-    "element, value, expected",
+    ("element", "value", "expected"),
     [
         ("trigger", "time >= 20", "time >= 20"),
         ("priority", "2", "2"),
@@ -1302,7 +1302,7 @@ def test_event_trigger_assigned_after_construction_keeps_its_flags() -> None:
 
 
 @pytest.mark.parametrize(
-    "element, value, cls, math",
+    ("element", "value", "cls", "math"),
     [
         ("trigger", 1, Trigger, "1"),
         ("priority", 1, Priority, "1"),
@@ -1454,7 +1454,7 @@ def test_constraint_unparsable_math_logs_an_error(
 
 
 @pytest.mark.parametrize(
-    "create, formula",
+    ("create", "formula"),
     [
         (
             lambda: Model(
@@ -1717,7 +1717,7 @@ def _missing_gene_products(
 
 
 @pytest.mark.parametrize(
-    "association, gene_ids",
+    ("association", "gene_ids"),
     [
         # an id which carries `OR`, `and` or `or` inside it
         ("ORF1 and b0001", ("ORF1", "b0001")),
@@ -1809,7 +1809,7 @@ def _gpa_document(gene_ids: tuple[str, ...]) -> libsbml.SBMLDocument:
 
 
 @pytest.mark.parametrize(
-    "operator, is_operator",
+    ("operator", "is_operator"),
     [
         ("and", True),
         ("AND", True),
@@ -1852,7 +1852,8 @@ def test_gene_product_association_drops_the_operators_libsbml_parses(
     if is_operator:
         assert messages == []
     else:
-        assert len(messages) == 1 and operator in messages[0], messages
+        assert len(messages) == 1, messages
+        assert operator in messages[0], messages
 
 
 def test_gene_product_association_without_a_space_before_a_group_is_refused(
@@ -2009,7 +2010,7 @@ def _written_charge(doc: libsbml.SBMLDocument) -> str | None:
 
 
 @pytest.mark.parametrize(
-    "fbc_version, charge, written",
+    ("fbc_version", "charge", "written"),
     [
         # fbc version 2 writes an integer charge; an integral float is one
         (2, -2.0, "-2"),
@@ -2064,7 +2065,8 @@ def test_species_charge_which_fbc_v2_cannot_write_is_reported(
         if record.levelno >= logging.ERROR
     ]
     assert len(errors) == 1, errors
-    assert "S1" in errors[0] and "-2.5" in errors[0]
+    assert "S1" in errors[0]
+    assert "-2.5" in errors[0]
 
 
 #: the prefix of every package namespace and `required` attribute of an
@@ -2328,7 +2330,9 @@ _SWALLOWED_ATTRIBUTES: list[Any] = [
 ]
 
 
-@pytest.mark.parametrize("build, level, version, fragments", _SWALLOWED_ATTRIBUTES)
+@pytest.mark.parametrize(
+    ("build", "level", "version", "fragments"), _SWALLOWED_ATTRIBUTES
+)
 def test_attribute_libsbml_refuses_is_reported(
     build: Callable[[], Model],
     level: int,
@@ -2454,7 +2458,7 @@ _ATTRIBUTES_WITHOUT_A_PLACE: list[Any] = [
 
 
 @pytest.mark.parametrize(
-    "build, level, version, fragments", _ATTRIBUTES_WITHOUT_A_PLACE
+    ("build", "level", "version", "fragments"), _ATTRIBUTES_WITHOUT_A_PLACE
 )
 def test_attribute_the_document_has_no_place_for_is_reported_once(
     build: Callable[[], Model],
@@ -2794,7 +2798,7 @@ _PACKAGE_FROM_CONTENT: list[Any] = [
 ]
 
 
-@pytest.mark.parametrize("build, namespace, content", _PACKAGE_FROM_CONTENT)
+@pytest.mark.parametrize(("build", "namespace", "content"), _PACKAGE_FROM_CONTENT)
 def test_model_declares_the_package_its_content_needs(
     build: Callable[[], Model],
     namespace: str,
@@ -2871,7 +2875,7 @@ def test_the_declared_fbc_version_wins_over_the_content(
 
 
 @pytest.mark.parametrize(
-    "element, expected",
+    ("element", "expected"),
     [
         (
             KeyValuePair(key="kind", value="test", uri="https://x.org"),
@@ -3070,7 +3074,7 @@ def test_a_comp_reference_takes_no_id(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize(
-    "plugin_of, element_name",
+    ("plugin_of", "element_name"),
     [("species", "species"), ("reaction", "reaction"), ("model", "model")],
 )
 def test_an_attribute_of_a_plugin_is_reported_and_does_not_raise(
@@ -3300,7 +3304,8 @@ def _never_changed(
     for record in caplog.records:
         if isinstance(record.args, tuple) and "is ever changed by" in record.msg:
             kind, ids = record.args[1], record.args[2]
-            assert isinstance(kind, str) and isinstance(ids, list)
+            assert isinstance(kind, str)
+            assert isinstance(ids, list)
             reported[kind] = ids
     return reported
 

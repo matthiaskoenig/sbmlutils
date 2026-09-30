@@ -46,7 +46,7 @@ def download_file(url: str, path: Path) -> Path:
     """
     with get_session().get(url, stream=True) as response:
         response.raise_for_status()
-        with open(path, "wb") as f_out:
+        with Path(path).open("wb") as f_out:
             for chunk in response.iter_content(chunk_size=CHUNK_SIZE):
                 f_out.write(chunk)
 

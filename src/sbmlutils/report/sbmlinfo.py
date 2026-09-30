@@ -563,9 +563,10 @@ class SBMLDocumentInfo:
             if history.isSetCreatedDate()
             else None
         )
-        modified_dates = []
-        for km in range(history.getNumModifiedDates()):
-            modified_dates.append(history.getModifiedDate(km).getDateAsString())
+        modified_dates = [
+            history.getModifiedDate(km).getDateAsString()
+            for km in range(history.getNumModifiedDates())
+        ]
         return {
             "creators": creators,
             "createdDate": created_date,
@@ -1135,18 +1136,15 @@ class SBMLDocumentInfo:
                     astnode_to_latex(delay.getMath()) if delay.isSetMath() else None
                 )
 
-            assignments = []
-            eva: libsbml.EventAssignment
-            for eva in event.getListOfEventAssignments():
-                assignments.append(
-                    {
-                        "variable": eva.getVariable() if eva.isSetVariable() else None,
-                        "math": (
-                            astnode_to_latex(eva.getMath()) if eva.isSetMath() else None
-                        ),
-                    }
-                )
-            d["listOfEventAssignments"] = assignments
+            d["listOfEventAssignments"] = [
+                {
+                    "variable": eva.getVariable() if eva.isSetVariable() else None,
+                    "math": (
+                        astnode_to_latex(eva.getMath()) if eva.isSetMath() else None
+                    ),
+                }
+                for eva in event.getListOfEventAssignments()
+            ]
 
             events.append(d)
 
@@ -1165,9 +1163,9 @@ class SBMLDocumentInfo:
 
         doc_comp: libsbml.CompSBMLDocumentPlugin = self.doc.getPlugin("comp")
         if doc_comp:
-            md: libsbml.ModelDefinition
-            for md in doc_comp.getListOfModelDefinitions():
-                mds.append(self.model_dict(model=md))
+            mds.extend(
+                self.model_dict(model=md) for md in doc_comp.getListOfModelDefinitions()
+            )
 
             emd: libsbml.ExternalModelDefinition
             for emd in doc_comp.getListOfExternalModelDefinitions():
@@ -1198,10 +1196,10 @@ class SBMLDocumentInfo:
                     submodel.getModelRef() if submodel.isSetModelRef() else None  #
                 )
 
-                deletions = []
-                for deletion in submodel.getListOfDeletions():
-                    deletions.append(self._sbaseref(deletion))
-                d["deletions"] = deletions
+                d["deletions"] = [
+                    self._sbaseref(deletion)
+                    for deletion in submodel.getListOfDeletions()
+                ]
 
                 d["timeConversion"] = (
                     submodel.getTimeConversionFactor()
@@ -1315,5 +1313,5 @@ if __name__ == "__main__":
         json_str = info.to_json()
         console.print(json_str)
 
-    with open(output_dir / "tests.json", "w") as fout:
+    with (output_dir / "tests.json").open("w") as fout:
         fout.write(json_str)

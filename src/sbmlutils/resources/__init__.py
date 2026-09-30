@@ -102,10 +102,10 @@ def all_distrib_paths() -> list[Path]:
         DISTRIB_COMP_FLAT_SBML,
     ]
     for level_ver in ["l3v1", "l3v2"]:
-        for i in distrib_model_ids:
-            distrib_paths.append(
-                MODELS_DIR / "distrib" / "testsuite" / f"00{i:0>3}-sbml-{level_ver}.xml"
-            )
+        distrib_paths.extend(
+            MODELS_DIR / "distrib" / "testsuite" / f"00{i:0>3}-sbml-{level_ver}.xml"
+            for i in distrib_model_ids
+        )
     return distrib_paths
 
 

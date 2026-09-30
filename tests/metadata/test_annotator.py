@@ -360,7 +360,7 @@ NORMALIZED_RESOURCES: list[tuple[str, str]] = [
 ]
 
 
-@pytest.mark.parametrize("resource, expected", NORMALIZED_RESOURCES)
+@pytest.mark.parametrize(("resource", "expected"), NORMALIZED_RESOURCES)
 def test_annotation_resource_of_a_known_collection_is_normalized(
     resource: str, expected: str, tmp_path: Path, caplog: pytest.LogCaptureFixture
 ) -> None:
@@ -424,7 +424,8 @@ def test_annotation_losses_are_reported_once_per_collection(
     assert f"'{UNKNOWN_COLLECTION}'" in warnings[0]
     assert f"'{OTHER_UNKNOWN_COLLECTION}'" in warnings[1]
     # each names how many resources of its collection were written as given
-    assert warnings[0].startswith("3 ") and warnings[1].startswith("2 ")
+    assert warnings[0].startswith("3 ")
+    assert warnings[1].startswith("2 ")
     # each names an example resource of its own collection
     assert f"'urn:miriam:{UNKNOWN_COLLECTION}'" in warnings[0]
     assert f"'urn:miriam:{OTHER_UNKNOWN_COLLECTION}'" in warnings[1]
@@ -456,9 +457,11 @@ def test_annotation_losses_do_not_leak_between_documents(
             record.getMessage() for record in _annotator_records(caplog, "WARNING")
         ]
 
-    assert len(first) == 1 and first[0].startswith("3 ")
+    assert len(first) == 1
+    assert first[0].startswith("3 ")
     assert f"'{UNKNOWN_COLLECTION}'" in first[0]
-    assert len(second) == 1 and second[0].startswith("2 ")
+    assert len(second) == 1
+    assert second[0].startswith("2 ")
     assert f"'{OTHER_UNKNOWN_COLLECTION}'" in second[0]
 
 
@@ -477,7 +480,8 @@ def test_annotation_loss_without_a_collection_is_grouped_as_such(
 
     warnings = [record.getMessage() for record in _annotator_records(caplog, "WARNING")]
     assert len(warnings) == 1, caplog.text
-    assert warnings[0].startswith("2 ") and "'<no collection>'" in warnings[0], warnings
+    assert warnings[0].startswith("2 "), warnings
+    assert "'<no collection>'" in warnings[0], warnings
 
 
 def test_annotation_loss_outside_a_document_is_reported_per_resource(

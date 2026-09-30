@@ -1,7 +1,6 @@
 """PKPD model for whole-body icg metabolism."""
 
 import logging
-import os
 from pathlib import Path
 from typing import Any
 
@@ -145,7 +144,7 @@ _m.submodels = [
 ]
 
 for emd in _m.external_model_definitions:
-    logger.info("%s (%s)", emd, os.path.abspath(emd.source))
+    logger.info("%s (%s)", emd, Path(emd.source).resolve())
 
 
 # -------------------------------------------------------------------------------------------------

@@ -12,7 +12,6 @@ ontology lookup service.
 """
 
 import logging
-import os
 import re
 from collections.abc import Iterable
 from contextlib import AbstractContextManager
@@ -243,7 +242,7 @@ def annotate_sbml(
     doc: libsbml.SBMLDocument = read_sbml(source=source)
 
     # annotate
-    if not os.path.exists(str(annotations_path)):
+    if not Path(annotations_path).exists():
         raise OSError(f"Annotation file does not exist: {annotations_path}")
     external_annotations = ModelAnnotator.read_annotations(
         annotations_path, file_format="*"
@@ -650,7 +649,7 @@ class ModelAnnotator:
         :param file_format: annotation file format
         :return: pandas.DataFrame
         """
-        _filename, file_extension = os.path.splitext(file_path)
+        file_extension = Path(file_path).suffix
         if file_format == "*":
             file_format = file_extension[1:]  # remove leading dot
 
@@ -697,8 +696,4 @@ class ModelAnnotator:
             file_path=file_path, file_format=file_format
         )
         entries = df.to_dict("records")
-        annotations = []
-        for entry in entries:
-            annotations.append(ExternalAnnotation(entry))
-
-        return annotations
+        return [ExternalAnnotation(entry) for entry in entries]

@@ -197,7 +197,8 @@ def test_uncertainty_of_an_element_which_cannot_carry_one_is_reported(
         if record.name == "sbmlutils.parser" and "are lost" in record.getMessage()
     ]
     assert len(errors) == 1, caplog.records
-    assert "unitDefinition" in errors[0] and "mM" in errors[0]
+    assert "unitDefinition" in errors[0]
+    assert "mM" in errors[0]
 
 
 def test_sbml_to_model_raises_for_a_file_which_does_not_exist(tmp_path: Path) -> None:

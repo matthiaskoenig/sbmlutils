@@ -211,7 +211,7 @@ def test_read_sbml_error_does_not_repeat_long_source() -> None:
     assert "..." in str(excinfo.value)
 
 
-def _raise_name_too_long(self: Path, *args: object, **kwargs: object) -> bool:
+def _raise_name_too_long(self: Path, *_args: object, **_kwargs: object) -> bool:
     """Answer a file system check as python < 3.14 does for a very long name."""
     raise OSError(36, "File name too long", str(self))
 
@@ -262,7 +262,7 @@ def test_write_and_read_sbml_in_a_directory_with_a_special_character(
     assert validate_sbml(sbml_path).is_valid()
 
 
-def _unreadable(*args: object) -> libsbml.SBMLDocument:
+def _unreadable(*_args: object) -> libsbml.SBMLDocument:
     """Answer as `libsbml.readSBMLFromFile` does for a path it cannot open."""
     doc: libsbml.SBMLDocument = libsbml.SBMLDocument()
     doc.getErrorLog().add(
@@ -283,7 +283,7 @@ def test_a_non_ascii_path_does_not_use_the_file_functions_of_libsbml(
     """
     from sbmlutils.io.sbml import validate_sbml
 
-    monkeypatch.setattr(libsbml.SBMLWriter, "writeSBMLToFile", lambda *args: False)
+    monkeypatch.setattr(libsbml.SBMLWriter, "writeSBMLToFile", lambda *_args: False)
     monkeypatch.setattr(libsbml, "readSBMLFromFile", _unreadable)
     sbml_path = tmp_path / "ü" / "model.xml"
 
@@ -297,7 +297,7 @@ def test_an_ascii_path_uses_the_file_functions_of_libsbml(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """A path libsbml can open on every platform is read and written by libsbml."""
-    monkeypatch.setattr(libsbml.SBMLWriter, "writeSBMLToFile", lambda *args: False)
+    monkeypatch.setattr(libsbml.SBMLWriter, "writeSBMLToFile", lambda *_args: False)
     monkeypatch.setattr(libsbml, "readSBMLFromFile", _unreadable)
     sbml_path = tmp_path / "model.xml"
 
@@ -421,7 +421,7 @@ def test_read_sbml_reports_a_file_error_which_is_no_decoding_error(
     """Only a decoding error is invalid UTF-8, any other is an unreadable file."""
     from sbmlutils.io import files
 
-    def raise_value_error(path: Path) -> str:
+    def raise_value_error(_path: Path) -> str:
         raise ValueError("embedded null byte")
 
     monkeypatch.setattr(files, "read_text", raise_value_error)

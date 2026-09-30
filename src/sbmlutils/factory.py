@@ -192,7 +192,7 @@ def _create_object(obj: Any, container: Any) -> libsbml.SBase | None:
     except Exception as err:
         logger.error("Error creating SBML object for '%s'", obj)
         logger.error(err)
-        raise err
+        raise
 
 
 def create_objects(
@@ -1754,12 +1754,10 @@ class Sbase:
         if not self.uncertainties:
             return None
 
-        objects = []
-
         # FIXME: check that distrib package is activated
-        for uncertainty in self.uncertainties:  # type: Uncertainty
-            objects.append(uncertainty.create_sbml(obj, model))
-        return objects
+        return [
+            uncertainty.create_sbml(obj, model) for uncertainty in self.uncertainties
+        ]
 
     def create_replaced_by(
         self, sbase: libsbml.SBase, model: libsbml.Model
@@ -2266,7 +2264,7 @@ class UnitDefinition(Sbase):
                 self.definition,
                 err,
             )
-            raise err
+            raise
 
         magnitude, units_tuple = quantity.to_tuple()
         # pint types the units as a fixed length tuple, it is empty for a number
@@ -7947,7 +7945,8 @@ class Document(Sbase):
         [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5525390.svg)](https://doi.org/10.5281/zenodo.5525390)
         """
         )
-        assert sbmlutils_notes is not None
+        if sbmlutils_notes is None:
+            raise RuntimeError("The attribution of the document has no content.")
 
         if self.notes is None:
             self.notes = sbmlutils_notes

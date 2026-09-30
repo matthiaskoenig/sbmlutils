@@ -269,7 +269,7 @@ class ReactionEquation:
             f"{'products':<10s}: {self.products}",
             f"{'modifiers':<10s}: {self.modifiers}",
         ]
-        logger.info("\n".join(lines))
+        logger.info("%s", "\n".join(lines))
 
     @staticmethod
     def help() -> str:

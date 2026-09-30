@@ -28,7 +28,7 @@ def test_info_for_variable_stoichiometry() -> None:
 
 
 @pytest.mark.parametrize(
-    "stoichiometry, expected",
+    ("stoichiometry", "expected"),
     [
         (1.0, "x"),
         (-1.0, "-x"),

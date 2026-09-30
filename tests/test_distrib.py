@@ -984,7 +984,7 @@ def test_uncert_parameter_writes_nested_uncert_parameters() -> None:
 
 
 @pytest.mark.parametrize(
-    "type_, written",
+    ("type_", "written"),
     [
         (libsbml.DISTRIB_UNCERTTYPE_DISTRIBUTION, "distribution"),
         (libsbml.DISTRIB_UNCERTTYPE_EXTERNALPARAMETER, "externalParameter"),
@@ -1148,7 +1148,7 @@ def _bound_errors(caplog: pytest.LogCaptureFixture) -> list[str]:
 
 
 @pytest.mark.parametrize(
-    "kwargs, missing",
+    ("kwargs", "missing"),
     [
         ({}, ["lower", "upper"]),
         ({"valueLower": 1.0}, ["upper"]),
@@ -1333,7 +1333,7 @@ DISTRIBUTION_FORMULAS: list[tuple[str, str]] = [
 ]
 
 
-@pytest.mark.parametrize("distribution, formula", DISTRIBUTION_FORMULAS)
+@pytest.mark.parametrize(("distribution", "formula"), DISTRIBUTION_FORMULAS)
 def test_uncertainty_of_a_formula_writes_the_url_of_its_distribution(
     distribution: str, formula: str
 ) -> None:
@@ -1470,7 +1470,8 @@ def test_uncertainty_of_an_unparsable_formula_is_reported(
         if record.levelno >= logging.ERROR
     ]
     assert len(errors) == 1, errors
-    assert "could not be parsed" in errors[0] and "normal(" in errors[0]
+    assert "could not be parsed" in errors[0]
+    assert "normal(" in errors[0]
 
 
 def test_uncert_child_without_a_type_is_written_without_one() -> None:

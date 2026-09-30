@@ -19,8 +19,9 @@ from sbmlutils import RESOURCES_DIR
 
 logger = logging.getLogger(__name__)
 
-xslt_cmml2pmml = ET.parse(str(RESOURCES_DIR / "xslt" / "ctopff.xsl"))
-xslt_pmml2tex = ET.parse(str(RESOURCES_DIR / "xslt" / "xsltml" / "mmltex.xsl"))
+#: compiled once, an XSLT object is reusable
+XSLT_CMML2PMML = ET.XSLT(ET.parse(str(RESOURCES_DIR / "xslt" / "ctopff.xsl")))
+XSLT_PMML2TEX = ET.XSLT(ET.parse(str(RESOURCES_DIR / "xslt" / "xsltml" / "mmltex.xsl")))
 
 
 def formula_to_astnode(
@@ -74,12 +75,10 @@ def cmathml_to_latex(cmml_str: str) -> str:
     """Content MathML to latex conversion using XSLT transformation."""
     # content MathML -> presentation MathML
     cmml_dom = ET.fromstring(cmml_str)
-    transform1 = ET.XSLT(xslt_cmml2pmml)
-    pmml_dom = transform1(cmml_dom)
+    pmml_dom = XSLT_CMML2PMML(cmml_dom)
 
     # content MathML -> latex
-    transform2 = ET.XSLT(xslt_pmml2tex)
-    tex_str = str(transform2(pmml_dom))
+    tex_str = str(XSLT_PMML2TEX(pmml_dom))
 
     # remove equation symbols
     tex_str = tex_str.replace("$", "")

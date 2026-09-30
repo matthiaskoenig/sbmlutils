@@ -20,7 +20,7 @@ def test_sbml_to_antimony_from_file() -> None:
     assert "<sbml" in sbml_str
 
 
-def test_sbml_to_antimony_from_string(tmp_path: Path) -> None:
+def test_sbml_to_antimony_from_string() -> None:
     """Convert an SBML string to antimony."""
     sbml_str = antimony_to_sbml(
         "model example\n J0: S1 -> S2; k1*S1\n S1 = 10; S2 = 0; k1 = 0.1\nend"
