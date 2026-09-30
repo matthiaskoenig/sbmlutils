@@ -219,10 +219,12 @@ uv run zensical serve
 The API reference is rendered from the docstrings by [mkdocstrings](https://mkdocstrings.github.io/); a page in `docs/api/` only contains the module directive:
 
 ```markdown
-# factory
+# io
 
-::: sbmlutils.factory
+::: sbmlutils.io
 ```
+
+mkdocstrings renders a name which a package re-exports from one of its modules only if the name is in `__all__` or the page lists it in `members`. `sbmlutils.factory` re-exports far more than the names of its `__all__`, which are what a model definition imports with its star import, so `docs/api/factory.md` lists its classes and functions in `members`, and `tests/test_factory_facade.py` checks that the list is complete.
 
 Docstrings are therefore the place to document functions and classes, the markdown files provide the narrative around them. Adding a module to the reference means adding such a page and an entry to `nav` in `zensical.toml`.
 

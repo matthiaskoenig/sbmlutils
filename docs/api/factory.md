@@ -1,3 +1,66 @@
 # factory
 
 ::: sbmlutils.factory
+    options:
+      members:
+        - ReactionEquation
+        - ValidationOptions
+        - create_objects
+        - ast_node_from_formula
+        - collect_attribute_losses
+        - collect_content_losses
+        - set_notes
+        - Sbase
+        - KeyValuePair
+        - Value
+        - ModelUnits
+        - Unit
+        - UnitDefinition
+        - Units
+        - ValueWithUnit
+        - Function
+        - Parameter
+        - LocalParameter
+        - Compartment
+        - Species
+        - InitialAssignment
+        - RuleWithVariable
+        - AssignmentRule
+        - RateRule
+        - AlgebraicRule
+        - Formula
+        - KineticLaw
+        - Reaction
+        - EventAssignment
+        - Trigger
+        - Priority
+        - Delay
+        - Event
+        - Constraint
+        - UncertParameter
+        - UncertSpan
+        - Uncertainty
+        - ExchangeReaction
+        - GeneProduct
+        - UserDefinedConstraintComponent
+        - UserDefinedConstraint
+        - FluxObjective
+        - Objective
+        - ExternalModelDefinition
+        - Submodel
+        - SbaseRef
+        - ReplacedElement
+        - ReplacedBy
+        - Deletion
+        - PortType
+        - Port
+        - set_model_history
+        - date_now
+        - Package
+        - packages_in_canonical_order
+        - ModelDict
+        - Model
+        - ModelDefinition
+        - Document
+        - FactoryResult
+        - create_model

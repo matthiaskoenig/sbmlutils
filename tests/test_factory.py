@@ -16,7 +16,7 @@ import pytest
 
 from sbmlutils import factory
 from sbmlutils.factory import *
-from sbmlutils.factory import Q_, Sbase, SbaseRef, core_elements
+from sbmlutils.factory import Q_, Sbase, SbaseRef, _core
 from sbmlutils.io import read_sbml
 from sbmlutils.metadata import BQB
 from sbmlutils.parser import sbml_to_model
@@ -2192,7 +2192,7 @@ def _minimal_content() -> dict[str, Any]:
 
 #: one case per kind of libsbml failure the survey of the unwrapped setters
 #: found, as `(build, level, version, fragments of the one error)`. Every case
-#: is a **value** which `factory.py` passes on to libsbml unchanged and which
+#: is a **value** which `sbmlutils.factory` passes on to libsbml unchanged and which
 #: libsbml refuses with a status code, so that the attribute was dropped in
 #: silence before it was wrapped. An attribute the document has no place for
 #: at all is the other half, see `_ATTRIBUTES_WITHOUT_A_PLACE`.
@@ -2346,7 +2346,7 @@ def test_attribute_libsbml_refuses_is_reported(
     A libsbml setter answers with a status code instead of raising, so an
     attribute it refuses used to be dropped in silence: the model definition
     asked for it, the written document did not carry it and validated. Every
-    case here is one kind of refusal the survey of `factory.py` found: an
+    case here is one kind of refusal the survey of `sbmlutils.factory` found: an
     invalid SId, an invalid SBO term, an invalid metaid, an invalid unit id,
     a value outside an enumeration, an invalid chemical formula, a reference
     the element cannot carry, and a package the SBML level cannot declare.
@@ -3110,7 +3110,7 @@ def test_an_attribute_of_a_plugin_is_reported_and_does_not_raise(
     plugin = owner.getPlugin("fbc")
 
     with caplog.at_level(logging.WARNING, logger="sbmlutils"):
-        written = core_elements._check_attribute(
+        written = _core._check_attribute(
             libsbml.LIBSBML_UNEXPECTED_ATTRIBUTE,
             plugin,
             "chemicalFormula",
@@ -3131,7 +3131,7 @@ def test_an_attribute_of_a_plugin_is_reported_and_does_not_raise(
         caplog.at_level(logging.WARNING, logger="sbmlutils"),
     ):
         caplog.clear()
-        core_elements._check_attribute(
+        _core._check_attribute(
             libsbml.LIBSBML_UNEXPECTED_ATTRIBUTE,
             plugin,
             "chemicalFormula",
@@ -3271,7 +3271,7 @@ def test_the_reported_attribute_name_is_the_one_in_the_document(
 
         caplog.clear()
         with caplog.at_level(logging.WARNING, logger="sbmlutils"):
-            core_elements._check_attribute(
+            _core._check_attribute(
                 libsbml.LIBSBML_UNEXPECTED_ATTRIBUTE,
                 target,
                 reported,

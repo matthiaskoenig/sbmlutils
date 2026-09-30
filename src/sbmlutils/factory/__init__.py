@@ -1,51 +1,68 @@
-# ruff: noqa: I001  the order of the imports is the order of the API reference
+# ruff: noqa: I001
 """Create SBML models from a python definition.
 
-The classes and functions of the factory live in `sbmlutils.factory.core_elements`,
-this package re-exports them. A model definition imports them with
-`from sbmlutils.factory import *`, which gives the names of `__all__`.
+A model definition is a `Model` which holds the elements of this package,
+`create_model` writes it as an SBML file and validates it. A model definition
+imports the names of `__all__` with a star import:
+
+```python
+from sbmlutils.factory import *
+```
+
+The package re-exports the classes and functions of its modules, which are
+split along the SBML packages:
+
+- `sbmlutils.factory._core`: `Sbase`, the base of every element, and the
+  helpers the elements share
+- `sbmlutils.factory.units`: units and unit definitions
+- `sbmlutils.factory.core_elements`: the elements of SBML core
+- `sbmlutils.factory.distrib`: the uncertainties of the distrib package
+- `sbmlutils.factory.fbc`: the elements of the fbc package
+- `sbmlutils.factory.comp`: the elements of the comp package
+- `sbmlutils.factory.model`: `Model`, `ModelDefinition`, `Document` and
+  `create_model`
 """
 
-from pymetadata.core.creator import (
-    Creator as Creator,
-)
-from numpy import (
-    nan as NaN,
-)
+# Every name is re-exported explicitly (`X as X`), most of them are not in
+# `__all__`. The imports follow the order of the modules and of the definitions
+# in them, which is the order of the API reference, and are therefore not
+# sorted. The API reference renders a re-exported class or function only when
+# `docs/api/factory.md` lists it in `members`, which a test keeps complete.
+from pymetadata.core.creator import Creator as Creator
+from numpy import nan as NaN
 from sbmlutils.reaction_equation import (
     EquationPart as EquationPart,
     ReactionEquation as ReactionEquation,
 )
-from sbmlutils.validation import (
-    ValidationOptions as ValidationOptions,
-)
-from sbmlutils.factory.core_elements import (
-    ureg as ureg,
-    Q_ as Q_,
+from sbmlutils.validation import ValidationOptions as ValidationOptions
+from sbmlutils.factory._core import (
     SBML_LEVEL as SBML_LEVEL,
     SBML_VERSION as SBML_VERSION,
     PORT_SUFFIX as PORT_SUFFIX,
     PORT_UNIT_SUFFIX as PORT_UNIT_SUFFIX,
-    PREFIX_EXCHANGE_REACTION as PREFIX_EXCHANGE_REACTION,
     create_objects as create_objects,
     ast_node_from_formula as ast_node_from_formula,
     collect_attribute_losses as collect_attribute_losses,
     collect_content_losses as collect_content_losses,
-    UnitType as UnitType,
     AnnotationType as AnnotationType,
     AnnotationsType as AnnotationsType,
     OptionalAnnotationsType as OptionalAnnotationsType,
     set_notes as set_notes,
-    ModelUnits as ModelUnits,
-    set_model_history as set_model_history,
-    date_now as date_now,
     Sbase as Sbase,
     KeyValuePair as KeyValuePair,
     Value as Value,
+)
+from sbmlutils.factory.units import (
+    ureg as ureg,
+    Q_ as Q_,
+    UnitType as UnitType,
+    ModelUnits as ModelUnits,
     Unit as Unit,
     UnitDefinition as UnitDefinition,
     Units as Units,
     ValueWithUnit as ValueWithUnit,
+)
+from sbmlutils.factory.core_elements import (
     Function as Function,
     Parameter as Parameter,
     LocalParameter as LocalParameter,
@@ -65,15 +82,22 @@ from sbmlutils.factory.core_elements import (
     Delay as Delay,
     Event as Event,
     Constraint as Constraint,
+)
+from sbmlutils.factory.distrib import (
     UncertParameter as UncertParameter,
     UncertSpan as UncertSpan,
     Uncertainty as Uncertainty,
+)
+from sbmlutils.factory.fbc import (
+    PREFIX_EXCHANGE_REACTION as PREFIX_EXCHANGE_REACTION,
     ExchangeReaction as ExchangeReaction,
     GeneProduct as GeneProduct,
     UserDefinedConstraintComponent as UserDefinedConstraintComponent,
     UserDefinedConstraint as UserDefinedConstraint,
     FluxObjective as FluxObjective,
     Objective as Objective,
+)
+from sbmlutils.factory.comp import (
     ExternalModelDefinition as ExternalModelDefinition,
     Submodel as Submodel,
     SbaseRef as SbaseRef,
@@ -82,6 +106,10 @@ from sbmlutils.factory.core_elements import (
     Deletion as Deletion,
     PortType as PortType,
     Port as Port,
+)
+from sbmlutils.factory.model import (
+    set_model_history as set_model_history,
+    date_now as date_now,
     Package as Package,
     packages_in_canonical_order as packages_in_canonical_order,
     ModelDict as ModelDict,
@@ -92,6 +120,7 @@ from sbmlutils.factory.core_elements import (
     create_model as create_model,
 )
 
+# FIXME: make complete import of all DISTRIB constants
 __all__ = [
     "PORT_SUFFIX",
     "PORT_UNIT_SUFFIX",
