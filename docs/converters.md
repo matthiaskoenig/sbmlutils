@@ -35,9 +35,9 @@ def f_y(x: np.ndarray, t: float, p: np.ndarray) -> np.ndarray:
     ...
 ```
 
-The math of the python code is translated from the libsbml AST into numpy: `piecewise` becomes a conditional expression, and the logical operators, the relations, `ln`, `log`, `rem`, `quotient`, `xor`, `implies`, `INF`, `NaN` and the trigonometric functions become their python equivalent. Function definitions, `delay`, `rateOf`, events and initial assignments are not supported: `to_python` raises `NotImplementedError` for math it cannot translate and ignores an initial assignment with a warning.
+The math of the python code is translated from the libsbml AST into numpy: `piecewise` becomes a conditional expression, and the logical operators, the relations, `ln`, `log`, `rem`, `quotient`, `xor`, `implies`, `INF`, `NaN` and the trigonometric functions become their python equivalent. Function definitions, local parameters, `delay`, `rateOf`, events and initial assignments are not supported: `to_python` raises `NotImplementedError` for math it cannot translate and ignores an initial assignment with a warning.
 
-The generated code is safe to import from an untrusted model. Every name and unit is written on a single line, so a line break in the name of an element cannot leave its comment, and an id which is not an SId (libsbml reads such a document and only reports an error) is rejected with a `ValueError` before it is written into python, R or julia.
+The generated code is safe to import from an untrusted model. Every name and unit is written on a single line, so a line break in the name of an element cannot leave its comment, and an id which is not an SId (libsbml reads such a document and only reports an error) is rejected with a `ValueError` before it is written into python, R or julia. The markdown and latex output write the ids on a single line as well (escaped in latex), and latex rejects math with an identifier which is not an SId, since it writes the math unescaped.
 
 The markdown and latex output are the equations for a paper or a model description: the state variables, the assignments and the ODEs, with the units.
 

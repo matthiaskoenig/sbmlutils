@@ -171,10 +171,52 @@ def test_invalid_sid_is_rejected(language: str) -> None:
         convert()
 
 
-@pytest.mark.parametrize("language", ["python", "R", "julia"])
+@pytest.mark.parametrize("language", ["python", "R", "julia", "tex"])
 def test_invalid_sid_in_math_is_rejected(language: str) -> None:
-    """A MathML identifier which is no SId is never written into code."""
-    sbml = _sbml("k*A").replace("<ci> k </ci>", "<ci> k + __import__('os') </ci>")
+    """A MathML identifier which is no SId is never written into code or latex."""
+    sbml = _sbml("k*A").replace(
+        "<ci> k </ci>", "<ci> k + __import__('os') \\input{/etc/hostname} </ci>"
+    )
+    sbml2ode = SBML2ODE(read_sbml(sbml))
+    convert = {
+        "python": sbml2ode.to_python,
+        "R": sbml2ode.to_R,
+        "julia": sbml2ode.to_julia,
+        "tex": sbml2ode.to_tex,
+    }[language]
+    with pytest.raises(ValueError, match="SId"):
+        convert()
+
+
+def test_invalid_sid_in_math_markdown() -> None:
+    """A MathML identifier which is no SId stays on its line in markdown."""
+    sbml = _sbml("k*A").replace("<ci> k </ci>", "<ci> k&#10;INJECTED = 1 </ci>")
+    markdown = SBML2ODE(read_sbml(sbml)).to_markdown()
+    assert "INJECTED" in markdown
+    for line in markdown.splitlines():
+        assert not line.lstrip().startswith("INJECTED"), line
+
+
+# a model id which leaves the comment of the first line
+INJECTED_MODEL_ID = "m&#10;\\input{/etc/hostname}&#10;INJECTED = 1"
+
+
+@pytest.mark.parametrize("language", ["markdown", "tex"])
+def test_model_id_does_not_leave_line(language: str) -> None:
+    """A model id which is no SId stays on its line in markdown and latex."""
+    sbml = _sbml("k*A").replace('<model id="m"', f'<model id="{INJECTED_MODEL_ID}"')
+    sbml2ode = SBML2ODE(read_sbml(sbml))
+    output = sbml2ode.to_markdown() if language == "markdown" else sbml2ode.to_tex()
+    for line in output.splitlines():
+        assert not line.lstrip().startswith(("INJECTED", "\\input")), line
+    if language == "tex":
+        assert "\\input" not in output
+
+
+@pytest.mark.parametrize("language", ["python", "R", "julia"])
+def test_invalid_model_id_is_rejected(language: str) -> None:
+    """A model id which is no SId is never written into code."""
+    sbml = _sbml("k*A").replace('<model id="m"', f'<model id="{INJECTED_MODEL_ID}"')
     sbml2ode = SBML2ODE(read_sbml(sbml))
     convert = {
         "python": sbml2ode.to_python,
@@ -183,6 +225,18 @@ def test_invalid_sid_in_math_is_rejected(language: str) -> None:
     }[language]
     with pytest.raises(ValueError, match="SId"):
         convert()
+
+
+def test_python_local_parameter_is_not_supported() -> None:
+    """An identifier which is no symbol of the python code is never written raw."""
+    sbml = _sbml("kl*A").replace(
+        "</math>",
+        "</math><listOfLocalParameters>"
+        '<localParameter id="kl" value="2"/></listOfLocalParameters>',
+    )
+    sbml2ode = SBML2ODE(read_sbml(sbml))
+    with pytest.raises(NotImplementedError, match="'kl'"):
+        sbml2ode.to_python()
 
 
 # rate laws of the reaction of `_sbml` in L3 infix syntax

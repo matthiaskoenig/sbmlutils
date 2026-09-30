@@ -42,7 +42,6 @@ import libsbml
 
 # template location (for language templates)
 from sbmlutils import RESOURCES_DIR
-from sbmlutils.console import console
 from sbmlutils.converters.mathml import evaluableMathML
 from sbmlutils.io import read_sbml
 from sbmlutils.report.units import udef_to_string
@@ -207,7 +206,8 @@ def python_math(astnode: libsbml.ASTNode, symbols: Mapping[str, str]) -> str:
     """Translate math into a python expression.
 
     The expression uses `numpy` as `np` and `math`, the time is `t`. Every
-    identifier is written as its entry in `symbols`, or as itself.
+    identifier is written as its entry in `symbols`, an identifier without an
+    entry is never written.
 
     Args:
         astnode: the math
@@ -217,9 +217,10 @@ def python_math(astnode: libsbml.ASTNode, symbols: Mapping[str, str]) -> str:
         the python expression
 
     Raises:
-        ValueError: if an identifier is not an SId
-        NotImplementedError: for a construct the python code does not support
-            (function definitions, `delay`, `rateOf`, csymbol functions)
+        NotImplementedError: for an identifier without an entry in `symbols`
+            (e.g. a local parameter) and for a construct the python code does
+            not support (function definitions, `delay`, `rateOf`, csymbol
+            functions)
     """
     return _python_math(astnode, symbols)[0]
 
@@ -296,8 +297,14 @@ def _python_math(
 
     # identifiers
     if ast_type == libsbml.AST_NAME:
-        sid = check_sid(astnode.getName())
-        return symbols.get(sid, sid), _ATOM
+        sid = astnode.getName()
+        if sid not in symbols:
+            raise NotImplementedError(
+                f"The identifier {sid!r} is no parameter, compartment, species or "
+                f"assigned variable of the model (e.g. a local parameter) and is "
+                f"not supported by the python code."
+            )
+        return symbols[sid], _ATOM
 
     # arithmetic
     if ast_type in {libsbml.AST_PLUS, libsbml.AST_TIMES}:
@@ -455,15 +462,18 @@ class SBML2ODE:
         self._create_odes()
 
     def info(self) -> None:
-        """Print information on ODE system to console."""
-        console.rule(title="ODE System", align="left", style="white")
-        console.print(f"{self.model_units=}")
-        console.print(f"{self.x0=}")
-        console.print(f"{self.dx=}")
-        console.print(f"{self.dx_ast=}")
-        console.print(f"{self.p=}")
-        console.print(f"{self.y_ast=}")
-        console.print(f"{self.yids_ordered=}")
+        """Log the information on the ODE system at debug level."""
+        logger.debug(
+            "ODE system: model_units=%s, x0=%s, dx=%s, dx_ast=%s, p=%s, y_ast=%s, "
+            "yids_ordered=%s",
+            self.model_units,
+            self.x0,
+            self.dx,
+            self.dx_ast,
+            self.p,
+            self.y_ast,
+            self.yids_ordered,
+        )
 
     @classmethod
     def from_file(cls, sbml_file: Path) -> SBML2ODE:
@@ -765,8 +775,6 @@ class SBML2ODE:
     def _ordered_yids(self) -> list[str]:
         """Get the order of the yids from the assignment rules."""
         filtered_ids: set[str] = set(list(self.p.keys()) + list(self.dx_ast.keys()))
-        # console.print(f"{filtered_ids=}")
-        # console.print(f"{self.y_ast=}")
         g: dict[str, set] = SBML2ODE.dependency_graph(self.y_ast, filtered_ids)
         # only the assigned variables are ordered; an id which is none of them
         # (e.g. a local parameter) can never be removed from the graph
@@ -805,7 +813,6 @@ class SBML2ODE:
 
             # still nodes in dependency graph (recursive removal)
             if len(g) > 0:
-                # console.print(g)
                 yids = create_ordered_variables(g, yids=yids)
             return yids
 
@@ -885,6 +892,7 @@ class SBML2ODE:
             index_offset=0,
             replace_symbols=False,
             code=False,
+            check_math=False,
         )
         if md_file:
             with open(md_file, "w", encoding="utf-8") as f:
@@ -916,6 +924,7 @@ class SBML2ODE:
         template_dir: Path | None = None,
         python: bool = False,
         code: bool = True,
+        check_math: bool = True,
     ) -> str:
         """Render given language template.
 
@@ -932,12 +941,15 @@ class SBML2ODE:
                 not given
             python: translate the math into python (`python_math`)
             code: the output is code, so every id written into it must be an SId
+            check_math: every identifier in the math must be an SId, the math
+                is written unescaped (latex)
 
         Returns:
             the rendered template
 
         Raises:
-            ValueError: if the output is code and an id in it is not an SId
+            ValueError: if the output is code and an id in it is not an SId, or
+                an identifier in the math is not an SId and the math is checked
         """
         if not template_dir:
             template_dir = TEMPLATE_DIR
@@ -993,12 +1005,11 @@ class SBML2ODE:
                         d[key] = astnode
                         continue
 
-                    if code:
+                    if check_math:
                         _check_math_sids(astnode)
 
-                    if python:
-                        symbols = py_symbols if replace_symbols else {}
-                        d[key] = python_math(astnode, symbols)
+                    if python and replace_symbols:
+                        d[key] = python_math(astnode, py_symbols)
                         continue
 
                     if replace_symbols:
