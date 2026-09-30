@@ -672,7 +672,7 @@ def _model_definition_with_every_element() -> ModelDefinition:
         ],
         parameters=[
             Parameter("cf", 1.0, U.dimensionless, name="conversion factor"),
-            Parameter("k", 1.0, U.per_min, name="rate constant"),
+            Parameter("k", 1.0, U.per_min, constant=False, name="rate constant"),
             Parameter(
                 "p_assigned", 0.0, U.dimensionless, constant=False, name="assigned"
             ),
@@ -951,6 +951,7 @@ def test_written_model_definition_validates(tmp_path: Path) -> None:
     model = Model(
         sid="model_definition_validates",
         packages=[Package.COMP_V1, Package.FBC_V3],
+        units=U,
         parameters=[Parameter("k_top", 1.0, U.per_min, name="parameter of the model")],
         model_definitions=[_model_definition_with_every_element()],
     )

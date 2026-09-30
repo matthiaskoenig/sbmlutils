@@ -3501,7 +3501,8 @@ def test_roundtrip_of_an_l3v1_comp_model_validates_at_its_own_version(
         errors[version] = sorted({error.getErrorId() for error in result.errors})
 
     assert errors[1] == []
-    assert errors[2] == [1020304, 1020615]
+    # the flattening which cannot resolve the reference fails as well, 1090104
+    assert errors[2] == [1020304, 1020615, 1090104]
 
 
 def _key_value_pair_metadata_model() -> Model:

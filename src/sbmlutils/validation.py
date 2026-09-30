@@ -1,12 +1,14 @@
 """Helpers for validation and checking of SBML and libsbml operations."""
 
 import logging
+import re
 import time
 from collections.abc import Callable, Iterable, Iterator
 from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass
 from typing import Generic, TypeVar
+from urllib.parse import quote
 
 import libsbml
 
@@ -77,8 +79,13 @@ class ScopedLossCollector(Generic[K, V]):
             yield
         finally:
             self._groups.reset(token)
+            # a group which fails to report must neither hide the remaining
+            # groups nor replace the exception of the body
             for key in sorted(groups):
-                self._report(key, groups[key])
+                try:
+                    self._report(key, groups[key])
+                except Exception:
+                    logger.exception("Failed to report the losses of '%s'.", key)
 
     def group(self, key: K, create: Callable[[], V]) -> V | None:
         """Get the group of a key inside a scope, `None` outside one.
@@ -101,15 +108,19 @@ class ScopedLossCollector(Generic[K, V]):
         return group
 
 
-def check(value: int, message: str) -> bool:
-    """Check the libsbml return value and prints message if something happened.
+def check(value: int | None, message: str) -> bool:
+    """Check the libsbml return value and log an error if something happened.
 
-    If 'value' is None, prints an error message constructed using
-      'message' and then exits with status code 1. If 'value' is an integer,
-      it assumes it is a libSBML return status code. If the code value is
-      LIBSBML_OPERATION_SUCCESS, returns without further action; if it is not,
-      prints an error message constructed using 'message' along with text from
-      libSBML explaining the meaning of the code, and exits with status code 1.
+    Args:
+        value: the return value of a libsbml call. `None` means libsbml returned
+            a null value and is logged as an error. An integer is a libsbml
+            return status code: `LIBSBML_OPERATION_SUCCESS` is fine, any other
+            code is logged with the text libsbml has for it.
+        message: what was attempted, used to construct the error message
+
+    Returns:
+        True if the call succeeded, False if an error was logged. The function
+        neither raises nor exits, the caller decides what a failure means.
     """
     valid = True
     if value is None:
@@ -300,6 +311,28 @@ def error_string(error: libsbml.SBMLError, index: int | None = None) -> tuple:
     return error_str, severity
 
 
+_WINDOWS_PATH = re.compile(r"^[A-Za-z]:[\\/]")
+
+
+def file_uri(title: str) -> str:
+    """Get the file URI of a title which is an absolute path.
+
+    Posix and windows paths are converted, everything else (URLs, the string
+    representation of a document, relative paths) is returned unchanged.
+
+    Args:
+        title: identifier or path of a validation report
+
+    Returns:
+        the file URI for an absolute path, else the title.
+    """
+    if _WINDOWS_PATH.match(title):
+        return "file:///" + quote(title.replace("\\", "/"), safe="/:")
+    if title.startswith("/"):
+        return "file://" + quote(title, safe="/")
+    return title
+
+
 def validate_doc(
     doc: libsbml.SBMLDocument,
     options: ValidationOptions | None = None,
@@ -318,8 +351,7 @@ def validate_doc(
 
     if not title:
         title = str(doc)
-    if str(title).startswith("/"):
-        title = f"file://{title}"
+    title = file_uri(str(title))
 
     # set the consistency
     doc.setConsistencyChecks(
@@ -344,6 +376,11 @@ def validate_doc(
     # time
     current = time.perf_counter()
 
+    # the errors which are in the log before the first check, i.e. the ones of
+    # reading the document, are part of the result exactly once; every check
+    # below reports only what it added to the log
+    results_read = _errors_to_result(doc, 0)
+
     # check the document
     results_internal: ValidationResult
     if options.internal_consistency:
@@ -356,7 +393,9 @@ def validate_doc(
     )
 
     # sum up
-    vresults = ValidationResult.from_results([results_internal, results_not_internal])
+    vresults = ValidationResult.from_results(
+        [results_read, results_internal, results_not_internal]
+    )
 
     lines = [str(title), f"{'valid':<25}: {str(vresults.is_valid()).upper()}"]
     if not vresults.is_perfect():
@@ -396,36 +435,54 @@ def validate_doc(
     return vresults
 
 
+def _errors_to_result(doc: libsbml.SBMLDocument, start: int) -> ValidationResult:
+    """Split the entries of the error log from `start` on into errors and warnings.
+
+    Args:
+        doc: SBMLDocument
+        start: index of the first entry to read
+
+    Returns:
+        ValidationResult
+    """
+    errors = []
+    warnings = []
+    for i in range(start, doc.getNumErrors()):
+        error = doc.getError(i)
+        severity = error.getSeverity()
+        if severity in (libsbml.LIBSBML_SEV_ERROR, libsbml.LIBSBML_SEV_FATAL):
+            errors.append(error)
+        else:
+            warnings.append(error)
+    return ValidationResult(errors=errors, warnings=warnings)
+
+
 def _check_consistency(
     doc: libsbml.SBMLDocument,
     internal_consistency: bool = False,
     units_consistency: bool = False,
 ) -> ValidationResult:
-    """Calculate the type of errors.
+    """Run one consistency check and get the errors it found.
 
-    :param doc: SBMLDocument
-    :param internal_consistency: flag for internal consistency
-    :return: ValidationResult
+    libsbml appends the findings of a check to the error log of the document,
+    which already holds the read errors and the findings of earlier checks.
+    Only the entries added by this check are returned, the return value of the
+    check (the number of failures) is not an index into the log.
+
+    Args:
+        doc: SBMLDocument
+        internal_consistency: flag for internal consistency
+        units_consistency: check units strictly
+
+    Returns:
+        ValidationResult
     """
-    errors = []
-    warnings = []
+    n_before = doc.getNumErrors()
     if internal_consistency:
-        count = doc.checkInternalConsistency()
+        doc.checkInternalConsistency()
+    elif units_consistency:
+        doc.checkConsistencyWithStrictUnits()
     else:
-        if units_consistency:
-            count = doc.checkConsistencyWithStrictUnits()
-        else:
-            count = doc.checkConsistency()
+        doc.checkConsistency()
 
-    if count > 0:
-        for i in range(count):
-            error = doc.getError(i)
-            severity = error.getSeverity()
-            if (severity == libsbml.LIBSBML_SEV_ERROR) or (
-                severity == libsbml.LIBSBML_SEV_FATAL
-            ):
-                errors.append(error)
-            else:
-                warnings.append(error)
-
-    return ValidationResult(errors=errors, warnings=warnings)
+    return _errors_to_result(doc, n_before)
