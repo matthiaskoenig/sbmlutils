@@ -39,6 +39,7 @@ Not supported:
 # TODO: rnd via dist (also normal)
 # TODO: rewrite using a proper parser like PLY Lex-Yacc (especially the function replacements are very cumbersome)
 
+import html
 import itertools
 import re
 import warnings
@@ -112,10 +113,8 @@ NOTES = """
 
 
 def escape_string(info: str) -> str:
-    """Escape string."""
-    info = info.replace("<", "&lt;")
-    info = info.replace(">", "&gt;")
-    return info.replace("&", "&amp;")
+    """Escape the markup characters `&`, `<` and `>` of a text for XHTML notes."""
+    return html.escape(info, quote=False)
 
 
 def parse_keyword(xpp_id: str) -> str | None:
@@ -202,13 +201,13 @@ def xpp2sbml(
     assignment_rules = []
     functions = [
         # definition of min and max
-        fac.Function("max", "lambda(x,y, piecewise(x,gt(x,y),y) )", name="minimum"),
-        fac.Function("min", "lambda(x,y, piecewise(x,lt(x,y),y) )", name="maximum"),
-        # heav (heavyside)
+        fac.Function("max", "lambda(x,y, piecewise(x,gt(x,y),y) )", name="maximum"),
+        fac.Function("min", "lambda(x,y, piecewise(x,lt(x,y),y) )", name="minimum"),
+        # heav (Heaviside step function)
         fac.Function(
             "heav",
             "lambda(x, piecewise(0,lt(x,0), 0.5, eq(x, 0), 1,gt(x,0), 0))",
-            name="heavyside",
+            name="heaviside",
         ),
         # mod (modulo)
         fac.Function("mod", "lambda(x,y, x % y)", name="modulo"),
