@@ -1193,32 +1193,17 @@ def _iter_sbases_with_model(
         # model, whatever wrote the child itself
         below = in_model and not isinstance(value, _UncertChild)
         for name, attribute in vars(value).items():
-            nested = below and not (isinstance(value, SbaseRef) and name == "sBaseRef")
-            yield from _iter_sbases_with_model(attribute, nested, seen)
-    elif isinstance(value, (list, tuple, set, frozenset)):
-        for item in value:
-            yield from _iter_sbases_with_model(item, in_model, seen)
-    elif isinstance(value, dict):
-        for item in value.values():
-            yield from _iter_sbases_with_model(item, in_model, seen)
-
-
-def _iter_sbases(value: Any, seen: set[int] | None = None) -> Iterator[Sbase]:
-    """Iterate every `Sbase` reachable from a value, the value included.
-
-    The walk of `_iter_sbases_with_model` without the flag, for a caller
-    which only needs the elements.
-
-    Args:
-        value: the value to walk, e.g. a `Model`
-        seen: the ids of the `Sbase` objects already yielded, which the
-            recursion shares
-
-    Yields:
-        every `Sbase` reachable from the value
-    """
-    for sbase, _ in _iter_sbases_with_model(value, seen=seen):
-        yield sbase
+            # a scalar holds no element, not descending into it keeps the walk
+            # from creating a generator for every string and number
+            if isinstance(attribute, (Sbase, list, tuple, set, frozenset, dict)):
+                nested = below and not (
+                    isinstance(value, SbaseRef) and name == "sBaseRef"
+                )
+                yield from _iter_sbases_with_model(attribute, nested, seen)
+    elif isinstance(value, (list, tuple, set, frozenset, dict)):
+        for item in value.values() if isinstance(value, dict) else value:
+            if isinstance(item, (Sbase, list, tuple, set, frozenset, dict)):
+                yield from _iter_sbases_with_model(item, in_model, seen)
 
 
 class Sbase:
@@ -7501,27 +7486,13 @@ class Model(Sbase, FrozenClass):
                 different one
             version: the SBML version of the document being written
 
+        The answer is read off `_required_packages`, which walks the model
+        once for every package.
+
         Returns:
             True if the model uses a comp construct anywhere
         """
-        if (
-            self.submodels
-            or self.ports
-            or self.replaced_elements
-            or self.deletions
-            or self.model_definitions
-            or self.external_model_definitions
-        ):
-            return True
-
-        return any(
-            (
-                getattr(sbase, "port", None) not in (None, False)
-                and sbase._port_loss(in_model, level, version) is None
-            )
-            or bool(getattr(sbase, "replacedBy", None))
-            for sbase, in_model in _iter_sbases_with_model(self)
-        )
+        return Package.COMP_V1 in self._required_packages(level, version)
 
     def _required_packages(self, level: int, version: int) -> set[Package]:
         """Determine the packages the content of this model requires.
@@ -7531,8 +7502,10 @@ class Model(Sbase, FrozenClass):
         declared on the `<sbml>` element. So the document reads off the
         content of its model definitions which packages they need, see
         `Document._create_sbml`. Every `Sbase` reachable from the model is
-        walked, see `_iter_sbases`, rather than a list of the places an
-        element can be nested in, which would miss the next one.
+        walked, once for all packages, see `_iter_sbases_with_model`, rather
+        than a list of the places an element can be nested in, which would
+        miss the next one. What makes content comp content is stated in
+        `_has_comp_content`.
 
         Args:
             level: the SBML level of the document being written, which a port
@@ -7547,7 +7520,14 @@ class Model(Sbase, FrozenClass):
             version of fbc writes it
         """
         packages: set[Package] = set()
-        if self._has_comp_content(level, version):
+        if (
+            self.submodels
+            or self.ports
+            or self.replaced_elements
+            or self.deletions
+            or self.model_definitions
+            or self.external_model_definitions
+        ):
             packages.add(Package.COMP_V1)
 
         # `fbc:strict` is an attribute of the fbc plugin of the model, so a
@@ -7560,7 +7540,16 @@ class Model(Sbase, FrozenClass):
         if self.strict is not None and not isinstance(self, ModelDefinition):
             packages.add(Package.FBC_V3)
 
-        for sbase in _iter_sbases(self):
+        for sbase, in_model in _iter_sbases_with_model(self):
+            if Package.COMP_V1 not in packages and (
+                # a port which cannot be written is not comp content
+                (
+                    getattr(sbase, "port", None) not in (None, False)
+                    and sbase._port_loss(in_model, level, version) is None
+                )
+                or bool(getattr(sbase, "replacedBy", None))
+            ):
+                packages.add(Package.COMP_V1)
             if getattr(sbase, "uncertainties", None):
                 packages.add(Package.DISTRIB_V1)
             if (
