@@ -112,29 +112,49 @@ from sbmlutils.validation import ValidationOptions
 logger = logging.getLogger(__name__)
 
 
+def _is_file(source: str) -> bool:
+    """Check if a string is the path of an existing file.
+
+    Antimony content can be long and contain characters which are invalid in a
+    path, so any `OSError` of the file system check means "not a file".
+    """
+    try:
+        return Path(source).is_file()
+    except (OSError, ValueError):
+        return False
+
+
 def antimony_to_sbml(
     source: Path | str,
 ) -> str:
-    """Parse antimony model to SBML string."""
-    status: int
-    if isinstance(source, str) and "model" in source:
-        status = antimony.loadAntimonyString(source)
+    """Parse antimony model to SBML string.
+
+    The source is routed by its type: a `Path` is always an antimony file. A `str`
+    is the path of an antimony file if it names an existing file, otherwise it is
+    antimony content. A string is never classified by its content, so a path
+    containing "model" is a file and antimony without the `model` keyword is content.
+
+    Args:
+        source: path to an antimony file, or antimony content.
+
+    Returns:
+        The SBML string.
+
+    Raises:
+        FileNotFoundError: if `source` is a `Path` which is not an existing file.
+        ValueError: if antimony cannot parse the source, with the antimony error.
+    """
+    if isinstance(source, Path) or _is_file(source):
+        path = Path(source)
+        if not path.is_file():
+            raise FileNotFoundError(f"Antimony file does not exist: {path}")
+        status: int = antimony.loadAntimonyFile(str(path))
     else:
-        if not isinstance(source, Path):
-            logger.error(
-                "All antimony paths should be of type 'Path', but '%s' found for: %s",
-                type(source),
-                source,
-            )
-            source = Path(source)
+        status = antimony.loadAntimonyString(source)
 
-        status = antimony.loadAntimonyFile(str(source))
-
-    # log errors
-    if status != -1:
-        logger.error("Antimony status: %s", status)
-        logger.error(antimony.getLastError())
-        # antimony.getSBMLWarnings()
+    # antimony returns -1 on failure, otherwise the index of the loaded module
+    if status == -1:
+        raise ValueError(f"Antimony error: {antimony.getLastError()}")
 
     sbml_str: str = antimony.getSBMLString()
 
