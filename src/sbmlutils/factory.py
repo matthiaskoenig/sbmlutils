@@ -36,9 +36,11 @@ from types import UnionType
 from typing import (
     Any,
     ClassVar,
+    Generic,
     Literal,
     TypeAlias,
     TypedDict,
+    TypeVar,
     Union,
     get_args,
     get_origin,
@@ -3080,14 +3082,68 @@ class InitialAssignment(Value):
         return obj
 
 
-class RuleWithVariable:
-    """Rule."""
+#: the libsbml rule a `RuleWithVariable` creates
+_VariableRuleT = TypeVar("_VariableRuleT", libsbml.AssignmentRule, libsbml.RateRule)
 
-    variable: str
-    value: str | float | None
-    unit: UnitType
-    sid: str | None
-    name: str | None
+
+class RuleWithVariable(ValueWithUnit, Generic[_VariableRuleT]):
+    """Base of the rules which determine a variable, `AssignmentRule` and `RateRule`.
+
+    The unit attribute is only for the case where a parameter must be created
+    for the variable (which has the unit). The units of the value have to be
+    defined in the math. A value of `None` is a rule without math, which SBML
+    allows from L3V2 on.
+
+    A `<comp:port>` names a rule by its metaid, see `Sbase._port_reference`.
+    """
+
+    #: `libsbml.Model.getElementBySId` does not answer with a rule, see
+    #: `Sbase._port_reference`
+    _port_reference: ClassVar[Literal["idRef", "unitRef", "metaIdRef"]] = "metaIdRef"
+
+    def __init__(
+        self,
+        variable: str,
+        value: str | float | None,
+        unit: UnitType = Units.dimensionless,
+        sid: str | None = None,
+        name: str | None = None,
+        sboTerm: str | None = None,
+        metaId: str | None = None,
+        annotations: OptionalAnnotationsType = None,
+        notes: str | Notes | None = None,
+        keyValuePairs: list[KeyValuePair] | None = None,
+        port: Any = None,
+        uncertainties: list[Uncertainty] | None = None,
+        replacedBy: Any | None = None,
+    ):
+        """Construct the rule for a variable."""
+        super().__init__(
+            sid=sid,
+            value=value,
+            unit=unit,
+            name=name,
+            sboTerm=sboTerm,
+            metaId=metaId,
+            annotations=annotations,
+            notes=notes,
+            keyValuePairs=keyValuePairs,
+            port=port,
+            uncertainties=uncertainties,
+            replacedBy=replacedBy,
+        )
+        self.variable: str = variable
+
+    def _create_rule(self, model: libsbml.Model) -> _VariableRuleT:
+        """Create the empty libsbml rule of this class in the model.
+
+        Args:
+            model: the libsbml.Model the rule is created in
+
+        Returns:
+            the created libsbml rule
+        """
+        raise NotImplementedError
 
     def check_model_for_rule(self, model: libsbml.Model) -> None:
         """Check model for rule requirements.
@@ -3135,140 +3191,56 @@ class RuleWithVariable:
                 p.setConstant(False), p, "constant", False, f"Parameter({p.getId()})"
             )
 
+    def create_sbml(self, model: libsbml.Model) -> _VariableRuleT:
+        """Create the rule in the model.
 
-class AssignmentRule(ValueWithUnit, RuleWithVariable):
-    """AssignmentRule.
+        Args:
+            model: the libsbml.Model the rule is created in
 
-    The unit attribute is only for the case where a parameter must be created
-    (which has the unit). In case of an initialAssignment of a value the units
-    have to be defined in the math. A value of `None` is a rule without math,
-    which SBML allows from L3V2 on.
+        Returns:
+            the created libsbml rule
+        """
+        self.check_model_for_rule(model)
+        obj: _VariableRuleT = self._create_rule(model)
+        self._set_fields(obj, model)
+        _check_attribute(
+            obj.setVariable(self.variable), obj, "variable", self.variable, self
+        )
+        if self.value is not None:
+            _set_math(obj, str(self.value), model)
+        self.create_port(model)
+        return obj
 
-    A `<comp:port>` names a rule by its metaid, see `Sbase._port_reference`.
-    """
 
-    #: `libsbml.Model.getElementBySId` does not answer with a rule, see
-    #: `Sbase._port_reference`
-    _port_reference: ClassVar[Literal["idRef", "unitRef", "metaIdRef"]] = "metaIdRef"
+class AssignmentRule(RuleWithVariable[libsbml.AssignmentRule]):
+    """AssignmentRule, the variable is the value of the math at any time."""
 
     def __repr__(self) -> str:
         """Get string representation."""
         return f"{self.variable} = {self.value} [{self.unit}]"
 
-    def __init__(
-        self,
-        variable: str,
-        value: str | float | None,
-        unit: UnitType = Units.dimensionless,
-        sid: str | None = None,
-        name: str | None = None,
-        sboTerm: str | None = None,
-        metaId: str | None = None,
-        annotations: OptionalAnnotationsType = None,
-        notes: str | Notes | None = None,
-        keyValuePairs: list[KeyValuePair] | None = None,
-        port: Any = None,
-        uncertainties: list[Uncertainty] | None = None,
-        replacedBy: Any | None = None,
-    ):
-        """Construct AssignmentRule."""
-        super().__init__(
-            sid=sid,
-            value=value,
-            unit=unit,
-            name=name,
-            sboTerm=sboTerm,
-            metaId=metaId,
-            annotations=annotations,
-            notes=notes,
-            keyValuePairs=keyValuePairs,
-            port=port,
-            uncertainties=uncertainties,
-            replacedBy=replacedBy,
-        )
-        self.variable: str = variable
-
-    def create_sbml(self, model: libsbml.Model) -> libsbml.AssignmentRule:
-        """Create AssignmentRule."""
-        self.check_model_for_rule(model)
-        obj: libsbml.AssignmentRule = model.createAssignmentRule()
-        self._set_fields(obj, model)
-        _check_attribute(
-            obj.setVariable(self.variable), obj, "variable", self.variable, self
-        )
-        if self.value is not None:
-            _set_math(obj, str(self.value), model)
-        self.create_port(model)
-        return obj
+    def _create_rule(self, model: libsbml.Model) -> libsbml.AssignmentRule:
+        """Create the empty libsbml.AssignmentRule in the model."""
+        return model.createAssignmentRule()
 
 
-class RateRule(ValueWithUnit, RuleWithVariable):
-    """RateRule.
-
-    A value of `None` is a rule without math, which SBML allows from L3V2 on.
-
-    A `<comp:port>` names a rule by its metaid, see `Sbase._port_reference`.
-    """
-
-    #: `libsbml.Model.getElementBySId` does not answer with a rule, see
-    #: `Sbase._port_reference`
-    _port_reference: ClassVar[Literal["idRef", "unitRef", "metaIdRef"]] = "metaIdRef"
+class RateRule(RuleWithVariable[libsbml.RateRule]):
+    """RateRule, the math is the rate of change of the variable."""
 
     def __repr__(self) -> str:
         """Get string representation."""
         return f"d{self.variable}/dt = {self.value} [{self.unit}]"
 
-    def __init__(
-        self,
-        variable: str,
-        value: str | float | None,
-        unit: UnitType = Units.dimensionless,
-        sid: str | None = None,
-        name: str | None = None,
-        sboTerm: str | None = None,
-        metaId: str | None = None,
-        annotations: OptionalAnnotationsType = None,
-        notes: str | Notes | None = None,
-        keyValuePairs: list[KeyValuePair] | None = None,
-        port: Any = None,
-        uncertainties: list[Uncertainty] | None = None,
-        replacedBy: Any | None = None,
-    ):
-        """Construct RateRule."""
-        super().__init__(
-            sid=sid,
-            value=value,
-            unit=unit,
-            name=name,
-            sboTerm=sboTerm,
-            metaId=metaId,
-            annotations=annotations,
-            notes=notes,
-            keyValuePairs=keyValuePairs,
-            port=port,
-            uncertainties=uncertainties,
-            replacedBy=replacedBy,
-        )
-        self.variable: str = variable
-
-    def create_sbml(self, model: libsbml.Model) -> libsbml.RateRule:
-        """Create RateRule."""
-        self.check_model_for_rule(model)
-        obj: libsbml.RateRule = model.createRateRule()
-        self._set_fields(obj, model)
-        _check_attribute(
-            obj.setVariable(self.variable), obj, "variable", self.variable, self
-        )
-        if self.value is not None:
-            _set_math(obj, str(self.value), model)
-        self.create_port(model)
-        return obj
+    def _create_rule(self, model: libsbml.Model) -> libsbml.RateRule:
+        """Create the empty libsbml.RateRule in the model."""
+        return model.createRateRule()
 
 
-class AlgebraicRule(ValueWithUnit, RuleWithVariable):
-    """AlgebraicRule.
+class AlgebraicRule(ValueWithUnit):
+    """AlgebraicRule, the math is zero at any time.
 
-    A value of `None` is a rule without math, which SBML allows from L3V2 on.
+    An algebraic rule determines no variable of its own. A value of `None`
+    is a rule without math, which SBML allows from L3V2 on.
 
     A `<comp:port>` names a rule by its metaid, see `Sbase._port_reference`.
     """
