@@ -74,6 +74,21 @@ testdata_units = [
     ([(libsbml.UNIT_KIND_GRAM, 1, 3, -1), (libsbml.UNIT_KIND_SECOND, 1, 0, 1)], "s/kg"),
     ([(libsbml.UNIT_KIND_GRAM, 2.1, 0, 2)], "(2.1 g)^2"),
     ([(libsbml.UNIT_KIND_DIMENSIONLESS, 1, 0, 1)], "-"),
+    ([(libsbml.UNIT_KIND_SECOND, 1, 0, 0.5)], "s^0.5"),
+    ([(libsbml.UNIT_KIND_SECOND, 1, 0, -1.5)], "1/s^1.5"),
+    (
+        [(libsbml.UNIT_KIND_MOLE, 1, -3, 1), (libsbml.UNIT_KIND_SECOND, 160, 0, -1)],
+        "mmol/(160 s)",
+    ),
+    ([(libsbml.UNIT_KIND_SECOND, 160, 0, -1)], "1/(160 s)"),
+    (
+        [(libsbml.UNIT_KIND_GRAM, 2.1, 0, 1), (libsbml.UNIT_KIND_MOLE, 1, 0, 1)],
+        "(2.1 g)*mol",
+    ),
+    (
+        [(libsbml.UNIT_KIND_MOLE, 1, 0, 1), (libsbml.UNIT_KIND_GRAM, 2.1, 0, -2)],
+        "mol/(2.1 g)^2",
+    ),
 ]
 
 
@@ -93,3 +108,38 @@ def test_unit_multiplier_str(
         unit.setScale(scale)
         unit.setExponent(exponent)
     assert udef_to_string(unit_def, model=model, format="str") == expected
+
+
+testdata_units_latex = [
+    (
+        [(libsbml.UNIT_KIND_MOLE, 1, -3, 1), (libsbml.UNIT_KIND_SECOND, 160, 0, -1)],
+        "\\frac{mmol}{160 s}",
+    ),
+    (
+        [
+            (libsbml.UNIT_KIND_MOLE, 1, -3, 1),
+            (libsbml.UNIT_KIND_SECOND, 160, 0, -1),
+            (libsbml.UNIT_KIND_GRAM, 1, 0, -1),
+        ],
+        "\\frac{mmol}{\\left(160 s\\right) \\cdot g}",
+    ),
+    ([(libsbml.UNIT_KIND_SECOND, 1, 0, 0.5)], "s^0.5"),
+]
+
+
+@pytest.mark.parametrize("units, expected", testdata_units_latex)
+def test_unit_multiplier_latex(
+    units: list[tuple[int, float, int, float]], expected: str
+) -> None:
+    """A term with a magnitude is grouped in a latex product."""
+    doc = libsbml.SBMLDocument(3, 2)
+    model: libsbml.Model = doc.createModel()
+    unit_def: libsbml.UnitDefinition = model.createUnitDefinition()
+    unit_def.setId("u")
+    for kind, multiplier, scale, exponent in units:
+        unit: libsbml.Unit = unit_def.createUnit()
+        unit.setKind(kind)
+        unit.setMultiplier(multiplier)
+        unit.setScale(scale)
+        unit.setExponent(exponent)
+    assert udef_to_string(unit_def, model=model, format="latex") == expected

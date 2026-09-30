@@ -65,6 +65,22 @@ def _unit_term_to_string(factor: float, kind: str) -> str:
     return f"{number} {unit}" if unit else number
 
 
+def _group(term: str, left: str, right: str) -> str:
+    """Enclose a term which consists of a magnitude and a unit in brackets.
+
+    Args:
+        term: the rendered unit term, e.g. `160 s` or `(2.1 g)^2`
+        left: the opening bracket
+        right: the closing bracket
+
+    Returns:
+        the term, enclosed if it has a magnitude which is not yet enclosed
+    """
+    if " " in term and not term.startswith("("):
+        return f"{left}{term}{right}"
+    return term
+
+
 def udef_to_string(
     udef: libsbml.UnitDefinition | str | None,
     model: libsbml.Model | None = None,
@@ -98,14 +114,15 @@ def udef_to_string(
     else:
         ud = udef
 
-    # collect nominators and denominators
-    nom: str = ""
-    denom: str = ""
+    # collect the terms of the nominator and the denominator
+    noms: list[str] = []
+    denoms: list[str] = []
     if ud:
         for u in ud.getListOfUnits():
             m = u.getMultiplier()
             s: int = u.getScale()
-            e = u.getExponent()
+            # a Level 3 exponent is a double, e.g. s^0.5
+            e = u.getExponentAsDouble()
             k = libsbml.UnitKind_toString(u.getKind())
 
             # (m * 10^s * k)^e
@@ -117,35 +134,41 @@ def udef_to_string(
                 # the exponent applies to the magnitude as well: (2.1 g)^2
                 us = f"({us})^{exponent}" if " " in us else f"{us}^{exponent}"
 
-            if e >= 0.0:
-                nom = us if nom == "" else f"{nom}*{us}"
-            else:
-                denom = us if denom == "" else f"{denom}*{us}"
+            (noms if e > 0.0 else denoms).append(us)
 
-    else:
-        nom = "-"
-
-    if format == "str":
-        denom = denom.replace("*", "/")
+    if not ud:
+        ustr = "-"
+    elif format == "str":
+        # a term with a magnitude is one term, mmol/(160 s) or 1/(160 s)
+        if len(noms) > 1 or denoms:
+            noms = [_group(t, "(", ")") for t in noms]
+            denoms = [_group(t, "(", ")") for t in denoms]
+        nom = "*".join(noms)
+        denom = "/".join(denoms)
         if nom and denom:
             ustr = f"{nom}/{denom}"
-        elif nom and not denom:
+        elif nom:
             ustr = nom
-        elif not nom and denom:
+        elif denom:
             ustr = f"1/{denom}"
-        elif not nom and not denom:
+        else:
             ustr = "-"
 
     elif format == "latex":
-        nom = nom.replace("*", " \\cdot ")
-        denom = denom.replace("*", " \\cdot ")
+        # the fraction groups nominator and denominator, a product does not
+        if len(noms) > 1:
+            noms = [_group(t, "\\left(", "\\right)") for t in noms]
+        if len(denoms) > 1:
+            denoms = [_group(t, "\\left(", "\\right)") for t in denoms]
+        nom = " \\cdot ".join(noms)
+        denom = " \\cdot ".join(denoms)
         if nom and denom:
             ustr = f"\\frac{{{nom}}}{{{denom}}}"
-        elif nom and not denom:
+        elif nom:
             ustr = nom
-        elif not nom and denom:
+        elif denom:
             ustr = f"\\frac{{1}}{{{denom}}}"
-        elif not nom and not denom:
+        else:
             ustr = "-"
     else:
         raise ValueError
