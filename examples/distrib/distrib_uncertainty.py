@@ -61,4 +61,8 @@ def add_uncertainty_example(output_dir: Path | None = None) -> None:
 
 
 if __name__ == "__main__":
+    from sbmlutils import log
+
+    log.enable_rich_logging()
+
     add_uncertainty_example(output_dir=Path.cwd())

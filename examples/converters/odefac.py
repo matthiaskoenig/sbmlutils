@@ -41,4 +41,8 @@ def example(sbml_path: Path, output_dir: Path) -> None:
 
 
 if __name__ == "__main__":
+    from sbmlutils import log
+
+    log.enable_rich_logging()
+
     example(sbml_path=DEMO_SBML, output_dir=Path.cwd())

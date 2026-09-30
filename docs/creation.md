@@ -171,3 +171,5 @@ The [`examples/`](https://github.com/matthiaskoenig/sbmlutils/tree/develop/examp
 python -m examples.species
 python -m examples.tutorial.minimal_model
 ```
+
+The examples are not part of the installed package, so they need a clone of the repository and the `examples` extra (`uv sync --extra examples`); run from any other directory python stops with `No module named 'examples'`. An example writes the files it creates into the current working directory, i.e., the root of the repository, and saves its plots there instead of opening a window.

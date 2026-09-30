@@ -40,4 +40,8 @@ def merge_models_example(output_dir: Path) -> None:
 
 
 if __name__ == "__main__":
+    from sbmlutils import log
+
+    log.enable_rich_logging()
+
     merge_models_example(output_dir=Path.cwd())

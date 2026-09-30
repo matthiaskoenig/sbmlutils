@@ -116,6 +116,10 @@ def fba_simulation(sbml_path: Path) -> None:
 
 
 if __name__ == "__main__":
+    from sbmlutils import log
+
+    log.enable_rich_logging()
+
     output = Path.cwd()
     figure = tiny_simulation(output_dir=output)
     figure_path = output / f"{tiny.model.sid}_roadrunner.png"
