@@ -29,8 +29,8 @@ def flatten_sbml(
 
     :return: flattened SBMLDocument
 
-    :raises ValueError: if libsbml cannot flatten the document, see
-        `flatten_sbml_doc`
+    :raises ValueError: if the file cannot be read, has no model, or libsbml
+        cannot flatten the document, see `flatten_sbml_doc`
     """
     doc = read_sbml(source=Path(sbml_path))
     return flatten_sbml_doc(
@@ -54,7 +54,15 @@ def flatten_sbml_doc(
     :param leave_ports: flag to leave ports
 
     :return: SBMLDocument
+
+    :raises ValueError: if the document has no model, e.g. a library of comp
+        model definitions, which has nothing to flatten them into
     """
+    if doc.getModel() is None:
+        raise ValueError(
+            "SBML without a model cannot be flattened, a document with only "
+            "model definitions has no model to flatten them into."
+        )
     error_count = doc.getNumErrors()
     if error_count > 0:
         if doc.getError(0).getErrorId() == libsbml.XMLFileUnreadable:

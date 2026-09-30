@@ -188,3 +188,16 @@ def test_validate_doc_twice_gives_equal_results() -> None:
     second = _error_ids(validate_doc(doc, options))
     assert first == second
     assert doc.getNumErrors() == n_log
+
+
+def test_validate_sbml_reports_malformed_xml() -> None:
+    """Validation reports a source which cannot be read, it does not raise."""
+    result = validate_sbml("<sbml garbage", ValidationOptions(log_errors=False))
+    assert result.error_count > 0
+    assert not result.is_valid()
+
+
+def test_validate_sbml_raises_for_a_path_which_does_not_exist(tmp_path: Path) -> None:
+    """A path which does not exist is not a document which can be reported on."""
+    with pytest.raises(FileNotFoundError, match=r"does_not_exist\.xml"):
+        validate_sbml(tmp_path / "does_not_exist.xml")

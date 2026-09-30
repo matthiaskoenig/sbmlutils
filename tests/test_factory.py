@@ -3599,7 +3599,12 @@ def test_a_second_initial_assignment_for_a_symbol_raises(tmp_path: Path) -> None
 def test_a_formula_which_does_not_parse_is_reported_and_leaves_no_math(
     objects: list[Sbase], caplog: pytest.LogCaptureFixture
 ) -> None:
-    """An unparseable formula is logged and the element is created without math."""
+    """Pin the behaviour for a formula which does not parse.
+
+    The parse error is logged and the element is created without math. This
+    passes with and without `_set_math`, which only adds the check of the
+    libsbml return value; libsbml answers `setMath(None)` with success.
+    """
     doc = libsbml.SBMLDocument(3, 2)
     model: libsbml.Model = doc.createModel()
     Parameter("x", 1.0).create_sbml(model)
@@ -3609,3 +3614,19 @@ def test_a_formula_which_does_not_parse_is_reported_and_leaves_no_math(
     elements: list[Any] = list(sbml_objects.values()) or [model.getRule(0)]
     assert len(elements) == 1
     assert not elements[0].isSetMath()
+
+
+def test_the_objects_of_a_model_do_not_change_the_lists_passed_to_it() -> None:
+    """`Model` copies its list arguments, so `objects` never changes them."""
+    parameters: list[Parameter] = [Parameter("p1", 1.0)]
+    units: list[UnitDefinition] = [UnitDefinition("mM", "mmole/l")]
+    model = Model(
+        "m",
+        parameters=parameters,
+        units=units,
+        objects=[Parameter("p2", 2.0), UnitDefinition("mM2", "mmole/l/l")],
+    )
+    assert [p.sid for p in model.parameters] == ["p1", "p2"]
+    assert [p.sid for p in parameters] == ["p1"]
+    assert len(model.units) == 2
+    assert len(units) == 1

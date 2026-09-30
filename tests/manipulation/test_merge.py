@@ -221,3 +221,11 @@ def test_merge_models_submodel_sbo_term(tmp_path: Path, out_dir: str) -> None:
     comp_model: libsbml.CompModelPlugin = merged_doc.getModel().getPlugin("comp")
     assert comp_model.getSubmodel("BIOMD0000000001").getSBOTermID() == "SBO:0000062"
     assert not comp_model.getSubmodel("BIOMD0000000002").isSetSBOTerm()
+
+
+def test_merge_models_raises_for_a_file_without_a_model(tmp_path: Path) -> None:
+    """A document without a model has nothing to merge."""
+    sbml_path = tmp_path / "empty.xml"
+    write_sbml(libsbml.SBMLDocument(3, 2), filepath=sbml_path)
+    with pytest.raises(ValueError, match="has no model to merge"):
+        merge.merge_models({"empty": sbml_path}, output_dir=tmp_path)

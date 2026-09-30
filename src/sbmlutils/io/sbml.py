@@ -36,42 +36,21 @@ def read_sbml(
 
     :return: libsbml.SBMLDocument
 
-    :raises ValueError: if the source cannot be read or holds no model, with
-        the errors libsbml reported for it. Errors in a document which has a
-        model are logged (or validated with `validate`), not raised.
+    :raises ValueError: if the source cannot be read, see `_read_failures`,
+        with the errors libsbml reported for it. A document without a model
+        is returned as it is, SBML allows it; the errors of a document which
+        was read are logged (or validated with `validate`), not raised.
     """
-    doc: libsbml.SBMLDocument
-    label: str
-    if isinstance(source, str) and "<sbml" in source:
-        label = "SBML string"
-        doc = libsbml.readSBMLFromString(source)
-    else:
-        if not isinstance(source, Path):
-            logger.error(
-                "All SBML paths should be of type 'Path', but '%s' found for: %s",
-                type(source),
-                source,
-            )
-            source = Path(source)
-        label = f"SBML file '{source}'"
-
-        # libsbml records the path it reads as the location of the document
-        # and resolves the `comp:source` of an external model definition
-        # against it; a relative location is resolved wrongly, and a location
-        # set as a percent-encoded URI (`Path.as_uri`) is not decoded
-        doc = libsbml.readSBMLFromFile(str(source.resolve()))
-
-    if doc.getModel() is None:
-        # nothing can be done with a document without a model, and every
-        # caller which went on with it crashed later on the missing model
-        errors: list[str] = [
-            f"  E{error.getErrorId()} ({error.getSeverityAsString()}): "
-            f"{error.getMessage().strip()}"
-            for error in (doc.getError(k) for k in range(doc.getNumErrors()))
-        ]
+    doc, label = _read_document(source)
+    unreadable: list[libsbml.SBMLError] = _read_failures(doc)
+    if unreadable:
         raise ValueError(
-            f"{label} could not be read, the document has no model:\n"
-            + "\n".join(errors)
+            f"{label} could not be read:\n"
+            + "\n".join(
+                f"  E{error.getErrorId()} ({error.getSeverityAsString()}): "
+                f"{error.getMessage().strip()}"
+                for error in unreadable
+            )
         )
 
     # promote local parameters
@@ -94,6 +73,71 @@ def read_sbml(
         )
 
     return doc
+
+
+#: the errors libsbml reports on the XML declaration; the document itself is
+#: read in full, only the declaration SBML requires is missing
+_XML_DECLARATION_ERRORS: frozenset[int] = frozenset(
+    {libsbml.MissingXMLDecl, libsbml.MissingXMLEncoding}
+)
+
+
+def _read_document(source: Path | str) -> tuple[libsbml.SBMLDocument, str]:
+    """Read an SBMLDocument from a path or an SBML string without raising.
+
+    Args:
+        source: SBML path or SBML string
+
+    Returns:
+        the document with the errors libsbml reported while reading it, and
+        a label of the source for messages, which does not repeat an SBML
+        string
+    """
+    if isinstance(source, str) and "<sbml" in source:
+        return libsbml.readSBMLFromString(source), "SBML string"
+
+    if not isinstance(source, Path):
+        logger.error(
+            "All SBML paths should be of type 'Path', but '%s' found for: %s",
+            type(source),
+            source,
+        )
+        source = Path(source)
+
+    # libsbml records the path it reads as the location of the document
+    # and resolves the `comp:source` of an external model definition
+    # against it; a relative location is resolved wrongly, and a location
+    # set as a percent-encoded URI (`Path.as_uri`) is not decoded
+    return libsbml.readSBMLFromFile(str(source.resolve())), f"SBML file '{source}'"
+
+
+def _read_failures(doc: libsbml.SBMLDocument) -> list[libsbml.SBMLError]:
+    """Get the errors which mean that a document could not be read.
+
+    These are the errors of severity error or fatal which the file system or
+    the XML parser reported: a file which cannot be opened, or content which
+    is not well-formed XML. The document libsbml returns for them is empty
+    or truncated. The errors of the SBML content, e.g. an attribute which an
+    element does not have, are not among them: the document was read and
+    what is wrong with it is for the validation to report.
+
+    Args:
+        doc: the document as libsbml read it
+
+    Returns:
+        the errors which made the document unreadable, empty if it was read
+    """
+    failures: list[libsbml.SBMLError] = []
+    for k in range(doc.getNumErrors()):
+        error: libsbml.SBMLError = doc.getError(k)
+        if (
+            error.getSeverity() >= libsbml.LIBSBML_SEV_ERROR
+            and error.getCategory()
+            in (libsbml.LIBSBML_CAT_SYSTEM, libsbml.LIBSBML_CAT_XML)
+            and error.getErrorId() not in _XML_DECLARATION_ERRORS
+        ):
+            failures.append(error)
+    return failures
 
 
 def write_sbml(
@@ -173,12 +217,23 @@ def validate_sbml(
 ) -> ValidationResult:
     """Check given SBML source.
 
+    Validation reports, it never raises for the content of the source: a
+    source which cannot be read as SBML, e.g. malformed XML, gives a result
+    with the read errors.
+
     :param source: SBML path or string
     :param validation_options: options for validation
     :param title: title for validation report (should be filname or model name)
     :return: ValidationResult
+
+    :raises FileNotFoundError: if `source` is a path which does not exist
     """
-    doc = read_sbml(source, promote=False, validate=False)
+    if (
+        not (isinstance(source, str) and "<sbml" in source)
+        and not Path(source).exists()
+    ):
+        raise FileNotFoundError(f"SBML file does not exist: '{source}'")
+    doc, _ = _read_document(source)
     return validate_doc(
         doc=doc,
         options=validation_options,
@@ -197,7 +252,11 @@ def promote_local_variables(
     :param suffix: str suffix for promoted SBML
     :return: SBMLDocument with promoted parameters
     """
-    model: libsbml.Model = doc.getModel()
+    model: libsbml.Model | None = doc.getModel()
+    if model is None:
+        # local parameters live in the kinetic laws of a model
+        logger.info("No model in SBMLDocument, no local parameters to promote.")
+        return doc
     if model.isSetId():
         model.setId(f"{model.getId()}{suffix}")
 

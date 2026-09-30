@@ -503,3 +503,10 @@ def test_annotation_loss_outside_a_document_is_reported_per_resource(
     assert len(warnings) == 1, caplog.text
     assert resource in warnings[0]
     del doc
+
+
+def test_annotate_sbml_doc_raises_for_a_document_without_a_model() -> None:
+    """The annotations are for the elements of a model, which must exist."""
+    doc = libsbml.SBMLDocument(3, 2)
+    with pytest.raises(ValueError, match="without a model cannot be annotated"):
+        annotator.annotate_sbml_doc(doc, [])

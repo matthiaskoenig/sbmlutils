@@ -104,3 +104,20 @@ def test_read_sbml_resolves_external_definitions(
         doc.getPlugin("comp").getListOfExternalModelDefinitions().get(0)
     )
     assert emd.getReferencedModel() is not None
+
+
+def test_flatten_sbml_raises_for_a_comp_library(tmp_path: Path) -> None:
+    """A document with only model definitions has no model to flatten into."""
+    sbml_path = tmp_path / "library.xml"
+    sbml_path.write_text(
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<sbml xmlns="http://www.sbml.org/sbml/level3/version2/core" '
+        'xmlns:comp="http://www.sbml.org/sbml/level3/version1/comp/version1" '
+        'level="3" version="2" comp:required="true">'
+        "<comp:listOfModelDefinitions>"
+        '<comp:modelDefinition id="md"/>'
+        "</comp:listOfModelDefinitions>"
+        "</sbml>"
+    )
+    with pytest.raises(ValueError, match="without a model cannot be flattened"):
+        flatten_sbml(sbml_path, sbml_flat_path=tmp_path / "flat.xml")

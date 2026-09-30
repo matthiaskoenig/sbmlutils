@@ -58,7 +58,7 @@ def merge_models(
         merged model, so its external model definitions resolve
 
     :raises ValueError: if the level and version is not SBML L3V1 or L3V2, or
-        a model cannot be converted to it
+        a model file cannot be read, has no model or cannot be converted to it
     :raises OSError: if `output_dir` or a model path does not exist
     """
     if (sbml_level, sbml_version) not in {(3, 1), (3, 2)}:
@@ -78,6 +78,8 @@ def merge_models(
             raise OSError(f"Path for SBML file does not exist: {path}")
 
         doc = read_sbml(path)
+        if doc.getModel() is None:
+            raise ValueError(f"SBML file has no model to merge: {path}")
         if not doc.setLevelAndVersion(sbml_level, sbml_version):
             log_sbml_errors_for_doc(doc)
             raise ValueError(

@@ -7111,42 +7111,48 @@ class Model(Sbase, FrozenClass):
 
         self.packages = self.check_packages(packages)
 
-        self.creators = creators if creators else []
+        self.creators = list(creators) if creators else []
         self.model_units = model_units
         self.conversionFactor = conversionFactor
         self.units = Model._normalize_units(units)
         self.external_model_definitions = (
-            external_model_definitions if external_model_definitions else []
+            list(external_model_definitions) if external_model_definitions else []
         )
-        self.model_definitions = model_definitions if model_definitions else []
+        self.model_definitions = list(model_definitions) if model_definitions else []
 
-        self.submodels: list[Submodel] = submodels if submodels else []
-        self.functions: list[Function] = functions if functions else []
-        self.compartments: list[Compartment] = compartments if compartments else []
-        self.species: list[Species] = species if species else []
-        self.parameters: list[Parameter] = parameters if parameters else []
-        self.assignments: list[InitialAssignment] = assignments if assignments else []
-        self.rules: list[AssignmentRule] = rules if rules else []
-        self.rate_rules: list[RateRule] = rate_rules if rate_rules else []
+        self.submodels: list[Submodel] = list(submodels) if submodels else []
+        self.functions: list[Function] = list(functions) if functions else []
+        self.compartments: list[Compartment] = (
+            list(compartments) if compartments else []
+        )
+        self.species: list[Species] = list(species) if species else []
+        self.parameters: list[Parameter] = list(parameters) if parameters else []
+        self.assignments: list[InitialAssignment] = (
+            list(assignments) if assignments else []
+        )
+        self.rules: list[AssignmentRule] = list(rules) if rules else []
+        self.rate_rules: list[RateRule] = list(rate_rules) if rate_rules else []
         self.algebraic_rules: list[AlgebraicRule] = (
-            algebraic_rules if algebraic_rules else []
+            list(algebraic_rules) if algebraic_rules else []
         )
-        self.reactions: list[Reaction] = reactions if reactions else []
-        self.events: list[Event] = events if events else []
-        self.constraints: list[Constraint] = constraints if constraints else []
-        self.ports: list[Port] = ports if ports else []
+        self.reactions: list[Reaction] = list(reactions) if reactions else []
+        self.events: list[Event] = list(events) if events else []
+        self.constraints: list[Constraint] = list(constraints) if constraints else []
+        self.ports: list[Port] = list(ports) if ports else []
         self.replaced_elements: list[ReplacedElement] = (
-            replaced_elements if replaced_elements else []
+            list(replaced_elements) if replaced_elements else []
         )
-        self.deletions: list[Deletion] = deletions if deletions else []
+        self.deletions: list[Deletion] = list(deletions) if deletions else []
         self.strict = strict
         self.user_defined_constraints: list[UserDefinedConstraint] = (
-            user_defined_constraints if user_defined_constraints else []
+            list(user_defined_constraints) if user_defined_constraints else []
         )
-        self.objectives: list[Objective] = objectives if objectives else []
-        self.gene_products: list[GeneProduct] = gene_products if gene_products else []
+        self.objectives: list[Objective] = list(objectives) if objectives else []
+        self.gene_products: list[GeneProduct] = (
+            list(gene_products) if gene_products else []
+        )
 
-        self.layouts: list | None = layouts
+        self.layouts: list | None = list(layouts) if layouts is not None else None
 
         #: `True` when the model was created by `sbmlutils.parser`, which
         #: suppresses the authoring hints when it is written back out
@@ -7232,7 +7238,7 @@ class Model(Sbase, FrozenClass):
         if units is None:
             return []
         if isinstance(units, list):
-            return units
+            return list(units)
 
         udefs: list[UnitDefinition] = []
         for uid, definition in units.attributes():

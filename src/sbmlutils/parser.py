@@ -1490,8 +1490,8 @@ def sbml_to_model(
         written back out without the authoring hints of a model definition
 
     Raises:
-        ValueError: if `source` cannot be read or holds no model, see
-            `sbmlutils.io.sbml.read_sbml`
+        ValueError: if `source` cannot be read, see
+            `sbmlutils.io.sbml.read_sbml`, or holds no model
         ValueError: if the document declares fbc version 1 and libsbml cannot
             convert it to fbc version 2
     """
@@ -1504,7 +1504,12 @@ def sbml_to_model(
     # validation above reports on the document as it was given; the conversion
     # of fbc version 1 changes the document, so it comes after it
     _convert_fbc_v1(doc)
-    model: libsbml.Model = doc.getModel()
+    model: libsbml.Model | None = doc.getModel()
+    if model is None:
+        raise ValueError(
+            f"The SBML has no model, there is nothing to parse into a 'Model': "
+            f"'{source if isinstance(source, Path) else 'SBML string'}'"
+        )
 
     # every element is constructed without the authoring hints, which are
     # advice for a model definition being written and say nothing about a

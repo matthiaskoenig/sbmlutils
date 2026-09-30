@@ -204,3 +204,14 @@ def test_sbml_to_model_raises_for_a_file_which_does_not_exist(tmp_path: Path) ->
     """An unreadable source raises a `ValueError`, not a late AttributeError."""
     with pytest.raises(ValueError, match=r"does_not_exist\.xml"):
         sbml_to_model(tmp_path / "does_not_exist.xml")
+
+
+def test_sbml_to_model_raises_for_a_document_without_a_model() -> None:
+    """A valid document without a model has nothing to parse, which is said."""
+    sbml = (
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<sbml xmlns="http://www.sbml.org/sbml/level3/version2/core" '
+        'level="3" version="2"/>'
+    )
+    with pytest.raises(ValueError, match="has no model"):
+        sbml_to_model(sbml)

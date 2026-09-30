@@ -124,8 +124,25 @@ def test_write_sbml_raises_when_the_file_cannot_be_written(tmp_path: Path) -> No
 
 _SBML_WITHOUT_MODEL = (
     '<?xml version="1.0" encoding="UTF-8"?>'
-    '<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" '
-    'level="3" version="1"/>'
+    '<sbml xmlns="http://www.sbml.org/sbml/level3/version2/core" '
+    'level="3" version="2"/>'
+)
+
+_SBML_COMP_LIBRARY = (
+    '<?xml version="1.0" encoding="UTF-8"?>'
+    '<sbml xmlns="http://www.sbml.org/sbml/level3/version2/core" '
+    'xmlns:comp="http://www.sbml.org/sbml/level3/version1/comp/version1" '
+    'level="3" version="2" comp:required="true">'
+    "<comp:listOfModelDefinitions>"
+    '<comp:modelDefinition id="md"/>'
+    "</comp:listOfModelDefinitions>"
+    "</sbml>"
+)
+
+_SBML_TRUNCATED = (
+    '<?xml version="1.0" encoding="UTF-8"?>'
+    '<sbml xmlns="http://www.sbml.org/sbml/level3/version2/core" '
+    'level="3" version="2"><model id="m"><listOfParameters>'
 )
 
 
@@ -138,18 +155,44 @@ def test_read_sbml_raises_for_a_file_which_does_not_exist(
     The error used to be logged and a document without a model returned, on
     which the promotion of local parameters crashed with an AttributeError.
     """
-    with pytest.raises(ValueError, match=r"does_not_exist\.xml"):
+    with pytest.raises(ValueError, match=r"does_not_exist\.xml.*\n.*E2 "):
         read_sbml(tmp_path / "does_not_exist.xml", promote=promote)
 
 
 @pytest.mark.parametrize(
     "source",
     [
-        pytest.param("<sbml garbage", id="unreadable"),
-        pytest.param(_SBML_WITHOUT_MODEL, id="without-model"),
+        pytest.param("<sbml garbage", id="unclosed"),
+        pytest.param(_SBML_TRUNCATED, id="truncated"),
     ],
 )
-def test_read_sbml_raises_for_a_string_without_a_model(source: str) -> None:
-    """A document without a model raises and names the libsbml errors."""
-    with pytest.raises(ValueError, match=r"no model.*\n.*E\d+"):
+def test_read_sbml_raises_for_malformed_xml(source: str) -> None:
+    """A string which is not well-formed XML raises and names the libsbml errors."""
+    with pytest.raises(ValueError, match=r"could not be read:\n.*E\d+"):
         read_sbml(source)
+
+
+@pytest.mark.parametrize("promote", [False, True])
+@pytest.mark.parametrize(
+    "source",
+    [
+        pytest.param(_SBML_WITHOUT_MODEL, id="without-model"),
+        pytest.param(_SBML_COMP_LIBRARY, id="comp-library"),
+    ],
+)
+def test_read_sbml_returns_a_valid_document_without_a_model(
+    source: str, promote: bool
+) -> None:
+    """A document without a model is valid SBML from L3V2 on and is read as it is."""
+    doc = read_sbml(source, promote=promote)
+    assert doc.getModel() is None
+    assert doc.getNumErrors() == 0
+
+
+def test_read_sbml_reads_a_document_with_errors_in_its_content() -> None:
+    """Errors in the SBML content are for the validation, the document is read."""
+    doc = read_sbml(
+        _SBML_WITHOUT_MODEL.replace("/>", '><model id="m" foo="1"/></sbml>')
+    )
+    assert doc.getModel().getId() == "m"
+    assert doc.getError(0).getErrorId() == libsbml.AllowedAttributesOnModel
