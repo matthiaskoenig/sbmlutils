@@ -118,6 +118,12 @@ tox r -e py3.14 -- tests/test_factory.py::test_model_units -x
 
 Without it the whole suite runs, with the `sbml_testsuite` sweep deselected, which is what the environments do in continuous integration.
 
+Two more markers run by default and in continuous integration but can be deselected for a quick local run: `slow` marks the tests which take many seconds (the fbc round trip of `Recon3D`), `network` the tests which query the live BioModels service and skip when it does not answer.
+
+```bash
+pytest -m "not sbml_testsuite and not slow and not network"
+```
+
 Python 3.15 tests the core package without the `examples` extra because libroadrunner does not yet publish CPython 3.15 wheels. Tests requiring simulation skip in that environment; Python 3.11 to 3.14 still install the extra and run them. Python 3.15 uses an Intel macOS runner because uv currently provides its macOS interpreter only for Intel.
 
 The `cobra` environment is the one which installs cobrapy, the optional `cobra` extra, and runs the tests which need it, i.e., the flux balance comparison of `tests/test_package_semantics.py` and `tests/fbc/test_cobra.py`; it is pinned to python 3.14 and has a job of its own in `ci-cd.yml`, which informs and is not part of the required `tests` check.

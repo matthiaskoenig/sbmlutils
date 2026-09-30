@@ -54,6 +54,7 @@ def biomodels_available() -> None:
         pytest.skip(f"BioModels does not answer '{url}': {err}")
 
 
+@pytest.mark.network
 @pytest.mark.usefixtures("biomodels_available")
 def test_download_biomodel_omex_success(tmp_path: Path) -> None:
     """Download OMEX for existing biomodels."""
@@ -65,6 +66,7 @@ def test_download_biomodel_omex_success(tmp_path: Path) -> None:
     assert omex
 
 
+@pytest.mark.network
 @pytest.mark.usefixtures("biomodels_available")
 def test_download_biomodel_omex_failure(tmp_path: Path) -> None:
     """Download OMEX for a biomodel which does not exist."""
@@ -73,6 +75,7 @@ def test_download_biomodel_omex_failure(tmp_path: Path) -> None:
         download_biomodel_omex(biomodel_id=BIOMODEL_ID_INVALID, omex_path=omex_path)
 
 
+@pytest.mark.network
 @pytest.mark.usefixtures("biomodels_available")
 def test_download_biomodel_sbml_sbml_success(tmp_path: Path) -> None:
     """Download SBML for existing biomodels."""
@@ -86,6 +89,7 @@ def test_download_biomodel_sbml_sbml_success(tmp_path: Path) -> None:
     assert (tmp_path / locations[1]).exists()
 
 
+@pytest.mark.network
 @pytest.mark.usefixtures("biomodels_available")
 def test_download_biomodel_sbml_omex_success(tmp_path: Path) -> None:
     """Download SBML for existing biomodels."""
@@ -102,6 +106,7 @@ def test_download_biomodel_sbml_omex_success(tmp_path: Path) -> None:
     assert len(omex.manifest.entries) == 4
 
 
+@pytest.mark.network
 @pytest.mark.usefixtures("biomodels_available")
 def test_download_biomodel_sbml_failure(tmp_path: Path) -> None:
     """Download SBML for a biomodel which does not exist."""

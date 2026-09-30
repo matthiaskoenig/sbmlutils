@@ -1813,8 +1813,16 @@ FBC_FIXTURES: list[tuple[Path, tuple[str, ...]]] = [
 
 @pytest.mark.parametrize(
     ("sbml_path", "constructs"),
-    FBC_FIXTURES,
-    ids=[sbml_path.name for sbml_path, _ in FBC_FIXTURES],
+    [
+        # the round trip of Recon3D takes about 25 s, a third of the test run
+        pytest.param(
+            sbml_path,
+            constructs,
+            id=sbml_path.name,
+            marks=[pytest.mark.slow] if sbml_path == FBC_RECON3D_SBML else [],
+        )
+        for sbml_path, constructs in FBC_FIXTURES
+    ],
 )
 def test_roundtrip_preserves_the_whole_fbc_content(
     sbml_path: Path,
