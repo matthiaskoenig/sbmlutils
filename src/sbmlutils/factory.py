@@ -24,7 +24,6 @@ import json
 import logging
 import numbers
 import re
-from collections import namedtuple
 from collections.abc import Iterable, Iterator, Sequence
 from contextlib import AbstractContextManager, contextmanager
 from contextvars import ContextVar
@@ -34,10 +33,12 @@ from enum import StrEnum
 from pathlib import Path
 from types import UnionType
 from typing import (
+    TYPE_CHECKING,
     Any,
     ClassVar,
     Generic,
     Literal,
+    NamedTuple,
     TypeAlias,
     TypedDict,
     TypeVar,
@@ -67,6 +68,10 @@ from sbmlutils.notes import Notes, NotesFormat, detect_format
 from sbmlutils.reaction_equation import EquationPart, ReactionEquation
 from sbmlutils.utils import FrozenClass, create_metaid
 from sbmlutils.validation import ScopedLossCollector, ValidationOptions, check
+
+if TYPE_CHECKING:
+    # the layout package builds on this module, see `Model.__init__`
+    from sbmlutils.layout.layout import Layout
 
 logger = logging.getLogger(__name__)
 
@@ -3436,9 +3441,15 @@ class AlgebraicRule(ValueWithUnit):
         return rule
 
 
-#: deprecated, a kinetic law is a `KineticLaw`; still accepted by
-#: `Reaction._process_formula`
-Formula = namedtuple("Formula", "value unit")
+class Formula(NamedTuple):
+    """The math and the unit of a kinetic law, deprecated.
+
+    A kinetic law is a `KineticLaw`; a `Formula` is still accepted by
+    `Reaction._process_formula`.
+    """
+
+    value: str
+    unit: UnitType
 
 
 class KineticLaw(Sbase):
@@ -6916,7 +6927,7 @@ class ModelDict(TypedDict, total=False):
     objectives: list[Objective] | None
     gene_products: list[GeneProduct] | None
     # layout
-    layouts: list | None
+    layouts: list[Layout] | None
 
 
 def _math_symbols(math: libsbml.ASTNode | None) -> set[str]:
@@ -7113,7 +7124,7 @@ class Model(Sbase, FrozenClass):
     objectives: list[Objective]
     gene_products: list[GeneProduct]
     # layout
-    layouts: list | None
+    layouts: list[Layout] | None
     parsed: bool
 
     #: field name -> merge kind read by `merge_models` to decide whether a
@@ -7182,7 +7193,7 @@ class Model(Sbase, FrozenClass):
         user_defined_constraints: list[UserDefinedConstraint] | None = None,
         objectives: list[Objective] | None = None,
         gene_products: list[GeneProduct] | None = None,
-        layouts: list | None = None,
+        layouts: list[Layout] | None = None,
     ):
         """Model constructor."""
         super().__init__(
@@ -7238,7 +7249,9 @@ class Model(Sbase, FrozenClass):
             list(gene_products) if gene_products else []
         )
 
-        self.layouts: list | None = list(layouts) if layouts is not None else None
+        self.layouts: list[Layout] | None = (
+            list(layouts) if layouts is not None else None
+        )
 
         #: `True` when the model was created by `sbmlutils.parser`, which
         #: suppresses the authoring hints when it is written back out
@@ -7899,7 +7912,7 @@ def _model_field_kind(annotation: object) -> type | None:
     `merge_models` concatenates a `list`-valued field of the merged models
     and overwrites every other field with the value of the last model that
     sets it. An annotation is list-valued when it is, once `| None` /
-    `Optional[...]` is stripped, the bare `list` (`Model.layouts`), a
+    `Optional[...]` is stripped, the bare `list`, a
     subscripted `list[X]`, or a subscripted `Sequence[X]`. `Model.annotations`
     is declared `AnnotationsType` (`Sequence[AnnotationType]`, see its
     definition above `Model`), not `list[...]`, because it accepts any
@@ -7982,7 +7995,10 @@ def _derive_model_keys() -> dict[str, Any]:
             `_model_field_kind`
     """
     own_annotations = inspect.get_annotations(Model)
-    resolved = get_type_hints(Model)
+    # `Layout` is imported for the type checker only, the layout package
+    # imports this module; the element type of a list does not change the
+    # kind of the field
+    resolved = get_type_hints(Model, localns={"Layout": Any})
     keys: dict[str, Any] = {}
     for name in own_annotations:
         if name.startswith("_"):
