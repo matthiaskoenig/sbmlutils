@@ -21,7 +21,7 @@ os.environ["PY4CYTOSCAPE_DETAIL_LOGGER_DIR"] = str(tempfile.gettempdir())
 
 from collections.abc import Iterable
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from requests.exceptions import RequestException
 
@@ -31,11 +31,17 @@ from sbmlutils.parser import antimony_to_sbml
 # py4cytoscape is the optional `cytoscape` extra
 if TYPE_CHECKING:
     import py4cytoscape as p4c
+    from py4cytoscape.exceptions import CyError
 else:
     try:
         import py4cytoscape as p4c
+        from py4cytoscape.exceptions import CyError
     except ImportError:
         p4c = None
+
+        class CyError(Exception):
+            """Placeholder, never raised without py4cytoscape."""
+
 
 logger = logging.getLogger(__name__)
 
@@ -58,19 +64,33 @@ def _has_py4cytoscape() -> bool:
     return True
 
 
-def visualize_antimony(source: Path | str, delete_session: bool = False) -> Any:
-    """Visualize antimony in cytoscape."""
+def visualize_antimony(source: Path | str, delete_session: bool = False) -> int | None:
+    """Visualize antimony in cytoscape.
+
+    Args:
+        source: antimony string or path to an antimony file.
+        delete_session: close the current Cytoscape session without saving.
+
+    Returns:
+        The SUID of the imported network, or None if nothing was visualized.
+    """
     sbml_str = antimony_to_sbml(source=source)
     with tempfile.TemporaryDirectory() as tmp_dir:
         sbml_path = Path(tmp_dir) / "model.xml"
         sbml_path.write_text(sbml_str, encoding="utf-8")
-        visualize_sbml(sbml_path, delete_session=delete_session)
+        return visualize_sbml(sbml_path, delete_session=delete_session)
 
 
 def visualize_sbml(sbml_path: Path, delete_session: bool = False) -> int | None:
     """Visualize SBML networks in cytoscape.
 
-    Returns dictionary with "networks" and "views".
+    Args:
+        sbml_path: path to the SBML file.
+        delete_session: close the current Cytoscape session without saving.
+
+    Returns:
+        The SUID of the imported network, or None if py4cytoscape is missing or
+        Cytoscape could not be reached or rejected the model.
     """
     if not _has_py4cytoscape():
         return None
@@ -93,10 +113,20 @@ def visualize_sbml(sbml_path: Path, delete_session: bool = False) -> int | None:
             "Start Cytoscape before running the python script."
         )
         return None
+    except CyError as err:
+        logger.warning("Cytoscape could not visualize the model: %s", err)
+        return None
 
 
-def read_layout_xml(sbml_path: Path, xml_path: Path) -> pd.DataFrame:
-    """Read own xml layout information form cytoscape."""
+def read_layout_xml(xml_path: Path) -> pd.DataFrame:
+    """Read the xml layout information from cytoscape.
+
+    Args:
+        xml_path: path to the xml file with the layout.
+
+    Returns:
+        The positions "x" and "y" indexed by id.
+    """
     # read positions
     df: pd.DataFrame = pd.read_xml(xml_path, xpath="//boundingBox")
     df = df[["id", "xpos", "ypos"]]

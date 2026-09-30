@@ -47,7 +47,7 @@ The positions of the nodes are read from and applied to a network:
 ```python
 from sbmlutils.cytoscape import apply_layout, read_layout_xml
 
-layout = read_layout_xml(sbml_path=Path("model.xml"), xml_path=Path("layout.xml"))
+layout = read_layout_xml(xml_path=Path("layout.xml"))
 apply_layout(layout)
 ```
 
