@@ -1,0 +1,70 @@
+"""Tests for the local file server of the online report."""
+
+import urllib.error
+import urllib.parse
+import urllib.request
+from pathlib import Path
+from unittest import mock
+
+import pytest
+
+from sbmlutils.report import sbmlreport
+from sbmlutils.resources import REPRESSILATOR_SBML
+
+
+def _get(url: str) -> bytes:
+    """Fetch a url directly, ignoring any http_proxy of the environment."""
+    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+    with opener.open(url, timeout=5) as response:
+        return bytes(response.read())
+
+
+def test_server_serves_only_the_model(tmp_path: Path) -> None:
+    """Only the model file is served, bound to loopback, without listings."""
+    model = tmp_path / "model.xml"
+    model.write_text("<sbml/>")
+    (tmp_path / "secret.txt").write_text("secret")
+    httpd = sbmlreport.start_server(model, port=0)
+    try:
+        host, port = httpd.server_address[:2]
+        assert host == "127.0.0.1"
+        base = f"http://127.0.0.1:{port}"
+        assert _get(f"{base}/model.xml") == b"<sbml/>"
+        for other in [
+            "/",
+            "/secret.txt",
+            "/../secret.txt",
+            "/%2e%2e/secret.txt",
+            "/model.xml/x",
+        ]:
+            with pytest.raises(urllib.error.HTTPError) as exc:
+                _get(base + other)
+            assert exc.value.code == 404
+    finally:
+        httpd.shutdown()
+        httpd.server_close()
+
+
+def test_create_online_report_stops_server() -> None:
+    """The report opens the url of the model and stops the server after the duration."""
+    with mock.patch("webbrowser.open") as opened:
+        sbmlreport.create_online_report(
+            REPRESSILATOR_SBML, fileserver_duration=0, fileserver_port=0
+        )
+    url = opened.call_args.args[0]
+    assert url.startswith("http://localhost:3456/report?url=http%3A%2F%2F127.0.0.1%3A")
+    inner = urllib.parse.unquote(url.split("url=")[1])
+    with pytest.raises(urllib.error.URLError):
+        _get(inner)
+
+
+def test_start_server_raises_if_not_serving(tmp_path: Path) -> None:
+    """A server which never starts serving raises instead of blocking shutdown."""
+    model = tmp_path / "model.xml"
+    model.write_text("<sbml/>")
+    with (
+        mock.patch("threading.Thread"),
+        mock.patch("threading.Event.wait", return_value=False),
+        pytest.raises(RuntimeError, match="did not start"),
+    ):
+        sbmlreport.start_server(model, port=0)

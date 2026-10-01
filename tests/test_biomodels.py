@@ -14,12 +14,12 @@ assert what they mean to assert instead of passing on a `403` for everything.
 """
 
 import threading
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 
 import pytest
-from pymetadata.omex import Omex
+from pymetadata.omex import EntryFormat, ManifestEntry, Omex
 from pymetadata.webservices.webservice import get_session
 from requests.exceptions import HTTPError, RequestException
 
@@ -162,3 +162,78 @@ def test_download_file_retries_transient_error(
     assert path.read_bytes() == _FlakyHandler.content
     # the two error responses plus the one which answered
     assert _FlakyHandler.calls == _FlakyHandler.failures + 1
+
+
+class _CraftedOmex:
+    """An archive whose manifest lists one SBML entry at a chosen location."""
+
+    def __init__(self, location: str, sbml_file: Path) -> None:
+        self.location = location
+        self.sbml_file = sbml_file
+
+    def entries_by_format(self, format_key: str) -> list[ManifestEntry]:
+        """Return the single crafted entry."""
+        return [ManifestEntry(location=self.location, format=EntryFormat.SBML)]
+
+    def get_path(self, location: str) -> Path:
+        """Return the file behind the entry."""
+        return self.sbml_file
+
+
+@pytest.fixture
+def crafted_download(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> Callable[[str], Path]:
+    """Make `download_biomodel_sbml` read a crafted archive without the network.
+
+    Returns a function which sets the location of the manifest entry and gives the
+    output directory, which sits inside a parent directory the test can inspect.
+    """
+    sbml_file = tmp_path / "source.xml"
+    sbml_file.write_text("<sbml/>")
+    out_dir = tmp_path / "parent" / "out"
+    out_dir.mkdir(parents=True)
+
+    def prepare(location: str) -> Path:
+        crafted = _CraftedOmex(location, sbml_file)
+        monkeypatch.setattr(
+            "sbmlutils.biomodels.download_biomodel_omex", lambda **kwargs: None
+        )
+        monkeypatch.setattr(
+            "sbmlutils.biomodels.Omex.from_omex", lambda *args, **kwargs: crafted
+        )
+        return out_dir
+
+    return prepare
+
+
+@pytest.mark.parametrize("location", ["../escaped.xml", "sub/../../escaped.xml"])
+def test_download_biomodel_sbml_rejects_escaping_location(
+    crafted_download: Callable[[str], Path], location: str
+) -> None:
+    """A location which climbs out of the output directory is refused."""
+    out_dir = crafted_download(location)
+    with pytest.raises(ValueError, match="outside of the output directory"):
+        download_biomodel_sbml("BIOMD0000000001", output_dir=out_dir)
+    assert not (out_dir.parent / "escaped.xml").exists()
+
+
+def test_download_biomodel_sbml_rejects_absolute_location(
+    crafted_download: Callable[[str], Path], tmp_path: Path
+) -> None:
+    """An absolute location does not write to that absolute path."""
+    target = tmp_path / "absolute.xml"
+    out_dir = crafted_download(str(target))
+    with pytest.raises(ValueError, match="outside of the output directory"):
+        download_biomodel_sbml("BIOMD0000000001", output_dir=out_dir)
+    assert not target.exists()
+
+
+def test_download_biomodel_sbml_subdirectory_location(
+    crafted_download: Callable[[str], Path],
+) -> None:
+    """A location in a subdirectory creates the directory inside the output."""
+    out_dir = crafted_download("./sub/model.xml")
+    locations = download_biomodel_sbml("BIOMD0000000001", output_dir=out_dir)
+    assert locations == ["./sub/model.xml"]
+    assert (out_dir / "sub" / "model.xml").read_text() == "<sbml/>"

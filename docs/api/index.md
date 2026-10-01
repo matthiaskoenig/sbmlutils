@@ -38,7 +38,7 @@ Conversion of a model into another representation, see [Converters](../converter
 | [converters.odefac](converters.odefac.md) | the ODE system as python, R, julia, markdown or latex |
 | [converters.xpp](converters.xpp.md) | XPP/XPPAUT ode files to SBML |
 | [converters.copasi](converters.copasi.md) | ids written into the names for COPASI |
-| [converters.mathml](converters.mathml.md) | evaluation of MathML |
+| [converters.mathml](converters.mathml.md) | MathML to formula strings |
 
 ## sbmlutils.data
 
@@ -84,6 +84,6 @@ The content of a model for a human reader, see [Reports](../reports.md).
 | module | description |
 | --- | --- |
 | [report.sbmlinfo](report.sbmlinfo.md) | the complete content of a document as JSON |
-| [report.sbmlreport](report.sbmlreport.md) | a report on sbml4humans.de |
+| [report.sbmlreport](report.sbmlreport.md) | a report on a local sbml4humans |
 | [report.units](report.units.md) | unit definitions rendered as a string or latex |
 | [report.mathml](report.mathml.md) | math rendered as latex |

@@ -48,6 +48,6 @@ def create_hash_id(sbase: libsbml.SBase) -> str:
         xml_node: libsbml.XMLNode = sbase.toXMLNode()
         xml_str = xml_node.toString().encode("utf-8")
         # print(f"xml_str -> {xml_node} -> {xml_str}" )
-        hash_key = hashlib.md5(xml_str).hexdigest()
+        hash_key = hashlib.md5(xml_str, usedforsecurity=False).hexdigest()
     # print(f"-> {hash_key}")
     return hash_key
