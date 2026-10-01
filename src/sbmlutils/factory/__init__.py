@@ -29,6 +29,8 @@ split along the SBML packages:
 # sorted. The API reference renders a re-exported class or function only when
 # `docs/api/factory.md` lists it in `members`, which a test keeps complete.
 import importlib as _importlib
+import warnings as _warnings
+from typing import Any as _Any
 
 from pymetadata.core.creator import Creator as Creator
 from numpy import nan as NaN
@@ -192,3 +194,91 @@ __all__ = [
 _core.Uncertainty = Uncertainty
 units.Uncertainty = Uncertainty
 _importlib.import_module("sbmlutils.layout.layout")
+
+#: the names the module `sbmlutils.factory` only imported, before it was split
+#: into a package, mapped to the module they come from and the name in it
+#: (`None` for a module)
+_DEPRECATED_NAMES: dict[str, tuple[str, str | None]] = {
+    "AbstractContextManager": ("contextlib", "AbstractContextManager"),
+    "Annotation": ("sbmlutils.metadata.annotator", "Annotation"),
+    "Any": ("typing", "Any"),
+    "BQB": ("sbmlutils.metadata", "BQB"),
+    "BQM": ("sbmlutils.metadata", "BQM"),
+    "ClassVar": ("typing", "ClassVar"),
+    "ContextVar": ("contextvars", "ContextVar"),
+    "FrozenClass": ("sbmlutils.utils", "FrozenClass"),
+    "Iterable": ("collections.abc", "Iterable"),
+    "Iterator": ("collections.abc", "Iterator"),
+    "Literal": ("typing", "Literal"),
+    "Notes": ("sbmlutils.notes", "Notes"),
+    "NotesFormat": ("sbmlutils.notes", "NotesFormat"),
+    "Path": ("pathlib", "Path"),
+    "SBML2ODE": ("sbmlutils.converters.odefac", "SBML2ODE"),
+    "SBO": ("sbmlutils.metadata", "SBO"),
+    "ScopedLossCollector": ("sbmlutils.validation", "ScopedLossCollector"),
+    "Sequence": ("collections.abc", "Sequence"),
+    "StrEnum": ("enum", "StrEnum"),
+    "TypeAlias": ("typing", "TypeAlias"),
+    "TypedDict": ("typing", "TypedDict"),
+    "UndefinedUnitError": ("pint", "UndefinedUnitError"),
+    "Union": ("typing", "Union"),
+    "UnionType": ("types", "UnionType"),
+    "UnitRegistry": ("pint", "UnitRegistry"),
+    "annotator": ("sbmlutils.metadata", "annotator"),
+    "check": ("sbmlutils.validation", "check"),
+    "contextmanager": ("contextlib", "contextmanager"),
+    "create_metaid": ("sbmlutils.utils", "create_metaid"),
+    "dataclass": ("dataclasses", "dataclass"),
+    "datetime": ("datetime", None),
+    "deepcopy": ("copy", "deepcopy"),
+    "detect_format": ("sbmlutils.notes", "detect_format"),
+    "get_args": ("typing", "get_args"),
+    "get_origin": ("typing", "get_origin"),
+    "get_type_hints": ("typing", "get_type_hints"),
+    "inspect": ("inspect", None),
+    "json": ("json", None),
+    "libsbml": ("libsbml", None),
+    "logging": ("logging", None),
+    "namedtuple": ("collections", "namedtuple"),
+    "np": ("numpy", None),
+    "numbers": ("numbers", None),
+    "re": ("re", None),
+    "sbml_to_antimony": ("sbmlutils.io", "sbml_to_antimony"),
+    "write_sbml": ("sbmlutils.io", "write_sbml"),
+    "xmltodict": ("xmltodict", None),
+}
+
+
+def __getattr__(name: str) -> _Any:
+    """Resolve a name the module `sbmlutils.factory` only imported.
+
+    Code imported such names from the module, e.g. `sbml_to_antimony`, which
+    the package does not re-export. They still resolve, with a
+    `DeprecationWarning` which names the import to use instead.
+
+    Args:
+        name: the name of the attribute
+
+    Returns:
+        the object the module had under the name
+
+    Raises:
+        AttributeError: if the module never had the name
+    """
+    if name not in _DEPRECATED_NAMES:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    module_name, attribute = _DEPRECATED_NAMES[name]
+    if attribute is not None:
+        instead = f"from {module_name} import {attribute}"
+    elif module_name != name:
+        instead = f"import {module_name} as {name}"
+    else:
+        instead = f"import {module_name}"
+    _warnings.warn(
+        f"`sbmlutils.factory.{name}` is deprecated and will be removed, "
+        f"use `{instead}`",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    module = _importlib.import_module(module_name)
+    return module if attribute is None else getattr(module, attribute)
