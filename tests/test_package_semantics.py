@@ -49,7 +49,7 @@ from test_roundtrip import (
     requires_roadrunner,
     requires_testsuite,
     run_case_isolated,
-    testsuite_case,
+    suite_case,
 )
 
 from sbmlutils.comp import flatten_sbml
@@ -404,7 +404,7 @@ def test_the_default_comp_subset_covers_every_judgeable_construct() -> None:
     """
     covered: set[str] = _comp_constructs(COMP_ICG_BODY)
     for case in COMP_SUBSET:
-        covered |= _comp_constructs(testsuite_case(case))
+        covered |= _comp_constructs(suite_case(case))
     swept: set[str] = set()
     for sbml_path in COMP_CASES:
         swept |= _comp_constructs(sbml_path)
@@ -439,7 +439,7 @@ def test_comp_semantics_of_a_representative_case(case: str, tmp_path: Path) -> N
 
     These are class (a) by definition: a case which stops agreeing is a defect and belongs in `COMP_DEFECTS`, and a case whose original stops being simulable belongs in `COMP_NOT_JUDGEABLE` and has no place in the subset.
     """
-    sbml_path = testsuite_case(case)
+    sbml_path = suite_case(case)
     roundtrip_path = roundtrip_comp_document(sbml_path, tmp_path)
 
     assert comp_semantic_diff(sbml_path, roundtrip_path, tmp_path) == (
@@ -526,7 +526,7 @@ COMP_DAMAGES: list[tuple[str, Callable[[libsbml.SBMLDocument], None], str]] = [
 
 @requires_roadrunner
 @pytest.mark.parametrize(
-    "damage, expected",
+    ("damage", "expected"),
     [(damage, expected) for _, damage, expected in COMP_DAMAGES],
     ids=[name for name, _, _ in COMP_DAMAGES],
 )
@@ -614,10 +614,10 @@ def _parse_rule(rule: str) -> _Rule | None:
         nonlocal position
         if position >= len(tokens) or tokens[position] in (")", "and", "or"):
             return None
-        token = tokens[position]
+        symbol = tokens[position]
         position += 1
-        if token != "(":
-            return token
+        if symbol != "(":
+            return symbol
         inner = disjunction()
         if inner is None or position >= len(tokens) or tokens[position] != ")":
             return None
@@ -1045,7 +1045,7 @@ FBC_DAMAGES: list[tuple[str, Callable[[libsbml.SBMLDocument], None], str]] = [
 
 @requires_cobra
 @pytest.mark.parametrize(
-    "damage, expected",
+    ("damage", "expected"),
     [(damage, expected) for _, damage, expected in FBC_DAMAGES],
     ids=[name for name, _, _ in FBC_DAMAGES],
 )
@@ -1090,7 +1090,7 @@ GENE_RULES: list[tuple[str, str, bool]] = [
 ]
 
 
-@pytest.mark.parametrize("before, after, same", GENE_RULES)
+@pytest.mark.parametrize(("before", "after", "same"), GENE_RULES)
 def test_normalized_gene_rule_is_the_stated_normalization(
     before: str, after: str, same: bool
 ) -> None:

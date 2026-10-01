@@ -54,6 +54,7 @@ def biomodels_available() -> None:
         pytest.skip(f"BioModels does not answer '{url}': {err}")
 
 
+@pytest.mark.network
 @pytest.mark.usefixtures("biomodels_available")
 def test_download_biomodel_omex_success(tmp_path: Path) -> None:
     """Download OMEX for existing biomodels."""
@@ -65,14 +66,16 @@ def test_download_biomodel_omex_success(tmp_path: Path) -> None:
     assert omex
 
 
+@pytest.mark.network
 @pytest.mark.usefixtures("biomodels_available")
 def test_download_biomodel_omex_failure(tmp_path: Path) -> None:
     """Download OMEX for a biomodel which does not exist."""
+    omex_path = tmp_path / "tests.omex"
     with pytest.raises(HTTPError):
-        omex_path = tmp_path / "tests.omex"
         download_biomodel_omex(biomodel_id=BIOMODEL_ID_INVALID, omex_path=omex_path)
 
 
+@pytest.mark.network
 @pytest.mark.usefixtures("biomodels_available")
 def test_download_biomodel_sbml_sbml_success(tmp_path: Path) -> None:
     """Download SBML for existing biomodels."""
@@ -86,6 +89,7 @@ def test_download_biomodel_sbml_sbml_success(tmp_path: Path) -> None:
     assert (tmp_path / locations[1]).exists()
 
 
+@pytest.mark.network
 @pytest.mark.usefixtures("biomodels_available")
 def test_download_biomodel_sbml_omex_success(tmp_path: Path) -> None:
     """Download SBML for existing biomodels."""
@@ -102,6 +106,7 @@ def test_download_biomodel_sbml_omex_success(tmp_path: Path) -> None:
     assert len(omex.manifest.entries) == 4
 
 
+@pytest.mark.network
 @pytest.mark.usefixtures("biomodels_available")
 def test_download_biomodel_sbml_failure(tmp_path: Path) -> None:
     """Download SBML for a biomodel which does not exist."""
@@ -171,11 +176,14 @@ class _CraftedOmex:
         self.location = location
         self.sbml_file = sbml_file
 
-    def entries_by_format(self, format_key: str) -> list[ManifestEntry]:
+    def entries_by_format(
+        self,
+        format_key: str,  # noqa: ARG002 - called by keyword, the name is the API
+    ) -> list[ManifestEntry]:
         """Return the single crafted entry."""
         return [ManifestEntry(location=self.location, format=EntryFormat.SBML)]
 
-    def get_path(self, location: str) -> Path:
+    def get_path(self, _location: str) -> Path:
         """Return the file behind the entry."""
         return self.sbml_file
 
@@ -197,10 +205,10 @@ def crafted_download(
     def prepare(location: str) -> Path:
         crafted = _CraftedOmex(location, sbml_file)
         monkeypatch.setattr(
-            "sbmlutils.biomodels.download_biomodel_omex", lambda **kwargs: None
+            "sbmlutils.biomodels.download_biomodel_omex", lambda **_kwargs: None
         )
         monkeypatch.setattr(
-            "sbmlutils.biomodels.Omex.from_omex", lambda *args, **kwargs: crafted
+            "sbmlutils.biomodels.Omex.from_omex", lambda *_args, **_kwargs: crafted
         )
         return out_dir
 

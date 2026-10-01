@@ -25,7 +25,6 @@ from typing import TYPE_CHECKING
 
 from requests.exceptions import RequestException
 
-from sbmlutils.console import console
 from sbmlutils.parser import antimony_to_sbml
 
 # py4cytoscape is the optional `cytoscape` extra
@@ -96,13 +95,12 @@ def visualize_sbml(sbml_path: Path, delete_session: bool = False) -> int | None:
         return None
 
     try:
-        console.print(p4c.cytoscape_version_info())
+        logger.info("Cytoscape version info: %s", p4c.cytoscape_version_info())
 
         if delete_session:
             p4c.session.close_session(save_before_closing=False)
 
         networks_views = p4c.networks.import_network_from_file(str(sbml_path))
-        # console.print(f"{networks_views}")
         network: int | None = networks_views["networks"][1]
         p4c.set_current_view(network=network)  # set the base network
         return network
@@ -158,7 +156,6 @@ def apply_layout(layout: pd.DataFrame, network: int | None = None) -> None:
     # p4c.set_node_property_bypass(suids, new_values=x_values, visual_property='NODE_X_LOCATION', network=network)
     # p4c.set_node_property_bypass(suids, new_values=y_values, visual_property='NODE_Y_LOCATION', network=network)
     # positions = p4c.get_node_position()
-    # console.print(f"{positions}")
 
     # fit content
     p4c.fit_content()
@@ -167,7 +164,6 @@ def apply_layout(layout: pd.DataFrame, network: int | None = None) -> None:
     # p4c.clear_node_property_bypass(suids, visual_property='NODE_X_LOCATION', network=network)
     # p4c.clear_node_property_bypass(suids, visual_property='NODE_Y_LOCATION', network=network)
     # positions = p4c.get_node_position()
-    # console.print(f"{positions}")
 
 
 class AnnotationShapeType(StrEnum):

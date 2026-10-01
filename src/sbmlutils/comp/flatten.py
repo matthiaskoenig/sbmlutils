@@ -6,9 +6,8 @@ from pathlib import Path
 
 import libsbml
 
-from sbmlutils.console import console
 from sbmlutils.io import read_sbml, write_sbml
-from sbmlutils.validation import log_sbml_errors_for_doc, validate_doc
+from sbmlutils.validation import log_sbml_errors_for_doc
 
 logger = logging.getLogger(__name__)
 
@@ -70,17 +69,10 @@ def flatten_sbml_doc(
             "SBML without a model cannot be flattened, a document with only "
             "model definitions has no model to flatten them into."
         )
-    error_count = doc.getNumErrors()
-    if error_count > 0:
-        if doc.getError(0).getErrorId() == libsbml.XMLFileUnreadable:
-            # Handle case of unreadable file here.
-            logger.error("SBML error in doc: libsbml.XMLFileUnreadable")
-        elif doc.getError(0).getErrorId() == libsbml.XMLFileOperationError:
-            # Handle case of other file error here.
-            logger.error("SBML error in doc: libsbml.XMLFileOperationError")
-        else:
-            # Handle other error cases here.
-            logger.error("SBML errors in doc, see SBMLDocument error log.")
+    # a file which could not be read or opened has no model and is rejected
+    # above, so an error here comes from the content of the document
+    if doc.getNumErrors() > 0:
+        logger.error("SBML errors in doc, see SBMLDocument error log.")
 
     # converter options
     props = libsbml.ConversionProperties()
@@ -101,12 +93,9 @@ def flatten_sbml_doc(
     info = "\n".join(lines)
 
     if flattened_status:
-        console.rule("Flatten SBML", style="success")
-        console.print(info, style="success")
-        console.rule(style="success")
+        logger.info("Flatten SBML\n%s", info)
     else:
-        console.rule("Flatten SBML", style="error")
-        console.print(info, style="error")
+        logger.error("Flatten SBML\n%s", info)
         log_sbml_errors_for_doc(doc)
         raise ValueError("SBML could not be flattend due to errors.")
 
@@ -114,72 +103,4 @@ def flatten_sbml_doc(
         write_sbml(doc, filepath=sbml_flat_path)
         logger.info("Flattened model created: '%s'", sbml_flat_path)
 
-    return doc
-
-
-def flatten_external_model_definitions(
-    doc: libsbml.SBMLDocument, validate: bool = False
-) -> libsbml.SBMLDocument:
-    """Convert all ExternalModelDefinitions to ModelDefinitions.
-
-    I.e. the definition of models in external files are read
-    and directly included in the top model. The resulting
-    comp model consists than only of a single file.
-
-    The model refs in the submodel do not change in the process,
-    so no need to update the submodels.
-
-    :param doc: SBMLDocument
-    :param validate: validation flag
-    :return: SBMLDocument with ExternalModelDefinitions replaced
-    """
-    logger.debug("* flattenExternalModelDefinitions")
-
-    # FIXME: handle multiple levels of hierarchies. Recursively to handle the ExternalModelDefinitions of submodels
-    logger.warning(
-        "flattenExternalModelDefinitions is experimental and does not work recursively!"
-    )
-
-    comp_doc = doc.getPlugin("comp")
-    if comp_doc is None:
-        logger.warning("Model is not a comp model, no ExternalModelDefinitions")
-        return doc
-    emd_list = comp_doc.getListOfExternalModelDefinitions()
-    if (emd_list is None) or (len(emd_list) == 0):
-        # no ExternalModelDefinitions
-        logger.warning("Model does not contain any ExternalModelDefinitions")
-        return doc
-    emd_ids = []
-    for emd in emd_list:
-        logger.debug(emd)
-        emd_ids.append(emd.getId())
-
-        # get the model definition from the model
-        ref_model = emd.getReferencedModel()
-
-        ref_doc = ref_model.getSBMLDocument()
-        # print(ref_model)
-        for k in range(ref_doc.getNumPlugins()):
-            plugin = ref_doc.getPlugin(k)
-            # print(k, plugin)
-
-            # enable the package on the main SBMLDocument
-            uri = plugin.getURI()
-            prefix = plugin.getPrefix()
-            doc.enablePackage(uri, prefix, True)
-
-        # print("\n")
-
-        # add model definition for model
-        md = libsbml.ModelDefinition(ref_model)
-        comp_doc.addModelDefinition(md)
-
-    # remove the emds afterwards
-    for emd_id in emd_ids:
-        # remove the emd from the model
-        comp_doc.removeExternalModelDefinition(emd_id)
-
-    # validate
-    if validate:
-        validate_doc(doc)
     return doc

@@ -183,3 +183,13 @@ def test_minus_rejected(equation: str) -> None:
     """A '-' is no separator of parts and no sign of a stoichiometry."""
     with pytest.raises(ValueError, match="'-' and negative"):
         ReactionEquation.from_str(equation)
+
+
+def test_info_logs_instead_of_printing(
+    caplog: pytest.LogCaptureFixture, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """`info` logs the overview of the equation."""
+    with caplog.at_level("INFO", logger="sbmlutils.reaction_equation"):
+        ReactionEquation.from_str("A => B").info()
+    assert "reactants" in caplog.text
+    assert capsys.readouterr().out == ""

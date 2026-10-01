@@ -1,5 +1,6 @@
 """Tests for flattening a comp model from its file."""
 
+import logging
 import shutil
 from pathlib import Path
 
@@ -7,7 +8,7 @@ import libsbml
 import pytest
 from paths import NON_ASCII_DIR, NON_ASCII_DIR_WITH_EXTERNALS, SPACE_DIR
 
-from sbmlutils.comp import flatten_sbml
+from sbmlutils.comp import flatten_sbml, flatten_sbml_doc
 from sbmlutils.io import read_sbml
 from sbmlutils.resources import COMP_ICG_BODY, COMP_ICG_LIVER
 
@@ -159,3 +160,29 @@ def test_flatten_sbml_raises_for_a_comp_library(tmp_path: Path) -> None:
     )
     with pytest.raises(ValueError, match="without a model cannot be flattened"):
         flatten_sbml(sbml_path, sbml_flat_path=tmp_path / "flat.xml")
+
+
+def test_flatten_sbml_doc_reports_errors_of_the_document(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """A document with read errors is not flattened and its errors are reported."""
+    doc: libsbml.SBMLDocument = libsbml.readSBMLFromString(
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<sbml xmlns="http://www.sbml.org/sbml/level3/version2/core" '
+        'xmlns:comp="http://www.sbml.org/sbml/level3/version1/comp/version1" '
+        'level="3" version="2" comp:required="true">'
+        '<model id="m"><listOfParameters>'
+        '<parameter id="p" value="1" constant="true" unknown="1"/>'
+        "</listOfParameters></model>"
+        "</sbml>"
+    )
+    assert doc.getNumErrors() > 0
+
+    with (
+        caplog.at_level(logging.ERROR),
+        pytest.raises(ValueError, match="could not be flattend"),
+    ):
+        flatten_sbml_doc(doc)
+
+    assert "SBML errors in doc, see SBMLDocument error log." in caplog.messages
+    assert any("unknown" in message for message in caplog.messages)

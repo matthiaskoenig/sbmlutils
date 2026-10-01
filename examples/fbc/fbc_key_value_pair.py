@@ -46,6 +46,10 @@ model = Model(
 )
 
 if __name__ == "__main__":
+    from sbmlutils import log
+
+    log.enable_rich_logging()
+
     sbml_path = Path.cwd() / "fbc" / f"{model.sid}.xml"
 
     fac_results = create_model(

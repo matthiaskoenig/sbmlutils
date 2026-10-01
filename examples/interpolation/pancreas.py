@@ -149,6 +149,10 @@ def interpolate_data(
 
 
 if __name__ == "__main__":
+    from sbmlutils import log
+
+    log.enable_rich_logging()
+
     figure = interpolate_data(
         data=pd.read_csv(DATA_DIR / "atp_adp_mean.tsv", sep="\t"),
         xid="dose",

@@ -9,7 +9,7 @@ from paths import NON_ASCII_DIR_WITH_EXTERNALS, SPACE_DIR
 
 from examples.merge_models.merge_models import merge_models_example
 from sbmlutils import comp, validation
-from sbmlutils.io import read_sbml, write_sbml
+from sbmlutils.io import read_sbml, validate_sbml, write_sbml
 from sbmlutils.manipulation import merge
 from sbmlutils.resources import TESTDATA_DIR
 from sbmlutils.validation import ValidationOptions
@@ -20,8 +20,21 @@ OUT_DIRS = ["out", SPACE_DIR, NON_ASCII_DIR_WITH_EXTERNALS]
 
 
 def test_merge_models_example(tmp_path: Path) -> None:
-    """Testing the merge model example."""
+    """Test that the example writes a valid merged and a valid flattened model."""
     merge_models_example(output_dir=tmp_path)
+
+    model_ids = [f"BIOMD000000000{k}" for k in range(1, 5)]
+    expected = {f"{mid}_L3.xml" for mid in model_ids} | {
+        "merged.xml",
+        "merged_flat.xml",
+    }
+    assert {p.name for p in tmp_path.glob("*.xml")} == expected
+    for name in ("merged.xml", "merged_flat.xml"):
+        vresults = validate_sbml(
+            source=tmp_path / name,
+            validation_options=ValidationOptions(units_consistency=False),
+        )
+        assert vresults.error_count == 0, name
 
 
 def test_biomodel_merge(tmp_path: Path) -> None:

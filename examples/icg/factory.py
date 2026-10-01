@@ -72,6 +72,10 @@ def create_models(results_path: Path, create_tissues: bool = True) -> dict[str, 
 
 
 if __name__ == "__main__":
+    from sbmlutils import log
+
+    log.enable_rich_logging()
+
     results = create_models(Path.cwd(), create_tissues=True)
     for k, key in enumerate(results):
         delete_session = k == 0

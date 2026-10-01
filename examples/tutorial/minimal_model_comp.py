@@ -115,4 +115,8 @@ def create(output_dir: Path) -> None:
 
 
 if __name__ == "__main__":
+    from sbmlutils import log
+
+    log.enable_rich_logging()
+
     create(output_dir=Path.cwd())

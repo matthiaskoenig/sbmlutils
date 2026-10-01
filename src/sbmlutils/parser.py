@@ -56,9 +56,7 @@ from typing import Any
 
 import antimony
 import libsbml
-from pymetadata.omex import ManifestEntry, Omex
 
-from sbmlutils.console import console
 from sbmlutils.factory import (
     AlgebraicRule,
     AssignmentRule,
@@ -101,7 +99,6 @@ from sbmlutils.factory import (
     UnitDefinition,
     UserDefinedConstraint,
     UserDefinedConstraintComponent,
-    create_model,
 )
 from sbmlutils.io.files import is_file
 from sbmlutils.io.sbml import read_sbml
@@ -647,18 +644,16 @@ def _parse_uncertainties(sbase: libsbml.SBase) -> list[Uncertainty]:
     if distrib is None or not isinstance(distrib, libsbml.DistribSBasePlugin):
         return []
 
-    uncertainties: list[Uncertainty] = []
-    uncertainty: libsbml.Uncertainty
-    for uncertainty in distrib.getListOfUncertainties():
-        uncertainties.append(
-            Uncertainty(
-                uncertParameters=[
-                    _parse_uncert_child(child)
-                    for child in uncertainty.getListOfUncertParameters()
-                ],
-                **_drop_unwritable(_parse_sbase_kwargs(uncertainty), uncertainty),
-            )
+    uncertainties: list[Uncertainty] = [
+        Uncertainty(
+            uncertParameters=[
+                _parse_uncert_child(child)
+                for child in uncertainty.getListOfUncertParameters()
+            ],
+            **_drop_unwritable(_parse_sbase_kwargs(uncertainty), uncertainty),
         )
+        for uncertainty in distrib.getListOfUncertainties()
+    ]
     return uncertainties
 
 
@@ -913,19 +908,17 @@ def _parse_fbc_model(model_fbc: libsbml.FbcModelPlugin, m: Model) -> None:
     )
     objective: libsbml.Objective
     for objective in objectives:
-        flux_objectives: list[FluxObjective] = []
-        flux_objective: libsbml.FluxObjective
-        for flux_objective in objective.getListOfFluxObjectives():
-            flux_objectives.append(
-                FluxObjective(
-                    reaction=flux_objective.getReaction(),
-                    coefficient=flux_objective.getCoefficient(),
-                    variableType=_variable_type(flux_objective),
-                    **_drop_replaced_by(
-                        _parse_sbase_kwargs(flux_objective), flux_objective
-                    ),
-                )
+        flux_objectives: list[FluxObjective] = [
+            FluxObjective(
+                reaction=flux_objective.getReaction(),
+                coefficient=flux_objective.getCoefficient(),
+                variableType=_variable_type(flux_objective),
+                **_drop_replaced_by(
+                    _parse_sbase_kwargs(flux_objective), flux_objective
+                ),
             )
+            for flux_objective in objective.getListOfFluxObjectives()
+        ]
         m.objectives.append(
             Objective(
                 objectiveType=_objective_type(objective),
@@ -942,17 +935,15 @@ def _parse_fbc_model(model_fbc: libsbml.FbcModelPlugin, m: Model) -> None:
     # fbc user-defined constraints, added in fbc version 3
     constraint_fbc: libsbml.UserDefinedConstraint
     for constraint_fbc in model_fbc.getListOfUserDefinedConstraints():
-        components: list[UserDefinedConstraintComponent] = []
-        component: libsbml.UserDefinedConstraintComponent
-        for component in constraint_fbc.getListOfUserDefinedConstraintComponents():
-            components.append(
-                UserDefinedConstraintComponent(
-                    coefficient=component.getCoefficient(),
-                    variable=component.getVariable(),
-                    variableType=_variable_type(component),
-                    **_drop_replaced_by(_parse_sbase_kwargs(component), component),
-                )
+        components: list[UserDefinedConstraintComponent] = [
+            UserDefinedConstraintComponent(
+                coefficient=component.getCoefficient(),
+                variable=component.getVariable(),
+                variableType=_variable_type(component),
+                **_drop_replaced_by(_parse_sbase_kwargs(component), component),
             )
+            for component in constraint_fbc.getListOfUserDefinedConstraintComponents()
+        ]
         m.user_defined_constraints.append(
             UserDefinedConstraint(
                 lowerBound=constraint_fbc.getLowerBound(),
@@ -1072,17 +1063,15 @@ def _parse_model_body(model: libsbml.Model, m: Model) -> None:
     # unit definitions
     udef: libsbml.UnitDefinition
     for udef in model.getListOfUnitDefinitions():
-        units: list[Unit] = []
-        u: libsbml.Unit
-        for u in udef.getListOfUnits():
-            units.append(
-                Unit(
-                    kind=libsbml.UnitKind_toString(u.getKind()),
-                    exponent=u.getExponent() if u.isSetExponent() else 1.0,
-                    scale=u.getScale() if u.isSetScale() else 0,
-                    multiplier=u.getMultiplier() if u.isSetMultiplier() else 1.0,
-                )
+        units: list[Unit] = [
+            Unit(
+                kind=libsbml.UnitKind_toString(u.getKind()),
+                exponent=u.getExponent() if u.isSetExponent() else 1.0,
+                scale=u.getScale() if u.isSetScale() else 0,
+                multiplier=u.getMultiplier() if u.isSetMultiplier() else 1.0,
             )
+            for u in udef.getListOfUnits()
+        ]
         m.units.append(UnitDefinition(units=units, **_parse_udef_kwargs(udef)))
 
     # model units
@@ -1222,16 +1211,14 @@ def _parse_model_body(model: libsbml.Model, m: Model) -> None:
         kinetic_law: KineticLaw | None = None
         if r.isSetKineticLaw():
             klaw: libsbml.KineticLaw = r.getKineticLaw()
-            local_parameters: list[LocalParameter] = []
-            lp: libsbml.LocalParameter
-            for lp in klaw.getListOfLocalParameters():
-                local_parameters.append(
-                    LocalParameter(
-                        value=lp.getValue() if lp.isSetValue() else None,
-                        unit=lp.getUnits() if lp.isSetUnits() else None,
-                        **_drop_replaced_by(_parse_sbase_kwargs(lp), lp),
-                    )
+            local_parameters: list[LocalParameter] = [
+                LocalParameter(
+                    value=lp.getValue() if lp.isSetValue() else None,
+                    unit=lp.getUnits() if lp.isSetUnits() else None,
+                    **_drop_replaced_by(_parse_sbase_kwargs(lp), lp),
                 )
+                for lp in klaw.getListOfLocalParameters()
+            ]
             kinetic_law = KineticLaw(
                 math=_math(klaw),
                 local_parameters=local_parameters,
@@ -1322,16 +1309,14 @@ def _parse_model_body(model: libsbml.Model, m: Model) -> None:
             de: libsbml.Delay = e.getDelay()
             delay = Delay(math=_math(de), **_parse_sbase_kwargs(de))
 
-        assignments: list[EventAssignment] = []
-        ea: libsbml.EventAssignment
-        for ea in e.getListOfEventAssignments():
-            assignments.append(
-                EventAssignment(
-                    variable=ea.getVariable(),
-                    value=_math(ea),
-                    **_parse_variable_kwargs(ea),
-                )
+        assignments: list[EventAssignment] = [
+            EventAssignment(
+                variable=ea.getVariable(),
+                value=_math(ea),
+                **_parse_variable_kwargs(ea),
             )
+            for ea in e.getListOfEventAssignments()
+        ]
 
         m.events.append(
             Event(
@@ -1542,31 +1527,3 @@ def sbml_to_model(
             _parse_comp_document(doc_comp, m)
 
     return m
-
-
-if __name__ == "__main__":
-    from sbmlutils.resources import BIOMODELS_CURATED_PATH, REPRESSILATOR_SBML
-
-    omex_path: Path = BIOMODELS_CURATED_PATH / "BIOMD0000000003.omex"
-
-    omex = Omex().from_omex(omex_path)
-    entry: ManifestEntry
-    for entry in omex.manifest.entries:
-        if entry.is_sbml():
-            sbml_path: Path = omex.get_path(entry.location)
-
-            m = sbml_to_model(REPRESSILATOR_SBML)
-            console.print(m)
-            create_model(
-                model=m,
-                filepath=sbml_path,
-                sbml_level=3,
-                sbml_version=2,
-                validation_options=ValidationOptions(units_consistency=False),
-            )
-            SBMLDocumentInfo.from_sbml(sbml_path)
-            model = sbml_to_model(
-                source=sbml_path,
-                validate=True,
-                validation_options=ValidationOptions(units_consistency=False),
-            )

@@ -41,7 +41,6 @@ def test_markdown_note(pattern: str) -> None:
     sbml_notes = sbml_p.getNotesString()
 
     match = re.search(pattern=pattern, string=sbml_notes)
-    print(sbml_notes)
     assert match
 
 
@@ -89,7 +88,7 @@ notes_data = [
 ]
 
 
-@pytest.mark.parametrize("note, expected", notes_data)
+@pytest.mark.parametrize(("note", "expected"), notes_data)
 def test_note_markdown(note: str, expected: str) -> None:
     """Test note HTML creation from markdown."""
     notes = Notes(note)
@@ -98,15 +97,15 @@ def test_note_markdown(note: str, expected: str) -> None:
     assert match
 
 
-@pytest.mark.parametrize("notes, expected", notes_data)
-def test_note_sbml(notes: str, expected: str) -> None:
-    """Test note setting on SBML object."""
+@pytest.mark.parametrize(("note", "expected"), notes_data)
+def test_note_sbml(note: str, expected: str) -> None:
+    """Test that the notes of the SBML object carry the rendered markdown."""
     doc: libsbml.SBMLDocument = libsbml.SBMLDocument()
     model: libsbml.Model = doc.createModel()
-    p = Parameter("p1", notes=notes)
+    p = Parameter("p1", notes=note)
     p_sbml: libsbml.Parameter = p.create_sbml(model=model)
-    assert p_sbml
     assert p_sbml.isSetNotes()
+    assert re.search(pattern=expected, string=p_sbml.getNotesString())
 
 
 def test_detect_format_markdown() -> None:

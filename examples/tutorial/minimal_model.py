@@ -37,6 +37,10 @@ model = Model(
 )
 
 if __name__ == "__main__":
+    from sbmlutils import log
+
+    log.enable_rich_logging()
+
     fac_result = create_model(
         model=model,
         filepath=Path.cwd() / f"{model.sid}.xml",

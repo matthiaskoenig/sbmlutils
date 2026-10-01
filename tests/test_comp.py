@@ -9,7 +9,7 @@ from typing import Any
 import libsbml
 import pytest
 from structural import roundtrip_document, snapshot, structural_diff
-from test_roundtrip import requires_testsuite, testsuite_case
+from test_roundtrip import requires_testsuite, suite_case
 
 from sbmlutils import comp
 from sbmlutils.factory import *
@@ -166,7 +166,7 @@ def test_comp_is_declared_only_for_comp_content(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize(
-    "reaction, port_sid, reference, target",
+    ("reaction", "port_sid", "reference", "target"),
     [
         (
             Reaction(
@@ -565,7 +565,7 @@ def test_nested_sbaseref_chain_matches_test_suite_case_01132(tmp_path: Path) -> 
     being unrelated content.
     """
     source_doc: libsbml.SBMLDocument = libsbml.readSBMLFromFile(
-        str(testsuite_case("01132"))
+        str(suite_case("01132"))
     )
     source_snapshot = snapshot(source_doc)
 
@@ -841,7 +841,7 @@ def test_model_definition_units_are_written(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize(
-    "field, value",
+    ("field", "value"),
     [
         ("packages", [Package.FBC_V3]),
         ("model_definitions", [ModelDefinition(sid="nested", name="nested")]),
@@ -2216,7 +2216,7 @@ _NO_REPLACED_BY: list[Any] = [
 ]
 
 
-@pytest.mark.parametrize("cls, kwargs", _NO_REPLACED_BY)
+@pytest.mark.parametrize(("cls", "kwargs"), _NO_REPLACED_BY)
 def test_replaced_by_is_not_offered_where_it_cannot_be_written(
     cls: type, kwargs: dict[str, Any]
 ) -> None:
@@ -2485,7 +2485,7 @@ _UNWRITABLE_PORTS: list[Any] = [
 ]
 
 
-@pytest.mark.parametrize("build, element, reason", _UNWRITABLE_PORTS)
+@pytest.mark.parametrize(("build", "element", "reason"), _UNWRITABLE_PORTS)
 def test_a_port_which_cannot_be_written_declares_no_comp(
     build: Callable[[], Model],
     element: str,
@@ -2638,7 +2638,7 @@ _WRITABLE_PORTS: list[Any] = [
 ]
 
 
-@pytest.mark.parametrize("build, ports, errors", _WRITABLE_PORTS)
+@pytest.mark.parametrize(("build", "ports", "errors"), _WRITABLE_PORTS)
 def test_the_same_port_is_written_once_the_element_states_its_name(
     build: Callable[[], Model],
     ports: dict[str, tuple[str, str]],

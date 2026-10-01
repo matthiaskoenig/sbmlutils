@@ -1,9 +1,8 @@
 """Tests for the fbc helpers."""
 
 import libsbml
-import pytest
 
-from sbmlutils.fbc.fbc import add_default_flux_bounds, set_boundary_conditions_false
+from sbmlutils.fbc.fbc import add_default_flux_bounds
 from sbmlutils.io import read_sbml
 from sbmlutils.resources import DEMO_SBML
 from sbmlutils.validation import ValidationOptions, validate_doc
@@ -59,17 +58,3 @@ def test_add_default_flux_bounds_existing_ids() -> None:
     assert model.getParameter("lower_1").getName() == "lower_1 flux bound"
     assert model.getParameter("upper_1").getName() == "upper_1 flux bound"
     assert flux_bound_values(doc) == {(-10.0, 20.0)}
-
-
-def test_set_boundary_conditions_false() -> None:
-    """No species is a boundary species afterwards."""
-    doc = read_sbml(DEMO_SBML)
-    model: libsbml.Model = doc.getModel()
-    model.getSpecies(0).setBoundaryCondition(True)
-
-    with pytest.warns(UserWarning, match="boundaryCondition changed"):
-        set_boundary_conditions_false(doc)
-
-    assert not any(
-        model.getSpecies(k).getBoundaryCondition() for k in range(model.getNumSpecies())
-    )

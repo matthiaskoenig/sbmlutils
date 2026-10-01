@@ -240,10 +240,10 @@ def _parse_association(infix: str) -> _Association | None:
         nonlocal position
         if position >= len(tokens) or tokens[position] in (")", "and", "or"):
             return None
-        token = tokens[position]
+        symbol = tokens[position]
         position += 1
-        if token != "(":
-            return token
+        if symbol != "(":
+            return symbol
         inner = expression()
         if inner is None or position >= len(tokens) or tokens[position] != ")":
             return None
@@ -358,7 +358,7 @@ def _cn_integer(before: object, after: object) -> bool:
     if not isinstance(before, str) or not isinstance(after, str):
         return False
     try:
-        return _same_math(ElementTree.fromstring(before), ElementTree.fromstring(after))
+        return _same_math(ElementTree.fromstring(before), ElementTree.fromstring(after))  # noqa: S314 - the documents are the ones this test suite wrote
     except ElementTree.ParseError:
         return False
 
@@ -823,7 +823,7 @@ def _by_reference(name: str, *attributes: str) -> _Key:
     return key
 
 
-def _by_position(element: Any) -> None:
+def _by_position(_element: Any) -> None:
     """Identify an element of a list by its position."""
     return
 

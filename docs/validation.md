@@ -1,6 +1,6 @@
 # Validation
 
-libsbml validates a document against the SBML specification and reports what it finds as a list of errors. `sbmlutils` runs those checks, groups the results and prints a report which says what is wrong and where.
+libsbml validates a document against the SBML specification and reports what it finds as a list of errors. `sbmlutils` runs those checks, groups the results and logs a report which says what is wrong and where.
 
 ## Validating a file
 
@@ -57,22 +57,26 @@ Validation reports, it does not block: the file is written either way, and the r
 
 ## The report
 
-The report of a validation lists the counts per category and then every message with its severity, its category, the line it is on and the explanation from the specification:
+The report of a validation lists the counts per category and then every message with its severity, its category, the line it is on and the explanation from the specification. It is logged on the `sbmlutils` loggers and nothing is shown unless logging is configured, see [Installation](installation.md#logging). With `log.enable_rich_logging()` a report looks like this:
 
 ```
-──────────────────────────────── Validate SBML ─────────────────────────────────
-model.xml
-valid                    : FALSE
-validation error(s)      : 1
-validation warnings(s)   : 0
-    general              : True
-    identifier           : True
-    mathml               : True
-    overdetermined       : True
-    sbo                  : True
-    units                : True
-check time (s)           : 0.012
-────────────────────────────────────────────────────────────────────────────────
+ERROR    Validate SBML                                         validation.py:542
+         <SBMLDocument>
+         valid                    : FALSE
+         validation error(s)      : 2
+         validation warnings(s)   : 0
+             general              : True
+             identifier           : True
+             mathml               : True
+             overdetermined       : True
+             sbo                  : True
+             units                : True
+         check time (s)           : 0.000
+ERROR    E0: SBML component consistency (core, L2, code)       validation.py:391
+         [Error] The presence of a species requires a compartment
+         If a model defines any species, then the model must also define at least
+         one compartment.
+         Reference: L3V2 Section 4.6.3
 ```
 
 The messages go through the logging of the package, so an application decides where they end up, see [Installation](installation.md#logging).

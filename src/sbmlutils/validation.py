@@ -12,8 +12,6 @@ from urllib.parse import quote
 
 import libsbml
 
-from sbmlutils.console import console
-
 logger = logging.getLogger(__name__)
 
 #: the key a loss is grouped under; constrained rather than unbounded so that
@@ -536,16 +534,12 @@ def validate_doc(
     info = "\n".join(lines)
 
     if vresults.is_perfect():
-        style = "success"
+        level = logging.INFO
     else:
-        style = "warning" if vresults.is_valid() else "error"
+        level = logging.WARNING if vresults.is_valid() else logging.ERROR
 
     # validation report
-    console.print()
-    console.rule("Validate SBML", style=style)
-    console.print(info, style=style)
-    console.rule(style=style)
-    console.print()
+    logger.log(level, "Validate SBML\n%s", info)
 
     # individual error and warning report
     if options.log_errors:

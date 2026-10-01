@@ -23,7 +23,7 @@ from sbmlutils.validation import ScopedLossCollector, _file_uri, validate_doc
 
 
 @pytest.mark.parametrize(
-    "sbml_path, ucheck, n_all",
+    ("sbml_path", "ucheck", "n_all"),
     [
         (DEMO_SBML, True, 0),
         (GALACTOSE_SINGLECELL_SBML, True, 0),
@@ -106,7 +106,7 @@ def test_validation_of_valid_model_has_no_errors() -> None:
 
 
 @pytest.mark.parametrize(
-    "path, uri",
+    ("path", "uri"),
     [
         ("/home/user/model.xml", "file:///home/user/model.xml"),
         ("C:\\models\\model.xml", "file:///C:/models/model.xml"),
@@ -128,7 +128,7 @@ def test_scoped_loss_collector_reports_remaining_groups_on_failure(
     """A group which fails to report does not lose the others."""
     reported: list[str] = []
 
-    def report(key: str, value: int) -> None:
+    def report(key: str, _value: int) -> None:
         if key == "b":
             raise ValueError("cannot report b")
         reported.append(key)
@@ -149,15 +149,20 @@ def test_scoped_loss_collector_reports_remaining_groups_on_failure(
 def test_scoped_loss_collector_does_not_mask_body_exception() -> None:
     """The exception of the body propagates even if reporting fails."""
 
-    def report(key: str, value: int) -> None:
+    def report(_key: str, _value: int) -> None:
         raise ValueError("cannot report")
 
     collector: ScopedLossCollector[str, int] = ScopedLossCollector(
         "test_losses", report
     )
-    with pytest.raises(KeyError), collector.scope():
-        collector.group("a", lambda: 1)
-        raise KeyError("body")
+
+    def body() -> None:
+        with collector.scope():
+            collector.group("a", lambda: 1)
+            raise KeyError("body")
+
+    with pytest.raises(KeyError):
+        body()
 
 
 def test_validation_result_outlives_the_document() -> None:
@@ -220,3 +225,18 @@ def test_sbml_error_info_severity_predicates() -> None:
         assert info.isWarning() == err.isWarning()
         assert info.isError() == err.isError()
         assert info.isFatal() == err.isFatal()
+
+
+def test_validate_doc_logs_report_and_does_not_print(
+    caplog: pytest.LogCaptureFixture, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """The validation report is logged and nothing is written to stdout."""
+    doc = libsbml.SBMLDocument(3, 2)
+    doc.createModel()
+    with caplog.at_level(logging.INFO, logger="sbmlutils.validation"):
+        validate_doc(doc)
+    assert any(
+        r.levelno == logging.INFO and "Validate SBML" in r.getMessage()
+        for r in caplog.records
+    ), caplog.text
+    assert capsys.readouterr().out == ""

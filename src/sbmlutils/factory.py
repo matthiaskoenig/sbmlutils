@@ -38,6 +38,7 @@ from typing import (
     ClassVar,
     Literal,
     TypeAlias,
+    TypedDict,
     Union,
     get_args,
     get_origin,
@@ -51,7 +52,6 @@ from numpy import nan as NaN
 from pint import UndefinedUnitError, UnitRegistry
 from pymetadata.core.creator import Creator
 
-from sbmlutils.console import console
 from sbmlutils.converters.odefac import SBML2ODE
 from sbmlutils.io import sbml_to_antimony, write_sbml
 from sbmlutils.metadata import (
@@ -65,12 +65,6 @@ from sbmlutils.notes import Notes, NotesFormat, detect_format
 from sbmlutils.reaction_equation import EquationPart, ReactionEquation
 from sbmlutils.utils import FrozenClass, create_metaid
 from sbmlutils.validation import ScopedLossCollector, ValidationOptions, check
-
-try:
-    from typing import TypedDict
-except ImportError:
-    from typing_extensions import TypedDict
-
 
 logger = logging.getLogger(__name__)
 
@@ -198,7 +192,7 @@ def _create_object(obj: Any, container: Any) -> libsbml.SBase | None:
     except Exception as err:
         logger.error("Error creating SBML object for '%s'", obj)
         logger.error(err)
-        raise err
+        raise
 
 
 def create_objects(
@@ -1760,12 +1754,10 @@ class Sbase:
         if not self.uncertainties:
             return None
 
-        objects = []
-
         # FIXME: check that distrib package is activated
-        for uncertainty in self.uncertainties:  # type: Uncertainty
-            objects.append(uncertainty.create_sbml(obj, model))
-        return objects
+        return [
+            uncertainty.create_sbml(obj, model) for uncertainty in self.uncertainties
+        ]
 
     def create_replaced_by(
         self, sbase: libsbml.SBase, model: libsbml.Model
@@ -2267,13 +2259,12 @@ class UnitDefinition(Sbase):
         try:
             quantity = Q_(self.definition)
         except UndefinedUnitError as err:
-            console.print_exception(show_locals=False)
             logger.error(
                 "Unit definition '%s' is not valid pint syntax, %s.",
                 self.definition,
                 err,
             )
-            raise err
+            raise
 
         magnitude, units_tuple = quantity.to_tuple()
         # pint types the units as a fixed length tuple, it is empty for a number
@@ -2419,19 +2410,6 @@ class Units:
         return [
             a for a in attributes if not (a[0].startswith("__") and a[0].endswith("__"))
         ]
-
-    @classmethod
-    def create_unit_definitions(cls, model: libsbml.Model) -> None:
-        """Create the libsbml.UnitDefinitions in the model.
-
-        Deprecated, `Model` normalizes its units to a list of
-        `UnitDefinition` and creates them directly.
-
-        Args:
-            model: the libsbml.Model the unit definitions are created in
-        """
-        for udef in Model._normalize_units(cls):
-            udef.create_sbml(model=model)
 
 
 def _check_unit_type(unit: Any, attribute: str, owner: object) -> None:
@@ -2866,12 +2844,6 @@ class Species(Sbase):
             replacedBy=replacedBy,
         )
 
-        # overkill for fbc networks
-        # if (initialAmount is None) and (initialConcentration is None):
-        #     logger.warning(
-        #         f"Either initialAmount or initialConcentration should be set "
-        #         f"for species: `{sid}`."
-        #     )
         if initialAmount and initialConcentration:
             raise ValueError(
                 f"Either initialAmount or initialConcentration can be set on "
@@ -3817,8 +3789,6 @@ class Reaction(Sbase):
                 self.compartment,
                 self,
             )
-        # else:
-        #    logger.info(f"'compartment' should be set on '{self}'}")
         reversible = (
             self.reversible if self.reversible is not None else self.equation.reversible
         )
@@ -7418,7 +7388,6 @@ class Model(Sbase, FrozenClass):
         # lists ofs
         for attr in [
             "submodels",
-            # "units",
             "functions",
             "parameters",
             "compartments",
@@ -7439,10 +7408,9 @@ class Model(Sbase, FrozenClass):
             "layouts",
         ]:
             # create the respective objects
-            if hasattr(self, attr):
-                objects = getattr(self, attr)
-                if objects:
-                    create_objects(model, obj_iter=objects, key=attr)
+            objects = getattr(self, attr)
+            if objects:
+                create_objects(model, obj_iter=objects, key=attr)
 
         # after everything which can change a value was created
         _warn_never_changed(model)
@@ -7977,7 +7945,8 @@ class Document(Sbase):
         [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5525390.svg)](https://doi.org/10.5281/zenodo.5525390)
         """
         )
-        assert sbmlutils_notes is not None
+        if sbmlutils_notes is None:
+            raise RuntimeError("The attribution of the document has no content.")
 
         if self.notes is None:
             self.notes = sbmlutils_notes
@@ -8156,7 +8125,7 @@ def create_model(
     :param sbml_version: set SBML version for model generation
     :param validate: boolean flag to validate the SBML file
     :param validation_options: options for model validation
-    :param show_sbml: boolean flag to show SBML
+    :param show_sbml: boolean flag to log the created SBML at INFO level on the `sbmlutils.factory` logger, nothing is shown unless logging is enabled, see `sbmlutils.log.enable_rich_logging`
     :param annotations: Path to annotations file
     :param create_antimony: write the antimony serialization to `*.ant`
     :param create_markdown: write the markdown overview of the ODE system to `*.md`
@@ -8169,7 +8138,7 @@ def create_model(
         Validation does not raise: a document which does not validate is
         written and returned all the same.
     """
-    console.rule(title="Create SBML", style="white")
+    filepath = Path(filepath)
     if validation_options is None:
         validation_options = ValidationOptions()
 
@@ -8225,16 +8194,10 @@ def create_model(
         SBML2ODE.from_file(filepath).to_markdown(md_file=markdown_path)
         logger.info("Markdown written to '%s'", markdown_path)
 
-    console.rule(style="white")
-
-    # print created sbml
+    # log created sbml
     if show_sbml:
-        with open(filepath, encoding="utf-8") as f_sbml:
-            sbml_str = f_sbml.read()
+        logger.info("Created SBML:\n%s", filepath.read_text(encoding="utf-8"))
 
-        console.log(sbml_str)
-
-    console.rule(style="white")
     return FactoryResult(
         sbml_path=filepath,
         model=m,

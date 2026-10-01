@@ -119,6 +119,13 @@ packages = ["src/sbmlutils"]
 testpaths = ["tests"]
 markers = [
     "sbml_testsuite: full sweep over the vendored SBML test suite, slow; deselect with -m 'not sbml_testsuite'",
+    "slow: a test which takes many seconds, runs by default and in continuous integration; deselect with -m 'not slow'",
+    "network: a test which queries a live web service and skips when it does not answer; deselect with -m 'not network'",
+]
+filterwarnings = [
+    # backoff, a dependency of py4cytoscape, calls `asyncio.iscoroutinefunction`,
+    # which python 3.14 deprecates; the warning is not ours to fix
+    "ignore:'asyncio.iscoroutinefunction' is deprecated:DeprecationWarning:backoff",
 ]
 
 [tool.ty.environment]

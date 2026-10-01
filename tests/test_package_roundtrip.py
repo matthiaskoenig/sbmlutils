@@ -38,7 +38,7 @@ from structural import (
     snapshots,
     structural_diff,
 )
-from test_roundtrip import SEMANTIC_DIR, requires_testsuite, testsuite_case
+from test_roundtrip import SEMANTIC_DIR, requires_testsuite, suite_case
 
 from sbmlutils import RESOURCES_DIR
 from sbmlutils.factory import (
@@ -462,7 +462,7 @@ MUTATIONS: dict[str, Mutation] = {
         FBC_ECOLI_CORE_SBML, _change_flux_bound, "fbc.fluxBound"
     ),
     "change_v1_flux_bound_value": _mutation(
-        testsuite_case("01186"), _change_v1_flux_bound_value, "fbc.fluxBound"
+        suite_case("01186"), _change_v1_flux_bound_value, "fbc.fluxBound"
     ),
     "drop_objective": _mutation(
         FBC_ECOLI_CORE_SBML, _drop_objective, "fbc.objective", "fbc.fluxObjective"
@@ -514,21 +514,19 @@ MUTATIONS: dict[str, Mutation] = {
         "fbc.keyValuePair",
     ),
     "truncate_sbaseref_chain": _mutation(
-        testsuite_case("01132"), _truncate_sbaseref_chain, "comp.sBaseRef"
+        suite_case("01132"), _truncate_sbaseref_chain, "comp.sBaseRef"
     ),
     "change_model_definition_content": _mutation(
-        testsuite_case("01132"),
+        suite_case("01132"),
         _change_model_definition_content,
         "comp.modelDefinition.compartment",
     ),
-    "drop_deletion": _mutation(
-        testsuite_case("01157"), _drop_deletion, "comp.deletion"
-    ),
+    "drop_deletion": _mutation(suite_case("01157"), _drop_deletion, "comp.deletion"),
     "drop_replaced_by": _mutation(
-        testsuite_case("01128"), _drop_replaced_by, "comp.replacedBy"
+        suite_case("01128"), _drop_replaced_by, "comp.replacedBy"
     ),
     "change_submodel_conversion_factor": _mutation(
-        testsuite_case("01143"), _change_submodel_conversion_factor, "comp.submodel"
+        suite_case("01143"), _change_submodel_conversion_factor, "comp.submodel"
     ),
     # distrib
     "reorder_uncertainty_children": _mutation(
@@ -613,19 +611,19 @@ FIXTURES: list[Path] = [
     UNCERTAINTY_SBML,
     DISTRIB_ALL_SBML,
     # fbc v1, two objectives
-    testsuite_case("01191"),
+    suite_case("01191"),
     # fbc v2
-    testsuite_case("01606"),
+    suite_case("01606"),
     # nested sBaseRef, replacedBy, ports
-    testsuite_case("01132"),
-    testsuite_case("01134"),
+    suite_case("01132"),
+    suite_case("01134"),
     # deletion by metaIdRef
-    testsuite_case("01157"),
+    suite_case("01157"),
     # conversion factors of a submodel and of a replaced element
-    testsuite_case("01143"),
-    testsuite_case("01137"),
+    suite_case("01143"),
+    suite_case("01137"),
     # external model definition
-    testsuite_case("01167"),
+    suite_case("01167"),
 ]
 
 #: the fixtures as parametrizations, with the test suite cases marked to skip
@@ -901,14 +899,12 @@ def test_comparable_document_changes_no_package_content(sbml_path: Path) -> None
 
 
 @pytest.mark.parametrize(
-    "sbml_path, refused",
+    ("sbml_path", "refused"),
     [
         # L3V1, which the round trip does not write
         (FBC_ECOLI_CORE_SBML, "L3V1"),
         # L3V2 with fbc version 1, whose flux bounds the walk would never see
-        pytest.param(
-            testsuite_case("01186"), "fbc version 2", marks=[requires_testsuite]
-        ),
+        pytest.param(suite_case("01186"), "fbc version 2", marks=[requires_testsuite]),
     ],
     ids=["L3V1", "fbc-v1"],
 )
@@ -933,7 +929,7 @@ def test_fbc_v1_is_compared_as_libsbml_converts_it() -> None:
 
     Each `fbc:fluxBound` becomes a reference to a parameter of the generated id `fb_<reaction>_<operation>`, which carries the value of the bound.
     """
-    doc = _read(testsuite_case("01186"))
+    doc = _read(suite_case("01186"))
     fbc_v1: libsbml.FbcModelPlugin = doc.getModel().getPlugin("fbc")
     assert fbc_v1.getPackageVersion() == 1
     flux_bound: libsbml.FluxBound = fbc_v1.getFluxBound(0)
@@ -1045,7 +1041,7 @@ def test_structural_diff_does_not_compare_fbc_strict_of_an_fbc_v1_source() -> No
 
     The `fbc:strict="true"` of a converted fbc v1 document is the invention of the converter, not content of the source, so neither side is held to it; for an fbc v2 source the same damage is reported as ever, which the `flip_strict` mutation of `MUTATIONS` covers. Nothing else of an fbc v1 source is skipped, which the damaged flux bound at the end shows.
     """
-    source = _read(testsuite_case("01186"))
+    source = _read(suite_case("01186"))
     converted = comparable_document(source)
     assert converted is not source
     plugin: libsbml.FbcModelPlugin = converted.getModel().getPlugin("fbc")
@@ -1365,7 +1361,7 @@ def _charges(doc: libsbml.SBMLDocument) -> list[float | None]:
 
 
 @pytest.mark.parametrize(
-    "fbc_version, charges",
+    ("fbc_version", "charges"),
     [
         (2, [-2.0, 0.0, 3.0]),
         # fbc version 3 has a double charge, which need not be a whole number
@@ -1447,7 +1443,7 @@ def test_roundtrip_preserves_fbc_v1_flux_bounds(
 
     fbc version 1 states a bound as an `fbc:fluxBound` element of the model rather than as a parameter the reaction references, and there is no `Model` field for that element. The parser converts an fbc version 1 document with libsbml's own `convert fbc v1 to fbc v2` converter before reading it, which is exactly how `tests/structural.py` compares such a document: every bound becomes a parameter of the generated id `fb_<reaction>_<operation>`, which the reaction references.
     """
-    sbml_path = testsuite_case("01186")
+    sbml_path = suite_case("01186")
     doc = _read(sbml_path)
     fbc_v1: libsbml.FbcModelPlugin = doc.getModel().getPlugin("fbc")
     assert fbc_v1.getPackageVersion() == 1
@@ -1816,9 +1812,17 @@ FBC_FIXTURES: list[tuple[Path, tuple[str, ...]]] = [
 
 
 @pytest.mark.parametrize(
-    "sbml_path, constructs",
-    FBC_FIXTURES,
-    ids=[sbml_path.name for sbml_path, _ in FBC_FIXTURES],
+    ("sbml_path", "constructs"),
+    [
+        # the round trip of Recon3D takes about 25 s, a third of the test run
+        pytest.param(
+            sbml_path,
+            constructs,
+            id=sbml_path.name,
+            marks=[pytest.mark.slow] if sbml_path == FBC_RECON3D_SBML else [],
+        )
+        for sbml_path, constructs in FBC_FIXTURES
+    ],
 )
 def test_roundtrip_preserves_the_whole_fbc_content(
     sbml_path: Path,
@@ -1901,7 +1905,9 @@ def _parsed_again(doc: libsbml.SBMLDocument, infix: str) -> str:
 
 def _evaluate(infix: str, genes: dict[str, bool]) -> bool:
     """Evaluate an association for the given state of every gene."""
-    return bool(eval(infix, {"__builtins__": {}}, genes))
+    # S307: the infix is one of the associations of this test module, and the
+    # namespace has no builtins, only the genes
+    return bool(eval(infix, {"__builtins__": {}}, genes))  # noqa: S307
 
 
 #: the associations of e_coli_core which libsbml does not write back as read,
@@ -2014,7 +2020,7 @@ def test_roundtrip_flattens_exactly_the_two_pinned_associations(
 
 
 @pytest.mark.parametrize(
-    "before, after, equivalent",
+    ("before", "after", "equivalent"),
     [
         ("((a and b) and c)", "(a and b and c)", True),
         ("(a and (b and c))", "(a and b and c)", True),
@@ -2062,7 +2068,7 @@ def _l3_roundtrip_math(mathml: str) -> tuple[str, str]:
 
 
 @pytest.mark.parametrize(
-    "mathml, equivalent",
+    ("mathml", "equivalent"),
     [
         ("<cn> 1 </cn>", True),
         ("<cn> 1.0 </cn>", True),
@@ -2093,7 +2099,7 @@ def _math(content: str) -> str:
 
 
 @pytest.mark.parametrize(
-    "before, after",
+    ("before", "after"),
     [
         # another value, a real value, another unit, the other direction
         ("<cn> 1 </cn>", '<cn type="integer"> 2 </cn>'),
@@ -2200,12 +2206,13 @@ def test_identifiers_org_is_what_pymetadata_does(resource: str) -> None:
     url = RDFAnnotation(BQB.IS, resource, validate=False).resource_normalized
     before = (("bqbiol:is", resource),)
 
-    assert url is not None and url.startswith("https://identifiers.org/")
+    assert url is not None
+    assert url.startswith("https://identifiers.org/")
     assert _normalization("identifiers-org").equivalent(before, (("bqbiol:is", url),))
 
 
 @pytest.mark.parametrize(
-    "before, after",
+    ("before", "after"),
     [
         # a URN, with and without the collection as the prefix of its term
         (
@@ -2266,7 +2273,7 @@ def test_identifiers_org_accepts_every_source_form(
 
 
 @pytest.mark.parametrize(
-    "before, after",
+    ("before", "after"),
     [
         # another qualifier, another term, another collection
         (
@@ -2472,7 +2479,7 @@ def test_structural_diff_applies_the_cn_whitelist_to_distrib_math() -> None:
 # the report script, which sweeps the corpus with the comparison
 # ---------------------------------------------------------------------------
 @pytest.mark.parametrize(
-    "content, expected, reported",
+    ("content", "expected", "reported"),
     [
         # what a worker killed while it writes its result leaves behind
         ('{"stage": "round trip", "pres', {}, True),
@@ -2553,7 +2560,7 @@ DISTRIB_FIXTURES: list[tuple[Path, tuple[str, ...]]] = [
 
 
 @pytest.mark.parametrize(
-    "sbml_path, constructs",
+    ("sbml_path", "constructs"),
     DISTRIB_FIXTURES,
     ids=[sbml_path.name for sbml_path, _ in DISTRIB_FIXTURES],
 )
@@ -2806,7 +2813,7 @@ def test_roundtrip_preserves_the_deletions_of_a_submodel(
     SBML puts a `<comp:deletion>` under the submodel it deletes from; `Model.deletions` holds it with the id of that submodel instead, which is what `Deletion.create_sbml` resolves it against. Case 01157 deletes by `metaIdRef`, case 01166 by `idRef` and its deletion carries an id of its own.
     """
     for case in ("01157", "01166"):
-        comparison = package_roundtrip(testsuite_case(case))
+        comparison = package_roundtrip(suite_case(case))
         assert comparison[0]["comp.deletion"], f"case {case} has no deletion"
         _assert_preserved(comparison, "comp.deletion", "comp.submodel")
 
@@ -2859,7 +2866,9 @@ REPLACEMENT_CASES: list[tuple[str, tuple[str, ...]]] = [
 
 @requires_testsuite
 @pytest.mark.parametrize(
-    "case, constructs", REPLACEMENT_CASES, ids=[case for case, _ in REPLACEMENT_CASES]
+    ("case", "constructs"),
+    REPLACEMENT_CASES,
+    ids=[case for case, _ in REPLACEMENT_CASES],
 )
 def test_roundtrip_preserves_replacements_and_their_sbaseref_chain(
     case: str,
@@ -2870,7 +2879,7 @@ def test_roundtrip_preserves_replacements_and_their_sbaseref_chain(
 
     A `<comp:replacedElement>` and a `<comp:replacedBy>` sit on the element they replace, and either can continue its reference into a submodel of the submodel it names, through a nested `<comp:sBaseRef>` of arbitrary depth. Each level is compared under the level above it, in order, see the docstring of `tests/structural.py`, so a chain which comes back one level short is a difference. Every comp difference of the case is asserted, not only those of the named constructs, so comp content the round trip *adds* fails it too.
     """
-    counts, differences = package_roundtrip(testsuite_case(case))
+    counts, differences = package_roundtrip(suite_case(case))
     missing = [c for c in constructs if not counts[c]]
     assert missing == [], f"case {case} has none of {missing}"
 
@@ -2886,7 +2895,7 @@ def test_roundtrip_preserves_a_replaced_element_of_an_element_without_an_id(
     `sbmlutils.factory` holds a replaced element in the `replaced_elements` of the model, where it names the element it replaces in `elementRef`, which `ReplacedElement.create_sbml` resolves against the model it writes into. A rule, an initial assignment, an event assignment and a kinetic law have an id only from SBML L3V2 on, and cases 01150 and 01163 of the SBML test suite each put a `<comp:replacedElement>` on a rate rule which carries a metaid and no id, so `elementRef` names such an element by its metaid.
     """
     for case in ("01150", "01163"):
-        comparison = package_roundtrip(testsuite_case(case))
+        comparison = package_roundtrip(suite_case(case))
         assert comparison[0]["comp.replacedElement"] == 2, case
         assert _comp_differences(comparison[1]) == [], case
 
@@ -2969,7 +2978,7 @@ UNNAMEABLE: list[tuple[str, str | None, str | None, str]] = [
 
 
 @pytest.mark.parametrize(
-    "name, rule_metaid, unit_id, reason",
+    ("name", "rule_metaid", "unit_id", "reason"),
     UNNAMEABLE,
     ids=[name for name, _, _, _ in UNNAMEABLE],
 )
@@ -3184,7 +3193,7 @@ def test_roundtrip_preserves_the_whole_content_of_a_model_definition(
     Cases 01142 and 01169 of the SBML test suite are the two whose model definitions hold species, reactions, rules and events between them, which the comparison compares element by element with their L3V2 core attributes and their math.
     """
     for case in ("01142", "01169"):
-        counts, differences = package_roundtrip(testsuite_case(case))
+        counts, differences = package_roundtrip(suite_case(case))
         for element in ("species", "reaction", "rateRule", "event", "trigger"):
             assert counts[f"comp.modelDefinition.{element}"], f"{case}: {element}"
         assert _comp_differences(differences) == [], case
@@ -3215,7 +3224,7 @@ def _comp_of_definitions(doc: libsbml.SBMLDocument) -> list[tuple[int, int]]:
 
 @requires_testsuite
 @pytest.mark.parametrize(
-    "case, expected",
+    ("case", "expected"),
     [("01153", [(0, 1), (1, 1)]), ("01166", [(0, 7), (0, 4)])],
 )
 def test_roundtrip_preserves_the_submodels_and_ports_of_a_model_definition(
@@ -3225,7 +3234,7 @@ def test_roundtrip_preserves_the_submodels_and_ports_of_a_model_definition(
 
     A model definition holds submodels and ports of its own, which the recursion into `_parse_model_body` reads with the same parser as those of the model of the document. Case 01153 nests a submodel in the second of its two model definitions and gives each of them a port, case 01166 gives its two model definitions seven and four ports. They are counted on the model definitions themselves, before and after, so that comp content of the *model* of the document cannot stand in for them, and the round trip is asserted to change no comp content at all besides.
     """
-    doc_in, doc_out = roundtrip_document(testsuite_case(case), tmp_path)
+    doc_in, doc_out = roundtrip_document(suite_case(case), tmp_path)
     assert _comp_of_definitions(doc_in) == expected
 
     assert _comp_of_definitions(doc_out) == expected
@@ -3709,7 +3718,8 @@ def test_key_value_pairs_of_an_fbc_v2_document_are_reported_and_not_written(
     assert len(errors) == 1, errors
     assert "3 key-value pair(s) of 2 element(s)" in errors[0]
     assert "Parameter(k" in errors[0]
-    assert "fbc version 3" in errors[0] and "fbc version 2" in errors[0]
+    assert "fbc version 3" in errors[0]
+    assert "fbc version 2" in errors[0]
     assert errors[0].endswith("Declare fbc version 3 to keep them.")
 
 
@@ -3824,7 +3834,7 @@ _FBC_WITHOUT_A_PLUGIN: list[Any] = [
 ]
 
 
-@pytest.mark.parametrize("objects, named", _FBC_WITHOUT_A_PLUGIN)
+@pytest.mark.parametrize(("objects", "named"), _FBC_WITHOUT_A_PLUGIN)
 def test_fbc_content_without_an_fbc_plugin_names_the_element(
     objects: Callable[[], list[Any]], named: str, tmp_path: Path
 ) -> None:
@@ -3904,7 +3914,8 @@ def test_a_species_without_an_fbc_plugin_is_reported(
     ]
     assert len(errors) == 1, errors
     assert "Species(S1" in errors[0]
-    assert "fbc package" in errors[0] and "cannot declare" in errors[0]
+    assert "fbc package" in errors[0]
+    assert "cannot declare" in errors[0]
     assert "packages = ['fbc']" not in errors[0]
     assert '<species id="S1"' in sbml_path.read_text(encoding="utf-8")
 
@@ -4000,7 +4011,8 @@ def test_key_value_pairs_are_written_without_a_model(
     with caplog.at_level(logging.WARNING, logger="sbmlutils"):
         pairs = element.create_key_value_pairs(parameter)
 
-    assert pairs is not None and len(pairs) == 1
+    assert pairs is not None
+    assert len(pairs) == 1
     assert pairs[0].getKey() == "kind"
     assert [record.getMessage() for record in caplog.records] == []
     del doc

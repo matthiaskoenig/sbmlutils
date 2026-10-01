@@ -27,4 +27,4 @@ custom_theme = Theme(
     }
 )
 
-console = Console(record=True, theme=custom_theme, log_time=False)
+console = Console(theme=custom_theme, log_time=False)

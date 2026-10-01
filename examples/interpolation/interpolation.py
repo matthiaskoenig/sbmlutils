@@ -77,6 +77,10 @@ def interpolation_example() -> Figure:
 
 
 if __name__ == "__main__":
+    from sbmlutils import log
+
+    log.enable_rich_logging()
+
     fig = interpolation_example()
     fig_path = Path.cwd() / "interpolation.png"
     fig.savefig(fig_path, bbox_inches="tight", dpi=150)

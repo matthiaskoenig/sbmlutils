@@ -835,7 +835,7 @@ class SBML2ODE:
             python=True,
         )
         if py_file:
-            with open(py_file, "w", encoding="utf-8") as f:
+            with Path(py_file).open("w", encoding="utf-8") as f:
                 f.write(content)
 
         return content
@@ -849,7 +849,7 @@ class SBML2ODE:
             code=False,
         )
         if tex_file:
-            with open(tex_file, "w", encoding="utf-8") as f:
+            with Path(tex_file).open("w", encoding="utf-8") as f:
                 f.write(content)
 
         return content
@@ -862,7 +862,7 @@ class SBML2ODE:
             replace_symbols=True,
         )
         if r_file:
-            with open(r_file, "w", encoding="utf-8") as f:
+            with Path(r_file).open("w", encoding="utf-8") as f:
                 f.write(content)
 
         return content
@@ -880,7 +880,7 @@ class SBML2ODE:
             replace_symbols=True,
         )
         if jl_file:
-            with open(jl_file, "w", encoding="utf-8") as f:
+            with Path(jl_file).open("w", encoding="utf-8") as f:
                 f.write(content)
 
         return content
@@ -895,7 +895,7 @@ class SBML2ODE:
             check_math=False,
         )
         if md_file:
-            with open(md_file, "w", encoding="utf-8") as f:
+            with Path(md_file).open("w", encoding="utf-8") as f:
                 f.write(content)
 
         return content
@@ -911,7 +911,7 @@ class SBML2ODE:
             template_dir=template_file.parent,
         )
         if output_file:
-            with open(output_file, "w", encoding="utf-8") as f:
+            with Path(output_file).open("w", encoding="utf-8") as f:
                 f.write(content)
 
         return content
@@ -953,8 +953,9 @@ class SBML2ODE:
         """
         if not template_dir:
             template_dir = TEMPLATE_DIR
-        # template environment
-        env = jinja2.Environment(
+        # template environment; the templates render code (python, R, julia) and
+        # markdown/latex, not html, so html escaping would corrupt the output
+        env = jinja2.Environment(  # noqa: S701
             loader=jinja2.FileSystemLoader(template_dir),
             extensions=[],
             trim_blocks=True,
@@ -992,9 +993,7 @@ class SBML2ODE:
             """
             d: dict[str, libsbml.ASTNode | str | float] = {}
 
-            for key in ast_dict:
-                astnode = ast_dict[key]
-
+            for key, astnode in ast_dict.items():
                 if not astnode:
                     # constant rate
                     d[key] = 0
@@ -1069,7 +1068,7 @@ class SBML2ODE:
                     astnode.replaceArgument(key, ast_rep)
 
             # replacements dx_flat
-            for _x_id, astnode in dx_flat.items():
+            for astnode in dx_flat.values():
                 if isinstance(astnode, libsbml.ASTNode):
                     for key in reversed(self.yids_ordered):
                         ast_rep = y_flat[key]

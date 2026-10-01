@@ -30,7 +30,7 @@ def test_visualize_antimony_returns_network(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """visualize_antimony returns the value of visualize_sbml."""
-    monkeypatch.setattr(cytoscape, "visualize_sbml", lambda *a, **k: 7)
+    monkeypatch.setattr(cytoscape, "visualize_sbml", lambda *_a, **_k: 7)
     assert cytoscape.visualize_antimony("J0: S1 -> S2; k1*S1; S1 = 10; k1 = 0.1") == 7
 
 

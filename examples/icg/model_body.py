@@ -1,7 +1,6 @@
 """PKPD model for whole-body icg metabolism."""
 
 import logging
-import os
 from pathlib import Path
 from typing import Any
 
@@ -145,7 +144,7 @@ _m.submodels = [
 ]
 
 for emd in _m.external_model_definitions:
-    logger.info("%s (%s)", emd, os.path.abspath(emd.source))
+    logger.info("%s (%s)", emd, Path(emd.source).resolve())
 
 
 # -------------------------------------------------------------------------------------------------
@@ -1389,6 +1388,10 @@ for sid, sdict in SUBSTANCES_BODY.items():
 model_body = _m
 
 if __name__ == "__main__":
+    from sbmlutils import log
+
+    log.enable_rich_logging()
+
     results = create_model(
         model=model_body,
         filepath=Path.cwd() / f"{model_body.sid}.xml",

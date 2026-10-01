@@ -3,15 +3,12 @@
 alp(Vm) = abar / (1 + k1 * exp(-2 * d1 * 96.485 * Vm / 8.313424 / (310)) / c)
 """
 
+import logging
 import re
 
 import libsbml
 
-
-def ast_info(ast: libsbml.ASTNode) -> None:
-    """Print ASTNode information."""
-    print(ast)
-    print(ast.getType(), ast.getName())
+logger = logging.getLogger(__name__)
 
 
 def find_names_in_ast(
@@ -57,14 +54,6 @@ def replace_formula(
         g = formula[m.start() :]
         content = _top_bracket_content(g)
 
-        # debug information
-        # print("-" * 80)
-        # print("formula:\t", formula)
-        #
-        # print("match:", m.start(), m.group())
-        # print("g:", g)
-        # print("bracket_content: ", content)
-
         # replace with the new arguments
         # TODO: find the real number of arguments (if arguments are functions this calculation is wrong)
         n_args = len(content.split(","))
@@ -72,9 +61,6 @@ def replace_formula(
             old_phrase = fid + "(" + content + ")"
             new_phrase = fid + "(" + content + "," + ",".join(new_args) + ")"
             new_formula = new_formula.replace(old_phrase, new_phrase)
-        if False:
-            print("new_formula:\t", new_formula)
-            print("-" * 80)
 
     return new_formula
 
@@ -101,27 +87,3 @@ def _bracket_stack(s: str) -> dict[int, int]:
             toret[pstack.pop()] = i
 
     return toret
-
-
-if __name__ == "__main__":
-    # parse ast
-    formula = "abar / (1 + k1 * exp(-2 * d1 * 96.485 * Vm / 8.313424 / (310)) / c)"
-    ast = libsbml.parseL3Formula(formula)
-
-    # print info
-    ast_info(ast)
-
-    # iterate the ast
-    names = find_names_in_ast(ast)
-    print(names)
-    print(libsbml.AST_NAME)
-
-    print("------------------------")
-
-    # s = "vtest(v(a, b, c), x(a, b, c), d)*(abc)"
-    s = "hv(t-1,sharpness) - hv(t-2,sharpness) + (hv(t-5,sharpness) - hv(t-6,sharpness)))"
-    toret = _bracket_stack(s)
-    print(toret)
-    test = _top_bracket_content(s)
-    print("formula:", s)
-    print("content first top bracket:", test)

@@ -144,4 +144,8 @@ def create_omex(tmp_dir: Path | None = None) -> None:
 
 
 if __name__ == "__main__":
+    from sbmlutils import log
+
+    log.enable_rich_logging()
+
     create_omex()

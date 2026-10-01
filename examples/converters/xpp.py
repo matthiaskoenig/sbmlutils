@@ -64,6 +64,10 @@ def example(model_id: str, output_dir: Path) -> Figure:
 
 
 if __name__ == "__main__":
+    from sbmlutils import log
+
+    log.enable_rich_logging()
+
     output = Path.cwd()
     figure = example(model_id="PLoSCompBiol_Fig1", output_dir=output)
     figure_path = output / "PLoSCompBiol_Fig1.png"

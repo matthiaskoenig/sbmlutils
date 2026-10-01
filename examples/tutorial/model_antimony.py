@@ -61,6 +61,10 @@ model_antimony: str = """
 
 
 if __name__ == "__main__":
+    from sbmlutils import log
+
+    log.enable_rich_logging()
+
     # visualize the model
     visualize_antimony(source=model_antimony, delete_session=True)
 

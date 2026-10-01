@@ -106,7 +106,8 @@ def _sbml(formula: str, name: str = "species A", sid: str = "A") -> str:
 def _import(path: Path) -> ModuleType:
     """Import the python module written to the given path."""
     spec = importlib.util.spec_from_file_location(path.stem, path)
-    assert spec and spec.loader
+    assert spec
+    assert spec.loader
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -120,7 +121,8 @@ def test_python_name_does_not_leave_comment(tmp_path: Path) -> None:
     # every line with injected text is a comment line
     for line in code.splitlines():
         if "INJECTED" in line:
-            assert "#" in line and line.index("#") < line.index("INJECTED"), line
+            assert "#" in line, line
+            assert line.index("#") < line.index("INJECTED"), line
 
     # the module holds only the statements of the template
     tree = ast.parse(code)
@@ -245,7 +247,10 @@ def test_species_without_compartment_is_no_invalid_sid(language: str) -> None:
     try:
         convert()
     except ValueError as err:
-        assert "SId" not in str(err), err
+        message = str(err)
+    else:
+        message = ""
+    assert "SId" not in message, message
 
 
 def test_python_local_parameter_is_not_supported() -> None:

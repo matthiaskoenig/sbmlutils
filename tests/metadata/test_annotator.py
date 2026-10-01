@@ -192,14 +192,46 @@ def test_demo_annotation(tmp_path: Path) -> None:
             assert len(cvterms) == 1
 
 
+def _annotated_elements(doc: libsbml.SBMLDocument) -> list[str]:
+    """Collect the ids of the elements of a document which carry a CVTerm.
+
+    Args:
+        doc: the SBML document
+
+    Returns:
+        the ids of the annotated elements
+    """
+    elements: libsbml.SBaseList = doc.getListOfAllElements()
+    return [
+        element.getId()
+        for element in elements
+        if isinstance(element, libsbml.SBase) and element.getNumCVTerms() > 0
+    ]
+
+
 def test_galactose_annotation(tmp_path: Path) -> None:
-    """Annotate the galactose network."""
+    """Annotate the galactose network from the annotations of a spreadsheet."""
+    assert (
+        _annotated_elements(read_sbml(GALACTOSE_SINGLECELL_SBML_NO_ANNOTATIONS)) == []
+    )
+
     tmp_sbml_path = tmp_path / "sbml_annotated.xml"
     annotator.annotate_sbml(
         GALACTOSE_SINGLECELL_SBML_NO_ANNOTATIONS,
         annotations_path=GALACTOSE_ANNOTATIONS,
         filepath=tmp_sbml_path,
     )
+
+    doc: libsbml.SBMLDocument = read_sbml(source=tmp_sbml_path)
+    assert len(_annotated_elements(doc)) > 100
+    model: libsbml.Model = doc.getModel()
+    taxa = [
+        cvterm.getResourceURI(k)
+        for cvterm in model.getCVTerms()
+        if cvterm.getBiologicalQualifierType() == libsbml.BQB_HAS_TAXON
+        for k in range(cvterm.getNumResources())
+    ]
+    assert taxa == ["https://identifiers.org/taxonomy:9606"]
 
 
 def _written_resources(sbml_path: Path, sid: str) -> list[str]:
@@ -360,7 +392,7 @@ NORMALIZED_RESOURCES: list[tuple[str, str]] = [
 ]
 
 
-@pytest.mark.parametrize("resource, expected", NORMALIZED_RESOURCES)
+@pytest.mark.parametrize(("resource", "expected"), NORMALIZED_RESOURCES)
 def test_annotation_resource_of_a_known_collection_is_normalized(
     resource: str, expected: str, tmp_path: Path, caplog: pytest.LogCaptureFixture
 ) -> None:
@@ -424,7 +456,8 @@ def test_annotation_losses_are_reported_once_per_collection(
     assert f"'{UNKNOWN_COLLECTION}'" in warnings[0]
     assert f"'{OTHER_UNKNOWN_COLLECTION}'" in warnings[1]
     # each names how many resources of its collection were written as given
-    assert warnings[0].startswith("3 ") and warnings[1].startswith("2 ")
+    assert warnings[0].startswith("3 ")
+    assert warnings[1].startswith("2 ")
     # each names an example resource of its own collection
     assert f"'urn:miriam:{UNKNOWN_COLLECTION}'" in warnings[0]
     assert f"'urn:miriam:{OTHER_UNKNOWN_COLLECTION}'" in warnings[1]
@@ -456,9 +489,11 @@ def test_annotation_losses_do_not_leak_between_documents(
             record.getMessage() for record in _annotator_records(caplog, "WARNING")
         ]
 
-    assert len(first) == 1 and first[0].startswith("3 ")
+    assert len(first) == 1
+    assert first[0].startswith("3 ")
     assert f"'{UNKNOWN_COLLECTION}'" in first[0]
-    assert len(second) == 1 and second[0].startswith("2 ")
+    assert len(second) == 1
+    assert second[0].startswith("2 ")
     assert f"'{OTHER_UNKNOWN_COLLECTION}'" in second[0]
 
 
@@ -477,7 +512,8 @@ def test_annotation_loss_without_a_collection_is_grouped_as_such(
 
     warnings = [record.getMessage() for record in _annotator_records(caplog, "WARNING")]
     assert len(warnings) == 1, caplog.text
-    assert warnings[0].startswith("2 ") and "'<no collection>'" in warnings[0], warnings
+    assert warnings[0].startswith("2 "), warnings
+    assert "'<no collection>'" in warnings[0], warnings
 
 
 def test_annotation_loss_outside_a_document_is_reported_per_resource(
@@ -510,3 +546,27 @@ def test_annotate_sbml_doc_raises_for_a_document_without_a_model() -> None:
     doc = libsbml.SBMLDocument(3, 2)
     with pytest.raises(ValueError, match="without a model cannot be annotated"):
         annotator.annotate_sbml_doc(doc, [])
+
+
+@pytest.mark.parametrize(
+    "annotations_path",
+    [
+        pytest.param(None, id="directory"),
+        pytest.param(Path("a" * 5000 + ".xlsx"), id="name-too-long"),
+    ],
+)
+def test_annotate_sbml_requires_an_annotation_file(
+    tmp_path: Path, annotations_path: Path | None
+) -> None:
+    """Test that a path which is not a file is reported as a missing annotation file.
+
+    A directory passed the check for existence and failed later on its empty
+    suffix as an unsupported annotation format, and before python 3.14 a name
+    longer than the file system allows raised `File name too long`.
+    """
+    with pytest.raises(OSError, match="Annotation file does not exist"):
+        annotator.annotate_sbml(
+            GALACTOSE_SINGLECELL_SBML_NO_ANNOTATIONS,
+            annotations_path=annotations_path or tmp_path,
+            filepath=tmp_path / "annotated.xml",
+        )

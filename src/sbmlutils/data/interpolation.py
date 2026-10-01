@@ -207,9 +207,9 @@ class Interpolator:
             b[j] = (a[j + 1] - a[j]) / h[j] - (h[j] * (c[j + 1] + 2 * c[j])) / 3
             d[j] = (c[j + 1] - c[j]) / (3 * h[j])
         # store coefficients
-        coeffs: list[tuple[float, float, float, float]] = []
-        for i in range(n):
-            coeffs.append((a[i], b[i], c[i], d[i]))
+        coeffs: list[tuple[float, float, float, float]] = [
+            (a[i], b[i], c[i], d[i]) for i in range(n)
+        ]
         return coeffs
 
     @staticmethod

@@ -26,8 +26,16 @@ exclude = ["misc", "presentations", ".claude"]
 #   G    logging format, lazy `%s` instead of f-strings
 #   PIE  misc lints
 #   RUF  ruff specific rules
+#   PERF performance anti-patterns
+#   PTH  pathlib instead of os.path and open
+#   ARG  unused arguments
+#   S    bandit security checks
+#   PT   pytest style
+#   TRY201, PLW0120, PLC0206: verbose raise, `else` on a loop without break,
+#        dict access without `.items()`
 select = [
     "E4", "E7", "E9", "F", "W", "I", "D", "UP", "B", "C4", "SIM", "RET", "G", "PIE", "RUF",
+    "PERF", "PTH", "ARG", "S", "PT", "TRY201", "PLW0120", "PLC0206",
 ]
 ignore = [
     # names such as `König` are not ambiguous unicode, they are german
@@ -47,7 +55,17 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 # a model definition is written against the names of `sbmlutils.factory`, which
 # are imported with a star import; this is the documented style of the examples
 "examples/**" = ["F403", "F405"]
-"tests/**" = ["F403", "F405"]
+"tests/**" = [
+    "F403",
+    "F405",
+    # pytest asserts, and the tests run the repository scripts in subprocesses
+    "S101",
+    "S603",
+]
+# subprocess with fixed arguments, run from the repository
+"scripts/**" = ["S603"]
+# a random network for the tutorial, not security relevant
+"examples/tutorial/random_network.py" = ["S311"]
 
 [format]
 # Like Black, use double quotes for strings.
