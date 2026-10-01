@@ -327,6 +327,21 @@ class UnitDefinition(Sbase):
             # meaningless name, and a unit kind is a number
             self.name = self.definition
 
+    def __repr__(self) -> str:
+        """Get the string representation of the unit definition.
+
+        The representation is deterministic, the API reference renders the
+        default unit of the elements with it. A libsbml unit kind is shown by
+        the name of its constant.
+        """
+        if self.units is not None:
+            return f"UnitDefinition({self.sid!r}, units={self.units!r})"
+        if isinstance(self.definition, int):
+            constant = f"UNIT_KIND_{libsbml.UnitKind_toString(self.definition).upper()}"
+            if getattr(libsbml, constant, None) == self.definition:
+                return f"UnitDefinition({self.sid!r}, libsbml.{constant})"
+        return f"UnitDefinition({self.sid!r}, {self.definition!r})"
+
     def create_sbml(self, model: libsbml.Model) -> libsbml.UnitDefinition | None:
         """Create libsbml.UnitDefinition.
 

@@ -1,5 +1,6 @@
 """Testing the factory methods."""
 
+import inspect
 import logging
 import os
 import re
@@ -359,6 +360,50 @@ def test_unit_definition_non_pint_sid() -> None:
     udef.create_sbml(model)
 
     assert model.getUnitDefinition("substance") is not None
+
+
+@pytest.mark.parametrize(
+    ("udef", "expected"),
+    [
+        (
+            UnitDefinition("mmole_per_min", "mmole/min"),
+            "UnitDefinition('mmole_per_min', 'mmole/min')",
+        ),
+        (UnitDefinition("mM"), "UnitDefinition('mM', 'mM')"),
+        (
+            UnitDefinition("l", libsbml.UNIT_KIND_LITRE),
+            "UnitDefinition('l', libsbml.UNIT_KIND_LITRE)",
+        ),
+        (
+            UnitDefinition("x", libsbml.UNIT_KIND_INVALID),
+            f"UnitDefinition('x', {libsbml.UNIT_KIND_INVALID})",
+        ),
+        (
+            UnitDefinition(
+                "per_s", units=[Unit(libsbml.UNIT_KIND_SECOND, exponent=-1.0)]
+            ),
+            f"UnitDefinition('per_s', units=[Unit({libsbml.UNIT_KIND_SECOND}, "
+            "exponent=-1.0, scale=0, "
+            "multiplier=1.0)])",
+        ),
+    ],
+)
+def test_unit_definition_repr(udef: UnitDefinition, expected: str) -> None:
+    """Test that the repr of a unit definition is deterministic and readable.
+
+    The API reference renders the default unit of the elements with it, which
+    must not change from one build to the next.
+    """
+    assert repr(udef) == expected
+
+
+def test_default_unit_in_signature_has_no_address() -> None:
+    """Test that the default unit of a signature is rendered without address."""
+    signature = str(inspect.signature(AssignmentRule))
+    assert "UnitDefinition('dimensionless', libsbml.UNIT_KIND_DIMENSIONLESS)" in (
+        signature
+    )
+    assert " at 0x" not in signature
 
 
 def test_model_units_accepts_list() -> None:
