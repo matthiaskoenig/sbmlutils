@@ -1,6 +1,9 @@
 """Test the SBML to antimony conversion."""
 
+import logging
 from pathlib import Path
+
+import pytest
 
 from sbmlutils.io.antimony import sbml_to_antimony
 from sbmlutils.parser import antimony_to_sbml
@@ -26,3 +29,60 @@ def test_sbml_to_antimony_from_string(tmp_path: Path) -> None:
     assert "model" in ant_str
     assert "J0:" in ant_str
     assert "S1 -> S2" in ant_str
+
+
+def test_antimony_to_sbml_valid_logs_no_error(caplog: pytest.LogCaptureFixture) -> None:
+    """Valid antimony is converted without an error being logged."""
+    with caplog.at_level(logging.ERROR, logger="sbmlutils"):
+        sbml_str = antimony_to_sbml("model m\n S1 = 1\nend")
+    assert "<sbml" in sbml_str
+    assert [r for r in caplog.records if r.levelno >= logging.ERROR] == []
+
+
+def test_antimony_to_sbml_invalid_raises() -> None:
+    """Invalid antimony raises a ValueError with the antimony error."""
+    with pytest.raises(ValueError, match="syntax error"):
+        antimony_to_sbml("model m\n S1 -> -> ;;; =\nend")
+
+
+def test_antimony_to_sbml_str_path_with_model_in_name(tmp_path: Path) -> None:
+    """A string path of an existing file is read as file, even with 'model' in it."""
+    path = tmp_path / "my_model.ant"
+    path.write_text("model m\n S1 = 1\nend", encoding="utf-8")
+    assert "<sbml" in antimony_to_sbml(str(path))
+    assert "<sbml" in antimony_to_sbml(path)
+
+
+def test_antimony_to_sbml_string_without_model_keyword() -> None:
+    """Antimony content without the 'model' keyword is content, not a path."""
+    sbml_str = antimony_to_sbml("J0: S1 -> S2; k1*S1; S1 = 10; S2 = 0; k1 = 0.1")
+    assert "J0" in sbml_str
+
+
+def test_antimony_to_sbml_missing_path_raises(tmp_path: Path) -> None:
+    """A Path which does not exist raises a FileNotFoundError."""
+    with pytest.raises(FileNotFoundError):
+        antimony_to_sbml(tmp_path / "missing.ant")
+
+
+def test_antimony_to_sbml_missing_file_name() -> None:
+    """A string which looks like a file name and names no file is a missing file."""
+    with pytest.raises(FileNotFoundError, match=r"model\.ant"):
+        antimony_to_sbml("model.ant")
+
+
+def test_antimony_to_sbml_long_content_the_file_system_rejects(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Content the file system rejects as a path is content, it does not crash.
+
+    Before python 3.14 `Path.is_file()` raises `OSError: [Errno 36] File name
+    too long` for a long string instead of answering `False`, emulated here.
+    """
+
+    def raise_name_too_long(self: Path) -> bool:
+        raise OSError(36, "File name too long", str(self))
+
+    monkeypatch.setattr(Path, "is_file", raise_name_too_long)
+    content = "J0: S1 -> S2; k1*S1; S1 = 10; S2 = 0; k1 = 0.1\n" + "// x\n" * 1000
+    assert "J0" in antimony_to_sbml(content)

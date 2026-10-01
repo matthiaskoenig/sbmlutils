@@ -23,6 +23,64 @@ short_names = {
 }
 
 
+#: units which are named for a multiple of an SBML base unit, as
+#: (kind, factor, name); a factor is compared to the unit, never the text
+_NAMED_UNITS: list[tuple[str, float, str]] = [
+    ("second", 60.0, "min"),
+    ("second", 3600.0, "hr"),
+    ("second", 86400.0, "day"),
+    ("metre", 0.01, "cm"),
+]
+
+
+def _unit_term_to_string(factor: float, kind: str) -> str:
+    """Render a unit term `factor * kind` without its exponent.
+
+    A factor which names a unit of its own (60 second is `min`) is rendered by
+    that name. Otherwise the term is brought to the closest SI prefix and a
+    magnitude which is not 1 is kept as a number in front of the unit,
+    `160 s` or `2.1 g`. A dimensionless term is rendered by its magnitude
+    only, and by the empty string if that is 1.
+
+    Args:
+        factor: the multiplier times ten to the power of the scale of the unit
+        kind: the SBML unit kind, as `libsbml.UnitKind_toString` names it
+
+    Returns:
+        the short string of the term
+    """
+    for named_kind, named_factor, name in _NAMED_UNITS:
+        if kind == named_kind and np.isclose(factor, named_factor):
+            return name
+
+    term = Q_(factor, kind)
+    with contextlib.suppress(KeyError):
+        term = term.to_compact()
+
+    unit = f"{term.units:~}"
+    magnitude = float(term.magnitude)
+    if np.isclose(magnitude, 1.0):
+        return unit
+    number = f"{magnitude:g}"
+    return f"{number} {unit}" if unit else number
+
+
+def _group(term: str, left: str, right: str) -> str:
+    """Enclose a term which consists of a magnitude and a unit in brackets.
+
+    Args:
+        term: the rendered unit term, e.g. `160 s` or `(2.1 g)^2`
+        left: the opening bracket
+        right: the closing bracket
+
+    Returns:
+        the term, enclosed if it has a magnitude which is not yet enclosed
+    """
+    if " " in term and not term.startswith("("):
+        return f"{left}{term}{right}"
+    return term
+
+
 def udef_to_string(
     udef: libsbml.UnitDefinition | str | None,
     model: libsbml.Model | None = None,
@@ -56,67 +114,61 @@ def udef_to_string(
     else:
         ud = udef
 
-    # collect nominators and denominators
-    nom: str = ""
-    denom: str = ""
+    # collect the terms of the nominator and the denominator
+    noms: list[str] = []
+    denoms: list[str] = []
     if ud:
         for u in ud.getListOfUnits():
             m = u.getMultiplier()
             s: int = u.getScale()
-            e = u.getExponent()
+            # a Level 3 exponent is a double, e.g. s^0.5
+            e = u.getExponentAsDouble()
             k = libsbml.UnitKind_toString(u.getKind())
 
-            # (m * 10^s *k)^e
-            # parse with pint
-            term = Q_(float(m) * 10**s, k) ** float(abs(e))
-            with contextlib.suppress(KeyError):
-                term = term.to_compact()
+            # (m * 10^s * k)^e
+            us = _unit_term_to_string(factor=float(m) * 10**s, kind=k)
+            if not us or e == 0.0:
+                continue
+            if abs(e) != 1.0:
+                exponent = f"{abs(e):g}"
+                # the exponent applies to the magnitude as well: (2.1 g)^2
+                us = f"({us})^{exponent}" if " " in us else f"{us}^{exponent}"
 
-            if np.isclose(term.magnitude, 1.0):
-                term = Q_(1, term.units)
+            (noms if e > 0.0 else denoms).append(us)
 
-            us = f"{term:~}"  # short formating
-            # handle min and hr
-            us = us.replace("60.0 s", "1 min")
-            us = us.replace("3600.0 s", "1 hr")
-            us = us.replace("3.6 ks", "1 hr")
-            us = us.replace("86.4 ks", "1 day")
-            us = us.replace("10.0 mm", "1 cm")
-
-            # remove 1.0 prefixes
-            us = us.replace("1 ", "")
-            # exponent
-            us = us.replace(" ** ", "^")
-
-            if e >= 0.0:
-                nom = us if nom == "" else f"{nom}*{us}"
-            else:
-                denom = us if denom == "" else f"{denom}*{us}"
-
-    else:
-        nom = "-"
-
-    if format == "str":
-        denom = denom.replace("*", "/")
+    if not ud:
+        ustr = "-"
+    elif format == "str":
+        # a term with a magnitude is one term, mmol/(160 s) or 1/(160 s)
+        if len(noms) > 1 or denoms:
+            noms = [_group(t, "(", ")") for t in noms]
+            denoms = [_group(t, "(", ")") for t in denoms]
+        nom = "*".join(noms)
+        denom = "/".join(denoms)
         if nom and denom:
             ustr = f"{nom}/{denom}"
-        elif nom and not denom:
+        elif nom:
             ustr = nom
-        elif not nom and denom:
+        elif denom:
             ustr = f"1/{denom}"
-        elif not nom and not denom:
+        else:
             ustr = "-"
 
     elif format == "latex":
-        nom = nom.replace("*", " \\cdot ")
-        denom = denom.replace("*", " \\cdot ")
+        # the fraction groups nominator and denominator, a product does not
+        if len(noms) > 1:
+            noms = [_group(t, "\\left(", "\\right)") for t in noms]
+        if len(denoms) > 1:
+            denoms = [_group(t, "\\left(", "\\right)") for t in denoms]
+        nom = " \\cdot ".join(noms)
+        denom = " \\cdot ".join(denoms)
         if nom and denom:
             ustr = f"\\frac{{{nom}}}{{{denom}}}"
-        elif nom and not denom:
+        elif nom:
             ustr = nom
-        elif not nom and denom:
+        elif denom:
             ustr = f"\\frac{{1}}{{{denom}}}"
-        elif not nom and not denom:
+        else:
             ustr = "-"
     else:
         raise ValueError

@@ -162,9 +162,9 @@ def roundtrip_comp_document(sbml_path: Path, out_dir: Path) -> Path:
 
 
 def flatten(sbml_path: Path, flat_path: Path) -> Path:
-    """Flatten a comp document from an absolute path.
+    """Flatten a comp document.
 
-    `sbmlutils.comp.flatten_sbml` changes the working directory to the directory of the file, so that libsbml resolves a `comp:source` relative to it, which is why both paths are made absolute before the call: a relative output path would be written relative to the source directory instead of the one the caller means.
+    libsbml resolves a `comp:source` relative to the directory of the file which names it, a relative path is relative to the working directory.
 
     Args:
         sbml_path: path of the comp SBML file
@@ -176,7 +176,7 @@ def flatten(sbml_path: Path, flat_path: Path) -> Path:
     Raises:
         ValueError: if libsbml cannot flatten the document
     """
-    flatten_sbml(sbml_path.resolve(), flat_path.resolve())
+    flatten_sbml(sbml_path, flat_path)
     return flat_path
 
 

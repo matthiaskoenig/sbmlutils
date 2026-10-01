@@ -111,3 +111,75 @@ def test_modifiers_keep_sbase_fields() -> None:
         modifiers=[EquationPart(species="M1", metaId="mod1", sboTerm="SBO:0000019")],
     )
     assert equation.modifiers[0].metaId == "mod1"
+
+
+def test_scientific_stoichiometry() -> None:
+    """A stoichiometry in scientific notation is one number, not two sides."""
+    equation = ReactionEquation.from_str("1e-3 A + 2.5E+2 B => C")
+    assert [(r.stoichiometry, r.species) for r in equation.reactants] == [
+        (1e-3, "A"),
+        (250.0, "B"),
+    ]
+    assert [p.species for p in equation.products] == ["C"]
+
+
+def test_plus_without_spaces() -> None:
+    """Species joined by a '+' without whitespace are still separate species."""
+    equation = ReactionEquation.from_str("A+2 B => C")
+    assert [(r.stoichiometry, r.species) for r in equation.reactants] == [
+        (1.0, "A"),
+        (2.0, "B"),
+    ]
+
+
+@pytest.mark.parametrize(
+    "equation",
+    [
+        "A => B => C",
+        "A <=> B => C",
+        "A => B <=> C",
+        "A <=> B <=> C",
+        "A -> B -> C",
+    ],
+)
+def test_more_than_two_sides(equation: str) -> None:
+    """An equation with more than one separator is rejected, never truncated."""
+    with pytest.raises(ValueError, match="left and right side"):
+        ReactionEquation.from_str(equation)
+
+
+def test_modifiers_in_one_list() -> None:
+    """The modifiers of a single list at the end are all read."""
+    equation = ReactionEquation.from_str("A => B [M1, M2]")
+    assert [m.species for m in equation.modifiers] == ["M1", "M2"]
+    assert [p.species for p in equation.products] == ["B"]
+
+
+@pytest.mark.parametrize(
+    "equation",
+    [
+        "A => B [M1] [M2]",
+        "A => B [M1] C",
+        "A [M1] => B",
+        "A => B [M1",
+        "A => B M1]",
+    ],
+)
+def test_invalid_modifier_list(equation: str) -> None:
+    """Anything but a single modifier list at the end is rejected."""
+    with pytest.raises(ValueError, match="Modifier list"):
+        ReactionEquation.from_str(equation)
+
+
+@pytest.mark.parametrize("equation", ["A + => B", "A => + B", "A + + B => C"])
+def test_empty_part(equation: str) -> None:
+    """A '+' without a species on both sides is rejected."""
+    with pytest.raises(ValueError, match="must separate two species"):
+        ReactionEquation.from_str(equation)
+
+
+@pytest.mark.parametrize("equation", ["A - B => C", "-1 A => B", "A => 2 B - C"])
+def test_minus_rejected(equation: str) -> None:
+    """A '-' is no separator of parts and no sign of a stoichiometry."""
+    with pytest.raises(ValueError, match="'-' and negative"):
+        ReactionEquation.from_str(equation)

@@ -34,7 +34,7 @@ interpolation = Interpolation.from_tsv("data.tsv")
 
 ## The methods
 
-The methods are the module constants of `sbmlutils.data.interpolation`:
+The methods are the members of the `InterpolationMethod` string enum of `sbmlutils.data.interpolation`, also available as the module constants below. A plain string like `"linear"` is accepted too, an unknown method raises a `ValueError`:
 
 | method | value | what it does |
 | --- | --- | --- |
@@ -44,7 +44,7 @@ The methods are the module constants of `sbmlutils.data.interpolation`:
 
 All three go exactly through the data points; they differ in what happens between them. The formulas are piecewise expressions over the independent variable, so the model is valid SBML which any simulator evaluates.
 
-The data is checked when the `Interpolation` is created: it needs at least two columns and three rows, and the first column has to be ascending. A table which is not sorted is sorted, with a warning.
+The data is checked when the `Interpolation` is created: it needs at least two columns and three rows, and the first column has to be ascending. A table which is not sorted is sorted, with a warning. The first column is named `time` to interpolate over the simulation time.
 
 ## Simulating an interpolation
 

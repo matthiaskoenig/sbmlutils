@@ -1,6 +1,6 @@
 # Reading and writing
 
-`sbmlutils.io` wraps the libsbml reader and writer, so a model is read from a path, a string or a URL and written with the metadata SBML expects.
+`sbmlutils.io` wraps the libsbml reader and writer, so a model is read from a path or a string and written with the metadata SBML expects.
 
 ## Reading
 
@@ -9,10 +9,9 @@ from sbmlutils.io import read_sbml
 
 doc = read_sbml("model.xml")  # a path
 doc = read_sbml(sbml_str)  # an SBML string
-doc = read_sbml("https://.../model.xml")  # a URL
 ```
 
-`read_sbml` returns a libsbml `SBMLDocument`. It validates on request:
+`read_sbml` returns a libsbml `SBMLDocument`. A source which cannot be read, a file which cannot be opened or content which is not well-formed XML, raises a `ValueError` with the errors libsbml reported. A document without a model is returned as it is, and the errors of a document which was read are logged. It validates on request:
 
 ```python
 from sbmlutils.validation import ValidationOptions
@@ -24,7 +23,9 @@ doc = read_sbml(
 )
 ```
 
-Compressed files are read as they are: a `.xml.gz` path is decompressed transparently.
+Compressed files are read as they are: a `.gz`, `.bz2` or `.zip` path is decompressed transparently, as libsbml does it.
+
+Files are read and written by libsbml. libsbml cannot open a path with a non-ASCII character on Windows, so such a path is read and written by python and libsbml only parses and serializes the SBML; any path works on every platform. The python fallback reads UTF-8, the encoding SBML requires. The one file libsbml still opens itself is the file of a comp external model definition, see [comp](comp.md#flattening).
 
 ## Writing
 
@@ -35,7 +36,7 @@ write_sbml(doc, filepath="model.xml")
 sbml_str = write_sbml(doc, filepath=None)  # returns the SBML as a string
 ```
 
-`write_sbml` records how the file was created in the notes of the document, and validates the result when asked to.
+`write_sbml` records how the file was created in the notes of the document, and validates the result when asked to. A `.gz`, `.bz2` or `.zip` path is compressed, as libsbml does it.
 
 The parent directory of `filepath` is created if it does not exist, and a write which fails all the same raises an `OSError` naming the path: a caller who asks for a file and gets none must not be told that the model is valid. This is about the file, not about the validation results, which are reported and never block.
 

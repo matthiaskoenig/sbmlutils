@@ -12,7 +12,7 @@ print(results.error_count, results.warning_count, results.all_count)
 print(results.is_valid())
 ```
 
-`validate_sbml` accepts a path, an SBML string or an `SBMLDocument` and returns a `ValidationResult` with the errors and warnings and a count of each severity. `validate_doc` does the same for a document which is already read.
+`validate_sbml` accepts a path or an SBML string and returns a `ValidationResult` with the errors and warnings and a count of each severity. Validation reports, it never raises for the content: a source which cannot be read as SBML, e.g. malformed XML, gives a result with the read errors. Only a path which does not exist raises a `FileNotFoundError`. `validate_doc` does the same for an `SBMLDocument` which is already read.
 
 ## Consistency checks
 

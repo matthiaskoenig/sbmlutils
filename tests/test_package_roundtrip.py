@@ -3331,7 +3331,7 @@ def test_roundtrip_does_not_inline_an_external_model_definition(
 
     An external model definition names a model in another file, and the round trip preserves that reference rather than resolving it. The file here does exist and its model holds a parameter of a telltale id, so a round trip which read it and wrote its content into the document, in a `<comp:modelDefinition>` or inline, would be caught by the id turning up in the file written.
 
-    That libsbml itself opens no file cannot be asserted from python: it reads and writes through `libsbml.readSBMLFromFile` and `libsbml.writeSBMLToFile`, whose file IO happens in C++ and passes no python file API, so a spy on `open` records nothing whatever libsbml does and could never fail. What the round trip writes is the observable half, and it is what this test and `test_roundtrip_keeps_an_external_model_definition_whose_source_is_missing` assert between them.
+    That libsbml itself opens no file cannot be asserted from python: libsbml resolves an external model definition by opening its file in C++, which passes no python file API, so a spy on `open` records nothing whatever libsbml does and could never fail. What the round trip writes is the observable half, and it is what this test and `test_roundtrip_keeps_an_external_model_definition_whose_source_is_missing` assert between them.
     """
     external_path = _external_model_sbml(tmp_path)
     sbml_path = _external_sbml(tmp_path, external_path.name)
@@ -3480,7 +3480,7 @@ def test_roundtrip_of_an_l3v1_comp_model_validates_at_its_own_version(
 ) -> None:
     """Test what libsbml makes of an external model definition of another version.
 
-    `COMP_ICG_BODY` is an L3V1 document whose liver submodel is the L3V1 file `icg_liver.xml` next to it. Written at L3V1, with that file beside it, the round trip validates without an error. Written at L3V2, libsbml refuses to resolve the reference, error 1020304 (`External models must be L3`, whose message says the document found at the source "was not SBML Level 3 Version 1"), and the submodel which names it is then unresolvable as well, error 1020615: libsbml requires the referenced document at the level and version of the document which references it. The round trip preserves the reference and does not touch the file it names, so the level of the document written is what decides this, and a caller who needs the reference to resolve writes the level of the source.
+    `COMP_ICG_BODY` is an L3V1 document whose liver submodel is the L3V1 file `icg_liver.xml` next to it. Written at L3V1, with that file beside it, the round trip validates without an error. Written at L3V2, libsbml refuses to resolve the reference, error 1020304 (`External models must be L3`, whose message says the document found at the source "was not SBML Level 3 Version 1"), and the submodel which names it is then unresolvable as well, error 1020615 (and the flattening fails, error 1090104): libsbml requires the referenced document at the level and version of the document which references it. The round trip preserves the reference and does not touch the file it names, so the level of the document written is what decides this, and a caller who needs the reference to resolve writes the level of the source.
     """
     shutil.copy(COMP_ICG_BODY.parent / "icg_liver.xml", tmp_path / "icg_liver.xml")
     model = sbml_to_model(COMP_ICG_BODY)
@@ -3501,7 +3501,8 @@ def test_roundtrip_of_an_l3v1_comp_model_validates_at_its_own_version(
         errors[version] = sorted({error.getErrorId() for error in result.errors})
 
     assert errors[1] == []
-    assert errors[2] == [1020304, 1020615]
+    # the flattening which cannot resolve the reference fails as well, 1090104
+    assert errors[2] == [1020304, 1020615, 1090104]
 
 
 def _key_value_pair_metadata_model() -> Model:

@@ -20,44 +20,58 @@ def add_default_flux_bounds(
 ) -> None:
     """Add default flux bounds to SBMLDocument.
 
+    The bounds are the parameters `lower` and `upper`, which are set on every
+    reaction without a bound. An id which exists in the model already is kept
+    as it is, the bound then gets the first free id `lower_1`, `lower_2`, ...
+
     :param doc: SBMLDocument
     :param lower: lower flux bound
     :param upper: upper flux bound
     :return:
     """
-    model = doc.getModel()
+    model: libsbml.Model = doc.getModel()
 
-    def create_bound(sid: str, value: float) -> libsbml.Parameter:
+    def create_bound(sid: str, value: float) -> str:
         """Create flux bound parameter with given value.
 
-        :param sid: id of parameter
-        :param value: flux bound
-        :return:
+        Args:
+            sid: preferred id of the parameter
+            value: flux bound
+
+        Returns:
+            the id of the created parameter, `sid` or the first free
+            `<sid>_<k>`
         """
-        p = model.createParameter()
-        p.setId(sid)
+        bound_id = sid
+        k = 0
+        while model.getElementBySId(bound_id) is not None:
+            k += 1
+            bound_id = f"{sid}_{k}"
+
+        p: libsbml.Parameter = model.createParameter()
+        p.setId(bound_id)
         p.setValue(value)
-        p.setName(f"{sid} flux bound")
+        p.setName(f"{bound_id} flux bound")
         p.setSBOTerm("SBO:0000626")  # default flux bound
         p.setConstant(True)
-        return p
+        return bound_id
 
-    # FIXME: overwrites lower/upper parameter (you should check if existing in model)
-    create_bound(sid="lower", value=lower)
-    create_bound(sid="upper", value=upper)
+    lower_id = create_bound(sid="lower", value=lower)
+    upper_id = create_bound(sid="upper", value=upper)
 
-    for r in model.reactions:
-        rfbc = r.getPlugin("fbc")
+    for k in range(model.getNumReactions()):
+        rfbc = model.getReaction(k).getPlugin("fbc")
         if not rfbc.isSetLowerFluxBound():
-            rfbc.setLowerFluxBound("lower")
+            rfbc.setLowerFluxBound(lower_id)
         if not rfbc.isSetUpperFluxBound():
-            rfbc.setUpperFluxBound("upper")
+            rfbc.setUpperFluxBound(upper_id)
 
 
 def set_boundary_conditions_false(doc: libsbml.SBMLDocument) -> None:
     """Set all boundaryConditions to False in the model."""
-    model = doc.getModel()
-    for s in model.species:
-        if s.boundary_condition:
+    model: libsbml.Model = doc.getModel()
+    for k in range(model.getNumSpecies()):
+        s: libsbml.Species = model.getSpecies(k)
+        if s.getBoundaryCondition():
             warnings.warn(f"boundaryCondition changed {s}", stacklevel=1)
             s.setBoundaryCondition(False)

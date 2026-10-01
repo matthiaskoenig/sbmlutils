@@ -8,14 +8,16 @@ Equations are of the form
 
 The equation consists of
 - substrates concatenated via '+' on the left side
-  (with optional stoichiometric coefficients)
+  (with optional stoichiometric coefficients, which may be written in
+  scientific notation like '1e-3')
 - separation characters separating the left and right equation sides:
   '<=>' or '<->' for reversible reactions,
   '=>' or '->' for irreversible reactions (irreversible reactions
   are written from left to right)
 - products concatenated via '+' on the right side
   (with optional stoichiometric coefficients)
-- optional list of modifiers within brackets [] separated by ','
+- optional list of modifiers within brackets [] separated by ',' at the
+  end of the equation
 
 Examples of valid equations are:
     '1.0 S1 + 2 S2 => 2.0 P1 + 2 P2 [M1, M2]',
@@ -81,7 +83,13 @@ class EquationPart:
 
 REVERSIBILITY_PATTERN: Final = r"<[-=]>"
 IRREVERSIBILITY_PATTERN: Final = r"[-=]>"
-MODIFIER_PATTERN: Final = r"\[.*\]"
+#: any separator of the two sides, reversible or irreversible
+SEPARATOR_PATTERN: Final = r"<?[-=]>"
+#: the single modifier list, which closes the equation
+MODIFIER_PATTERN: Final = r"\[([^\[\]]*)\]\s*$"
+#: the '+' between the parts of a side, but not the sign of an exponent
+#: of a stoichiometry in scientific notation like '2.5e+2'
+PART_SEPARATOR_PATTERN: Final = r"(?<![0-9.][eE])\+|\+(?!\d)"
 REVERSIBILITY_SEPARATOR: Final = r"<=>"
 IRREVERSIBILITY_SEPARATOR: Final = r"=>"
 
@@ -89,8 +97,8 @@ IRREVERSIBILITY_SEPARATOR: Final = r"=>"
 class ReactionEquation:
     """Representation of stoichiometric equations with modifiers."""
 
-    class EquationException(Exception):
-        """Exception in Equation."""
+    class EquationException(ValueError):
+        """Exception in Equation, an invalid equation string."""
 
     def __init__(
         self,
@@ -125,53 +133,39 @@ class ReactionEquation:
         if not equation_str or len(equation_str) == 0:
             return
 
-        # get modifiers and remove from equation string
-        mod_list = re.findall(MODIFIER_PATTERN, equation_str)
-        if len(mod_list) == 1:
-            self._parse_modifiers(mod_list[0])
-            tokens = equation_str.split("[")
-            equation_str = tokens[0].strip()
-        elif len(mod_list) > 1:
+        # get the modifiers, a single list which closes the equation
+        full_str = equation_str
+        match = re.search(MODIFIER_PATTERN, equation_str)
+        if match:
+            self._parse_modifiers(match.group(1))
+            equation_str = equation_str[: match.start()]
+        if "[" in equation_str or "]" in equation_str:
             raise self.EquationException(
-                f"Invalid equation: {equation_str}. "
-                f"Modifier list could not be parsed. "
+                f"Invalid equation: {full_str}. "
+                f"Modifier list could not be parsed, use a single list "
+                f"'[M1, M2]' at the end of the equation. "
                 f"{ReactionEquation.help()}"
             )
 
         # now parse the equation without modifiers
-        items = re.split(REVERSIBILITY_PATTERN, equation_str)
-
-        if len(items) == 2:
-            self.reversible = True
-        elif len(items) == 1:
-            items = re.split(IRREVERSIBILITY_PATTERN, equation_str)
-            self.reversible = False
-        else:
+        separators = re.findall(SEPARATOR_PATTERN, equation_str)
+        if len(separators) != 1:
             raise self.EquationException(
-                f"Invalid equation: {equation_str}. "
-                f"Equation could not be split into left "
-                f"and right side. {ReactionEquation.help()}"
+                f"Invalid equation: {full_str}. "
+                f"Equation could not be split into left and right side, "
+                f"use a single '<=>' or '=>' as separator. "
+                f"{ReactionEquation.help()}"
             )
-
-        # remove whitespaces
-        items = [o.strip() for o in items]
-        if len(items) < 2:
-            raise self.EquationException(
-                f"Invalid equation: {equation_str}. "
-                f"Equation could not be split into left "
-                f"and right side. Use '<=>' or '=>' as separator. {ReactionEquation.help()}"
-            )
-        left, right = items[0], items[1]
+        self.reversible = re.fullmatch(REVERSIBILITY_PATTERN, separators[0]) is not None
+        left, right = (o.strip() for o in re.split(SEPARATOR_PATTERN, equation_str))
         if len(left) > 0:
             self.reactants = self._parse_half_equation(left)
         if len(right) > 0:
             self.products = self._parse_half_equation(right)
 
     def _parse_modifiers(self, s: str) -> None:
-        s = s.replace("[", "")
-        s = s.replace("]", "")
-        s = s.strip()
-        tokens = re.split("[,;]", s)
+        """Parse the content of the modifier list, without its brackets."""
+        tokens = re.split("[,;]", s.strip())
         modifiers = [t.strip() for t in tokens]
         self.modifiers = [
             EquationPart(species=modifier)
@@ -182,10 +176,21 @@ class ReactionEquation:
     def _parse_half_equation(self, string: str) -> list[EquationPart]:
         """Parse half-equation.
 
-        Only '+ supported in equation !, do not use negative stoichiometries.
+        The parts are separated by '+', negative stoichiometries are not
+        supported.
         """
-        items = re.split("[+-]", string)
-        items = [item.strip() for item in items]
+        if re.search(r"(?<![0-9.][eE])-", string):
+            raise self.EquationException(
+                f"Invalid equation side: '{string}'. "
+                f"Parts are separated by '+', a '-' and negative "
+                f"stoichiometries are not supported. {ReactionEquation.help()}"
+            )
+        items = [item.strip() for item in re.split(PART_SEPARATOR_PATTERN, string)]
+        if any(not item for item in items):
+            raise self.EquationException(
+                f"Invalid equation side: '{string}'. "
+                f"A '+' must separate two species. {ReactionEquation.help()}"
+            )
         return [self._parse_reactant(item) for item in items]
 
     @staticmethod
@@ -269,8 +274,8 @@ class ReactionEquation:
         """Get help information string."""
         return """
         For information on the supported equation format use
-            from sbmlutils import equation
-            help(equation)
+            from sbmlutils import reaction_equation
+            help(reaction_equation)
         """
 
 

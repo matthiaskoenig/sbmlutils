@@ -107,9 +107,9 @@ class SBMLDocumentInfo:
             # core
             "functionDefinitions": self.function_definitions(model=model),
             "unitDefinitions": self.unit_definitions(model=model),
-            "compartments": self.compartments(model=model, assignments=assignments),
-            "species": self.species(model=model, assignments=assignments),
-            "parameters": self.parameters(model=model, assignments=assignments),
+            "compartments": self.compartments(model=model),
+            "species": self.species(model=model),
+            "parameters": self.parameters(model=model),
             "initialAssignments": self.initial_assignments(model=model),
             "assignmentRules": rules["assignmentRules"],
             "rateRules": rules["rateRules"],
@@ -283,22 +283,74 @@ class SBMLDocumentInfo:
 
     @staticmethod
     def _get_pk(sbase: libsbml.SBase) -> str:
-        """Calculate primary key."""
-        if hasattr(sbase, "pk"):
-            return str(sbase.pk)
+        """Calculate the primary key `<type>:<key>` of an element.
 
-        pk: str = f"{SBMLDocumentInfo._sbml_type(sbase)}:"
+        The key is described in `_pk_key`. It is computed from the document
+        on every call: libsbml returns a new proxy object from every getter,
+        so a key cached on the proxy is never found again.
+
+        Args:
+            sbase: the element
+
+        Returns:
+            the primary key of the element
+        """
+        return f"{SBMLDocumentInfo._sbml_type(sbase)}:{SBMLDocumentInfo._pk_key(sbase)}"
+
+    @staticmethod
+    def _pk_key(sbase: libsbml.SBase) -> str:
+        """Key of an element, unique in its document and stable across runs.
+
+        The key is the id of the element, else its metaId. An element with
+        neither is keyed by the element which owns it and its place there,
+        separated by '/': `R1/kineticLaw` for the kinetic law of the reaction
+        `R1`, `R1/listOfReactants/0` and `R1/listOfProducts/0` for its first
+        reactant and product, `listOfEvents/0` for the first event of the
+        model, which keeps two identical elements without id apart. The
+        elements of the model of the document are keyed without the model,
+        those of a comp model definition below its key. Neither an SId nor a
+        metaId (an XML NCName) can contain a '/', so such a key never equals
+        an id or a metaId; the only derived key without it is the one of a
+        single child of the model, the only element of its type there. Only
+        an element which belongs to no document is keyed by the digest of
+        its xml.
+
+        The place in a list is found by walking the list, so a list of n
+        elements without id costs n^2 comparisons (1.6 s for 2000
+        constraints). A cached index would have to live outside the
+        instance, since `sbase_dict` is also called without one by
+        `sbmlutils.parser`, keyed by the addresses of libsbml objects whose
+        lifetime this function does not see.
+
+        Args:
+            sbase: the element
+
+        Returns:
+            the key of the element
+        """
         if sbase.isSetId():
-            pk += sbase.getId()
-        elif sbase.isSetMetaId():
-            pk += sbase.getMetaId()
-        else:
-            xml = sbase.toSBML()
-            pk += SBMLDocumentInfo._uuid(xml)
-        # the key is cached on the libsbml object, which accepts new attributes
-        sbase.pk = pk  # ty: ignore[invalid-assignment]
+            return str(sbase.getId())
+        if sbase.isSetMetaId():
+            return str(sbase.getMetaId())
 
-        return pk
+        parent: libsbml.SBase | None = sbase.getParentSBMLObject()
+        if parent is None:
+            return SBMLDocumentInfo._uuid(sbase.toSBML())
+
+        if isinstance(parent, libsbml.ListOf):
+            index = next(k for k, item in enumerate(parent) if item == sbase)
+            key = f"{parent.getElementName()}/{index}"
+            parent = parent.getParentSBMLObject()
+        else:
+            key = sbase.getElementName()
+
+        if parent is None or isinstance(parent, libsbml.SBMLDocument):
+            return key
+        if isinstance(parent, libsbml.Model) and not isinstance(
+            parent, libsbml.ModelDefinition
+        ):
+            return key
+        return f"{SBMLDocumentInfo._pk_key(parent)}/{key}"
 
     @staticmethod
     def _uuid(xml: str) -> str:
@@ -604,7 +656,7 @@ class SBMLDocumentInfo:
             d = self.sbase_dict(ud)
             d["units"] = udef_to_string(ud)
 
-            key = "units:" + ud.pk.split(":")[-1]
+            key = f"units:{ud.getId()}"
             if key in self.maps["assignments"]:
                 d["assignment"] = self.maps["assignments"][key]
             if key in self.maps["ports"]:
@@ -614,9 +666,7 @@ class SBMLDocumentInfo:
 
         return unit_defs
 
-    def compartments(
-        self, model: libsbml.Model, assignments: dict[str, dict[str, str]]
-    ) -> list[dict]:
+    def compartments(self, model: libsbml.Model) -> list[dict]:
         """Information for Compartments.
 
         :return: list of info dictionaries for Compartments
@@ -635,7 +685,7 @@ class SBMLDocumentInfo:
             d["units"] = udef_to_string(d["units_sid"], model)
             d["derivedUnits"] = udef_to_string(c.getDerivedUnitDefinition())
 
-            key = c.pk.split(":")[-1]
+            key = c.getId()
             if key in self.maps["assignments"]:
                 d["assignment"] = self.maps["assignments"][key]
             if key in self.maps["ports"]:
@@ -645,9 +695,7 @@ class SBMLDocumentInfo:
 
         return compartments
 
-    def species(
-        self, model: libsbml.Model, assignments: dict[str, dict[str, str]]
-    ) -> list[dict]:
+    def species(self, model: libsbml.Model) -> list[dict]:
         """Information for Species.
 
         :return: list of info dictionaries for Species
@@ -678,7 +726,7 @@ class SBMLDocumentInfo:
             d["derivedUnits"] = udef_to_string(s.getDerivedUnitDefinition())
 
             # lookup in maps (PKs are in the form <SBMLType>:<id/metaID/name/etc).
-            key = s.pk.split(":")[-1]
+            key = s.getId()
             if key in self.maps["assignments"]:
                 d["assignment"] = self.maps["assignments"][key]
             if key in self.maps["ports"]:
@@ -721,9 +769,7 @@ class SBMLDocumentInfo:
 
         return species
 
-    def parameters(
-        self, model: libsbml.Model, assignments: dict[str, dict[str, str]]
-    ) -> list[dict]:
+    def parameters(self, model: libsbml.Model) -> list[dict]:
         """Information for SBML Parameters.
 
         :return: list of info dictionaries for Reactions
@@ -750,7 +796,7 @@ class SBMLDocumentInfo:
             d["units"] = udef_to_string(d["units_sid"], model)
             d["derivedUnits"] = udef_to_string(p.getDerivedUnitDefinition())
 
-            key = p.pk.split(":")[-1]
+            key = p.getId()
             if key in self.maps["assignments"]:
                 d["assignment"] = self.maps["assignments"][key]
             if key in self.maps["ports"]:
@@ -895,7 +941,7 @@ class SBMLDocumentInfo:
                 else None
             )
 
-            key = r.pk.split(":")[-1]
+            key = r.getId()
             if key in self.maps["assignments"]:
                 d["assignment"] = self.maps["assignments"][key]
             if key in self.maps["ports"]:
@@ -998,9 +1044,8 @@ class SBMLDocumentInfo:
         sep = sep_reversible if reaction.getReversible() else sep_irreversible
         if modifiers:
             mods = SBMLDocumentInfo._modifier_equation(reaction.getListOfModifiers())
-            if mods is None:
-                return " ".join([left, sep, right])
-            return " ".join([left, sep, right, mods])
+            if mods:
+                return " ".join([left, sep, right, mods])
         return " ".join([left, sep, right])
 
     @staticmethod

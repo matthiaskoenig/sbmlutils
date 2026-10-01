@@ -1,7 +1,6 @@
 """Helpers for model flattening."""
 
 import logging
-import os
 import time
 from pathlib import Path
 
@@ -15,13 +14,21 @@ logger = logging.getLogger(__name__)
 
 
 def flatten_sbml(
-    sbml_path: Path, sbml_flat_path: Path, leave_ports: bool = True
+    sbml_path: Path | str, sbml_flat_path: Path | str, leave_ports: bool = True
 ) -> libsbml.SBMLDocument:
     """Flatten given SBML file.
 
-    The working directory is changed to the directory of the document while it
-    is flattened, and is restored whatever happens, a document which cannot be
-    flattened included.
+    A relative path is relative to the working directory, which is never
+    changed. libsbml resolves the `comp:source` of an external model definition
+    against the location of the document which names it, i.e. relative to the
+    directory of `sbml_path`, and of the external files in turn.
+
+    libsbml opens the file of an external model definition itself, and on
+    Windows it does so with the narrow (ANSI) file API, which cannot open a
+    path with a non-ASCII character: a model with external model definitions
+    in such a directory cannot be flattened on Windows. `sbml_path` and
+    `sbml_flat_path` themselves may be any path, a path libsbml cannot open
+    is read and written by python.
 
     :param sbml_path: input path to SBML file to flatten (should be a comp model)
     :param sbml_flat_path: output path for flat SBML
@@ -29,28 +36,13 @@ def flatten_sbml(
 
     :return: flattened SBMLDocument
 
-    :raises ValueError: if libsbml cannot flatten the document, see
-        `flatten_sbml_doc`
+    :raises ValueError: if the file cannot be read, has no model, or libsbml
+        cannot flatten the document, see `flatten_sbml_doc`
     """
-    # FIXME: not working with relative paths,
-    # necessary to change the working directory to the sbml file directory
-    # to resolve relative links to external model definitions.
-    if not isinstance(sbml_path, Path):
-        sbml_path = Path(sbml_path)
-
-    working_dir = os.getcwd()
-    os.chdir(str(sbml_path.parent))
-
-    try:
-        doc = read_sbml(source=sbml_path)
-        return flatten_sbml_doc(
-            doc, leave_ports=leave_ports, sbml_flat_path=sbml_flat_path
-        )
-    finally:
-        # a document which cannot be flattened raises, and a caller left in
-        # another directory resolves every relative path of its own against
-        # it; on Windows the directory cannot be deleted either
-        os.chdir(working_dir)
+    doc = read_sbml(source=Path(sbml_path))
+    return flatten_sbml_doc(
+        doc, leave_ports=leave_ports, sbml_flat_path=Path(sbml_flat_path)
+    )
 
 
 def flatten_sbml_doc(
@@ -69,7 +61,15 @@ def flatten_sbml_doc(
     :param leave_ports: flag to leave ports
 
     :return: SBMLDocument
+
+    :raises ValueError: if the document has no model, e.g. a library of comp
+        model definitions, which has nothing to flatten them into
     """
+    if doc.getModel() is None:
+        raise ValueError(
+            "SBML without a model cannot be flattened, a document with only "
+            "model definitions has no model to flatten them into."
+        )
     error_count = doc.getNumErrors()
     if error_count > 0:
         if doc.getError(0).getErrorId() == libsbml.XMLFileUnreadable:

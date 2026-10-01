@@ -672,7 +672,7 @@ def _model_definition_with_every_element() -> ModelDefinition:
         ],
         parameters=[
             Parameter("cf", 1.0, U.dimensionless, name="conversion factor"),
-            Parameter("k", 1.0, U.per_min, name="rate constant"),
+            Parameter("k", 1.0, U.per_min, constant=False, name="rate constant"),
             Parameter(
                 "p_assigned", 0.0, U.dimensionless, constant=False, name="assigned"
             ),
@@ -951,6 +951,7 @@ def test_written_model_definition_validates(tmp_path: Path) -> None:
     model = Model(
         sid="model_definition_validates",
         packages=[Package.COMP_V1, Package.FBC_V3],
+        units=U,
         parameters=[Parameter("k_top", 1.0, U.per_min, name="parameter of the model")],
         model_definitions=[_model_definition_with_every_element()],
     )
@@ -1069,9 +1070,9 @@ def test_flatten_leaves_the_working_directory_where_it_was(
 ) -> None:
     """Test that a flatten which raises leaves the process where it was.
 
-    `flatten_sbml` changes the working directory to the directory of the
-    document, so that libsbml resolves the `comp:source` of an external model
-    definition relative to it. A document which cannot be flattened raises,
+    `flatten_sbml` once changed the working directory to the directory of the
+    document, so that libsbml resolved the `comp:source` of an external model
+    definition relative to it. A document which could not be flattened raised,
     and the process stayed in that directory: every relative path of the
     caller then pointed somewhere else, and on Windows the directory could
     not be deleted while a process sits in it.
@@ -2979,3 +2980,18 @@ def test_port_of_such_an_element_without_a_metaid_is_written_at_l3v2(
     port_id, reference, target = _L3V2_ID_PORTS[element][1]
     assert _ports(doc.getModel()) == {port_id: (reference, target)}
     assert [r.getMessage() for r in caplog.records if "port of" in r.getMessage()] == []
+
+
+@pytest.mark.parametrize("model_ref", [None, "m"])
+def test_create_external_model_definition_model_ref(model_ref: str | None) -> None:
+    """The modelRef of an external model definition is set only when given."""
+    doc = libsbml.SBMLDocument(libsbml.SBMLNamespaces(3, 1, "comp", 1))
+    emd = comp.create_ExternalModelDefinition(
+        doc.getPlugin("comp"), "emd1", source="model.xml", model_ref=model_ref
+    )
+
+    assert emd.getId() == "emd1"
+    assert emd.getSource() == "model.xml"
+    assert emd.isSetModelRef() == (model_ref is not None)
+    if model_ref is not None:
+        assert emd.getModelRef() == model_ref

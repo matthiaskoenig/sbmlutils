@@ -18,19 +18,25 @@ logger = logging.getLogger(__name__)
 
 
 def create_ExternalModelDefinition(
-    doc_comp: libsbml.CompSBMLDocumentPlugin, emd_id: str, source: str
+    doc_comp: libsbml.CompSBMLDocumentPlugin,
+    emd_id: str,
+    source: str,
+    model_ref: str | None = None,
 ) -> libsbml.ExternalModelDefinition:
     """Create comp ExternalModelDefinition.
 
     :param doc_comp: SBMLDocument comp plugin
     :param emd_id: id of external model definition
-    :param source: source
-    :return:
+    :param source: source, resolved relative to the location of the document
+    :param model_ref: id of the model in the external document; without it the
+        definition is the main model of the external document
+    :return: the created external model definition
     """
     extdef: libsbml.ExternalModelDefinition = doc_comp.createExternalModelDefinition()
     extdef.setId(emd_id)
     extdef.setName(emd_id)
-    extdef.setModelRef(emd_id)
+    if model_ref is not None:
+        extdef.setModelRef(model_ref)
     extdef.setSource(source)
     return extdef
 
@@ -42,19 +48,22 @@ def add_submodel_from_emd(
 ) -> libsbml.Submodel:
     """Add submodel to the model from given ExternalModelDefinition.
 
+    The `comp:modelRef` of a submodel is the id of the external model
+    definition in the same document, not the `comp:modelRef` of the definition,
+    which is the id of the model in the external document.
+
     :param model_comp: Model comp plugin
-    :param submodel_id:
-    :param emd:
-    :return:
+    :param submodel_id: id of the submodel
+    :param emd: external model definition the submodel instantiates
+    :return: the created submodel
     """
-    model_ref = emd.getModelRef()
     submodel: libsbml.Submodel = model_comp.createSubmodel()
     submodel.setId(submodel_id)
-    submodel.setModelRef(model_ref)
+    submodel.setModelRef(emd.getId())
 
-    model_comp = emd.getReferencedModel()
-    if model_comp and model_comp.isSetSBOTerm():
-        submodel.setSBOTerm(model_comp.getSBOTerm())
+    referenced_model: libsbml.Model | None = emd.getReferencedModel()
+    if referenced_model and referenced_model.isSetSBOTerm():
+        submodel.setSBOTerm(referenced_model.getSBOTerm())
     return submodel
 
 

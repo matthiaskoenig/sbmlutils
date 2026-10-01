@@ -5,6 +5,7 @@ from pathlib import Path
 
 import libsbml
 
+from sbmlutils.io import files
 from sbmlutils.validation import (
     ValidationOptions,
     ValidationResult,
@@ -30,24 +31,28 @@ def read_sbml(
 
     :param source: SBML path or string
     :param promote: promote local parameters to global parameters
-    :param validate: validate file
+    :param validate: validate file; the read errors are then logged by the
+        validation, according to `ValidationOptions.log_errors`
     :param validation_options: options for validation
 
     :return: libsbml.SBMLDocument
-    """
-    doc: libsbml.SBMLDocument
-    if isinstance(source, str) and "<sbml" in source:
-        doc = libsbml.readSBMLFromString(source)
-    else:
-        if not isinstance(source, Path):
-            logger.error(
-                "All SBML paths should be of type 'Path', but '%s' found for: %s",
-                type(source),
-                source,
-            )
-            source = Path(source)
 
-        doc = libsbml.readSBMLFromFile(str(source))
+    :raises ValueError: if the source cannot be read, see `_read_failures`,
+        with the errors libsbml reported for it. A document without a model
+        is returned as it is, SBML allows it; the errors of a document which
+        was read are logged (or validated with `validate`), not raised.
+    """
+    doc, label = _read_document(source)
+    unreadable: list[libsbml.SBMLError] = _read_failures(doc)
+    if unreadable:
+        raise ValueError(
+            f"{label} could not be read:\n"
+            + "\n".join(
+                f"  E{error.getErrorId()} ({error.getSeverityAsString()}): "
+                f"{error.getMessage().strip()}"
+                for error in unreadable
+            )
+        )
 
     # promote local parameters
     if promote:
@@ -55,15 +60,11 @@ def read_sbml(
 
     # check for errors
     if doc.getNumErrors() > 0:
-        if doc.getError(0).getErrorId() == libsbml.XMLFileUnreadable:
-            err_message = "Unreadable SBML file"
-        elif doc.getError(0).getErrorId() == libsbml.XMLFileOperationError:
-            err_message = "Problems reading SBML file: XMLFileOperationError"
-        else:
-            err_message = "SBMLDocumentErrors encountered while reading the SBML file."
-
-        log_sbml_errors_for_doc(doc)
-        logger.error("`read_sbml` error '%s': %s", source, err_message)
+        if not validate:
+            # with `validate` the read errors are part of the validation
+            # result, which logs them once
+            log_sbml_errors_for_doc(doc)
+        logger.error("`read_sbml`: errors encountered while reading the %s.", label)
 
     if validate:
         validate_doc(
@@ -73,6 +74,122 @@ def read_sbml(
         )
 
     return doc
+
+
+#: the errors libsbml reports on the XML declaration; the document itself is
+#: read in full, only the declaration SBML requires is missing
+_XML_DECLARATION_ERRORS: frozenset[int] = frozenset(
+    {libsbml.MissingXMLDecl, libsbml.MissingXMLEncoding}
+)
+
+
+def _shorten(source: Path | str, limit: int = 200) -> str:
+    """Shorten a source for a message, a string which is not a path can be a document."""
+    text = str(source)
+    return text if len(text) <= limit else text[:limit] + "..."
+
+
+def _read_document(source: Path | str) -> tuple[libsbml.SBMLDocument, str]:
+    """Read an SBMLDocument from a path or an SBML string without raising.
+
+    A file is read by libsbml, a path libsbml cannot open on Windows, one
+    with a non-ASCII character, by python, see `sbmlutils.io.files`. The
+    python fallback reads UTF-8, the encoding SBML requires, with or without
+    a byte order mark; a document without an XML declaration gets one from
+    `libsbml.readSBMLFromString`, so its missing declaration is not reported
+    and the line numbers of its errors are one higher than libsbml's reader
+    reports them. A file python cannot read is recorded in the document as
+    libsbml's reader records it, as the error `XMLFileUnreadable`, or
+    `XMLBadUTF8Content` for content which is not UTF-8.
+
+    Args:
+        source: SBML path or SBML string
+
+    Returns:
+        the document with the errors libsbml reported while parsing it, and
+        a label of the source for messages, which does not repeat an SBML
+        string
+    """
+    if isinstance(source, str) and "<sbml" in source:
+        return libsbml.readSBMLFromString(source), "SBML string"
+
+    if not isinstance(source, Path):
+        logger.error(
+            "All SBML paths should be of type 'Path', but '%s' found for: %s",
+            type(source),
+            _shorten(source),
+        )
+        source = Path(source)
+
+    label = f"SBML file '{_shorten(source)}'"
+    # libsbml records the path it reads as the location of the document and
+    # resolves the `comp:source` of an external model definition against it;
+    # a relative location is resolved wrongly, and a location set as a
+    # percent-encoded URI (`Path.as_uri`) is not decoded
+    path: Path = source.resolve()
+    if files.libsbml_can_open(path):
+        return libsbml.readSBMLFromFile(str(path)), label
+
+    doc: libsbml.SBMLDocument
+    try:
+        doc = libsbml.readSBMLFromString(files.read_text(path))
+    except (OSError, ValueError) as err:
+        # the error libsbml's own reader reports for the file, so that the
+        # failure is part of the document as every other read error
+        doc = libsbml.SBMLDocument()
+        doc.getErrorLog().add(
+            libsbml.SBMLError(
+                libsbml.XMLBadUTF8Content
+                if isinstance(err, UnicodeDecodeError)
+                else libsbml.XMLFileUnreadable,
+                doc.getLevel(),
+                doc.getVersion(),
+                str(err),
+            )
+        )
+    # the location `libsbml.readSBMLFromFile` records for an absolute path
+    doc.setLocationURI(f"file:{path}")
+    return doc, label
+
+
+def _read_failures(doc: libsbml.SBMLDocument) -> list[libsbml.SBMLError]:
+    """Get the errors which mean that a document could not be read.
+
+    These are the errors of severity error or fatal which the file system or
+    the XML parser reported: a file which cannot be opened, or content which
+    is not well-formed XML. The document libsbml returns for them is empty
+    or truncated. The errors of the SBML content, e.g. an attribute which an
+    element does not have, are not among them: the document was read and
+    what is wrong with it is for the validation to report.
+
+    `BadXMLDecl` is both: libsbml reports it for a file without an XML
+    declaration, which it reads in full, and for a declaration it cannot
+    read, e.g. an unknown encoding, which leaves an empty document. It is
+    therefore a failure only if the document holds nothing, neither a model
+    nor a comp model definition.
+
+    Args:
+        doc: the document as libsbml read it
+
+    Returns:
+        the errors which made the document unreadable, empty if it was read
+    """
+    comp_doc: libsbml.CompSBMLDocumentPlugin | None = doc.getPlugin("comp")
+    was_read: bool = doc.getModel() is not None or (
+        comp_doc is not None and comp_doc.getNumModelDefinitions() > 0
+    )
+    failures: list[libsbml.SBMLError] = []
+    for k in range(doc.getNumErrors()):
+        error: libsbml.SBMLError = doc.getError(k)
+        if (
+            error.getSeverity() >= libsbml.LIBSBML_SEV_ERROR
+            and error.getCategory()
+            in (libsbml.LIBSBML_CAT_SYSTEM, libsbml.LIBSBML_CAT_XML)
+            and error.getErrorId() not in _XML_DECLARATION_ERRORS
+            and not (was_read and error.getErrorId() == libsbml.BadXMLDecl)
+        ):
+            failures.append(error)
+    return failures
 
 
 def write_sbml(
@@ -102,11 +219,13 @@ def write_sbml(
         of `filepath` is created if it does not exist, which is the one such
         failure a writer can repair; anything else is raised, naming the
         path. A caller who asks for a file and gets none must not be told
-        that the model is valid, which is what happened while
-        `libsbml.SBMLWriter.writeSBMLToFile` was called for its side effect:
-        it answers `False` and writes nothing, and the validation which
-        follows re-reads the path, gets an empty document from a file which
-        is not there and reports it as valid.
+        that the model is valid, which is what happened while the result of
+        libsbml's writer was ignored: it answers `False` and writes nothing,
+        and the validation which follows re-reads the path, gets an empty
+        document from a file which is not there and reports it as valid. A
+        path with a non-ASCII character, which libsbml cannot open on
+        Windows, is written by python, see `sbmlutils.io.files`, compressed
+        by its suffix as libsbml does (`.gz`, `.bz2`, `.zip`).
     """
     writer = libsbml.SBMLWriter()
     if program_name:
@@ -124,14 +243,19 @@ def write_sbml(
         filepath = Path(filepath)
         try:
             filepath.parent.mkdir(parents=True, exist_ok=True)
-            written: bool = writer.writeSBMLToFile(doc, str(filepath))
+            if files.libsbml_can_open(filepath):
+                written: bool = writer.writeSBMLToFile(doc, str(filepath))
+                if not written:
+                    raise OSError("libsbml's writer refused the path.")
+            else:
+                # libsbml cannot open a non-ASCII path on Windows, it only
+                # serializes the document, which python writes
+                text: str = writer.writeSBMLToString(doc)
+                if not text:
+                    raise OSError("libsbml could not serialize the document.")
+                files.write_text(filepath, text)
         except OSError as err:
             raise OSError(f"SBML could not be written to '{filepath}': {err}") from err
-        if not written:
-            raise OSError(
-                f"SBML could not be written to '{filepath}': libsbml's writer "
-                f"refused the path."
-            )
         source = filepath
 
     # validation
@@ -152,12 +276,26 @@ def validate_sbml(
 ) -> ValidationResult:
     """Check given SBML source.
 
+    Validation reports, it never raises for the content of the source: a
+    source which cannot be read as SBML, e.g. malformed XML, gives a result
+    with the read errors.
+
     :param source: SBML path or string
     :param validation_options: options for validation
     :param title: title for validation report (should be filname or model name)
     :return: ValidationResult
+
+    :raises IsADirectoryError: if `source` is a directory
+    :raises FileNotFoundError: if `source` is no SBML string and no existing file
     """
-    doc = read_sbml(source, promote=False, validate=False)
+    if not (isinstance(source, str) and "<sbml" in source):
+        if files.is_dir(source):
+            raise IsADirectoryError(
+                f"SBML source is a directory, not an SBML file: '{source}'"
+            )
+        if not files.is_file(source):
+            raise FileNotFoundError(f"SBML file does not exist: '{_shorten(source)}'")
+    doc, _ = _read_document(source)
     return validate_doc(
         doc=doc,
         options=validation_options,
@@ -176,7 +314,11 @@ def promote_local_variables(
     :param suffix: str suffix for promoted SBML
     :return: SBMLDocument with promoted parameters
     """
-    model: libsbml.Model = doc.getModel()
+    model: libsbml.Model | None = doc.getModel()
+    if model is None:
+        # local parameters live in the kinetic laws of a model
+        logger.info("No model in SBMLDocument, no local parameters to promote.")
+        return doc
     if model.isSetId():
         model.setId(f"{model.getId()}{suffix}")
 

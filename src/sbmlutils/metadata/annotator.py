@@ -378,9 +378,14 @@ class ModelAnnotator:
 
         :param doc: SBMLDocument
         :param annotations: iterable of ModelAnnotation
+        :raises ValueError: if the document has no model, whose elements the
+            annotations are for
         """
         self.doc = doc
-        self.model = doc.getModel()
+        model: libsbml.Model | None = doc.getModel()
+        if model is None:
+            raise ValueError("SBML without a model cannot be annotated.")
+        self.model: libsbml.Model = model
         self.annotations = annotations
 
         # prepare dictionary for lookup of ids

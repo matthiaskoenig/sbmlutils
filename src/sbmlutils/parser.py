@@ -103,6 +103,7 @@ from sbmlutils.factory import (
     UserDefinedConstraintComponent,
     create_model,
 )
+from sbmlutils.io.files import is_file
 from sbmlutils.io.sbml import read_sbml
 from sbmlutils.metadata import BQB, BQM
 from sbmlutils.reaction_equation import EquationPart
@@ -112,29 +113,55 @@ from sbmlutils.validation import ValidationOptions
 logger = logging.getLogger(__name__)
 
 
+def _looks_like_file_name(source: str) -> bool:
+    """Check if a string which names no existing file was meant as a file name.
+
+    A single line without `;` and with a suffix (`model.ant`) is no antimony.
+    """
+    text = source.strip()
+    return (
+        bool(text) and "\n" not in text and ";" not in text and bool(Path(text).suffix)
+    )
+
+
 def antimony_to_sbml(
     source: Path | str,
 ) -> str:
-    """Parse antimony model to SBML string."""
-    status: int
-    if isinstance(source, str) and "model" in source:
-        status = antimony.loadAntimonyString(source)
+    """Parse antimony model to SBML string.
+
+    The source is routed by its type: a `Path` is always an antimony file. A `str`
+    is the path of an antimony file if it names an existing file, otherwise it is
+    antimony content. A string is never classified by its content, so a path
+    containing "model" is a file and antimony without the `model` keyword is content.
+
+    Args:
+        source: path to an antimony file, or antimony content.
+
+    Returns:
+        The SBML string.
+
+    Raises:
+        FileNotFoundError: if `source` is a `Path` which is not an existing file,
+            or a `str` which looks like a file name (one line, no ';', with a
+            suffix) and names no existing file.
+        ValueError: if antimony cannot parse the source, with the antimony error.
+    """
+    if isinstance(source, Path) or is_file(source):
+        path = Path(source)
+        if not path.is_file():
+            raise FileNotFoundError(f"Antimony file does not exist: {path}")
+        status: int = antimony.loadAntimonyFile(str(path))
     else:
-        if not isinstance(source, Path):
-            logger.error(
-                "All antimony paths should be of type 'Path', but '%s' found for: %s",
-                type(source),
-                source,
+        if _looks_like_file_name(source):
+            raise FileNotFoundError(
+                f"Antimony file does not exist: {source} (a single line without "
+                "';' and with a suffix is taken as a file name, not as antimony)"
             )
-            source = Path(source)
+        status = antimony.loadAntimonyString(source)
 
-        status = antimony.loadAntimonyFile(str(source))
-
-    # log errors
-    if status != -1:
-        logger.error("Antimony status: %s", status)
-        logger.error(antimony.getLastError())
-        # antimony.getSBMLWarnings()
+    # antimony returns -1 on failure, otherwise the index of the loaded module
+    if status == -1:
+        raise ValueError(f"Antimony error: {antimony.getLastError()}")
 
     sbml_str: str = antimony.getSBMLString()
 
@@ -1458,8 +1485,8 @@ def sbml_to_model(
     """Parse an SBML document into the `Model` of `sbmlutils.factory`, see the module docstring.
 
     Args:
-        source: an SBML file path, an SBML string, or a URL, passed through
-            to `sbmlutils.io.sbml.read_sbml`
+        source: an SBML file path or an SBML string, passed through to
+            `sbmlutils.io.sbml.read_sbml`
         validate: whether to validate the document while reading it
         promote: whether to promote local parameters to global parameters
         validation_options: which validation checks to run, only used when
@@ -1470,8 +1497,8 @@ def sbml_to_model(
         written back out without the authoring hints of a model definition
 
     Raises:
-        AttributeError: if `source` has no model; `read_sbml` only logs that
-            case, it does not raise
+        ValueError: if `source` cannot be read, see
+            `sbmlutils.io.sbml.read_sbml`, or holds no model
         ValueError: if the document declares fbc version 1 and libsbml cannot
             convert it to fbc version 2
     """
@@ -1484,10 +1511,12 @@ def sbml_to_model(
     # validation above reports on the document as it was given; the conversion
     # of fbc version 1 changes the document, so it comes after it
     _convert_fbc_v1(doc)
-    model: libsbml.Model = doc.getModel()
-
-    if not model:
-        logger.error("No model in SBMLDocument.")
+    model: libsbml.Model | None = doc.getModel()
+    if model is None:
+        raise ValueError(
+            f"The SBML has no model, there is nothing to parse into a 'Model': "
+            f"'{source if isinstance(source, Path) else 'SBML string'}'"
+        )
 
     # every element is constructed without the authoring hints, which are
     # advice for a model definition being written and say nothing about a
