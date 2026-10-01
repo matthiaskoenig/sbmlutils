@@ -3597,9 +3597,10 @@ def _model_with_rules(
     """Write a model with symbols of every kind and the given rules into libsbml.
 
     The rules and the initial assignments of a model are checked against an
-    index of its ids while it is filled, see `factory._ModelSymbols`; the
-    parameter `q` gets its assignment rule while the parameters are written,
-    before the index is built.
+    index of its ids while it is filled, see
+    `sbmlutils.factory.core_elements._ModelSymbols`; the parameter `q` gets its
+    assignment rule while the parameters are written, before the index is
+    built.
     """
     model = Model(
         "m",
