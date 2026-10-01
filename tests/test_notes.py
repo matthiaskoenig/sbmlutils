@@ -6,7 +6,8 @@ import re
 import libsbml
 import pytest
 
-from sbmlutils.factory import Document, Model, Parameter, _xhtml_body_content
+from sbmlutils.factory import Document, Model, Parameter
+from sbmlutils.factory._core import _xhtml_body_content
 from sbmlutils.notes import Notes, NotesFormat, detect_format
 
 

@@ -124,16 +124,22 @@ def signature(obj: Any) -> str:
 def members(obj: ModuleType | type, module: str) -> list[tuple[str, Any]]:
     """Collect the public members which are defined in the given module.
 
+    A package, such as `sbmlutils.factory`, re-exports the members of its
+    modules, so a member defined in a module of the package belongs to it.
+
     Args:
         obj: module or class to inspect.
-        module: name of the module the members must be defined in.
+        module: name of the module or package the members must be defined in.
 
     Returns:
-        The members as `(name, member)` in definition order.
+        The members as `(name, member)` in alphabetical order.
     """
     items: list[tuple[str, Any]] = []
     for name, member in inspect.getmembers(obj):
-        if name.startswith("_") or getattr(member, "__module__", None) != module:
+        defined_in = getattr(member, "__module__", None) or ""
+        if name.startswith("_") or not (
+            defined_in == module or defined_in.startswith(f"{module}.")
+        ):
             continue
         if inspect.isclass(member) or inspect.isfunction(member):
             items.append((name, member))

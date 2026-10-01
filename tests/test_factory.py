@@ -1,5 +1,6 @@
 """Testing the factory methods."""
 
+import inspect
 import logging
 import os
 import re
@@ -16,7 +17,7 @@ import pytest
 
 from sbmlutils import factory
 from sbmlutils.factory import *
-from sbmlutils.factory import Q_, Sbase, SbaseRef
+from sbmlutils.factory import Q_, Sbase, SbaseRef, _core
 from sbmlutils.io import read_sbml
 from sbmlutils.metadata import BQB
 from sbmlutils.parser import sbml_to_model
@@ -359,6 +360,50 @@ def test_unit_definition_non_pint_sid() -> None:
     udef.create_sbml(model)
 
     assert model.getUnitDefinition("substance") is not None
+
+
+@pytest.mark.parametrize(
+    ("udef", "expected"),
+    [
+        (
+            UnitDefinition("mmole_per_min", "mmole/min"),
+            "UnitDefinition('mmole_per_min', 'mmole/min')",
+        ),
+        (UnitDefinition("mM"), "UnitDefinition('mM', 'mM')"),
+        (
+            UnitDefinition("l", libsbml.UNIT_KIND_LITRE),
+            "UnitDefinition('l', libsbml.UNIT_KIND_LITRE)",
+        ),
+        (
+            UnitDefinition("x", libsbml.UNIT_KIND_INVALID),
+            f"UnitDefinition('x', {libsbml.UNIT_KIND_INVALID})",
+        ),
+        (
+            UnitDefinition(
+                "per_s", units=[Unit(libsbml.UNIT_KIND_SECOND, exponent=-1.0)]
+            ),
+            f"UnitDefinition('per_s', units=[Unit({libsbml.UNIT_KIND_SECOND}, "
+            "exponent=-1.0, scale=0, "
+            "multiplier=1.0)])",
+        ),
+    ],
+)
+def test_unit_definition_repr(udef: UnitDefinition, expected: str) -> None:
+    """Test that the repr of a unit definition is deterministic and readable.
+
+    The API reference renders the default unit of the elements with it, which
+    must not change from one build to the next.
+    """
+    assert repr(udef) == expected
+
+
+def test_default_unit_in_signature_has_no_address() -> None:
+    """Test that the default unit of a signature is rendered without address."""
+    signature = str(inspect.signature(AssignmentRule))
+    assert "UnitDefinition('dimensionless', libsbml.UNIT_KIND_DIMENSIONLESS)" in (
+        signature
+    )
+    assert " at 0x" not in signature
 
 
 def test_model_units_accepts_list() -> None:
@@ -1517,7 +1562,7 @@ def test_unparsable_math_is_logged_at_every_formula_call_site(
     errors = [
         record.getMessage()
         for record in caplog.records
-        if record.levelname == "ERROR" and record.name == "sbmlutils.factory"
+        if record.levelname == "ERROR" and record.name.startswith("sbmlutils.factory")
     ]
     assert any(formula in message for message in errors), errors
 
@@ -1558,13 +1603,13 @@ def _reaction_test_model() -> tuple[libsbml.SBMLDocument, libsbml.Model]:
 def test_reaction_modifier_keeps_sbase_fields() -> None:
     """Test that a modifier's metaId, sboTerm, name, notes and annotation survive.
 
-    `set_speciesref_fields` used to only set `species`, `sid`, `constant`,
-    `stoichiometry`, `metaId` and `sboTerm` on a species reference; `name`,
-    `notes` and `annotations` were silently dropped, for reactants, products
-    and modifiers alike. This asserts against the actual created
+    The writer of a species reference used to only set `species`, `sid`,
+    `constant`, `stoichiometry`, `metaId` and `sboTerm`; `name`, `notes` and
+    `annotations` were silently dropped, for reactants, products and
+    modifiers alike. This asserts against the actual created
     `libsbml.ModifierSpeciesReference`, not against the python `EquationPart`
-    it was built from, so it fails if `set_speciesref_fields` stops writing
-    any of these.
+    it was built from, so it fails if `_SpeciesReference` stops writing any
+    of these.
     """
     _doc, model = _reaction_test_model()
     equation = ReactionEquation(
@@ -1631,7 +1676,7 @@ def test_reaction_speciesref_name_with_space_is_rejected_by_libsbml(
     syntax validation to `name`, which SBML defines as a plain `string`, so
     any name that is not a valid SId, such as one containing a space, is
     rejected with rc=-4 and never set. This is a libsbml defect, not a bug in
-    this package (see the comment in `set_speciesref_fields`), but it must be
+    this package (see `_SpeciesReference._set_name`), but it must be
     surfaced as a warning rather than fail completely silently, and this
     pins that behaviour with a test rather than leaving it to be
     rediscovered by surprise.
@@ -1909,10 +1954,10 @@ def _fbc_reaction_test_model() -> tuple[libsbml.SBMLDocument, libsbml.Model]:
 def test_reaction_speciesref_keeps_key_value_pairs() -> None:
     """Test that the key-value pairs of a reactant, product and modifier are written.
 
-    `EquationPart.keyValuePairs` was declared and never read:
-    `set_speciesref_fields` wrote the species, id, stoichiometry, metaId,
-    sboTerm, name, notes and annotations of a part and dropped its key-value
-    pairs, for all three roles alike. A `ModifierSpeciesReference` is an
+    `EquationPart.keyValuePairs` was declared and never read: the writer of a
+    species reference wrote the species, id, stoichiometry, metaId, sboTerm,
+    name, notes and annotations of a part and dropped its key-value pairs,
+    for all three roles alike. A `ModifierSpeciesReference` is an
     `SBase` like a `SpeciesReference` and carries them just as well.
     """
     _doc, model = _fbc_reaction_test_model()
@@ -2192,7 +2237,7 @@ def _minimal_content() -> dict[str, Any]:
 
 #: one case per kind of libsbml failure the survey of the unwrapped setters
 #: found, as `(build, level, version, fragments of the one error)`. Every case
-#: is a **value** which `factory.py` passes on to libsbml unchanged and which
+#: is a **value** which `sbmlutils.factory` passes on to libsbml unchanged and which
 #: libsbml refuses with a status code, so that the attribute was dropped in
 #: silence before it was wrapped. An attribute the document has no place for
 #: at all is the other half, see `_ATTRIBUTES_WITHOUT_A_PLACE`.
@@ -2346,7 +2391,7 @@ def test_attribute_libsbml_refuses_is_reported(
     A libsbml setter answers with a status code instead of raising, so an
     attribute it refuses used to be dropped in silence: the model definition
     asked for it, the written document did not carry it and validated. Every
-    case here is one kind of refusal the survey of `factory.py` found: an
+    case here is one kind of refusal the survey of `sbmlutils.factory` found: an
     invalid SId, an invalid SBO term, an invalid metaid, an invalid unit id,
     a value outside an enumeration, an invalid chemical formula, a reference
     the element cannot carry, and a package the SBML level cannot declare.
@@ -3110,7 +3155,7 @@ def test_an_attribute_of_a_plugin_is_reported_and_does_not_raise(
     plugin = owner.getPlugin("fbc")
 
     with caplog.at_level(logging.WARNING, logger="sbmlutils"):
-        written = factory._check_attribute(
+        written = _core._check_attribute(
             libsbml.LIBSBML_UNEXPECTED_ATTRIBUTE,
             plugin,
             "chemicalFormula",
@@ -3131,7 +3176,7 @@ def test_an_attribute_of_a_plugin_is_reported_and_does_not_raise(
         caplog.at_level(logging.WARNING, logger="sbmlutils"),
     ):
         caplog.clear()
-        factory._check_attribute(
+        _core._check_attribute(
             libsbml.LIBSBML_UNEXPECTED_ATTRIBUTE,
             plugin,
             "chemicalFormula",
@@ -3271,7 +3316,7 @@ def test_the_reported_attribute_name_is_the_one_in_the_document(
 
         caplog.clear()
         with caplog.at_level(logging.WARNING, logger="sbmlutils"):
-            factory._check_attribute(
+            _core._check_attribute(
                 libsbml.LIBSBML_UNEXPECTED_ATTRIBUTE,
                 target,
                 reported,
@@ -3589,6 +3634,74 @@ def test_a_second_initial_assignment_for_a_symbol_raises(tmp_path: Path) -> None
     )
     with pytest.raises(ValueError, match="'x'"):
         create_model(model, filepath=tmp_path / "model.xml", validate=False)
+
+
+def _model_with_rules(
+    rules: list[Sbase], assignments: list[InitialAssignment] | None = None
+) -> libsbml.Model:
+    """Write a model with symbols of every kind and the given rules into libsbml.
+
+    The rules and the initial assignments of a model are checked against an
+    index of its ids while it is filled, see
+    `sbmlutils.factory.core_elements._ModelSymbols`; the parameter `q` gets its
+    assignment rule while the parameters are written, before the index is
+    built.
+    """
+    model = Model(
+        "m",
+        compartments=[Compartment("c", 1.0)],
+        species=[
+            Species(sid, compartment="c", initialConcentration=1.0)
+            for sid in ["A", "B"]
+        ],
+        parameters=[Parameter("k", 1.0), Parameter("q", "2 * k", constant=False)],
+        reactions=[
+            Reaction(
+                "r",
+                equation=ReactionEquation(
+                    reactants=[EquationPart(species="A", sid="sr_A", constant=False)],
+                    products=[EquationPart(species="B")],
+                ),
+                formula="k * A",
+            )
+        ],
+        assignments=assignments or [],
+        rules=[r for r in rules if isinstance(r, AssignmentRule)],
+        rate_rules=[r for r in rules if isinstance(r, RateRule)],
+    )
+    return Document(model=model).create_sbml().getModel()
+
+
+def test_a_rule_for_a_species_reference_creates_no_parameter() -> None:
+    """The id of a species reference is a symbol a rule can change as it is."""
+    model = _model_with_rules([AssignmentRule("sr_A", "2")])
+    assert model.getParameter("sr_A") is None
+    assert model.getRuleByVariable("sr_A") is not None
+
+
+def test_a_rule_for_a_variable_with_a_rule_of_a_parameter_raises() -> None:
+    """The rule a parameter writes for its math is seen by the index."""
+    with pytest.raises(ValueError, match="'q'"):
+        _model_with_rules([AssignmentRule("q", "3")])
+
+
+def test_a_rate_rule_makes_its_constant_parameter_variable() -> None:
+    """The parameter the index answers with is the one of the model."""
+    model = _model_with_rules([RateRule("k", "1")])
+    assert model.getParameter("k").getConstant() is False
+
+
+def test_a_rule_for_the_parameter_of_an_initial_assignment() -> None:
+    """The parameter an initial assignment creates is recorded in the index.
+
+    The rule finds it instead of creating a second parameter with the same
+    id, and makes it variable.
+    """
+    model = _model_with_rules(
+        [RateRule("x", "k")], assignments=[InitialAssignment("x", "1")]
+    )
+    assert model.getNumParameters() == 3
+    assert model.getParameter("x").getConstant() is False
 
 
 @pytest.mark.parametrize(
