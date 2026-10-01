@@ -13,8 +13,9 @@ permissions:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  # never cancel a running deployment, it would leave the site half published
-  cancel-in-progress: false
+  # a superseded pull request build is cancelled; a push is never cancelled,
+  # the deployment it starts would be left half published
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   docs:
@@ -23,18 +24,23 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           persist-credentials: false
       - name: Configure GitHub Pages
-        uses: actions/configure-pages@v6
+        # a pull request builds the site but never deploys it
+        if: github.event_name != 'pull_request'
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d  # v6.0.0
       - name: Install uv and set the python version
-        uses: astral-sh/setup-uv@v10.2.0
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7  # v10.2.0
         with:
+          version: "0.12.21"
           python-version: "3.14"
           enable-cache: true
-      - name: Install dependencies
-        run: uv sync --extra dev
+      - name: Install the locked dependencies (fails if uv.lock is out of date with pyproject.toml, run `uv lock`)
+        # `--locked` refuses to update the lock: a change of the dependencies
+        # in pyproject.toml has to come with the `uv lock` which records it
+        run: uv sync --locked --extra dev
       - name: Build the documentation
         # the API reference is rendered from the docstrings by mkdocstrings,
         # so the package has to be importable
@@ -43,7 +49,7 @@ jobs:
         # llms.txt, llms-full.txt and the markdown of every page
         run: uv run python scripts/llms_txt.py
       - name: Upload the site
-        uses: actions/upload-pages-artifact@v5
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9  # v5.0.0
         with:
           path: site
 
@@ -62,4 +68,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v5
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346  # v5.0.1

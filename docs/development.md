@@ -44,6 +44,7 @@ The protection is implemented with [repository rulesets](https://docs.github.com
 | `develop.json`          | `develop`  | pull request required, the four checks above, resolved conversations, linear history, no force push, no deletion. **No bypass, for anybody.** |
 | `main.json`             | `main`     | linear history, no force push, no deletion, no bypass. The fast-forward of the release workflow needs none, only a force push or a merge commit would be rejected |
 | `tags.json`             | all tags   | a tag cannot be deleted or moved, so a release tag keeps pointing at what was released                                                       |
+| `tag-creation.json`     | all tags   | only a repository admin can create a tag. Every tag starts the release, so a tag is a release to PyPI. A ruleset of its own, since the bypass of the admins must not extend to `tags.json` |
 
 Changing a policy means changing the json and applying it:
 
@@ -67,6 +68,8 @@ A single sync creates the virtual environment in `.venv`, installs `sbmlutils` i
 ```bash
 uv sync --extra dev
 ```
+
+The environment is resolved from `uv.lock`, which is committed, so local development, including `uv run ty check`, and the documentation build use the same versions. The tox environments, i.e. the test matrix and the `ty` check of continuous integration, resolve from `pyproject.toml` and do not use the lock; the lower bounds in `pyproject.toml` are what a user of the library installs against. After changing a dependency in `pyproject.toml` run `uv lock`: the `documentation` workflow syncs with `uv sync --locked`, which fails when `pyproject.toml` and the lock disagree. `uv lock --upgrade` moves the lock to the newest releases.
 
 The `dev` extra contains everything used below, i.e., pytest, ruff, ty, tox, pre-commit, zensical and bump-my-version, so nothing has to be installed separately. The python version is taken from `.python-version` (currently 3.14); to work against the oldest supported version instead use `uv sync --extra dev --python 3.11`, which replaces the environment.
 
@@ -124,6 +127,18 @@ tox r -e cobra
 ```
 
 Here `--` replaces those two modules, so `tox r -e cobra -- tests/fbc/test_cobra.py` runs that one.
+
+The `lowest` environment installs the oldest version of every dependency which the lower bounds in `pyproject.toml` allow (`uv_resolution = lowest-direct`, their own dependencies stay at the newest) on python 3.11 and runs the suite against it, so a lower bound is only ever raised or lowered together with a run of it. `pymetadata` requires newer releases of `rich` and `requests` than sbmlutils does, which would lift them above the bounds; `lowest-overrides.txt` therefore overrides `rich`, `requests` and `markdown-it-py` to exactly their bounds (through `UV_OVERRIDE`), and has to be kept equal to them. It runs in the test matrix of `ci-cd.yml` and is part of the required `tests` check.
+
+```bash
+tox r -e lowest
+```
+
+On Linux the tests run with the standalone interpreters of uv (`UV_PYTHON_PREFERENCE=only-managed`). The extension of libroadrunner links against `libpython3.X.so.1.0`, which these interpreters ship in their `lib` directory but, being linked statically, never load; the workflow puts that directory on `LD_LIBRARY_PATH`, which tox passes on to the tests. Locally the same import error (`libpython3.X.so.1.0: cannot open shared object file`) is solved by that variable or by the `libpython3.X` package of the distribution.
+
+The workflows pin every action to the full commit SHA of a release, with the version in a comment; dependabot updates both. The tools run with `uvx` (tox, tox-uv, twine) are pinned in the `env` of `ci-cd.yml` and `ty.yml`, which dependabot does not update, so they are raised by hand. The same holds for uv itself, pinned with the `version` input of every `astral-sh/setup-uv` step in `ci-cd.yml`, `ty.yml` and `docs.yml`. `hatchling` in `[build-system]` stays a lower bound on purpose: the package is built in an isolated environment which resolves it anew, and the lower bound is the oldest release the build is known to work with.
+
+Dependabot also bumps the locked python dependencies (`uv.lock`, `versioning-strategy: lockfile-only` so the lower bounds in `pyproject.toml` are never raised by it) and the hook revisions in `.pre-commit-config.yaml`, each as one grouped weekly pull request. The `ruff` workflow installs the ruff version locked in `uv.lock`, so CI and `uv run ruff` agree, and the ruff and ty hook revisions are expected to match the lock; after merging one of these pull requests, raise the other to the same version if it lags.
 
 To run the tests directly against the development environment use
 
@@ -235,7 +250,7 @@ A release is made from `develop`. Since `develop` only accepts pull requests, th
     git push origin x.y.z
     ```
 
-    This starts the `CI-CD` workflow, which runs the test matrix, publishes to [pypi](https://pypi.org/project/sbmlutils/), creates the GitHub release from `release-notes/x.y.z.md` and fast-forwards `main` to the tagged commit. Check the version before pushing, a tag cannot be moved or deleted afterwards.
+    Only a repository admin can push a tag, see `tag-creation.json`. This starts the `CI-CD` workflow, which runs the test matrix, builds the distributions in a job without write permissions (`build`), publishes them to [pypi](https://pypi.org/project/sbmlutils/) with attestations by trusted publishing from the `pypi` environment (`publish`), creates the GitHub release from `release-notes/x.y.z.md` (`github-release`) and fast-forwards `main` to the tagged commit (`sync-main`). Check the version before pushing, a tag cannot be moved or deleted afterwards.
 
 8. test the installation from pypi in a fresh environment:
 

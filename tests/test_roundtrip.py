@@ -8,7 +8,9 @@ The models are the semantic cases of the vendored SBML test suite. They are
 test data of the repository and are excluded from the distribution, see
 `[tool.hatch.build]` in `pyproject.toml`, so they are resolved from the
 checkout, see `SEMANTIC_DIR`, and never from the installed package: tox
-installs sbmlutils from a wheel, which does not contain them.
+installs sbmlutils from a wheel, which does not contain them. Without them,
+as in a source distribution, the tests which read a case skip, see
+`requires_testsuite`.
 
 Only the l3v2 flavour of each case is round tripped. The round trip writes
 SBML L3V2, so round tripping an L1 or L2 file is a conversion rather than a
@@ -73,8 +75,17 @@ SEMANTIC_DIR: Path = (
     / "semantic"
 )
 
+#: a source distribution: it carries the tests but not the test suite, see
+#: `[tool.hatch.build]` in `pyproject.toml`, and `PKG-INFO` at its root is what
+#: sets it apart from a checkout of the repository
+IN_SDIST: bool = (Path(__file__).parent.parent / "PKG-INFO").is_file()
+
 requires_testsuite = pytest.mark.skipif(
-    not SEMANTIC_DIR.is_dir(), reason="requires the vendored SBML test suite"
+    not SEMANTIC_DIR.is_dir(),
+    reason=(
+        "requires the vendored SBML test suite, which is only present in a "
+        f"checkout of the repository: {SEMANTIC_DIR}"
+    ),
 )
 
 #: uniform timecourse the round-trip comparison simulates
@@ -489,6 +500,7 @@ CASES_BASELINE: list[str] = ["00001", "00002", "00003", "00004", "00005", "00006
 
 @requires_roadrunner
 @pytest.mark.parametrize("case", CASES_BASELINE)
+@requires_testsuite
 def test_roundtrip_baseline(case: str, tmp_path: Path) -> None:
     """Test that cases which round trip today keep round tripping."""
     assert_roundtrip_simulates_equal(testsuite_case(case), tmp_path)
@@ -565,13 +577,19 @@ KNOWN_FAILURES: dict[str, str] = {
 }
 
 
+@pytest.mark.skipif(
+    IN_SDIST, reason="a source distribution does not carry the SBML test suite"
+)
 def test_sweep_finds_the_test_suite() -> None:
     """Test that the sweep and the case lists resolve the vendored test suite.
 
     An empty glob parametrizes the sweep with no case at all, which pytest
     reports as a single skip, so a sweep which found nothing would pass
     without testing anything. That happened under tox while the suite was
-    resolved from the installed package, which is a wheel without it.
+    resolved from the installed package, which is a wheel without it. The
+    tests which read a case skip without the suite, so this test is what
+    fails in a checkout which lost it; only a source distribution, which
+    never carries it, skips it.
     """
     assert SEMANTIC_DIR.is_dir(), f"the SBML test suite is missing: {SEMANTIC_DIR}"
     assert len(SWEEP_CASES) == 1690
@@ -608,6 +626,7 @@ def test_roundtrip_sweep(
     )
 
 
+@requires_testsuite
 def test_roundtrip_emits_no_authoring_warnings(
     tmp_path: Path, caplog: pytest.LogCaptureFixture
 ) -> None:
@@ -833,6 +852,7 @@ CASES_UNITS: list[str] = ["00001", "00002", "00003", "00004"]
 
 @requires_roadrunner
 @pytest.mark.parametrize("case", CASES_UNITS)
+@requires_testsuite
 def test_roundtrip_units(case: str, tmp_path: Path) -> None:
     """Test that unit definitions and unit references survive a round trip."""
     assert_roundtrip_simulates_equal(testsuite_case(case), tmp_path)
@@ -890,6 +910,7 @@ CASES_UNIT_REFERENCES: list[str] = ["00038", "00054"]
 
 
 @pytest.mark.parametrize("case", CASES_UNIT_REFERENCES)
+@requires_testsuite
 def test_roundtrip_preserves_unit_definitions(case: str, tmp_path: Path) -> None:
     """Test that the unit definitions and every unit reference are preserved.
 
@@ -985,6 +1006,7 @@ CASES_FUNCTIONS: list[str] = ["00025", "00034", "00035", "00078"]
 
 @requires_roadrunner
 @pytest.mark.parametrize("case", CASES_FUNCTIONS)
+@requires_testsuite
 def test_roundtrip_function_definitions(case: str, tmp_path: Path) -> None:
     """Test that function definitions survive a round trip.
 
@@ -994,6 +1016,7 @@ def test_roundtrip_function_definitions(case: str, tmp_path: Path) -> None:
     assert_roundtrip_simulates_equal(testsuite_case(case), tmp_path)
 
 
+@requires_testsuite
 def test_roundtrip_core_model_declares_no_fbc(tmp_path: Path) -> None:
     """Test that a core only model does not gain the fbc package.
 
@@ -1013,6 +1036,7 @@ def test_roundtrip_core_model_declares_no_fbc(tmp_path: Path) -> None:
     assert "fbc" not in roundtrip_path.read_text()
 
 
+@requires_testsuite
 def test_roundtrip_invents_no_nan(tmp_path: Path) -> None:
     """Test that an unset size or value is not written as NaN.
 
@@ -1040,6 +1064,7 @@ CASES_CONVERSION_FACTOR: list[str] = ["00976", "00977", "01000"]
 
 @requires_roadrunner
 @pytest.mark.parametrize("case", CASES_CONVERSION_FACTOR)
+@requires_testsuite
 def test_roundtrip_conversion_factor(case: str, tmp_path: Path) -> None:
     """Test that a species conversionFactor survives a round trip."""
     assert_roundtrip_simulates_equal(testsuite_case(case), tmp_path)
@@ -1051,11 +1076,13 @@ CASES_EVENTS: list[str] = ["00026", "00041", "00071", "00072", "00073", "00074"]
 
 @requires_roadrunner
 @pytest.mark.parametrize("case", CASES_EVENTS)
+@requires_testsuite
 def test_roundtrip_events(case: str, tmp_path: Path) -> None:
     """Test that events survive a round trip."""
     assert_roundtrip_simulates_equal(testsuite_case(case), tmp_path)
 
 
+@requires_testsuite
 def test_parse_algebraic_rule_without_id() -> None:
     """Test that parsing an id-less algebraic rule does not raise.
 
@@ -1124,6 +1151,7 @@ CASES_WITHOUT_IDS: list[str] = ["00029", "00031", "00039", "00928"]
 
 
 @pytest.mark.parametrize("case", CASES_WITHOUT_IDS)
+@requires_testsuite
 def test_roundtrip_invents_no_ids(case: str, tmp_path: Path) -> None:
     """Test that a round trip gives no id to an element which had none.
 
@@ -1197,6 +1225,7 @@ CASES_LOCAL_PARAMETERS: list[str] = ["00027", "00057", "00058", "00132", "00133"
 
 @requires_roadrunner
 @pytest.mark.parametrize("case", CASES_LOCAL_PARAMETERS)
+@requires_testsuite
 def test_roundtrip_local_parameters(case: str, tmp_path: Path) -> None:
     """Test that local parameters of a kinetic law survive a round trip.
 
@@ -1271,6 +1300,7 @@ CASES_WITHOUT_MATH: list[str] = [
 
 
 @pytest.mark.parametrize("case", CASES_WITHOUT_MATH)
+@requires_testsuite
 def test_roundtrip_preserves_elements_without_math(case: str, tmp_path: Path) -> None:
     """Test that an element without math survives a round trip without math.
 
@@ -1513,6 +1543,7 @@ def test_roundtrip_event_children_without_math_and_absent(tmp_path: Path) -> Non
     assert not rt_model.getEvent("e2").isSetPriority()
 
 
+@requires_testsuite
 def test_roundtrip_constraints(tmp_path: Path) -> None:
     """Test that constraints survive a round trip.
 
@@ -1620,6 +1651,7 @@ CASES_VARIABLE_STOICHIOMETRY: list[str] = ["00969", "00970", "00971"]
 
 @requires_roadrunner
 @pytest.mark.parametrize("case", CASES_MODIFIERS + CASES_VARIABLE_STOICHIOMETRY)
+@requires_testsuite
 def test_roundtrip_species_references(case: str, tmp_path: Path) -> None:
     """Test that modifiers and variable stoichiometry survive a round trip."""
     assert_roundtrip_simulates_equal(testsuite_case(case), tmp_path)
