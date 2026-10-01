@@ -28,6 +28,8 @@ split along the SBML packages:
 # in them, which is the order of the API reference, and are therefore not
 # sorted. The API reference renders a re-exported class or function only when
 # `docs/api/factory.md` lists it in `members`, which a test keeps complete.
+import importlib as _importlib
+
 from pymetadata.core.creator import Creator as Creator
 from numpy import nan as NaN
 from sbmlutils.reaction_equation import (
@@ -107,6 +109,7 @@ from sbmlutils.factory.comp import (
     PortType as PortType,
     Port as Port,
 )
+from sbmlutils.factory import _core, units
 from sbmlutils.factory.model import (
     set_model_history as set_model_history,
     date_now as date_now,
@@ -179,3 +182,13 @@ __all__ = [
     "ValidationOptions",
     "create_model",
 ]
+
+# `_core` and `units` import `Uncertainty` for the type checker only, since
+# `distrib` builds on them; it is bound into them here, after `distrib` was
+# imported, so that `typing.get_type_hints` resolves their annotations. The
+# layout package builds on this package and binds `Layout` into
+# `sbmlutils.factory.model` the same way once it defined it, it is imported
+# here so that this happens whenever the package is imported.
+_core.Uncertainty = Uncertainty
+units.Uncertainty = Uncertainty
+_importlib.import_module("sbmlutils.layout.layout")

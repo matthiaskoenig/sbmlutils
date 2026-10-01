@@ -9,8 +9,11 @@ pinned here as the module had them.
 
 import inspect
 import re
+import typing
 from pathlib import Path
 from types import ModuleType
+
+import pytest
 
 from sbmlutils import factory
 
@@ -149,3 +152,35 @@ def test_api_reference_lists_the_classes_and_functions() -> None:
 
     assert len(members) == len(set(members))
     assert set(members) == own | {"ReactionEquation", "ValidationOptions"}
+
+
+def _hinted(obj: object) -> list[tuple[str, object]]:
+    """Get a class with its own functions, or a function, to resolve hints of."""
+    if inspect.isclass(obj):
+        return [(obj.__qualname__, obj)] + [
+            (f"{obj.__qualname__}.{name}", value)
+            for name, value in vars(obj).items()
+            if inspect.isfunction(value)
+        ]
+    if inspect.isfunction(obj):
+        return [(obj.__qualname__, obj)]
+    return []
+
+
+@pytest.mark.parametrize(
+    "name",
+    sorted(
+        name
+        for name in PUBLIC_NAMES
+        if getattr(getattr(factory, name), "__module__", "").startswith("sbmlutils.")
+    ),
+)
+def test_type_hints_resolve(name: str) -> None:
+    """Test that `typing.get_type_hints` resolves the annotations of a name.
+
+    The modules import some names of their annotations for the type checker
+    only, which must still resolve at runtime, for documentation tools and for
+    code which inspects the signatures.
+    """
+    for _, obj in _hinted(getattr(factory, name)):
+        typing.get_type_hints(obj)

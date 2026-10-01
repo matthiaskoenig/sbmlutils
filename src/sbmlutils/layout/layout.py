@@ -420,3 +420,9 @@ def _create_bounding_box(
     bb.setHeight(float(height))
     bb.setDepth(float(depth))
     return bb
+
+
+# `sbmlutils.factory.model` imports `Layout` for the type checker only, since
+# this module builds on the factory; it is bound into it here, after it was
+# defined, so that `typing.get_type_hints` resolves the annotations of `Model`.
+factory.model.Layout = Layout

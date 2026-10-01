@@ -13,7 +13,7 @@ import re
 from collections.abc import Iterator
 from contextlib import contextmanager
 from contextvars import ContextVar
-from typing import TYPE_CHECKING, Any, ClassVar, Generic, Literal, NamedTuple, TypeVar
+from typing import Any, ClassVar, Generic, Literal, NamedTuple, TypeVar
 
 import libsbml
 
@@ -28,6 +28,7 @@ from sbmlutils.factory._core import (
     _set_math,
     create_objects,
 )
+from sbmlutils.factory.distrib import Uncertainty
 from sbmlutils.factory.units import (
     UnitDefinition,
     Units,
@@ -38,9 +39,6 @@ from sbmlutils.factory.units import (
 from sbmlutils.notes import Notes
 from sbmlutils.reaction_equation import EquationPart, ReactionEquation
 from sbmlutils.validation import check
-
-if TYPE_CHECKING:
-    from sbmlutils.factory.distrib import Uncertainty
 
 logger = logging.getLogger(__name__)
 
