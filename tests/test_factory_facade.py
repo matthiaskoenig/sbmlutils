@@ -264,7 +264,7 @@ def test_unknown_name_raises_attribute_error() -> None:
     with warnings.catch_warnings():
         warnings.simplefilter("error")
         with pytest.raises(AttributeError, match="no_such_name"):
-            factory.no_such_name  # noqa: B018
+            factory.no_such_name  # noqa: B018  # ty: ignore[unresolved-attribute]
         assert not hasattr(factory, "annotations")
 
 

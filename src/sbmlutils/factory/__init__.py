@@ -30,6 +30,7 @@ split along the SBML packages:
 # `docs/api/factory.md` lists it in `members`, which a test keeps complete.
 import importlib as _importlib
 import warnings as _warnings
+from typing import TYPE_CHECKING as _TYPE_CHECKING
 from typing import Any as _Any
 
 from pymetadata.core.creator import Creator as Creator
@@ -249,36 +250,41 @@ _DEPRECATED_NAMES: dict[str, tuple[str, str | None]] = {
 }
 
 
-def __getattr__(name: str) -> _Any:
-    """Resolve a name the module `sbmlutils.factory` only imported.
+# The module `__getattr__` is defined for the runtime only: the type checker
+# would otherwise type every unknown attribute of the package as `Any` instead
+# of reporting it, and the deprecated names are not part of its API.
+if not _TYPE_CHECKING:
 
-    Code imported such names from the module, e.g. `sbml_to_antimony`, which
-    the package does not re-export. They still resolve, with a
-    `DeprecationWarning` which names the import to use instead.
+    def __getattr__(name: str) -> _Any:
+        """Resolve a name the module `sbmlutils.factory` only imported.
 
-    Args:
-        name: the name of the attribute
+        Code imported such names from the module, e.g. `sbml_to_antimony`, which
+        the package does not re-export. They still resolve, with a
+        `DeprecationWarning` which names the import to use instead.
 
-    Returns:
-        the object the module had under the name
+        Args:
+            name: the name of the attribute
 
-    Raises:
-        AttributeError: if the module never had the name
-    """
-    if name not in _DEPRECATED_NAMES:
-        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
-    module_name, attribute = _DEPRECATED_NAMES[name]
-    if attribute is not None:
-        instead = f"from {module_name} import {attribute}"
-    elif module_name != name:
-        instead = f"import {module_name} as {name}"
-    else:
-        instead = f"import {module_name}"
-    _warnings.warn(
-        f"`sbmlutils.factory.{name}` is deprecated and will be removed, "
-        f"use `{instead}`",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    module = _importlib.import_module(module_name)
-    return module if attribute is None else getattr(module, attribute)
+        Returns:
+            the object the module had under the name
+
+        Raises:
+            AttributeError: if the module never had the name
+        """
+        if name not in _DEPRECATED_NAMES:
+            raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+        module_name, attribute = _DEPRECATED_NAMES[name]
+        if attribute is not None:
+            instead = f"from {module_name} import {attribute}"
+        elif module_name != name:
+            instead = f"import {module_name} as {name}"
+        else:
+            instead = f"import {module_name}"
+        _warnings.warn(
+            f"`sbmlutils.factory.{name}` is deprecated and will be removed, "
+            f"use `{instead}`",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        module = _importlib.import_module(module_name)
+        return module if attribute is None else getattr(module, attribute)
