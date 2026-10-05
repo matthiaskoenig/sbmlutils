@@ -374,6 +374,11 @@ const EVENTS = NamedTuple[]
 const MAX_STEPS = 100000
 {% if events %}
 const MAX_CASCADE = 10000
+
+# the points of a step of the integrator at which the root functions of the triggers
+# are evaluated (`interp_points` of `VectorContinuousCallback`), evenly spaced to its
+# end, as in the python and the R code
+const TRIGGER_POINTS = 10
 {% endif %}
 {% endif %}
 {% if options.simulator and events %}
@@ -526,9 +531,10 @@ executed, see `execute_events`, and the integration restarts with the states and
 constants after them.
 
 The integrator ends a step at each root of `event_triggers` it finds, evaluating them
-at 10 points of each step (`interp_points` of `VectorContinuousCallback`), and the
-triggers are evaluated at the end of every step, which is at most `dtmax`: a trigger
-which holds for a shorter time than the distance of these points can be stepped over.
+at `TRIGGER_POINTS` points of each step (`interp_points` of `VectorContinuousCallback`),
+and the triggers are evaluated at the end of every step, which is at most `dtmax`: a
+trigger which holds for a shorter time than the distance of these points can be
+stepped over.
 A time point at a delayed execution, to the rounding of the time (1e-14 relative),
 has the values after it: the rounding errors of the integration shift the time of
 the trigger, not its integration error.
@@ -588,7 +594,7 @@ function simulate(
         (roots, x, t, integrator) -> (roots .= event_triggers(x, integrator.p, t)),
         (integrator, event_index) -> (at_root[] = true),
         length(EVENTS);
-        save_positions=(false, false),
+        save_positions=(false, false), interp_points=TRIGGER_POINTS,
     )
 
     t = 0.0

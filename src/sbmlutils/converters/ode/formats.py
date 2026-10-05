@@ -137,6 +137,15 @@ FORMATS: dict[str, Format] = {
         options={"simulator": True},
         first_index=1,
     ),
+    "r": Format(
+        name="r",
+        kind="code",
+        template="r.R.jinja",
+        suffixes=(".R", ".r"),
+        printer="r",
+        options={"simulator": True},
+        first_index=1,
+    ),
 }
 """The formats by their name."""
 
@@ -677,8 +686,50 @@ def julia_string(value: object) -> str:
     return "nothing" if value is None else f'"{julia_text(value)}"'
 
 
+def r_text(value: object) -> str:
+    r"""Text on a single line which is safe inside an R string, of ASCII only.
+
+    The backslash and the double quote are escaped, so that the text can neither end
+    the string nor form an escape sequence, and every character which is not ASCII is
+    written as its escape `\u{...}` (`\U{...}` beyond the basic plane), so that the
+    string is the same in every locale R reads the file in.
+
+    Args:
+        value: the text
+
+    Returns:
+        the escaped text
+    """
+    text = single_line(value).replace("\\", "\\\\").replace('"', '\\"')
+    return "".join(char if char.isascii() else _r_escape(char) for char in text)
+
+
+def _r_escape(char: str) -> str:
+    r"""The escape of a character in an R string, `\u{e4}` for `ä`."""
+    code = ord(char)
+    return f"\\u{{{code:04x}}}" if code <= 0xFFFF else f"\\U{{{code:08x}}}"
+
+
+def r_string(value: object) -> str:
+    """An R string literal of text on a single line, `NA_character_` for `None`.
+
+    Args:
+        value: the text
+
+    Returns:
+        the literal in double quotes
+    """
+    return "NA_character_" if value is None else f'"{r_text(value)}"'
+
+
 def wrapped(
-    items: Sequence[object], indent: int, column: int, tail: int = 1, width: int = 88
+    items: Sequence[object],
+    indent: int,
+    column: int,
+    tail: int = 1,
+    width: int = 88,
+    brackets: Sequence[str] = ("[", "]"),
+    trailing: bool = True,
 ) -> str:
     """A list of items in brackets, on one line if it fits, else a block of lines.
 
@@ -699,12 +750,16 @@ def wrapped(
         column: the column of the opening bracket
         tail: the number of characters which follow the list on its line
         width: the width of a line
+        brackets: the opening and the closing bracket, e.g. `("c(", ")")` in R
+        trailing: whether the last item of a block is followed by a comma, which R
+            does not allow
 
     Returns:
         the list from its opening to its closing bracket
     """
+    opening, closing = brackets
     texts = [str(item) for item in items]
-    single = f"[{', '.join(texts)}]"
+    single = f"{opening}{', '.join(texts)}{closing}"
     if column + len(single) + tail <= width:
         return single
     inner = " " * (indent + 4)
@@ -717,9 +772,9 @@ def wrapped(
             line = f"{text},"
         else:
             line = candidate
-    lines.append(line)
+    lines.append(line if trailing else line.removesuffix(","))
     body = "\n".join(inner + line for line in lines)
-    return f"[\n{body}\n{' ' * indent}]"
+    return f"{opening}\n{body}\n{' ' * indent}{closing}"
 
 
 def table(
@@ -767,6 +822,8 @@ _FILTERS: dict[str, Callable[..., str]] = {
     "docstring": docstring,
     "julia_text": julia_text,
     "julia_string": julia_string,
+    "r_text": r_text,
+    "r_string": r_string,
 }
 
 # the functions the templates call; jinja2 types its globals narrower than a function
@@ -776,6 +833,7 @@ _GLOBALS: dict[str, Any] = {
     "rows": rows,
     "docstring": docstring,
     "julia_text": julia_text,
+    "r_text": r_text,
 }
 
 

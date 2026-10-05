@@ -153,7 +153,7 @@ _GENERATED: dict[str, set[str]] = {
         "turned", "holds", "holds_now", "event_index", "event", "delay_time",
         "pending", "due", "scheduled", "ranks", "priority_value", "execution",
         "executions", "t_next", "x_next", "t_stop", "triggers", "roots", "at_root",
-        "beyond", "t_points",
+        "beyond", "t_points", "TRIGGER_POINTS",
         # the functions and types of `Base` it calls; the names with a `!`
         # (`push!`, `filter!`, `popat!`, `step!`, `f!`) are no SIds and never the
         # name of an id
@@ -161,11 +161,29 @@ _GENERATED: dict[str, set[str]] = {
         "enumerate", "eachindex", "findall", "isempty", "minimum", "something",
         "argmax", "zip",
     },
+    # the names of `resources/converters/ode/r.R.jinja`: the packages and the
+    # functions it calls with them, its functions, their arguments and locals
     "r": {
         "t", "x", "p", "dx", "y", "x0", "p0",
-        "deSolve", "lsoda",
-        "f_dxdt", "f_y", "initial_values", "simulate", "event_triggers",
+        "deSolve", "lsoda", "utils", "capture.output", "head",
+        "XIDS", "PIDS", "YIDS", "NAMES", "UNITS", "P0", "EVENTS", "MAX_STEPS",
+        "MAX_CASCADE", "TRIGGER_POINTS",
+        "f_dxdt", "f_y", "initial_values", "simulate", "integrate_segment",
         "xids", "pids", "yids",
+        "t_end", "points", "rtol", "atol", "hmax", "max_steps", "initial", "times",
+        "xs", "ps", "ys", "xt", "yt", "pt", "data", "constants", "k_point",
+        # the integration
+        "n_times", "states", "warned", "messages", "solution", "condition",
+        "printed", "report", "istate", "t_reached", "steps", "roots",
+        # the events
+        "event_triggers", "event_conditions", "execute_events", "first_change",
+        "extrapolation", "recorded", "holds", "holds_now", "pending", "after",
+        "t_stop", "outputs", "gap", "segment", "n_outputs", "k_change", "changed",
+        "t_low", "x_low", "interpolant", "t_after", "integrated", "t_next",
+        "x_next", "beyond", "t_points", "output_row", "t_old", "t_new", "t_high",
+        "t_middle", "turned", "executions", "event_index", "event", "delay_time",
+        "values", "scheduled", "due", "ranks", "position", "order_due", "chosen",
+        "execution", "assigned", "time_change",
     },
 }  # fmt: skip
 
@@ -236,6 +254,10 @@ _R = {
     "rbind", "cbind", "dim", "nrow", "ncol", "apply", "t", "q", "D", "I", "pmin", "pmax",
     "nchar", "substr", "library", "require", "source", "invisible", "tryCatch", "try",
     "switch", "Recall", "environment", "new.env", "assign", "get", "exists",
+    # names of base R the generated code calls
+    ".Machine", "as.data.frame", "attr", "conditionMessage", "format", "gsub",
+    "invokeRestart", "is.null", "match", "nzchar", "outer", "sys.nframe", "trimws",
+    "unname", "withCallingHandlers",
 }  # fmt: skip
 
 RESERVED: dict[str, frozenset[str]] = {

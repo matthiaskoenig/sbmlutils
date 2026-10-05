@@ -288,6 +288,10 @@ JULIA_SIMULATOR_PACKAGES = ["OrdinaryDiffEq", "DataFrames"]
 """The packages of julia `simulate` of the julia code uses besides `JULIA_PACKAGES`."""
 
 
+R_SIMULATOR_PACKAGES = ["deSolve"]
+"""The packages of R `simulate` of the R code uses, the rest of it is base R."""
+
+
 REQUIRE_TOOLCHAINS = "SBMLUTILS_REQUIRE_TOOLCHAINS"
 """The environment variable which makes a test whose toolchain is missing fail
 instead of skip, set by the tox environments of the toolchains, so that their tests
@@ -333,12 +337,16 @@ def julia_command() -> list[str] | None:
 def rscript_command() -> list[str] | None:
     """Command of Rscript, `SBMLUTILS_RSCRIPT` (default `Rscript`).
 
-    The math of the R printer uses base R only.
+    The math of the R printer uses base R only, `simulate` of the R code the
+    packages `R_SIMULATOR_PACKAGES`, e.g. a docker run of the image of
+    `tests/converters/ode/docker/r.Dockerfile`: `docker run --rm -v /tmp:/tmp
+    sbmlutils-r Rscript`.
 
     Returns:
-        the command, `None` if `--version` fails
+        the command, `None` if it fails to load `R_SIMULATOR_PACKAGES`
     """
-    return _command("SBMLUTILS_RSCRIPT", "Rscript", ["--version"])
+    load = "; ".join(f"library({package})" for package in R_SIMULATOR_PACKAGES)
+    return _command("SBMLUTILS_RSCRIPT", "Rscript", ["-e", load])
 
 
 def _run(command: list[str] | None, script: Path, code: str) -> str:
@@ -387,35 +395,45 @@ def run_julia(code: str, tmp_path: Path) -> str:
 
 
 @dataclass(frozen=True)
-class JuliaJob:
-    """Generated julia code and the julia code which runs it.
+class Job:
+    """Generated julia or R code and the code of its language which runs it.
 
     Attributes:
-        code: the generated julia code, a module
-        run: the body of a julia function of the module `m` and the output stream
-            `io`, which writes its results with `emit(io, key, values)`, a line of
-            the key and the values, and `emit_table(io, df)`, a line of the names
-            of the columns and a line per column
+        code: the generated code, a julia module or an R file
+        run: the body of a function of the module or environment `m` of the code and
+            the output stream `io`, which writes its results with `emit(io, key,
+            values)`, a line of the key and the values, and `emit_table(io, df)`, a
+            line of the names of the columns and a line per column; `quietly(f)`
+            calls the function `f` without logging its warnings
     """
 
     code: str
     run: str
 
 
-BENIGN_JULIA_WARNINGS: tuple[str, ...] = (
-    # a state of almost 0 at the start of an integration, e.g. `trig` of case 01531
-    # after an event, makes the estimate of the first step of OrdinaryDiffEq tiny,
-    # which then starts with the step 1e-6 and adapts it
-    "Initial timestep too small (near machine epsilon), using default",
-)
-"""The messages which OrdinaryDiffEq logs as a warning about what it handles itself."""
+BENIGN_WARNINGS: dict[str, tuple[str, ...]] = {
+    "julia": (
+        # a state of almost 0 at the start of an integration, e.g. `trig` of case
+        # 01531 after an event, makes the estimate of the first step of
+        # OrdinaryDiffEq tiny, which then starts with the step 1e-6 and adapts it
+        "Initial timestep too small (near machine epsilon), using default",
+    ),
+    "r": (
+        # math out of its domain is NaN as in roadrunner, e.g. `acos(t)` of case
+        # 00955 for t > 1, which base R warns about as numpy does (the python sweep
+        # ignores these warnings with `np.errstate`), and julia's NaNMath does not
+        "NaNs produced",
+    ),
+}
+"""The warnings which a language logs about what it handles itself, by language."""
 
 
 @dataclass(frozen=True)
-class JuliaOutput:
-    """The results of a `JuliaJob`.
+class JobOutput:
+    """The results of a `Job`.
 
     Attributes:
+        language: the language of the job, `julia` or `r`
         lines: the values of each key the job emitted, as text
         error: the error the job threw, with its stack trace, `None` if it ran
         log: the warnings and errors the job logged, e.g. of the integrator, which a
@@ -423,23 +441,32 @@ class JuliaOutput:
         seconds: the time the job took, its compilation included
     """
 
+    language: str
     lines: dict[str, list[str]]
     error: str | None
     log: str
     seconds: float
 
     def warnings(self) -> list[str]:
-        """The messages of the log, without those of `BENIGN_JULIA_WARNINGS`."""
-        messages = [m for m in re.split(r"(?m)^(?=┌)", self.log) if m.strip()]
-        return [m for m in messages if not any(b in m for b in BENIGN_JULIA_WARNINGS)]
+        """The messages of the log, without those of `BENIGN_WARNINGS`.
+
+        A message of julia starts with `┌`, a message of R is a line.
+        """
+        if self.language == "julia":
+            messages = re.split(r"(?m)^(?=┌)", self.log)
+        else:
+            messages = self.log.splitlines(keepends=True)
+        benign = BENIGN_WARNINGS[self.language]
+        return [m for m in messages if m.strip() and not any(b in m for b in benign)]
 
     def check(self) -> None:
         """Fail if the job threw an error or logged a warning."""
+        name = LANGUAGES[self.language].title
         if self.error is not None:
-            pytest.fail(f"The julia code failed:\n{self.error}")
+            pytest.fail(f"The {name} code failed:\n{self.error}")
         warnings = self.warnings()
         if warnings:
-            pytest.fail("The julia code logged warnings:\n" + "".join(warnings))
+            pytest.fail(f"The {name} code logged warnings:\n" + "".join(warnings))
 
     def strings(self, key: str) -> list[str]:
         """The values of a key as text."""
@@ -456,7 +483,7 @@ class JuliaOutput:
         return pd.DataFrame({c: self.floats(f"column {c}") for c in columns})
 
     def point_values(self) -> "PointValues":
-        """The values which the job `POINT_VALUES_JOB` emitted."""
+        """The values of `PointValues`, emitted by a job of `*_POINT_VALUES_JOB`."""
         return PointValues(
             xids=self.strings("XIDS"),
             pids=self.strings("PIDS"),
@@ -518,6 +545,96 @@ function run_job(path, job)
 end
 """
 
+# the prelude of a script of R jobs, as `_JULIA_PRELUDE`: the code of a job is
+# sourced into an environment of its own whose parent is the base environment, so
+# that it can use base R and the packages it names (`deSolve::lsoda`) only
+_R_PRELUDE = r"""
+# a line of the key and the values, separated by tabs, a line break in a value a space
+emit <- function(io, key, values) {
+  texts <- vapply(as.list(values), function(value) {
+    text <- if (is.numeric(value)) sprintf("%.17g", as.double(value)) else as.character(value)
+    gsub("[\r\n]", " ", text)
+  }, character(1))
+  cat(paste(c(key, texts), collapse = "\t"), "\n", file = io, sep = "")
+}
+
+emit_table <- function(io, df) {
+  emit(io, "columns", names(df))
+  for (k in seq_along(df)) {
+    emit(io, paste("column", names(df)[[k]]), df[[k]])
+  }
+}
+
+# the code which signals warnings it expects, e.g. a job of an integration which fails
+quietly <- function(f) suppressWarnings(f())
+
+# run a job: its results, its error and the warnings it signals into files next to it
+run_job <- function(path, job) {
+  started <- proc.time()[["elapsed"]]
+  log <- file(paste0(path, ".log"), "w")
+  tryCatch(
+    withCallingHandlers(
+      {
+        m <- new.env(parent = baseenv())
+        sys.source(path, envir = m)
+        io <- file(paste0(path, ".out"), "w")
+        tryCatch(job(m, io), finally = close(io))
+      },
+      warning = function(w) {
+        writeLines(paste("Warning:", gsub("[\r\n]", " ", conditionMessage(w))), log)
+        invokeRestart("muffleWarning")
+      },
+      error = function(e) {
+        calls <- vapply(
+          sys.calls(), function(call) paste(deparse(call, nlines = 1), collapse = " "),
+          character(1)
+        )
+        writeLines(c(conditionMessage(e), "", calls), paste0(path, ".err"))
+      }
+    ),
+    error = function(e) NULL
+  )
+  close(log)
+  writeLines(format(proc.time()[["elapsed"]] - started), paste0(path, ".time"))
+}
+"""
+
+
+def _julia_job(k: int, run: str, path: Path) -> list[str]:
+    """The lines of a julia script which define and run the job `k`."""
+    return [f"function job_{k}(m, io)", run, "end", f'run_job(raw"{path}", job_{k})']
+
+
+def _r_job(k: int, run: str, path: Path) -> list[str]:
+    """The lines of an R script which define and run the job `k`."""
+    return [
+        f"job_{k} <- function(m, io) {{",
+        run,
+        "}",
+        f'run_job(r"({path})", job_{k})',
+    ]
+
+
+@dataclass(frozen=True)
+class _Language:
+    """How the jobs of a language are run, see `run_jobs`.
+
+    Attributes:
+        title: the name of the language in a message
+        suffix: the suffix of a file of code
+        command: the command of the toolchain, `None` if it is not runnable
+        prelude: the code of a script before its jobs
+        job: the lines of a script which define and run a job, of its number, its
+            body and the path of its code
+    """
+
+    title: str
+    suffix: str
+    command: Callable[[], list[str] | None]
+    prelude: str
+    job: Callable[[int, str, Path], list[str]]
+
+
 OTHER_STATES: list[tuple[float, float, float]] = [
     (0.0, 1.0, 0.0),
     (0.0, 1.5, 0.1),
@@ -530,7 +647,7 @@ _JULIA_STATES = ", ".join(
     f"({t!r}, x0 .* {factor!r} .+ {offset!r})" for t, factor, offset in OTHER_STATES
 )
 
-POINT_VALUES_JOB = f"""
+JULIA_POINT_VALUES_JOB = f"""
     x0, p = m.initial_values()
     emit(io, "XIDS", m.XIDS)
     emit(io, "PIDS", m.PIDS)
@@ -547,12 +664,41 @@ POINT_VALUES_JOB = f"""
         emit(io, "y$k", m.f_y(x, p, t))
     end
 """
-"""The body of a `JuliaJob` which emits the values of `PointValues`, at the states of
-`other_states`, of julia code rendered with `simulator=False`."""
+"""The body of a julia `Job` which emits the values of `PointValues`, at the states
+of `other_states`, of julia code rendered with `simulator=False`."""
+
+_R_STATES = ", ".join(
+    f"list({t!r}, x0 * {factor!r} + {offset!r})" for t, factor, offset in OTHER_STATES
+)
+
+R_POINT_VALUES_JOB = f"""
+  initial <- m$initial_values()
+  x0 <- initial$x0
+  p <- initial$p
+  emit(io, "XIDS", m$XIDS)
+  emit(io, "PIDS", m$PIDS)
+  emit(io, "YIDS", m$YIDS)
+  emit(io, "x0", x0)
+  emit(io, "p", p)
+  emit(io, "y0", m$f_y(0, x0, p))
+  states <- list({_R_STATES})
+  for (k in seq_along(states)) {{
+    t <- states[[k]][[1]]
+    x <- states[[k]][[2]]
+    emit(io, paste0("t", k), t)
+    emit(io, paste0("x", k), x)
+    emit(io, paste0("dx", k), m$f_dxdt(t, x, p)[[1]])
+    emit(io, paste0("y", k), m$f_y(t, x, p))
+  }}
+"""
+"""The body of an R `Job` which emits the values of `PointValues`, at the states of
+`other_states`, of R code rendered with `simulator=False`."""
 
 
-def simulate_job(t_end: float = 10.0, points: int = 51, arguments: str = "") -> str:
-    """The body of a `JuliaJob` which emits the table of `simulate`.
+def julia_simulate_job(
+    t_end: float = 10.0, points: int = 51, arguments: str = ""
+) -> str:
+    """The body of a julia `Job` which emits the table of `simulate`.
 
     Args:
         t_end: the end time
@@ -569,27 +715,58 @@ def simulate_job(t_end: float = 10.0, points: int = 51, arguments: str = "") -> 
     )
 
 
+def r_simulate_job(t_end: float = 10.0, points: int = 51, arguments: str = "") -> str:
+    """The body of an R `Job` which emits the table of `simulate`.
+
+    Args:
+        t_end: the end time
+        points: the number of time points
+        arguments: further arguments of `simulate`, e.g. `"hmax = 1"`
+
+    Returns:
+        the body, which integrates with the tolerances of `assert_table_as_roadrunner`
+    """
+    extra = f", {arguments}" if arguments else ""
+    return (
+        f"  df <- m$simulate({t_end!r}, points = {points}, rtol = 1e-10, "
+        f"atol = 1e-12{extra})\n  emit_table(io, df)\n"
+    )
+
+
 JOB_TIMEOUT = 600
-"""Seconds a julia job may take, its compilation included."""
+"""Seconds a job may take, its compilation included, and a process may take to exit
+after its last job."""
+
+
+def _stderr(path: Path) -> str:
+    """The end of the standard error of a process."""
+    return path.read_text(encoding="utf-8", errors="replace")[-5000:]
 
 
 def _run_processes(
-    command: list[str], scripts: list[Path], parts: list[list[str]], directory: Path
+    command: list[str],
+    scripts: list[Path],
+    parts: list[list[str]],
+    directory: Path,
+    suffix: str,
 ) -> None:
-    """Run the scripts of julia jobs in parallel processes, see `run_julia_jobs`.
+    """Run the scripts of jobs in parallel processes, see `run_jobs`.
 
-    A process which has not finished a job for `JOB_TIMEOUT` seconds and a process
-    which fails stop all of them: a process is terminated (`docker run` passes the
-    signal on to its container), and killed if it does not end.
+    A process which has not finished a job for `JOB_TIMEOUT` seconds (or has not
+    exited that long after its last job) and a process which fails stop all of them:
+    a process is terminated (`docker run` passes the signal on to its container),
+    and killed if it does not end.
 
     Args:
-        command: the command of julia
+        command: the command of the toolchain
         scripts: the script of each process
         parts: the names of the jobs of each process, in their order
         directory: the directory of the files of the jobs
+        suffix: the suffix of the files of code, e.g. `.jl`
 
     Raises:
-        RuntimeError: if a process fails or a job takes longer than `JOB_TIMEOUT`
+        RuntimeError: if a process fails, exits before it finished its jobs, or a
+            job or the exit takes longer than `JOB_TIMEOUT`
     """
     stderr_paths = [script.with_suffix(".stderr") for script in scripts]
     running = []
@@ -602,36 +779,47 @@ def _run_processes(
                     stderr=stderr,
                 )
             )
+
+    def finished(k: int) -> int:
+        """The number of jobs the process k finished."""
+        return sum((directory / f"{n}{suffix}.time").exists() for n in parts[k])
+
     done = [0] * len(running)
     progress = [time.monotonic()] * len(running)
     try:
         while any(process.poll() is None for process in running):
             for k, process in enumerate(running):
-                finished = sum(
-                    (directory / f"{name}.jl.time").exists() for name in parts[k]
-                )
-                if finished > done[k]:
-                    done[k], progress[k] = finished, time.monotonic()
+                if finished(k) > done[k]:
+                    done[k], progress[k] = finished(k), time.monotonic()
                 if process.poll() is not None and process.returncode != 0:
-                    stderr = stderr_paths[k].read_text(encoding="utf-8")
                     raise RuntimeError(
                         f"{scripts[k].name} failed with exit code "
-                        f"{process.returncode}:\n{stderr[-5000:]}"
+                        f"{process.returncode}:\n{_stderr(stderr_paths[k])}"
                     )
                 if process.poll() is None and (
                     time.monotonic() - progress[k] > JOB_TIMEOUT
                 ):
+                    if done[k] < len(parts[k]):
+                        raise RuntimeError(
+                            f"The job {parts[k][done[k]]} of {scripts[k].name} "
+                            f"took more than {JOB_TIMEOUT} seconds."
+                        )
                     raise RuntimeError(
-                        f"The julia job {parts[k][done[k]]} of {scripts[k].name} "
-                        f"took more than {JOB_TIMEOUT} seconds."
+                        f"{scripts[k].name} finished its jobs but did not exit "
+                        f"within {JOB_TIMEOUT} seconds."
                     )
             time.sleep(0.2)
         for k, process in enumerate(running):
             if process.returncode != 0:
-                stderr = stderr_paths[k].read_text(encoding="utf-8")
                 raise RuntimeError(
                     f"{scripts[k].name} failed with exit code {process.returncode}:"
-                    f"\n{stderr[-5000:]}"
+                    f"\n{_stderr(stderr_paths[k])}"
+                )
+            if finished(k) < len(parts[k]):
+                unfinished = parts[k][finished(k)]
+                raise RuntimeError(
+                    f"{scripts[k].name} exited without finishing its job "
+                    f"{unfinished}:\n{_stderr(stderr_paths[k])}"
                 )
     finally:
         for process in running:
@@ -645,70 +833,83 @@ def _run_processes(
                 process.wait()
 
 
-def run_julia_jobs(
-    jobs: Mapping[str, JuliaJob], directory: Path, processes: int = 1
-) -> dict[str, JuliaOutput]:
-    """Run julia jobs with `julia_command`, many jobs in one julia process.
+def run_jobs(
+    language: str, jobs: Mapping[str, Job], directory: Path, processes: int = 1
+) -> dict[str, JobOutput]:
+    """Run jobs of julia or R code, many jobs in one process of the toolchain.
 
-    The code of each job is included into a module of its own, so that the modules of
-    two jobs never clash; a job which throws an error does not stop the others. A
-    julia process compiles the integrators once for all of its jobs, which makes
-    many jobs in one process fast.
+    The code of each job is loaded into a module (julia) or an environment (R) of its
+    own, so that the code of two jobs never clashes; a job which throws an error does
+    not stop the others. A process loads the packages and compiles the code which
+    they share (the integrators of julia) once for all of its jobs, which makes many
+    jobs in one process fast.
 
     Args:
+        language: `julia` or `r`, see `LANGUAGES`
         jobs: the jobs by their name, a name is a file name
         directory: directory of the files of the jobs, below `/tmp` for the docker
             command
-        processes: the number of julia processes, which run in parallel, each with
-            a part of the jobs
+        processes: the number of processes, which run in parallel, each with a part
+            of the jobs
 
     Returns:
         the output of each job
 
     Raises:
-        RuntimeError: if julia is not runnable or a process fails
+        RuntimeError: if the toolchain is not runnable or a process fails
     """
-    command = julia_command()
+    spec = LANGUAGES[language]
+    command = spec.command()
     if command is None:
-        raise RuntimeError("julia is not runnable.")
+        raise RuntimeError(f"{spec.title} is not runnable.")
     names = list(jobs)
+    parts = [names[part::processes] for part in range(processes)]
     scripts = []
-    for part in range(processes):
-        lines = [_JULIA_PRELUDE]
-        for k, name in enumerate(names[part::processes]):
-            path = (directory / f"{name}.jl").absolute()
+    for part, part_names in enumerate(parts):
+        lines = [spec.prelude]
+        for k, name in enumerate(part_names):
+            path = (directory / f"{name}{spec.suffix}").absolute()
             path.write_text(jobs[name].code, encoding="utf-8")
-            lines += [
-                f"function job_{k}(m, io)",
-                jobs[name].run.rstrip(),
-                "end",
-                f'run_job(raw"{path}", job_{k})',
-            ]
-        script = directory / f"jobs_{part}.jl"
+            lines += spec.job(k, jobs[name].run.rstrip(), path)
+        script = directory / f"jobs_{part}{spec.suffix}"
         script.write_text("\n".join(lines) + "\n", encoding="utf-8")
         scripts.append(script)
-    parts = [names[part::processes] for part in range(processes)]
-    _run_processes(command, scripts, parts, directory)
+    _run_processes(command, scripts, parts, directory, spec.suffix)
     outputs = {}
     for name in names:
-        path = directory / f"{name}.jl"
-        error_path = path.with_name(f"{name}.jl.err")
+        path = directory / f"{name}{spec.suffix}"
+
+        def read(extension: str, path: Path = path) -> str | None:
+            """The text of the file of the job with the extension, if it exists."""
+            file = path.with_name(f"{path.name}.{extension}")
+            return file.read_text(encoding="utf-8") if file.exists() else None
+
         lines: dict[str, list[str]] = {}
-        output_path = path.with_name(f"{name}.jl.out")
-        if output_path.exists():
-            for line in output_path.read_text(encoding="utf-8").splitlines():
-                key, _, values = line.partition("\t")
-                lines[key] = values.split("\t") if values else []
-        log_path = path.with_name(f"{name}.jl.log")
-        outputs[name] = JuliaOutput(
+        for line in (read("out") or "").splitlines():
+            key, _, values = line.partition("\t")
+            lines[key] = values.split("\t") if values else []
+        outputs[name] = JobOutput(
+            language=language,
             lines=lines,
-            error=error_path.read_text(encoding="utf-8")
-            if error_path.exists()
-            else None,
-            log=log_path.read_text(encoding="utf-8") if log_path.exists() else "",
-            seconds=float(path.with_name(f"{name}.jl.time").read_text()),
+            error=read("err"),
+            log=read("log") or "",
+            seconds=float(read("time") or "nan"),
         )
     return outputs
+
+
+def run_julia_jobs(
+    jobs: Mapping[str, Job], directory: Path, processes: int = 1
+) -> dict[str, JobOutput]:
+    """Run julia jobs with `julia_command`, see `run_jobs`."""
+    return run_jobs("julia", jobs, directory, processes)
+
+
+def run_r_jobs(
+    jobs: Mapping[str, Job], directory: Path, processes: int = 1
+) -> dict[str, JobOutput]:
+    """Run R jobs with `rscript_command`, see `run_jobs`."""
+    return run_jobs("r", jobs, directory, processes)
 
 
 def run_r(code: str, tmp_path: Path) -> str:
@@ -722,6 +923,13 @@ def run_r(code: str, tmp_path: Path) -> str:
         the standard output
     """
     return _run(rscript_command(), tmp_path / "script.R", code)
+
+
+LANGUAGES: dict[str, _Language] = {
+    "julia": _Language("julia", ".jl", julia_command, _JULIA_PRELUDE, _julia_job),
+    "r": _Language("R", ".R", rscript_command, _R_PRELUDE, _r_job),
+}
+"""How the jobs of julia and R are run, by language."""
 
 
 def compile_typst(source: str, tmp_path: Path) -> bytes:

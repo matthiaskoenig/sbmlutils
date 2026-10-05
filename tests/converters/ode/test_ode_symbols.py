@@ -57,6 +57,10 @@ def test_reserved_ids_are_renamed() -> None:
         ("r", "gamma", "gamma_"),
         ("r", "NA", "NA_"),
         ("r", "list", "list_"),
+        ("r", "lsoda", "lsoda_"),
+        ("r", "deSolve", "deSolve_"),
+        ("r", "simulate", "simulate_"),
+        ("r", "repeat", "repeat_"),
     ],
 )
 def test_reserved_names(language: str, sid: str, expected: str) -> None:

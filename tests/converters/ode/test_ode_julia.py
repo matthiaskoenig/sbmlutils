@@ -21,18 +21,18 @@ import pytest
 from ode_helpers import (
     EVENT_MODELS,
     FORMULAS,
-    POINT_VALUES_JOB,
+    JULIA_POINT_VALUES_JOB,
     TWO_EVENTS,
-    JuliaJob,
-    JuliaOutput,
+    Job,
+    JobOutput,
     assert_table_as_roadrunner,
     assert_values_as_roadrunner,
     edit_sbml,
     julia_command,
+    julia_simulate_job,
     model_sbml,
     run_julia_jobs,
     sbml_with_rate,
-    simulate_job,
     toolchain_missing,
 )
 
@@ -115,8 +115,8 @@ INJECTED_NAME = (
 )
 
 # the further jobs of the right hand side
-POINT_JOBS: dict[str, Callable[[], JuliaJob]] = {
-    "negative_base": lambda: JuliaJob(
+POINT_JOBS: dict[str, Callable[[], Job]] = {
+    "negative_base": lambda: Job(
         OdeSystem.from_sbml(
             model_sbml("""
                 compartment c = 1; species A in c = -1
@@ -133,7 +133,7 @@ POINT_JOBS: dict[str, Callable[[], JuliaJob]] = {
         emit(io, "y", m.f_y(x0, p, 0.0))
         """,
     ),
-    "initial_values_take_constants": lambda: JuliaJob(
+    "initial_values_take_constants": lambda: Job(
         OdeSystem.from_sbml(model_sbml(RULES)).render("julia", simulator=False),
         """
         p = copy(m.P0)
@@ -146,7 +146,7 @@ POINT_JOBS: dict[str, Callable[[], JuliaJob]] = {
         emit(io, "x0_default", m.initial_values()[1])
         """,
     ),
-    "injected": lambda: JuliaJob(
+    "injected": lambda: Job(
         OdeSystem.from_sbml(sbml_with_rate("k*A", name=INJECTED_NAME)).render(
             "julia", simulator=False
         ),
@@ -159,7 +159,7 @@ POINT_JOBS: dict[str, Callable[[], JuliaJob]] = {
         emit(io, "doc", [replace(doc, "\n" => " ")])
         """,
     ),
-    "events_without_simulator": lambda: JuliaJob(
+    "events_without_simulator": lambda: Job(
         OdeSystem.from_sbml(model_sbml(TWO_EVENTS)).render("julia", simulator=False),
         """
         x, p = m.initial_values()
@@ -179,28 +179,28 @@ POINT_JOBS: dict[str, Callable[[], JuliaJob]] = {
 }
 
 # the jobs of `simulate`, the models of the event tests of the python code included
-SIMULATE_JOBS: dict[str, Callable[[], JuliaJob]] = {
-    "repressilator": lambda: JuliaJob(
-        OdeSystem.from_sbml(REPRESSILATOR_SBML).render("julia"), simulate_job()
+SIMULATE_JOBS: dict[str, Callable[[], Job]] = {
+    "repressilator": lambda: Job(
+        OdeSystem.from_sbml(REPRESSILATOR_SBML).render("julia"), julia_simulate_job()
     ),
     **{
         f"events_{name}": functools.partial(
-            lambda antimony: JuliaJob(
+            lambda antimony: Job(
                 OdeSystem.from_sbml(model_sbml(antimony)).render("julia"),
-                simulate_job(),
+                julia_simulate_job(),
             ),
             antimony,
         )
         for name, antimony in EVENT_MODELS.items()
         if name != "infinite_cascade"
     },
-    "stateless": lambda: JuliaJob(
+    "stateless": lambda: Job(
         OdeSystem.from_sbml(model_sbml("k = 2; y := k * time; z := y^2")).render(
             "julia"
         ),
-        simulate_job(4.0, 5),
+        julia_simulate_job(4.0, 5),
     ),
-    "x0_and_p": lambda: JuliaJob(
+    "x0_and_p": lambda: Job(
         OdeSystem.from_sbml(
             model_sbml("species A = 2; R1: A -> ; k * A; k = 1")
         ).render("julia"),
@@ -210,7 +210,7 @@ SIMULATE_JOBS: dict[str, Callable[[], JuliaJob]] = {
         emit_table(io, m.simulate(1.0; points=3, p, x0=[4.0]))
         """,
     ),
-    "max_steps": lambda: JuliaJob(
+    "max_steps": lambda: Job(
         OdeSystem.from_sbml(VDP_SBML).render("julia"),
         """
         emit(io, "MAX_STEPS", [m.MAX_STEPS])
@@ -221,7 +221,7 @@ SIMULATE_JOBS: dict[str, Callable[[], JuliaJob]] = {
         end
         """,
     ),
-    "many_points": lambda: JuliaJob(
+    "many_points": lambda: Job(
         OdeSystem.from_sbml(
             model_sbml("species S = 1; R1: S -> ; k * S; k = 1")
         ).render("julia"),
@@ -230,14 +230,15 @@ SIMULATE_JOBS: dict[str, Callable[[], JuliaJob]] = {
         emit(io, "S", [df[end, "S"], size(df, 1)])
         """,
     ),
-    "window_dtmax": lambda: JuliaJob(
+    "window_dtmax": lambda: Job(
         OdeSystem.from_sbml(model_sbml(EVENT_MODELS["window"])).render("julia"),
         """
         emit(io, "B", [m.simulate(4.0; points=21)[end, "B"]])
         emit(io, "B_dtmax", [m.simulate(4.0; points=21, dtmax=1.0)[end, "B"]])
+        emit(io, "TRIGGER_POINTS", [m.TRIGGER_POINTS])
         """,
     ),
-    "infinite_cascade": lambda: JuliaJob(
+    "infinite_cascade": lambda: Job(
         OdeSystem.from_sbml(model_sbml(EVENT_MODELS["infinite_cascade"])).render(
             "julia"
         ),
@@ -252,7 +253,7 @@ SIMULATE_JOBS: dict[str, Callable[[], JuliaJob]] = {
     ),
     **{
         f"pole{k}": functools.partial(
-            lambda event: JuliaJob(
+            lambda event: Job(
                 OdeSystem.from_sbml(model_sbml(f"x = 1; x' = x^2{event}")).render(
                     "julia"
                 ),
@@ -270,7 +271,7 @@ SIMULATE_JOBS: dict[str, Callable[[], JuliaJob]] = {
     },
     **{
         f"without_time_{name}": functools.partial(
-            lambda antimony: JuliaJob(
+            lambda antimony: Job(
                 OdeSystem.from_sbml(model_sbml(antimony)).render("julia"),
                 """
                 x0, _ = m.initial_values()
@@ -293,17 +294,17 @@ SIMULATE_JOBS: dict[str, Callable[[], JuliaJob]] = {
     },
     # a constant rate and a first step which the end of the integration shortens,
     # which OrdinaryDiffEq 7 interpolates with its full length
-    "first_step": lambda: JuliaJob(
+    "first_step": lambda: Job(
         OdeSystem.from_sbml(model_sbml("species S = 1; R1: -> S; k; k = 1")).render(
             "julia"
         ),
-        simulate_job(0.18, 3, "dtmax=1.0"),
+        julia_simulate_job(0.18, 3, "dtmax=1.0"),
     ),
-    "reserved_simulate": lambda: JuliaJob(
+    "reserved_simulate": lambda: Job(
         OdeSystem.from_sbml(
             model_sbml("species A = 1; R1: A -> ; simulate * A; simulate = 1")
         ).render("julia"),
-        simulate_job(1.0, 2),
+        julia_simulate_job(1.0, 2),
     ),
 }
 
@@ -351,18 +352,18 @@ def _code(antimony: str, **options: object) -> str:
     return OdeSystem.from_sbml(model_sbml(antimony)).render("julia", **options)
 
 
-def _point_jobs() -> dict[str, JuliaJob]:
+def _point_jobs() -> dict[str, Job]:
     """The jobs of the right hand side."""
     jobs = {
-        name: JuliaJob(
+        name: Job(
             OdeSystem.from_sbml(sbml).render("julia", simulator=False),
-            POINT_VALUES_JOB,
+            JULIA_POINT_VALUES_JOB,
         )
         for name, sbml in POINT_MODELS.items()
     }
     jobs.update({name: job() for name, job in POINT_JOBS.items()})
     for name, (antimony, simulator) in PARSED.items():
-        jobs[f"parse_{name}"] = JuliaJob(
+        jobs[f"parse_{name}"] = Job(
             _code(antimony, simulator=simulator),
             f'    CODE = Meta.parseall(read(raw"{{path}}", String))\n{NAMES_JOB}',
         )
@@ -370,7 +371,7 @@ def _point_jobs() -> dict[str, JuliaJob]:
 
 
 @pytest.fixture(scope="module")
-def julia(tmp_path_factory: pytest.TempPathFactory) -> Callable[[str], JuliaOutput]:
+def julia(tmp_path_factory: pytest.TempPathFactory) -> Callable[[str], JobOutput]:
     """The output of a job of the module, by its name.
 
     The jobs of the right hand side and the jobs of `simulate` run in a julia
@@ -378,9 +379,9 @@ def julia(tmp_path_factory: pytest.TempPathFactory) -> Callable[[str], JuliaOutp
     """
     if julia_command() is None:
         toolchain_missing("julia", "SBMLUTILS_JULIA")
-    outputs: dict[str, JuliaOutput] = {}
+    outputs: dict[str, JobOutput] = {}
 
-    def output(name: str) -> JuliaOutput:
+    def output(name: str) -> JobOutput:
         if name not in outputs:
             if name in SIMULATE_JOBS:
                 jobs = {n: job() for n, job in SIMULATE_JOBS.items()}
@@ -390,9 +391,7 @@ def julia(tmp_path_factory: pytest.TempPathFactory) -> Callable[[str], JuliaOutp
                 directory = tmp_path_factory.mktemp("julia_points")
             for job_name, job in jobs.items():
                 path = (directory / f"{job_name}.jl").absolute()
-                jobs[job_name] = JuliaJob(
-                    job.code, job.run.replace("{path}", str(path))
-                )
+                jobs[job_name] = Job(job.code, job.run.replace("{path}", str(path)))
             outputs.update(run_julia_jobs(jobs, directory))
         return outputs[name]
 
@@ -403,7 +402,7 @@ def julia(tmp_path_factory: pytest.TempPathFactory) -> Callable[[str], JuliaOutp
 
 
 @pytest.mark.parametrize("name", list(POINT_MODELS))
-def test_julia_as_roadrunner(name: str, julia: Callable[[str], JuliaOutput]) -> None:
+def test_julia_as_roadrunner(name: str, julia: Callable[[str], JobOutput]) -> None:
     """The julia of a model computes the values of roadrunner.
 
     The formulas cover every construct of the math, the models of the python tests
@@ -412,7 +411,7 @@ def test_julia_as_roadrunner(name: str, julia: Callable[[str], JuliaOutput]) -> 
     assert_values_as_roadrunner(POINT_MODELS[name], julia(name).point_values())
 
 
-def test_julia_rules_and_functions(julia: Callable[[str], JuliaOutput]) -> None:
+def test_julia_rules_and_functions(julia: Callable[[str], JobOutput]) -> None:
     """Function definitions, rules, an initial assignment and an amount state."""
     values = julia("rules").point_values()
     assert values.xids == ["c", "n_A", "n_B"]
@@ -420,7 +419,7 @@ def test_julia_rules_and_functions(julia: Callable[[str], JuliaOutput]) -> None:
     assert values.x0[values.xids.index("n_A")] == pytest.approx(6.0)
 
 
-def test_julia_reserved_ids(julia: Callable[[str], JuliaOutput]) -> None:
+def test_julia_reserved_ids(julia: Callable[[str], JobOutput]) -> None:
     """Ids which are julia keywords, names of the code or `_` are renamed and run."""
     values = julia("reserved").point_values()
     assert values.xids == ["begin", "p"]
@@ -428,13 +427,13 @@ def test_julia_reserved_ids(julia: Callable[[str], JuliaOutput]) -> None:
     assert {"ccall", "cglobal", "eval", "include"} <= set(values.pids)
 
 
-def test_julia_time_out_of_its_domain(julia: Callable[[str], JuliaOutput]) -> None:
+def test_julia_time_out_of_its_domain(julia: Callable[[str], JobOutput]) -> None:
     """Math of the time out of its domain is `Inf`, not an error (case 01488)."""
     assert julia("time_domain").floats("y0").tolist() == [0.0]
 
 
 def test_julia_negative_base_with_fractional_exponent_is_nan(
-    julia: Callable[[str], JuliaOutput],
+    julia: Callable[[str], JobOutput],
 ) -> None:
     """A power of a negative state with a fractional exponent is NaN, no error."""
     output = julia("negative_base")
@@ -443,7 +442,7 @@ def test_julia_negative_base_with_fractional_exponent_is_nan(
 
 
 def test_julia_initial_values_take_constants(
-    julia: Callable[[str], JuliaOutput],
+    julia: Callable[[str], JobOutput],
 ) -> None:
     """`initial_values` evaluates the initial values with the constants passed."""
     output = julia("initial_values_take_constants")
@@ -455,7 +454,7 @@ def test_julia_initial_values_take_constants(
 
 
 def test_julia_simulate_matches_roadrunner(
-    julia: Callable[[str], JuliaOutput],
+    julia: Callable[[str], JobOutput],
 ) -> None:
     """The simulator integrates the repressilator as roadrunner."""
     system = OdeSystem.from_sbml(REPRESSILATOR_SBML)
@@ -464,27 +463,27 @@ def test_julia_simulate_matches_roadrunner(
     assert_table_as_roadrunner(REPRESSILATOR_SBML, df)
 
 
-def test_julia_simulate_from_x0_and_p(julia: Callable[[str], JuliaOutput]) -> None:
+def test_julia_simulate_from_x0_and_p(julia: Callable[[str], JobOutput]) -> None:
     """The simulator starts from the states and the constants passed."""
     df = julia("x0_and_p").table()
     assert list(df.columns) == ["time", "A", "R1"]
     assert df["A"].tolist() == pytest.approx(4.0 * np.exp(-2.0 * df["time"]), rel=1e-6)
 
 
-def test_julia_model_without_states(julia: Callable[[str], JuliaOutput]) -> None:
+def test_julia_model_without_states(julia: Callable[[str], JobOutput]) -> None:
     """A model of assignment rules only has no states and simulates."""
     df = julia("stateless").table()
     assert list(df.columns) == ["time", "y", "z"]
     assert df["z"].tolist() == pytest.approx([0.0, 4.0, 16.0, 36.0, 64.0])
 
 
-def test_julia_reserved_id_simulate(julia: Callable[[str], JuliaOutput]) -> None:
+def test_julia_reserved_id_simulate(julia: Callable[[str], JobOutput]) -> None:
     """An id `simulate` is renamed, the simulator runs."""
     df = julia("reserved_simulate").table()
     assert df["A"].tolist() == pytest.approx([1.0, np.exp(-1.0)], rel=1e-6)
 
 
-def test_julia_simulate_max_steps(julia: Callable[[str], JuliaOutput]) -> None:
+def test_julia_simulate_max_steps(julia: Callable[[str], JobOutput]) -> None:
     """More steps of the integrator than `max_steps` throw an error."""
     output = julia("max_steps")
     assert output.floats("MAX_STEPS").tolist() == [100000]
@@ -492,7 +491,7 @@ def test_julia_simulate_max_steps(julia: Callable[[str], JuliaOutput]) -> None:
 
 
 def test_julia_simulate_max_steps_scale_with_the_points(
-    julia: Callable[[str], JuliaOutput],
+    julia: Callable[[str], JobOutput],
 ) -> None:
     """The default limit of the steps grows with the steps the time points force."""
     value, rows = julia("many_points").floats("S")
@@ -502,7 +501,7 @@ def test_julia_simulate_max_steps_scale_with_the_points(
 
 @pytest.mark.parametrize("name", ["events", "states"])
 def test_julia_simulate_without_time(
-    name: str, julia: Callable[[str], JuliaOutput]
+    name: str, julia: Callable[[str], JobOutput]
 ) -> None:
     """`simulate(0)` is the initial state at each time point, one point is t = 0."""
     output = julia(f"without_time_{name}")
@@ -515,7 +514,7 @@ def test_julia_simulate_without_time(
     assert output.floats("single_states").tolist() == x0
 
 
-def test_julia_simulate_first_step(julia: Callable[[str], JuliaOutput]) -> None:
+def test_julia_simulate_first_step(julia: Callable[[str], JobOutput]) -> None:
     """A first step which the end of the integration shortens is interpolated right.
 
     OrdinaryDiffEq 7 interpolates such a step with its full length, the largest step
@@ -527,7 +526,7 @@ def test_julia_simulate_first_step(julia: Callable[[str], JuliaOutput]) -> None:
 
 @pytest.mark.parametrize("name", ["pole0", "pole1"])
 def test_julia_simulate_raises_for_a_state_without_bound(
-    name: str, julia: Callable[[str], JuliaOutput]
+    name: str, julia: Callable[[str], JobOutput]
 ) -> None:
     """A state which grows without bound throws, it does not integrate for ever.
 
@@ -545,9 +544,7 @@ EVENT_RTOL = 1e-4
 EVENT_ATOL = 1e-6
 
 
-def _events_as_roadrunner(
-    name: str, julia: Callable[[str], JuliaOutput]
-) -> pd.DataFrame:
+def _events_as_roadrunner(name: str, julia: Callable[[str], JobOutput]) -> pd.DataFrame:
     """Assert that a model of `EVENT_MODELS` simulates as roadrunner.
 
     Returns:
@@ -564,13 +561,13 @@ def _events_as_roadrunner(
     "name", [name for name in EVENT_MODELS if name != "infinite_cascade"]
 )
 def test_julia_events_as_roadrunner(
-    name: str, julia: Callable[[str], JuliaOutput]
+    name: str, julia: Callable[[str], JobOutput]
 ) -> None:
     """The julia of every event model of the python tests simulates as roadrunner."""
     _events_as_roadrunner(name, julia)
 
 
-def test_julia_two_events(julia: Callable[[str], JuliaOutput]) -> None:
+def test_julia_two_events(julia: Callable[[str], JobOutput]) -> None:
     """The table has the constants which events change."""
     df = _events_as_roadrunner("two_events", julia)
     assert list(df.columns) == ["time", "S", "R1", "k", "total"]
@@ -579,7 +576,7 @@ def test_julia_two_events(julia: Callable[[str], JuliaOutput]) -> None:
 
 @pytest.mark.parametrize(("relation", "before"), [(">=", False), (">", True)])
 def test_julia_event_at_a_time_point(
-    relation: str, before: bool, julia: Callable[[str], JuliaOutput]
+    relation: str, before: bool, julia: Callable[[str], JobOutput]
 ) -> None:
     """At a time point of the output the values are those after its events."""
     df = _events_as_roadrunner(f"at_time_point[{relation}]", julia)
@@ -588,7 +585,7 @@ def test_julia_event_at_a_time_point(
 
 
 def test_julia_event_at_a_time_point_to_the_rounding(
-    julia: Callable[[str], JuliaOutput],
+    julia: Callable[[str], JobOutput],
 ) -> None:
     """An event at a time point to the rounding of the integration is at it.
 
@@ -600,7 +597,7 @@ def test_julia_event_at_a_time_point_to_the_rounding(
 
 
 @pytest.mark.parametrize("relation", [">=", ">"])
-def test_julia_event_at_t0(relation: str, julia: Callable[[str], JuliaOutput]) -> None:
+def test_julia_event_at_t0(relation: str, julia: Callable[[str], JobOutput]) -> None:
     """A trigger which holds at t = 0 fires there if its initial value is false."""
     df = _events_as_roadrunner(f"at_t0[{relation}]", julia)
     fired = 1.0 if relation == ">=" else 0.0
@@ -609,21 +606,21 @@ def test_julia_event_at_t0(relation: str, julia: Callable[[str], JuliaOutput]) -
     assert df["D"].iloc[-1] == 3.0
 
 
-def test_julia_event_priority(julia: Callable[[str], JuliaOutput]) -> None:
+def test_julia_event_priority(julia: Callable[[str], JobOutput]) -> None:
     """Events at the same time execute in the order of their priorities."""
     df = _events_as_roadrunner("priority", julia)
     assert df[np.isclose(df["time"], 2.0)]["B"].iloc[0] == 4.0
     assert df["B"].iloc[-1] == 17.0
 
 
-def test_julia_event_delay(julia: Callable[[str], JuliaOutput]) -> None:
+def test_julia_event_delay(julia: Callable[[str], JobOutput]) -> None:
     """A delayed event executes after its delay, each time its trigger turns true."""
     df = _events_as_roadrunner("delay", julia)
     assert df["n"].iloc[-1] == 4.0
     assert df["S"].iloc[-1] == pytest.approx(4.831581402482879, rel=1e-6)
 
 
-def test_julia_event_persistent(julia: Callable[[str], JuliaOutput]) -> None:
+def test_julia_event_persistent(julia: Callable[[str], JobOutput]) -> None:
     """An event which is not persistent is dropped if its trigger turns false."""
     df = _events_as_roadrunner("persistent", julia)
     assert df["B"].iloc[-1] == 0.0
@@ -632,7 +629,7 @@ def test_julia_event_persistent(julia: Callable[[str], JuliaOutput]) -> None:
 
 
 def test_julia_event_assigns_its_threshold(
-    julia: Callable[[str], JuliaOutput],
+    julia: Callable[[str], JobOutput],
 ) -> None:
     """An event which sets its trigger to the root keeps integrating."""
     df = _events_as_roadrunner("threshold", julia)
@@ -641,7 +638,7 @@ def test_julia_event_assigns_its_threshold(
 
 
 def test_julia_event_model_without_states(
-    julia: Callable[[str], JuliaOutput],
+    julia: Callable[[str], JobOutput],
 ) -> None:
     """A model of events and rules only integrates nothing but its events."""
     df = _events_as_roadrunner("without_states", julia)
@@ -649,20 +646,20 @@ def test_julia_event_model_without_states(
     assert df["B"].iloc[-1] == 5.0
 
 
-def test_julia_event_window_and_dtmax(julia: Callable[[str], JuliaOutput]) -> None:
+def test_julia_event_window_and_dtmax(julia: Callable[[str], JobOutput]) -> None:
     """A trigger which holds for half a time unit is found with the steps of `dtmax`.
 
-    The integrator ends a step at each root of the root functions it finds, with
-    `dtmax=1` as well, unlike the python code, which evaluates the triggers at the
-    end of each step only.
+    The integrator ends a step at each root of the root functions it finds, which it
+    evaluates at `TRIGGER_POINTS` points of each step, with `dtmax=1` as well.
     """
     output = julia("window_dtmax")
+    assert output.floats("TRIGGER_POINTS").tolist() == [10]
     assert output.floats("B").tolist() == [1.0]
     assert output.floats("B_dtmax").tolist() == [1.0]
 
 
 def test_julia_event_infinite_cascade_raises(
-    julia: Callable[[str], JuliaOutput],
+    julia: Callable[[str], JobOutput],
 ) -> None:
     """Events which trigger each other at one time without end throw an error."""
     output = julia("infinite_cascade")
@@ -670,7 +667,7 @@ def test_julia_event_infinite_cascade_raises(
     assert "infinite cascade" in output.strings("error")[0]
 
 
-def test_julia_events_without_simulator(julia: Callable[[str], JuliaOutput]) -> None:
+def test_julia_events_without_simulator(julia: Callable[[str], JobOutput]) -> None:
     """`simulator=False` writes the functions of the events for a solver of one's own."""
     code = _code(TWO_EVENTS, simulator=False)
     assert "OrdinaryDiffEq" not in code
@@ -692,9 +689,7 @@ def test_julia_events_without_simulator(julia: Callable[[str], JuliaOutput]) -> 
 
 
 @pytest.mark.parametrize("name", list(PARSED))
-def test_julia_names_are_reserved(
-    name: str, julia: Callable[[str], JuliaOutput]
-) -> None:
+def test_julia_names_are_reserved(name: str, julia: Callable[[str], JobOutput]) -> None:
     """Every name the template writes, not an id of the model, is reserved.
 
     julia parses the code and lists its names; the names of fields, keyword
@@ -723,7 +718,7 @@ def test_julia_names_are_reserved(
     assert written - model_names - arguments <= RESERVED["julia"]
 
 
-def test_julia_name_does_not_leave_comment(julia: Callable[[str], JuliaOutput]) -> None:
+def test_julia_name_does_not_leave_comment(julia: Callable[[str], JobOutput]) -> None:
     """A line break, quotes or an interpolation in a name never become code."""
     code = OdeSystem.from_sbml(sbml_with_rate("k*A", name=INJECTED_NAME)).render(
         "julia"
@@ -845,8 +840,8 @@ def test_julia_jobs_stop_at_a_hung_job(
         toolchain_missing("julia", "SBMLUTILS_JULIA")
     monkeypatch.setattr(ode_helpers, "JOB_TIMEOUT", 30)
     jobs = {
-        "hung": JuliaJob("module Hung end", "    sleep(3600)\n"),
-        "other": JuliaJob("module Other end", "    sleep(3600)\n"),
+        "hung": Job("module Hung end", "    sleep(3600)\n"),
+        "other": Job("module Other end", "    sleep(3600)\n"),
     }
     started = time.monotonic()
     with pytest.raises(RuntimeError, match="took more than 30 seconds"):

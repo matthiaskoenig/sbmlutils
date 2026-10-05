@@ -1,4 +1,4 @@
-"""Test the generated python and julia against roadrunner on the SBML test suite.
+"""Test the generated python, julia and R against roadrunner on the SBML test suite.
 
 Every case is the l3v2 flavour of a semantic case of the vendored test suite, see
 `tests/test_roundtrip.py`, simulated to `T_END` at `T_STEPS` time points. A case with
@@ -8,15 +8,16 @@ render; every other case must simulate as roadrunner: every column of `simulate`
 roadrunner selection. The tolerances of a case with events are relaxed, an event
 time is located to the tolerance of the integration.
 
-`CURATED` runs in the default test run, the full sweeps `test_python_sweep` and
-`test_julia_sweep` behind the `sbml_testsuite` marker. A case whose events are not
+`CURATED` runs in the default test run, the full sweeps `test_python_sweep`,
+`test_julia_sweep` and `test_r_sweep` behind the `sbml_testsuite` marker. A case whose events are not
 deterministic is skipped (`NONDETERMINISTIC`), as is a case roadrunner does not
 simulate, which has no reference (the fbc cases, an integration which fails); a
 known failure is a strict xfail with its reason (`KNOWN_FAILURES`).
 
-The julia code of the cases runs in few julia processes, which compile the
-integrator once for many cases (`run_julia_jobs`); the julia tests skip without
-julia, see `SBMLUTILS_JULIA`.
+The julia and the R code of the cases runs in few processes of julia and R, which
+compile the integrator (julia) and load the packages once for many cases
+(`run_jobs`); the julia tests skip without julia, see `SBMLUTILS_JULIA`, the R tests
+without R and deSolve, see `SBMLUTILS_RSCRIPT`.
 """
 
 import functools
@@ -26,14 +27,15 @@ from pathlib import Path
 import numpy as np
 import pytest
 from ode_helpers import (
-    JuliaJob,
-    JuliaOutput,
+    LANGUAGES,
+    Job,
+    JobOutput,
     assert_table_as_roadrunner,
     assert_trajectory_as_roadrunner,
-    julia_command,
+    julia_simulate_job,
     python_module,
-    run_julia_jobs,
-    simulate_job,
+    r_simulate_job,
+    run_jobs,
     toolchain_missing,
 )
 from test_roundtrip import (
@@ -94,10 +96,30 @@ _WINDOW_01511 = (
 KNOWN_FAILURES: dict[tuple[str, str], str] = {
     ("python", "01511"): _WINDOW_01511.format("python"),
     ("julia", "01511"): _WINDOW_01511.format("julia"),
+    ("r", "01511"): _WINDOW_01511.format("R"),
+    ("r", "01106"): (
+        "the trigger `X >= 2` holds from t = 1, a time point, where roadrunner and "
+        "the python and julia code report the values after the event; X' = 1 from "
+        "X = 1, and the integration of deSolve::lsoda gives X(1) = "
+        "1.9999999999999998, one ulp below 2, so that the event executes at "
+        "1.0000000000000002 and the time point has the values before it. The "
+        "rounding cannot be resolved by a tolerance at the time points: case 00963 "
+        "executes events 1.4e-16 after a time point, where roadrunner reports the "
+        "values before them"
+    ),
 }
 
-# the julia processes of the full sweep, which run in parallel
-JULIA_PROCESSES = 4
+# the processes of julia and of R of the full sweep, which run in parallel
+PROCESSES = 4
+
+# the variable of the command of each language whose code runs as jobs
+COMMANDS = {"julia": "SBMLUTILS_JULIA", "r": "SBMLUTILS_RSCRIPT"}
+
+# the body of the job of a case, by language
+SIMULATE_JOBS = {
+    "julia": julia_simulate_job(T_END, T_STEPS),
+    "r": r_simulate_job(T_END, T_STEPS),
+}
 
 
 @functools.cache
@@ -144,17 +166,20 @@ def check_python_case(sbml_path: Path, tmp_path: Path) -> None:
         assert_trajectory_as_roadrunner(sbml_path, module, *_tolerances(system))
 
 
-def check_julia_case(sbml_path: Path, output: Callable[[], JuliaOutput]) -> None:
-    """Check the julia code of a case: it refuses to render or simulates right.
+def check_job_case(
+    language: str, sbml_path: Path, output: Callable[[], JobOutput]
+) -> None:
+    """Check the julia or R code of a case: it refuses to render or simulates right.
 
     Args:
+        language: `julia` or `r`
         sbml_path: path of the SBML file of the case
-        output: the output of the job of the case, see `_julia_job`
+        output: the output of the job of the case, see `_case_job`
     """
     system = OdeSystem.from_sbml(sbml_path)
     if system.unsupported:
         with pytest.raises(NotImplementedError):
-            system.render("julia")
+            system.render(language)
         return
     error = _reference_error(sbml_path)
     if error is not None:
@@ -162,44 +187,50 @@ def check_julia_case(sbml_path: Path, output: Callable[[], JuliaOutput]) -> None
     assert_table_as_roadrunner(sbml_path, output().table(), *_tolerances(system))
 
 
-def _julia_job(sbml_path: Path) -> JuliaJob | None:
-    """The job which simulates the julia code of a case, `None` without a reference.
+def _case_job(language: str, sbml_path: Path) -> Job | None:
+    """The job which simulates the code of a case, `None` without a reference.
 
-    A case without a job is skipped or refuses to render, see `check_julia_case`.
+    A case without a job is skipped or refuses to render, see `check_job_case`.
     """
     if sbml_path.name[:5] in NONDETERMINISTIC:
         return None
     system = OdeSystem.from_sbml(sbml_path)
     if system.unsupported or _reference_error(sbml_path) is not None:
         return None
-    return JuliaJob(system.render("julia"), simulate_job(T_END, T_STEPS))
+    return Job(system.render(language), SIMULATE_JOBS[language])
+
+
+Suite = Callable[[str, str, list[Path], Path], JobOutput]
 
 
 @pytest.fixture(scope="module")
-def julia_suite(
-    tmp_path_factory: pytest.TempPathFactory,
-) -> Callable[[str, list[Path], Path], JuliaOutput]:
-    """The output of the julia job of a case.
+def suite(tmp_path_factory: pytest.TempPathFactory) -> Suite:
+    """The output of the julia or R job of a case.
 
-    The jobs of all cases of a group (`curated`, `sweep`) run on the first request of
-    one of them, with `JULIA_PROCESSES` processes for the sweep.
+    The jobs of all cases of a language and a group (`curated`, `sweep`) run on the
+    first request of one of them, with `PROCESSES` processes for the sweep.
     """
-    outputs: dict[str, dict[str, JuliaOutput]] = {}
+    outputs: dict[tuple[str, str], dict[str, JobOutput]] = {}
 
-    def output(group: str, paths: list[Path], sbml_path: Path) -> JuliaOutput:
-        if julia_command() is None:
-            toolchain_missing("julia", "SBMLUTILS_JULIA")
-        if group not in outputs:
+    def output(
+        language: str, group: str, paths: list[Path], sbml_path: Path
+    ) -> JobOutput:
+        if LANGUAGES[language].command() is None:
+            toolchain_missing(LANGUAGES[language].title, COMMANDS[language])
+        if (language, group) not in outputs:
             jobs = {}
             for path in paths:
-                job = _julia_job(path)
+                job = _case_job(language, path)
                 if job is not None:
                     jobs[f"case_{path.name[:5]}"] = job
-            processes = 1 if group == "curated" else JULIA_PROCESSES
-            outputs[group] = run_julia_jobs(
-                jobs, tmp_path_factory.mktemp(f"julia_{group}"), processes
+            processes = 1 if group == "curated" else PROCESSES
+            outputs[language, group] = run_jobs(
+                language,
+                jobs,
+                tmp_path_factory.mktemp(f"{language}_{group}"),
+                processes,
             )
-        return outputs[group][f"case_{sbml_path.name[:5]}"]
+        return outputs[language, group][f"case_{sbml_path.name[:5]}"]
 
     return output
 
@@ -234,31 +265,58 @@ def test_python_sweep(
     check_python_case(sbml_path, tmp_path)
 
 
-@requires_testsuite
-@pytest.mark.parametrize("case", CURATED)
-def test_julia_curated(
-    case: str,
-    julia_suite: Callable[[str, list[Path], Path], JuliaOutput],
-    request: pytest.FixtureRequest,
+def _check_curated(
+    language: str, case: str, suite: Suite, request: pytest.FixtureRequest
 ) -> None:
-    """The julia code of a curated case simulates as roadrunner."""
-    _mark("julia", case, request)
+    """Check the julia or R code of a curated case."""
+    _mark(language, case, request)
     paths = [suite_case(c) for c in CURATED]
     sbml_path = suite_case(case)
-    check_julia_case(sbml_path, lambda: julia_suite("curated", paths, sbml_path))
+    check_job_case(
+        language, sbml_path, lambda: suite(language, "curated", paths, sbml_path)
+    )
+
+
+def _check_sweep(
+    language: str, sbml_path: Path, suite: Suite, request: pytest.FixtureRequest
+) -> None:
+    """Check the julia or R code of a case of the sweep."""
+    _mark(language, sbml_path.name[:5], request)
+    check_job_case(
+        language, sbml_path, lambda: suite(language, "sweep", SWEEP_CASES, sbml_path)
+    )
+
+
+@requires_testsuite
+@pytest.mark.parametrize("case", CURATED)
+def test_julia_curated(case: str, suite: Suite, request: pytest.FixtureRequest) -> None:
+    """The julia code of a curated case simulates as roadrunner."""
+    _check_curated("julia", case, suite, request)
 
 
 @requires_testsuite
 @pytest.mark.sbml_testsuite
 @pytest.mark.parametrize("sbml_path", SWEEP_CASES, ids=sbml_case_idfn)
 def test_julia_sweep(
-    sbml_path: Path,
-    julia_suite: Callable[[str, list[Path], Path], JuliaOutput],
-    request: pytest.FixtureRequest,
+    sbml_path: Path, suite: Suite, request: pytest.FixtureRequest
 ) -> None:
     """The julia code of every l3v2 case simulates as roadrunner."""
-    _mark("julia", sbml_path.name[:5], request)
-    check_julia_case(sbml_path, lambda: julia_suite("sweep", SWEEP_CASES, sbml_path))
+    _check_sweep("julia", sbml_path, suite, request)
+
+
+@requires_testsuite
+@pytest.mark.parametrize("case", CURATED)
+def test_r_curated(case: str, suite: Suite, request: pytest.FixtureRequest) -> None:
+    """The R code of a curated case simulates as roadrunner."""
+    _check_curated("r", case, suite, request)
+
+
+@requires_testsuite
+@pytest.mark.sbml_testsuite
+@pytest.mark.parametrize("sbml_path", SWEEP_CASES, ids=sbml_case_idfn)
+def test_r_sweep(sbml_path: Path, suite: Suite, request: pytest.FixtureRequest) -> None:
+    """The R code of every l3v2 case simulates as roadrunner."""
+    _check_sweep("r", sbml_path, suite, request)
 
 
 def test_curated_cases_exist() -> None:
