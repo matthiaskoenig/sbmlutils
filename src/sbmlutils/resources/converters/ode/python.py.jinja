@@ -46,20 +46,40 @@ States x:
 `initial_values(p)` returns the initial states x0 and the constants p at t = 0,
 `f_dxdt(t, x, p)` the rates of change of the states and `f_y(t, x, p)` the assigned
 values y, the rules and the reaction rates.
+{% if events %}
+`EVENTS` lists the events with the functions of their delays, priorities and
+assignments, `event_triggers(t, x, p)` and `event_conditions(t, x, p)` their
+triggers.
+{% endif %}
 {% if options.simulator %}
+{% if events %}
+`simulate(t_end)` integrates the model with an integrator of `scipy.integrate` and
+executes its events, the file run as a script prints the head of a simulation.
+{% else %}
 `simulate(t_end)` integrates the model with `scipy.integrate.solve_ivp`, the file
 run as a script prints the head of a simulation.
+{% endif %}
 {% endif %}
 """
 
 {% if "math" in modules %}
 import math
+{% endif %}
+{% if options.simulator and events %}
+from functools import partial
+{% endif %}
+{% if "math" in modules or (options.simulator and events) %}
 
 {% endif %}
 import numpy as np
 {% if options.simulator %}
 import pandas as pd
+{% if events %}
+import scipy.integrate
+from scipy.integrate import DenseOutput
+{% else %}
 from scipy.integrate import solve_ivp
+{% endif %}
 {% endif %}
 
 # the ids of the states x, the constants p and the assigned values y
@@ -189,6 +209,258 @@ def f_y(t: float, x: np.ndarray, p: np.ndarray) -> np.ndarray:
 {{ lines }}
 {% endif %}
     return np.array({{ wrapped(assigned | map(attribute="code") | list, 4, 20, 14) }}, dtype=float)
+{% if events %}
+
+
+def event_triggers(t: float, x: np.ndarray, p: np.ndarray) -> np.ndarray:
+    """The root function of the trigger of each event, positive where it holds.
+
+    An integrator locates the time at which a trigger changes as a root of its
+    function. At a root, where the function is 0, the trigger itself decides, see
+    `event_conditions`: `a >= b` holds at `a == b`, `a > b` does not.
+    """
+{% set lines = body(scopes.roots) | trim("\n") %}
+{% if lines %}
+{{ lines }}
+{% endif %}
+    return np.array([
+{% for e in events %}
+        {{ e.root }},  # {{ e.id }}{% if e.comment %} {{ e.comment }}{% endif %}
+
+{% endfor %}
+    ])
+
+
+def event_conditions(t: float, x: np.ndarray, p: np.ndarray) -> np.ndarray:
+    """Whether the trigger of each event holds."""
+{% set lines = body(scopes.triggers) | trim("\n") %}
+{% if lines %}
+{{ lines }}
+{% endif %}
+    return np.array([
+{% for e in events %}
+        {{ e.trigger }},  # {{ e.id }}{% if e.comment %} {{ e.comment }}{% endif %}
+
+{% endfor %}
+    ], dtype=bool)
+{% for e in events %}
+{% if e.delay is not none %}
+
+
+def {{ e.functions.delay }}(t: float, x: np.ndarray, p: np.ndarray) -> float:
+    """The delay of the event {{ e.id }}, evaluated when its trigger turns true."""
+{% set lines = body(e.scopes.delay) | trim("\n") %}
+{% if lines %}
+{{ lines }}
+{% endif %}
+    return {{ e.delay }}
+{% endif %}
+{% if e.priority is not none %}
+
+
+def {{ e.functions.priority }}(t: float, x: np.ndarray, p: np.ndarray) -> float:
+    """The priority of the event {{ e.id }}, evaluated before each execution."""
+{% set lines = body(e.scopes.priority) | trim("\n") %}
+{% if lines %}
+{{ lines }}
+{% endif %}
+    return {{ e.priority }}
+{% endif %}
+
+
+def {{ e.functions["values"] }}(t: float, x: np.ndarray, p: np.ndarray) -> np.ndarray:
+    """The values the event {{ e.id }} assigns, evaluated {{ "when its trigger turns true" if e.use_trigger_values else "at its execution" }}."""
+{% set lines = body(e.scopes["values"]) | trim("\n") %}
+{% if lines %}
+{{ lines }}
+{% endif %}
+    return np.array([
+{% for a in e.assignments %}
+{% if a.expr is none %}
+        np.nan,  # {{ a.id }}: not assigned, its amount is kept
+{% else %}
+        {{ a.expr }},  # {{ a.id }}{% if a.comment %} {{ a.comment }}{% endif %}
+
+{% endif %}
+{% endfor %}
+    ], dtype=float)
+
+
+def {{ e.functions.assign }}(
+    t: float, x: np.ndarray, p: np.ndarray, values: np.ndarray
+) -> tuple[np.ndarray, np.ndarray]:
+{% if e.assignments | selectattr("scale") | list %}
+    """Execute the event {{ e.id }}: the states x and the constants p with the values.
+
+    The size of a compartment which scales a value is the size before the event:
+    a concentration held as its amount is assigned the amount of the new
+    concentration, a concentration with a rate rule keeps its amount when the size
+    of its compartment changes.
+    """
+{% else %}
+    """Execute the event {{ e.id }}: the states x and the constants p with the values."""
+{% endif %}
+{% set lines = body(e.scopes.assign) | trim("\n") %}
+{% if lines %}
+{{ lines }}
+{% endif %}
+    x = x.copy()
+    p = p.copy()
+{% for a in e.assignments %}
+{% set value = "values[%d]" % loop.index0 %}
+{% if a.expr is none %}
+{% set value = a.scale %}
+{% elif a.scale is not none %}
+{% set value = value ~ " * " ~ a.scale %}
+{% endif %}
+{% if a.divisor_position is not none %}
+{% set value = value ~ " / values[%d]" % a.divisor_position %}
+{% endif %}
+    {{ "x" if a.kind == "state" else "p" }}[{{ a.index }}] = {{ value }}  # {{ a.id }}{% if a.comment %} {{ a.comment }}{% endif %}
+
+{% endfor %}
+    return x, p
+{% endfor %}
+
+
+# the events in the order of the model: their flags and the functions of their
+# delay, priority and assignments; the trigger of EVENTS[k] is the entry k of
+# `event_triggers` and `event_conditions`
+EVENTS = [
+{% for e in events %}
+    {
+        "id": "{{ e.id }}",
+        "initial_value": {{ e.initial_value }},
+        "persistent": {{ e.persistent }},
+        "use_trigger_values": {{ e.use_trigger_values }},
+        "delay": {{ e.functions.delay or "None" }},
+        "priority": {{ e.functions.priority or "None" }},
+        "values": {{ e.functions["values"] }},
+        "assign": {{ e.functions.assign }},
+    },
+{% endfor %}
+]
+{% else %}
+
+
+# the model has no events
+EVENTS = []
+{% endif %}
+{% if options.simulator and events %}
+
+
+def first_change(
+    interpolant: DenseOutput,
+    t_old: float,
+    t_new: float,
+    p: np.ndarray,
+    holds: np.ndarray,
+) -> float:
+    """The first time in a step of the integration at which a trigger changes.
+
+    Bisection on the solution of the step, between a time without and a time with
+    a change, finds the first time with a change to the rounding error:
+    `time >= 1` changes at t = 1. A trigger which keeps its value at its root and
+    changes right after it, `time > 1` at t = 1, changes at a time clearly after
+    the root, as an integrator locates it, so that the time stays after the root
+    when a delay is added to it.
+
+    Args:
+        interpolant: the solution of the step
+        t_old: the start of the step, where the triggers are `holds`
+        t_new: the end of the step, where a trigger differs from `holds`
+        p: the constants
+        holds: whether each trigger holds at the start of the step
+
+    Returns:
+        the time of the change
+    """
+
+    def changed(t: float) -> bool:
+        return bool(np.any(event_conditions(t, interpolant(t), p) != holds))
+
+    t_low, t_high = t_old, t_new
+    while True:
+        t_middle = t_low + (t_high - t_low) / 2
+        if t_middle <= t_low or t_middle >= t_high:
+            break
+        if changed(t_middle):
+            t_high = t_middle
+        else:
+            t_low = t_middle
+    turned = event_conditions(t_high, interpolant(t_high), p) != holds
+    if np.any(event_triggers(t_low, interpolant(t_low), p)[turned] == 0):
+        return min(t_new, t_low + 1e-13 * max(1.0, abs(t_low)))
+    return t_high
+
+
+def execute_events(
+    t: float, x: np.ndarray, p: np.ndarray, holds: np.ndarray, pending: list[dict]
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Execute the events due at the time t.
+
+    1. A trigger which turned true schedules an execution of its event at t plus
+       its delay, with the values of its assignments if it uses the values from
+       the trigger time; a trigger which turned false drops the executions of its
+       event unless it is persistent.
+    2. Of the executions due, the one of the highest priority is executed (an
+       event without a priority has the priority 0), ties in the order of
+       `EVENTS`, which SBML leaves to chance.
+    3. The triggers are evaluated with the new states and constants, from 1,
+       until no execution is due: an event can trigger another one or drop it.
+
+    Args:
+        t: the time
+        x: the states
+        p: the constants
+        holds: whether each trigger held before t
+        pending: the scheduled executions, which are changed
+
+    Returns:
+        the states, the constants and whether each trigger holds, after the events
+    """
+    while True:
+        holds_now = event_conditions(t, x, p)
+        for event_index, event in enumerate(EVENTS):
+            if holds_now[event_index] and not holds[event_index]:
+                delay_time = event["delay"](t, x, p) if event["delay"] else 0.0
+                if event["use_trigger_values"]:
+                    values = event["values"](t, x, p)
+                else:
+                    values = None
+                pending.append(
+                    {"event": event_index, "time": t + delay_time, "values": values}
+                )
+            elif holds[event_index] and not holds_now[event_index]:
+                if event["persistent"]:
+                    continue
+                # the trigger turned false, the executions of the event are dropped
+                pending[:] = [
+                    scheduled
+                    for scheduled in pending
+                    if scheduled["event"] != event_index
+                ]
+        holds = holds_now
+
+        due = [scheduled for scheduled in pending if scheduled["time"] <= t]
+        if not due:
+            return x, p, holds
+
+        # the priority of each execution due, ties in the order of `EVENTS`
+        ranks = []
+        for scheduled in due:
+            event = EVENTS[scheduled["event"]]
+            priority_value = event["priority"](t, x, p) if event["priority"] else 0.0
+            ranks.append((priority_value, -scheduled["event"]))
+        execution = due[ranks.index(max(ranks))]
+        # by identity: the values of two executions do not compare as booleans
+        pending[:] = [scheduled for scheduled in pending if scheduled is not execution]
+        event = EVENTS[execution["event"]]
+        values = execution["values"]
+        if values is None:
+            values = event["values"](t, x, p)
+        x, p = event["assign"](t, x, p, values)
+{% endif %}
 {% if options.simulator %}
 
 
@@ -201,6 +473,96 @@ def simulate(
     atol: float = 1e-10,
     method: str = "LSODA",
 ) -> pd.DataFrame:
+{% if events %}
+    """Simulate the model from t = 0 to `t_end`, with its events.
+
+    The triggers before t = 0 have their initial values, a trigger which holds at
+    t = 0 and has the initial value false fires at t = 0. The integration stops
+    where a trigger changes, at the execution of a delayed event and at `t_end`;
+    there the events are executed, see `execute_events`, and the integration
+    restarts with the states and constants after them. A trigger is evaluated at
+    the end of every step of the integrator, which is at most the distance of the
+    time points, so that no trigger which holds for longer is stepped over.
+
+    Args:
+        t_end: the end time
+        points: the number of time points, 0 and `t_end` included
+        p: the constants, `P0` if not given
+        x0: the initial states, those of `initial_values` if not given
+        rtol: the relative tolerance of the integration
+        atol: the absolute tolerance of the integration
+        method: the integrator, a class of `scipy.integrate`, e.g. `"BDF"`
+
+    Returns:
+{% if event_constants %}
+        the time, the states, the assigned values and the constants which events
+        change at the time points, at the time of an event the values after it
+{% else %}
+        the time, the states and the assigned values at the time points, at the
+        time of an event the values after it
+{% endif %}
+    """
+    x_initial, p = initial_values(p)
+    x = x_initial if x0 is None else np.array(x0, dtype=float)
+    times = np.linspace(0.0, t_end, points)
+    max_step = times[1] if points > 1 else np.inf
+    solver_type = getattr(scipy.integrate, method)  # e.g. scipy.integrate.LSODA
+    rows = []  # the states and the constants at each time point
+
+    t = 0.0
+    holds = np.array([event["initial_value"] for event in EVENTS])
+    pending = []  # the scheduled executions of the events
+    x, p, holds = execute_events(t, x, p, holds, pending)
+    while t < t_end:
+        # integrate to the next execution of a delayed event, at most to t_end
+        t_stop = min([t_end, *(scheduled["time"] for scheduled in pending)])
+{% if not states %}
+        # without states the integrator takes a single step: the time is
+        # integrated in the steps the integrator takes with states
+        t_stop = min(t_stop, t + max_step)
+{% endif %}
+        solver = solver_type(
+            partial(f_dxdt, p=p), t, x, t_stop, rtol=rtol, atol=atol, max_step=max_step
+        )
+        while True:
+            solver.step()
+            if solver.status == "failed":
+                raise RuntimeError(f"The integration failed: {solver.message}")
+            interpolant = solver.dense_output()
+            changed = np.any(event_conditions(solver.t, solver.y, p) != holds)
+            if changed:
+                # the integration stops at the change of a trigger
+                t_next = first_change(interpolant, solver.t_old, solver.t, p, holds)
+            else:
+                t_next = solver.t
+            # the time points of the step before t_next, at t after its events
+            while len(rows) < points and times[len(rows)] < t_next:
+                rows.append((interpolant(times[len(rows)]), p))
+            if changed or solver.status == "finished":
+                break
+        t, x = t_next, interpolant(t_next)
+        x, p, holds = execute_events(t, x, p, holds, pending)
+    # the time points at t_end, after its events
+    rows.extend((x, p) for _ in range(points - len(rows)))
+
+    xt = np.array([x for x, _ in rows]).reshape(points, len(XIDS))
+    yt = np.array([f_y(t, x, p) for t, (x, p) in zip(times, rows, strict=True)])
+{% if event_constants %}
+    # the constants which events change
+    pt = np.array([p[{{ wrapped(event_constants | map(attribute="index") | list, 4, 21, 19) }}] for _, p in rows])
+    data = np.column_stack([times, xt, yt.reshape(points, len(YIDS)), pt])
+    columns = [
+        "time", *XIDS, *YIDS,
+{% for c in event_constants %}
+        "{{ c.id }}",
+{% endfor %}
+    ]
+    return pd.DataFrame(data, columns=columns)
+{% else %}
+    data = np.column_stack([times, xt, yt.reshape(points, len(YIDS))])
+    return pd.DataFrame(data, columns=["time", *XIDS, *YIDS])
+{% endif %}
+{% else %}
     """Simulate the model from t = 0 to `t_end`.
 
     Args:
@@ -239,6 +601,7 @@ def simulate(
     yt = np.array([f_y(t, x, p) for t, x in zip(times, xt, strict=True)])
     data = np.column_stack([times, xt, yt.reshape(points, len(YIDS))])
     return pd.DataFrame(data, columns=["time", *XIDS, *YIDS])
+{% endif %}
 
 
 if __name__ == "__main__":

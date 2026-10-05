@@ -519,3 +519,54 @@ def assert_python_as_roadrunner(sbml: str | Path, tmp_path: Path) -> ModuleType:
         y = dict(zip(module.YIDS, module.f_y(t, x, p), strict=True))
         assert_values(y, reference.assigned, f"y at t={t}")
     return module
+
+
+T_END = 10.0
+"""The end time of a trajectory, as the test suite sweep of `tests/test_roundtrip.py`."""
+
+T_STEPS = 51
+"""The number of time points of a trajectory, 0 and `T_END` included."""
+
+
+def assert_trajectory_as_roadrunner(
+    sbml: str | Path,
+    module: ModuleType,
+    rtol: float = 1e-6,
+    atol: float = 1e-9,
+    t_end: float = T_END,
+    points: int = T_STEPS,
+) -> None:
+    """Assert that `simulate` of the generated python integrates as roadrunner.
+
+    Both integrate with the relative tolerance 1e-10 and the absolute tolerance
+    1e-12; every column of `simulate` (the states, the assigned values and the
+    constants which events change) is compared with its roadrunner selection, at
+    every time point.
+
+    Args:
+        sbml: the SBML of the model or the path of its file
+        module: the module of the generated python, with `simulate`
+        rtol: the relative tolerance of the comparison
+        atol: the absolute tolerance of the comparison
+        t_end: the end time
+        points: the number of time points
+    """
+    roadrunner = pytest.importorskip("roadrunner")
+    pytest.importorskip("scipy")
+    system = OdeSystem.from_sbml(sbml)
+    df = module.simulate(t_end, points, rtol=1e-10, atol=1e-12)
+    r = roadrunner.RoadRunner(str(sbml))
+    r.integrator.relative_tolerance = 1e-10
+    r.integrator.absolute_tolerance = 1e-12
+    quantities = {q.symbol.sid: q for q in system.quantities}
+    columns = list(df.columns[1:])
+    selections = [
+        selection(quantities[sid]) if sid in quantities else sid for sid in columns
+    ]
+    r.timeCourseSelections = ["time", *selections]
+    result = r.simulate(0.0, t_end, points)
+    np.testing.assert_allclose(df["time"], result[:, 0], rtol=1e-12)
+    for k, sid in enumerate(columns):
+        np.testing.assert_allclose(
+            df[sid], result[:, k + 1], rtol=rtol, atol=atol, err_msg=sid
+        )

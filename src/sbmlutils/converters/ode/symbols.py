@@ -123,6 +123,13 @@ _GENERATED: dict[str, set[str]] = {
         "t_end", "points", "rtol", "atol", "method", "x_initial", "times",
         "solution", "xt", "yt", "data",
         "xids", "pids", "yids",
+        # the events
+        "event_conditions", "execute_events", "first_change", "DenseOutput",
+        "partial", "values", "interpolant", "t_old", "t_new", "t_low", "t_high",
+        "t_middle", "changed", "turned", "holds", "holds_now", "event_index",
+        "event", "delay_time", "pending", "due", "scheduled", "ranks",
+        "priority_value", "execution", "t_next", "t_stop", "max_step", "solver",
+        "solver_type", "rows", "pt", "columns",
     },
     "julia": {
         "t", "x", "p", "dx", "y", "x0", "p0",

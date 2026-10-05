@@ -25,18 +25,28 @@ The context of a code format holds:
   written under the id of its reaction;
 - `odes`: the right hand side of each state with `id`, `code`, `index`, `expr` and
   `comment`;
-- `events`: each event with `id`, `code`, `name`, `trigger` (a condition), `root`
-  (its continuous root function), `initial_value`, `persistent`, `delay`,
-  `priority`, `use_trigger_values` and `assignments`, each with `id`, `code`,
-  `kind` (`state` or `constant`), `index`, `expr`, `scale` and `divisor_position`
-  (the 0-based position in `assignments` of the assignment whose new value divides
-  it, independent of `Format.first_index`, see `system.EventAssignment`);
-- `scopes`: for each function of the code (`initial`, `dxdt`, `y`) what it uses:
-  the `states` and `constants` it unpacks, the `assignments` it evaluates (a subset
-  of `initial` or `assignments`, in their order) and whether its math uses the
-  `time`; `initial` additionally holds the `computed` constants, which it writes
-  into p, each with the `origin` of its initial value (`initial_assignment` or
-  `initial_value`, a conversion with another quantity);
+- `events`: each event with `id`, `code`, `name`, `comment` (the name, without a
+  name which is the id), `trigger` (a condition), `root` (its continuous root
+  function), `initial_value`, `persistent`, `delay`, `priority`,
+  `use_trigger_values`, `assignments`, each with `id`, `code`, `kind` (`state` or
+  `constant`), `index`, `comment`, `expr`, `scale` and `divisor_position` (the
+  0-based position in `assignments` of the assignment whose new value divides it,
+  independent of `Format.first_index`, see `system.EventAssignment`), `functions`,
+  the names of the functions the code writes for the event (`delay`, `priority`,
+  `values`, `assign`, unique against the names of the ids and the reserved names
+  of the language; `delay` and `priority` are `None` without math), and `scopes`,
+  the scope of each of these functions (`assign` the scope of the scales); a
+  template reads the key `values` as `functions["values"]`, `functions.values` is
+  the method of the dict;
+- `event_constants`: the constants which an event assigns, entries of `constants`
+  in their order, which change in time like the states;
+- `scopes`: for each function of the code (`initial`, `dxdt`, `y`, `triggers` of
+  the conditions of the triggers, `roots` of their root functions) what it uses:
+  the `states` and `constants` it unpacks, the `assignments` it evaluates (a
+  subset of `initial` or `assignments`, in their order) and whether its math uses
+  the `time`; `initial` additionally holds the `computed` constants, which it
+  writes into p, each with the `origin` of its initial value
+  (`initial_assignment` or `initial_value`, a conversion with another quantity);
 - `modules`: the modules of the language the printed math uses, of
   `MathPrinter.MODULES`, e.g. `math`;
 - `options`: the options of the rendering.
@@ -62,7 +72,7 @@ from sbmlutils import RESOURCES_DIR
 from sbmlutils.converters.ode.astutil import walk
 from sbmlutils.converters.ode.dependencies import names
 from sbmlutils.converters.ode.printers import PRINTERS, MathPrinter
-from sbmlutils.converters.ode.symbols import code_names
+from sbmlutils.converters.ode.symbols import RESERVED, code_names
 from sbmlutils.converters.ode.text import single_line
 
 if TYPE_CHECKING:
@@ -219,6 +229,42 @@ def _needed(
     return needed
 
 
+def _scope(
+    entries: Mapping[str, Sequence[dict[str, object]]],
+    used: set[str],
+    evaluated: Sequence[dict[str, object]],
+    time: bool,
+    computed: Mapping[str, str] | None = None,
+) -> dict[str, object]:
+    """The scope of a function of the code, see the module.
+
+    Args:
+        entries: the entries of the `states` and the `constants`
+        used: the ids the function uses, directly or through an assignment
+        evaluated: the assignments the function can evaluate, in their order
+        time: whether the math of the function uses the time
+        computed: the origin of each constant the function computes
+
+    Returns:
+        the states and constants it unpacks, the assignments it evaluates, whether
+        it uses the time and the constants it computes
+    """
+    computed = computed or {}
+    computed_ids = {str(a["id"]) for a in evaluated}
+    unpacked = used - computed_ids
+    return {
+        "states": [x for x in entries["states"] if x["id"] in unpacked],
+        "constants": [c for c in entries["constants"] if c["id"] in unpacked],
+        "assignments": [a for a in evaluated if a["id"] in used],
+        "time": time,
+        "computed": [
+            {**c, "origin": computed[str(c["id"])]}
+            for c in entries["constants"]
+            if c["id"] in computed
+        ],
+    }
+
+
 class _CodeContext:
     """The context of a code format, see the module."""
 
@@ -233,6 +279,15 @@ class _CodeContext:
         self.codes = code_names(ids, fmt.printer)
         self.quantities = {q.symbol.sid: q for q in system.quantities}
         self.printed: list[str] = []
+        # the names of the functions the code writes for the events
+        self.taken = set(self.codes.values()) | RESERVED[fmt.printer]
+
+    def unique(self, name: str) -> str:
+        """A name of a generated function, unique against the ids and reserved names."""
+        while name in self.taken:
+            name += "_"
+        self.taken.add(name)
+        return name
 
     def expr(self, ast: libsbml.ASTNode | None, condition: bool = False) -> str | None:
         """The printed math, `None` without math."""
@@ -327,7 +382,15 @@ class _CodeContext:
             }
             for k, ode in enumerate(system.odes)
         ]
+        # the entries the scopes of the functions of the events refer to
+        self.entries = {
+            "states": states,
+            "constants": constants,
+            "assignments": assignments,
+        }
         events = [self.event(k, by_id) for k in range(len(system.events))]
+        assigned_by_events = {a.variable for e in system.events for a in e.assignments}
+        event_constants = [c for c in constants if c["id"] in assigned_by_events]
         return {
             "model": {
                 "id": info.sid,
@@ -349,7 +412,8 @@ class _CodeContext:
             "assignments": assignments,
             "odes": odes,
             "events": events,
-            "scopes": self.scopes(states, constants, initial, assignments),
+            "event_constants": event_constants,
+            "scopes": self.scopes(initial),
             "modules": self.modules(),
             "options": dict(options),
         }
@@ -369,6 +433,7 @@ class _CodeContext:
                     "code": self.codes[a.variable],
                     "kind": "state" if a.variable in self.system.states else "constant",
                     "index": variable["index"],
+                    "comment": variable["comment"],
                     "expr": self.expr(a.math),
                     "scale": self.expr(a.scale),
                     "divisor_position": None
@@ -377,10 +442,14 @@ class _CodeContext:
                 }
             )
         symbol = event.symbol
+        code = self.codes[symbol.sid]
+        values = [a.math for a in event.assignments]
+        scales = [a.scale for a in event.assignments]
         return {
             "id": symbol.sid,
-            "code": self.codes[symbol.sid],
+            "code": code,
             "name": single_line(symbol.name) if symbol.name else None,
+            "comment": _comment(symbol),
             "trigger": self.expr(event.trigger, condition=True),
             "root": self.expr(event.root),
             "initial_value": event.initial_value,
@@ -389,37 +458,48 @@ class _CodeContext:
             "priority": self.expr(event.priority),
             "use_trigger_values": event.use_values_from_trigger_time,
             "assignments": assignments,
+            "functions": {
+                "delay": None
+                if event.delay is None
+                else self.unique(f"event_delay_{code}"),
+                "priority": None
+                if event.priority is None
+                else self.unique(f"event_priority_{code}"),
+                "values": self.unique(f"event_values_{code}"),
+                "assign": self.unique(f"event_assign_{code}"),
+            },
+            "scopes": {
+                "delay": self.math_scope([event.delay]),
+                "priority": self.math_scope([event.priority]),
+                "values": self.math_scope(values),
+                "assign": self.math_scope(scales),
+            },
         }
 
+    def math_scope(self, maths: Sequence[libsbml.ASTNode | None]) -> dict[str, object]:
+        """The scope of a function which evaluates math at a state, as `f_y`.
+
+        Args:
+            maths: the math the function evaluates, `None` for none
+
+        Returns:
+            the states and constants the math uses, the assignments it needs and
+            whether it uses the time, see the module
+        """
+        rules = {a.variable: a.math for a in self.system.assignments}
+        used = _needed(set().union(set(), *(names(m) for m in maths)), rules)
+        time = any(_uses_time(m) for m in maths) or any(
+            _uses_time(rules[sid]) for sid in used if sid in rules
+        )
+        return _scope(self.entries, used, self.entries["assignments"], time)
+
     def scopes(
-        self,
-        states: Sequence[dict[str, object]],
-        constants: Sequence[dict[str, object]],
-        initial: Sequence[dict[str, object]],
-        assignments: Sequence[dict[str, object]],
+        self, initial: Sequence[dict[str, object]]
     ) -> dict[str, dict[str, object]]:
         """What each function of the code uses, so that it computes nothing unused."""
         system = self.system
-
-        def scope(
-            used: set[str],
-            evaluated: Sequence[dict[str, object]],
-            time: bool,
-            computed: Mapping[str, str] | None = None,
-        ) -> dict[str, object]:
-            computed = computed or {}
-            computed_ids = {str(a["id"]) for a in evaluated}
-            return {
-                "states": [x for x in states if x["id"] in used - computed_ids],
-                "constants": [c for c in constants if c["id"] in used - computed_ids],
-                "assignments": [a for a in evaluated if a["id"] in used],
-                "time": time,
-                "computed": [
-                    {**c, "origin": computed[str(c["id"])]}
-                    for c in constants
-                    if c["id"] in computed
-                ],
-            }
+        entries = self.entries
+        assignments = entries["assignments"]
 
         # the initial values: the states and the constants they set, and what these use
         maths = {a.variable: a.math for a in system.initial}
@@ -430,7 +510,7 @@ class _CodeContext:
         }
         used = _needed([*system.states, *computed], maths)
         time = any(_uses_time(a.math) for a in system.initial if a.variable in used)
-        initial_scope = scope(used, initial, time, computed)
+        initial_scope = _scope(entries, used, initial, time, computed)
 
         # the rates of change: the odes and the assignments they use
         maths = {a.variable: a.math for a in system.assignments}
@@ -438,14 +518,27 @@ class _CodeContext:
         time = any(_uses_time(o.rhs) for o in system.odes) or any(
             _uses_time(a.math) for a in system.assignments if a.variable in used
         )
-        dxdt = scope(used, assignments, time)
+        dxdt = _scope(entries, used, assignments, time)
 
         # the assigned values: every assignment
         used = _needed(system.assigned, maths)
-        y = scope(
-            used, assignments, any(_uses_time(a.math) for a in system.assignments)
+        y = _scope(
+            entries,
+            used,
+            assignments,
+            any(_uses_time(a.math) for a in system.assignments),
         )
-        return {"initial": initial_scope, "dxdt": dxdt, "y": y}
+
+        # the triggers of the events, as conditions and as root functions
+        triggers = self.math_scope([e.trigger for e in system.events])
+        roots = self.math_scope([e.root for e in system.events])
+        return {
+            "initial": initial_scope,
+            "dxdt": dxdt,
+            "y": y,
+            "triggers": triggers,
+            "roots": roots,
+        }
 
     def modules(self) -> list[str]:
         """The modules of the printer the printed math uses, e.g. `np` and `math`."""
@@ -650,11 +743,6 @@ def render(system: OdeSystem, fmt: str, **options: object) -> str:
     format_ = _format(fmt)
     merged = _options(format_, options)
     _check_code(system, format_)
-    if format_.kind == "code" and system.events:
-        listed = ", ".join(f"event {e.symbol.sid!r}" for e in system.events)
-        raise NotImplementedError(
-            f"The {format_.name} code does not support events yet: {listed}."
-        )
     template = _environment((TEMPLATE_DIR,)).get_template(format_.template)
     return template.render(context(system, format_, merged))
 
@@ -697,8 +785,7 @@ def render_template(
 
     The template is a jinja2 template which can include the templates of
     `TEMPLATE_DIR`; it gets the context of `context` and the filters and functions
-    of the templates of the formats. Unlike `render`, it renders a model with events:
-    the events are in the context, a template of its own may handle them.
+    of the templates of the formats.
 
     Args:
         system: the ODE system
