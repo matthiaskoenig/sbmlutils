@@ -1,0 +1,233 @@
+{#- The python code of an ODE system, see `sbmlutils.converters.ode.formats` for the context. -#}
+{% macro comment(text) %}{% if text %}  # {{ text }}{% endif %}{% endmacro %}
+{% macro body(scope) %}
+{% if scope.time %}
+    t = np.float64(t)  # a numpy scalar: math out of its domain is nan, no error
+{% endif %}
+{% if scope.states %}
+    # states
+{% for x in scope.states %}
+    {{ x.code }} = x[{{ x.index }}]{{ comment(x.comment) }}
+{% endfor %}
+{% endif %}
+{% if scope.constants %}
+    # constants
+{% for c in scope.constants %}
+    {{ c.code }} = p[{{ c.index }}]{{ comment(c.comment) }}
+{% endfor %}
+{% endif %}
+{% if scope.assignments %}
+    # assigned values and reaction rates
+{% for a in scope.assignments %}
+    {{ a.code }} = {{ a.expr }}{{ comment(a.comment) }}
+{% endfor %}
+{% endif %}
+{% endmacro %}
+"""The ODE system of the model {{ model.id | docstring if model.id else "without id" }}{% if model.name and model.name != model.id %}: {{ model.name | docstring }}{% endif %}.
+
+Written by sbmlutils {{ model.sbmlutils }}{% if model.source %} from {{ model.source | docstring }}{% endif %}, SBML L{{ model.level }}V{{ model.version }}.
+{% set units = [] %}
+{% for key, unit in model.units.items() if unit %}
+{% set _ = units.append([key, unit]) %}
+{% endfor %}
+{% if units %}
+
+Units of the model:
+
+{{ table(units, 4, docstring) }}
+{% endif %}
+{% if states %}
+
+States x:
+
+{{ table([["", "id", "name", "unit"]] + rows(states, "index", "id", "name", "unit"), 4, docstring) }}
+{% endif %}
+
+`initial_values(p)` returns the initial states x0 and the constants p at t = 0,
+`f_dxdt(t, x, p)` the rates of change of the states and `f_y(t, x, p)` the assigned
+values y, the rules and the reaction rates.
+{% if options.simulator %}
+`simulate(t_end)` integrates the model with `scipy.integrate.solve_ivp`, the file
+run as a script prints the head of a simulation.
+{% endif %}
+"""
+
+{% if "math" in modules %}
+import math
+
+{% endif %}
+import numpy as np
+{% if options.simulator %}
+import pandas as pd
+from scipy.integrate import solve_ivp
+{% endif %}
+
+# the ids of the states x, the constants p and the assigned values y
+XIDS = [{% if states %}
+
+{% for x in states %}
+    "{{ x.id }}",{{ comment(x.comment) }}
+{% endfor %}
+{% endif %}]
+PIDS = [{% if constants %}
+
+{% for c in constants %}
+    "{{ c.id }}",{{ comment(c.comment) }}
+{% endfor %}
+{% endif %}]
+YIDS = [{% if assigned %}
+
+{% for y in assigned %}
+    "{{ y.id }}",{{ comment(y.comment) }}
+{% endfor %}
+{% endif %}]
+
+# the names and the units of the ids
+NAMES = {{ "{" }}{% if states or constants or assigned %}
+
+{% for v in states + constants + assigned %}
+    "{{ v.id }}": {{ v.name | python_string }},
+{% endfor %}
+{% endif %}{{ "}" }}
+UNITS = {{ "{" }}{% if states or constants or assigned %}
+
+{% for v in states + constants + assigned %}
+    "{{ v.id }}": {{ v.unit | python_string }},
+{% endfor %}
+{% endif %}{{ "}" }}
+
+# the default values of the constants, `np.nan` for one without a value, e.g. one
+# which an initial assignment sets and `initial_values` computes
+P0 = np.array([{% if constants %}
+
+{% for c in constants %}
+    {{ c.value if c.value is not none else "np.nan" }},  # {{ c.id }}
+{% endfor %}
+{% endif %}])
+{% for f in functions %}
+
+
+def {{ f.code }}({{ f.arguments | join(", ") }}):
+{% if f.name %}
+    """{{ f.name | docstring }}."""
+{% endif %}
+    return {{ f.body }}
+{% endfor %}
+
+
+def initial_values(p: np.ndarray | None = None) -> tuple[np.ndarray, np.ndarray]:
+    """The initial states x0 and the constants p at t = 0.
+
+    The initial values, initial assignments and the rules they need are evaluated
+    in the order of their dependencies.
+
+    Args:
+        p: the constants, `P0` if not given; a constant which an initial assignment
+            sets is computed from the others
+
+    Returns:
+        the initial states x0 and the constants p, a new array
+    """
+    p = np.array(P0 if p is None else p, dtype=float)
+{% set scope = scopes.initial %}
+{% if scope.time %}
+    t = np.float64(0.0)  # the initial time
+{% endif %}
+{% if scope.constants %}
+    # constants
+{% for c in scope.constants %}
+    {{ c.code }} = p[{{ c.index }}]{{ comment(c.comment) }}
+{% endfor %}
+{% endif %}
+{% if scope.assignments %}
+    # initial values
+{% for a in scope.assignments %}
+    {{ a.code }} = {{ a.expr }}{{ comment(a.comment) }}
+{% endfor %}
+{% endif %}
+{% if scope.computed %}
+    # the constants set by the initial values
+{% for c in scope.computed %}
+    p[{{ c.index }}] = {{ c.code }}
+{% endfor %}
+{% endif %}
+    x0 = np.array({{ wrapped(states | map(attribute="code") | list, 4, 18, 14) }}, dtype=float)
+    return x0, p
+
+
+def f_dxdt(t: float, x: np.ndarray, p: np.ndarray) -> np.ndarray:
+    """The rates of change dx/dt of the states x at the time t."""
+{% set lines = body(scopes.dxdt) | trim("\n") %}
+{% if lines %}
+{{ lines }}
+{% endif %}
+    # rates of change
+    dx = np.zeros({{ odes | length }})
+{% for ode in odes %}
+    dx[{{ ode.index }}] = {{ ode.expr }}  # d{{ ode.code }}/dt
+{% endfor %}
+    return dx
+
+
+def f_y(t: float, x: np.ndarray, p: np.ndarray) -> np.ndarray:
+    """The assigned values y at the time t, the rules and the reaction rates."""
+{% set lines = body(scopes.y) | trim("\n") %}
+{% if lines %}
+{{ lines }}
+{% endif %}
+    return np.array({{ wrapped(assigned | map(attribute="code") | list, 4, 20, 14) }}, dtype=float)
+{% if options.simulator %}
+
+
+def simulate(
+    t_end: float,
+    steps: int = 101,
+    p: np.ndarray | None = None,
+    x0: np.ndarray | None = None,
+    rtol: float = 1e-8,
+    atol: float = 1e-10,
+    method: str = "LSODA",
+) -> pd.DataFrame:
+    """Simulate the model from t = 0 to `t_end`.
+
+    Args:
+        t_end: the end time
+        steps: the number of time points, 0 and `t_end` included
+        p: the constants, `P0` if not given
+        x0: the initial states, those of `initial_values` if not given
+        rtol: the relative tolerance of the integration
+        atol: the absolute tolerance of the integration
+        method: the method of `scipy.integrate.solve_ivp`
+
+    Returns:
+        the time, the states and the assigned values at the time points
+    """
+    x_initial, p = initial_values(p)
+    x0 = x_initial if x0 is None else np.array(x0, dtype=float)
+    times = np.linspace(0.0, t_end, steps)
+{% if states %}
+    solution = solve_ivp(
+        f_dxdt,
+        (0.0, t_end),
+        x0,
+        method=method,
+        t_eval=times,
+        args=(p,),
+        rtol=rtol,
+        atol=atol,
+    )
+    if not solution.success:
+        raise RuntimeError(f"The integration failed: {solution.message}")
+    xt = solution.y.T
+{% else %}
+    # the model has no states
+    xt = np.zeros((steps, 0))
+{% endif %}
+    yt = np.array([f_y(t, x, p) for t, x in zip(times, xt, strict=True)])
+    data = np.column_stack([times, xt, yt.reshape(steps, len(YIDS))])
+    return pd.DataFrame(data, columns=["time", *XIDS, *YIDS])
+
+
+if __name__ == "__main__":
+    print(simulate(t_end=10.0).head())
+{% endif %}

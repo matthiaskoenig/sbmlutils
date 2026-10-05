@@ -113,10 +113,15 @@ _PRINTED: dict[str, set[str]] = {
 # names which are built from an id (`v_<reaction id>`, `event_assign_<id>`) are not
 # listed, they are made unique by the generator which builds them.
 _GENERATED: dict[str, set[str]] = {
+    # the names of `resources/converters/ode/python.py.jinja`: the module, its
+    # functions, their arguments and locals
     "python": {
         "t", "x", "p", "dx", "y", "x0", "p0",
         "np", "pd", "math", "scipy", "solve_ivp",
+        "XIDS", "PIDS", "YIDS", "NAMES", "UNITS", "P0", "EVENTS",
         "f_dxdt", "f_y", "initial_values", "simulate", "event_triggers",
+        "t_end", "steps", "rtol", "atol", "method", "x_initial", "times",
+        "solution", "xt", "yt", "data",
         "xids", "pids", "yids",
     },
     "julia": {

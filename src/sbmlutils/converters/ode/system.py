@@ -297,6 +297,55 @@ class OdeSystem:
 
         return analyse(source)
 
+    def render(self, fmt: str, **options: object) -> str:
+        """Render the system in a format, see `formats.render`.
+
+        Args:
+            fmt: the name of the format, a key of `formats.FORMATS`
+            **options: the options of the format
+
+        Returns:
+            the code or the document
+        """
+        # the formats render the dataclasses of this module
+        from sbmlutils.converters.ode import formats
+
+        return formats.render(self, fmt, **options)
+
+    def write(
+        self, path: Path | str, fmt: str | None = None, **options: object
+    ) -> Path:
+        """Write the system to a file in the format of its suffix, see `formats.write`.
+
+        Args:
+            path: the path of the file
+            fmt: the name of the format, by default the format of the suffix
+            **options: the options of the format
+
+        Returns:
+            the path
+        """
+        from sbmlutils.converters.ode import formats
+
+        return formats.write(self, path, fmt, **options)
+
+    def render_template(
+        self, template: Path, fmt: str = "python", **options: object
+    ) -> str:
+        """Render the system with a template of its own, see `formats.render_template`.
+
+        Args:
+            template: the path of the jinja2 template
+            fmt: the name of the format whose context the template gets
+            **options: the options of the format
+
+        Returns:
+            the rendered template
+        """
+        from sbmlutils.converters.ode import formats
+
+        return formats.render_template(self, template, fmt, **options)
+
     @property
     def states(self) -> tuple[str, ...]:
         """The ids of the states, in the order of the odes."""

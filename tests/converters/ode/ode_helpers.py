@@ -11,13 +11,18 @@ import shlex
 import shutil
 import subprocess
 import textwrap
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
+from dataclasses import dataclass
 from pathlib import Path
 from types import ModuleType
+from typing import Any
 
 import libsbml
+import numpy as np
 import pytest
 
+from sbmlutils.converters.ode import OdeSystem
+from sbmlutils.converters.ode.system import Quantity
 from sbmlutils.parser import antimony_to_sbml
 
 # the rate laws of `tests/converters/test_odefac.py`, which cover every construct of
@@ -331,3 +336,186 @@ def compile_latex(source: str, tmp_path: Path) -> Path:
             f"{result.stdout}\n{result.stderr}"
         )
     return path.with_suffix(".pdf")
+
+
+# --- comparison with roadrunner -------------------------------------------------------
+
+POINT = {"rel": 1e-8, "abs": 1e-12}
+"""Tolerance of a value of the generated code at a point against roadrunner."""
+
+
+def selection(quantity: Quantity) -> str:
+    """The roadrunner selection of a quantity in the representation of the system.
+
+    An amount of a species is the amount of the species, a species in concentration
+    its concentration, everything else its id.
+
+    Args:
+        quantity: the quantity of the system
+
+    Returns:
+        the selection, e.g. `[S]` for the concentration of `S`
+    """
+    if quantity.amount_of is not None:
+        return quantity.amount_of
+    if quantity.symbol.kind == "species" and not quantity.amount:
+        return f"[{quantity.symbol.sid}]"
+    return quantity.symbol.sid
+
+
+@dataclass(frozen=True)
+class Reference:
+    """The values of a roadrunner in the representation of an ODE system.
+
+    Attributes:
+        states: the value of each state
+        rates: the rate of change of each state
+        constants: the value of each constant roadrunner knows, i.e. without the
+            renamed local parameters
+        assigned: the value of each assigned variable and reaction rate
+    """
+
+    states: dict[str, float]
+    rates: dict[str, float]
+    constants: dict[str, float]
+    assigned: dict[str, float]
+
+
+def roadrunner_reference(
+    r: Any, system: OdeSystem, states: Mapping[str, float] | None = None
+) -> Reference:
+    """The values of a roadrunner, at its current state or at the given states.
+
+    The states are set in the order compartments and parameters first, then the
+    species, so that a concentration is set with the size of its compartment.
+
+    Args:
+        r: the `roadrunner.RoadRunner` of the model
+        system: the ODE system of the model
+        states: the value of each state to set before the values are read
+
+    Returns:
+        the values in the representation of the system
+    """
+    quantities = {q.symbol.sid: q for q in system.quantities}
+    if states is not None:
+        ordered = sorted(
+            states, key=lambda sid: quantities[sid].symbol.kind == "species"
+        )
+        for sid in ordered:
+            r[selection(quantities[sid])] = states[sid]
+    constants = {}
+    for sid in system.constants:
+        try:
+            constants[sid] = r[selection(quantities[sid])]
+        except RuntimeError:
+            # a local parameter, which roadrunner holds under the id of its reaction
+            continue
+    assigned = {}
+    for sid in system.assigned:
+        quantity = quantities.get(sid)
+        assigned[sid] = r[sid if quantity is None else selection(quantity)]
+    return Reference(
+        states={sid: r[selection(quantities[sid])] for sid in system.states},
+        rates=_rates(r, system),
+        constants=constants,
+        assigned=assigned,
+    )
+
+
+def _rates(r: Any, system: OdeSystem) -> dict[str, float]:
+    """The rate of change of each state of the system in roadrunner.
+
+    Roadrunner has no selection of the rate of a boundary species or a species
+    reference with a rate rule, these are read from its rates of change, the rates of
+    its state vector, which holds every species as its amount.
+    """
+    vector = r.getRatesOfChange()
+    by_id = {r.model.getStateVectorId(k): v for k, v in enumerate(vector)}
+    result = {}
+    for sid in system.states:
+        quantity = system.quantity(sid)
+        try:
+            result[sid] = r[f"{selection(quantity)}'"]
+        except RuntimeError:
+            rate = by_id[quantity.amount_of or sid]
+            concentration = quantity.symbol.kind == "species" and not quantity.amount
+            if concentration and quantity.amount_of is None:
+                rate /= r[str(quantity.compartment)]
+            result[sid] = rate
+    return result
+
+
+def assert_values(
+    values: Mapping[str, float], expected: Mapping[str, float], what: str
+) -> None:
+    """Assert that values equal the values of roadrunner at a point.
+
+    Args:
+        values: the values of the generated code by id
+        expected: the values of roadrunner by id
+        what: the kind of the values, for the message
+    """
+    for sid, value in expected.items():
+        assert values[sid] == pytest.approx(value, nan_ok=True, **POINT), (
+            f"{what} {sid}: {values[sid]} != {value}"
+        )
+
+
+def python_module(system: OdeSystem, path: Path, **options: object) -> ModuleType:
+    """Write the python code of a system and import it.
+
+    Args:
+        system: the ODE system
+        path: path of the python file
+        **options: the options of the python format
+
+    Returns:
+        the imported module
+    """
+    system.write(path, None, **options)
+    return import_module(path)
+
+
+def assert_python_as_roadrunner(sbml: str | Path, tmp_path: Path) -> ModuleType:
+    """Assert that the generated python computes the values of roadrunner.
+
+    The initial values (states, constants and assigned values at t=0) are compared,
+    then the rates of change and the assigned values at the initial state and at a
+    second state, in which every state is changed, so that no value is zero by
+    chance.
+
+    Args:
+        sbml: the SBML of the model or the path of its file; a comp model is read
+            from its file, roadrunner flattens a model only if it reads the file
+        tmp_path: directory of the python file
+
+    Returns:
+        the module of the generated python
+    """
+    roadrunner = pytest.importorskip("roadrunner")
+    system = OdeSystem.from_sbml(sbml)
+    module = python_module(system, tmp_path / "model.py", simulator=False)
+    assert list(module.XIDS) == list(system.states)
+    assert list(module.YIDS) == list(system.assigned)
+    r = roadrunner.RoadRunner(str(sbml))
+
+    x0, p = module.initial_values()
+    initial = roadrunner_reference(r, system)
+    assert_values(dict(zip(module.XIDS, x0, strict=True)), initial.states, "x0")
+    assert_values(dict(zip(module.PIDS, p, strict=True)), initial.constants, "p")
+    y0 = module.f_y(0.0, x0, p)
+    assert_values(dict(zip(module.YIDS, y0, strict=True)), initial.assigned, "y0")
+
+    for x in [x0, x0 * 1.5 + 0.1]:
+        reference = roadrunner_reference(
+            r, system, dict(zip(module.XIDS, x, strict=True))
+        )
+        dxdt = module.f_dxdt(0.0, x, p)
+        assert isinstance(dxdt, np.ndarray)
+        assert_values(
+            dict(zip(module.XIDS, dxdt, strict=True)), reference.rates, "dx/dt"
+        )
+        y = module.f_y(0.0, x, p)
+        assert_values(dict(zip(module.YIDS, y, strict=True)), reference.assigned, "y")
+    return module
