@@ -97,11 +97,10 @@ def test_python_golden(formula: str, expected: str) -> None:
     assert py(formula) == expected
 
 
-# the rate laws of `tests/converters/test_odefac.py`, verified against roadrunner,
-# with their python; it differs from the python of `odefac.python_math` in three
-# places: a boolean used as a number is a `float`, `and`, `or` and `implies` in a
-# condition are not wrapped, and a logarithm to base 10 and a square root use the
-# numpy function
+# the rate laws of `FORMULAS`, verified against roadrunner, with their python; it
+# differs from the python of the removed `odefac.python_math` in three places: a
+# boolean used as a number is a `float`, `and`, `or` and `implies` in a condition are
+# not wrapped, and a logarithm to base 10 and a square root use the numpy function
 PYTHON_FORMULAS: dict[str, str] = {
     "k*A": "k * A",
     "ln(A) + log10(A) + log(2, A) + exp(-k)": (
@@ -308,7 +307,7 @@ def test_python_mathml(content: str, expected: str) -> None:
     ast.parse(code, mode="eval")
 
 
-def test_formulas_of_odefac() -> None:
+def test_formulas_of_dialects() -> None:
     """The python goldens are the rate laws shared by the tests of the dialects."""
     assert list(PYTHON_FORMULAS) == FORMULAS
     assert list(JULIA_FORMULAS) == FORMULAS
@@ -1070,7 +1069,7 @@ def test_typst_formulas(formula: str, expected: str) -> None:
     assert typ(formula) == expected
 
 
-def test_document_formulas_of_odefac() -> None:
+def test_document_formulas_of_dialects() -> None:
     """The document goldens are the rate laws shared by the tests of the dialects."""
     assert list(DOCUMENT_FORMULAS) == FORMULAS
 

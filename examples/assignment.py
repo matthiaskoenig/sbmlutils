@@ -1,10 +1,11 @@
 """AssignmentRule and InitialAssignment example."""
 
+import runpy
 from pathlib import Path
 
 from examples import templates
 from sbmlutils.console import console
-from sbmlutils.converters import odefac
+from sbmlutils.converters.ode import OdeSystem
 from sbmlutils.factory import *
 
 
@@ -116,8 +117,14 @@ if __name__ == "__main__":
     results: FactoryResult = create_model(
         model=model, filepath=Path.cwd() / f"{model.sid}.xml"
     )
-    factory = odefac.SBML2ODE.from_file(sbml_file=results.sbml_path)
-    md_str = factory.to_markdown()
-    from rich.markdown import Markdown
-
-    console.print(Markdown(md_str))
+    # the ODE system as markdown and as python, whose `initial_values` evaluates the
+    # initial assignments and the assignment rules at t = 0
+    system = OdeSystem.from_sbml(results.sbml_path)
+    system.write(Path.cwd() / f"{model.sid}.md")
+    code = runpy.run_path(str(system.write(Path.cwd() / f"{model.sid}.py")))
+    x0, p = code["initial_values"]()
+    for sid, value in [
+        *zip(code["XIDS"], x0, strict=True),
+        *zip(code["PIDS"], p, strict=True),
+    ]:
+        console.print(f"{sid} = {value}")

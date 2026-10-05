@@ -1,3 +1,0 @@
-# odefac
-
-::: sbmlutils.converters.odefac

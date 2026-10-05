@@ -289,7 +289,8 @@ def run_worker(
 
     The outcome is that of the test of the case, see `check_python_case` and
     `check_job_case`: passed, unsupported (the code refuses to render), no
-    reference (roadrunner does not simulate the case) or failed, recorded with `_record` of `tests/test_roundtrip.py`.
+    reference (roadrunner does not simulate the case) or failed, recorded with
+    `_record` of `tests/test_roundtrip.py`.
 
     Args:
         sbml_path: path of the SBML file of the case

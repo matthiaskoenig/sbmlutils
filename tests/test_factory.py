@@ -237,8 +237,11 @@ def test_create_model_serializations(tmp_path: Path) -> None:
     assert "model" in ant_str
     assert "J0:" in ant_str
     md_str = result.markdown_path.read_text(encoding="utf-8")
-    assert "# model: serializations" in md_str
-    assert "k1 = 0.1" in md_str
+    # the document of `sbmlutils.converters.ode`, with the ODE as display math
+    assert md_str.startswith("# serializations\n")
+    assert "| $k_{1}$ | `k1` |" in md_str
+    assert "$$\n\\begin{aligned}\n" in md_str
+    assert "v_{\\mathrm{J0}} &= k_{1} \\cdot S_{1}" in md_str
 
 
 def test_create_model_no_serializations(tmp_path: Path) -> None:

@@ -1,11 +1,11 @@
 {#- The markdown document of an ODE system, see `sbmlutils.converters.ode.documents` for the context. -#}
-{#- The math is LaTeX in `$...$` and `$$...$$`, as GitHub and MathJax read it. A line of a sum after the first begins with its sign: the empty group before it spaces the sign as a binary operator. -#}
+{#- The math is LaTeX in `$...$` and `$$...$$`, as GitHub and MathJax read it. A line of a sum after the first begins with its sign: the empty group before it spaces the sign as a binary operator. Two equations are set 1ex further apart, as `\jot` sets them in the LaTeX document, so that their fractions do not touch. -#}
 {% macro rhs(lines) %}{{ lines | join(' \\\\\n&\\quad {} ') }}{% endmacro %}
 {% macro equations(rows, relation="=") %}
 $$
 \begin{aligned}
 {% for row in rows %}
-{{ row.lhs }} &{{ relation }} {{ rhs(row.lines) }}{% if row.origin == "rate_rule" %} \qquad \text{(rate rule)}{% endif %}{{ " \\\\" if not loop.last }}
+{{ row.lhs }} &{{ relation }} {{ rhs(row.lines) }}{% if row.origin == "rate_rule" %} \qquad \text{(rate rule)}{% endif %}{{ " \\\\[1ex]" if not loop.last }}
 {% endfor %}
 \end{aligned}
 $$
@@ -65,7 +65,7 @@ $$
 $$
 \begin{aligned}
 {% for f in functions %}
-{{ f.lhs }} &= {{ f.rhs }}{{ " \\\\" if not loop.last }}
+{{ f.lhs }} &= {{ f.rhs }}{{ " \\\\[1ex]" if not loop.last }}
 {% endfor %}
 \end{aligned}
 $$
@@ -98,7 +98,7 @@ The rates of the reactions are:
 $$
 \begin{aligned}
 {% for r in reactions %}
-{{ r.symbol }} &= {{ rhs(r.lines) }}{{ " \\\\" if not loop.last }}
+{{ r.symbol }} &= {{ rhs(r.lines) }}{{ " \\\\[1ex]" if not loop.last }}
 {% endfor %}
 \end{aligned}
 $$
@@ -136,7 +136,7 @@ The species ${{ a.species }}$ in the compartment ${{ a.compartment }}$ of variab
 $$
 \begin{aligned}
 {% for a in e.assignments %}
-{{ a.lhs }} &\mathrel{:=} {{ a.rhs }}{{ " \\\\" if not loop.last }}
+{{ a.lhs }} &\mathrel{:=} {{ a.rhs }}{{ " \\\\[1ex]" if not loop.last }}
 {% endfor %}
 \end{aligned}
 $$

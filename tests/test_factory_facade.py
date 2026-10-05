@@ -125,7 +125,6 @@ DEPRECATED_NAMES: dict[str, tuple[str, str | None]] = {
     "Notes": ("sbmlutils.notes", "Notes"),
     "NotesFormat": ("sbmlutils.notes", "NotesFormat"),
     "Path": ("pathlib", "Path"),
-    "SBML2ODE": ("sbmlutils.converters.odefac", "SBML2ODE"),
     "SBO": ("sbmlutils.metadata", "SBO"),
     "ScopedLossCollector": ("sbmlutils.validation", "ScopedLossCollector"),
     "Sequence": ("collections.abc", "Sequence"),

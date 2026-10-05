@@ -29,8 +29,8 @@ from sbmlutils.converters.ode import OdeSystem
 from sbmlutils.converters.ode.system import Quantity
 from sbmlutils.parser import antimony_to_sbml
 
-# the rate laws of `tests/converters/test_odefac.py`, which cover every construct of
-# the math the ODE export writes
+# rate laws which cover every construct of the math the ODE export writes, taken
+# over from the tests of the removed `sbmlutils.converters.odefac`
 FORMULAS: list[str] = [
     "k*A",
     "ln(A) + log10(A) + log(2, A) + exp(-k)",

@@ -8,9 +8,11 @@ the [llms.txt convention](https://llmstxt.org/) into the built site:
 - `llms-full.txt`, the complete documentation as a single markdown file,
 - a markdown copy of every page next to its html, so that the links resolve.
 
-The pages of the API reference only contain a mkdocstrings directive
+The pages of the API reference only contain mkdocstrings directives
 (`::: sbmlutils.factory`), their markdown is generated from the docstrings of the
-module with `inspect`, i.e., the same source the html is rendered from.
+modules with `inspect`, i.e., the same source the html is rendered from. A snippet
+of `pymdownx.snippets` (`--8<-- "images/ode/repressilator.py"`) is replaced by the
+file it includes, as in the html.
 
 Run it after `zensical build`:
 
@@ -34,6 +36,9 @@ SITE_DIR: Path = REPO_DIR / "site"
 CONFIG_PATH: Path = REPO_DIR / "zensical.toml"
 
 DIRECTIVE = re.compile(r"^:::\s+(?P<module>[\w.]+)\s*$", re.MULTILINE)
+SNIPPET = re.compile(
+    r'^(?P<indent>[ \t]*)--8<--\s+"(?P<path>[^"]+)"[ \t]*$', re.MULTILINE
+)
 
 
 class Page(NamedTuple):
@@ -182,12 +187,25 @@ def page_markdown(page: Page) -> str:
         page: page of the documentation.
 
     Returns:
-        The source markdown, or the generated API markdown for the pages of the
-        API reference.
+        The source markdown with its snippets included, or the generated API
+        markdown of every module of a page of the API reference.
     """
     markdown = (DOCS_DIR / page.path).read_text()
-    match = DIRECTIVE.search(markdown) if page.path.startswith("api/") else None
-    return api_markdown(match.group("module")) if match else markdown
+    modules = DIRECTIVE.findall(markdown) if page.path.startswith("api/") else []
+    if modules:
+        return "\n".join(api_markdown(module) for module in modules)
+    return SNIPPET.sub(_snippet, markdown)
+
+
+def _snippet(match: re.Match[str]) -> str:
+    """The file of a snippet, every line indented as the snippet line.
+
+    Raises:
+        FileNotFoundError: if the file does not exist, which fails the build as well
+    """
+    text = (DOCS_DIR / match.group("path")).read_text(encoding="utf-8")
+    indent = match.group("indent")
+    return "\n".join(f"{indent}{line}" if line else line for line in text.splitlines())
 
 
 def sections(pages: dict[Page, str]) -> dict[str, list[Page]]:

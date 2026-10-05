@@ -21,7 +21,7 @@ REPO_DIR = Path(__file__).parent.parent.parent
 
 #: examples which run without Cytoscape and without network access
 SCRIPTS = [
-    "examples.converters.odefac",
+    "examples.converters.ode",
     "examples.converters.xpp",
     "examples.distrib.distrib_packages_examples",
     "examples.distrib.distrib_uncertainty",

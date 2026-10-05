@@ -81,12 +81,12 @@ The rates of the reactions are:
 
 $$
 \begin{aligned}
-v_{\mathrm{bA}} &= \frac{\mathrm{scale}_{\mathrm{f}} \cdot \frac{\mathrm{Vmax}_{\mathrm{bA}}}{\mathrm{Km}_{\mathrm{A}}} \cdot \mathopen{}\left(e_{\mathrm{\_A}} - c_{\mathrm{\_A}}\right)}{1 + \frac{e_{\mathrm{\_A}}}{\mathrm{Km}_{\mathrm{A}}} + \frac{c_{\mathrm{\_A}}}{\mathrm{Km}_{\mathrm{A}}}} \\
-v_{\mathrm{bB}} &= \frac{\mathrm{scale}_{\mathrm{f}} \cdot \frac{\mathrm{Vmax}_{\mathrm{bB}}}{\mathrm{Km}_{\mathrm{B}}} \cdot \mathopen{}\left(c_{\mathrm{\_B}} - e_{\mathrm{\_B}}\right)}{1 + \frac{e_{\mathrm{\_B}}}{\mathrm{Km}_{\mathrm{B}}} + \frac{c_{\mathrm{\_B}}}{\mathrm{Km}_{\mathrm{B}}}} \\
-v_{\mathrm{bC}} &= \frac{\mathrm{scale}_{\mathrm{f}} \cdot \frac{\mathrm{Vmax}_{\mathrm{bC}}}{\mathrm{Km}_{\mathrm{C}}} \cdot \mathopen{}\left(c_{\mathrm{\_C}} - e_{\mathrm{\_C}}\right)}{1 + \frac{e_{\mathrm{\_C}}}{\mathrm{Km}_{\mathrm{C}}} + \frac{c_{\mathrm{\_C}}}{\mathrm{Km}_{\mathrm{C}}}} \\
-v_{\mathrm{v1}} &= \frac{\mathrm{scale}_{\mathrm{f}} \cdot \mathrm{Vmax}_{\mathrm{v1}}}{\mathrm{Km}_{\mathrm{A}}} \cdot \mathopen{}\left(c_{\mathrm{\_A}} - \frac{1}{\mathrm{Keq}_{\mathrm{v1}}} \cdot c_{\mathrm{\_B}}\right) \\
-v_{\mathrm{v2}} &= \frac{\mathrm{scale}_{\mathrm{f}} \cdot \mathrm{Vmax}_{\mathrm{v2}}}{\mathrm{Km}_{\mathrm{A}}} \cdot c_{\mathrm{\_A}} \\
-v_{\mathrm{v3}} &= \frac{\mathrm{scale}_{\mathrm{f}} \cdot \mathrm{Vmax}_{\mathrm{v3}}}{\mathrm{Km}_{\mathrm{A}}} \cdot c_{\mathrm{\_C}} \\
+v_{\mathrm{bA}} &= \frac{\mathrm{scale}_{\mathrm{f}} \cdot \frac{\mathrm{Vmax}_{\mathrm{bA}}}{\mathrm{Km}_{\mathrm{A}}} \cdot \mathopen{}\left(e_{\mathrm{\_A}} - c_{\mathrm{\_A}}\right)}{1 + \frac{e_{\mathrm{\_A}}}{\mathrm{Km}_{\mathrm{A}}} + \frac{c_{\mathrm{\_A}}}{\mathrm{Km}_{\mathrm{A}}}} \\[1ex]
+v_{\mathrm{bB}} &= \frac{\mathrm{scale}_{\mathrm{f}} \cdot \frac{\mathrm{Vmax}_{\mathrm{bB}}}{\mathrm{Km}_{\mathrm{B}}} \cdot \mathopen{}\left(c_{\mathrm{\_B}} - e_{\mathrm{\_B}}\right)}{1 + \frac{e_{\mathrm{\_B}}}{\mathrm{Km}_{\mathrm{B}}} + \frac{c_{\mathrm{\_B}}}{\mathrm{Km}_{\mathrm{B}}}} \\[1ex]
+v_{\mathrm{bC}} &= \frac{\mathrm{scale}_{\mathrm{f}} \cdot \frac{\mathrm{Vmax}_{\mathrm{bC}}}{\mathrm{Km}_{\mathrm{C}}} \cdot \mathopen{}\left(c_{\mathrm{\_C}} - e_{\mathrm{\_C}}\right)}{1 + \frac{e_{\mathrm{\_C}}}{\mathrm{Km}_{\mathrm{C}}} + \frac{c_{\mathrm{\_C}}}{\mathrm{Km}_{\mathrm{C}}}} \\[1ex]
+v_{\mathrm{v1}} &= \frac{\mathrm{scale}_{\mathrm{f}} \cdot \mathrm{Vmax}_{\mathrm{v1}}}{\mathrm{Km}_{\mathrm{A}}} \cdot \mathopen{}\left(c_{\mathrm{\_A}} - \frac{1}{\mathrm{Keq}_{\mathrm{v1}}} \cdot c_{\mathrm{\_B}}\right) \\[1ex]
+v_{\mathrm{v2}} &= \frac{\mathrm{scale}_{\mathrm{f}} \cdot \mathrm{Vmax}_{\mathrm{v2}}}{\mathrm{Km}_{\mathrm{A}}} \cdot c_{\mathrm{\_A}} \\[1ex]
+v_{\mathrm{v3}} &= \frac{\mathrm{scale}_{\mathrm{f}} \cdot \mathrm{Vmax}_{\mathrm{v3}}}{\mathrm{Km}_{\mathrm{A}}} \cdot c_{\mathrm{\_C}} \\[1ex]
 v_{\mathrm{v4}} &= \frac{\mathrm{scale}_{\mathrm{f}} \cdot \mathrm{Vmax}_{\mathrm{v4}}}{\mathrm{Km}_{\mathrm{A}}} \cdot \mathopen{}\left(c_{\mathrm{\_C}} - \frac{1}{\mathrm{Keq}_{\mathrm{v4}}} \cdot c_{\mathrm{\_B}}\right)
 \end{aligned}
 $$
@@ -97,11 +97,11 @@ The states change in time with the rates of the reactions:
 
 $$
 \begin{aligned}
-\frac{\mathrm{d} c_{\mathrm{\_A}}}{\mathrm{d} t} &= \frac{v_{\mathrm{bA}} - v_{\mathrm{v1}} - v_{\mathrm{v2}} + v_{\mathrm{v3}}}{c} \\
-\frac{\mathrm{d} c_{\mathrm{\_B}}}{\mathrm{d} t} &= \frac{-v_{\mathrm{bB}} + v_{\mathrm{v1}} + v_{\mathrm{v4}}}{c} \\
-\frac{\mathrm{d} c_{\mathrm{\_C}}}{\mathrm{d} t} &= \frac{-v_{\mathrm{bC}} + v_{\mathrm{v2}} - v_{\mathrm{v3}} - v_{\mathrm{v4}}}{c} \\
-\frac{\mathrm{d} e_{\mathrm{\_A}}}{\mathrm{d} t} &= \frac{-v_{\mathrm{bA}}}{e} \\
-\frac{\mathrm{d} e_{\mathrm{\_B}}}{\mathrm{d} t} &= \frac{v_{\mathrm{bB}}}{e} \\
+\frac{\mathrm{d} c_{\mathrm{\_A}}}{\mathrm{d} t} &= \frac{v_{\mathrm{bA}} - v_{\mathrm{v1}} - v_{\mathrm{v2}} + v_{\mathrm{v3}}}{c} \\[1ex]
+\frac{\mathrm{d} c_{\mathrm{\_B}}}{\mathrm{d} t} &= \frac{-v_{\mathrm{bB}} + v_{\mathrm{v1}} + v_{\mathrm{v4}}}{c} \\[1ex]
+\frac{\mathrm{d} c_{\mathrm{\_C}}}{\mathrm{d} t} &= \frac{-v_{\mathrm{bC}} + v_{\mathrm{v2}} - v_{\mathrm{v3}} - v_{\mathrm{v4}}}{c} \\[1ex]
+\frac{\mathrm{d} e_{\mathrm{\_A}}}{\mathrm{d} t} &= \frac{-v_{\mathrm{bA}}}{e} \\[1ex]
+\frac{\mathrm{d} e_{\mathrm{\_B}}}{\mathrm{d} t} &= \frac{v_{\mathrm{bB}}}{e} \\[1ex]
 \frac{\mathrm{d} e_{\mathrm{\_C}}}{\mathrm{d} t} &= \frac{v_{\mathrm{bC}}}{e}
 \end{aligned}
 $$

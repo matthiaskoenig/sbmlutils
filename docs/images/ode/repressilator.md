@@ -1,6 +1,6 @@
 # Elowitz2000 - Repressilator
 
-Model `BIOMD0000000012`, SBML Level 2 Version 3, read from BIOMD0000000012\_urn.xml, written by sbmlutils VERSION.
+Model `BIOMD0000000012`, SBML Level 2 Version 3, read from BIOMD0000000012\_urn.xml, written by sbmlutils 0.13.0.
 
 Elowitz2000 - Repressilator
 

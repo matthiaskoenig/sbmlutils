@@ -33,7 +33,7 @@ import libsbml
 import xmltodict
 from pymetadata.core.creator import Creator
 
-from sbmlutils.converters.odefac import SBML2ODE
+from sbmlutils.converters.ode import OdeSystem
 from sbmlutils.factory._core import (
     SBML_LEVEL,
     SBML_VERSION,
@@ -1662,7 +1662,7 @@ def create_model(
     The created SBML can be serialized to additional formats for inspection, which
     are written next to the SBML file: the antimony serialization of the model
     (`create_antimony`, `*.ant`) and the markdown overview of the ODE system
-    (`create_markdown`, `*.md`, see `sbmlutils.converters.odefac`).
+    (`create_markdown`, `*.md`, see `sbmlutils.converters.ode`).
 
     :param model: Model or iterable of Model instances which are merged in single model
     :param filepath: Path to write the SBML model to
@@ -1736,7 +1736,7 @@ def create_model(
     markdown_path: Path | None = None
     if create_markdown:
         markdown_path = filepath.with_suffix(".md")
-        SBML2ODE.from_file(filepath).to_markdown(md_file=markdown_path)
+        OdeSystem.from_sbml(filepath).write(markdown_path)
         logger.info("Markdown written to '%s'", markdown_path)
 
     # log created sbml

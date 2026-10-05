@@ -43,7 +43,7 @@ The initial assignments set the values at $t = 0$:
 
 $$
 \begin{aligned}
-S &= S_{0} \\
+S &= S_{0} \\[1ex]
 n_{A} &= A \cdot V
 \end{aligned}
 $$
@@ -52,7 +52,7 @@ The assignment rules hold at every time $t$:
 
 $$
 \begin{aligned}
-A &= \frac{n_{A}}{V} \\
+A &= \frac{n_{A}}{V} \\[1ex]
 k_{2} &= 2 \cdot k_{1}
 \end{aligned}
 $$
@@ -68,7 +68,7 @@ The rates of the reactions are:
 
 $$
 \begin{aligned}
-v_{\mathrm{J0}} &= \mathrm{vmax} \cdot \mathrm{mm}\mathopen{}\left(S, \mathrm{km}\right) \\
+v_{\mathrm{J0}} &= \mathrm{vmax} \cdot \mathrm{mm}\mathopen{}\left(S, \mathrm{km}\right) \\[1ex]
 v_{\mathrm{J1}} &= k_{1} \cdot S \cdot A
 \end{aligned}
 $$
@@ -79,10 +79,10 @@ The states change in time with the rates of the reactions and the rate rules:
 
 $$
 \begin{aligned}
-\frac{\mathrm{d} V}{\mathrm{d} t} &= 0.1 \qquad \text{(rate rule)} \\
-\frac{\mathrm{d} S}{\mathrm{d} t} &= \frac{-v_{\mathrm{J0}} - v_{\mathrm{J1}}}{c} \\
-\frac{\mathrm{d} P}{\mathrm{d} t} &= \frac{v_{\mathrm{J0}} + 2 \cdot v_{\mathrm{J1}}}{c} \\
-\frac{\mathrm{d} n_{A}}{\mathrm{d} t} &= -v_{\mathrm{J1}} \\
+\frac{\mathrm{d} V}{\mathrm{d} t} &= 0.1 \qquad \text{(rate rule)} \\[1ex]
+\frac{\mathrm{d} S}{\mathrm{d} t} &= \frac{-v_{\mathrm{J0}} - v_{\mathrm{J1}}}{c} \\[1ex]
+\frac{\mathrm{d} P}{\mathrm{d} t} &= \frac{v_{\mathrm{J0}} + 2 \cdot v_{\mathrm{J1}}}{c} \\[1ex]
+\frac{\mathrm{d} n_{A}}{\mathrm{d} t} &= -v_{\mathrm{J1}} \\[1ex]
 \frac{\mathrm{d} B}{\mathrm{d} t} &= -0.1 \cdot B \qquad \text{(rate rule)}
 \end{aligned}
 $$
@@ -99,8 +99,8 @@ The species $A$ in the compartment $V$ of variable size is integrated as its amo
 
 $$
 \begin{aligned}
-V &\mathrel{:=} 2 \cdot V \\
-S &\mathrel{:=} 10 \\
+V &\mathrel{:=} 2 \cdot V \\[1ex]
+S &\mathrel{:=} 10 \\[1ex]
 B &\mathrel{:=} \frac{B \cdot V}{V^{\mathrm{new}}}
 \end{aligned}
 $$
@@ -115,7 +115,7 @@ $B$ is converted from the size of $V$ at the execution of the event to the size 
 
 $$
 \begin{aligned}
-n_{A} &\mathrel{:=} V \\
+n_{A} &\mathrel{:=} V \\[1ex]
 \mathrm{total} &\mathrel{:=} \mathrm{total} + 1
 \end{aligned}
 $$

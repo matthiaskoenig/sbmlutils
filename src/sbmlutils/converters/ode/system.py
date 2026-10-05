@@ -60,8 +60,8 @@ implements them, so that a format only prints what the system holds:
 
 Every math of the system is a deep copy owned by the system, so the document can be
 freed; a sum is written with the signs of its terms (`astutil.signed_sum`). The
-analysis itself is `sbmlutils.converters.ode.analysis`. The dataclasses which hold math compare by identity (`eq=False`), a libsbml
-math has no value equality.
+analysis itself is `sbmlutils.converters.ode.analysis`. The dataclasses which hold
+math compare by identity (`eq=False`), a libsbml math has no value equality.
 """
 
 from __future__ import annotations

@@ -17,7 +17,8 @@ Features include
 - **annotations** - MIRIAM annotations and SBO terms, in the model definition or from an annotation spreadsheet
 - **notes** written as markdown
 - **model composition** - hierarchical models, merging and flattening
-- **converters** - SBML to an ODE system (python, R, julia, markdown, latex), XPP to SBML, antimony in both directions
+- **converters** - XPP to SBML, antimony in both directions
+- **ODE export** - the system of ordinary differential equations of a model as code which simulates it (python, julia, R), verified against libroadrunner over the SBML test suite, and as a document (typst, LaTeX, markdown)
 
 The documentation is available at [https://matthiaskoenig.github.io/sbmlutils](https://matthiaskoenig.github.io/sbmlutils).
 

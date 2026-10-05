@@ -75,13 +75,17 @@ MODELS: dict[str, Path | str] = {
 """The models of the golden documents."""
 
 
+ROW_END = re.compile(r" \\\\(\[1ex\])?$")
+"""The end of a row of an alignment, the line break and its space."""
+
+
 def test_events_model() -> None:
     """The events model is the SBML of its antimony, but for the order."""
 
     def lines(system: OdeSystem) -> list[str]:
         """The lines of the markdown, without the line breaks of an alignment."""
         markdown = system.render("markdown")
-        return sorted(line.removesuffix(" \\\\") for line in markdown.splitlines())
+        return sorted(ROW_END.sub("", line) for line in markdown.splitlines())
 
     system = OdeSystem.from_sbml(model_sbml(EVENTS))
     golden = OdeSystem.from_sbml((GOLDEN / "events.xml").read_text())

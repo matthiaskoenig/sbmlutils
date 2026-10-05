@@ -300,11 +300,12 @@ def _is_valid(name: str, language: str) -> bool:
 def code_names(ids: Iterable[str], language: str) -> dict[str, str]:
     """The name of every id as a variable of the generated code of a language.
 
-    An id is its own name, except for an id which is reserved in the language (a keyword,
-    a builtin, a name the code or the printer uses), and an id which the language cannot
-    write (`_x` starts with an underscore in R, `_` and `__` are write-only in julia):
-    such an id gets underscores appended (and `x` prepended to an id the language
-    cannot write) until its name is neither reserved nor the name of another id. The ids which are not renamed keep their name, the others are
+    An id is its own name, except for an id which is reserved in the language (a
+    keyword, a builtin, a name the code or the printer uses), and an id which the
+    language cannot write (`_x` starts with an underscore in R, `_` and `__` are
+    write-only in julia): such an id gets underscores appended (and `x` prepended to
+    an id the language cannot write) until its name is neither reserved nor the name
+    of another id. The ids which are not renamed keep their name, the others are
     named in the order of the input, so that the result is deterministic.
 
     Args:

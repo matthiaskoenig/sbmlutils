@@ -1,6 +1,6 @@
-# Elowitz2000 - Repressilator
+## Elowitz2000 - Repressilator
 
-Model `BIOMD0000000012`, SBML Level 2 Version 3, read from BIOMD0000000012\_urn.xml, written by sbmlutils VERSION.
+Model `BIOMD0000000012`, SBML Level 2 Version 3, read from BIOMD0000000012\_urn.xml, written by sbmlutils 0.13.0.
 
 Elowitz2000 - Repressilator
 
@@ -92,19 +92,19 @@ To cite BioModels Database, please use: BioModels Database: An enhanced, curated
 
 To the extent possible under law, all copyright and related or neighbouring rights to this encoded model have been dedicated to the public domain worldwide. Please refer to CC0 Public Domain Dedication for more information.
 
-## Units
+### Units
 
 | Time | Substance | Extent | Volume | Area | Length |
 | --- | --- | --- | --- | --- | --- |
 | min | item | item | fl | m<sup>2</sup> | m |
 
-## Compartments
+### Compartments
 
 | Symbol | Id | Size | Unit | Constant |
 | --- | --- | --- | --- | :---: |
 | $\mathrm{cell}$ | `cell` | $1$ | fl | ✓ |
 
-## Species
+### Species
 
 | Symbol | Id | Name | Compartment | Value | Unit | Properties |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -115,7 +115,7 @@ To the extent possible under law, all copyright and related or neighbouring righ
 | $Y$ | `Y` | TetR mRNA | $\mathrm{cell}$ | $20$ | item | amount |
 | $Z$ | `Z` | cI mRNA | $\mathrm{cell}$ | $0$ | item | amount |
 
-## Parameters
+### Parameters
 
 | Symbol | Id | Name | Value | Constant |
 | --- | --- | --- | --- | :---: |
@@ -136,7 +136,7 @@ To the extent possible under law, all copyright and related or neighbouring righ
 | $\mathrm{ps}_{0}$ | `ps_0` | tps\_repr | $0.0005$ | ✓ |
 | $\mathrm{a0}_{\mathrm{tr}}$ | `a0_tr` | a0\_tr |  |  |
 
-## Initial assignments and assignment rules
+### Initial assignments and assignment rules
 
 The assignment rules hold at every time $t$:
 
@@ -154,7 +154,7 @@ a_{\mathrm{tr}} &= \mathopen{}\left(\mathrm{ps}_{\mathrm{a}} - \mathrm{ps}_{0}\r
 \end{aligned}
 $$
 
-## Reactions
+### Reactions
 
 | Rate | Id | Name | Equation | Modifiers |
 | --- | --- | --- | --- | --- |
@@ -190,7 +190,7 @@ v_{\mathrm{Reaction12}} &= \mathrm{a0}_{\mathrm{tr}} + \frac{a_{\mathrm{tr}} \cd
 \end{aligned}
 $$
 
-## ODE system
+### ODE system
 
 The states change in time with the rates of the reactions:
 
