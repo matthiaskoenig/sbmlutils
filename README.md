@@ -30,18 +30,18 @@ If you have any questions or issues please [open an issue](https://github.com/ma
 
 If you use `sbmlutils` please cite the archived software on [Zenodo](https://doi.org/10.5281/zenodo.597149):
 
-> König, M. (2026). *sbmlutils: Python utilities for SBML* (Version 0.12.0) [Computer software]. Zenodo. https://doi.org/10.5281/zenodo.22853867
+> König, M. (2026). *sbmlutils: Python utilities for SBML* (Version 0.14.0) [Computer software]. Zenodo. https://doi.org/10.5281/zenodo.23174183
 
 ```bibtex
 @software{konig_sbmlutils,
   author    = {König, Matthias},
   title     = {sbmlutils: Python utilities for SBML},
   year      = {2026},
-  month     = sep,
-  version   = {0.12.0},
+  month     = oct,
+  version   = {0.14.0},
   publisher = {Zenodo},
-  doi       = {10.5281/zenodo.22853867},
-  url       = {https://doi.org/10.5281/zenodo.22853867},
+  doi       = {10.5281/zenodo.23174183},
+  url       = {https://doi.org/10.5281/zenodo.23174183},
 }
 ```
 
