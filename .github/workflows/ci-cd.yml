@@ -243,8 +243,11 @@ jobs:
       with:
         r-version: "4.4"
     - name: Install deSolve
-      # the package of `simulate` of the generated code, the rest of it is base R
-      run: Rscript -e 'install.packages("deSolve", repos = "https://cloud.r-project.org")'
+      # the package of `simulate` of the generated code, the rest of it is base R;
+      # `install.packages` only warns if it fails, the check fails the step
+      run: |
+        Rscript -e 'install.packages("deSolve", repos = "https://cloud.r-project.org")'
+        Rscript -e 'if (!requireNamespace("deSolve", quietly = TRUE)) quit(status = 1)'
     - name: Test with tox
       run: uvx --with "tox-uv==${TOX_UV_VERSION}" "tox@${TOX_VERSION}" -e R
 

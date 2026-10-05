@@ -450,14 +450,21 @@ class JobOutput:
     def warnings(self) -> list[str]:
         """The messages of the log, without those of `BENIGN_WARNINGS`.
 
-        A message of julia starts with `┌`, a message of R is a line.
+        A message of julia starts with `┌` and is benign if it holds a benign
+        message; a message of R is a line `Warning: <message>` and is benign if its
+        message is a benign one, so that a benign message never hides another one.
         """
+        benign = BENIGN_WARNINGS[self.language]
         if self.language == "julia":
             messages = re.split(r"(?m)^(?=┌)", self.log)
-        else:
-            messages = self.log.splitlines(keepends=True)
-        benign = BENIGN_WARNINGS[self.language]
-        return [m for m in messages if m.strip() and not any(b in m for b in benign)]
+            return [
+                m for m in messages if m.strip() and not any(b in m for b in benign)
+            ]
+        return [
+            m
+            for m in self.log.splitlines(keepends=True)
+            if m.strip() and m.strip().removeprefix("Warning: ") not in benign
+        ]
 
     def check(self) -> None:
         """Fail if the job threw an error or logged a warning."""
@@ -552,7 +559,11 @@ _R_PRELUDE = r"""
 # a line of the key and the values, separated by tabs, a line break in a value a space
 emit <- function(io, key, values) {
   texts <- vapply(as.list(values), function(value) {
-    text <- if (is.numeric(value)) sprintf("%.17g", as.double(value)) else as.character(value)
+    text <- if (is.numeric(value)) {
+      sprintf("%.17g", as.double(value))
+    } else {
+      as.character(value)
+    }
     gsub("[\r\n]", " ", text)
   }, character(1))
   cat(paste(c(key, texts), collapse = "\t"), "\n", file = io, sep = "")
@@ -789,8 +800,9 @@ def _run_processes(
     try:
         while any(process.poll() is None for process in running):
             for k, process in enumerate(running):
-                if finished(k) > done[k]:
-                    done[k], progress[k] = finished(k), time.monotonic()
+                count = finished(k)
+                if count > done[k]:
+                    done[k], progress[k] = count, time.monotonic()
                 if process.poll() is not None and process.returncode != 0:
                     raise RuntimeError(
                         f"{scripts[k].name} failed with exit code "
@@ -815,8 +827,9 @@ def _run_processes(
                     f"{scripts[k].name} failed with exit code {process.returncode}:"
                     f"\n{_stderr(stderr_paths[k])}"
                 )
-            if finished(k) < len(parts[k]):
-                unfinished = parts[k][finished(k)]
+            count = finished(k)
+            if count < len(parts[k]):
+                unfinished = parts[k][count]
                 raise RuntimeError(
                     f"{scripts[k].name} exited without finishing its job "
                     f"{unfinished}:\n{_stderr(stderr_paths[k])}"

@@ -219,6 +219,23 @@ SIMULATE_JOBS: dict[str, Callable[[], Job]] = {
         ))
         """,
     ),
+    **{
+        f"max_steps_total{k}": functools.partial(
+            lambda event: Job(
+                OdeSystem.from_sbml(
+                    model_sbml(f"x = 0; x' = 1000 * cos(1000 * time){event}")
+                ).render("r"),
+                """
+                emit(io, "error", tryCatch(
+                    quietly(function() m$simulate(10, max_steps = 1000)),
+                    error = function(e) conditionMessage(e)
+                ))
+                """,
+            ),
+            event,
+        )
+        for k, event in enumerate(["", "; E1: at time > 20: x = 2"])
+    },
     "many_points": lambda: Job(
         OdeSystem.from_sbml(
             model_sbml("species S = 1; R1: S -> ; k * S; k = 1")
@@ -462,6 +479,24 @@ def test_r_simulate_max_steps(r: Callable[[str], JobOutput]) -> None:
     assert "more than 5 steps" in output.strings("error")[0]
 
 
+@pytest.mark.parametrize("name", ["max_steps_total0", "max_steps_total1"])
+def test_r_simulate_max_steps_bound_the_total(
+    name: str, r: Callable[[str], JobOutput]
+) -> None:
+    """`max_steps` bounds the steps of all output intervals together.
+
+    `x' = 1000 cos(1000 t)` takes about 550 steps per output interval of 0.1, fewer
+    than the limit of 1000, which deSolve's `maxsteps` applies per interval; the
+    integration stops where the limit is crossed, early in the first second.
+    """
+    error = r(name).strings("error")[0]
+    match = re.fullmatch(
+        r"The integration took more than 1000 steps, at t = (.+)\.", error
+    )
+    assert match, error
+    assert 0.0 < float(match.group(1)) < 1.0
+
+
 def test_r_simulate_max_steps_scale_with_the_points(
     r: Callable[[str], JobOutput],
 ) -> None:
@@ -633,7 +668,7 @@ def test_r_event_infinite_cascade_raises(r: Callable[[str], JobOutput]) -> None:
 
 
 def test_r_events_without_simulator(r: Callable[[str], JobOutput]) -> None:
-    """`simulator=False` writes the functions of the events for a solver of one's own."""
+    """`simulator=False` writes the event functions for a solver of one's own."""
     code = _code(TWO_EVENTS, simulator=False)
     assert "deSolve::" not in code
     assert "simulate" not in code

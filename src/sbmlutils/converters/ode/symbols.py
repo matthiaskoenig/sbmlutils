@@ -174,7 +174,8 @@ _GENERATED: dict[str, set[str]] = {
         "xs", "ps", "ys", "xt", "yt", "pt", "data", "constants", "k_point",
         # the integration
         "n_times", "states", "warned", "messages", "solution", "condition",
-        "printed", "report", "istate", "t_reached", "steps", "roots",
+        "printed", "istate", "t_reached", "steps", "roots", "counted", "t_counted",
+        "exceeded", "t_at", "rates", "blocks", "solver", "lines", "reported",
         # the events
         "event_triggers", "event_conditions", "execute_events", "first_change",
         "extrapolation", "recorded", "holds", "holds_now", "pending", "after",
@@ -257,7 +258,7 @@ _R = {
     # names of base R the generated code calls
     ".Machine", "as.data.frame", "attr", "conditionMessage", "format", "gsub",
     "invokeRestart", "is.null", "match", "nzchar", "outer", "sys.nframe", "trimws",
-    "unname", "withCallingHandlers",
+    "unname", "withCallingHandlers", "split",
 }  # fmt: skip
 
 RESERVED: dict[str, frozenset[str]] = {

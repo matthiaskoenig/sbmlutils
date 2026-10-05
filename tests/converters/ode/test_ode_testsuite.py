@@ -9,10 +9,11 @@ roadrunner selection. The tolerances of a case with events are relaxed, an event
 time is located to the tolerance of the integration.
 
 `CURATED` runs in the default test run, the full sweeps `test_python_sweep`,
-`test_julia_sweep` and `test_r_sweep` behind the `sbml_testsuite` marker. A case whose events are not
-deterministic is skipped (`NONDETERMINISTIC`), as is a case roadrunner does not
-simulate, which has no reference (the fbc cases, an integration which fails); a
-known failure is a strict xfail with its reason (`KNOWN_FAILURES`).
+`test_julia_sweep` and `test_r_sweep` behind the `sbml_testsuite` marker. A case
+whose events are not deterministic is skipped (`NONDETERMINISTIC`), as is a case
+roadrunner does not simulate, which has no reference (the fbc cases, an
+integration which fails); a known failure is a strict xfail with its reason
+(`KNOWN_FAILURES`).
 
 The julia and the R code of the cases runs in few processes of julia and R, which
 compile the integrator (julia) and load the packages once for many cases

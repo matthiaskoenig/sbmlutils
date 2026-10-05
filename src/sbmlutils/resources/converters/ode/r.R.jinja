@@ -366,17 +366,39 @@ integrate_segment <- function(x, times, p, rtol, atol, hmax, steps, max_steps{% 
     states <- states + outer(times - times[[1]], dx)
     return(list(time = times, states = states{% if events %}, root = FALSE{% endif %}, steps = steps))
   }
-  # the warnings of deSolve and the messages its solver prints
+  # the steps of the integrator, counted while it integrates as the new times at
+  # which it evaluates the rates of change (a step evaluates them at its end, a step
+  # which fails as well): deSolve limits the steps between two outputs only
+  # (`maxsteps`), the count stops the integration as soon as it exceeds `max_steps`
+  counted <- steps
+  t_counted <- NA_real_
+  exceeded <- function(t_at) {
+    stop(
+      "The integration took more than ", max_steps, " steps, at t = ",
+      format(t_at, digits = 15), ".",
+      call. = FALSE
+    )
+  }
+  rates <- function(t, y, p) {
+    if (!identical(t, t_counted)) {
+      t_counted <<- t
+      counted <<- counted + 1
+      if (counted > max_steps) {
+        exceeded(t)
+      }
+    }
+{% if states %}
+    f_dxdt(t, y, p)
+{% else %}
+    list(0)  # without states the integrator integrates a constant, the time
+{% endif %}
+  }
+  # the warnings, e.g. of the math of the model, and the messages the solver prints
   warned <- character(0)
   messages <- utils::capture.output(
     solution <- withCallingHandlers(
       deSolve::lsoda(
-{% if states %}
-        x, times, f_dxdt, p,
-{% else %}
-        # without states the integrator integrates a constant, the time
-        0, times, function(t, y, p) list(0), p,
-{% endif %}
+        {{ "x" if states else "0" }}, times, rates, p,
         rtol = rtol, atol = atol,
 {% if events %}
 {% if states %}
@@ -386,7 +408,7 @@ integrate_segment <- function(x, times, p, rtol, atol, hmax, steps, max_steps{% 
 {% endif %}
 {% endif %}
         tcrit = times[[n_times]], hmax = if (is.finite(hmax)) hmax else 0,
-        maxsteps = max(1, max_steps - steps), ynames = FALSE
+        maxsteps = max(1, max_steps - steps + 1), ynames = FALSE
       ),
       warning = function(condition) {
         warned <<- c(warned, conditionMessage(condition))
@@ -394,30 +416,36 @@ integrate_segment <- function(x, times, p, rtol, atol, hmax, steps, max_steps{% 
       }
     )
   )
-  # the messages of the solver hold bytes which are no text, e.g. of DLSODAR
+  # the messages of the solver, separated by empty lines, hold bytes which are no
+  # text, e.g. of DLSODAR
   printed <- trimws(gsub("[^ -~]", "", messages, useBytes = TRUE))
-  report <- paste(unique(c(warned, printed[nzchar(printed)])), collapse = " ")
+  blocks <- split(printed, cumsum(!nzchar(printed)))
+  solver <- unique(vapply(blocks, function(lines) {
+    paste(lines[nzchar(lines)], collapse = " ")
+  }, character(1)))
+  solver <- solver[nzchar(solver)]
+  warned <- unique(warned)
   istate <- attr(solution, "istate")
   t_reached <- attr(solution, "rstate")[[3]]
-  steps <- steps + max(1, istate[[2]])
+  steps <- max(counted, steps + max(1, istate[[2]]))
   if (istate[[1]] == -1 || steps > max_steps) {
-    stop(
-      "The integration took more than ", max_steps, " steps, at t = ",
-      format(t_reached, digits = 15), ".",
-      call. = FALSE
-    )
+    exceeded(t_reached)
   }
   if (istate[[1]] < 0) {
     stop(
       "The integration failed at t = ", format(t_reached, digits = 15), ": ",
-      report,
+      paste(c(warned, solver), collapse = " "),
       call. = FALSE
     )
   }
-  if (nzchar(report)) {
+  # the warnings and the messages of the solver, one by one
+  for (reported in warned) {
+    warning(reported, call. = FALSE)
+  }
+  for (reported in solver) {
     warning(
       "The integrator reports at t = ", format(t_reached, digits = 15), ": ",
-      report,
+      reported,
       call. = FALSE
     )
   }
@@ -583,6 +611,9 @@ execute_events <- function(t, x, p, holds, pending) {
 # time point at a delayed execution, to the rounding of the time (1e-14
 # relative), has the values after it: the rounding errors of the integration
 # shift the time of the trigger, not its integration error.
+# The points are outputs of the integration, `TRIGGER_POINTS * t_end / hmax` of
+# them in all: a tiny `hmax` makes many outputs, and each one evaluates the
+# triggers.
 {% else %}
 # Simulate the model from t = 0 to `t_end`.
 {% endif %}
