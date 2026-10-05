@@ -180,8 +180,18 @@ class _CraftedOmex:
         self,
         format_key: str,  # noqa: ARG002 - called by keyword, the name is the API
     ) -> list[ManifestEntry]:
-        """Return the single crafted entry."""
-        return [ManifestEntry(location=self.location, format=EntryFormat.SBML)]
+        """Return the single crafted entry.
+
+        pymetadata validates the location of a `ManifestEntry` and refuses an
+        absolute or escaping one, so the hostile entry a crafted archive could
+        carry is built without validation: `_contained_path` of sbmlutils is
+        what the tests below exercise, not the validation of pymetadata.
+        """
+        return [
+            ManifestEntry.model_construct(
+                location=self.location, format=EntryFormat.SBML
+            )
+        ]
 
     def get_path(self, _location: str) -> Path:
         """Return the file behind the entry."""
@@ -235,6 +245,20 @@ def test_download_biomodel_sbml_rejects_absolute_location(
     with pytest.raises(ValueError, match="outside of the output directory"):
         download_biomodel_sbml("BIOMD0000000001", output_dir=out_dir)
     assert not target.exists()
+
+
+@pytest.mark.parametrize(
+    "location", ["../escaped.xml", "sub/../../escaped.xml", "/absolute/escaped.xml"]
+)
+def test_manifest_entry_rejects_hostile_location(location: str) -> None:
+    """The validation of pymetadata refuses an absolute or escaping location.
+
+    This is the first line of defense and the reason the tests above build the
+    entry without validation; `_contained_path` stays as the second one for an
+    entry which did not come through the validation.
+    """
+    with pytest.raises(ValueError, match="location"):
+        ManifestEntry(location=location, format=EntryFormat.SBML)
 
 
 def test_download_biomodel_sbml_subdirectory_location(

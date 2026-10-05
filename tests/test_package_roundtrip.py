@@ -2171,6 +2171,23 @@ _CLASSIC_URLS: list[str] = [
     "http://identifiers.org/chebi/000000035",
 ]
 
+#: identifiers.org URLs which carry a query string, a fragment or a trailing
+#: slash, empty or not, as the corpus spells them (`refseq_synonym/iex?`);
+#: pymetadata, from 0.7 on, drops all three from the term, measured
+_DECORATED_URLS: list[str] = [
+    "http://identifiers.org/refseq_synonym/iex?",
+    "http://identifiers.org/refseq_synonym/iex?a=b",
+    "http://identifiers.org/refseq_synonym/iex#fragment",
+    "http://identifiers.org/refseq_synonym/iex/",
+    "http://identifiers.org/refseq_synonym/iex?#",
+    "http://identifiers.org/chebi/CHEBI:12965/?a=b#c",
+    "https://identifiers.org/uniprot/P03023?",
+    "http://identifiers.org/BTO:0000131?",
+    "http://identifiers.org/BTO:0000131/",
+    "http://identifiers.org/uniprot:P03023?a=b#c",
+    f"http://identifiers.org/{UNKNOWN_COLLECTION}/1406?",
+]
+
 #: the `http` spelling of the compact URL, as the corpus spells it; pymetadata
 #: writes it as the `https` one, measured
 _COMPACT_URLS: list[str] = [
@@ -2196,7 +2213,8 @@ _BARE_IDENTIFIERS: list[str] = [
 
 
 @pytest.mark.parametrize(
-    "resource", [*_URNS, *_CLASSIC_URLS, *_COMPACT_URLS, *_BARE_IDENTIFIERS]
+    "resource",
+    [*_URNS, *_CLASSIC_URLS, *_COMPACT_URLS, *_BARE_IDENTIFIERS, *_DECORATED_URLS],
 )
 def test_identifiers_org_is_what_pymetadata_does(resource: str) -> None:
     """Test the normalization against the canonicalization of pymetadata.
@@ -2253,6 +2271,20 @@ def test_identifiers_org_is_what_pymetadata_does(resource: str) -> None:
         (
             ("bqbiol:is", "http://identifiers.org/uniprot:P03023"),
             ("bqbiol:is", "https://identifiers.org/uniprot:P03023"),
+        ),
+        # the query string, the fragment and the trailing slash of a URL, which
+        # pymetadata drops
+        (
+            ("bqbiol:is", "http://identifiers.org/refseq_synonym/iex?"),
+            ("bqbiol:is", "https://identifiers.org/refseq_synonym/iex"),
+        ),
+        (
+            ("bqbiol:is", "http://identifiers.org/chebi/CHEBI:12965/?a=b#c"),
+            ("bqbiol:is", "https://identifiers.org/CHEBI:12965"),
+        ),
+        (
+            ("bqbiol:is", "http://identifiers.org/BTO:0000131/"),
+            ("bqbiol:is", "https://identifiers.org/BTO:0000131"),
         ),
         # the bare compact identifier
         (
@@ -2367,6 +2399,29 @@ def test_identifiers_org_accepts_every_source_form(
         (
             ("bqbiol:is", "https://doi.org/10.1101/2021.06.15.448411"),
             ("bqbiol:is", "https://identifiers.org/10.1101/2021.06.15.448411"),
+        ),
+        # the decoration of a URL is dropped, nothing else of the term is: not
+        # another term, and not the decoration of a URN or a bare identifier,
+        # which pymetadata percent-encodes into a different term
+        (
+            ("bqbiol:is", "http://identifiers.org/refseq_synonym/iex?"),
+            ("bqbiol:is", "https://identifiers.org/refseq_synonym/iey"),
+        ),
+        (
+            ("bqbiol:is", "http://identifiers.org/refseq_synonym/iex?a=b"),
+            ("bqbiol:is", "https://identifiers.org/refseq_synonym/iex?a=b"),
+        ),
+        (
+            ("bqbiol:is", "http://identifiers.org/BTO:0000131/"),
+            ("bqbiol:is", "https://identifiers.org/BTO:0000132"),
+        ),
+        (
+            ("bqbiol:is", "urn:miriam:chebi:CHEBI%3A33699?x"),
+            ("bqbiol:is", "https://identifiers.org/CHEBI:33699"),
+        ),
+        (
+            ("bqbiol:is", "UO:0000021?"),
+            ("bqbiol:is", "https://identifiers.org/UO:0000021"),
         ),
         # http instead of https
         (
