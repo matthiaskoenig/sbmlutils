@@ -11,7 +11,9 @@ from sbmlutils.converters.ode.text import (
 )
 
 
-@pytest.mark.parametrize("separator", ["\n", "\r", "\r\n", " ", " ", "\u0085", "\t"])
+@pytest.mark.parametrize(
+    "separator", ["\n", "\r", "\r\n", "\u2028", "\u2029", "\u0085", "\t"]
+)
 def test_single_line(separator: str) -> None:
     """Every line break and control character becomes a space."""
     assert single_line(f"a{separator}b") == "a" + " " * len(separator) + "b"

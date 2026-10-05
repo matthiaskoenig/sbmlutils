@@ -10,6 +10,9 @@ language, supplies tables and small hooks:
 - `CONSTANTS`: the constants, `time` and `avogadro`, e.g. `np.pi` for
   `AST_CONSTANT_PI`. A constant which is not in this table is not supported, except
   `avogadro`, which is then written as its number.
+- `RECIPROCALS`, `OF_RECIPROCALS`: the function of the dialect which the default
+  hooks `reciprocal` and `of_reciprocal` write with the reciprocal, e.g. `np.cos`
+  for `AST_FUNCTION_SEC`, `sec(x) = 1/cos(x)`.
 - `RELATIONS`, `PLUS`, `MINUS`, `TIMES`, `ARGUMENT_SEPARATOR`: the operators.
 - `number`, `integer`: the literals.
 - the hooks of the constructs whose structure differs between the languages:
@@ -29,9 +32,9 @@ in braces without touching the traversal. A hook which is not overridden raises
 (its message is the reason); the engine turns it into an `UnsupportedMathError`
 which names the math and the printer.
 
-Booleans are numbers in SBML. A relation or a logical operator is printed in its
-boolean form; where it is used as a number, the engine passes it through
-`bool_to_number`. The operands of a logical operator and the conditions of a
+Booleans are numbers in SBML. A relation, a logical operator or a boolean constant
+is printed in its boolean form; where it is used as a number, the engine passes it
+through `bool_to_number`. The operands of a logical operator and the conditions of a
 `piecewise` are printed as conditions, everything else as numbers;
 `print_condition` prints the top level as a condition (e.g. an event trigger).
 
@@ -136,6 +139,22 @@ _OF_RECIPROCALS = frozenset(
     }
 )
 
+_BOOLEANS = frozenset({libsbml.AST_CONSTANT_TRUE, libsbml.AST_CONSTANT_FALSE})
+
+# the number of the arguments of the functions of SBML which a dialect can write as
+# a call with the same arguments (`MathPrinter.FUNCTIONS`), from the least to the
+# most, `None` for no limit; a function which is not in this table has one argument
+_FUNCTION_ARITIES: dict[int, tuple[int, int | None]] = {
+    libsbml.AST_FUNCTION_MAX: (1, None),
+    libsbml.AST_FUNCTION_MIN: (1, None),
+    libsbml.AST_FUNCTION_LOG: (1, 2),
+    libsbml.AST_FUNCTION_ROOT: (1, 2),
+    libsbml.AST_FUNCTION_POWER: (2, 2),
+    libsbml.AST_FUNCTION_REM: (2, 2),
+    libsbml.AST_FUNCTION_QUOTIENT: (2, 2),
+    libsbml.AST_FUNCTION_DELAY: (2, 2),
+}
+
 _RELATIONS = frozenset(
     {
         libsbml.AST_RELATIONAL_EQ,
@@ -170,6 +189,11 @@ class MathPrinter:
         FUNCTIONS: function of the dialect of each function of SBML which is a call
             with the same arguments
         CONSTANTS: expression of each constant, of `time` and of `avogadro`
+        RECIPROCALS: function whose reciprocal each function of `_RECIPROCALS` is,
+            e.g. the cosine for `AST_FUNCTION_SEC`, used by `reciprocal`
+        OF_RECIPROCALS: function of the reciprocal each function of
+            `_OF_RECIPROCALS` is, e.g. the arccosine for `AST_FUNCTION_ARCSEC`, used
+            by `of_reciprocal`
         RELATIONS: operator of each relation
         PLUS: operator of a sum, with its spaces
         MINUS: operator of a difference, with its spaces
@@ -181,6 +205,8 @@ class MathPrinter:
     name: ClassVar[str] = "math"
     FUNCTIONS: ClassVar[Mapping[int, str]] = {}
     CONSTANTS: ClassVar[Mapping[int, str]] = {}
+    RECIPROCALS: ClassVar[Mapping[int, str]] = {}
+    OF_RECIPROCALS: ClassVar[Mapping[int, str]] = {}
     RELATIONS: ClassVar[Mapping[int, str]] = {
         libsbml.AST_RELATIONAL_EQ: "==",
         libsbml.AST_RELATIONAL_NEQ: "!=",
@@ -441,6 +467,8 @@ class MathPrinter:
     def reciprocal(self, function: int, value: Printed) -> Printed:
         """Function which is the reciprocal of a function, `sec(x) = 1/cos(x)`.
 
+        The base class writes `1.0 / cos(x)` with the function of `RECIPROCALS`.
+
         Args:
             function: the libsbml type of the function, e.g. `AST_FUNCTION_SEC`
             value: the printed argument
@@ -448,10 +476,15 @@ class MathPrinter:
         Returns:
             the printed function
         """
-        raise NotImplementedError
+        if function not in self.RECIPROCALS:
+            raise NotImplementedError
+        return self.divide(self._one(), self.call(self.RECIPROCALS[function], [value]))
 
     def of_reciprocal(self, function: int, value: Printed) -> Printed:
         """Function which is a function of the reciprocal, `arcsec(x) = arccos(1/x)`.
+
+        The base class writes `arccos(1.0 / x)` with the function of
+        `OF_RECIPROCALS`.
 
         Args:
             function: the libsbml type of the function, e.g. `AST_FUNCTION_ARCSEC`
@@ -460,7 +493,11 @@ class MathPrinter:
         Returns:
             the printed function
         """
-        raise NotImplementedError
+        if function not in self.OF_RECIPROCALS:
+            raise NotImplementedError
+        return self.call(
+            self.OF_RECIPROCALS[function], [self.divide(self._one(), value)]
+        )
 
     def minmax(self, function: int, arguments: Sequence[Printed]) -> Printed:
         """Maximum or minimum of the arguments.
@@ -601,9 +638,18 @@ class MathPrinter:
         children: list[libsbml.ASTNode] = [
             ast.getChild(k) for k in range(ast.getNumChildren())
         ]
+        if ast_type in _BOOLEANS:
+            return self._truth(ast_type == libsbml.AST_CONSTANT_TRUE, ctx)
         if ast_type in self.CONSTANTS:
             return Printed(self.CONSTANTS[ast_type], Precedence.ATOM)
+        if (
+            ast_type in {libsbml.AST_FUNCTION_MAX, libsbml.AST_FUNCTION_MIN}
+            and len(children) == 1
+        ):
+            # the maximum (minimum) of a single number is the number
+            return self._print(children[0], ctx.as_number())
         if ast_type in self.FUNCTIONS:
+            self._check_arity(children, *_FUNCTION_ARITIES.get(ast_type, (1, 1)))
             return self.call(self.FUNCTIONS[ast_type], self._numbers(children, ctx))
 
         match ast_type:
@@ -686,12 +732,7 @@ class MathPrinter:
             ):
                 if not children:
                     # the empty conjunction holds, the empty disjunctions do not
-                    is_and = ast_type == libsbml.AST_LOGICAL_AND
-                    return self._constant(
-                        libsbml.AST_CONSTANT_TRUE
-                        if is_and
-                        else libsbml.AST_CONSTANT_FALSE
-                    )
+                    return self._truth(ast_type == libsbml.AST_LOGICAL_AND, ctx)
                 conditions = self._conditions(children, ctx)
                 if len(conditions) == 1:
                     return self._boolean(conditions[0], ctx)
@@ -709,7 +750,7 @@ class MathPrinter:
             case _ if ast_type in _RELATIONS:
                 if len(children) < 2:
                     # a relation of a single number holds
-                    return self._constant(libsbml.AST_CONSTANT_TRUE)
+                    return self._truth(True, ctx)
                 # a relation of more than two numbers holds for each pair in turn,
                 # a < b < c is a < b and b < c
                 operands = self._numbers(children, ctx)
@@ -751,11 +792,16 @@ class MathPrinter:
             code, Precedence.UNARY if code.startswith("-") else Precedence.ATOM
         )
 
-    def _constant(self, constant: int) -> Printed:
-        """Printed constant of the `CONSTANTS`."""
+    def _one(self) -> Printed:
+        """Printed real number one."""
+        return self._literal(self.number(1.0))
+
+    def _truth(self, value: bool, ctx: _Context) -> Printed:
+        """Printed boolean constant of the `CONSTANTS` in its context."""
+        constant = libsbml.AST_CONSTANT_TRUE if value else libsbml.AST_CONSTANT_FALSE
         if constant not in self.CONSTANTS:
             raise NotImplementedError
-        return Printed(self.CONSTANTS[constant], Precedence.ATOM)
+        return self._boolean(Printed(self.CONSTANTS[constant], Precedence.ATOM), ctx)
 
     def _symbol(self, sid: str, ctx: _Context) -> str:
         """Expression of an identifier, which must be in the symbols."""

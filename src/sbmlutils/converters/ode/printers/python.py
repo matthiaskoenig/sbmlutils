@@ -14,8 +14,6 @@ import libsbml
 
 from sbmlutils.converters.ode.printers.base import MathPrinter, Precedence, Printed
 
-_ONE = Printed("1.0", Precedence.ATOM)
-
 
 class PythonPrinter(MathPrinter):
     """Printer of SBML math as a python expression with numpy."""
@@ -115,7 +113,7 @@ class PythonPrinter(MathPrinter):
         """`np.sqrt(x)` or `x ** (1.0 / n)`."""
         if degree is None:
             return self.call("np.sqrt", [value])
-        return self.power(value, self.divide(_ONE, degree))
+        return self.power(value, self.divide(self._one(), degree))
 
     def factorial(self, value: Printed) -> Printed:
         """`math.gamma(x + 1)`, the gamma function extends the factorial to the reals."""
@@ -123,14 +121,6 @@ class PythonPrinter(MathPrinter):
             "math.gamma",
             [self.infix([value, self._integer(1)], self.PLUS, Precedence.SUM)],
         )
-
-    def reciprocal(self, function: int, value: Printed) -> Printed:
-        """`1.0 / np.cos(x)` for `sec(x)`."""
-        return self.divide(_ONE, self.call(self.RECIPROCALS[function], [value]))
-
-    def of_reciprocal(self, function: int, value: Printed) -> Printed:
-        """`np.arccos(1.0 / x)` for `arcsec(x)`."""
-        return self.call(self.OF_RECIPROCALS[function], [self.divide(_ONE, value)])
 
     def logic_and(self, operands: Sequence[Printed]) -> Printed:
         """`a and b`."""
