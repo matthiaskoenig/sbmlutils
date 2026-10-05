@@ -14,14 +14,13 @@ from pathlib import Path
 
 import libsbml
 import pytest
-from markdown_it import MarkdownIt
 from ode_helpers import (
     compile_latex,
     compile_typst,
     edit_sbml,
+    markdown_tables,
     model_sbml,
     require_tectonic,
-    sbml_with_rate,
 )
 from test_ode_symbols import SYMBOLS
 
@@ -285,31 +284,12 @@ def test_latex_symbols_compile(tmp_path: Path) -> None:
 # --- markdown -------------------------------------------------------------------------
 
 
-def _tables(markdown: str) -> list[list[list[str]]]:
-    """The tables of a markdown document, each a list of rows of the text of cells."""
-    tables: list[list[list[str]]] = []
-    cell = False
-    for token in MarkdownIt("gfm-like", {"linkify": False}).parse(markdown):
-        if token.type == "table_open":
-            tables.append([])
-        elif token.type == "tr_open":
-            tables[-1].append([])
-        elif token.type in ("th_open", "td_open"):
-            tables[-1][-1].append("")
-            cell = True
-        elif token.type in ("th_close", "td_close"):
-            cell = False
-        elif token.type == "inline" and cell:
-            tables[-1][-1][-1] = token.content
-    return tables
-
-
 @pytest.mark.parametrize("name", sorted(MODELS))
-def test_markdown_tables(name: str) -> None:
+def test_markdownmarkdown_tables(name: str) -> None:
     """Every table has a header and a row per element, all rows of its width."""
     system = OdeSystem.from_sbml(MODELS[name])
     markdown = system.render("markdown")
-    tables = _tables(markdown)
+    tables = markdown_tables(markdown)
     expected = [
         len(rows)
         for rows in (
@@ -345,54 +325,6 @@ def test_markdown_math_blocks(name: str) -> None:
 
 
 # --- content --------------------------------------------------------------------------
-
-MARKUP = "a $x$ #b _c_ | d \\ <script>"
-"""A name which is markup in every format."""
-
-
-@pytest.mark.parametrize("fmt", sorted(SUFFIXES))
-def test_markup_in_names_is_text(fmt: str, tmp_path: Path) -> None:
-    """A name is written as text in every format, never as its markup."""
-    xml_name = MARKUP.replace("<", "&lt;").replace(">", "&gt;")
-    system = OdeSystem.from_sbml(sbml_with_rate("k * A", name=xml_name))
-    document = system.render(fmt)
-    assert "<script>" not in document
-    if fmt == "typst":
-        assert r"a \$x\$ \#b \_c\_ | d \\ \<script\>" in document
-        compile_typst(document, tmp_path)
-        fragment = system.render(fmt, standalone=False)
-        compile_typst(f"= Supplement\n\n{fragment}", tmp_path)
-    elif fmt == "latex":
-        assert (
-            r"a \$x\$ \#b \_c\_ \textbar{} d \textbackslash{} "
-            r"\textless{}script\textgreater{}"
-        ) in document
-        require_tectonic()
-        compile_latex(document, tmp_path, strict=True)
-    else:
-        escaped = r"a \$x\$ #b \_c\_ \| d \\ &lt;script&gt;"
-        assert escaped in document
-        # the pipe does not split the cell of the name, whose content the table
-        # unescapes
-        names = [row[2] for table in _tables(document)[1:] for row in table[1:]]
-        assert names == [escaped.replace("\\|", "|")] * 3
-
-
-INVALID_ID = "E2` #strong[pwn] | x <script>"
-"""An id which is no SId and which would end the code it is written into."""
-
-
-@pytest.mark.parametrize("fmt", sorted(SUFFIXES))
-@pytest.mark.parametrize("element", ["event", "model"])
-def test_ids_which_are_no_sid_are_rejected(fmt: str, element: str) -> None:
-    """An id is written as code only if it is an SId, libsbml reads any id."""
-    sbml = (GOLDEN / "events.xml").read_text()
-    old = 'id="E2"' if element == "event" else 'id="events_model"'
-    assert old in sbml
-    escaped = INVALID_ID.replace("<", "&lt;").replace(">", "&gt;")
-    system = OdeSystem.from_sbml(sbml.replace(old, f'id="{escaped}"'))
-    with pytest.raises(ValueError, match="SId"):
-        system.render(fmt)
 
 
 @pytest.mark.parametrize("fmt", sorted(SUFFIXES))

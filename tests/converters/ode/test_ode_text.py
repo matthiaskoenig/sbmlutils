@@ -1,10 +1,8 @@
 """Test the text helpers of the ODE export."""
 
-import libsbml
 import pytest
 
 from sbmlutils.converters.ode.text import (
-    check_math_sids,
     check_sid,
     markdown_text,
     single_line,
@@ -57,20 +55,6 @@ def test_check_sid_rejects(sid: str) -> None:
     """An id which is no SId raises."""
     with pytest.raises(ValueError, match="is not an SId"):
         check_sid(sid)
-
-
-def test_check_math_sids() -> None:
-    """Math whose identifiers are SIds passes."""
-    check_math_sids(libsbml.parseL3Formula("a + f(b, time) * 2"))
-
-
-@pytest.mark.parametrize(("formula", "child"), [("a + b", 1), ("f(a) + 1", 0)])
-def test_check_math_sids_rejects(formula: str, child: int) -> None:
-    """A name or a function call which is no SId raises."""
-    ast = libsbml.parseL3Formula(formula)
-    ast.getChild(child).setName("1x")
-    with pytest.raises(ValueError, match="'1x'"):
-        check_math_sids(ast)
 
 
 @pytest.mark.parametrize(

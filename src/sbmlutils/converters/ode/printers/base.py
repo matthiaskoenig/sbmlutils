@@ -63,6 +63,8 @@ from typing import ClassVar, NamedTuple
 
 import libsbml
 
+from sbmlutils.converters.ode.text import check_sid
+
 SymbolMap = Mapping[str, str]
 """Expression of each identifier of the math, e.g. `{"k1": "p[0]"}`."""
 
@@ -1028,8 +1030,19 @@ class MathPrinter:
         return self._boolean(Printed(self.CONSTANTS[constant], Precedence.ATOM), ctx)
 
     def _symbol(self, sid: str, ctx: _Context) -> str:
-        """Expression of an identifier, which must be in the symbols."""
+        """Expression of an identifier, which must be in the symbols.
+
+        The symbols map checked SIds (`symbols.code_names`, `symbols.typeset_names`)
+        and the names a printer adds itself, e.g. the new size of a compartment.
+
+        Raises:
+            ValueError: if an identifier without a symbol is not an SId, libsbml
+                reads math with any identifier, which could end the code or write
+                markup
+            UnsupportedMathError: if an SId has no symbol
+        """
         if sid not in ctx.symbols:
+            check_sid(sid)
             raise UnsupportedMathError(
                 f"The identifier {sid!r} has no symbol and is not supported by the "
                 f"{self.name} printer (e.g. a local parameter or a function "

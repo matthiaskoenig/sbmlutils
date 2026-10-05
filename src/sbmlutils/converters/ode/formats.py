@@ -80,7 +80,7 @@ from sbmlutils.converters.ode.dependencies import names
 from sbmlutils.converters.ode.documents import DocumentContext
 from sbmlutils.converters.ode.printers import PRINTERS, MathPrinter
 from sbmlutils.converters.ode.symbols import RESERVED, code_names
-from sbmlutils.converters.ode.text import single_line
+from sbmlutils.converters.ode.text import check_sid, single_line
 
 if TYPE_CHECKING:
     from sbmlutils.converters.ode.system import OdeSystem, Quantity, Symbol
@@ -407,9 +407,16 @@ class _CodeContext:
         }
 
     def build(self, options: Mapping[str, object]) -> dict[str, object]:
-        """The context."""
+        """The context.
+
+        Raises:
+            ValueError: if the id of the model is not an SId, which the code writes
+                as the name of a module (julia) and into a comment (R)
+        """
         system = self.system
         info = system.info
+        if info.sid is not None:
+            check_sid(info.sid)
         states = [self.variable(sid, k) for k, sid in enumerate(system.states)]
         constants = [self.variable(sid, k) for k, sid in enumerate(system.constants)]
         assigned = [self.variable(sid, k) for k, sid in enumerate(system.assigned)]

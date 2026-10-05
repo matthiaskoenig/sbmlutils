@@ -130,7 +130,9 @@ class Quantity:
             needs a conversion, which `OdeSystem.initial` then holds
         constant: the constant flag of SBML
         role: the role in the system
-        compartment: the compartment of a species or an amount
+        compartment: the compartment of a species or an amount, `None` for a
+            species in amount without a compartment, which L3 requires and
+            libsbml reads
         amount: a species in amount (`hasOnlySubstanceUnits`)
         boundary: the boundary condition of a species
         conversion_factor: the conversion factor of a species, else of the model

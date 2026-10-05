@@ -21,6 +21,7 @@ import pytest
 from ode_helpers import (
     EVENT_MODELS,
     FORMULAS,
+    JULIA_NAMES_JOB,
     JULIA_POINT_VALUES_JOB,
     TWO_EVENTS,
     Job,
@@ -106,14 +107,6 @@ POINT_MODELS: dict[str, str | Path] = {
     """),
 }
 
-# the id of a model whose name breaks out of a comment, a string or a docstring
-INJECTED_NAME = (
-    "A&#10;INJECTED_LF = 1&#13;INJECTED_CR = 1&#13;&#10;INJECTED_CRLF = 1"
-    "&#x2028;INJECTED_LS = 1&#x85;INJECTED_NEL = 1&#9;tab"
-    " &quot;&quot;&quot; INJECTED_DOC = 1 \\ $(INJECTED_INTERPOLATION = 1) $x"
-    " #= INJECTED_BLOCK = 1 end\\"
-)
-
 # the further jobs of the right hand side
 POINT_JOBS: dict[str, Callable[[], Job]] = {
     "negative_base": lambda: Job(
@@ -144,19 +137,6 @@ POINT_JOBS: dict[str, Callable[[], Job]] = {
         emit(io, "unchanged", [isequal(p, passed)])
         emit(io, "x0", x0)
         emit(io, "x0_default", m.initial_values()[1])
-        """,
-    ),
-    "injected": lambda: Job(
-        OdeSystem.from_sbml(sbml_with_rate("k*A", name=INJECTED_NAME)).render(
-            "julia", simulator=False
-        ),
-        """
-        emit(io, "names", names(m; all=true))
-        emit(io, "name", [m.NAMES["A"]])
-        # the docstring of the module, a string unless it interpolates
-        call = Meta.parseall(read(raw"{path}", String)).args[2]
-        doc = call.args[3] isa String ? call.args[3] : "interpolated"
-        emit(io, "doc", [replace(doc, "\n" => " ")])
         """,
     ),
     "events_without_simulator": lambda: Job(
@@ -317,35 +297,6 @@ PARSED: dict[str, tuple[str, bool]] = {
     "stateless_events": (EVENT_MODELS["without_states"], True),
 }
 
-# the julia function which collects the names of the code: every symbol of the
-# parsed code but the names of fields, keyword arguments and named tuple entries,
-# which never clash with a variable
-NAMES_JOB = """
-    function collect_names!(names, ex)
-        if ex isa Symbol
-            push!(names, ex)
-        elseif ex isa Expr
-            arguments = ex.args
-            if ex.head == :. && length(arguments) == 2 && arguments[2] isa QuoteNode
-                arguments = arguments[1:1]
-            elseif ex.head == :kw
-                arguments = arguments[2:end]
-            elseif ex.head == :tuple
-                arguments = [
-                    a isa Expr && a.head == :(=) ? a.args[2] : a for a in arguments
-                ]
-            elseif ex.head == :struct
-                arguments = arguments[2:2]
-            end
-            for argument in arguments
-                collect_names!(names, argument)
-            end
-        end
-        return names
-    end
-    emit(io, "names", sort!(collect(collect_names!(Set{Symbol}(), CODE))))
-"""
-
 
 def _code(antimony: str, **options: object) -> str:
     """The julia code of a model written in antimony."""
@@ -365,7 +316,7 @@ def _point_jobs() -> dict[str, Job]:
     for name, (antimony, simulator) in PARSED.items():
         jobs[f"parse_{name}"] = Job(
             _code(antimony, simulator=simulator),
-            f'    CODE = Meta.parseall(read(raw"{{path}}", String))\n{NAMES_JOB}',
+            JULIA_NAMES_JOB,
         )
     return jobs
 
@@ -716,23 +667,6 @@ def test_julia_names_are_reserved(name: str, julia: Callable[[str], JobOutput]) 
     # the arguments of the function definitions
     arguments = {"S", "km", "k", "n"}
     assert written - model_names - arguments <= RESERVED["julia"]
-
-
-def test_julia_name_does_not_leave_comment(julia: Callable[[str], JobOutput]) -> None:
-    """A line break, quotes or an interpolation in a name never become code."""
-    code = OdeSystem.from_sbml(sbml_with_rate("k*A", name=INJECTED_NAME)).render(
-        "julia"
-    )
-    for line in code.splitlines():
-        if "INJECTED" in line and "#" in line and '"' not in line:
-            assert line.index("#") < line.index("INJECTED"), line
-    output = julia("injected")
-    assert not [n for n in output.strings("names") if "INJECTED" in n]
-    name = output.strings("name")[0]
-    assert '"""' in name
-    assert "$(INJECTED_INTERPOLATION = 1) $x" in name
-    assert name.endswith("\\")
-    assert "INJECTED_DOC" in output.strings("doc")[0]
 
 
 def test_julia_layout() -> None:

@@ -24,6 +24,7 @@ import pytest
 from ode_helpers import (
     EVENT_MODELS,
     FORMULAS,
+    R_NAMES_JOB,
     R_POINT_VALUES_JOB,
     TIMEOUT,
     TWO_EVENTS,
@@ -110,13 +111,6 @@ POINT_MODELS: dict[str, str | Path] = {
     """),
 }
 
-# the id of a model whose name breaks out of a comment or a string
-INJECTED_NAME = (
-    "A&#10;INJECTED_LF &lt;- 1&#13;INJECTED_CR &lt;- 1&#13;&#10;INJECTED_CRLF &lt;- 1"
-    "&#x2028;INJECTED_LS &lt;- 1&#x85;INJECTED_NEL &lt;- 1&#9;tab"
-    " &quot;); INJECTED_QUOTE &lt;- 1; c(&quot; \\&quot; ä \\u{41} \\"
-)
-
 # the further jobs of the right hand side
 POINT_JOBS: dict[str, Callable[[], Job]] = {
     "negative_base": lambda: Job(
@@ -146,15 +140,6 @@ POINT_JOBS: dict[str, Callable[[], Job]] = {
         emit(io, "x0_names", names(initial$x0))
         emit(io, "unchanged", identical(p, passed))
         emit(io, "x0", initial$x0)
-        """,
-    ),
-    "injected": lambda: Job(
-        OdeSystem.from_sbml(sbml_with_rate("k*A", name=INJECTED_NAME)).render(
-            "r", simulator=False
-        ),
-        """
-        emit(io, "names", ls(m, all.names = TRUE))
-        emit(io, "name", m$NAMES[["A"]])
         """,
     ),
     "events_without_simulator": lambda: Job(
@@ -327,18 +312,6 @@ PARSED: dict[str, tuple[str, bool]] = {
     "stateless_events": (EVENT_MODELS["without_states"], True),
 }
 
-# the R code which lists the names of the code: every symbol of the parsed code but
-# the names of arguments and of the entries of a list (`SYMBOL_SUB`) and the names
-# after `$`, which never clash with a variable
-NAMES_JOB = """
-  data <- utils::getParseData(parse(file = r"({path})", keep.source = TRUE))
-  data <- data[data$terminal, ]
-  data <- data[order(data$line1, data$col1), ]
-  after_dollar <- c(FALSE, data$token[-nrow(data)] == "'$'")
-  symbols <- c("SYMBOL", "SYMBOL_FUNCTION_CALL", "SYMBOL_FORMALS", "SYMBOL_PACKAGE")
-  emit(io, "names", sort(unique(data$text[data$token %in% symbols & !after_dollar])))
-"""
-
 
 def _code(antimony: str, **options: object) -> str:
     """The R code of a model written in antimony."""
@@ -355,7 +328,7 @@ def _point_jobs() -> dict[str, Job]:
     }
     jobs.update({name: job() for name, job in POINT_JOBS.items()})
     for name, (antimony, simulator) in PARSED.items():
-        jobs[f"parse_{name}"] = Job(_code(antimony, simulator=simulator), NAMES_JOB)
+        jobs[f"parse_{name}"] = Job(_code(antimony, simulator=simulator), R_NAMES_JOB)
     return jobs
 
 
@@ -711,23 +684,6 @@ def test_r_names_are_reserved(name: str, r: Callable[[str], JobOutput]) -> None:
     # the arguments of the function definitions
     arguments = {"S", "km", "k", "n"}
     assert written - model_names - arguments <= RESERVED["r"]
-
-
-def test_r_name_does_not_leave_comment(r: Callable[[str], JobOutput]) -> None:
-    """A line break or a quote in a name never becomes code."""
-    code = OdeSystem.from_sbml(sbml_with_rate("k*A", name=INJECTED_NAME)).render("r")
-    for line in code.splitlines():
-        if "INJECTED" in line and "#" in line and '"' not in line:
-            assert line.index("#") < line.index("INJECTED"), line
-    # the strings are ASCII, whatever the locale R reads the file in
-    for line in code.splitlines():
-        if not line.isascii():
-            assert line[: line.index("#")].isascii(), line
-    output = r("injected")
-    assert not [n for n in output.strings("names") if "INJECTED" in n]
-    name = output.strings("name")[0]
-    assert '"); INJECTED_QUOTE <- 1; c("' in name
-    assert name.endswith('\\" ä \\u{41} \\')
 
 
 def test_r_layout() -> None:

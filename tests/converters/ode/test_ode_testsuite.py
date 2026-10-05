@@ -19,16 +19,28 @@ The julia and the R code of the cases runs in few processes of julia and R, whic
 compile the integrator (julia) and load the packages once for many cases
 (`run_jobs`); the julia tests skip without julia, see `SBMLUTILS_JULIA`, the R tests
 without R and deSolve, see `SBMLUTILS_RSCRIPT`.
+
+`scripts/ode_report.py` runs the sweeps and reports their pass rates. It checks every
+case in a python process of its own (`run_case_isolated` of `tests/test_roundtrip.py`),
+which roadrunner and the integrators run in, so that a crash in native code ends one
+case; this module is the worker of that process, see `run_worker` and the `__main__`
+block at its end.
 """
+
+import sys
+from pathlib import Path
+
+if __name__ == "__main__":
+    # the worker runs as a script, which finds `ode_helpers` next to it, but not
+    # `test_roundtrip`
+    sys.path.insert(0, str(Path(__file__).parents[2]))
 
 import functools
 from collections.abc import Callable
-from pathlib import Path
 
 import numpy as np
 import pytest
 from ode_helpers import (
-    LANGUAGES,
     Job,
     JobOutput,
     assert_table_as_roadrunner,
@@ -36,14 +48,17 @@ from ode_helpers import (
     julia_simulate_job,
     python_module,
     r_simulate_job,
+    read_job_output,
+    require_language,
     run_jobs,
-    toolchain_missing,
 )
 from test_roundtrip import (
     NONDETERMINISTIC,
     SWEEP_CASES,
     T_END,
     T_STEPS,
+    Outcome,
+    _record,
     requires_testsuite,
     sbml_case_idfn,
     suite_case,
@@ -113,9 +128,6 @@ KNOWN_FAILURES: dict[tuple[str, str], str] = {
 # the processes of julia and of R of the full sweep, which run in parallel
 PROCESSES = 4
 
-# the variable of the command of each language whose code runs as jobs
-COMMANDS = {"julia": "SBMLUTILS_JULIA", "r": "SBMLUTILS_RSCRIPT"}
-
 # the body of the job of a case, by language
 SIMULATE_JOBS = {
     "julia": julia_simulate_job(T_END, T_STEPS),
@@ -146,59 +158,175 @@ def _tolerances(system: OdeSystem) -> tuple[float, float]:
     return (1e-4, 1e-6) if system.events else (1e-6, 1e-9)
 
 
-def check_python_case(sbml_path: Path, tmp_path: Path) -> None:
+Stage = Callable[[str], None]
+"""A function which is told the stage a check enters, see `run_worker`."""
+
+
+def _no_stage(stage: str) -> None:
+    """Ignore the stage of a check, which only the worker records."""
+
+
+def check_python_case(
+    sbml_path: Path, tmp_path: Path, stage: Stage = _no_stage
+) -> OdeSystem:
     """Check the python code of a case: it refuses to render or simulates right.
 
     Args:
         sbml_path: path of the SBML file of the case
         tmp_path: directory of the python file
+        stage: is told the stage the check enters
+
+    Returns:
+        the system of the case
+
+    Raises:
+        pytest.skip.Exception: if roadrunner does not simulate the case
     """
+    stage("read the model")
     system = OdeSystem.from_sbml(sbml_path)
     if system.unsupported:
+        stage("refuse to render")
         with pytest.raises(NotImplementedError):
             system.render("python")
-        return
+        return system
+    stage("simulate the reference")
     error = _reference_error(sbml_path)
     if error is not None:
         pytest.skip(f"roadrunner does not simulate the case: {error}")
+    stage("render")
     module = python_module(system, tmp_path / f"case_{sbml_path.name[:5]}.py")
+    stage("simulate and compare")
     # math out of its domain is nan or inf as in roadrunner, e.g. case 01488
     with np.errstate(divide="ignore", invalid="ignore", over="ignore"):
         assert_trajectory_as_roadrunner(sbml_path, module, *_tolerances(system))
+    return system
 
 
 def check_job_case(
-    language: str, sbml_path: Path, output: Callable[[], JobOutput]
-) -> None:
+    language: str,
+    sbml_path: Path,
+    output: Callable[[], JobOutput],
+    stage: Stage = _no_stage,
+) -> OdeSystem:
     """Check the julia or R code of a case: it refuses to render or simulates right.
 
     Args:
         language: `julia` or `r`
         sbml_path: path of the SBML file of the case
         output: the output of the job of the case, see `_case_job`
+        stage: is told the stage the check enters
+
+    Returns:
+        the system of the case
+
+    Raises:
+        pytest.skip.Exception: if roadrunner does not simulate the case
     """
+    stage("read the model")
     system = OdeSystem.from_sbml(sbml_path)
     if system.unsupported:
+        stage("refuse to render")
         with pytest.raises(NotImplementedError):
             system.render(language)
-        return
+        return system
+    stage("simulate the reference")
     error = _reference_error(sbml_path)
     if error is not None:
         pytest.skip(f"roadrunner does not simulate the case: {error}")
-    assert_table_as_roadrunner(sbml_path, output().table(), *_tolerances(system))
+    # the code of the job, rendered again to report an error of its own case
+    stage("render")
+    system.render(language)
+    stage("run the code")
+    table = output().table()
+    stage("compare")
+    assert_table_as_roadrunner(sbml_path, table, *_tolerances(system))
+    return system
 
 
-def _case_job(language: str, sbml_path: Path) -> Job | None:
-    """The job which simulates the code of a case, `None` without a reference.
+def _case_job(language: str, sbml_path: Path, reference: bool = True) -> Job | None:
+    """The job which simulates the code of a case, `None` if there is nothing to run.
 
-    A case without a job is skipped or refuses to render, see `check_job_case`.
+    A case without a job is skipped, refuses to render or fails to render, which
+    `check_job_case` reports.
+
+    Args:
+        language: `julia` or `r`
+        sbml_path: path of the SBML file of the case
+        reference: whether a case which roadrunner does not simulate has no job,
+            which simulates the case with roadrunner
     """
     if sbml_path.name[:5] in NONDETERMINISTIC:
         return None
-    system = OdeSystem.from_sbml(sbml_path)
-    if system.unsupported or _reference_error(sbml_path) is not None:
+    try:
+        system = OdeSystem.from_sbml(sbml_path)
+        if system.unsupported:
+            return None
+        if reference and _reference_error(sbml_path) is not None:
+            return None
+        code = system.render(language)
+    except Exception:
+        # the check of the case reports the error
         return None
-    return Job(system.render(language), SIMULATE_JOBS[language])
+    return Job(code, SIMULATE_JOBS[language])
+
+
+def _detail(error: BaseException) -> str:
+    """The type of an error and its first line, with the next one after a colon.
+
+    A failure of julia or R code is `The julia code failed:` and the error of the
+    code on the next line.
+    """
+    lines = [line.strip() for line in str(error).splitlines() if line.strip()]
+    if len(lines) > 1 and lines[0].endswith(":"):
+        lines[0] = f"{lines[0]} {lines[1]}"
+    return f"{type(error).__name__}: {lines[0] if lines else ''}"
+
+
+def run_worker(
+    sbml_path: Path, case_dir: Path, fmt: str, job_path: Path | None = None
+) -> None:
+    """Check the code of a case in a format and record its outcome, in the worker.
+
+    The outcome is that of the test of the case, see `check_python_case` and
+    `check_job_case`: passed, unsupported (the code refuses to render), not
+    simulatable (roadrunner does not simulate the case, there is no reference) or
+    failed, recorded with `_record` of `tests/test_roundtrip.py`.
+
+    Args:
+        sbml_path: path of the SBML file of the case
+        case_dir: directory of the case, which the python code and the outcome are
+            written to
+        fmt: `python`, `julia` or `r`
+        job_path: the code of the julia or R job of the case, which ran, see
+            `run_jobs`; `None` without a job
+    """
+    current = "start"
+
+    def stage(name: str) -> None:
+        nonlocal current
+        current = name
+        _record(case_dir, name, None, "")
+
+    def output() -> JobOutput:
+        if job_path is None:
+            raise FileNotFoundError("The case has no job.")
+        return read_job_output(fmt, job_path)
+
+    try:
+        if fmt == "python":
+            system = check_python_case(sbml_path, case_dir, stage)
+        else:
+            system = check_job_case(fmt, sbml_path, output, stage)
+    except pytest.skip.Exception as error:
+        _record(case_dir, current, Outcome.NOT_SIMULATABLE, str(error))
+    except (Exception, pytest.fail.Exception) as error:
+        _record(case_dir, current, Outcome.FAILED, _detail(error))
+    else:
+        if system.unsupported:
+            constructs = sorted({construct for construct, _ in system.unsupported})
+            _record(case_dir, current, Outcome.UNSUPPORTED, ", ".join(constructs))
+        else:
+            _record(case_dir, current, Outcome.PASSED, "")
 
 
 Suite = Callable[[str, str, list[Path], Path], JobOutput]
@@ -216,8 +344,7 @@ def suite(tmp_path_factory: pytest.TempPathFactory) -> Suite:
     def output(
         language: str, group: str, paths: list[Path], sbml_path: Path
     ) -> JobOutput:
-        if LANGUAGES[language].command() is None:
-            toolchain_missing(LANGUAGES[language].title, COMMANDS[language])
+        require_language(language)
         if (language, group) not in outputs:
             jobs = {}
             for path in paths:
@@ -328,3 +455,40 @@ def test_curated_cases_exist() -> None:
     assert len(CURATED) == len(set(CURATED))
     assert set(CURATED) <= swept
     assert {case for _, case in KNOWN_FAILURES} <= swept
+
+
+@requires_testsuite
+@pytest.mark.parametrize("fmt", ["python", "julia", "r"])
+def test_report(
+    fmt: str,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """`scripts/ode_report.py` checks the cases of a format in processes of their own.
+
+    Case 00001 passes, case 00039 has an algebraic rule, which is unsupported.
+    """
+    if fmt != "python":
+        require_language(fmt)
+    from scripts import ode_report
+
+    monkeypatch.setattr(ode_report, "TMP_DIR", tmp_path)
+    ode_report.main(["--case", "00001", "--case", "00039", "--format", fmt])
+    output = capsys.readouterr().out
+    assert "  1  algebraic rule" in output
+    rows = [line for line in output.splitlines() if line.startswith(f"| {fmt} |")]
+    assert rows == [f"| {fmt} | 2 | 1 | 0 | 1 | 0 | 0 | 0 | 0 | 0 | 100.0% |"]
+    assert (tmp_path / fmt / "00001" / "outcome.json").exists()
+
+
+if __name__ == "__main__":
+    # the worker of `run_case_isolated`: `python test_ode_testsuite.py <sbml_path>
+    # <case_dir> <format> [<job_path>]` checks the case and records its outcome in
+    # `case_dir`, see `scripts/ode_report.py`
+    run_worker(
+        Path(sys.argv[1]),
+        Path(sys.argv[2]),
+        sys.argv[3],
+        Path(sys.argv[4]) if len(sys.argv) > 4 else None,
+    )

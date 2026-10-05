@@ -40,8 +40,9 @@ The context holds:
   (math, empty for a value given by a rule or a conversion), `unit` and
   `constant`; the parameters include the local parameters and the species
   references with an id;
-  `species` additionally `compartment` (math) and `properties` (amount or
-  concentration, boundary and constant as text);
+  `species` additionally `compartment` (math, `None` for a species in amount
+  without a compartment) and `properties` (amount or concentration, boundary and
+  constant as text);
 - `functions`: `lhs` (`f(x, y)`) and `rhs`;
 - `initial`: the initial assignments and the initial values which are a conversion
   between amount and concentration, `assignments`: the assignment rules and the
@@ -499,7 +500,9 @@ class DocumentContext:
             properties.append("constant")
         return {
             **self.row(quantity),
-            "compartment": self.symbols[str(quantity.compartment)],
+            "compartment": (
+                self.symbols[quantity.compartment] if quantity.compartment else None
+            ),
             "properties": self.dialect.text(", ".join(properties)),
         }
 

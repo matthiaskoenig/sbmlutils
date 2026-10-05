@@ -4,9 +4,11 @@ Every name, unit and other free text is written through `single_line`, which rem
 all line breaks, so that the text of a model can never leave the comment it is
 written into and become code. The text of a document is escaped for its markup, so
 that it is written as it is and never read as markup: `tex_text` for LaTeX,
-`typst_text` for typst and `markdown_text` for markdown. The ids written into code are checked to be SIds (`ValueError`
-otherwise), which libsbml does not guarantee: it reads a document with an invalid id
-and only reports an error.
+`typst_text` for typst and `markdown_text` for markdown. The ids written into code
+are checked to be SIds with `check_sid` (`ValueError` otherwise), the ids of the
+elements by the names of the formats and the identifiers of math by the printers,
+which libsbml does not guarantee: it reads a document with an invalid id and only
+reports an error.
 """
 
 import re
@@ -151,8 +153,9 @@ def tex_pdf_text(value: object) -> str:
     r"""Make text safe in a string of the PDF, e.g. a bookmark of hyperref.
 
     The special characters of LaTeX are escaped as by `tex_text`, every other
-    character is kept, `τ` is `τ`: math is not allowed in a string of the PDF,
-    which holds unicode (`	exorpdfstring{<tex_text>}{<tex_pdf_text>}`).
+    character is kept, `τ` stays `τ` rather than `\ensuremath{\tau}` of `tex_text`:
+    math is not allowed in a string of the PDF, which holds unicode
+    (`\texorpdfstring{<tex_text>}{<tex_pdf_text>}`).
 
     Args:
         value: text to write, rendered with `str`
@@ -242,20 +245,3 @@ def check_sid(sid: str) -> str:
     if not libsbml.SyntaxChecker.isValidSBMLSId(sid):
         raise ValueError(f"The id {sid!r} is not an SId and cannot be written as code.")
     return sid
-
-
-def check_math_sids(ast: libsbml.ASTNode) -> None:
-    """Check that every identifier in the math is an SId.
-
-    The identifiers are the names and the calls of function definitions.
-
-    Args:
-        ast: the math
-
-    Raises:
-        ValueError: if an identifier is not an SId
-    """
-    if ast.getType() in {libsbml.AST_NAME, libsbml.AST_FUNCTION}:
-        check_sid(ast.getName())
-    for k in range(ast.getNumChildren()):
-        check_math_sids(ast.getChild(k))

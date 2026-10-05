@@ -738,40 +738,6 @@ def test_python_function_argument_reserved() -> None:
     assert "return x_ * lambda_" in code
 
 
-INJECTED_NAME = (
-    "A&#10;INJECTED_LF = 1&#13;INJECTED_CR = 1&#13;&#10;INJECTED_CRLF = 1"
-    "&#x2028;INJECTED_LS = 1&#x85;INJECTED_NEL = 1&#9;tab"
-    " &quot;&quot;&quot; INJECTED_DOC = 1 \\ end\\"
-)
-
-
-def test_python_name_does_not_leave_comment(tmp_path: Path) -> None:
-    """A line break or quotes in a name never leave the comment or the string."""
-    sbml = sbml_with_rate("k*A", name=INJECTED_NAME)
-    system = OdeSystem.from_sbml(sbml)
-    code = system.render("python")
-    for line in code.splitlines():
-        if "INJECTED" in line and "#" in line:
-            assert line.index("#") < line.index("INJECTED"), line
-    tree = ast.parse(code)
-    assigned = {
-        target.id
-        for node in ast.walk(tree)
-        if isinstance(node, ast.Assign)
-        for target in node.targets
-        if isinstance(target, ast.Name)
-    }
-    assert not {name for name in assigned if name.startswith("INJECTED")}
-    path = tmp_path / "injected.py"
-    path.write_text(code, encoding="utf-8")
-    module = import_module(path)
-    assert not [name for name in vars(module) if name.startswith("INJECTED")]
-    name = module.NAMES["A"]
-    assert '"""' in name
-    assert name.endswith("\\")
-    assert "\n" not in name
-
-
 # --- the format layer -----------------------------------------------------------------
 
 

@@ -592,6 +592,12 @@ class _Analysis:
         for species in self.model.getListOfSpecies():
             sid, cid = species.getId(), species.getCompartment()
             in_amount = species.getHasOnlySubstanceUnits()
+            if not cid and (not in_amount or species.isSetInitialConcentration()):
+                # L3 requires the compartment, libsbml reads a species without one
+                raise ValueError(
+                    f"The species {sid!r} has no compartment, which converts between "
+                    f"its amount and its concentration."
+                )
             boundary, constant = species.getBoundaryCondition(), species.getConstant()
             substance, unit = self._species_unit(species)
             factor = species.getConversionFactor() or self.model.getConversionFactor()
@@ -644,7 +650,7 @@ class _Analysis:
                     value=value,
                     constant=constant,
                     role=role,
-                    compartment=cid,
+                    compartment=cid or None,
                     amount=in_amount,
                     boundary=boundary,
                     conversion_factor=factor or None,

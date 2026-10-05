@@ -23,6 +23,7 @@ import libsbml
 import numpy as np
 import pandas as pd
 import pytest
+from markdown_it import MarkdownIt
 
 from sbmlutils.converters.ode import OdeSystem
 from sbmlutils.converters.ode.system import Quantity
@@ -632,6 +633,7 @@ class _Language:
 
     Attributes:
         title: the name of the language in a message
+        variable: the environment variable of the command of the toolchain
         suffix: the suffix of a file of code
         command: the command of the toolchain, `None` if it is not runnable
         prelude: the code of a script before its jobs
@@ -640,6 +642,7 @@ class _Language:
     """
 
     title: str
+    variable: str
     suffix: str
     command: Callable[[], list[str] | None]
     prelude: str
@@ -706,6 +709,50 @@ R_POINT_VALUES_JOB = f"""
 `other_states`, of R code rendered with `simulator=False`."""
 
 
+JULIA_NAMES_JOB = """
+    CODE = Meta.parseall(read(raw"{path}", String))
+    function collect_names!(names, ex)
+        if ex isa Symbol
+            push!(names, ex)
+        elseif ex isa Expr
+            arguments = ex.args
+            if ex.head == :. && length(arguments) == 2 && arguments[2] isa QuoteNode
+                arguments = arguments[1:1]
+            elseif ex.head == :kw
+                arguments = arguments[2:end]
+            elseif ex.head == :tuple
+                arguments = [
+                    a isa Expr && a.head == :(=) ? a.args[2] : a for a in arguments
+                ]
+            elseif ex.head == :struct
+                arguments = arguments[2:2]
+            end
+            for argument in arguments
+                collect_names!(names, argument)
+            end
+        end
+        return names
+    end
+    emit(io, "names", sort!(collect(collect_names!(Set{Symbol}(), CODE))))
+"""
+"""The body of a julia `Job` which emits the names of the code it parses, `{path}`
+replaced by the path of the code: every symbol but the names of fields, keyword
+arguments and the entries of named tuples, which never clash with a variable."""
+
+R_NAMES_JOB = """
+  data <- utils::getParseData(parse(file = r"({path})", keep.source = TRUE))
+  data <- data[data$terminal, ]
+  data <- data[order(data$line1, data$col1), ]
+  after_dollar <- c(FALSE, data$token[-nrow(data)] == "'$'")
+  symbols <- c("SYMBOL", "SYMBOL_FUNCTION_CALL", "SYMBOL_FORMALS", "SYMBOL_PACKAGE")
+  emit(io, "names", sort(unique(data$text[data$token %in% symbols & !after_dollar])))
+"""
+"""The body of an R `Job` which emits the names of the code it parses, `{path}`
+replaced by the path of the code: every symbol but the names of arguments and of the
+entries of a list (`SYMBOL_SUB`) and the names after `$`, which never clash with a
+variable."""
+
+
 def julia_simulate_job(
     t_end: float = 10.0, points: int = 51, arguments: str = ""
 ) -> str:
@@ -749,6 +796,25 @@ JOB_TIMEOUT = 600
 after its last job."""
 
 
+class JobsError(RuntimeError):
+    """A process of jobs failed or took too long, see `run_jobs`.
+
+    Attributes:
+        job: the job the process ran when it ended or was stopped, `None` if it had
+            finished its jobs
+        timed_out: whether the job (or the exit) took longer than the timeout,
+            else the process ended
+        outputs: the outputs of the jobs which finished, of every process
+    """
+
+    def __init__(self, message: str, job: str | None, timed_out: bool) -> None:
+        """Create the error of a job, its outputs are set by `run_jobs`."""
+        super().__init__(message)
+        self.job = job
+        self.timed_out = timed_out
+        self.outputs: dict[str, JobOutput] = {}
+
+
 def _stderr(path: Path) -> str:
     """The end of the standard error of a process."""
     return path.read_text(encoding="utf-8", errors="replace")[-5000:]
@@ -760,13 +826,14 @@ def _run_processes(
     parts: list[list[str]],
     directory: Path,
     suffix: str,
+    timeout: float | None = None,
 ) -> None:
     """Run the scripts of jobs in parallel processes, see `run_jobs`.
 
-    A process which has not finished a job for `JOB_TIMEOUT` seconds (or has not
-    exited that long after its last job) and a process which fails stop all of them:
-    a process is terminated (`docker run` passes the signal on to its container),
-    and killed if it does not end.
+    A process which has not finished a job for `timeout` seconds (or has not exited
+    that long after its last job) and a process which fails stop all of them: a
+    process is terminated (`docker run` passes the signal on to its container), and
+    killed if it does not end.
 
     Args:
         command: the command of the toolchain
@@ -774,11 +841,13 @@ def _run_processes(
         parts: the names of the jobs of each process, in their order
         directory: the directory of the files of the jobs
         suffix: the suffix of the files of code, e.g. `.jl`
+        timeout: the seconds a job may take, `JOB_TIMEOUT` if `None`
 
     Raises:
-        RuntimeError: if a process fails, exits before it finished its jobs, or a
-            job or the exit takes longer than `JOB_TIMEOUT`
+        JobsError: if a process fails, exits before it finished its jobs, or a job
+            or the exit takes longer than the timeout
     """
+    limit = JOB_TIMEOUT if timeout is None else timeout
     stderr_paths = [script.with_suffix(".stderr") for script in scripts]
     running = []
     for script, stderr_path in zip(scripts, stderr_paths, strict=True):
@@ -795,6 +864,20 @@ def _run_processes(
         """The number of jobs the process k finished."""
         return sum((directory / f"{n}{suffix}.time").exists() for n in parts[k])
 
+    def current(k: int) -> str | None:
+        """The job the process k runs, `None` if it finished its jobs."""
+        count = finished(k)
+        return parts[k][count] if count < len(parts[k]) else None
+
+    def failed(k: int, returncode: int) -> JobsError:
+        """The error of the process k, which ended with the return code."""
+        return JobsError(
+            f"{scripts[k].name} failed with exit code {returncode}:"
+            f"\n{_stderr(stderr_paths[k])}",
+            current(k),
+            timed_out=False,
+        )
+
     done = [0] * len(running)
     progress = [time.monotonic()] * len(running)
     try:
@@ -804,35 +887,33 @@ def _run_processes(
                 if count > done[k]:
                     done[k], progress[k] = count, time.monotonic()
                 if process.poll() is not None and process.returncode != 0:
-                    raise RuntimeError(
-                        f"{scripts[k].name} failed with exit code "
-                        f"{process.returncode}:\n{_stderr(stderr_paths[k])}"
-                    )
-                if process.poll() is None and (
-                    time.monotonic() - progress[k] > JOB_TIMEOUT
-                ):
-                    if done[k] < len(parts[k]):
-                        raise RuntimeError(
-                            f"The job {parts[k][done[k]]} of {scripts[k].name} "
-                            f"took more than {JOB_TIMEOUT} seconds."
+                    raise failed(k, process.returncode)
+                if process.poll() is None and time.monotonic() - progress[k] > limit:
+                    job = current(k)
+                    if job is not None:
+                        raise JobsError(
+                            f"The job {job} of {scripts[k].name} took more than "
+                            f"{limit:g} seconds.",
+                            job,
+                            timed_out=True,
                         )
-                    raise RuntimeError(
+                    raise JobsError(
                         f"{scripts[k].name} finished its jobs but did not exit "
-                        f"within {JOB_TIMEOUT} seconds."
+                        f"within {limit:g} seconds.",
+                        None,
+                        timed_out=True,
                     )
             time.sleep(0.2)
         for k, process in enumerate(running):
             if process.returncode != 0:
-                raise RuntimeError(
-                    f"{scripts[k].name} failed with exit code {process.returncode}:"
-                    f"\n{_stderr(stderr_paths[k])}"
-                )
-            count = finished(k)
-            if count < len(parts[k]):
-                unfinished = parts[k][count]
-                raise RuntimeError(
+                raise failed(k, process.returncode)
+            job = current(k)
+            if job is not None:
+                raise JobsError(
                     f"{scripts[k].name} exited without finishing its job "
-                    f"{unfinished}:\n{_stderr(stderr_paths[k])}"
+                    f"{job}:\n{_stderr(stderr_paths[k])}",
+                    job,
+                    timed_out=False,
                 )
     finally:
         for process in running:
@@ -846,8 +927,47 @@ def _run_processes(
                 process.wait()
 
 
+def read_job_output(language: str, path: Path) -> JobOutput:
+    """The output of a job which ran, from the files next to its code.
+
+    Args:
+        language: `julia` or `r`, see `LANGUAGES`
+        path: the path of the code of the job
+
+    Returns:
+        the output
+
+    Raises:
+        FileNotFoundError: if the job did not run to its end
+    """
+
+    def read(extension: str) -> str | None:
+        """The text of the file of the job with the extension, if it exists."""
+        file = path.with_name(f"{path.name}.{extension}")
+        return file.read_text(encoding="utf-8") if file.exists() else None
+
+    seconds = read("time")
+    if seconds is None:
+        raise FileNotFoundError(f"The job {path.name} did not run to its end.")
+    lines: dict[str, list[str]] = {}
+    for line in (read("out") or "").splitlines():
+        key, _, values = line.partition("\t")
+        lines[key] = values.split("\t") if values else []
+    return JobOutput(
+        language=language,
+        lines=lines,
+        error=read("err"),
+        log=read("log") or "",
+        seconds=float(seconds),
+    )
+
+
 def run_jobs(
-    language: str, jobs: Mapping[str, Job], directory: Path, processes: int = 1
+    language: str,
+    jobs: Mapping[str, Job],
+    directory: Path,
+    processes: int = 1,
+    timeout: float | None = None,
 ) -> dict[str, JobOutput]:
     """Run jobs of julia or R code, many jobs in one process of the toolchain.
 
@@ -864,12 +984,15 @@ def run_jobs(
             command
         processes: the number of processes, which run in parallel, each with a part
             of the jobs
+        timeout: the seconds a job may take, its compilation included, `JOB_TIMEOUT`
+            if `None`
 
     Returns:
         the output of each job
 
     Raises:
-        RuntimeError: if the toolchain is not runnable or a process fails
+        RuntimeError: if the toolchain is not runnable
+        JobsError: if a process fails, with the outputs of the jobs which finished
     """
     spec = LANGUAGES[language]
     command = spec.command()
@@ -887,28 +1010,25 @@ def run_jobs(
         script = directory / f"jobs_{part}{spec.suffix}"
         script.write_text("\n".join(lines) + "\n", encoding="utf-8")
         scripts.append(script)
-    _run_processes(command, scripts, parts, directory, spec.suffix)
-    outputs = {}
-    for name in names:
-        path = directory / f"{name}{spec.suffix}"
 
-        def read(extension: str, path: Path = path) -> str | None:
-            """The text of the file of the job with the extension, if it exists."""
-            file = path.with_name(f"{path.name}.{extension}")
-            return file.read_text(encoding="utf-8") if file.exists() else None
+    def outputs() -> dict[str, JobOutput]:
+        """The outputs of the jobs which finished."""
+        found = {}
+        for name in names:
+            try:
+                found[name] = read_job_output(
+                    language, directory / f"{name}{spec.suffix}"
+                )
+            except FileNotFoundError:
+                continue
+        return found
 
-        lines: dict[str, list[str]] = {}
-        for line in (read("out") or "").splitlines():
-            key, _, values = line.partition("\t")
-            lines[key] = values.split("\t") if values else []
-        outputs[name] = JobOutput(
-            language=language,
-            lines=lines,
-            error=read("err"),
-            log=read("log") or "",
-            seconds=float(read("time") or "nan"),
-        )
-    return outputs
+    try:
+        _run_processes(command, scripts, parts, directory, spec.suffix, timeout)
+    except JobsError as error:
+        error.outputs = outputs()
+        raise
+    return outputs()
 
 
 def run_julia_jobs(
@@ -939,10 +1059,23 @@ def run_r(code: str, tmp_path: Path) -> str:
 
 
 LANGUAGES: dict[str, _Language] = {
-    "julia": _Language("julia", ".jl", julia_command, _JULIA_PRELUDE, _julia_job),
-    "r": _Language("R", ".R", rscript_command, _R_PRELUDE, _r_job),
+    "julia": _Language(
+        "julia", "SBMLUTILS_JULIA", ".jl", julia_command, _JULIA_PRELUDE, _julia_job
+    ),
+    "r": _Language("R", "SBMLUTILS_RSCRIPT", ".R", rscript_command, _R_PRELUDE, _r_job),
 }
 """How the jobs of julia and R are run, by language."""
+
+
+def require_language(language: str) -> None:
+    """Skip a test without the toolchain of julia or R, see `toolchain_missing`.
+
+    Args:
+        language: `julia` or `r`, see `LANGUAGES`
+    """
+    spec = LANGUAGES[language]
+    if spec.command() is None:
+        toolchain_missing(spec.title, spec.variable)
 
 
 def compile_typst(source: str, tmp_path: Path) -> bytes:
@@ -1043,6 +1176,32 @@ def compile_latex(source: str, tmp_path: Path, strict: bool = False) -> Path:
                 f"{path.name} compiled with warnings:\n" + "\n".join(warnings)
             )
     return path.with_suffix(".pdf")
+
+
+def markdown_tables(markdown: str) -> list[list[list[str]]]:
+    """The tables of a markdown document, each a list of rows of the text of cells.
+
+    Args:
+        markdown: the document
+
+    Returns:
+        the tables, the header row first
+    """
+    tables: list[list[list[str]]] = []
+    cell = False
+    for token in MarkdownIt("gfm-like", {"linkify": False}).parse(markdown):
+        if token.type == "table_open":
+            tables.append([])
+        elif token.type == "tr_open":
+            tables[-1].append([])
+        elif token.type in ("th_open", "td_open"):
+            tables[-1][-1].append("")
+            cell = True
+        elif token.type in ("th_close", "td_close"):
+            cell = False
+        elif token.type == "inline" and cell:
+            tables[-1][-1][-1] = token.content
+    return tables
 
 
 # --- comparison with roadrunner -------------------------------------------------------
