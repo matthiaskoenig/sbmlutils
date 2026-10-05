@@ -4,6 +4,7 @@ The helpers are imported as `from ode_helpers import ...`: pytest puts the direc
 of a test module on `sys.path` (prepend import mode, no `__init__.py`).
 """
 
+import ast
 import functools
 import importlib.util
 import os
@@ -243,18 +244,42 @@ def edit_sbml(
 def import_module(path: Path) -> ModuleType:
     """Import the python module written to the given path.
 
+    The code of the simulator (`simulator=True`) imports scipy, which is no
+    dependency of the package but of the `examples` extra: without it the test
+    skips rather than fails, as the tests which simulate with roadrunner do.
+
     Args:
         path: path of the python file, its stem is the name of the module
 
     Returns:
         the imported module
     """
+    if "scipy" in _imported_modules(path.read_text(encoding="utf-8")):
+        pytest.importorskip("scipy")
     spec = importlib.util.spec_from_file_location(path.stem, path)
     assert spec
     assert spec.loader
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def _imported_modules(code: str) -> set[str]:
+    """The top level packages python code imports.
+
+    Args:
+        code: the python code
+
+    Returns:
+        the first component of every module of an `import` and `from ... import`
+    """
+    found: set[str] = set()
+    for node in ast.walk(ast.parse(code)):
+        if isinstance(node, ast.Import):
+            found.update(alias.name.split(".")[0] for alias in node.names)
+        elif isinstance(node, ast.ImportFrom) and node.module and not node.level:
+            found.add(node.module.split(".")[0])
+    return found
 
 
 def _command(variable: str, default: str, probe: list[str]) -> list[str] | None:

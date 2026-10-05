@@ -201,8 +201,10 @@ jobs:
       # the packages of the generated code (the integrators, the table of a
       # simulation and the math) of the environment `JULIA_PROJECT`, resolved
       # within the `[compat]` bounds of its Project.toml, which has no committed
-      # Manifest, so it is resolved first
-      run: julia -e 'using Pkg; Pkg.resolve(); Pkg.instantiate(); Pkg.precompile()'
+      # Manifest, so it is resolved first. `Pkg.resolve` does not install the General
+      # registry into a fresh depot (`Pkg.instantiate` and `Pkg.add` would), so it is
+      # added first; on a depot which has it, this updates it
+      run: julia -e 'using Pkg; Pkg.Registry.add("General"); Pkg.resolve(); Pkg.instantiate(); Pkg.precompile()'
     - name: Test with tox
       run: uvx --with "tox-uv==${TOX_UV_VERSION}" "tox@${TOX_VERSION}" -e julia
 
