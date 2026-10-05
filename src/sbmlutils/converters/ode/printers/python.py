@@ -77,13 +77,15 @@ class PythonPrinter(MathPrinter):
         return repr(float(value))
 
     def power(self, base: Printed, exponent: Printed) -> Printed:
-        """`np.float_power(a, b)`.
+        """`a ** b`, which binds tighter than a unary minus on its left.
 
-        The power of python floats `a ** b` is a complex number for a negative base
-        and a fractional exponent, of python integers it raises for `0 ** -1`;
-        `np.float_power` is `NaN` and `inf` there, as in SBML.
+        The operands of the generated code are numpy scalars, whose power is `nan`
+        for a negative base and a fractional exponent and `inf` for `0 ** -1`, as
+        in SBML; a power of python numbers alone (of literals) is a complex number
+        or raises there.
         """
-        return self.call("np.float_power", [base, exponent])
+        code = f"{self.wrap(base, Precedence.ATOM)} ** {self.wrap(exponent, Precedence.UNARY)}"
+        return Printed(code, Precedence.POWER)
 
     def piecewise(
         self, pieces: Sequence[tuple[Printed, Printed]], otherwise: Printed | None
@@ -114,7 +116,7 @@ class PythonPrinter(MathPrinter):
         return self.divide(self.call("np.log", [value]), self.call("np.log", [base]))
 
     def root(self, degree: Printed | None, value: Printed) -> Printed:
-        """`np.sqrt(x)` or `np.float_power(x, 1.0 / n)`."""
+        """`np.sqrt(x)` or `x ** (1.0 / n)`."""
         if degree is None:
             return self.call("np.sqrt", [value])
         return self.power(value, self.divide(self._one(), degree))

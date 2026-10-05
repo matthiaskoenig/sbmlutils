@@ -66,9 +66,9 @@ def py_condition(formula: str) -> str:
     ("formula", "expected"),
     [
         ("k*A", "k * A"),
-        ("-A^2", "-np.float_power(A, 2)"),
-        ("(-2)^2", "np.float_power(-2, 2)"),
-        ("2^3^2", "np.float_power(2, np.float_power(3, 2))"),
+        ("-A^2", "-A ** 2"),
+        ("(-2)^2", "(-2) ** 2"),
+        ("2^3^2", "2 ** 3 ** 2"),
         ("A - (k - 1)", "A - (k - 1)"),
         ("A/(k*2)", "A / (k * 2)"),
         ("log(2, A)", "np.log(A) / np.log(2)"),
@@ -85,11 +85,10 @@ def test_python_golden(formula: str, expected: str) -> None:
 
 
 # the rate laws of `tests/converters/test_odefac.py`, verified against roadrunner,
-# with their python; it differs from the python of `odefac.python_math` in four
+# with their python; it differs from the python of `odefac.python_math` in three
 # places: a boolean used as a number is a `float`, `and`, `or` and `implies` in a
-# condition are not wrapped, a logarithm to base 10 and a square root use the
-# numpy function, and a power is `np.float_power`, which is NaN for a negative base
-# and a fractional exponent
+# condition are not wrapped, and a logarithm to base 10 and a square root use the
+# numpy function
 PYTHON_FORMULAS: dict[str, str] = {
     "k*A": "k * A",
     "ln(A) + log10(A) + log(2, A) + exp(-k)": (
@@ -103,9 +102,8 @@ PYTHON_FORMULAS: dict[str, str] = {
     ),
     "piecewise(k, A > 1)": "k if A > 1 else np.nan",
     "rem(A, 2) + rem(-7, A) + quotient(7, A) + root(3, A) + sqrt(A) + A^2 + pow(A, k)": (
-        "np.fmod(A, 2) + np.fmod(-7, A) + np.trunc(7 / A)"
-        " + np.float_power(A, 1.0 / 3) + np.sqrt(A) + np.float_power(A, 2)"
-        " + np.float_power(A, k)"
+        "np.fmod(A, 2) + np.fmod(-7, A) + np.trunc(7 / A) + A ** (1.0 / 3)"
+        " + np.sqrt(A) + A ** 2 + A ** k"
     ),
     "max(A, k, 1) + min(A, k) + abs(-A) + floor(A/2) + ceil(A/2)": (
         "max(A, k, 1) + min(A, k) + np.abs(-A) + np.floor(A / 2) + np.ceil(A / 2)"
@@ -129,13 +127,12 @@ PYTHON_FORMULAS: dict[str, str] = {
         "np.arcsin(k) + np.arccos(k) + np.arctan(k) + np.arcsinh(k) + np.arctanh(k)"
     ),
     "arcsec(A) + arccsc(A) + arccot(A) + arccosh(A) + arcsech(k) + arccsch(k)": (
-        "np.arccos(1.0 / A) + np.arcsin(1.0 / A) + np.arctan(1.0 / A)"
-        " + np.arccosh(A) + np.arccosh(1.0 / k) + np.arcsinh(1.0 / k)"
+        "np.arccos(1.0 / A) + np.arcsin(1.0 / A) + np.arctan(1.0 / A) + np.arccosh(A)"
+        " + np.arccosh(1.0 / k) + np.arcsinh(1.0 / k)"
     ),
     "arccoth(A)": "np.arctanh(1.0 / A)",
     "piecewise(k*time, true, 0) + 2^-1 + -A^2 + 1/2 + (-2)^2 + 2^3^2": (
-        "(k * t if True else 0) + np.float_power(2, -1) + -np.float_power(A, 2)"
-        " + 1 / 2 + np.float_power(-2, 2) + np.float_power(2, np.float_power(3, 2))"
+        "(k * t if True else 0) + 2 ** -1 + -A ** 2 + 1 / 2 + (-2) ** 2 + 2 ** 3 ** 2"
     ),
 }
 
@@ -168,22 +165,22 @@ def test_python_formulas(formula: str, expected: str) -> None:
         ("-(-A)", "-(-A)"),
         ("-A * k", "-A * k"),
         ("-(A * k)", "-(A * k)"),
-        # power, a call whose arguments need no parentheses
-        ("(A^2)^3", "np.float_power(np.float_power(A, 2), 3)"),
-        ("(-A)^2", "np.float_power(-A, 2)"),
-        ("A^(k + 1)", "np.float_power(A, k + 1)"),
-        ("A^-k", "np.float_power(A, -k)"),
-        ("exp(A)^2", "np.float_power(np.exp(A), 2)"),
-        ("2 * A^2", "2 * np.float_power(A, 2)"),
+        # power, right associative
+        ("(A^2)^3", "(A ** 2) ** 3"),
+        ("(-A)^2", "(-A) ** 2"),
+        ("A^(k + 1)", "A ** (k + 1)"),
+        ("A^-k", "A ** -k"),
+        ("exp(A)^2", "np.exp(A) ** 2"),
+        ("2 * A^2", "2 * A ** 2"),
         # functions which are expressions of their argument
         ("factorial(A + 1)", "math.gamma(A + 1 + 1)"),
         ("factorial(piecewise(1, A > 1, 2))", "math.gamma((1 if A > 1 else 2) + 1)"),
         ("quotient(A + 1, k * 2)", "np.trunc((A + 1) / (k * 2))"),
         ("2 * sec(A + k)", "2 * (1.0 / np.cos(A + k))"),
-        ("A^sec(A)", "np.float_power(A, 1.0 / np.cos(A))"),
+        ("A^sec(A)", "A ** (1.0 / np.cos(A))"),
         ("arcsec(A * k)", "np.arccos(1.0 / (A * k))"),
-        ("root(3, A + 1)", "np.float_power(A + 1, 1.0 / 3)"),
-        ("root(k + 1, A)", "np.float_power(A, 1.0 / (k + 1))"),
+        ("root(3, A + 1)", "(A + 1) ** (1.0 / 3)"),
+        ("root(k + 1, A)", "A ** (1.0 / (k + 1))"),
         ("root(2.0, A)", "np.sqrt(A)"),
         ("log(k, A) * 2", "np.log(A) / np.log(k) * 2"),
         ("2 / log(k, A)", "2 / (np.log(A) / np.log(k))"),
@@ -284,11 +281,8 @@ def test_python_condition(formula: str, expected: str) -> None:
         ),
         ('<cn type="e-notation">1<sep/>3</cn>', "1000.0"),
         ('<cn type="integer">-2</cn>', "-2"),
-        (
-            '<apply><power/><cn type="integer">-2</cn><ci>A</ci></apply>',
-            "np.float_power(-2, A)",
-        ),
-        ("<apply><power/><cn>-2.5</cn><ci>A</ci></apply>", "np.float_power(-2.5, A)"),
+        ('<apply><power/><cn type="integer">-2</cn><ci>A</ci></apply>', "(-2) ** A"),
+        ("<apply><power/><cn>-2.5</cn><ci>A</ci></apply>", "(-2.5) ** A"),
         # logarithm and root without their qualifier
         ("<apply><log/><ci>A</ci></apply>", "np.log10(A)"),
         ("<apply><root/><ci>A</ci></apply>", "np.sqrt(A)"),
@@ -695,12 +689,13 @@ EDGE_FORMULAS: list[str] = [
     "rem(7.5, -2)",
     "2^-3",
     "10^20",
-    "0^-1",
+    "(A - 3)^-1",
     "max(A)",
     "true + false",
     "(A > 1) * 2 + xor(A > 1, k > 1, A < 5)",
-    # outside the real domain: NaN, never an error or a complex number
-    "(-1e-15)^1.8",
+    # outside the real domain: NaN, never an error or a complex number; a power has
+    # a variable operand, python numbers alone (literals) are no numpy scalars
+    "(-A * 1e-15)^1.8",
     "(-A)^k",
     "root(3, -A)",
     "sqrt(-1e-15)",
@@ -751,10 +746,16 @@ DIALECTS: list[str] = ["python", "julia", "r"]
 
 
 def _python_value(formula: str) -> float:
-    """Value of a formula, by `eval` of its python."""
+    """Value of a formula, by `eval` of its python.
+
+    The variables are numpy scalars, as the states and the parameters of the
+    generated code, whose arithmetic is NaN outside the real domain (with a
+    `RuntimeWarning`, which is silenced) where python floats raise or turn complex.
+    """
     code = PythonPrinter().print(parse(formula), SYMBOLS)
+    variables = {name: np.float64(value) for name, value in VALUES.items()}
     with np.errstate(all="ignore"):
-        return float(eval(code, {"np": np, "math": math, **VALUES}))  # noqa: S307
+        return float(eval(code, {"np": np, "math": math, **variables}))  # noqa: S307
 
 
 def _julia_script(codes: list[str]) -> str:
