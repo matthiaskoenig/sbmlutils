@@ -14,11 +14,11 @@ from ode_helpers import (
     compile_latex,
     compile_typst,
     julia_command,
+    require_tectonic,
     rscript_command,
     run_julia,
     run_r,
     sbml_with_rate,
-    tectonic_command,
     toolchain_missing,
 )
 
@@ -1424,9 +1424,9 @@ def test_typst_compiles(tmp_path: Path) -> None:
     assert compile_typst(typst_document(), tmp_path).startswith(b"%PDF")
 
 
-@pytest.mark.skipif(tectonic_command() is None, reason="tectonic is not on the path")
 def test_latex_compiles(tmp_path: Path) -> None:
     """Every LaTeX golden compiles with tectonic."""
+    require_tectonic()
     assert compile_latex(latex_document(), tmp_path).exists()
 
 

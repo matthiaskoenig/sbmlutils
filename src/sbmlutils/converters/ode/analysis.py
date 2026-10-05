@@ -5,6 +5,7 @@ semantics of SBML core which `sbmlutils.converters.ode.system` describes, one me
 per element and rule.
 """
 
+import re
 from collections.abc import Mapping, Sequence
 from dataclasses import replace
 from pathlib import Path
@@ -89,17 +90,87 @@ def _document(
     return doc, file_name, level
 
 
+# the elements of XHTML which are blocks of text, a paragraph of the plain text each
+_BLOCKS = frozenset(
+    {
+        "address",
+        "article",
+        "aside",
+        "blockquote",
+        "br",
+        "caption",
+        "dd",
+        "div",
+        "dl",
+        "dt",
+        "figcaption",
+        "figure",
+        "footer",
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
+        "header",
+        "hr",
+        "li",
+        "main",
+        "nav",
+        "ol",
+        "p",
+        "pre",
+        "section",
+        "table",
+        "tr",
+        "ul",
+    }
+)
+_CELLS = frozenset({"td", "th"})
+_AFTER_OPENING = re.compile(r"\(\s+")
+_BEFORE_PUNCTUATION = re.compile(r"\s+([).,;:!?])")
+
+# a unit without a magnitude, a product or a quotient, `l` or `m^3`
+_SINGLE_UNIT = re.compile(r"[^\s*/()^]+(\^[0-9.]+)?")
+
+
 def _plain_text(notes: libsbml.XMLNode) -> str:
-    """The text of XHTML notes, one line per line of text."""
+    """The text of XHTML notes as paragraphs, separated by a blank line.
+
+    A block of XHTML (`_BLOCKS`, e.g. a paragraph, a heading, an item of a list, a
+    row of a table, a line break) is a paragraph, the cells of a row are separated
+    by a space, and the white space of a paragraph is one space, none after an
+    opening parenthesis and before a closing one or a punctuation mark, so that the
+    line breaks and the indentation of the XML do not show in the text.
+    """
+    paragraphs: list[str] = []
     texts: list[str] = []
-    stack = [notes]
-    while stack:
-        node = stack.pop()
+
+    def flush() -> None:
+        paragraph = " ".join("".join(texts).split())
+        # the white space at the edge of an inline element, `( <i>x</i> )`
+        paragraph = _AFTER_OPENING.sub("(", _BEFORE_PUNCTUATION.sub(r"\1", paragraph))
+        if paragraph:
+            paragraphs.append(paragraph)
+        texts.clear()
+
+    def visit(node: libsbml.XMLNode) -> None:
         if node.isText():
             texts.append(node.getCharacters())
-        stack.extend(node.getChild(k) for k in reversed(range(node.getNumChildren())))
-    lines = (line.strip() for line in "".join(texts).splitlines())
-    return "\n".join(line for line in lines if line)
+            return
+        block = node.getName() in _BLOCKS
+        if block:
+            flush()
+        for k in range(node.getNumChildren()):
+            visit(node.getChild(k))
+        if block:
+            flush()
+        elif node.getName() in _CELLS:
+            texts.append(" ")
+
+    visit(notes)
+    flush()
+    return "\n\n".join(paragraphs)
 
 
 def _rename(ast: libsbml.ASTNode, renamed: Mapping[str, str]) -> None:
@@ -500,7 +571,9 @@ class _Analysis:
         volume = self._compartment_unit(compartment) if compartment else None
         if not substance or not volume:
             return substance, None
-        return substance, f"{substance}/{volume if volume.isalnum() else f'({volume})'}"
+        # a single unit, also with an exponent, needs no parentheses, mmol/m^3
+        single = _SINGLE_UNIT.fullmatch(volume) is not None
+        return substance, f"{substance}/{volume if single else f'({volume})'}"
 
     def _read_species(
         self, reactions: list[Reaction]

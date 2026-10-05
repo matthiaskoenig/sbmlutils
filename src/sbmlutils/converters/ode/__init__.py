@@ -16,7 +16,9 @@ the same names of this package, which take the system as their first argument.
 
 The math of the model is written by the printers of `sbmlutils.converters.ode.printers`,
 one per dialect, the text of the model through the helpers of
-`sbmlutils.converters.ode.text`, the formats by `sbmlutils.converters.ode.formats`.
+`sbmlutils.converters.ode.text`, the formats by `sbmlutils.converters.ode.formats`:
+python, julia and R code, and typst, LaTeX and markdown documents
+(`sbmlutils.converters.ode.documents`), e.g. `system.write("model.typ")`.
 """
 
 from sbmlutils.converters.ode.formats import (

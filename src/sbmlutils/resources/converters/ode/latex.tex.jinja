@@ -1,0 +1,191 @@
+{#- The LaTeX document of an ODE system, see `sbmlutils.converters.ode.documents` for the context. -#}
+{#- A line of a sum after the first begins with its sign: the empty group before it spaces the sign as a binary operator. -#}
+{% macro rhs(lines) %}{{ lines | join(' \\\\\n  &\\quad {} ') }}{% endmacro %}
+{% macro equations(rows, relation="=") %}
+\begin{align*}
+{% for row in rows %}
+  {{ row.lhs }} &{{ relation }} {{ rhs(row.lines) }}{% if row.origin == "rate_rule" %} \qquad \text{(rate rule)}{% endif %}{{ " \\\\" if not loop.last }}
+{% endfor %}
+\end{align*}
+{% endmacro %}
+{% macro cell(value, kind) %}{% if kind == "check" %}{{ "$\\checkmark$" if value }}{% elif value is none %}{% elif kind == "math" %}${{ value }}${% else %}{{ value }}{% endif %}{% endmacro %}
+{#- A table of rows in columns, each column a list of its header, the key of the cells and their kind: text, math or check. -#}
+{#- The name, the equation of a reaction and long ids wrap in the width the other columns leave. -#}
+{% macro table(rows, columns) %}
+{% set wrapped = ["name", "equation"] + (["id"] if rows | selectattr("long_id") | list else []) %}
+\begin{xltabular}{\linewidth}{@{}{% for c in columns %}{{ ">{\\raggedright\\arraybackslash}X" if c[1] in wrapped else ("c" if c[2] == "check" else "l") }}{{ " " if not loop.last }}{% endfor %}@{}}
+  \toprule
+  {%+ for c in columns %}\textbf{ {{- c[0] -}} }{{ " & " if not loop.last }}{% endfor %} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+{% for row in rows %}
+  {%+ for c in columns %}{{ cell(row[c[1]], c[2]) }}{{ " & " if not loop.last }}{% endfor %} \\
+{% endfor %}
+\end{xltabular}
+{% endmacro %}
+{% set section = "\\section" if options.standalone else "\\subsection" %}
+{% if options.standalone %}
+\documentclass{article}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage{lmodern}
+\else
+  \usepackage{fontspec}
+\fi
+\usepackage{amsmath, amssymb, booktabs, xltabular, parskip, hyperref}
+\usepackage[margin=2cm]{geometry}
+% the equations of a section are one alignment, which breaks across pages
+\allowdisplaybreaks
+\setlength{\jot}{1.5ex}
+\renewcommand{\arraystretch}{1.15}
+
+\begin{document}
+
+{\centering\LARGE\bfseries {{ model.title }}\par}
+\bigskip
+{% else %}
+% The body of a LaTeX document, which needs the packages amsmath, amssymb, booktabs
+% and xltabular; \allowdisplaybreaks lets the alignments break across pages.
+
+\section{ {{- model.title -}} }
+{% endif %}
+
+{% if model.id %}Model {{ model.id }}, {% endif %}SBML Level {{ model.level }} Version {{ model.version }}{% if model.source %}, read from {{ model.source }}{% endif %}, written by sbmlutils {{ model.sbmlutils }}.
+{% for paragraph in model.notes %}
+
+{{ paragraph }}
+{% endfor %}
+{% if units %}
+
+{{ section }}{Units}
+
+\begin{tabular}{@{}{{ "l" * (units | length) }}@{}}
+  \toprule
+  {%+ for unit in units %}\textbf{ {{- unit.kind | capitalize -}} }{{ " & " if not loop.last }}{% endfor %} \\
+  \midrule
+  {%+ for unit in units %}{{ unit.unit }}{{ " & " if not loop.last }}{% endfor %} \\
+  \bottomrule
+\end{tabular}
+{% endif %}
+{% if compartments %}
+
+{{ section }}{Compartments}
+
+{% set units_ = [["Unit", "unit", "text"]] if compartments | selectattr("unit") | list else [] %}
+{{ table(compartments, [["Symbol", "symbol", "math"], ["Id", "id", "text"], ["Name", "name", "text"], ["Size", "value", "math"]] + units_ + [["Constant", "constant", "check"]]) -}}
+{% endif %}
+{% if species %}
+
+{{ section }}{Species}
+
+{% set units_ = [["Unit", "unit", "text"]] if species | selectattr("unit") | list else [] %}
+{{ table(species, [["Symbol", "symbol", "math"], ["Id", "id", "text"], ["Name", "name", "text"], ["Compartment", "compartment", "math"], ["Initial value", "value", "math"]] + units_ + [["Properties", "properties", "text"]]) -}}
+{% endif %}
+{% if parameters %}
+
+{{ section }}{Parameters}
+
+{% set units_ = [["Unit", "unit", "text"]] if parameters | selectattr("unit") | list else [] %}
+{{ table(parameters, [["Symbol", "symbol", "math"], ["Id", "id", "text"], ["Name", "name", "text"], ["Value", "value", "math"]] + units_ + [["Constant", "constant", "check"]]) -}}
+{% endif %}
+{% if functions %}
+
+{{ section }}{Function definitions}
+
+\begin{align*}
+{% for f in functions %}
+  {{ f.lhs }} &= {{ f.rhs }}{{ " \\\\" if not loop.last }}
+{% endfor %}
+\end{align*}
+{% endif %}
+{% if initial or assignments %}
+
+{{ section }}{Initial assignments and assignment rules}
+{% if initial %}
+
+The initial assignments set the values at $t = 0$:
+{{ equations(initial) -}}
+{% endif %}
+{% if assignments %}
+
+The assignment rules hold at every time $t$:
+{{ equations(assignments) -}}
+{% endif %}
+{% endif %}
+{% if reactions %}
+
+{{ section }}{Reactions}
+
+{% set modifiers_ = [["Modifiers", "modifiers", "math"]] if reactions | selectattr("modifiers") | list else [] %}
+{% set locals_ = [["Local parameters", "local_parameters", "math"]] if reactions | selectattr("local_parameters") | list else [] %}
+{{ table(reactions, [["Rate", "symbol", "math"], ["Id", "id", "text"], ["Name", "name", "text"], ["Equation", "equation", "math"]] + modifiers_ + locals_) }}
+The rates of the reactions are:
+\begin{align*}
+{% for r in reactions %}
+  {{ r.symbol }} &= {{ rhs(r.lines) }}{{ " \\\\" if not loop.last }}
+{% endfor %}
+\end{align*}
+{% endif %}
+{% if odes %}
+
+{{ section }}{ODE system}
+
+{% set rules = odes | selectattr("origin", "equalto", "rate_rule") | list %}
+The states change in time with {{ "the rates of the reactions and the rate rules" if rules and rules | length < odes | length else ("the rate rules" if rules else "the rates of the reactions") }}:
+{{ equations(odes) -}}
+{% for a in amounts %}
+
+The species ${{ a.species }}$ in the compartment ${{ a.compartment }}$ of variable size is integrated as its amount ${{ a.amount }}$, its concentration is ${{ a.species }} = {{ a.amount }} / {{ a.compartment }}$.
+{% endfor %}
+{% endif %}
+{% if events %}
+
+{{ section }}{Events}
+{% for e in events %}
+
+\textbf{Event {{ e.id }}}{% if e.name %} ({{ e.name }}){% endif +%}
+
+\begin{itemize}
+  \item Trigger: ${{ e.trigger }}$
+{% if e.delay is not none %}
+  \item Delay: ${{ e.delay }}$
+{% endif %}
+{% if e.priority is not none %}
+  \item Priority: ${{ e.priority }}$
+{% endif %}
+  \item \texttt{initialValue} {{ e.initial_value | lower }}, \texttt{persistent} {{ e.persistent | lower }}, \texttt{useValuesFromTriggerTime} {{ e.use_trigger_values | lower }}
+\end{itemize}
+{% if e.assignments %}
+\begin{align*}
+{% for a in e.assignments %}
+  {{ a.lhs }} &:= {{ a.rhs }}{{ " \\\\" if not loop.last }}
+{% endfor %}
+\end{align*}
+{% for a in e.assignments if a.conversion %}
+{% if a.conversion == "amount" %}
+${{ a.lhs }}$ is the amount of ${{ a.species }}$, the assigned concentration times the size of ${{ a.compartment }}$ at the execution of the event.
+{% else %}
+${{ a.lhs }}$ is converted from the size of ${{ a.compartment }}$ at the execution of the event to the size ${{ a.new }}$ the event assigns, so that its amount is kept.
+{% endif %}
+{% endfor %}
+{% endif %}
+{% endfor %}
+{% endif %}
+{% if unsupported %}
+
+{{ section }}{Unsupported constructs}
+
+The model uses constructs which the ODE system does not express:
+\begin{itemize}
+{% for u in unsupported %}
+  \item {{ u.construct }} {{ u.id }}
+{% endfor %}
+\end{itemize}
+{% endif %}
+{% if options.standalone %}
+
+\end{document}
+{% endif %}

@@ -949,6 +949,30 @@ def test_model_info(tmp_path: Path) -> None:
     assert OdeSystem.from_sbml(sbml).info.source is None
 
 
+def test_notes_are_paragraphs() -> None:
+    """The notes are paragraphs of plain text, a blank line between two of them.
+
+    A block of XHTML (a heading, a paragraph, an item of a list, a row of a table, a
+    line break) is a paragraph of its own, the white space in a paragraph is one
+    space, so that the line breaks of the XML do not break the text.
+    """
+
+    def describe(model: libsbml.Model) -> None:
+        model.setNotes(
+            "<body xmlns='http://www.w3.org/1999/xhtml'>"
+            "<h1>Title</h1><div><p>The first\n   paragraph with <b>bold</b>"
+            " and <i>italic</i>  text.</p><p>Second</p></div>"
+            "<ul><li>one (<i> x </i>) .</li><li>two</li></ul>line<br/>break"
+            "<table><tr><td>a</td><td>b</td></tr></table></body>"
+        )
+
+    info = OdeSystem.from_sbml(edit_sbml(model_sbml("k = 1"), describe)).info
+    assert info.notes == (
+        "Title\n\nThe first paragraph with bold and italic text.\n\nSecond\n\n"
+        "one (x).\n\ntwo\n\nline\n\nbreak\n\na b"
+    )
+
+
 def test_symbols_and_quantities() -> None:
     """Every id of the system has a symbol, a quantity is looked up by its id."""
     system = OdeSystem.from_sbml(DEMO_SBML)
@@ -983,3 +1007,35 @@ def test_invalid_source_raises() -> None:
     doc = libsbml.SBMLDocument(3, 2)
     with pytest.raises(ValueError, match="no model"):
         OdeSystem.from_sbml(doc)
+
+
+@pytest.mark.parametrize(
+    ("volume", "expected"),
+    [
+        ([("metre", 3.0)], "mole/m^3"),
+        ([("litre", 1.0)], "mole/l"),
+        ([("litre", 1.0), ("second", 1.0)], "mole/(l*s)"),
+    ],
+)
+def test_unit_of_species_in_concentration(
+    volume: list[tuple[str, float]], expected: str
+) -> None:
+    """The unit of a species in concentration is the substance per volume.
+
+    A single unit of the volume, also with an exponent, is not in parentheses.
+    """
+
+    def units(model: libsbml.Model) -> None:
+        udef: libsbml.UnitDefinition = model.createUnitDefinition()
+        udef.setId("vol")
+        for kind, exponent in volume:
+            unit: libsbml.Unit = udef.createUnit()
+            unit.setKind(libsbml.UnitKind_forName(kind))
+            unit.setExponent(exponent)
+            unit.setScale(0)
+            unit.setMultiplier(1.0)
+        model.getCompartment("c").setUnits("vol")
+        model.setSubstanceUnits("mole")
+
+    sbml = edit_sbml(model_sbml("c = 1; S in c = 1; S -> ; 1"), units)
+    assert OdeSystem.from_sbml(sbml).symbol("S").unit == expected

@@ -6,8 +6,10 @@ import pytest
 from sbmlutils.converters.ode.text import (
     check_math_sids,
     check_sid,
+    markdown_text,
     single_line,
     tex_text,
+    typst_text,
 )
 
 
@@ -33,6 +35,11 @@ def test_single_line_renders_with_str() -> None:
         ("a\\b", r"a\textbackslash{}b"),
         ("^~", r"\textasciicircum{}\textasciitilde{}"),
         ("a\nb", "a b"),
+        ("<a|b>", r"\textless{}a\textbar{}b\textgreater{}"),
+        ("τ = 2 µs", r"\ensuremath{\tau} = 2 \ensuremath{\mu}s"),
+        ("Ωο", r"\ensuremath{\Omega}o"),
+        ("x ≤ y → z", r"x \ensuremath{\leq} y \ensuremath{\rightarrow} z"),
+        ("äöü ©", "äöü ©"),
     ],
 )
 def test_tex_text(text: str, expected: str) -> None:
@@ -64,3 +71,56 @@ def test_check_math_sids_rejects(formula: str, child: int) -> None:
     ast.getChild(child).setName("1x")
     with pytest.raises(ValueError, match="'1x'"):
         check_math_sids(ast)
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("a $x$ #b _c_", r"a \$x\$ \#b \_c\_"),
+        ("<script>", r"\<script\>"),
+        ("a\\b", r"a\\b"),
+        ("@ref [x] `y` ~ *e*", r"\@ref \[x\] \`y\` \~ \*e\*"),
+        # a comment, a dash and a soft hyphen, a single `/` and `-` stay
+        ("http://x // c", r"http:\//x \// c"),
+        ("a--b a---b a-?b", r"a\--b a\-\--b a\-?b"),
+        ("a - b mol/s", "a - b mol/s"),
+        # a list, a numbered list, a heading and a term at the start only
+        ("- a - b", r"\- a - b"),
+        ("+ a + b", r"\+ a + b"),
+        ("= h = i", r"\= h = i"),
+        ("/ t: x", r"\/ t: x"),
+        ("1. first", r"1\. first"),
+        ("123. first", r"123\. first"),
+        ("in 2. place", "in 2. place"),
+        ("a | b", "a | b"),
+        ("a\nb", "a b"),
+    ],
+)
+def test_typst_text(text: str, expected: str) -> None:
+    """The characters of typst markup are escaped, line breaks removed."""
+    assert typst_text(text) == expected
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("a | d", r"a \| d"),
+        ("<script>", "&lt;script&gt;"),
+        ("a & b", "a &amp; b"),
+        ("&lt;", "&amp;lt;"),
+        ("*a* _b_ `c` ~s~", r"\*a\* \_b\_ \`c\` \~s\~"),
+        ("$x$ [l](u) ![i]", r"\$x\$ \[l\](u) !\[i\]"),
+        ("a\\b", r"a\\b"),
+        # a heading, a list and a numbered list at the start only
+        ("# h #1", r"\# h #1"),
+        ("- l - m", r"\- l - m"),
+        ("+ n + o", r"\+ n + o"),
+        ("1. first", r"1\. first"),
+        ("12) first", r"12\) first"),
+        ("in 2. place", "in 2. place"),
+        ("a\nb", "a b"),
+    ],
+)
+def test_markdown_text(text: str, expected: str) -> None:
+    """The characters of markdown are escaped, `&`, `<` and `>` are entities."""
+    assert markdown_text(text) == expected

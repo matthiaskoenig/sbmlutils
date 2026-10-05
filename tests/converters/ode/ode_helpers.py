@@ -949,7 +949,7 @@ def compile_typst(source: str, tmp_path: Path) -> bytes:
     """Compile a typst document with the `typst` python package.
 
     The test which calls it is skipped if the package is not installed (it is part
-    of the `dev` extra).
+    of the `dev` extra), failed with `REQUIRE_TOOLCHAINS`.
 
     Args:
         source: the typst document
@@ -962,7 +962,10 @@ def compile_typst(source: str, tmp_path: Path) -> bytes:
         RuntimeError: if the document does not compile or compiles with a warning,
             with the messages of typst
     """
-    typst = pytest.importorskip("typst")
+    try:
+        import typst
+    except ImportError:
+        toolchain_missing("typst", "pip install typst")
     path = tmp_path / "document.typ"
     path.write_text(source)
     try:
@@ -982,6 +985,12 @@ def tectonic_command() -> list[str] | None:
     """
     tectonic = shutil.which("tectonic")
     return [tectonic] if tectonic else None
+
+
+def require_tectonic() -> None:
+    """Skip a test without tectonic on the path, fail it if `REQUIRE_TOOLCHAINS`."""
+    if tectonic_command() is None:
+        toolchain_missing("tectonic", "PATH")
 
 
 def compile_latex(source: str, tmp_path: Path) -> Path:

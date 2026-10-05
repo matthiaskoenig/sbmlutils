@@ -251,6 +251,50 @@ jobs:
     - name: Test with tox
       run: uvx --with "tox-uv==${TOX_UV_VERSION}" "tox@${TOX_VERSION}" -e R
 
+  latex:
+    # the documents of the ODE export compiled, LaTeX with tectonic and typst with
+    # the typst package, see the `latex` environment of tox.ini, in which a missing
+    # toolchain fails the tests. Like `cobra`, `julia` and `R` it informs and does
+    # not gate: it is deliberately not part of the `tests` job the branch
+    # protection requires, so that an outage of the toolchain does not block a merge.
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # the interpreter uv manages, see the `test` job
+      UV_PYTHON_PREFERENCE: only-managed
+      # the release of tectonic and the checksum of its archive, so that the
+      # binary is the one which was reviewed
+      TECTONIC_VERSION: "0.17.0"
+      TECTONIC_SHA256: "8533d07f9ccbd7a65824b9e0459041bca34af1eb33daba48f59215593753a3b7"
+
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      with:
+        persist-credentials: false
+    - name: Install uv and set the python version
+      # the `latex` environment is pinned to python 3.14, see tox.ini
+      uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7  # v10.2.0
+      with:
+        version: "0.12.21"
+        python-version: "3.14"
+        # a release run restores no cache, which zizmor cannot tell from the
+        # expression; the distributions are built without one, see `build`
+        enable-cache: ${{ !startsWith(github.ref, 'refs/tags/') }}  # zizmor: ignore[cache-poisoning]
+    - name: Install tectonic
+      # the statically linked binary of the release; tectonic downloads the TeX
+      # packages a document uses at its first run
+      run: |
+        archive="tectonic-${TECTONIC_VERSION}-x86_64-unknown-linux-musl.tar.gz"
+        curl --fail --silent --show-error --location --output "${RUNNER_TEMP}/${archive}" \
+          "https://github.com/tectonic-typesetting/tectonic/releases/download/tectonic%40${TECTONIC_VERSION}/${archive}"
+        echo "${TECTONIC_SHA256}  ${RUNNER_TEMP}/${archive}" | sha256sum --check
+        mkdir -p "${RUNNER_TEMP}/tectonic"
+        tar -xzf "${RUNNER_TEMP}/${archive}" -C "${RUNNER_TEMP}/tectonic"
+        echo "${RUNNER_TEMP}/tectonic" >> "$GITHUB_PATH"
+      shell: bash
+    - name: Test with tox
+      run: uvx --with "tox-uv==${TOX_UV_VERSION}" "tox@${TOX_VERSION}" -e latex
+
   build:
     # builds the distributions of a release without any write permission; the
     # jobs which publish them only download what was built here

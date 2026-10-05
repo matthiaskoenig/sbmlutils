@@ -1,11 +1,15 @@
 """The formats of the ODE export: their registry, rendering context and templates.
 
 A format is a jinja2 template in `sbmlutils/resources/converters/ode` with the math
-printer of its language (`Format`, `FORMATS`). `render` checks the options against the
-format, builds the names of the symbols in the format (`symbols.code_names` for code),
-prints every math of the system once with the printer and renders the template with
-the context of `context`: plain strings, numbers, booleans, lists and dicts, so that a
-template never touches libsbml.
+printer of its language (`Format`, `FORMATS`): code which simulates the model (python,
+julia, R, option `simulator`) or a document which describes it (typst, LaTeX,
+markdown, options `standalone` and `symbols`). `render` checks the options against
+the format, builds the names of the symbols in the format (`symbols.code_names` for
+code, `symbols.typeset_names` for documents), prints every math of the system once
+with the printer and renders the template with the context of `context`: plain
+strings, numbers, booleans, lists and dicts, so that a template never touches
+libsbml. The context of a document is described in `documents`, it holds text and
+math as markup of the format.
 
 The context of a code format holds:
 
@@ -73,6 +77,7 @@ import sbmlutils
 from sbmlutils import RESOURCES_DIR
 from sbmlutils.converters.ode.astutil import walk
 from sbmlutils.converters.ode.dependencies import names
+from sbmlutils.converters.ode.documents import DocumentContext
 from sbmlutils.converters.ode.printers import PRINTERS, MathPrinter
 from sbmlutils.converters.ode.symbols import RESERVED, code_names
 from sbmlutils.converters.ode.text import single_line
@@ -145,6 +150,30 @@ FORMATS: dict[str, Format] = {
         printer="r",
         options={"simulator": True},
         first_index=1,
+    ),
+    "typst": Format(
+        name="typst",
+        kind="document",
+        template="typst.typ.jinja",
+        suffixes=(".typ",),
+        printer="typst",
+        options={"standalone": True, "symbols": "id"},
+    ),
+    "latex": Format(
+        name="latex",
+        kind="document",
+        template="latex.tex.jinja",
+        suffixes=(".tex",),
+        printer="latex",
+        options={"standalone": True, "symbols": "id"},
+    ),
+    "markdown": Format(
+        name="markdown",
+        kind="document",
+        template="markdown.md.jinja",
+        suffixes=(".md",),
+        printer="latex",
+        options={"standalone": True, "symbols": "id"},
     ),
 }
 """The formats by their name."""
@@ -617,12 +646,12 @@ def context(
         the context, plain data
 
     Raises:
-        NotImplementedError: for a document format, whose context is not written yet
+        ValueError: for the option `symbols` of a document which is neither `"id"`
+            nor `"name"`
     """
-    if fmt.kind != "code":
-        raise NotImplementedError(
-            f"The context of the {fmt.name} format is not written."
-        )
+    if fmt.kind == "document":
+        symbols = str(options.get("symbols", "id"))
+        return DocumentContext(system, fmt.name, symbols).build(options)
     return _CodeContext(system, fmt).build(options)
 
 
