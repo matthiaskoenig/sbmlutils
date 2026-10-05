@@ -288,9 +288,8 @@ def run_worker(
     """Check the code of a case in a format and record its outcome, in the worker.
 
     The outcome is that of the test of the case, see `check_python_case` and
-    `check_job_case`: passed, unsupported (the code refuses to render), not
-    simulatable (roadrunner does not simulate the case, there is no reference) or
-    failed, recorded with `_record` of `tests/test_roundtrip.py`.
+    `check_job_case`: passed, unsupported (the code refuses to render), no
+    reference (roadrunner does not simulate the case) or failed, recorded with `_record` of `tests/test_roundtrip.py`.
 
     Args:
         sbml_path: path of the SBML file of the case
@@ -318,7 +317,7 @@ def run_worker(
         else:
             system = check_job_case(fmt, sbml_path, output, stage)
     except pytest.skip.Exception as error:
-        _record(case_dir, current, Outcome.NOT_SIMULATABLE, str(error))
+        _record(case_dir, current, Outcome.NO_REFERENCE, str(error))
     except (Exception, pytest.fail.Exception) as error:
         _record(case_dir, current, Outcome.FAILED, _detail(error))
     else:

@@ -14,7 +14,6 @@ The outcomes are those of the tests of the sweep: passed, failed, unsupported (t
 """
 
 import argparse
-import re
 import shutil
 import sys
 import tempfile
@@ -27,10 +26,11 @@ from pathlib import Path
 ROOT: Path = Path(__file__).parent.parent
 ODE_TESTS: Path = ROOT / "tests" / "converters" / "ode"
 
-sys.path[:0] = [str(ROOT / "tests"), str(ODE_TESTS)]
+sys.path[:0] = [str(ROOT / "scripts"), str(ROOT / "tests"), str(ODE_TESTS)]
 
+import pytest  # noqa: E402
 from ode_helpers import LANGUAGES, Job, JobsError, run_jobs  # noqa: E402
-from test_ode_testsuite import KNOWN_FAILURES, PROCESSES, _case_job  # noqa: E402
+from roundtrip_report import reason_of, run_case  # noqa: E402
 from test_roundtrip import (  # noqa: E402
     NONDETERMINISTIC,
     SWEEP_CASES,
@@ -38,6 +38,12 @@ from test_roundtrip import (  # noqa: E402
     Outcome,
     run_case_isolated,
 )
+
+try:
+    from test_ode_testsuite import KNOWN_FAILURES, PROCESSES, _case_job
+except pytest.skip.Exception as missing:
+    # the sweep skips without roadrunner, the reference, and scipy, the integrator
+    sys.exit(f"The ODE report needs roadrunner and scipy: {missing}")
 
 TMP_DIR: Path = ROOT / ".ode_tmp"
 """The scratch directory, a directory per format and case."""
@@ -52,7 +58,7 @@ LABELS: dict[Outcome, str] = {
     Outcome.PASSED: "passed",
     Outcome.FAILED: "failed",
     Outcome.UNSUPPORTED: "unsupported",
-    Outcome.NOT_SIMULATABLE: "no reference",
+    Outcome.NO_REFERENCE: "no reference",
     Outcome.NOT_DETERMINISTIC: "not deterministic",
     Outcome.CRASHED: "crashed",
     Outcome.TIMED_OUT: "timed out",
@@ -74,13 +80,7 @@ def run_python_case(sbml_path: Path, timeout: float) -> tuple[str, CaseResult]:
     Returns:
         the case id and its result
     """
-    case = sbml_path.name[:5]
-    if case in NONDETERMINISTIC:
-        return case, CaseResult(Outcome.NOT_DETERMINISTIC, "", NONDETERMINISTIC[case])
-    case_dir = TMP_DIR / "python" / case
-    shutil.rmtree(case_dir, ignore_errors=True)
-    case_dir.mkdir(parents=True)
-    return case, run_case_isolated(sbml_path, case_dir, timeout, WORKER, ["python"])
+    return run_case(sbml_path, timeout, TMP_DIR / "python", WORKER, ["python"])
 
 
 def run_language_jobs(
@@ -239,14 +239,11 @@ def print_report(fmt: str, results: Results, seconds: float) -> None:
             for case, result in listed:
                 print(f"  {case}  [{result.stage}]  {_shortened(result.detail)}")
 
-    # the reasons, without the formula or id they quote and the function they name
     reasons: dict[str, list[str]] = defaultdict(list)
     for case, result in results:
-        if result.outcome == Outcome.NOT_SIMULATABLE:
-            detail = result.detail.removeprefix(
-                "roadrunner does not simulate the case: "
-            )
-            reasons[re.sub(r"'[^']*'", "'...'", detail.split(", at ")[0])].append(case)
+        if result.outcome == Outcome.NO_REFERENCE:
+            prefix = "roadrunner does not simulate the case: "
+            reasons[reason_of(result.detail.removeprefix(prefix))].append(case)
     if reasons:
         print("\nno reference, cases by the error of roadrunner:")
         for reason, cases in sorted(reasons.items(), key=lambda item: -len(item[1])):

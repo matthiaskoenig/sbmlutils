@@ -254,6 +254,9 @@ class Outcome(StrEnum):
     #: the model has a construct the code of the ODE export does not support, see
     #: `tests/converters/ode/test_ode_testsuite.py`; the round trip never reports it
     UNSUPPORTED = "unsupported construct"
+    #: roadrunner does not simulate the case, so there is no reference for the
+    #: code of the ODE export (`NOT_SIMULATABLE` of the round trip)
+    NO_REFERENCE = "no roadrunner reference"
 
 
 @dataclass

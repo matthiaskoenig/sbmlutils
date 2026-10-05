@@ -285,7 +285,7 @@ def test_latex_symbols_compile(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize("name", sorted(MODELS))
-def test_markdownmarkdown_tables(name: str) -> None:
+def test_markdown_tables(name: str) -> None:
     """Every table has a header and a row per element, all rows of its width."""
     system = OdeSystem.from_sbml(MODELS[name])
     markdown = system.render("markdown")

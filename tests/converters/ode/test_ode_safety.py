@@ -26,6 +26,7 @@ those tests skip without the toolchain, see `SBMLUTILS_JULIA` and
 """
 
 import ast
+import json
 import os
 import re
 import unicodedata
@@ -420,6 +421,19 @@ def test_r_text_is_no_code(name: str, jobs: Callable[[str, str], JobOutput]) -> 
     assert output.strings("unit") == ["(2 mol)^2*m/s"]
 
 
+def test_r_strings_are_ascii(injected: OdeSystem) -> None:
+    """The strings of the R code are ASCII, whatever the locale R reads the file in.
+
+    A text which is no ASCII, `ä`, is written with its escape in a string, and as it
+    is only in a comment.
+    """
+    for code in _outputs(injected, "r"):
+        for line in code.splitlines():
+            if not line.isascii():
+                assert "#" in line, line
+                assert line[: line.index("#")].isascii(), line
+
+
 @pytest.mark.parametrize("fmt", DOCUMENT_FORMATS)
 def test_document_text_is_no_markup(fmt: str, injected: OdeSystem) -> None:
     """The text of a document is escaped: it writes no markup of its format."""
@@ -443,6 +457,69 @@ def test_typst_of_text_compiles(fmt: str, injected: OdeSystem, tmp_path: Path) -
     else:
         fragment = injected.render("typst", standalone=False)
         compile_typst(f"= Supplement\n\n{fragment}", tmp_path)
+
+
+TYPST_ELEMENTS = [
+    "strong",
+    "emph",
+    "raw",
+    "math.equation",
+    "link",
+    "list",
+    "enum",
+    "terms",
+    "ref",
+    "footnote",
+]
+"""The elements of typst which markup in a text would add to a document."""
+
+
+def _typst_elements(source: str, tmp_path: Path) -> dict[str, object]:
+    """The elements of a compiled typst document which markup would add.
+
+    Each of `TYPST_ELEMENTS` as the set of its distinct elements, a header of a
+    table is repeated on every page it spans; the headings by their number, the
+    title holds the name of the model.
+    """
+    compile_typst(source, tmp_path)
+    import typst
+
+    path = str(tmp_path / "document.typ")
+    elements: dict[str, object] = {
+        selector: {
+            json.dumps(element, sort_keys=True)
+            for element in json.loads(typst.query(path, selector))
+        }
+        for selector in TYPST_ELEMENTS
+    }
+    elements["heading"] = len(json.loads(typst.query(path, "heading")))
+    return elements
+
+
+@pytest.mark.parametrize("standalone", [True, False])
+def test_typst_of_text_is_no_markup(
+    standalone: bool, injected: OdeSystem, tmp_path: Path
+) -> None:
+    """The compiled typst document holds the injected text as text, not as markup.
+
+    The compiled document has the elements of markup (strong and emphasized text,
+    code, equations, links, lists, references, footnotes and the number of
+    headings) of the document of the same model with plain names and notes.
+    """
+    plain_path = tmp_path / "plain.xml"
+    plain_path.write_text(edit_sbml(base_sbml(), _named), encoding="utf-8")
+    plain = OdeSystem.from_sbml(plain_path)
+    elements = []
+    for k, system in enumerate([plain, injected]):
+        document = system.render("typst", standalone=standalone)
+        if not standalone:
+            document = f"= Supplement\n\n{document}"
+        directory = tmp_path / str(k)
+        directory.mkdir()
+        elements.append(_typst_elements(document, directory))
+    assert elements[1] == elements[0]
+    assert elements[0]["strong"]
+    assert elements[0]["math.equation"]
 
 
 def test_latex_of_text_compiles(injected: OdeSystem, tmp_path: Path) -> None:
@@ -537,6 +614,18 @@ def test_ids_which_are_no_sid_are_rejected(sid: str, fmt: str) -> None:
         system.render(fmt)
 
 
+@pytest.mark.parametrize("fmt", ALL_FORMATS)
+def test_function_argument_which_is_no_sid_is_rejected(fmt: str) -> None:
+    """An argument of a function definition is checked to be an SId."""
+    sbml = base_sbml()
+    # the argument `x` of `f` and its use in the body of `f`
+    assert sbml.count("<ci> x </ci>") == 2
+    sbml = sbml.replace("<ci> x </ci>", f"<ci> {xml_text(INVALID_ID)} </ci>")
+    system = OdeSystem.from_sbml(sbml)
+    with pytest.raises(ValueError, match="SId"):
+        system.render(fmt)
+
+
 INVALID_NAME = "k\nINJECTED = 1 + __import__('os') \\input{/etc/hostname}"
 """An identifier in math which is no SId, a line of code and markup."""
 
@@ -611,11 +700,35 @@ def test_identifiers_in_math_which_are_no_sid_are_rejected(
 
 @pytest.mark.parametrize("fmt", ALL_FORMATS)
 def test_species_without_compartment(fmt: str) -> None:
-    """A species in amount without a compartment is no invalid id `''`."""
+    """A species in amount without a compartment is no invalid id `''`.
+
+    A document leaves the compartment of the species empty.
+    """
     system = OdeSystem.from_sbml(without_compartment_sbml())
-    assert system.symbol("A")
     for output in _outputs(system, fmt):
         assert "A" in output
+    document = system.render(fmt)
+    if fmt == "markdown":
+        (species,) = [t for t in markdown_tables(document) if "Properties" in t[0]]
+        assert species[0][3] == "Compartment"
+        assert species[1][1:5] == ["`A`", "species A", "", "$3$"]
+    elif fmt == "typst":
+        assert "[`A`], [species A], [], [$3$]," in document
+    elif fmt == "latex":
+        assert r"\texttt{A} & species A &  & $3$" in document
+
+
+def test_typst_without_compartment_compiles(tmp_path: Path) -> None:
+    """The typst document of a species without a compartment compiles."""
+    system = OdeSystem.from_sbml(without_compartment_sbml())
+    compile_typst(system.render("typst"), tmp_path)
+
+
+def test_latex_without_compartment_compiles(tmp_path: Path) -> None:
+    """The LaTeX document of a species without a compartment compiles."""
+    require_tectonic()
+    system = OdeSystem.from_sbml(without_compartment_sbml())
+    compile_latex(system.render("latex"), tmp_path, strict=True)
 
 
 def test_python_species_without_compartment(tmp_path: Path) -> None:
