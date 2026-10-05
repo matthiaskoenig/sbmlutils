@@ -19,7 +19,7 @@ A pull request can only be merged once the four required checks are green:
 
 | check   | workflow      | content                                                              |
 | ------- | ------------- | -------------------------------------------------------------------- |
-| `tests` | `ci-cd.yml`   | the test matrix, linux with python 3.11 to 3.15, macos and windows with 3.14 and 3.15 |
+| `tests` | `ci-cd.yml`   | the test matrix, linux with python 3.11 to 3.15, macos and windows with 3.14 |
 | `ruff`  | `ruff.yml`    | `ruff check` and `ruff format --check`                                |
 | `ty`    | `ty.yml`      | `tox r -e ty`                                                         |
 | `docs`  | `docs.yml`    | the zensical build including the api reference and the agent files    |
@@ -192,7 +192,7 @@ python scripts/ode_report.py
 python scripts/ode_report.py --format julia --format r
 ```
 
-In continuous integration the jobs `julia`, `R` and `latex` of `ci-cd.yml` install the toolchains (`julia-actions/setup-julia` with the packages of the project, `r-lib/actions/setup-r` with deSolve, the release binary of tectonic) and run these tox environments. Like `cobra` they inform and are not part of the required `tests` check, so an outage of a toolchain does not block a merge.
+In continuous integration the jobs `julia`, `R` and `latex` of `ci-cd.yml` install the toolchains (`julia-actions/setup-julia` with the packages of the project, `r-lib/actions/setup-r` with deSolve, the release binary of tectonic) and run these tox environments. Like `cobra` they inform and are not part of the required `tests` check, so an outage of a toolchain does not block a merge. `R` and `latex` run for every pull request; `julia`, whose packages take long to install and precompile, runs only for a release tag and on demand (run the `CI-CD` workflow by hand with `workflow_dispatch`).
 
 ## Linting and formatting
 

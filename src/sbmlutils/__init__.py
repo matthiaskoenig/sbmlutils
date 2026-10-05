@@ -7,7 +7,7 @@ from pathlib import Path
 logging.getLogger(__name__).addHandler(logging.NullHandler())
 
 __author__ = "Matthias König"
-__version__ = "0.13.0"
+__version__ = "0.14.0"
 
 
 program_name = "sbmlutils"
