@@ -200,8 +200,9 @@ jobs:
     - name: Install the julia packages
       # the packages of the generated code (the integrators, the table of a
       # simulation and the math) of the environment `JULIA_PROJECT`, resolved
-      # within the `[compat]` bounds of its Project.toml
-      run: julia -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'
+      # within the `[compat]` bounds of its Project.toml, which has no committed
+      # Manifest, so it is resolved first
+      run: julia -e 'using Pkg; Pkg.resolve(); Pkg.instantiate(); Pkg.precompile()'
     - name: Test with tox
       run: uvx --with "tox-uv==${TOX_UV_VERSION}" "tox@${TOX_VERSION}" -e julia
 
@@ -242,6 +243,8 @@ jobs:
       uses: r-lib/actions/setup-r@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05  # v2.14.0
       with:
         r-version: "4.4"
+        # binary packages of the Posit package manager, deSolve installs in seconds
+        use-public-rspm: true
     - name: Install deSolve
       # the package of `simulate` of the generated code, the rest of it is base R;
       # `install.packages` only warns if it fails, the check fails the step

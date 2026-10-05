@@ -27,7 +27,9 @@ __all__ = [
     "walk",
 ]
 
-_NUMBERS = frozenset({libsbml.AST_INTEGER, libsbml.AST_REAL, libsbml.AST_REAL_E})
+_NUMBERS = frozenset(
+    {libsbml.AST_INTEGER, libsbml.AST_REAL, libsbml.AST_REAL_E, libsbml.AST_RATIONAL}
+)
 
 
 def node(ast_type: int, *children: libsbml.ASTNode) -> libsbml.ASTNode:

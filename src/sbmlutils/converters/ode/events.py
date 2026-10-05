@@ -5,7 +5,8 @@ truth value of the trigger: positive where the trigger holds, negative where it 
 not. A relation is a difference, `a > b` is `a - b`; a conjunction holds where all of
 its operands hold, which is where their minimum is positive, a disjunction where
 their maximum is. Strict and non-strict relations have the same root function, they
-differ only at the root itself, which the integrator resolves by the direction of
+differ only at the root itself, which the exact trigger decides: the generated code
+resolves a root with `event_conditions` and `first_change`, not by the direction of
 the crossing.
 """
 
@@ -13,7 +14,7 @@ import itertools
 
 import libsbml
 
-from sbmlutils.converters.ode.astutil import negated, node, number
+from sbmlutils.converters.ode.astutil import _NUMBERS, negated, node, number
 
 __all__ = ["trigger_root"]
 
@@ -21,9 +22,6 @@ __all__ = ["trigger_root"]
 # and those where it is negative
 _GREATER = frozenset({libsbml.AST_RELATIONAL_GT, libsbml.AST_RELATIONAL_GEQ})
 _LESS = frozenset({libsbml.AST_RELATIONAL_LT, libsbml.AST_RELATIONAL_LEQ})
-_NUMBERS = frozenset(
-    {libsbml.AST_INTEGER, libsbml.AST_REAL, libsbml.AST_REAL_E, libsbml.AST_RATIONAL}
-)
 
 
 def _extreme(ast_type: int, roots: list[libsbml.ASTNode]) -> libsbml.ASTNode:

@@ -13,10 +13,9 @@ math of these as markup of its format, so that a template only lays them out:
 - an id is code, `` `k1` `` in typst and markdown, `\texttt{k1}` in LaTeX, and is
   checked to be an SId (`ValueError` otherwise, libsbml reads a document with any
   id, which could end the code and write markup; an unsupported element without an
-  id is labelled by its metaid, an XML ID); an id
-  of more than `LONG_ID` characters may break after an underscore in typst and
-  LaTeX (`#sym.zws`, `\allowbreak`), which writes no character, so that a table
-  with long ids fits the page;
+  id is labelled by its metaid, an XML ID); an id of more than `LONG_ID` characters
+  may break after an underscore in typst and LaTeX (`#sym.zws`, `\allowbreak`),
+  which writes no character, so that a table with long ids fits the page;
 - math is printed with the printer of the format, `LatexPrinter` for LaTeX and
   markdown (in `$$ ... $$`), `TypstPrinter` for typst, the ids written as the math
   symbols of `symbols.typeset_names` (`symbols="id"` or `"name"`): the rate of a
@@ -30,19 +29,16 @@ The context holds:
 
 - `model`: `title` (the name, else the id), `plain_title` (the title without the
   opportunities of line breaks and without math, `text.tex_pdf_text`, for the
-  bookmarks of a PDF), `id`, `level`,
-  `version`, `source`,
-  `sbmlutils` (the version which writes the document) and `notes`, the paragraphs
-  of the notes;
+  bookmarks of a PDF), `id`, `level`, `version`, `source`, `sbmlutils` (the version
+  which writes the document) and `notes`, the paragraphs of the notes;
 - `units`: the units of the model, each with `kind` and `unit`;
 - `compartments`, `parameters`: rows with `symbol`, `id`, `long_id` (whether the id
   is longer than `LONG_ID`, a template lets its column wrap), `name`, `value`
   (math, empty for a value given by a rule or a conversion), `unit` and
   `constant`; the parameters include the local parameters and the species
-  references with an id;
-  `species` additionally `compartment` (math, `None` for a species in amount
-  without a compartment) and `properties` (amount or concentration, boundary and
-  constant as text);
+  references with an id; `species` additionally `compartment` (math, `None` for a
+  species in amount without a compartment) and `properties` (amount or
+  concentration, boundary and constant as text);
 - `functions`: `lhs` (`f(x, y)`) and `rhs`;
 - `initial`: the initial assignments and the initial values which are a conversion
   between amount and concentration, `assignments`: the assignment rules and the
@@ -50,9 +46,9 @@ The context holds:
   `origin`;
 - `amounts`: the species held as amount, with `amount`, `species` and
   `compartment` as math;
-- `reactions`: `symbol` (`v_{J0}`), `id`, `long_id`, `name`, `equation` (math, `2 A + B ⟶ C`,
-  `⇌` if reversible, `∅` for no species), `modifiers` and `local_parameters`
-  (math, comma separated), `lines` of the rate;
+- `reactions`: `symbol` (`v_{J0}`), `id`, `long_id`, `name`, `equation` (math,
+  `2 A + B ⟶ C`, `⇌` if reversible, `∅` for no species), `modifiers` and
+  `local_parameters` (math, comma separated), `lines` of the rate;
 - `odes`: `lhs` (`dS/dt`), `lines` and `origin`, the right hand side written with
   the rates of the reactions and divided by the volume of a species in
   concentration (`(v_1 - v_2)/V`, in lines `1/V (v_1 - v_2 ...)`), or the rate

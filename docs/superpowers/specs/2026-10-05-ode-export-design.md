@@ -41,26 +41,31 @@ Each of these needs an override, so the sympy route ends in custom printers on t
 ```
 sbmlutils/converters/ode/
     __init__.py        public API: OdeSystem, FORMATS, render, write
-    system.py          analysis: SBML document to OdeSystem
+    system.py          OdeSystem: the frozen dataclass tree of the analysis, from_sbml
+    analysis.py        analysis: SBML document to OdeSystem, one method per element
     dependencies.py    ordering of assignments, cycle detection
+    events.py          the continuous root function of an event trigger
+    astutil.py         shared helpers to build and read the libsbml AST
     printers/
         base.py        MathPrinter: precedence, associativity, dispatch on AST type
         python.py      PythonPrinter
         julia.py       JuliaPrinter
         r.py           RPrinter
+        document.py    DocumentPrinter: the base of the typeset dialects
         latex.py       LatexPrinter (markdown uses it inside $$)
         typst.py       TypstPrinter
     symbols.py         naming: code identifiers and typeset symbols
-    formats.py         Format registry, jinja2 environment, filters, escaping
+    text.py            free text: single line for code, escaping per document format
+    formats.py         Format registry, jinja2 environment, filters, render, write
+    documents.py       the context of the document formats, built with the printers
 sbmlutils/resources/converters/ode/
     python.py.jinja    julia.jl.jinja    r.R.jinja
     typst.typ.jinja    latex.tex.jinja   markdown.md.jinja
-    _sections/         shared partials of the presentation templates
 ```
 
 The three layers are independent: the analysis knows no format, a printer knows no model, a template knows no libsbml.
 
-### Layer 1: analysis (`system.py`)
+### Layer 1: analysis (`system.py`, `analysis.py`)
 
 `OdeSystem.from_sbml(source)` takes a path, an SBML string or an `SBMLDocument` (read with `read_sbml`) and returns a frozen dataclass tree:
 
@@ -93,16 +98,16 @@ The following SBML semantics are resolved once, here:
 
 | Construct | python | julia | R | LaTeX | typst |
 |---|---|---|---|---|---|
-| power | `a ** b` | `a ^ b` | `a ^ b` | `a^{b}` | `a^(b)` |
+| power | `a ** b` | `NaNMath.pow(a, b)` | `a ^ b` | `a^{b}` | `a^(b)` |
 | `piecewise` | `x if c else y` (lazy) | `c ? x : y` (lazy) | `if (c) x else y` (lazy, scalar) | `cases` environment | `cases(...)` |
-| `rem` | `np.fmod` | `rem` | sign of dividend via `trunc` | `\operatorname{rem}` | `op("rem")` |
-| `quotient` | `np.trunc(a / b)` | `div` | `trunc(a / b)` | `\operatorname{quotient}` | `op("quotient")` |
-| `log(b, x)` | `np.log(x) / np.log(b)` | `log(b, x)` | `log(x, b)` | `\log_{b} x` | `log_(b) x` |
-| `and`, `or`, `xor`, `not` | `and`, `or`, `^`, `not` on `bool` | `&&`, `\|\|`, `xor`, `!` | `&&`, `\|\|`, `xor`, `!` | `\land`, `\lor`, `\oplus`, `\lnot` | `and`, `or`, `xor`, `not` |
+| `rem` | `np.fmod(a, b)` | `rem(a, b)` | `sign(a) * (abs(a) %% abs(b))` | `\operatorname{rem}` | `op("rem")` |
+| `quotient` | `np.trunc(a / b)` | `trunc(a / b)` | `trunc(a / b)` | `\operatorname{quotient}` | `op("quotient")` |
+| `log(b, x)` | `np.log(x) / np.log(b)` | `NaNMath.log(x) / NaNMath.log(b)` | `log(x, b)` | `\log_{b}\left(x\right)` | `log_(b) (x)` |
+| `and`, `or`, `xor`, `not` | `and`, `or`, `bool(a) ^ bool(b)`, `not` | `&&`, `\|\|`, `xor`, `!` | `&&`, `\|\|`, `xor`, `!` | `\land`, `\lor`, `\oplus`, `\lnot` | `and`, `or`, `xor`, `not` |
 | `time`, `avogadro` | `t`, literal | `t`, literal | `t`, literal | `t`, `N_A` | `t`, `N_A` |
 | `INF`, `NaN` | `np.inf`, `np.nan` | `Inf`, `NaN` | `Inf`, `NaN` | `\infty`, `\mathrm{NaN}` | `infinity`, `"NaN"` |
 
-Booleans are numbers in SBML: a relation used as a number becomes `float(...)` in python, `Float64(...)` in julia, `as.numeric(...)` in R. Every construct the dialect cannot express raises `NotImplementedError` naming the construct. Identifiers come only from the `symbols` mapping; an identifier without a mapping raises, so an id is never written raw.
+Booleans are numbers in SBML: a relation used as a number becomes `float(...)` in python, `Float64(...)` in julia, `as.numeric(...)` in R. The dialects follow IEEE 754 for a relation with `NaN` (false, and true for `!=`): R, where such a relation is `NA`, writes every relation as `isTRUE(a > b)` and `a != b` as `!isTRUE(a == b)`. Julia writes the functions whose `Base` version throws outside its real domain (`sqrt`, `log`, `asin`, `acosh`, a power with a negative base and a fractional exponent, ...) with `NaNMath`, so the result is `NaN` as in SBML; every julia number is a `Float64` literal, so that integer arithmetic cannot overflow. Every construct the dialect cannot express raises `NotImplementedError` naming the construct. Identifiers come only from the `symbols` mapping; an identifier without a mapping raises, so an id is never written raw.
 
 Presentation printers break long equations: the top level sum of a right hand side is split into lines of at most `width` terms (default 4) inside an `align`/aligned block.
 
@@ -157,25 +162,26 @@ Symbols: an id is typeset as a math symbol. The part before the first `_` is the
 Format specifics:
 
 - **typst**: `standalone=True` writes `#set document`, page and text settings, headings and the content; `False` the content only. Math in `$ ... $`, tables with `#table`. Escaped characters in text: backslash, `#`, `$`, `*`, `_`, `@`, `<`, `>`, `[`, `]` and the backtick.
-- **LaTeX**: `standalone=True` writes an `article` with `amsmath`, `booktabs`, `longtable`, `hyperref`; `False` the body only and a comment listing the packages it needs. Escaping by `tex_text`.
+- **LaTeX**: `standalone=True` writes an `article` with `amsmath`, `amssymb`, `booktabs`, `xltabular`, `parskip` and `hyperref`, the tables being `longtable`, or `xltabular` where a column of long ids must wrap, and `iftex` choosing `fontenc` and `lmodern` for pdfLaTeX and `fontspec` for XeLaTeX and LuaLaTeX, so that it compiles with every engine; `False` the body only and a comment listing the packages it needs. Escaping by `tex_text`.
 - **markdown**: GitHub flavored tables, display math in `$$ ... $$` with the LaTeX printer (rendered by GitHub and by Zensical with MathJax), ids in code spans. Escaped: `|`, `*`, `_`, backtick, `<`, `>` and the HTML entities. This replaces the markdown which `create_model(create_markdown=True)` writes.
 
 ## Testing
 
-Tests live in `tests/converters/ode/`:
+Tests live in `tests/converters/ode/`, as `test_ode_<topic>.py` with the shared helpers in `ode_helpers.py` (the directory has no `__init__.py`, the unique basenames keep the import mode of pytest working):
 
-- `test_system.py`: the analysis, one test per semantic rule above (conversion factors, variable compartments, local parameter renaming, stoichiometry math, rate rules on every kind, `rateOf`, ordering, cycles, initial values, unsupported collection).
-- `test_printers.py`: every AST node type in every dialect against golden strings, the precedence table, and the evaluation of the numerical dialects against roadrunner for the formula set of the current `test_odefac.py`.
-- `test_numerical.py`: python always (skips without roadrunner); julia and R skip when `julia` or `Rscript` with its packages is missing. Compares `initial_values`, `f_dxdt` and `f_y` at two states and the trajectory of `simulate` at the time points of the test suite case.
-- `test_presentation.py`: typst compiled with the `typst` python package (added to the `dev` extra), LaTeX compiled when `tectonic` is on the path, markdown parsed with `markdown-it-py`; golden files for the demo model in `tests/converters/ode/golden/`, regenerated with `pytest --update-golden`.
-- `test_safety.py`: the injection and SId tests of `test_odefac.py`, ported to every format.
-- A curated subset of the SBML semantic test suite (every feature tag at least once, about 60 cases) runs in the default test run; the full sweep runs behind the `sbml_testsuite` marker. `scripts/ode_report.py` runs the sweep, one process per case, and reports the pass rate per numerical format with the known failures and their reasons, as `scripts/roundtrip_report.py` does.
+- `test_ode_system.py`: the analysis, one test per semantic rule above (conversion factors, variable compartments, local parameter renaming, stoichiometry math, rate rules on every kind, `rateOf`, ordering, cycles, initial values, unsupported collection); `test_ode_astutil.py`, `test_ode_symbols.py` and `test_ode_text.py` the helpers of the analysis, the naming and the text escaping.
+- `test_ode_printers.py`: every AST node type in every dialect against golden strings, the precedence table, and the evaluation of the numerical dialects against roadrunner for a set of formulas which covers every construct of the math.
+- `test_ode_python.py`, `test_ode_julia.py` and `test_ode_r.py`: compare `initial_values`, `f_dxdt`, `f_y` and the trajectory of `simulate` with roadrunner. Python always (skips without roadrunner); julia and R are run through the command prefixes in `SBMLUTILS_JULIA` and `SBMLUTILS_RSCRIPT` (default `julia` and `Rscript`, split like a shell command, so they can be a docker run) and skip when the toolchain or its packages are missing, unless `SBMLUTILS_REQUIRE_TOOLCHAINS=1` makes that a failure. The tolerances against roadrunner are `rel=1e-8` for the values at a point and `rtol=1e-6`, `atol=1e-9` for a trajectory, relaxed to `1e-4` and `1e-6` for a model with events, whose times are located to the tolerance of the integration.
+- `test_ode_presentation.py`: typst compiled with the `typst` python package (added to the `dev` extra), LaTeX compiled with tectonic when it is on the path, markdown parsed with `markdown-it-py`; golden files of the demo model, the repressilator and a model with events in `tests/converters/ode/golden/`, regenerated with the environment variable `SBMLUTILS_UPDATE_GOLDEN=1`.
+- `test_ode_safety.py`: the injection and SId tests, run on every format.
+- `test_ode_docs.py`: the files of `docs/images/ode`, which `docs/ode.md` shows, are the current output of the export.
+- `test_ode_testsuite.py`: a curated subset of the SBML semantic test suite (`CURATED`, every feature tag at least once) runs in the default test run for python and, with the toolchain, in the tox environments for julia and R; the full sweeps run behind the `sbml_testsuite` marker, a known failure is a strict xfail with its reason. `scripts/ode_report.py` runs the sweep, one process per case, and reports the pass rate per numerical format with the known failures and their reasons, as `scripts/roundtrip_report.py` does.
 
-Continuous integration: tox environments `julia` and `R` (python 3.14 plus the toolchain), jobs in `ci-cd.yml` with `julia-actions/setup-julia` (DifferentialEquations, DataFrames) and `r-lib/actions/setup-r` (deSolve), and a `latex` job with tectonic. They are not required checks of the ruleset at first, so a toolchain outage does not block a merge; the decision to make them required is left to the maintainer.
+Continuous integration: tox environments `julia` and `R` (python 3.14 plus the toolchain), jobs in `ci-cd.yml` with `julia-actions/setup-julia` (the packages of `tests/converters/ode/julia/Project.toml`: OrdinaryDiffEq, DataFrames, NaNMath, SpecialFunctions) and `r-lib/actions/setup-r` (deSolve, from binary packages), and a `latex` job with tectonic. They are not required checks of the ruleset at first, so a toolchain outage does not block a merge; the decision to make them required is left to the maintainer.
 
 ## Documentation
 
-- `docs/ode.md`, "ODE export": the API, the options, one section per format with the output of the repressilator (code listings for the numerical formats, the typst output compiled to SVG, the LaTeX source, the markdown rendered), how to run the generated code with its solver, and the table of supported SBML features.
+- `docs/ode.md`, "ODE export": the API, the options, one section per format with the output of the repressilator (code listings for the numerical formats, the typst output as SVG pages, the LaTeX source, the markdown rendered), how to run the generated code with its solver, and the table of supported SBML features. The SVG pages of the typst document are not committed: `examples/converters/ode.py` compiles them (`python -m examples.converters.ode docs/images/ode`) with the `typst` package, deterministically with the fonts of typst only, which the `documentation` workflow runs before the build. The text files it writes next to them are committed, shown through `pymdownx.snippets`, and kept current by `test_ode_docs.py`. MathJax, which typesets the math of the markdown output, is vendored in `docs/javascripts/mathjax/`.
 - `docs/api/converters.ode.md` replaces `docs/api/converters.odefac.md`; `docs/converters.md` links to the new page.
 - `examples/converters/ode.py` writes all six formats of a packaged model.
 
