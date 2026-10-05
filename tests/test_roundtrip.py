@@ -36,6 +36,7 @@ import signal
 import subprocess
 import sys
 from collections import Counter
+from collections.abc import Sequence
 from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
@@ -250,6 +251,12 @@ class Outcome(StrEnum):
     NOT_DETERMINISTIC = "original is not deterministic"
     #: the worker exited without recording an outcome, a bug of the harness
     WORKER_ERROR = "worker error"
+    #: the model has a construct the code of the ODE export does not support, see
+    #: `tests/converters/ode/test_ode_testsuite.py`; the round trip never reports it
+    UNSUPPORTED = "unsupported construct"
+    #: roadrunner does not simulate the case, so there is no reference for the
+    #: code of the ODE export (`NOT_SIMULATABLE` of the round trip)
+    NO_REFERENCE = "no roadrunner reference"
 
 
 @dataclass
@@ -369,6 +376,7 @@ def run_case_isolated(
     case_dir: Path,
     timeout: float = 300.0,
     worker: Path = Path(__file__),
+    arguments: Sequence[str] = (),
 ) -> CaseResult:
     """Round trip a case in a python process of its own.
 
@@ -382,15 +390,17 @@ def run_case_isolated(
         case_dir: directory of the case, which the round-tripped SBML and the
             outcome are written to
         timeout: seconds after which the process is killed
-        worker: the script run as `worker <sbml_path> <case_dir>`, this
-            module; a test substitutes one which crashes
+        worker: the script run as `worker <sbml_path> <case_dir> [arguments]`,
+            this module; a test substitutes one which crashes
+        arguments: further arguments of the worker, e.g. the format of the ODE
+            export of `tests/converters/ode/test_ode_testsuite.py`
 
     Returns:
         the result of the case
     """
     try:
         process = subprocess.run(
-            [sys.executable, str(worker), str(sbml_path), str(case_dir)],
+            [sys.executable, str(worker), str(sbml_path), str(case_dir), *arguments],
             capture_output=True,
             text=True,
             timeout=timeout,

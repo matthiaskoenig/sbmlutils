@@ -10,6 +10,13 @@ repo_url = "https://github.com/matthiaskoenig/sbmlutils"
 repo_name = "matthiaskoenig/sbmlutils"
 edit_uri = "edit/develop/docs/"
 
+# math (`$...$`, `$$...$$`) is typeset by MathJax, see `pymdownx.arithmatex`
+extra_javascript = [
+  "javascripts/mathjax.js",
+  "javascripts/mathjax/tex-mml-chtml.js",
+]
+extra_css = ["stylesheets/extra.css"]
+
 nav = [
   { "Home" = "index.md" },
   { "Installation" = "installation.md" },
@@ -26,6 +33,7 @@ nav = [
     { "COMBINE archives" = "omex.md" },
     { "Reports" = "reports.md" },
     { "Converters" = "converters.md" },
+    { "ODE export" = "ode.md" },
     { "Interpolation" = "interpolation.md" },
     { "Visualization" = "visualization.md" },
   ] },
@@ -50,10 +58,9 @@ nav = [
       { "flatten" = "api/comp.flatten.md" },
     ] },
     { "sbmlutils.converters" = [
-      { "odefac" = "api/converters.odefac.md" },
+      { "ode" = "api/converters.ode.md" },
       { "xpp" = "api/converters.xpp.md" },
       { "copasi" = "api/converters.copasi.md" },
-      { "mathml" = "api/converters.mathml.md" },
     ] },
     { "sbmlutils.data" = [
       { "interpolation" = "api/data.interpolation.md" },
@@ -133,6 +140,12 @@ link = "https://github.com/matthiaskoenig/sbmlutils"
 icon = "fontawesome/brands/python"
 link = "https://pypi.org/project/sbmlutils/"
 
+# `docs/superpowers` holds internal design documents, `docs/images/ode` the
+# files of the ODE export which `ode.md` includes, `docs/javascripts/mathjax` the
+# vendored MathJax with its readme, none of them is a page
+[project.plugins.exclude]
+glob = ["superpowers/*", "images/ode/*.md", "javascripts/mathjax/README.md"]
+
 # API reference is rendered from the docstrings, see the `docs/api` pages
 [project.plugins.mkdocstrings]
 default_handler = "python"
@@ -165,6 +178,7 @@ footnotes = {}
 md_in_html = {}
 tables = {}
 toc.permalink = true
+pymdownx.arithmatex.generic = true
 pymdownx.betterem = {}
 pymdownx.caret = {}
 pymdownx.details = {}
@@ -178,6 +192,10 @@ pymdownx.keys = {}
 pymdownx.magiclink = {}
 pymdownx.mark = {}
 pymdownx.smartsymbols = {}
+# `--8<-- "images/ode/repressilator.py"` includes a file of `docs`, a missing one
+# fails the build
+pymdownx.snippets.base_path = ["docs"]
+pymdownx.snippets.check_paths = true
 pymdownx.superfences = {}
 pymdownx.tabbed.alternate_style = true
 pymdownx.tasklist.custom_checkbox = true

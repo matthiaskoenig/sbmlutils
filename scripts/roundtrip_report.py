@@ -29,6 +29,7 @@ import shutil
 import sys
 import time
 from collections import Counter, defaultdict
+from collections.abc import Sequence
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -49,24 +50,54 @@ from test_roundtrip import (  # noqa: E402
 TMP_DIR: Path = ROOT / ".roundtrip_tmp"
 
 
-def run_case(sbml_path: Path, timeout: float) -> tuple[str, CaseResult]:
+#: the worker of `run_case_isolated`, which round trips a case
+WORKER: Path = ROOT / "tests" / "test_roundtrip.py"
+
+
+def run_case(
+    sbml_path: Path,
+    timeout: float,
+    tmp_dir: Path | None = None,
+    worker: Path = WORKER,
+    arguments: Sequence[str] = (),
+) -> tuple[str, CaseResult]:
     """Run a single case in a process of its own.
 
     Args:
         sbml_path: path of the SBML file of the case
         timeout: seconds after which the case is killed
+        tmp_dir: the scratch directory, which the directory of the case is made
+            in, `TMP_DIR` if `None`
+        worker: the worker of `run_case_isolated`, e.g. that of the ODE export of
+            `scripts/ode_report.py`
+        arguments: further arguments of the worker
 
     Returns:
         the case id and its result
     """
     case = sbml_path.name[:5]
-    case_dir = TMP_DIR / case
+    case_dir = (TMP_DIR if tmp_dir is None else tmp_dir) / case
     shutil.rmtree(case_dir, ignore_errors=True)
     if case in NONDETERMINISTIC:
         return case, CaseResult(Outcome.NOT_DETERMINISTIC, "", NONDETERMINISTIC[case])
 
     case_dir.mkdir(parents=True)
-    return case, run_case_isolated(sbml_path, case_dir, timeout=timeout)
+    return case, run_case_isolated(sbml_path, case_dir, timeout, worker, arguments)
+
+
+def reason_of(detail: str) -> str:
+    """The reason of an error, which summarizes many cases.
+
+    The reason is the error without the formula or id it quotes and the C++
+    function it names.
+
+    Args:
+        detail: the error
+
+    Returns:
+        the reason
+    """
+    return re.sub(r"'[^']*'", "'...'", detail.split(", at ")[0])
 
 
 def print_report(results: list[tuple[str, CaseResult]], seconds: float) -> None:
@@ -128,8 +159,7 @@ def print_report(results: list[tuple[str, CaseResult]], seconds: float) -> None:
     reasons = defaultdict(list)
     for case, result in results:
         if result.outcome in (Outcome.NOT_SIMULATABLE, Outcome.NOT_DETERMINISTIC):
-            reason = re.sub(r"'[^']*'", "'...'", result.detail.split(", at ")[0])
-            reasons[f"{result.outcome}: {reason}"].append(case)
+            reasons[f"{result.outcome}: {reason_of(result.detail)}"].append(case)
     if reasons:
         print()
         for reason, cases in sorted(reasons.items(), key=lambda item: -len(item[1])):

@@ -1,3 +1,0 @@
-# mathml
-
-::: sbmlutils.converters.mathml

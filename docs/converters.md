@@ -1,49 +1,20 @@
 # Converters
 
-An SBML model is a description, not a program. The converters turn it into something else: the ODE system as code, a model from another format, or a file another tool understands.
+An SBML model is a description, not a program. The converters turn it into something else: the ODE system as code or as a document, a model from another format, or a file another tool understands.
 
 ## SBML to an ODE system
 
-`SBML2ODE` derives the ordinary differential equations of a model and writes them as code:
+`sbmlutils.converters.ode` writes the system of ordinary differential equations of a model as code which simulates it, in python, julia and R, and as a document which describes it, in typst, LaTeX and markdown:
 
 ```python
-from pathlib import Path
+from sbmlutils.converters.ode import OdeSystem
 
-from sbmlutils.converters.odefac import SBML2ODE
-
-factory = SBML2ODE.from_file(sbml_file=Path("model.xml"))
-
-factory.to_python(py_file=Path("model.py"))
-factory.to_R(r_file=Path("model.R"))
-factory.to_julia(jl_file=Path("model.jl"))
-factory.to_markdown(md_file=Path("model.md"))
-factory.to_tex(tex_file=Path("model.tex"))
+system = OdeSystem.from_sbml("model.xml")
+system.write("model.py")
+system.write("model.typ")
 ```
 
-Every method returns the generated code as a string as well, so the file argument is optional.
-
-The generated python is a self contained module with the identifiers, the initial conditions, the parameters and the right hand side, ready for an integrator such as `scipy.integrate.odeint`:
-
-```python
-def f_dxdt(x: np.ndarray, t: float, p: np.ndarray) -> np.ndarray:
-    """Right hand side of the ODE system."""
-    ...
-
-
-def f_y(x: np.ndarray, t: float, p: np.ndarray) -> np.ndarray:
-    """Assignment rules of the model."""
-    ...
-```
-
-The math of the python code is translated from the libsbml AST into numpy: `piecewise` becomes a conditional expression, and the logical operators, the relations, `ln`, `log`, `rem`, `quotient`, `xor`, `implies`, `INF`, `NaN` and the trigonometric functions become their python equivalent. Function definitions, local parameters, `delay`, `rateOf`, events and initial assignments are not supported: `to_python` raises `NotImplementedError` for math it cannot translate and ignores an initial assignment with a warning.
-
-The generated code is safe to import from an untrusted model. Every name and unit is written on a single line, so a line break in the name of an element cannot leave its comment, and an id which is not an SId (libsbml reads such a document and only reports an error) is rejected with a `ValueError` before it is written into python, R or julia. The markdown and latex output write the ids on a single line as well (escaped in latex), and latex rejects math with an identifier which is not an SId, since it writes the math unescaped.
-
-The markdown and latex output are the equations for a paper or a model description: the state variables, the assignments and the ODEs, with the units.
-
-The conversion resolves the assignment rules in dependency order, which is why an assignment which depends on another one comes out in the right place.
-
-The templates behind the generation are in `sbmlutils/resources/converters/`; `to_custom_template` renders the same model through a template of your own.
+The numerical code reproduces libroadrunner over the SBML test suite, events included. See [ODE export](ode.md) for the formats, their options, the supported SBML and how to run the code.
 
 ## XPP to SBML
 

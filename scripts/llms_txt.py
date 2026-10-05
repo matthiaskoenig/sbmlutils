@@ -8,9 +8,11 @@ the [llms.txt convention](https://llmstxt.org/) into the built site:
 - `llms-full.txt`, the complete documentation as a single markdown file,
 - a markdown copy of every page next to its html, so that the links resolve.
 
-The pages of the API reference only contain a mkdocstrings directive
+The pages of the API reference only contain mkdocstrings directives
 (`::: sbmlutils.factory`), their markdown is generated from the docstrings of the
-module with `inspect`, i.e., the same source the html is rendered from.
+modules with `inspect`, i.e., the same source the html is rendered from. A snippet
+of `pymdownx.snippets` (`--8<-- "images/ode/repressilator.py"`) is replaced by the
+file it includes, as in the html.
 
 Run it after `zensical build`:
 
@@ -20,6 +22,7 @@ uv run python scripts/llms_txt.py
 ```
 """
 
+import ast
 import importlib
 import inspect
 import re
@@ -33,7 +36,16 @@ DOCS_DIR: Path = REPO_DIR / "docs"
 SITE_DIR: Path = REPO_DIR / "site"
 CONFIG_PATH: Path = REPO_DIR / "zensical.toml"
 
-DIRECTIVE = re.compile(r"^:::\s+(?P<module>[\w.]+)\s*$", re.MULTILINE)
+# a mkdocstrings directive with the indented lines of its options
+DIRECTIVE = re.compile(
+    r"^:::[ \t]+(?P<module>[\w.]+)[ \t]*$(?P<options>(?:\n[ \t]+\S[^\n]*)*)",
+    re.MULTILINE,
+)
+# the `filters` option of a directive, a list in the flow style of YAML
+FILTERS = re.compile(r"^[ \t]+filters:[ \t]*(?P<filters>\[.*\])[ \t]*$", re.MULTILINE)
+SNIPPET = re.compile(
+    r'^(?P<indent>[ \t]*)--8<--[ \t]+"(?P<path>[^"]+)"[ \t]*$', re.MULTILINE
+)
 
 
 class Page(NamedTuple):
@@ -121,7 +133,27 @@ def signature(obj: Any) -> str:
         return str(obj.__name__)
 
 
-def members(obj: ModuleType | type, module: str) -> list[tuple[str, Any]]:
+def selected(name: str, filters: list[str]) -> bool:
+    """Whether a member passes the filters of a directive, as mkdocstrings reads them.
+
+    Args:
+        name: the name of the member.
+        filters: regular expressions, one with a leading `!` excludes the names it
+            finds, the others include only the names one of them finds.
+
+    Returns:
+        Whether the member is rendered.
+    """
+    excluding = [f[1:] for f in filters if f.startswith("!")]
+    including = [f for f in filters if not f.startswith("!")]
+    if any(re.search(pattern, name) for pattern in excluding):
+        return False
+    return not including or any(re.search(pattern, name) for pattern in including)
+
+
+def members(
+    obj: ModuleType | type, module: str, filters: list[str] | None = None
+) -> list[tuple[str, Any]]:
     """Collect the public members which are defined in the given module.
 
     A package, such as `sbmlutils.factory`, re-exports the members of its
@@ -130,6 +162,7 @@ def members(obj: ModuleType | type, module: str) -> list[tuple[str, Any]]:
     Args:
         obj: module or class to inspect.
         module: name of the module or package the members must be defined in.
+        filters: the filters of the directive, see `selected`.
 
     Returns:
         The members as `(name, member)` in alphabetical order.
@@ -137,8 +170,10 @@ def members(obj: ModuleType | type, module: str) -> list[tuple[str, Any]]:
     items: list[tuple[str, Any]] = []
     for name, member in inspect.getmembers(obj):
         defined_in = getattr(member, "__module__", None) or ""
-        if name.startswith("_") or not (
-            defined_in == module or defined_in.startswith(f"{module}.")
+        if (
+            name.startswith("_")
+            or not selected(name, filters or [])
+            or not (defined_in == module or defined_in.startswith(f"{module}."))
         ):
             continue
         if inspect.isclass(member) or inspect.isfunction(member):
@@ -146,30 +181,35 @@ def members(obj: ModuleType | type, module: str) -> list[tuple[str, Any]]:
     return items
 
 
-def api_markdown(module_name: str) -> str:
+def api_markdown(
+    module_name: str, filters: list[str] | None = None, level: int = 1
+) -> str:
     """Render the API of a module as markdown.
 
     Args:
         module_name: name of the module, e.g., `sbmlutils.factory`.
+        filters: the filters of the directive, see `selected`.
+        level: the level of the heading of the module, its members one below.
 
     Returns:
         The module docstring followed by the public classes and functions with
         their signatures and docstrings.
     """
     module = importlib.import_module(module_name)
-    lines: list[str] = [f"# {module_name}", ""]
+    heading = "#" * level
+    lines: list[str] = [f"{heading} {module_name}", ""]
     if module.__doc__:
         lines += [inspect.cleandoc(module.__doc__), ""]
 
-    for name, member in members(module, module_name):
+    for name, member in members(module, module_name, filters):
         kind = "class" if inspect.isclass(member) else "function"
-        lines += [f"## {kind} `{signature(member)}`", ""]
+        lines += [f"{heading}# {kind} `{signature(member)}`", ""]
         if member.__doc__:
             lines += [inspect.cleandoc(member.__doc__), ""]
         if not inspect.isclass(member):
             continue
-        for _method_name, method in members(member, module_name):
-            lines += [f"### `{name}.{signature(method)}`", ""]
+        for _method_name, method in members(member, module_name, filters):
+            lines += [f"{heading}## `{name}.{signature(method)}`", ""]
             if method.__doc__:
                 lines += [inspect.cleandoc(method.__doc__), ""]
     return "\n".join(lines).rstrip() + "\n"
@@ -182,12 +222,35 @@ def page_markdown(page: Page) -> str:
         page: page of the documentation.
 
     Returns:
-        The source markdown, or the generated API markdown for the pages of the
-        API reference.
+        The source markdown with its snippets included; on a page of the API
+        reference every mkdocstrings directive is replaced by the generated API
+        markdown of its module, a level below the title of the page.
     """
     markdown = (DOCS_DIR / page.path).read_text()
-    match = DIRECTIVE.search(markdown) if page.path.startswith("api/") else None
-    return api_markdown(match.group("module")) if match else markdown
+    if page.path.startswith("api/"):
+        markdown = DIRECTIVE.sub(_directive, markdown)
+    return SNIPPET.sub(_snippet, markdown)
+
+
+def _directive(match: re.Match[str]) -> str:
+    """The API markdown of the module of a directive, with the filters of its options.
+
+    Only the flow style of a list of filters is read, `filters: ["!^_", "!^X$"]`.
+    """
+    found = FILTERS.search(match.group("options"))
+    filters = ast.literal_eval(found.group("filters")) if found else None
+    return api_markdown(match.group("module"), filters, level=2).rstrip("\n")
+
+
+def _snippet(match: re.Match[str]) -> str:
+    """The file of a snippet, every line indented as the snippet line.
+
+    Raises:
+        FileNotFoundError: if the file does not exist, which fails the build as well
+    """
+    text = (DOCS_DIR / match.group("path")).read_text(encoding="utf-8")
+    indent = match.group("indent")
+    return "\n".join(f"{indent}{line}" if line else line for line in text.splitlines())
 
 
 def sections(pages: dict[Page, str]) -> dict[str, list[Page]]:

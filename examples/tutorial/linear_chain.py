@@ -8,7 +8,7 @@ with string patterns. In this example we create a kinetic model of a linear chai
 from pathlib import Path
 
 from examples import templates
-from sbmlutils.converters import odefac
+from sbmlutils.converters.ode import OdeSystem
 from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.factory import *
 from sbmlutils.validation import ValidationOptions
@@ -59,13 +59,9 @@ if __name__ == "__main__":
         filepath=Path.cwd() / f"{model.sid}.xml",
         validation_options=ValidationOptions(units_consistency=False),
     )
-    # create odes
-    factory = odefac.SBML2ODE.from_file(sbml_file=results.sbml_path)
-    md_path = Path.cwd() / f"{model.sid}.md"
-    factory.to_markdown(md_file=md_path)
-    py_path = Path.cwd() / f"{model.sid}.py"
-    factory.to_python(py_file=py_path)
-    r_path = Path.cwd() / f"{model.sid}.R"
-    factory.to_R(r_file=r_path)
+    # the ODE system as markdown, python and R
+    system = OdeSystem.from_sbml(results.sbml_path)
+    for suffix in (".md", ".py", ".R"):
+        system.write(Path.cwd() / f"{model.sid}{suffix}")
 
     visualize_sbml(sbml_path=results.sbml_path)

@@ -153,6 +153,153 @@ jobs:
     - name: Test with tox
       run: uvx --with "tox-uv==${TOX_UV_VERSION}" "tox@${TOX_VERSION}" -e cobra
 
+  julia:
+    # the generated julia code, run with julia and the packages it uses, see the
+    # `julia` environment of tox.ini, in which a missing julia fails the tests.
+    # Like `cobra` it informs and does not gate: it is deliberately not part of
+    # the `tests` job the branch protection requires, so that an outage of the
+    # julia toolchain does not block a merge.
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      # the interpreter uv manages, see the `test` job
+      UV_PYTHON_PREFERENCE: only-managed
+      # the julia environment of the generated code, its packages with the major
+      # versions it is tested with; only it is loaded, not the default environment
+      JULIA_PROJECT: ${{ github.workspace }}/tests/converters/ode/julia
+      JULIA_LOAD_PATH: "@:@stdlib"
+
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      with:
+        persist-credentials: false
+    - name: Install uv and set the python version
+      # the `julia` environment is pinned to python 3.14, see tox.ini
+      uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7  # v10.2.0
+      with:
+        version: "0.12.21"
+        python-version: "3.14"
+        # a release run restores no cache, which zizmor cannot tell from the
+        # expression; the distributions are built without one, see `build`
+        enable-cache: ${{ !startsWith(github.ref, 'refs/tags/') }}  # zizmor: ignore[cache-poisoning]
+    - name: Put libpython on the library search path
+      # the extension of libroadrunner links against libpython, see the `test` job
+      run: |
+        uv python install 3.14
+        prefix="$("$(uv python find --no-project 3.14)" -c 'import sys; print(sys.base_prefix)')"
+        echo "LD_LIBRARY_PATH=${prefix}/lib" >> "$GITHUB_ENV"
+      shell: bash
+    - name: Install julia
+      uses: julia-actions/setup-julia@fa02766e078afaaf09b14210362cee14137e6a32  # v3.0.2
+      with:
+        version: "1.11"
+    - name: Cache the julia packages
+      # a release run restores no cache, see the cache of uv above
+      if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+      uses: julia-actions/cache@e32267b41e0fa7df82a3d53e8c7273620d52c586  # v3.4.0
+    - name: Install the julia packages
+      # the packages of the generated code (the integrators, the table of a
+      # simulation and the math) of the environment `JULIA_PROJECT`, resolved
+      # within the `[compat]` bounds of its Project.toml, which has no committed
+      # Manifest, so it is resolved first. `Pkg.resolve` does not install the General
+      # registry into a fresh depot (`Pkg.instantiate` and `Pkg.add` would), so it is
+      # added first; on a depot which has it, this updates it
+      run: julia -e 'using Pkg; Pkg.Registry.add("General"); Pkg.resolve(); Pkg.instantiate(); Pkg.precompile()'
+    - name: Test with tox
+      run: uvx --with "tox-uv==${TOX_UV_VERSION}" "tox@${TOX_VERSION}" -e julia
+
+  R:
+    # the generated R code, run with Rscript and deSolve, see the `R` environment
+    # of tox.ini, in which a missing R fails the tests. Like `cobra` and `julia` it
+    # informs and does not gate: it is deliberately not part of the `tests` job the
+    # branch protection requires, so that an outage of the R toolchain does not
+    # block a merge.
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # the interpreter uv manages, see the `test` job
+      UV_PYTHON_PREFERENCE: only-managed
+
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      with:
+        persist-credentials: false
+    - name: Install uv and set the python version
+      # the `R` environment is pinned to python 3.14, see tox.ini
+      uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7  # v10.2.0
+      with:
+        version: "0.12.21"
+        python-version: "3.14"
+        # a release run restores no cache, which zizmor cannot tell from the
+        # expression; the distributions are built without one, see `build`
+        enable-cache: ${{ !startsWith(github.ref, 'refs/tags/') }}  # zizmor: ignore[cache-poisoning]
+    - name: Put libpython on the library search path
+      # the extension of libroadrunner links against libpython, see the `test` job
+      run: |
+        uv python install 3.14
+        prefix="$("$(uv python find --no-project 3.14)" -c 'import sys; print(sys.base_prefix)')"
+        echo "LD_LIBRARY_PATH=${prefix}/lib" >> "$GITHUB_ENV"
+      shell: bash
+    - name: Install R
+      # sets R_LIBS_USER, the library deSolve is installed into, which tox passes on
+      uses: r-lib/actions/setup-r@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05  # v2.14.0
+      with:
+        r-version: "4.4"
+        # binary packages of the Posit package manager, deSolve installs in seconds
+        use-public-rspm: true
+    - name: Install deSolve
+      # the package of `simulate` of the generated code, the rest of it is base R;
+      # `install.packages` only warns if it fails, the check fails the step
+      run: |
+        Rscript -e 'install.packages("deSolve", repos = "https://cloud.r-project.org")'
+        Rscript -e 'if (!requireNamespace("deSolve", quietly = TRUE)) quit(status = 1)'
+    - name: Test with tox
+      run: uvx --with "tox-uv==${TOX_UV_VERSION}" "tox@${TOX_VERSION}" -e R
+
+  latex:
+    # the documents of the ODE export compiled, LaTeX with tectonic and typst with
+    # the typst package, see the `latex` environment of tox.ini, in which a missing
+    # toolchain fails the tests. Like `cobra`, `julia` and `R` it informs and does
+    # not gate: it is deliberately not part of the `tests` job the branch
+    # protection requires, so that an outage of the toolchain does not block a merge.
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # the interpreter uv manages, see the `test` job
+      UV_PYTHON_PREFERENCE: only-managed
+      # the release of tectonic and the checksum of its archive, so that the
+      # binary is the one which was reviewed
+      TECTONIC_VERSION: "0.17.0"
+      TECTONIC_SHA256: "8533d07f9ccbd7a65824b9e0459041bca34af1eb33daba48f59215593753a3b7"
+
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      with:
+        persist-credentials: false
+    - name: Install uv and set the python version
+      # the `latex` environment is pinned to python 3.14, see tox.ini
+      uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7  # v10.2.0
+      with:
+        version: "0.12.21"
+        python-version: "3.14"
+        # a release run restores no cache, which zizmor cannot tell from the
+        # expression; the distributions are built without one, see `build`
+        enable-cache: ${{ !startsWith(github.ref, 'refs/tags/') }}  # zizmor: ignore[cache-poisoning]
+    - name: Install tectonic
+      # the statically linked binary of the release; tectonic downloads the TeX
+      # packages a document uses at its first run
+      run: |
+        archive="tectonic-${TECTONIC_VERSION}-x86_64-unknown-linux-musl.tar.gz"
+        curl --fail --silent --show-error --location --output "${RUNNER_TEMP}/${archive}" \
+          "https://github.com/tectonic-typesetting/tectonic/releases/download/tectonic%40${TECTONIC_VERSION}/${archive}"
+        echo "${TECTONIC_SHA256}  ${RUNNER_TEMP}/${archive}" | sha256sum --check
+        mkdir -p "${RUNNER_TEMP}/tectonic"
+        tar -xzf "${RUNNER_TEMP}/${archive}" -C "${RUNNER_TEMP}/tectonic"
+        echo "${RUNNER_TEMP}/tectonic" >> "$GITHUB_PATH"
+      shell: bash
+    - name: Test with tox
+      run: uvx --with "tox-uv==${TOX_UV_VERSION}" "tox@${TOX_VERSION}" -e latex
+
   build:
     # builds the distributions of a release without any write permission; the
     # jobs which publish them only download what was built here

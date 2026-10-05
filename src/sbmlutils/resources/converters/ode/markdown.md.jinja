@@ -1,0 +1,163 @@
+{#- The markdown document of an ODE system, see `sbmlutils.converters.ode.documents` for the context. -#}
+{#- The math is LaTeX in `$...$` and `$$...$$`, as GitHub and MathJax read it. A line of a sum after the first begins with its sign: the empty group before it spaces the sign as a binary operator. Two equations are set 1ex further apart, as `\jot` sets them in the LaTeX document, so that their fractions do not touch. -#}
+{% macro rhs(lines) %}{{ lines | join(' \\\\\n&\\quad {} ') }}{% endmacro %}
+{% macro equations(rows, relation="=") %}
+$$
+\begin{aligned}
+{% for row in rows %}
+{{ row.lhs }} &{{ relation }} {{ rhs(row.lines) }}{% if row.origin == "rate_rule" %} \qquad \text{(rate rule)}{% endif %}{{ " \\\\[1ex]" if not loop.last }}
+{% endfor %}
+\end{aligned}
+$$
+{% endmacro %}
+{% macro cell(value, kind) %}{% if kind == "check" %}{{ "✓" if value }}{% elif value is none %}{% elif kind == "math" %}${{ value }}${% else %}{{ value }}{% endif %}{% endmacro %}
+{#- A table of rows in columns, each column a list of its header, the key of the cells and their kind: text, math or check. -#}
+{% macro table(rows, columns) %}
+{# a column of names without a name is left out #}
+{% set columns = columns if rows | selectattr("name") | list else columns | rejectattr(1, "equalto", "name") | list %}
+|{% for c in columns %} {{ c[0] }} |{% endfor +%}
+|{% for c in columns %} {{ ":---:" if c[2] == "check" else "---" }} |{% endfor +%}
+{% for row in rows %}
+|{% for c in columns %} {{ cell(row[c[1]], c[2]) }} |{% endfor +%}
+{% endfor %}
+{% endmacro %}
+{% set section = "##" if options.standalone else "###" %}
+{{ "#" if options.standalone else "##" }} {{ model.title }}
+
+{% if model.id %}Model {{ model.id }}, {% endif %}SBML Level {{ model.level }} Version {{ model.version }}{% if model.source %}, read from {{ model.source }}{% endif %}, written by sbmlutils {{ model.sbmlutils }}.
+{% for paragraph in model.notes %}
+
+{{ paragraph }}
+{% endfor %}
+{% if units %}
+
+{{ section }} Units
+
+|{% for unit in units %} {{ unit.kind | capitalize }} |{% endfor +%}
+|{% for unit in units %} --- |{% endfor +%}
+|{% for unit in units %} {{ unit.unit }} |{% endfor +%}
+{% endif %}
+{% if compartments %}
+
+{{ section }} Compartments
+
+{% set units_ = [["Unit", "unit", "text"]] if compartments | selectattr("unit") | list else [] %}
+{{ table(compartments, [["Symbol", "symbol", "math"], ["Id", "id", "text"], ["Name", "name", "text"], ["Size", "value", "math"]] + units_ + [["Constant", "constant", "check"]]) -}}
+{% endif %}
+{% if species %}
+
+{{ section }} Species
+
+{% set units_ = [["Unit", "unit", "text"]] if species | selectattr("unit") | list else [] %}
+{{ table(species, [["Symbol", "symbol", "math"], ["Id", "id", "text"], ["Name", "name", "text"], ["Compartment", "compartment", "math"], ["Value", "value", "math"]] + units_ + [["Properties", "properties", "text"]]) -}}
+{% endif %}
+{% if parameters %}
+
+{{ section }} Parameters
+
+{% set units_ = [["Unit", "unit", "text"]] if parameters | selectattr("unit") | list else [] %}
+{{ table(parameters, [["Symbol", "symbol", "math"], ["Id", "id", "text"], ["Name", "name", "text"], ["Value", "value", "math"]] + units_ + [["Constant", "constant", "check"]]) -}}
+{% endif %}
+{% if functions %}
+
+{{ section }} Function definitions
+
+$$
+\begin{aligned}
+{% for f in functions %}
+{{ f.lhs }} &= {{ f.rhs }}{{ " \\\\[1ex]" if not loop.last }}
+{% endfor %}
+\end{aligned}
+$$
+{% endif %}
+{% if initial or assignments %}
+
+{{ section }} Initial assignments and assignment rules
+{% if initial %}
+
+The initial assignments set the values at $t = 0$:
+
+{{ equations(initial) -}}
+{% endif %}
+{% if assignments %}
+
+The assignment rules hold at every time $t$:
+
+{{ equations(assignments) -}}
+{% endif %}
+{% endif %}
+{% if reactions %}
+
+{{ section }} Reactions
+
+{% set modifiers_ = [["Modifiers", "modifiers", "math"]] if reactions | selectattr("modifiers") | list else [] %}
+{% set locals_ = [["Local parameters", "local_parameters", "math"]] if reactions | selectattr("local_parameters") | list else [] %}
+{{ table(reactions, [["Rate", "symbol", "math"], ["Id", "id", "text"], ["Name", "name", "text"], ["Equation", "equation", "math"]] + modifiers_ + locals_) }}
+The rates of the reactions are:
+
+$$
+\begin{aligned}
+{% for r in reactions %}
+{{ r.symbol }} &= {{ rhs(r.lines) }}{{ " \\\\[1ex]" if not loop.last }}
+{% endfor %}
+\end{aligned}
+$$
+{% endif %}
+{% if odes %}
+
+{{ section }} ODE system
+
+{% set rules = odes | selectattr("origin", "equalto", "rate_rule") | list %}
+The states change in time with {{ "the rates of the reactions and the rate rules" if rules and rules | length < odes | length else ("the rate rules" if rules else "the rates of the reactions") }}:
+
+{{ equations(odes) -}}
+{% for a in amounts %}
+
+The species ${{ a.species }}$ in the compartment ${{ a.compartment }}$ of variable size is integrated as its amount ${{ a.amount }}$, its concentration is ${{ a.species }} = {{ a.amount }} / {{ a.compartment }}$.
+{% endfor %}
+{% endif %}
+{% if events %}
+
+{{ section }} Events
+{% for e in events %}
+
+**Event {{ e.id }}**{% if e.name %} ({{ e.name }}){% endif +%}
+
+- Trigger: ${{ e.trigger }}$
+{% if e.delay is not none %}
+- Delay: ${{ e.delay }}$
+{% endif %}
+{% if e.priority is not none %}
+- Priority: ${{ e.priority }}$
+{% endif %}
+- `initialValue` {{ e.initial_value | lower }}, `persistent` {{ e.persistent | lower }}, `useValuesFromTriggerTime` {{ e.use_trigger_values | lower }}
+{% if e.assignments %}
+
+$$
+\begin{aligned}
+{% for a in e.assignments %}
+{{ a.lhs }} &\mathrel{:=} {{ a.rhs }}{{ " \\\\[1ex]" if not loop.last }}
+{% endfor %}
+\end{aligned}
+$$
+{% for a in e.assignments if a.conversion %}
+
+{% if a.conversion == "amount" %}
+${{ a.lhs }}$ is the amount of ${{ a.species }}$, the assigned concentration times the size of ${{ a.compartment }}$ at the execution of the event.
+{% else %}
+${{ a.lhs }}$ is converted from the size of ${{ a.compartment }}$ at the execution of the event to the size ${{ a.new }}$ the event assigns, so that its amount is kept.
+{% endif %}
+{% endfor %}
+{% endif %}
+{% endfor %}
+{% endif %}
+{% if unsupported %}
+
+{{ section }} Unsupported constructs
+
+The model uses constructs which the ODE system does not express:
+
+{% for u in unsupported %}
+- {{ u.construct }} {{ u.id }}
+{% endfor %}
+{% endif %}

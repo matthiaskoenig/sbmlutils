@@ -24,7 +24,8 @@ Around this core the package collects the tasks which come with SBML models: val
 - **[Flux balance constraints](fbc.md)** - `fbc` models with flux bounds, objectives, gene products and user defined constraints, and a bridge to [cobrapy](https://cobrapy.readthedocs.io).
 - **[COMBINE archives](omex.md)** - models packaged as OMEX archives through [pymetadata](https://github.com/matthiaskoenig/pymetadata).
 - **[Reports](reports.md)** - the complete content of a model as JSON, the basis of the reports on [sbml4humans.de](https://sbml4humans.de).
-- **[Converters](converters.md)** - SBML to an ODE system (python, R, julia, markdown, latex), XPP/XPPAUT `.ode` files to SBML, and antimony in both directions.
+- **[Converters](converters.md)** - XPP/XPPAUT `.ode` files to SBML, antimony in both directions, and the ids of a model written into its names for COPASI.
+- **[ODE export](ode.md)** - the system of ordinary differential equations of a model as code which simulates it (python, julia, R), verified against libroadrunner over the SBML test suite, and as a document which describes it (typst, LaTeX, markdown).
 - **[Interpolation](interpolation.md)** - a table of data points as an SBML model, with constant, linear and cubic spline interpolation.
 - **[Visualization](visualization.md)** - models rendered as a network in [Cytoscape](https://cytoscape.org).
 

@@ -1,0 +1,59 @@
+/* The pages of a compiled document, e.g. the typst document of the ODE export:
+   a grid of pages, each a sheet of paper which links to the page in full size. */
+.md-typeset .doc-pages {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  gap: 1rem;
+  margin: 1em 0;
+}
+
+.md-typeset .doc-pages p {
+  margin: 0;
+}
+
+.md-typeset .doc-pages img {
+  display: block;
+  width: 100%;
+  height: auto;
+  background-color: #fff;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  box-shadow: var(--md-shadow-z1);
+  transition: box-shadow 125ms;
+}
+
+.md-typeset .doc-pages a:hover img,
+.md-typeset .doc-pages a:focus img {
+  box-shadow: var(--md-shadow-z2);
+}
+
+/* A document rendered into a page, e.g. the markdown of the ODE export: set apart
+   from the text around it by a rule on its left. */
+.md-typeset .doc-rendered {
+  margin: 1em 0;
+  padding: 0 0 0 1rem;
+  border-left: 0.2rem solid var(--md-default-fg-color--lightest);
+}
+
+/* display math which is wider than the page scrolls instead of overflowing */
+.md-typeset .arithmatex mjx-container[display="true"] {
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+}
+
+/* compact tables: the tables of a rendered document and a table of many columns,
+   e.g. the species of a model, so that they fit the width of the page */
+.md-typeset .doc-rendered table:not([class]) th,
+.md-typeset .doc-rendered table:not([class]) td,
+.md-typeset .doc-compact table:not([class]) th,
+.md-typeset .doc-compact table:not([class]) td {
+  min-width: 0;
+  padding: 0.6em 0.8em;
+}
+
+/* an id in a compact table stays on one line, the table scrolls on a small screen */
+.md-typeset .doc-rendered table:not([class]) code,
+.md-typeset .doc-compact table:not([class]) code {
+  white-space: nowrap;
+  word-break: normal;
+}

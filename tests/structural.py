@@ -97,6 +97,8 @@ Through the libsbml getters, the `isSet` getter first: an unset attribute is `No
   Accepted when every resource which differs is one of those on one side and on the other side exactly `https://identifiers.org/<collection>:<term>`, or `https://identifiers.org/<term>` if the term carries the collection as its own prefix, or the classic `https://identifiers.org/<collection>/<term>`, which pymetadata writes for a collection its registry does not know and for a term which does not carry the prefix its collection embeds, with the same qualifier, the term unchanged except for the `%3A` of a URN decoded to `:`, and the collection unchanged except for its lower case and the two legacy renames pymetadata applies, `obo.go` to `go` and `biomodels.sbo` to `sbo`. A source of form 3 or 4 carries its collection as the prefix of its term already, so its only accepted result is the identifiers.org URI written in front of it, unchanged in prefix and term.
 
   A result which is none of those URLs is a loss and is never accepted, whichever form it came from: a bare term, which carries neither the collection nor a URI scheme (`http://identifiers.org/sbmlutils.test.collection1/1406` as `1406`), a resource stripped of its collection (`http://identifiers.org/chebi/000000035` as `https://identifiers.org/000000035`), both of which pymetadata wrote up to 0.6.3, and a term whose repeated collection prefix was shortened away.
+
+  The term of a source of form 2 or 3 is the term without its decoration: pymetadata, from 0.7 on, drops the query string, the fragment and one trailing `/` of the term of an `http(s)://identifiers.org` URL, empty or not, so `http://identifiers.org/refseq_synonym/iex?` is written as `https://identifiers.org/refseq_synonym/iex`, and `http://identifiers.org/BTO:0000131/` as `https://identifiers.org/BTO:0000131`. This widens what the entry accepts for those two forms, and only that: the term still has to be unchanged otherwise, and a MIRIAM URN and a bare compact identifier have no decoration dropped (pymetadata percent-encodes a `?` or `#` of theirs, which is a different term and is not accepted).
 """
 
 import math
@@ -380,6 +382,15 @@ _CLASSIC_URL = re.compile(r"https?://identifiers\.org/([a-zA-Z0-9._-]+)/(.+)")
 _COMPACT_URL = re.compile(r"https?://identifiers\.org/([a-zA-Z0-9._-]+:[^/\s]+)")
 _COMPACT_IDENTIFIER = re.compile(r"[a-zA-Z0-9._-]+:[^/\s]+")
 
+#: the decoration pymetadata drops from the term of an identifiers.org URL, as its
+#: `_TERM_PATTERN` does: a query string, a fragment and one trailing `/`, empty or
+#: not, `http://identifiers.org/refseq_synonym/iex?` is written as
+#: `https://identifiers.org/refseq_synonym/iex`; only the `http(s)` URL forms are
+#: affected, a MIRIAM URN and a bare compact identifier keep them (percent-encoded)
+_URL_DECORATION = re.compile(
+    r"(https?://identifiers\.org/[^?#]+?)/?(?:[?#].*)?", re.IGNORECASE | re.DOTALL
+)
+
 #: the collections pymetadata renames, see `RDFAnnotation.replaced_collections`
 _LEGACY_COLLECTIONS: dict[str, str] = {"obo.go": "go", "biomodels.sbo": "sbo"}
 
@@ -432,7 +443,7 @@ def _compact_identifier(resource: str) -> str | None:
 def _normalized_forms(resource: str) -> set[str]:
     """Get the resources pymetadata's canonicalization may write for a resource.
 
-    A resource which is a compact identifier already is written as the identifiers.org URI of exactly that identifier. Otherwise pymetadata splits the resource into its collection and its term and writes the compact `https://identifiers.org/<collection>:<term>`, or `https://identifiers.org/<term>` where the term carries its collection as its own prefix, or the classic `https://identifiers.org/<collection>/<term>` where neither is possible: the registry does not know the collection, or the collection embeds its prefix in the term and the term does not carry it. All of them keep the collection and the term, which is what makes them a normalization.
+    The query string, the fragment and the trailing `/` of an identifiers.org URL, empty or not, are no part of the term and are dropped first, as pymetadata does. A resource which is a compact identifier already is written as the identifiers.org URI of exactly that identifier. Otherwise pymetadata splits the resource into its collection and its term and writes the compact `https://identifiers.org/<collection>:<term>`, or `https://identifiers.org/<term>` where the term carries its collection as its own prefix, or the classic `https://identifiers.org/<collection>/<term>` where neither is possible: the registry does not know the collection, or the collection embeds its prefix in the term and the term does not carry it. All of them keep the collection and the term, which is what makes them a normalization.
 
     Args:
         resource: a resource, e.g. `urn:miriam:chebi:CHEBI%3A33699`
@@ -440,6 +451,9 @@ def _normalized_forms(resource: str) -> set[str]:
     Returns:
         the forms of the resource; empty for a resource which is none of the four source forms
     """
+    decorated = _URL_DECORATION.fullmatch(resource)
+    if decorated is not None:
+        resource = decorated.group(1)
     compact = _compact_identifier(resource)
     if compact is not None:
         return {f"{_IDENTIFIERS_ORG}{compact}"}
@@ -531,7 +545,10 @@ WHITELIST: tuple[Normalization, ...] = (
             "https://identifiers.org/CHEBI:33699, "
             "https://identifiers.org/CHEBI:12965 and "
             "https://identifiers.org/UO:0000021: the same identifier, resolved by "
-            "the same registry"
+            "the same registry. It also drops the query string, the fragment and "
+            "the trailing slash of the term of an identifiers.org URL, empty or "
+            "not, so http://identifiers.org/refseq_synonym/iex? is written as "
+            "https://identifiers.org/refseq_synonym/iex"
         ),
         equivalent=_identifiers_org,
     ),

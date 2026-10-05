@@ -35,10 +35,9 @@ Conversion of a model into another representation, see [Converters](../converter
 
 | module | description |
 | --- | --- |
-| [converters.odefac](converters.odefac.md) | the ODE system as python, R, julia, markdown or latex |
+| [converters.ode](converters.ode.md) | the ODE system as python, julia or R code and as a typst, LaTeX or markdown document |
 | [converters.xpp](converters.xpp.md) | XPP/XPPAUT ode files to SBML |
 | [converters.copasi](converters.copasi.md) | ids written into the names for COPASI |
-| [converters.mathml](converters.mathml.md) | MathML to formula strings |
 
 ## sbmlutils.data
 

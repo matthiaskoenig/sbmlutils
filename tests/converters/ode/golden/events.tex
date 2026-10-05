@@ -1,0 +1,151 @@
+\documentclass{article}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage{lmodern}
+\else
+  \usepackage{fontspec}
+\fi
+\usepackage{amsmath, amssymb, booktabs, xltabular, parskip, hyperref}
+\usepackage[margin=2cm]{geometry}
+% the equations of a section are one alignment, which breaks across pages
+\allowdisplaybreaks
+\setlength{\jot}{1.5ex}
+\renewcommand{\arraystretch}{1.15}
+
+\begin{document}
+
+{\centering\LARGE\bfseries events\_model\par}
+\bigskip
+
+Model \texttt{events\_model}, SBML Level 3 Version 2, read from events.xml, written by sbmlutils VERSION.
+
+\section{Compartments}
+
+\begin{longtable}[l]{@{}l l l c@{}}
+  \toprule
+  \textbf{Symbol} & \textbf{Id} & \textbf{Size} & \textbf{Constant} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  $c$ & \texttt{c} & $1$ & $\checkmark$ \\
+  $V$ & \texttt{V} & $2$ &  \\
+\end{longtable}
+
+\section{Species}
+
+\begin{xltabular}{\linewidth}{@{}l l >{\raggedright\arraybackslash\hspace{0pt}}X l l >{\raggedright\arraybackslash\hspace{0pt}}X@{}}
+  \toprule
+  \textbf{Symbol} & \textbf{Id} & \textbf{Name} & \textbf{Compartment} & \textbf{Value} & \textbf{Properties} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  $S$ & \texttt{S} & substrate & $c$ &  & concentration \\
+  $P$ & \texttt{P} &  & $c$ & $0$ & concentration \\
+  $A$ & \texttt{A} &  & $V$ & $5$ & concentration \\
+  $B$ & \texttt{B} &  & $V$ & $1$ & concentration \\
+\end{xltabular}
+
+\section{Parameters}
+
+\begin{longtable}[l]{@{}l l l c@{}}
+  \toprule
+  \textbf{Symbol} & \textbf{Id} & \textbf{Value} & \textbf{Constant} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  $\mathrm{vmax}$ & \texttt{vmax} & $2$ & $\checkmark$ \\
+  $\mathrm{km}$ & \texttt{km} & $0.5$ & $\checkmark$ \\
+  $k_{1}$ & \texttt{k1} & $0.1$ & $\checkmark$ \\
+  $k_{2}$ & \texttt{k2} &  &  \\
+  $S_{0}$ & \texttt{S0} & $10$ & $\checkmark$ \\
+  $\mathrm{total}$ & \texttt{total} & $0$ &  \\
+\end{longtable}
+
+\section{Function definitions}
+
+\begin{align*}
+  \mathrm{mm}\mathopen{}\left(S, \mathrm{km}\right) &= \frac{S}{\mathrm{km} + S}
+\end{align*}
+
+\section{Initial assignments and assignment rules}
+
+The initial assignments set the values at $t = 0$:
+\begin{align*}
+  S &= S_{0} \\
+  n_{A} &= A \cdot V
+\end{align*}
+
+The assignment rules hold at every time $t$:
+\begin{align*}
+  A &= \frac{n_{A}}{V} \\
+  k_{2} &= 2 \cdot k_{1}
+\end{align*}
+
+\section{Reactions}
+
+\begin{xltabular}{\linewidth}{@{}l l >{\raggedright\arraybackslash\hspace{0pt}}X@{}}
+  \toprule
+  \textbf{Rate} & \textbf{Id} & \textbf{Equation} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  $v_{\mathrm{J0}}$ & \texttt{J0} & $S \rightleftharpoons P$ \\
+  $v_{\mathrm{J1}}$ & \texttt{J1} & $S + A \rightleftharpoons 2 \, P$ \\
+\end{xltabular}
+
+The rates of the reactions are:
+\begin{align*}
+  v_{\mathrm{J0}} &= \mathrm{vmax} \cdot \mathrm{mm}\mathopen{}\left(S, \mathrm{km}\right) \\
+  v_{\mathrm{J1}} &= k_{1} \cdot S \cdot A
+\end{align*}
+
+\section{ODE system}
+
+The states change in time with the rates of the reactions and the rate rules:
+\begin{align*}
+  \frac{\mathrm{d} V}{\mathrm{d} t} &= 0.1 \qquad \text{(rate rule)} \\
+  \frac{\mathrm{d} S}{\mathrm{d} t} &= \frac{-v_{\mathrm{J0}} - v_{\mathrm{J1}}}{c} \\
+  \frac{\mathrm{d} P}{\mathrm{d} t} &= \frac{v_{\mathrm{J0}} + 2 \cdot v_{\mathrm{J1}}}{c} \\
+  \frac{\mathrm{d} n_{A}}{\mathrm{d} t} &= -v_{\mathrm{J1}} \\
+  \frac{\mathrm{d} B}{\mathrm{d} t} &= -0.1 \cdot B \qquad \text{(rate rule)}
+\end{align*}
+
+The species $A$ in the compartment $V$ of variable size is integrated as its amount $n_{A}$, its concentration is $A = n_{A} / V$.
+
+\section{Events}
+
+\textbf{Event \texttt{E1}} (reset)
+
+\begin{itemize}
+  \item Trigger: $t > 5$
+  \item Priority: $1$
+  \item \texttt{initialValue} true, \texttt{persistent} true, \texttt{useValuesFromTriggerTime} true
+\end{itemize}
+\begin{align*}
+  V &\mathrel{:=} 2 \cdot V \\
+  S &\mathrel{:=} 10 \\
+  B &\mathrel{:=} \frac{B \cdot V}{V^{\mathrm{new}}}
+\end{align*}
+
+$B$ is converted from the size of $V$ at the execution of the event to the size $V^{\mathrm{new}}$ the event assigns, so that its amount is kept.
+
+\textbf{Event \texttt{E2}}
+
+\begin{itemize}
+  \item Trigger: $S < 2$
+  \item Delay: $1$
+  \item \texttt{initialValue} true, \texttt{persistent} true, \texttt{useValuesFromTriggerTime} true
+\end{itemize}
+\begin{align*}
+  n_{A} &\mathrel{:=} V \\
+  \mathrm{total} &\mathrel{:=} \mathrm{total} + 1
+\end{align*}
+
+$n_{A}$ is the amount of $A$, the assigned concentration times the size of $V$ at the execution of the event.
+
+\end{document}

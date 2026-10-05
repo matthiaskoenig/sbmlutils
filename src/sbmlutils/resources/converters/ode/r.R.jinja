@@ -1,0 +1,808 @@
+{#- The R code of an ODE system, see `sbmlutils.converters.ode.formats` for the context. -#}
+{% macro comment(text) %}{% if text %}  # {{ text }}{% endif %}{% endmacro %}
+{% macro lines(text) %}
+{% for line in text.splitlines() %}
+#{{ " " ~ line if line else "" }}
+{% endfor %}
+{% endmacro %}
+{% macro body(scope) %}
+{% if scope.states %}
+  # states
+{% for x in scope.states %}
+  {{ x.code }} <- x[[{{ x.index }}]]{{ comment(x.comment) }}
+{% endfor %}
+{% endif %}
+{% if scope.constants %}
+  # constants
+{% for c in scope.constants %}
+  {{ c.code }} <- p[[{{ c.index }}]]{{ comment(c.comment) }}
+{% endfor %}
+{% endif %}
+{% if scope.assignments %}
+  # assigned values and reaction rates
+{% for a in scope.assignments %}
+  {{ a.code }} <- {{ a.expr }}{{ comment(a.comment) }}
+{% endfor %}
+{% endif %}
+{% endmacro %}
+{% macro ids(variables) %}
+{% if variables %}c(
+{% for v in variables %}
+  "{{ v.id }}"{{ "" if loop.last else "," }}{{ comment(v.comment) }}
+{% endfor %}
+){% else %}character(0){% endif %}
+{% endmacro %}
+{% macro texts(key) %}
+{% set variables = states + constants + assigned %}
+{% if variables %}c(
+{% for v in variables %}
+  "{{ v.id }}" = {{ v[key] | r_string }}{{ "" if loop.last else "," }}
+{% endfor %}
+){% else %}character(0){% endif %}
+{% endmacro %}
+# The ODE system of the model {{ "`" ~ model.id ~ "`" if model.id else "without id" }}{% if model.name and model.name != model.id %}: {{ model.name }}{% endif %}.
+#
+# Written by sbmlutils {{ model.sbmlutils }}{% if model.source %} from {{ model.source }}{% endif %}, SBML L{{ model.level }}V{{ model.version }}.
+{% set units = [] %}
+{% for key, unit in model.units.items() if unit %}
+{% set _ = units.append([key, unit]) %}
+{% endfor %}
+{% if units %}
+#
+# Units of the model:
+#
+{{ lines(table(units, 2)) -}}
+{% endif %}
+{% if states %}
+#
+# States x:
+#
+{{ lines(table([["", "id", "name", "unit"]] + rows(states, "index", "id", "name", "unit"), 2)) -}}
+{% endif %}
+#
+# `initial_values(p)` returns the initial states x0 and the constants p at t = 0,
+# `f_dxdt(t, x, p)` the rates of change of the states (in a list, as deSolve
+# wants them) and `f_y(t, x, p)` the assigned values y, the rules and the
+# reaction rates.
+{% if events %}
+# `EVENTS` lists the events with the functions of their delays, priorities and
+# assignments, `event_triggers(t, x, p)` and `event_conditions(t, x, p)` their
+# triggers.
+{% endif %}
+{% if options.simulator and events %}
+# `simulate(t_end)` returns a data.frame of a simulation with `deSolve::lsoda`,
+# which executes the events. Sourcing the file needs base R only, a simulation
+# the package deSolve; the file run as a script prints the head of a simulation.
+{% elif options.simulator %}
+# `simulate(t_end)` returns a data.frame of a simulation with `deSolve::lsoda`.
+# Sourcing the file needs base R only, a simulation the package deSolve; the file
+# run as a script prints the head of a simulation.
+{% else %}
+# Sourcing the file needs base R only.
+{% endif %}
+
+# the ids of the states x, the constants p and the assigned values y
+XIDS <- {{ ids(states) }}
+PIDS <- {{ ids(constants) }}
+YIDS <- {{ ids(assigned) }}
+
+# the names and the units of the ids, `NA` for none
+NAMES <- {{ texts("name") }}
+UNITS <- {{ texts("unit") }}
+
+# the default values of the constants, `NaN` for one without a value, e.g. one
+# which an initial assignment sets and `initial_values` computes
+P0 <- {% if constants %}c(
+{% for c in constants %}
+  "{{ c.id }}" = {{ c.value if c.value is not none else "NaN" }}{{ "" if loop.last else "," }}{{ comment(c.comment) }}
+{% endfor %}
+){% else %}numeric(0){% endif %}
+
+{% for f in functions %}
+
+{% if f.name %}
+# {{ f.name }}
+{% endif %}
+{{ f.code }} <- function({{ f.arguments | join(", ") }}) {{ f.body }}
+{% endfor %}
+
+# The initial states x0 and the constants p at t = 0.
+#
+# The initial values, initial assignments and the rules they need are evaluated
+# in the order of their dependencies.
+{% if scopes.initial.computed %}
+#
+# These constants are computed, a value passed for them is replaced:
+#
+{% set computed = [] %}
+{% for c in scopes.initial.computed %}
+{% set origin = "initial assignment" if c.origin == "initial_assignment" else "converted with its compartment" %}
+{% set _ = computed.append(["p[[%d]]" % c.index, c.id, origin]) %}
+{% endfor %}
+{{ lines(table(computed, 2)) -}}
+{% else %}
+#
+# Every constant keeps the value passed.
+{% endif %}
+#
+# Returns a list of the initial states x0 and the constants p, named vectors.
+initial_values <- function(p = P0) {
+  p <- as.numeric(p)
+{% set scope = scopes.initial %}
+{% if scope.time %}
+  t <- 0  # the initial time
+{% endif %}
+{% if scope.constants %}
+  # constants
+{% for c in scope.constants %}
+  {{ c.code }} <- p[[{{ c.index }}]]{{ comment(c.comment) }}
+{% endfor %}
+{% endif %}
+{% if scope.assignments %}
+  # initial values
+{% for a in scope.assignments %}
+  {{ a.code }} <- {{ a.expr }}{{ comment(a.comment) }}
+{% endfor %}
+{% endif %}
+{% if scope.computed %}
+  # the constants set by the initial values
+{% for c in scope.computed %}
+  p[[{{ c.index }}]] <- {{ c.code }}
+{% endfor %}
+{% endif %}
+{% if states %}
+  x0 <- as.numeric({{ wrapped(states | map(attribute="code") | list, 2, 19, 1, 88, ("c(", ")"), False) }})
+{% else %}
+  x0 <- numeric(0)
+{% endif %}
+  names(x0) <- XIDS
+  names(p) <- PIDS
+  list(x0 = x0, p = p)
+}
+
+# The rates of change dx/dt of the states x at the time t, in a list (deSolve).
+f_dxdt <- function(t, x, p) {
+{% set text = body(scopes.dxdt) | trim("\n") %}
+{% if text %}
+{{ text }}
+{% endif %}
+  # rates of change
+  dx <- numeric({{ odes | length }})
+{% for ode in odes %}
+  dx[[{{ ode.index }}]] <- {{ ode.expr }}  # d{{ ode.id }}/dt
+{% endfor %}
+  list(dx)
+}
+
+# The assigned values y at the time t, the rules and the reaction rates.
+f_y <- function(t, x, p) {
+{% set text = body(scopes.y) | trim("\n") %}
+{% if text %}
+{{ text }}
+{% endif %}
+{% if assigned %}
+  as.numeric({{ wrapped(assigned | map(attribute="code") | list, 2, 13, 1, 88, ("c(", ")"), False) }})
+{% else %}
+  numeric(0)
+{% endif %}
+}
+{% if events %}
+
+# The root function of the trigger of each event, positive where it holds.
+#
+# An integrator locates the time at which a trigger changes as a root of its
+# function. At a root, where the function is 0, the trigger itself decides, see
+# `event_conditions`: `a >= b` holds at `a == b`, `a > b` does not.
+event_triggers <- function(t, x, p) {
+{% set text = body(scopes.roots) | trim("\n") %}
+{% if text %}
+{{ text }}
+{% endif %}
+  as.numeric(c(
+{% for e in events %}
+    {{ e.root }}{{ "" if loop.last else "," }}  # {{ e.id }}{% if e.comment %} {{ e.comment }}{% endif %}
+
+{% endfor %}
+  ))
+}
+
+# Whether the trigger of each event holds.
+event_conditions <- function(t, x, p) {
+{% set text = body(scopes.triggers) | trim("\n") %}
+{% if text %}
+{{ text }}
+{% endif %}
+  c(
+{% for e in events %}
+    {{ e.trigger }}{{ "" if loop.last else "," }}  # {{ e.id }}{% if e.comment %} {{ e.comment }}{% endif %}
+
+{% endfor %}
+  )
+}
+{% for e in events %}
+{% if e.delay is not none %}
+
+# The delay of the event {{ e.id }}, evaluated when its trigger turns true.
+{{ e.functions.delay }} <- function(t, x, p) {
+{% set text = body(e.scopes.delay) | trim("\n") %}
+{% if text %}
+{{ text }}
+{% endif %}
+  {{ e.delay }}
+}
+{% endif %}
+{% if e.priority is not none %}
+
+# The priority of the event {{ e.id }}, evaluated before each execution.
+{{ e.functions.priority }} <- function(t, x, p) {
+{% set text = body(e.scopes.priority) | trim("\n") %}
+{% if text %}
+{{ text }}
+{% endif %}
+  {{ e.priority }}
+}
+{% endif %}
+
+# The values the event {{ e.id }} assigns, evaluated {{ "when its trigger turns true" if e.use_trigger_values else "at its execution" }}.
+{{ e.functions["values"] }} <- function(t, x, p) {
+{% set text = body(e.scopes["values"]) | trim("\n") %}
+{% if text %}
+{{ text }}
+{% endif %}
+  as.numeric(c(
+{% for a in e.assignments %}
+{% if a.expr is none %}
+    NaN{{ "" if loop.last else "," }}  # {{ a.id }}: not assigned, its amount is kept
+{% else %}
+    {{ a.expr }}{{ "" if loop.last else "," }}  # {{ a.id }}{% if a.comment %} {{ a.comment }}{% endif %}
+
+{% endif %}
+{% endfor %}
+  ))
+}
+
+# Execute the event {{ e.id }}: a list of the states x and the constants p with the
+# values.
+{% if e.assignments | selectattr("scale") | list %}
+#
+# The size of a compartment which scales a value is the size before the event: a
+# concentration held as its amount is assigned the amount of the new
+# concentration, a concentration with a rate rule keeps its amount when the size
+# of its compartment changes.
+{% endif %}
+{{ e.functions.assign }} <- function(t, x, p, values) {
+{% set text = body(e.scopes.assign) | trim("\n") %}
+{% if text %}
+{{ text }}
+{% endif %}
+{% for a in e.assignments %}
+{% set value = "values[[%d]]" % loop.index %}
+{% if a.expr is none %}
+{% set value = a.scale %}
+{% elif a.scale is not none %}
+{% set value = value ~ " * " ~ a.scale %}
+{% endif %}
+{% if a.divisor_position is not none %}
+{% set value = value ~ " / values[[%d]]" % (a.divisor_position + 1) %}
+{% endif %}
+  {{ "x" if a.kind == "state" else "p" }}[[{{ a.index }}]] <- {{ value }}  # {{ a.id }}{% if a.comment %} {{ a.comment }}{% endif %}
+
+{% endfor %}
+  list(x = x, p = p)
+}
+{% endfor %}
+
+# the events in the order of the model: their flags and the functions of their
+# delay, priority and assignments; the trigger of EVENTS[[k]] is the entry k of
+# `event_triggers` and `event_conditions`
+EVENTS <- list(
+{% for e in events %}
+  list(
+    id = "{{ e.id }}",
+    initial_value = {{ "TRUE" if e.initial_value else "FALSE" }},
+    persistent = {{ "TRUE" if e.persistent else "FALSE" }},
+    use_trigger_values = {{ "TRUE" if e.use_trigger_values else "FALSE" }},
+    delay = {{ e.functions.delay or "NULL" }},
+    priority = {{ e.functions.priority or "NULL" }},
+    values = {{ e.functions["values"] }},
+    assign = {{ e.functions.assign }}
+  ){{ "" if loop.last else "," }}
+{% endfor %}
+)
+{% else %}
+
+# the model has no events
+EVENTS <- list()
+{% endif %}
+{% if options.simulator %}
+
+{% if events %}
+# the limits of a simulation: the steps of the integrator beyond those which the
+# largest step forces, and the executions of events at one time, beyond which an
+# infinite cascade is probable
+{% else %}
+# the limits of a simulation: the steps of the integrator beyond those which the
+# largest step forces
+{% endif %}
+MAX_STEPS <- 100000
+{% if events %}
+MAX_CASCADE <- 10000
+
+# the points per largest step of the integrator at which the triggers are
+# evaluated besides the ends of its steps, as in the python and the julia code
+TRIGGER_POINTS <- 10
+{% endif %}
+{% if states or events %}
+
+# The states at the times, integrated with `deSolve::lsoda` from the states x at
+# the first time.
+#
+{% if events %}
+# The integrator steps at most `hmax`; with `roots` it checks the root functions of
+# the triggers, `event_triggers`, at the end of each step and at each time, and
+# stops at the first root it finds. An interval which is too short for the
+# integrator, to the rounding of the time, is extrapolated with the rates of
+# change.
+#
+# Returns a list of the times up to the stop, the states at them (a matrix of a row
+# per time), whether the integration stopped at a root, and the number of steps,
+# `steps` plus those of the integration. Throws an error if the integration fails
+# or takes more than `max_steps` steps in all.
+{% else %}
+# The integrator steps at most `hmax`. An interval which is too short for the
+# integrator, to the rounding of the time, is extrapolated with the rates of
+# change.
+#
+# Returns a list of the times, the states at them (a matrix of a row per time) and
+# the number of steps, `steps` plus those of the integration. Throws an error if
+# the integration fails or takes more than `max_steps` steps in all.
+{% endif %}
+integrate_segment <- function(x, times, p, rtol, atol, hmax, steps, max_steps{% if events %},
+                              roots = FALSE{% endif %}) {
+  n_times <- length(times)
+  if (times[[n_times]] - times[[1]] < 4 * .Machine$double.eps * max(1, abs(times))) {
+    dx <- f_dxdt(times[[1]], x, p)[[1]]
+    states <- matrix(x, n_times, length(x), byrow = TRUE)
+    states <- states + outer(times - times[[1]], dx)
+    return(list(time = times, states = states{% if events %}, root = FALSE{% endif %}, steps = steps))
+  }
+  # the steps of the integrator, counted while it integrates as the new times at
+  # which it evaluates the rates of change (a step evaluates them at its end, a step
+  # which fails as well): deSolve limits the steps between two outputs only
+  # (`maxsteps`), the count stops the integration as soon as it exceeds `max_steps`
+  counted <- steps
+  t_counted <- NA_real_
+  exceeded <- function(t_at) {
+    stop(
+      "The integration took more than ", max_steps, " steps, at t = ",
+      format(t_at, digits = 15), ".",
+      call. = FALSE
+    )
+  }
+  rates <- function(t, y, p) {
+    if (!identical(t, t_counted)) {
+      t_counted <<- t
+      counted <<- counted + 1
+      if (counted > max_steps) {
+        exceeded(t)
+      }
+    }
+{% if states %}
+    f_dxdt(t, y, p)
+{% else %}
+    list(0)  # without states the integrator integrates a constant, the time
+{% endif %}
+  }
+  # the warnings, e.g. of the math of the model, and the messages the solver prints
+  warned <- character(0)
+  messages <- utils::capture.output(
+    solution <- withCallingHandlers(
+      deSolve::lsoda(
+        {{ "x" if states else "0" }}, times, rates, p,
+        rtol = rtol, atol = atol,
+{% if events %}
+{% if states %}
+        rootfunc = if (roots) event_triggers,
+{% else %}
+        rootfunc = if (roots) function(t, y, p) event_triggers(t, x, p),
+{% endif %}
+{% endif %}
+        tcrit = times[[n_times]], hmax = if (is.finite(hmax)) hmax else 0,
+        maxsteps = max(1, max_steps - steps + 1), ynames = FALSE
+      ),
+      warning = function(condition) {
+        warned <<- c(warned, conditionMessage(condition))
+        invokeRestart("muffleWarning")
+      }
+    )
+  )
+  # the messages of the solver, separated by empty lines, hold bytes which are no
+  # text, e.g. of DLSODAR
+  printed <- trimws(gsub("[^ -~]", "", messages, useBytes = TRUE))
+  blocks <- split(printed, cumsum(!nzchar(printed)))
+  solver <- unique(vapply(blocks, function(lines) {
+    paste(lines[nzchar(lines)], collapse = " ")
+  }, character(1)))
+  solver <- solver[nzchar(solver)]
+  warned <- unique(warned)
+  istate <- attr(solution, "istate")
+  t_reached <- attr(solution, "rstate")[[3]]
+  steps <- max(counted, steps + max(1, istate[[2]]))
+  if (istate[[1]] == -1 || steps > max_steps) {
+    exceeded(t_reached)
+  }
+  if (istate[[1]] < 0) {
+    stop(
+      "The integration failed at t = ", format(t_reached, digits = 15), ": ",
+      paste(c(warned, solver), collapse = " "),
+      call. = FALSE
+    )
+  }
+  # the warnings and the messages of the solver, one by one
+  for (reported in warned) {
+    warning(reported, call. = FALSE)
+  }
+  for (reported in solver) {
+    warning(
+      "The integrator reports at t = ", format(t_reached, digits = 15), ": ",
+      reported,
+      call. = FALSE
+    )
+  }
+  list(
+    time = solution[, 1],
+{% if states %}
+    states = solution[, -1, drop = FALSE],
+{% else %}
+    states = matrix(numeric(0), nrow(solution), 0),
+{% endif %}
+{% if events %}
+    root = !is.null(attr(solution, "troot")),
+{% endif %}
+    steps = steps
+  )
+}
+{% endif %}
+{% endif %}
+{% if options.simulator and events %}
+
+# The first time between two times of the integration at which a trigger changes.
+#
+# Bisection on the solution, between a time without and a time with a change,
+# finds the first time with a change to the rounding error: `time >= 1` changes
+# at t = 1. A trigger which keeps its value at its root and changes right after
+# it, `time > 1` at t = 1, changes at a time clearly after the root, as an
+# integrator locates it, so that the time stays after the root when a delay is
+# added to it.
+#
+# Arguments:
+# - interpolant: the solution, a function of the time which returns the states
+# - t_old: the earlier time, where the triggers are `holds`
+# - t_new: the later time, where a trigger differs from `holds`
+# - p: the constants
+# - holds: whether each trigger holds at `t_old`
+first_change <- function(interpolant, t_old, t_new, p, holds) {
+  changed <- function(t) any(event_conditions(t, interpolant(t), p) != holds)
+  t_low <- t_old
+  t_high <- t_new
+  repeat {
+    t_middle <- t_low + (t_high - t_low) / 2
+    if (t_middle <= t_low || t_middle >= t_high) {
+      break
+    }
+    if (changed(t_middle)) {
+      t_high <- t_middle
+    } else {
+      t_low <- t_middle
+    }
+  }
+  turned <- event_conditions(t_high, interpolant(t_high), p) != holds
+  if (any(event_triggers(t_low, interpolant(t_low), p)[turned] == 0)) {
+    return(min(t_new, t_low + 1e-13 * max(1, abs(t_low))))
+  }
+  t_high
+}
+
+# The states right after the time t, extrapolated from the states x at t with
+# their rates of change, a function of the time.
+#
+# The integrator stops at a root of a trigger right before or at it; the change
+# of the trigger, at its root or right after it, is located with `first_change`
+# on the extrapolation.
+extrapolation <- function(t, x, p) {
+  dx <- f_dxdt(t, x, p)[[1]]
+  function(t_after) x + (t_after - t) * dx
+}
+
+# Execute the events due at the time t.
+#
+# 1. A trigger which turned true schedules an execution of its event at t plus
+#    its delay, with the values of its assignments if it uses the values from
+#    the trigger time; a trigger which turned false drops the executions of its
+#    event unless it is persistent.
+# 2. Of the executions due, the one of the highest priority is executed (an
+#    event without a priority has the priority 0), ties in the order of
+#    `EVENTS`, which SBML leaves to chance.
+# 3. The triggers are evaluated with the new states and constants, repeating
+#    from step 1 until no execution is due: an event can trigger another one or
+#    drop it. More than `MAX_CASCADE` executions at one time throw an error.
+#
+# Arguments:
+# - t: the time
+# - x: the states
+# - p: the constants
+# - holds: whether each trigger held before t
+# - pending: the scheduled executions, a list of lists of the index of the event
+#   in `EVENTS`, the time of the execution and the values of its assignments
+#   from the trigger time, `NULL` if they are evaluated at the execution
+#
+# Returns a list of the states x, the constants p, whether each trigger holds
+# and the scheduled executions, after the events.
+execute_events <- function(t, x, p, holds, pending) {
+  executions <- 0
+  repeat {
+    holds_now <- event_conditions(t, x, p)
+    for (event_index in seq_along(EVENTS)) {
+      event <- EVENTS[[event_index]]
+      if (holds_now[[event_index]] && !holds[[event_index]]) {
+        delay_time <- if (is.null(event$delay)) 0 else event$delay(t, x, p)
+        values <- if (event$use_trigger_values) event$values(t, x, p) else NULL
+        pending[[length(pending) + 1]] <- list(
+          event = event_index, time = t + delay_time, values = values
+        )
+      } else if (holds[[event_index]] && !holds_now[[event_index]] &&
+                 !event$persistent) {
+        # the trigger turned false, the executions of the event are dropped
+        pending <- Filter(function(scheduled) scheduled$event != event_index, pending)
+      }
+    }
+    holds <- holds_now
+
+    due <- which(vapply(pending, function(scheduled) scheduled$time <= t, logical(1)))
+    if (length(due) == 0) {
+      return(list(x = x, p = p, holds = holds, pending = pending))
+    }
+
+    # the priority of each execution due, ties in the order of `EVENTS`
+    ranks <- vapply(due, function(position) {
+      event <- EVENTS[[pending[[position]]$event]]
+      if (is.null(event$priority)) 0 else event$priority(t, x, p)
+    }, numeric(1))
+    order_due <- vapply(due, function(position) pending[[position]]$event, numeric(1))
+    chosen <- due[[order(-ranks, order_due)[[1]]]]
+    executions <- executions + 1
+    if (executions > MAX_CASCADE) {
+      stop(
+        "More than ", MAX_CASCADE, " events were executed at t = ",
+        format(t, digits = 15), ", the events trigger each other in an infinite ",
+        "cascade.",
+        call. = FALSE
+      )
+    }
+    execution <- pending[[chosen]]
+    pending[[chosen]] <- NULL
+    event <- EVENTS[[execution$event]]
+    values <- execution$values
+    if (is.null(values)) {
+      values <- event$values(t, x, p)
+    }
+    assigned <- event$assign(t, x, p, values)
+    x <- assigned$x
+    p <- assigned$p
+  }
+}
+{% endif %}
+{% if options.simulator %}
+
+{% if events %}
+# Simulate the model from t = 0 to `t_end`, with its events.
+#
+# The triggers before t = 0 have their initial values, a trigger which holds at
+# t = 0 and has the initial value false fires at t = 0. The integration stops
+# where a trigger changes, at the execution of a delayed event and at `t_end`;
+# there the events are executed, see `execute_events`, and the integration
+# restarts with the states and constants after them.
+#
+# `deSolve::lsoda` checks the root functions of the triggers at the end of each
+# step, which is at most `hmax`, and at `TRIGGER_POINTS` points per `hmax`, and
+# stops at a root; the triggers are evaluated at the same points, and the first
+# change is located by `first_change` on the integration. A trigger which holds
+# for a shorter time than the distance of these points can be stepped over. A
+# time point at a delayed execution, to the rounding of the time (1e-14
+# relative), has the values after it: the rounding errors of the integration
+# shift the time of the trigger, not its integration error.
+# The points are outputs of the integration, `TRIGGER_POINTS * t_end / hmax` of
+# them in all: a tiny `hmax` makes many outputs, and each one evaluates the
+# triggers.
+{% else %}
+# Simulate the model from t = 0 to `t_end`.
+{% endif %}
+#
+# Arguments:
+# - t_end: the end time
+# - points: the number of time points, 0 and `t_end` included
+# - p: the constants, `P0` if not given
+# - x0: the initial states, those of `initial_values` if not given
+# - rtol: the relative tolerance of the integration
+# - atol: the absolute tolerance of the integration
+# - hmax: the largest step of the integrator, by default the distance of the
+#   time points
+# - max_steps: the largest number of steps of the integrator, by default
+#   `MAX_STEPS` plus twice the number of steps `hmax` forces
+#
+{% if event_constants %}
+# Returns a data.frame of the time, the states, the assigned values and the
+# constants which events change at the time points, at the time of an event the
+# values after it.
+{% elif events %}
+# Returns a data.frame of the time, the states and the assigned values at the
+# time points, at the time of an event the values after it.
+{% else %}
+# Returns a data.frame of the time, the states and the assigned values at the
+# time points.
+{% endif %}
+{% if events %}
+# Throws an error if the integration fails or takes more than `max_steps` steps,
+# e.g. when a state grows without bound, and for an infinite cascade of events.
+{% else %}
+# Throws an error if the integration fails or takes more than `max_steps` steps,
+# e.g. when a state grows without bound.
+{% endif %}
+simulate <- function(t_end, points = 101, p = NULL, x0 = NULL, rtol = 1e-8,
+                     atol = 1e-10, hmax = NULL, max_steps = NULL) {
+  initial <- initial_values(if (is.null(p)) P0 else p)
+  p <- unname(initial$p)
+  x <- if (is.null(x0)) unname(initial$x0) else as.numeric(x0)
+  # the time points, a single one at t = 0
+  times <- if (points > 1) seq(0, t_end, length.out = points) else rep(0, points)
+  if (is.null(hmax)) {
+    hmax <- if (points > 1 && t_end > 0) times[[2]] else Inf
+  }
+  if (is.null(max_steps)) {
+    max_steps <- MAX_STEPS + 2 * ceiling(t_end / hmax)
+  }
+  xs <- rep(list(x), points)  # the states at the time points
+  ps <- rep(list(p), points)  # the constants at the time points
+{% if events %}
+  recorded <- 0  # the time points which are recorded
+  steps <- 0  # the steps of the integrator
+
+  t <- 0
+  holds <- vapply(EVENTS, function(event) event$initial_value, logical(1))
+  pending <- list()  # the scheduled executions of the events
+  after <- execute_events(t, x, p, holds, pending)
+  x <- after$x
+  p <- after$p
+  holds <- after$holds
+  pending <- after$pending
+  while (t < t_end) {
+    # integrate to the next execution of a delayed event, at most to t_end
+    t_stop <- min(
+      t_end, vapply(pending, function(scheduled) scheduled$time, numeric(1))
+    )
+    # the outputs: the time points and `TRIGGER_POINTS` points per hmax, without
+    # those too close to t for the integrator, which are at t
+    outputs <- times[times > t & times < t_stop]
+    if (is.finite(hmax)) {
+      outputs <- c(outputs, seq(t, t_stop, by = hmax / TRIGGER_POINTS))
+    }
+    gap <- 4 * .Machine$double.eps * max(1, abs(t), abs(t_stop))
+    outputs <- sort(unique(outputs[outputs > t + gap & outputs < t_stop]))
+    segment <- integrate_segment(
+      x, c(t, outputs, t_stop), p, rtol, atol, hmax, steps, max_steps, roots = TRUE
+    )
+    steps <- segment$steps
+    n_outputs <- length(segment$time)
+    # the first output at which a trigger changes, after the last one for none
+    k_change <- 2
+    while (k_change <= n_outputs) {
+      time_change <- segment$time[[k_change]]
+      if (any(event_conditions(time_change, segment$states[k_change, ], p) != holds)) {
+        break
+      }
+      k_change <- k_change + 1
+    }
+    changed <- k_change <= n_outputs
+    if (changed) {
+      # the integration stops at the change of a trigger, located on the
+      # integration from the output before it
+      t_low <- segment$time[[k_change - 1]]
+      x_low <- segment$states[k_change - 1, ]
+      interpolant <- function(t_after) {
+        if (t_after <= t_low) {
+          return(x_low)
+        }
+        integrated <- integrate_segment(
+          x_low, c(t_low, t_after), p, rtol, atol, hmax, 0, max_steps
+        )
+        integrated$states[2, ]
+      }
+      t_next <- first_change(interpolant, t_low, time_change, p, holds)
+      x_next <- interpolant(t_next)
+    } else {
+      t_next <- segment$time[[n_outputs]]
+      x_next <- segment$states[n_outputs, ]
+      if (segment$root) {
+        # the integration stopped at a root, where a trigger changes at or right
+        # after it, `time > 1` at t = 1
+        beyond <- extrapolation(t_next, x_next, p)
+        t_after <- t_next + 1e-13 * max(1, abs(t_next))
+        if (any(event_conditions(t_after, beyond(t_after), p) != holds)) {
+          changed <- TRUE
+          t_next <- first_change(beyond, segment$time[[n_outputs]], t_after, p, holds)
+          x_next <- beyond(t_next)
+        } else if (t_next <= t) {
+          stop(
+            "The integration does not advance the time at t = ",
+            format(t, digits = 15), ".",
+            call. = FALSE
+          )
+        }
+      }
+    }
+    # the time points before t_next, at t_next after its events; a time point at
+    # the end of the integration (a delayed execution) to the rounding of the
+    # time is at it, the execution is shifted by the rounding errors of the
+    # integration of its trigger, e.g. by 1e-14 at t = 3.4
+    t_points <- t_next
+    if (!changed && t_next >= t_stop) {
+      t_points <- t_points - 1e-14 * max(1, abs(t_next))
+    }
+    while (recorded < points && times[[recorded + 1]] < t_points) {
+      recorded <- recorded + 1
+      output_row <- match(times[[recorded]], segment$time)
+      xs[[recorded]] <- if (is.na(output_row)) x else segment$states[output_row, ]
+      ps[[recorded]] <- p
+    }
+    t <- t_next
+    after <- execute_events(t, x_next, p, holds, pending)
+    x <- after$x
+    p <- after$p
+    holds <- after$holds
+    pending <- after$pending
+  }
+  # the time points at t_end, after its events
+  while (recorded < points) {
+    recorded <- recorded + 1
+    xs[[recorded]] <- x
+    ps[[recorded]] <- p
+  }
+{% elif states %}
+  if (points > 1 && t_end > 0) {
+    segment <- integrate_segment(x, times, p, rtol, atol, hmax, 0, max_steps)
+    xs <- lapply(seq_len(points), function(k_point) segment$states[k_point, ])
+  }
+{% else %}
+  # without states and events nothing changes in time but the time
+{% endif %}
+
+{% if event_constants %}
+  # the table: the time, the states, the assigned values and the constants which
+  # events change
+{% else %}
+  # the table: the time, the states and the assigned values
+{% endif %}
+  ys <- lapply(seq_len(points), function(k_point) {
+    f_y(times[[k_point]], xs[[k_point]], ps[[k_point]])
+  })
+  xt <- matrix(as.numeric(unlist(xs)), points, length(XIDS), byrow = TRUE)
+  yt <- matrix(as.numeric(unlist(ys)), points, length(YIDS), byrow = TRUE)
+{% if event_constants %}
+  constants <- {{ wrapped(event_constants | map(attribute="index") | list, 2, 15, 0, 88, ("c(", ")"), False) }}
+  pt <- matrix(
+    as.numeric(unlist(lapply(ps, function(p) p[constants]))),
+    points, length(constants), byrow = TRUE
+  )
+  data <- as.data.frame(cbind(times, xt, yt, pt))
+  names(data) <- c("time", XIDS, YIDS, PIDS[constants])
+{% else %}
+  data <- as.data.frame(cbind(times, xt, yt))
+  names(data) <- c("time", XIDS, YIDS)
+{% endif %}
+  data
+}
+
+if (sys.nframe() == 0L) {
+  print(utils::head(simulate(10)))
+}
+{% endif %}
