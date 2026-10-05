@@ -994,7 +994,8 @@ def require_tectonic() -> None:
 
 
 LATEX_WARNINGS = re.compile(
-    r"^(?:(?:LaTeX|Package \S+|Class \S+) Warning|Overfull|Underfull|Missing character)"
+    r"^(?:(?:LaTeX|LaTeX \S+|Package \S+|Class \S+) Warning"
+    r"|Overfull|Underfull|Missing character)"
     r".*$",
     re.MULTILINE,
 )

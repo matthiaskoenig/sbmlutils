@@ -220,23 +220,51 @@ def test_latex_compiles(name: str, tmp_path: Path) -> None:
     assert compile_latex(render(name, "latex"), tmp_path, strict=True).exists()
 
 
-def test_latex_fragment_compiles(tmp_path: Path) -> None:
-    """The LaTeX fragment compiles with the packages it names, input into a document."""
+TITLED = edit_sbml(
+    model_sbml("A = 0; A' = 1"),
+    lambda model: model.setName("Model α with a $x$ | y"),
+)
+"""A model whose name holds a greek letter and markup, a title which is no PDF string."""
+
+
+@pytest.mark.parametrize("hyperref", [False, True])
+@pytest.mark.parametrize("sbml", ["demo", "titled"])
+def test_latex_fragment_compiles(sbml: str, hyperref: bool, tmp_path: Path) -> None:
+    """The LaTeX fragment compiles with the packages it names, input into a document.
+
+    The title of the demo is its id, with opportunities of line breaks, the title of
+    `TITLED` a name with a greek letter and markup: with hyperref the bookmark of
+    either is a plain form of the title, without hyperref the title itself.
+    """
     require_tectonic()
-    # a title which is an id with break opportunities, a bookmark of hyperref
+    source = MODELS["demo"] if sbml == "demo" else TITLED
     (tmp_path / "fragment.tex").write_text(
-        render("demo", "latex", standalone=False), encoding="utf-8"
+        OdeSystem.from_sbml(source).render("latex", standalone=False),
+        encoding="utf-8",
+    )
+    packages = "amsmath, amssymb, booktabs, xltabular" + (
+        ", hyperref" if hyperref else ""
     )
     wrapper = (
         "\\documentclass{article}\n"
         "\\usepackage{fontspec}\n"
-        "\\usepackage{amsmath, amssymb, booktabs, xltabular, hyperref}\n"
+        f"\\usepackage{{{packages}}}\n"
         "\\allowdisplaybreaks\n"
         "\\begin{document}\n"
         "\\input{fragment}\n"
         "\\end{document}\n"
     )
     assert compile_latex(wrapper, tmp_path, strict=True).exists()
+
+
+def test_latex_title_of_a_name() -> None:
+    """A title from a name has a form without math for the bookmarks of a PDF."""
+    document = OdeSystem.from_sbml(TITLED).render("latex", standalone=False)
+    assert (
+        r"\section{\texorpdfstring{Model \ensuremath{\alpha} with a \$x\$ "
+        r"\textbar{} y}{Model α with a \$x\$ \textbar{} y}}"
+    ) in document
+    assert "\\providecommand{\\texorpdfstring}[2]{#1}\n" in document
 
 
 def test_latex_symbols_compile(tmp_path: Path) -> None:

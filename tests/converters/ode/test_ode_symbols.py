@@ -3,6 +3,7 @@
 import keyword
 import re
 from pathlib import Path
+from typing import Literal
 
 import libsbml
 import pytest
@@ -377,9 +378,11 @@ def test_typeset_names_are_unique() -> None:
 
 
 @pytest.mark.parametrize("dialect", ["latex", "typst"])
-def test_typeset_names_of_numbered_ids_are_unique(dialect: str) -> None:
+def test_typeset_names_of_numbered_ids_are_unique(
+    dialect: Literal["latex", "typst"],
+) -> None:
     """`k1` and `k_1` are both `k_1`: the id of letters and digits is upright text."""
-    result = typeset_names(["k1", "k_1", "S0"], dialect)  # ty: ignore[invalid-argument-type]
+    result = typeset_names(["k1", "k_1", "S0"], dialect)
     expected = {
         "latex": {"k1": r"\mathrm{k1}", "k_1": "k_{1}", "S0": "S_{0}"},
         "typst": {"k1": 'upright("k1")', "k_1": "k_(1)", "S0": "S_(0)"},

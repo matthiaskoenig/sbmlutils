@@ -147,6 +147,22 @@ def tex_text(value: object) -> str:
     return "".join(_TEX.get(char, char) for char in single_line(value))
 
 
+def tex_pdf_text(value: object) -> str:
+    r"""Make text safe in a string of the PDF, e.g. a bookmark of hyperref.
+
+    The special characters of LaTeX are escaped as by `tex_text`, every other
+    character is kept, `τ` is `τ`: math is not allowed in a string of the PDF,
+    which holds unicode (`	exorpdfstring{<tex_text>}{<tex_pdf_text>}`).
+
+    Args:
+        value: text to write, rendered with `str`
+
+    Returns:
+        the text on a single line with the latex special characters escaped
+    """
+    return "".join(_TEX_SPECIAL.get(char, char) for char in single_line(value))
+
+
 # The characters of typst markup which a backslash escapes wherever they are:
 # strong, emphasis, code, math, labels, references, content and the non-breaking
 # space `~`.

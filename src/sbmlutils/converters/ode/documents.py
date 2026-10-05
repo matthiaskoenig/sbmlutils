@@ -29,7 +29,8 @@ math of these as markup of its format, so that a template only lays them out:
 The context holds:
 
 - `model`: `title` (the name, else the id), `plain_title` (the title without the
-  opportunities of line breaks, for the bookmarks of a PDF), `id`, `level`,
+  opportunities of line breaks and without math, `text.tex_pdf_text`, for the
+  bookmarks of a PDF), `id`, `level`,
   `version`, `source`,
   `sbmlutils` (the version which writes the document) and `notes`, the paragraphs
   of the notes;
@@ -88,6 +89,7 @@ from sbmlutils.converters.ode.symbols import typeset_names, typeset_symbol
 from sbmlutils.converters.ode.text import (
     check_sid,
     markdown_text,
+    tex_pdf_text,
     tex_text,
     typst_text,
 )
@@ -132,6 +134,8 @@ class Dialect:
         times: the product in a unit, `mol·s`
         unit: the markup of a written unit, which keeps the letters of a unit
             apart, `fl` is no ligature
+        pdf_text: the escaping of text in a string of the PDF, a bookmark, without
+            math, `None` if it is `text`
     """
 
     printer: type[DocumentPrinter]
@@ -151,6 +155,7 @@ class Dialect:
     new: str
     times: str
     unit: Callable[[str], str] = lambda unit: unit
+    pdf_text: Callable[[object], str] | None = None
 
 
 LONG_ID = 12
@@ -178,6 +183,7 @@ def _latex(
     superscript: Callable[[str], str],
     minus: str,
     unit: Callable[[str], str] = lambda unit: unit,
+    pdf_text: Callable[[object], str] | None = None,
 ) -> Dialect:
     """The markup of the math of LaTeX, with the markup of the text of a format."""
     return Dialect(
@@ -198,6 +204,7 @@ def _latex(
         new=r"{symbol}^{\mathrm{new}}",
         times="·",
         unit=unit,
+        pdf_text=pdf_text,
     )
 
 
@@ -230,6 +237,7 @@ DIALECTS: dict[str, Dialect] = {
         lambda exponent: rf"\textsuperscript{{{exponent}}}",
         r"\textminus{}",
         lambda unit: _LIGATURE.sub(r"f\\kern0pt{}", unit),
+        tex_pdf_text,
     ),
     "markdown": _latex(
         markdown_text,
@@ -399,7 +407,8 @@ class DocumentContext:
         if info.sid is not None:
             check_sid(info.sid)
         if info.name:
-            title = plain = self.dialect.text(info.name)
+            title = self.dialect.text(info.name)
+            plain = (self.dialect.pdf_text or self.dialect.text)(info.name)
         else:
             # an id may break after an underscore
             title = self.breakable(info.sid or "Model")
