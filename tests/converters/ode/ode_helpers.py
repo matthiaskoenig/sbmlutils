@@ -8,11 +8,13 @@ import functools
 import importlib.util
 import os
 import shlex
+import shutil
 import subprocess
 from pathlib import Path
 from types import ModuleType
 
 import libsbml
+import pytest
 
 # the rate laws of `tests/converters/test_odefac.py`, which cover every construct of
 # the math the ODE export writes
@@ -215,3 +217,75 @@ def run_r(code: str, tmp_path: Path) -> str:
         the standard output
     """
     return _run(rscript_command(), tmp_path / "script.R", code)
+
+
+def compile_typst(source: str, tmp_path: Path) -> bytes:
+    """Compile a typst document with the `typst` python package.
+
+    The test which calls it is skipped if the package is not installed (it is part
+    of the `dev` extra).
+
+    Args:
+        source: the typst document
+        tmp_path: directory of the document
+
+    Returns:
+        the PDF
+
+    Raises:
+        RuntimeError: if the document does not compile or compiles with a warning,
+            with the messages of typst
+    """
+    typst = pytest.importorskip("typst")
+    path = tmp_path / "document.typ"
+    path.write_text(source)
+    try:
+        pdf, warnings = typst.compile_with_warnings(str(path))
+    except typst.TypstError as error:
+        raise RuntimeError(f"{path.name} failed to compile:\n{error}") from error
+    if warnings:
+        raise RuntimeError(f"{path.name} compiled with warnings:\n{warnings}")
+    return pdf
+
+
+def tectonic_command() -> list[str] | None:
+    """Command of tectonic, the LaTeX engine, if it is on the path.
+
+    Returns:
+        the command, `None` if `tectonic` is not on the path
+    """
+    tectonic = shutil.which("tectonic")
+    return [tectonic] if tectonic else None
+
+
+def compile_latex(source: str, tmp_path: Path) -> Path:
+    """Compile a LaTeX document with tectonic.
+
+    Args:
+        source: the LaTeX document
+        tmp_path: directory of the document and of the PDF
+
+    Returns:
+        the path of the PDF
+
+    Raises:
+        RuntimeError: if tectonic is not on the path or the document fails
+    """
+    command = tectonic_command()
+    if command is None:
+        raise RuntimeError("tectonic is not on the path.")
+    path = tmp_path / "document.tex"
+    path.write_text(source)
+    result = subprocess.run(
+        [*command, "--chatter", "minimal", str(path)],
+        capture_output=True,
+        text=True,
+        check=False,
+        timeout=TIMEOUT,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"{path.name} failed with exit code {result.returncode}:\n"
+            f"{result.stdout}\n{result.stderr}"
+        )
+    return path.with_suffix(".pdf")

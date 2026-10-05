@@ -1,4 +1,4 @@
-"""The engine of the math printers: SBML math as an expression of a target language.
+r"""The engine of the math printers: SBML math as an expression of a target language.
 
 `MathPrinter` walks the libsbml AST and owns the traversal, the precedence of the
 expressions and their parentheses. A dialect, i.e. a subclass for one target
@@ -7,6 +7,9 @@ language, supplies tables and small hooks:
 - `FUNCTIONS`: the functions which are a function of the dialect with the same
   arguments, e.g. `AST_FUNCTION_SIN` is `np.sin` in python. A function in this table
   is written as a call, before any hook of the engine.
+- `DELIMITED`: the functions of one argument which are written between two
+  delimiters, e.g. `AST_FUNCTION_ABS` is `\left| x \right|` in LaTeX, checked before
+  `FUNCTIONS`.
 - `CONSTANTS`: the constants, `time` and `avogadro`, e.g. `np.pi` for
   `AST_CONSTANT_PI`. A constant which is not in this table is not supported, except
   `avogadro`, which is then written as its number.
@@ -14,7 +17,7 @@ language, supplies tables and small hooks:
   hooks `reciprocal` and `of_reciprocal` write with the reciprocal, e.g. `np.cos`
   for `AST_FUNCTION_SEC`, `sec(x) = 1/cos(x)`.
 - `RELATIONS`, `PLUS`, `MINUS`, `TIMES`, `ARGUMENT_SEPARATOR`: the operators.
-- `number`, `integer`: the literals.
+- `number`, `integer`: the literals, and `literal` for their precedence.
 - the hooks of the constructs whose structure differs between the languages:
   `negate`, `divide`, `rational`, `power`, `piecewise`, `rem`, `quotient`, `log`,
   `root`, `factorial`, `reciprocal` (sec, csc, cot, sech, csch, coth),
@@ -37,6 +40,9 @@ is printed in its boolean form; where it is used as a number, the engine passes 
 through `bool_to_number`. The operands of a logical operator and the conditions of a
 `piecewise` are printed as conditions, everything else as numbers;
 `print_condition` prints the top level as a condition (e.g. an event trigger).
+
+`terms` prints the terms of a sum one by one, each with its sign, so that a document
+can break a long sum into lines.
 
 Identifiers come only from the `symbols` mapping, which holds the expression of
 every name and of every function definition; an identifier without a mapping raises,
@@ -84,6 +90,13 @@ class Printed(NamedTuple):
 
     code: str
     precedence: int
+
+
+class Term(NamedTuple):
+    """A term of a sum and its sign in the sum."""
+
+    negative: bool
+    printed: Printed
 
 
 class UnsupportedMathError(NotImplementedError):
@@ -177,6 +190,26 @@ def _is_number(ast: libsbml.ASTNode, value: float) -> bool:
     return False
 
 
+def _is_negative_number(ast: libsbml.ASTNode) -> bool:
+    """Check that the math is a negative integer or real number."""
+    ast_type = ast.getType()
+    if ast_type == libsbml.AST_INTEGER:
+        return ast.getInteger() < 0
+    if ast_type in {libsbml.AST_REAL, libsbml.AST_REAL_E}:
+        return ast.getReal() < 0
+    return False
+
+
+def _negated(ast: libsbml.ASTNode) -> libsbml.ASTNode:
+    """The number with the opposite sign of a number of `_is_negative_number`."""
+    number = libsbml.ASTNode(ast.getType())
+    if ast.getType() == libsbml.AST_INTEGER:
+        number.setValue(-ast.getInteger())
+    else:
+        number.setValue(-ast.getReal())
+    return number
+
+
 class MathPrinter:
     """Printer of SBML math as an expression of a target language.
 
@@ -188,6 +221,9 @@ class MathPrinter:
         name: name of the dialect, used in the messages of the errors
         FUNCTIONS: function of the dialect of each function of SBML which is a call
             with the same arguments
+        DELIMITED: the left and the right delimiter of each function of SBML of one
+            argument which is written between them, e.g. `|` and `|` for the
+            absolute value
         CONSTANTS: expression of each constant, of `time` and of `avogadro`
         RECIPROCALS: function whose reciprocal each function of `_RECIPROCALS` is,
             e.g. the cosine for `AST_FUNCTION_SEC`, used by `reciprocal`
@@ -204,6 +240,7 @@ class MathPrinter:
 
     name: ClassVar[str] = "math"
     FUNCTIONS: ClassVar[Mapping[int, str]] = {}
+    DELIMITED: ClassVar[Mapping[int, tuple[str, str]]] = {}
     CONSTANTS: ClassVar[Mapping[int, str]] = {}
     RECIPROCALS: ClassVar[Mapping[int, str]] = {}
     OF_RECIPROCALS: ClassVar[Mapping[int, str]] = {}
@@ -253,6 +290,31 @@ class MathPrinter:
         """
         return self._print(ast, _Context(symbols=symbols, condition=True)).code
 
+    def terms(self, ast: libsbml.ASTNode, symbols: SymbolMap) -> list[Term]:
+        """Print the terms of math which is used as a number and is a sum.
+
+        The sums and the differences nested in the sum are flattened, each term with
+        the sign it has in the sum: `a - (b - c) + -d` has the terms `a`, `-b`, `c`
+        and `-d`. A negative number is a term with a minus, `a + (-2)` has the terms
+        `a` and `-2`. Math which is not a sum is a single term.
+
+        Args:
+            ast: the math
+            symbols: expression of each identifier, names and function definitions
+
+        Returns:
+            the terms, in their order
+
+        Raises:
+            UnsupportedMathError: for an identifier without an entry in `symbols` and
+                for a construct the dialect cannot express
+        """
+        terms: list[Term] = []
+        self._collect_terms(
+            ast, False, _Context(symbols=symbols, condition=False), terms
+        )
+        return terms
+
     # --- building blocks of the hooks ---------------------------------------------
 
     def parenthesize(self, code: str) -> str:
@@ -301,7 +363,7 @@ class MathPrinter:
         return Printed(code, precedence)
 
     def call(self, function: str, arguments: Sequence[Printed]) -> Printed:
-        """Call of a function.
+        """Call of a function, the arguments in the parentheses of `parenthesize`.
 
         Args:
             function: the function of the dialect
@@ -311,9 +373,25 @@ class MathPrinter:
             the printed call
         """
         code = self.ARGUMENT_SEPARATOR.join(argument.code for argument in arguments)
-        return Printed(f"{function}({code})", Precedence.ATOM)
+        return Printed(f"{function}{self.parenthesize(code)}", Precedence.ATOM)
 
     # --- literals -----------------------------------------------------------------
+
+    def literal(self, code: str) -> Printed:
+        """Precedence of a literal of `number` or `integer`.
+
+        The base class writes a negative literal as a unary minus, any other as an
+        atom.
+
+        Args:
+            code: the literal
+
+        Returns:
+            the printed literal
+        """
+        return Printed(
+            code, Precedence.UNARY if code.startswith("-") else Precedence.ATOM
+        )
 
     def integer(self, value: int) -> str:
         """Literal of an integer.
@@ -642,6 +720,10 @@ class MathPrinter:
             return self._truth(ast_type == libsbml.AST_CONSTANT_TRUE, ctx)
         if ast_type in self.CONSTANTS:
             return Printed(self.CONSTANTS[ast_type], Precedence.ATOM)
+        if ast_type in self.DELIMITED:
+            left, right = self.DELIMITED[ast_type]
+            (value,) = self._numbers(children, ctx, 1)
+            return Printed(f"{left}{value.code}{right}", Precedence.ATOM)
         if (
             ast_type in {libsbml.AST_FUNCTION_MAX, libsbml.AST_FUNCTION_MIN}
             and len(children) == 1
@@ -657,7 +739,7 @@ class MathPrinter:
             case libsbml.AST_INTEGER:
                 return self._integer(ast.getInteger())
             case libsbml.AST_REAL | libsbml.AST_REAL_E | libsbml.AST_NAME_AVOGADRO:
-                return self._literal(self.number(ast.getReal()))
+                return self.literal(self.number(ast.getReal()))
             case libsbml.AST_RATIONAL:
                 return self.rational(ast.getNumerator(), ast.getDenominator())
             case libsbml.AST_NAME:
@@ -784,17 +866,43 @@ class MathPrinter:
 
     def _integer(self, value: int) -> Printed:
         """Printed integer."""
-        return self._literal(self.integer(value))
-
-    def _literal(self, code: str) -> Printed:
-        """Printed literal, a negative literal is a unary minus."""
-        return Printed(
-            code, Precedence.UNARY if code.startswith("-") else Precedence.ATOM
-        )
+        return self.literal(self.integer(value))
 
     def _one(self) -> Printed:
         """Printed real number one."""
-        return self._literal(self.number(1.0))
+        return self.literal(self.number(1.0))
+
+    def _collect_terms(
+        self, ast: libsbml.ASTNode, negative: bool, ctx: _Context, terms: list[Term]
+    ) -> None:
+        """Append the terms of a sum with their sign, see `terms`.
+
+        Args:
+            ast: the math
+            negative: the math has a minus in the sum
+            ctx: the symbols and the place of the math
+            terms: the terms, to which the terms of the math are appended
+        """
+        ast_type: int = ast.getType()
+        children: list[libsbml.ASTNode] = [
+            ast.getChild(k) for k in range(ast.getNumChildren())
+        ]
+        if ast_type == libsbml.AST_PLUS and children:
+            for child in children:
+                self._collect_terms(child, negative, ctx, terms)
+        elif ast_type == libsbml.AST_MINUS and children:
+            first, *subtrahends = children
+            if not subtrahends:
+                # unary minus
+                self._collect_terms(first, not negative, ctx, terms)
+            else:
+                self._collect_terms(first, negative, ctx, terms)
+                for child in subtrahends:
+                    self._collect_terms(child, not negative, ctx, terms)
+        elif _is_negative_number(ast):
+            terms.append(Term(not negative, self._print(_negated(ast), ctx)))
+        else:
+            terms.append(Term(negative, self._print(ast, ctx.as_number())))
 
     def _truth(self, value: bool, ctx: _Context) -> Printed:
         """Printed boolean constant of the `CONSTANTS` in its context."""
