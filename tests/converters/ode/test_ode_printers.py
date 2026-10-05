@@ -796,25 +796,25 @@ DOCUMENT_FORMULAS: dict[str, tuple[str, str]] = {
     ),
     "piecewise(k*time, true, 0) + 2^-1 + -A^2 + 1/2 + (-2)^2 + 2^3^2": (
         r"\mathopen{}\left(\begin{cases} k \cdot t & \text{if } \mathrm{true} \\"
-        r" 0 & \text{otherwise} \end{cases}\right) + 2^{-1} + \mathopen{}\left(-A^{2}\right)"
+        r" 0 & \text{otherwise} \end{cases}\right) + 2^{-1} - A^{2}"
         r" + \frac{1}{2} + \mathopen{}\left(-2\right)^{2} + 2^{3^{2}}",
-        '(cases(k dot t & quad "if" "true", 0 & quad "otherwise")) + 2^(-1) + (-A^(2))'
+        '(cases(k dot t & quad "if" "true", 0 & quad "otherwise")) + 2^(-1) - A^(2)'
         " + (1)/(2) + (-2)^(2) + 2^(3^(2))",
     ),
 }
 
 # the constructs with the parentheses their place requires, as LaTeX and as typst
 DOCUMENT_MATH: list[tuple[str, str, str]] = [
-    # products and sums with a negative operand
+    # sums with the signs of their terms, a product with a negative operand
     ("-A^2", "-A^{2}", "-A^(2)"),
     ("A * -k", r"A \cdot \mathopen{}\left(-k\right)", "A dot (-k)"),
-    ("A + -k", r"A + \mathopen{}\left(-k\right)", "A + (-k)"),
-    ("A - -k", r"A - \mathopen{}\left(-k\right)", "A - (-k)"),
+    ("A + -k", "A - k", "A - k"),
+    ("A - -k", "A + k", "A + k"),
     ("-A * k", r"-A \cdot k", "-A dot k"),
     ("-(A * k)", r"-A \cdot k", "-A dot k"),
-    ("-(A + k)", r"-\mathopen{}\left(A + k\right)", "-(A + k)"),
-    ("--A", r"-\mathopen{}\left(-A\right)", "-(-A)"),
-    ("A - (k - 1)", r"A - \mathopen{}\left(k - 1\right)", "A - (k - 1)"),
+    ("-(A + k)", "-A - k", "-A - k"),
+    ("--A", "A", "A"),
+    ("A - (k - 1)", "A - k + 1", "A - k + 1"),
     ("(A - k) - 1", "A - k - 1", "A - k - 1"),
     ("A * (k + 1)", r"A \cdot \mathopen{}\left(k + 1\right)", "A dot (k + 1)"),
     ("A / k * 2", r"\frac{A}{k} \cdot 2", "(A)/(k) dot 2"),
@@ -883,12 +883,24 @@ DOCUMENT_MATH: list[tuple[str, str, str]] = [
         "root([A > 1], k)",
     ),
     # a product with a negative first factor is negative
-    ("x + (-2)*y", r"x + \mathopen{}\left(-2 \cdot y\right)", "x + (-2 dot y)"),
-    ("x - -k*A", r"x - \mathopen{}\left(-k \cdot A\right)", "x - (-k dot A)"),
-    ("-(-2*y)", r"-\mathopen{}\left(-2 \cdot y\right)", "-(-2 dot y)"),
-    ("x + (-1)*y", r"x + \mathopen{}\left(-1 \cdot y\right)", "x + (-1 dot y)"),
+    ("x + (-2)*y", r"x - 2 \cdot y", "x - 2 dot y"),
+    ("x - -k*A", r"x + k \cdot A", "x + k dot A"),
+    ("-(-2*y)", r"2 \cdot y", "2 dot y"),
+    ("x + (-1)*y", "x - y", "x - y"),
     ("x * (-2*y)", r"x \cdot \mathopen{}\left(-2 \cdot y\right)", "x dot (-2 dot y)"),
     ("(-2*y)^2", r"\mathopen{}\left(-2 \cdot y\right)^{2}", "(-2 dot y)^(2)"),
+    # every nested sum is written with the signs of its terms
+    ("(x + (-2)*y)/k", r"\frac{x - 2 \cdot y}{k}", "(x - 2 dot y)/(k)"),
+    ("exp(x - -y)", r"\exp\mathopen{}\left(x + y\right)", "exp(x + y)"),
+    ("(x + (-1)*y)^2", r"\mathopen{}\left(x - y\right)^{2}", "(x - y)^(2)"),
+    (
+        "k * (x - (y - 1))",
+        r"k \cdot \mathopen{}\left(x - y + 1\right)",
+        "k dot (x - y + 1)",
+    ),
+    ("(-1)*y", "-y", "-y"),
+    ("k * ((-1)*y)", r"k \cdot \mathopen{}\left(-y\right)", "k dot (-y)"),
+    ("((-2)*y)*k", r"-2 \cdot y \cdot k", "-2 dot y dot k"),
     ("log(A)", r"\log_{10}\mathopen{}\left(A\right)", "log_(10) (A)"),
     ("log(k + 1, A)", r"\log_{k + 1}\mathopen{}\left(A\right)", "log_(k + 1) (A)"),
     (
@@ -1104,8 +1116,8 @@ def test_typst_condition(formula: str, expected: str) -> None:
         ),
         (
             "<apply><plus/><ci>A</ci><cn type='e-notation'>-1<sep/>-5</cn></apply>",
-            r"A + \mathopen{}\left(-10^{-5}\right)",
-            "A + (-10^(-5))",
+            "A - 10^{-5}",
+            "A - 10^(-5)",
         ),
         (
             "<apply><power/><cn type='e-notation'>-1<sep/>-5</cn><ci>A</ci></apply>",
@@ -1125,8 +1137,8 @@ def test_typst_condition(formula: str, expected: str) -> None:
         (
             "<apply><plus/><ci>A</ci><apply><times/><cn type='integer'>-1</cn>"
             "<ci>k</ci></apply></apply>",
-            r"A + \mathopen{}\left(-1 \cdot k\right)",
-            "A + (-1 dot k)",
+            "A - k",
+            "A - k",
         ),
         # a relation of conditions (which the infix syntax reads as a chain)
         (
@@ -1319,6 +1331,23 @@ def test_print_lines(
     """A sum of more terms than the width is split into lines of signed terms."""
     assert LatexPrinter().print_lines(parse(formula), LINE_SYMBOLS, width) == latex
     assert TypstPrinter().print_lines(parse(formula), LINE_SYMBOLS, width) == typst
+
+
+@pytest.mark.parametrize(
+    "formula", [*DOCUMENT_FORMULAS, *(formula for formula, _, _ in DOCUMENT_MATH)]
+)
+@pytest.mark.parametrize(
+    ("printer", "symbols"),
+    [(LatexPrinter, LATEX_SYMBOLS), (TypstPrinter, TYPST_SYMBOLS)],
+)
+def test_print_lines_one_line_is_print(
+    formula: str, printer: type[DocumentPrinter], symbols: dict[str, str]
+) -> None:
+    """A sum which fits on one line is printed as `print` prints it."""
+    math = parse(formula)
+    assert printer().print_lines(math, symbols, width=100) == [
+        printer().print(math, symbols)
+    ]
 
 
 def test_print_lines_default_width() -> None:

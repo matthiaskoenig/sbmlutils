@@ -17,6 +17,9 @@ language, supplies tables and small hooks:
   hooks `reciprocal` and `of_reciprocal` write with the reciprocal, e.g. `np.cos`
   for `AST_FUNCTION_SEC`, `sec(x) = 1/cos(x)`.
 - `RELATIONS`, `PLUS`, `MINUS`, `TIMES`, `ARGUMENT_SEPARATOR`: the operators.
+- `SIGNED_SUMS`: a sum is printed from its signed `terms` by the hook `sum`, for a
+  document, which shows `a - (b - c) + (-2) * d` as `a - b + c - 2 * d`; a dialect of
+  code keeps the structure of the math, which is its order of evaluation.
 - `number`, `integer`: the literals, and `literal` for their precedence.
 - the hooks of the constructs whose structure differs between the languages:
   `negate`, `divide`, `rational`, `power`, `piecewise`, `rem`, `quotient`, `log`,
@@ -42,7 +45,7 @@ through `bool_to_number`. The operands of a logical operator and the conditions 
 `print_condition` prints the top level as a condition (e.g. an event trigger).
 
 `terms` prints the terms of a sum one by one, each with its sign, so that a document
-can break a long sum into lines.
+can write every sum with the signs of its terms and break a long sum into lines.
 
 Identifiers come only from the `symbols` mapping, which holds the expression of
 every name and of every function definition; an identifier without a mapping raises,
@@ -205,6 +208,22 @@ def _is_negation(ast: libsbml.ASTNode) -> bool:
     return ast.getType() == libsbml.AST_MINUS and ast.getNumChildren() == 1
 
 
+def _is_signed(ast: libsbml.ASTNode) -> bool:
+    """Check that the math has terms with signs, see `MathPrinter.terms`.
+
+    It is a sum, a difference, a unary minus or a product whose first factor is a
+    negative number or a unary minus.
+    """
+    ast_type = ast.getType()
+    count = ast.getNumChildren()
+    if ast_type in {libsbml.AST_PLUS, libsbml.AST_MINUS}:
+        return count > 0
+    if ast_type == libsbml.AST_TIMES and count > 1:
+        first = ast.getChild(0)
+        return _is_negative_number(first) or _is_negation(first)
+    return False
+
+
 def _product(factors: Sequence[libsbml.ASTNode]) -> libsbml.ASTNode:
     """The product of factors, the factor itself if it is the only one."""
     if len(factors) == 1:
@@ -239,6 +258,8 @@ class MathPrinter:
         DELIMITED: the left and the right delimiter of each function of SBML of one
             argument which is written between them, e.g. `|` and `|` for the
             absolute value
+        SIGNED_SUMS: a sum, a difference, a unary minus and a product whose first
+            factor is negative are printed by `sum` from their `terms`
         CONSTANTS: expression of each constant, of `time` and of `avogadro`
         RECIPROCALS: function whose reciprocal each function of `_RECIPROCALS` is,
             e.g. the cosine for `AST_FUNCTION_SEC`, used by `reciprocal`
@@ -256,6 +277,7 @@ class MathPrinter:
     name: ClassVar[str] = "math"
     FUNCTIONS: ClassVar[Mapping[int, str]] = {}
     DELIMITED: ClassVar[Mapping[int, tuple[str, str]]] = {}
+    SIGNED_SUMS: ClassVar[bool] = False
     CONSTANTS: ClassVar[Mapping[int, str]] = {}
     RECIPROCALS: ClassVar[Mapping[int, str]] = {}
     OF_RECIPROCALS: ClassVar[Mapping[int, str]] = {}
@@ -326,11 +348,7 @@ class MathPrinter:
             UnsupportedMathError: for an identifier without an entry in `symbols` and
                 for a construct the dialect cannot express
         """
-        terms: list[Term] = []
-        self._collect_terms(
-            ast, False, _Context(symbols=symbols, condition=False), terms
-        )
-        return terms
+        return self._terms(ast, _Context(symbols=symbols, condition=False))
 
     # --- building blocks of the hooks ---------------------------------------------
 
@@ -437,6 +455,17 @@ class MathPrinter:
         return repr(float(value))
 
     # --- hooks of the arithmetic --------------------------------------------------
+
+    def sum(self, terms: Sequence[Term]) -> Printed:
+        """Sum of signed terms, for a dialect with `SIGNED_SUMS`.
+
+        Args:
+            terms: the terms of `terms`, at least one
+
+        Returns:
+            the printed sum
+        """
+        raise NotImplementedError
 
     def negate(self, operand: Printed) -> Printed:
         """Unary minus, which binds weaker than a power on its right, `-a^2`.
@@ -747,6 +776,8 @@ class MathPrinter:
         ):
             # the maximum (minimum) of a single number is the number
             return self._print(children[0], ctx.as_number())
+        if self.SIGNED_SUMS and _is_signed(ast):
+            return self.sum(self._terms(ast, ctx.as_number()))
         if ast_type in self.FUNCTIONS:
             self._check_arity(children, *_FUNCTION_ARITIES.get(ast_type, (1, 1)))
             return self.call(self.FUNCTIONS[ast_type], self._numbers(children, ctx))
@@ -889,6 +920,12 @@ class MathPrinter:
         """Printed real number one."""
         return self.literal(self.number(1.0))
 
+    def _terms(self, ast: libsbml.ASTNode, ctx: _Context) -> list[Term]:
+        """The terms of math used as a number, see `terms`."""
+        terms: list[Term] = []
+        self._collect_terms(ast, False, ctx, terms)
+        return terms
+
     def _collect_terms(
         self, ast: libsbml.ASTNode, negative: bool, ctx: _Context, terms: list[Term]
     ) -> None:
@@ -918,11 +955,7 @@ class MathPrinter:
                     self._collect_terms(child, not negative, ctx, terms)
         elif _is_negative_number(ast):
             terms.append(Term(not negative, self._print(_negated(ast), ctx)))
-        elif (
-            ast_type == libsbml.AST_TIMES
-            and len(children) > 1
-            and (_is_negative_number(children[0]) or _is_negation(children[0]))
-        ):
+        elif ast_type == libsbml.AST_TIMES and _is_signed(ast):
             # the sign of the first factor is the sign of the product, -1 * b is -b
             first, *others = children
             factor = first.getChild(0) if _is_negation(first) else _negated(first)

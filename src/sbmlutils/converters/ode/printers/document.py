@@ -6,7 +6,10 @@ not as a program does:
 - a product is `a · b` and a quotient a fraction, which needs no parentheses around
   its numerator and its denominator; the base of a power is in parentheses unless it
   is an atom, `(a/b)^2`, `(sin(x))^2`, `(√x)^2`, `|x|^2`;
-- a negative operand after an operator is in parentheses, `a · (-b)`, `a + (-b)`;
+- every sum, at any depth, is written with the signs of its terms: nested sums are
+  flattened and a negative term or first factor gives its sign to the term,
+  `a - (b - c) + (-2) · d` is `a - b + c - 2 · d`, `a + (-1) · b` is `a - b`;
+- any other negative operand after an operator is in parentheses, `a · (-b)`;
 - a number is written without a trailing `.0` and with a power of ten instead of an
   exponent, `2`, `1.5 × 10^-5`;
 - a `piecewise` is a cases environment, in parentheses where it is the operand of an
@@ -32,6 +35,7 @@ from sbmlutils.converters.ode.printers.base import (
     Precedence,
     Printed,
     SymbolMap,
+    Term,
 )
 
 
@@ -51,6 +55,7 @@ class DocumentPrinter(MathPrinter):
         IVERSON: left and right bracket of a condition used as a number
     """
 
+    SIGNED_SUMS: ClassVar[bool] = True
     SCIENTIFIC_TIMES: ClassVar[str]
     INFINITY: ClassVar[str]
     NAN: ClassVar[str]
@@ -68,7 +73,8 @@ class DocumentPrinter(MathPrinter):
 
         The terms are those of `terms`, with the nested sums flattened, so that
         `a - (b - c)` is `a - b + c`. A line after the first begins with the sign
-        of its first term, `+ e + f`. Math which is no sum is a single line.
+        of its first term, `+ e + f`. Math with no more terms than the width is the
+        single line `print` prints.
 
         Args:
             ast: the math
@@ -88,8 +94,30 @@ class DocumentPrinter(MathPrinter):
         if width < 1:
             raise ValueError(f"The width of a line is at least one term, not {width}.")
         terms = self.terms(ast, symbols)
-        if len(terms) == 1 and not terms[0].negative:
-            return [terms[0].printed.code]
+        if len(terms) <= width:
+            return [self.sum(terms).code]
+        codes = self._term_codes(terms)
+        return [
+            " ".join(codes[start : start + width])
+            for start in range(0, len(codes), width)
+        ]
+
+    def sum(self, terms: Sequence[Term]) -> Printed:
+        """`a - b + c`, a single term as it is, `-a` for a single negative term."""
+        if len(terms) == 1:
+            negative, term = terms[0]
+            return self.negate(term) if negative else term
+        return Printed(" ".join(self._term_codes(terms)), Precedence.SUM)
+
+    def _term_codes(self, terms: Sequence[Term]) -> list[str]:
+        """Code of each term of a sum, a term after the first with its sign, `- b`.
+
+        Args:
+            terms: the terms, at least one
+
+        Returns:
+            the codes, which joined by spaces are the sum
+        """
         codes: list[str] = []
         for k, (negative, term) in enumerate(terms):
             if k == 0:
@@ -100,10 +128,7 @@ class DocumentPrinter(MathPrinter):
                 codes.append(
                     f"{sign}{self.wrap(self._unsigned(term), Precedence.PRODUCT)}"
                 )
-        return [
-            " ".join(codes[start : start + width])
-            for start in range(0, len(codes), width)
-        ]
+        return codes
 
     # --- building blocks ----------------------------------------------------------
 
@@ -130,7 +155,7 @@ class DocumentPrinter(MathPrinter):
         """Left associative operation, `a · (-b)`, a negative operand in parentheses.
 
         A product whose first factor is negative is negative itself, `-2 · b`, so
-        that it is in parentheses where a negative operand is, `a + (-2 · b)`.
+        that it is in parentheses where a negative operand is, `a · (-2 · b)`.
         """
         first, *others = operands
         unsigned = [self._unsigned(operand) for operand in others]
