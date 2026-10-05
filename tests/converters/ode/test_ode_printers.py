@@ -9,10 +9,12 @@ import numpy as np
 import pytest
 from ode_helpers import (
     FORMULAS,
+    JULIA_PACKAGES,
     julia_command,
     rscript_command,
     run_julia,
     run_r,
+    sbml_with_rate,
 )
 
 from sbmlutils.converters.ode.printers import PRINTERS
@@ -64,9 +66,9 @@ def py_condition(formula: str) -> str:
     ("formula", "expected"),
     [
         ("k*A", "k * A"),
-        ("-A^2", "-A ** 2"),
-        ("(-2)^2", "(-2) ** 2"),
-        ("2^3^2", "2 ** 3 ** 2"),
+        ("-A^2", "-np.float_power(A, 2)"),
+        ("(-2)^2", "np.float_power(-2, 2)"),
+        ("2^3^2", "np.float_power(2, np.float_power(3, 2))"),
         ("A - (k - 1)", "A - (k - 1)"),
         ("A/(k*2)", "A / (k * 2)"),
         ("log(2, A)", "np.log(A) / np.log(2)"),
@@ -83,10 +85,11 @@ def test_python_golden(formula: str, expected: str) -> None:
 
 
 # the rate laws of `tests/converters/test_odefac.py`, verified against roadrunner,
-# with their python; it differs from the python of `odefac.python_math` in three
+# with their python; it differs from the python of `odefac.python_math` in four
 # places: a boolean used as a number is a `float`, `and`, `or` and `implies` in a
-# condition are not wrapped, and a logarithm to base 10 and a square root use the
-# numpy function
+# condition are not wrapped, a logarithm to base 10 and a square root use the
+# numpy function, and a power is `np.float_power`, which is NaN for a negative base
+# and a fractional exponent
 PYTHON_FORMULAS: dict[str, str] = {
     "k*A": "k * A",
     "ln(A) + log10(A) + log(2, A) + exp(-k)": (
@@ -100,8 +103,9 @@ PYTHON_FORMULAS: dict[str, str] = {
     ),
     "piecewise(k, A > 1)": "k if A > 1 else np.nan",
     "rem(A, 2) + rem(-7, A) + quotient(7, A) + root(3, A) + sqrt(A) + A^2 + pow(A, k)": (
-        "np.fmod(A, 2) + np.fmod(-7, A) + np.trunc(7 / A) + A ** (1.0 / 3)"
-        " + np.sqrt(A) + A ** 2 + A ** k"
+        "np.fmod(A, 2) + np.fmod(-7, A) + np.trunc(7 / A)"
+        " + np.float_power(A, 1.0 / 3) + np.sqrt(A) + np.float_power(A, 2)"
+        " + np.float_power(A, k)"
     ),
     "max(A, k, 1) + min(A, k) + abs(-A) + floor(A/2) + ceil(A/2)": (
         "max(A, k, 1) + min(A, k) + np.abs(-A) + np.floor(A / 2) + np.ceil(A / 2)"
@@ -125,12 +129,13 @@ PYTHON_FORMULAS: dict[str, str] = {
         "np.arcsin(k) + np.arccos(k) + np.arctan(k) + np.arcsinh(k) + np.arctanh(k)"
     ),
     "arcsec(A) + arccsc(A) + arccot(A) + arccosh(A) + arcsech(k) + arccsch(k)": (
-        "np.arccos(1.0 / A) + np.arcsin(1.0 / A) + np.arctan(1.0 / A) + np.arccosh(A)"
-        " + np.arccosh(1.0 / k) + np.arcsinh(1.0 / k)"
+        "np.arccos(1.0 / A) + np.arcsin(1.0 / A) + np.arctan(1.0 / A)"
+        " + np.arccosh(A) + np.arccosh(1.0 / k) + np.arcsinh(1.0 / k)"
     ),
     "arccoth(A)": "np.arctanh(1.0 / A)",
     "piecewise(k*time, true, 0) + 2^-1 + -A^2 + 1/2 + (-2)^2 + 2^3^2": (
-        "(k * t if True else 0) + 2 ** -1 + -A ** 2 + 1 / 2 + (-2) ** 2 + 2 ** 3 ** 2"
+        "(k * t if True else 0) + np.float_power(2, -1) + -np.float_power(A, 2)"
+        " + 1 / 2 + np.float_power(-2, 2) + np.float_power(2, np.float_power(3, 2))"
     ),
 }
 
@@ -163,22 +168,22 @@ def test_python_formulas(formula: str, expected: str) -> None:
         ("-(-A)", "-(-A)"),
         ("-A * k", "-A * k"),
         ("-(A * k)", "-(A * k)"),
-        # power, right associative
-        ("(A^2)^3", "(A ** 2) ** 3"),
-        ("(-A)^2", "(-A) ** 2"),
-        ("A^(k + 1)", "A ** (k + 1)"),
-        ("A^-k", "A ** -k"),
-        ("exp(A)^2", "np.exp(A) ** 2"),
-        ("2 * A^2", "2 * A ** 2"),
+        # power, a call whose arguments need no parentheses
+        ("(A^2)^3", "np.float_power(np.float_power(A, 2), 3)"),
+        ("(-A)^2", "np.float_power(-A, 2)"),
+        ("A^(k + 1)", "np.float_power(A, k + 1)"),
+        ("A^-k", "np.float_power(A, -k)"),
+        ("exp(A)^2", "np.float_power(np.exp(A), 2)"),
+        ("2 * A^2", "2 * np.float_power(A, 2)"),
         # functions which are expressions of their argument
         ("factorial(A + 1)", "math.gamma(A + 1 + 1)"),
         ("factorial(piecewise(1, A > 1, 2))", "math.gamma((1 if A > 1 else 2) + 1)"),
         ("quotient(A + 1, k * 2)", "np.trunc((A + 1) / (k * 2))"),
         ("2 * sec(A + k)", "2 * (1.0 / np.cos(A + k))"),
-        ("A^sec(A)", "A ** (1.0 / np.cos(A))"),
+        ("A^sec(A)", "np.float_power(A, 1.0 / np.cos(A))"),
         ("arcsec(A * k)", "np.arccos(1.0 / (A * k))"),
-        ("root(3, A + 1)", "(A + 1) ** (1.0 / 3)"),
-        ("root(k + 1, A)", "A ** (1.0 / (k + 1))"),
+        ("root(3, A + 1)", "np.float_power(A + 1, 1.0 / 3)"),
+        ("root(k + 1, A)", "np.float_power(A, 1.0 / (k + 1))"),
         ("root(2.0, A)", "np.sqrt(A)"),
         ("log(k, A) * 2", "np.log(A) / np.log(k) * 2"),
         ("2 / log(k, A)", "2 / (np.log(A) / np.log(k))"),
@@ -279,8 +284,11 @@ def test_python_condition(formula: str, expected: str) -> None:
         ),
         ('<cn type="e-notation">1<sep/>3</cn>', "1000.0"),
         ('<cn type="integer">-2</cn>', "-2"),
-        ('<apply><power/><cn type="integer">-2</cn><ci>A</ci></apply>', "(-2) ** A"),
-        ("<apply><power/><cn>-2.5</cn><ci>A</ci></apply>", "(-2.5) ** A"),
+        (
+            '<apply><power/><cn type="integer">-2</cn><ci>A</ci></apply>',
+            "np.float_power(-2, A)",
+        ),
+        ("<apply><power/><cn>-2.5</cn><ci>A</ci></apply>", "np.float_power(-2.5, A)"),
         # logarithm and root without their qualifier
         ("<apply><log/><ci>A</ci></apply>", "np.log10(A)"),
         ("<apply><root/><ci>A</ci></apply>", "np.sqrt(A)"),
@@ -410,12 +418,14 @@ def test_registry() -> None:
 # --- julia --------------------------------------------------------------------------
 
 # every number is a Float64 literal: integer arithmetic of julia overflows and a power
-# of integers with a negative exponent throws, `2^-1` is a `DomainError` for a
-# variable exponent
+# of integers with a negative exponent throws; a power, a root, a logarithm and the
+# functions with a restricted domain are those of NaNMath, which are NaN outside
+# their real domain where the functions of Base throw a DomainError
 JULIA_FORMULAS: dict[str, str] = {
     "k*A": "k * A",
     "ln(A) + log10(A) + log(2, A) + exp(-k)": (
-        "log(A) + log10(A) + log(2.0, A) + exp(-k)"
+        "NaNMath.log(A) + NaNMath.log10(A) + NaNMath.log(A) / NaNMath.log(2.0)"
+        " + exp(-k)"
     ),
     "piecewise(k, A > 1 && !(A > 10) || xor(true, false), 2*k)": (
         "A > 1.0 && !(A > 10.0) || xor(true, false) ? k : 2.0 * k"
@@ -425,8 +435,8 @@ JULIA_FORMULAS: dict[str, str] = {
     ),
     "piecewise(k, A > 1)": "A > 1.0 ? k : NaN",
     "rem(A, 2) + rem(-7, A) + quotient(7, A) + root(3, A) + sqrt(A) + A^2 + pow(A, k)": (
-        "rem(A, 2.0) + rem(-7.0, A) + trunc(7.0 / A) + A ^ (1.0 / 3.0) + sqrt(A)"
-        " + A ^ 2.0 + A ^ k"
+        "rem(A, 2.0) + rem(-7.0, A) + trunc(7.0 / A) + NaNMath.pow(A, 1.0 / 3.0)"
+        " + NaNMath.sqrt(A) + NaNMath.pow(A, 2.0) + NaNMath.pow(A, k)"
     ),
     "max(A, k, 1) + min(A, k) + abs(-A) + floor(A/2) + ceil(A/2)": (
         "max(A, k, 1.0) + min(A, k) + abs(-A) + floor(A / 2.0) + ceil(A / 2.0)"
@@ -440,21 +450,24 @@ JULIA_FORMULAS: dict[str, str] = {
         "(A < Inf ? 1.0 : 0.0) + (5.0 > -Inf ? 1.0 : 0.0)"
     ),
     "sin(A) + cos(A) + tan(A) + sec(A) + csc(A) + cot(A)": (
-        "sin(A) + cos(A) + tan(A) + sec(A) + csc(A) + cot(A)"
+        "NaNMath.sin(A) + NaNMath.cos(A) + NaNMath.tan(A) + 1.0 / NaNMath.cos(A)"
+        " + 1.0 / NaNMath.sin(A) + 1.0 / NaNMath.tan(A)"
     ),
     "sinh(k) + cosh(k) + tanh(k) + sech(k) + csch(k) + coth(k)": (
-        "sinh(k) + cosh(k) + tanh(k) + sech(k) + csch(k) + coth(k)"
+        "sinh(k) + cosh(k) + tanh(k) + 1.0 / cosh(k) + 1.0 / sinh(k) + 1.0 / tanh(k)"
     ),
     "arcsin(k) + arccos(k) + arctan(k) + arcsinh(k) + arctanh(k)": (
-        "asin(k) + acos(k) + atan(k) + asinh(k) + atanh(k)"
+        "NaNMath.asin(k) + NaNMath.acos(k) + atan(k) + asinh(k) + NaNMath.atanh(k)"
     ),
     "arcsec(A) + arccsc(A) + arccot(A) + arccosh(A) + arcsech(k) + arccsch(k)": (
-        "asec(A) + acsc(A) + acot(A) + acosh(A) + asech(k) + acsch(k)"
+        "NaNMath.acos(1.0 / A) + NaNMath.asin(1.0 / A) + atan(1.0 / A)"
+        " + NaNMath.acosh(A) + NaNMath.acosh(1.0 / k) + asinh(1.0 / k)"
     ),
-    "arccoth(A)": "acoth(A)",
+    "arccoth(A)": "NaNMath.atanh(1.0 / A)",
     "piecewise(k*time, true, 0) + 2^-1 + -A^2 + 1/2 + (-2)^2 + 2^3^2": (
-        "(true ? k * t : 0.0) + 2.0 ^ (-1.0) + -A ^ 2.0 + 1.0 / 2.0 + (-2.0) ^ 2.0"
-        " + 2.0 ^ 3.0 ^ 2.0"
+        "(true ? k * t : 0.0) + NaNMath.pow(2.0, -1.0) + -NaNMath.pow(A, 2.0)"
+        " + 1.0 / 2.0 + NaNMath.pow(-2.0, 2.0)"
+        " + NaNMath.pow(2.0, NaNMath.pow(3.0, 2.0))"
     ),
 }
 
@@ -469,21 +482,21 @@ def test_julia_formulas(formula: str, expected: str) -> None:
     ("formula", "expected"),
     [
         # the constructs of the brief
-        ("-A^2", "-A ^ 2.0"),
-        ("(-2)^2", "(-2.0) ^ 2.0"),
+        ("-A^2", "-NaNMath.pow(A, 2.0)"),
+        ("(-2)^2", "NaNMath.pow(-2.0, 2.0)"),
         ("piecewise(k, A > 1, 0)", "A > 1.0 ? k : 0.0"),
-        ("log(2, A)", "log(2.0, A)"),
+        ("log(2, A)", "NaNMath.log(A) / NaNMath.log(2.0)"),
         ("rem(-7, 2)", "rem(-7.0, 2.0)"),
-        # power, a negative exponent in parentheses
-        ("2^-1", "2.0 ^ (-1.0)"),
-        ("A^-k", "A ^ (-k)"),
-        ("(A^2)^3", "(A ^ 2.0) ^ 3.0"),
-        ("A^(k + 1)", "A ^ (k + 1.0)"),
-        ("10^20", "10.0 ^ 20.0"),
+        # power, NaN for a negative base and a fractional exponent
+        ("2^-1", "NaNMath.pow(2.0, -1.0)"),
+        ("A^-k", "NaNMath.pow(A, -k)"),
+        ("(A^2)^3", "NaNMath.pow(NaNMath.pow(A, 2.0), 3.0)"),
+        ("A^(k + 1)", "NaNMath.pow(A, k + 1.0)"),
+        ("10^20", "NaNMath.pow(10.0, 20.0)"),
         # quotient as roadrunner, the truncated quotient of the floats
         ("quotient(1, 0.1)", "trunc(1.0 / 0.1)"),
         ("factorial(A + 1)", "gamma(A + 1.0 + 1.0)"),
-        ("root(k + 1, A)", "A ^ (1.0 / (k + 1.0))"),
+        ("root(k + 1, A)", "NaNMath.pow(A, 1.0 / (k + 1.0))"),
         # piecewise
         (
             "piecewise(piecewise(1, A > 1, 2), k > 1, 3)",
@@ -535,45 +548,44 @@ def test_julia_condition(formula: str, expected: str) -> None:
 
 R_FORMULAS: dict[str, str] = {
     "k*A": "k * A",
-    "ln(A) + log10(A) + log(2, A) + exp(-k)": (
-        "log(A) + log10(A) + log(A, 2) + exp(-k)"
-    ),
+    "ln(A) + log10(A) + log(2, A) + exp(-k)": "log(A) + log10(A) + log(A, 2) + exp(-k)",
     "piecewise(k, A > 1 && !(A > 10) || xor(true, false), 2*k)": (
-        "if (A > 1 && !(A > 10) || xor(TRUE, FALSE)) k else 2 * k"
+        "if (isTRUE(A > 1) && !isTRUE(A > 10) || xor(TRUE, FALSE)) k else 2 * k"
     ),
     "piecewise(k, (A < 1) || (A >= 10), 3*k, A == 3, 0.1)": (
-        "if (A < 1 || A >= 10) k else if (A == 3) 3 * k else 0.1"
+        "if (isTRUE(A < 1) || isTRUE(A >= 10)) k"
+        " else if (isTRUE(A == 3)) 3 * k else 0.1"
     ),
-    "piecewise(k, A > 1)": "if (A > 1) k else NaN",
+    "piecewise(k, A > 1)": "if (isTRUE(A > 1)) k else NaN",
     "rem(A, 2) + rem(-7, A) + quotient(7, A) + root(3, A) + sqrt(A) + A^2 + pow(A, k)": (
         "sign(A) * (abs(A) %% abs(2)) + sign(-7) * (abs(-7) %% abs(A))"
-        " + trunc(7 / A) + A ^ (1.0 / 3) + sqrt(A) + A ^ 2 + A ^ k"
+        " + trunc(7 / A) + A ^ (1 / 3) + sqrt(A) + A ^ 2 + A ^ k"
     ),
     "max(A, k, 1) + min(A, k) + abs(-A) + floor(A/2) + ceil(A/2)": (
         "max(A, k, 1) + min(A, k) + abs(-A) + floor(A / 2) + ceiling(A / 2)"
     ),
     "factorial(3) + pi + exponentiale": "gamma(3 + 1) + pi + exp(1)",
     "implies(A > 1, k > 1) + (A != 2) + (1 < A <= 5)": (
-        "as.numeric(!(A > 1) || k > 1) + as.numeric(A != 2)"
-        " + as.numeric(1 < A && A <= 5)"
+        "as.numeric(!isTRUE(A > 1) || isTRUE(k > 1)) + as.numeric(!isTRUE(A == 2))"
+        " + as.numeric(isTRUE(1 < A) && isTRUE(A <= 5))"
     ),
     "piecewise(1, A < INF, 0) + piecewise(1, 5 > -INF, 0)": (
-        "(if (A < Inf) 1 else 0) + (if (5 > -Inf) 1 else 0)"
+        "(if (isTRUE(A < Inf)) 1 else 0) + (if (isTRUE(5 > -Inf)) 1 else 0)"
     ),
     "sin(A) + cos(A) + tan(A) + sec(A) + csc(A) + cot(A)": (
-        "sin(A) + cos(A) + tan(A) + 1.0 / cos(A) + 1.0 / sin(A) + 1.0 / tan(A)"
+        "sin(A) + cos(A) + tan(A) + 1 / cos(A) + 1 / sin(A) + 1 / tan(A)"
     ),
     "sinh(k) + cosh(k) + tanh(k) + sech(k) + csch(k) + coth(k)": (
-        "sinh(k) + cosh(k) + tanh(k) + 1.0 / cosh(k) + 1.0 / sinh(k) + 1.0 / tanh(k)"
+        "sinh(k) + cosh(k) + tanh(k) + 1 / cosh(k) + 1 / sinh(k) + 1 / tanh(k)"
     ),
     "arcsin(k) + arccos(k) + arctan(k) + arcsinh(k) + arctanh(k)": (
         "asin(k) + acos(k) + atan(k) + asinh(k) + atanh(k)"
     ),
     "arcsec(A) + arccsc(A) + arccot(A) + arccosh(A) + arcsech(k) + arccsch(k)": (
-        "acos(1.0 / A) + asin(1.0 / A) + atan(1.0 / A) + acosh(A) + acosh(1.0 / k)"
-        " + asinh(1.0 / k)"
+        "acos(1 / A) + asin(1 / A) + atan(1 / A) + acosh(A) + acosh(1 / k)"
+        " + asinh(1 / k)"
     ),
-    "arccoth(A)": "atanh(1.0 / A)",
+    "arccoth(A)": "atanh(1 / A)",
     "piecewise(k*time, true, 0) + 2^-1 + -A^2 + 1/2 + (-2)^2 + 2^3^2": (
         "(if (TRUE) k * t else 0) + 2 ^ (-1) + -A ^ 2 + 1 / 2 + (-2) ^ 2 + 2 ^ 3 ^ 2"
     ),
@@ -592,7 +604,7 @@ def test_r_formulas(formula: str, expected: str) -> None:
         # the constructs of the brief
         ("-A^2", "-A ^ 2"),
         ("(-2)^2", "(-2) ^ 2"),
-        ("piecewise(k, A > 1, 0)", "if (A > 1) k else 0"),
+        ("piecewise(k, A > 1, 0)", "if (isTRUE(A > 1)) k else 0"),
         ("log(2, A)", "log(A, 2)"),
         # the remainder of `fmod` as roadrunner, exact for rem(1, 0.1)
         ("rem(-7, 2)", "sign(-7) * (abs(-7) %% abs(2))"),
@@ -604,22 +616,28 @@ def test_r_formulas(formula: str, expected: str) -> None:
         ("(A^2)^3", "(A ^ 2) ^ 3"),
         ("quotient(A + 1, k * 2)", "trunc((A + 1) / (k * 2))"),
         ("factorial(A + 1)", "gamma(A + 1 + 1)"),
-        ("2 * sec(A + k)", "2 * (1.0 / cos(A + k))"),
+        ("2 * sec(A + k)", "2 * (1 / cos(A + k))"),
         # piecewise, an `if` takes everything up to its end
         (
             "piecewise(piecewise(1, A > 1, 2), k > 1, 3)",
-            "if (k > 1) (if (A > 1) 1 else 2) else 3",
+            "if (isTRUE(k > 1)) (if (isTRUE(A > 1)) 1 else 2) else 3",
         ),
         (
             "piecewise(1, A > 1, piecewise(2, k > 1, 3))",
-            "if (A > 1) 1 else if (k > 1) 2 else 3",
+            "if (isTRUE(A > 1)) 1 else if (isTRUE(k > 1)) 2 else 3",
         ),
-        ("piecewise(1, A > 1, 2, k > 1)", "if (A > 1) 1 else if (k > 1) 2 else NaN"),
-        ("2 * piecewise(1, A > 1, 2)", "2 * (if (A > 1) 1 else 2)"),
-        ("piecewise(1, A > 1, 2) * 2", "(if (A > 1) 1 else 2) * 2"),
+        (
+            "piecewise(1, A > 1, 2, k > 1)",
+            "if (isTRUE(A > 1)) 1 else if (isTRUE(k > 1)) 2 else NaN",
+        ),
+        ("2 * piecewise(1, A > 1, 2)", "2 * (if (isTRUE(A > 1)) 1 else 2)"),
+        ("piecewise(1, A > 1, 2) * 2", "(if (isTRUE(A > 1)) 1 else 2) * 2"),
         # logic used as a number
-        ("!(A > 1)", "as.numeric(!(A > 1))"),
-        ("xor(A > 1, k > 1, A < 5)", "as.numeric(xor(xor(A > 1, k > 1), A < 5))"),
+        ("!(A > 1)", "as.numeric(!isTRUE(A > 1))"),
+        (
+            "xor(A > 1, k > 1, A < 5)",
+            "as.numeric(xor(xor(isTRUE(A > 1), isTRUE(k > 1)), isTRUE(A < 5)))",
+        ),
         ("true + false", "as.numeric(TRUE) + as.numeric(FALSE)"),
         # constants and numbers
         ("avogadro", "6.02214179e+23"),
@@ -638,12 +656,18 @@ def test_r_math(formula: str, expected: str) -> None:
 @pytest.mark.parametrize(
     ("formula", "expected"),
     [
-        ("A > 1", "A > 1"),
-        ("!(A > 1 && k > 1)", "!(A > 1 && k > 1)"),
-        ("(A > 1 || k > 1) && A < 5", "(A > 1 || k > 1) && A < 5"),
-        ("implies(A > 1, k > 1)", "!(A > 1) || k > 1"),
+        ("A > 1", "isTRUE(A > 1)"),
+        ("!(A > 1 && k > 1)", "!(isTRUE(A > 1) && isTRUE(k > 1))"),
+        (
+            "(A > 1 || k > 1) && A < 5",
+            "(isTRUE(A > 1) || isTRUE(k > 1)) && isTRUE(A < 5)",
+        ),
+        ("implies(A > 1, k > 1)", "!isTRUE(A > 1) || isTRUE(k > 1)"),
         ("true", "TRUE"),
-        ("piecewise(A > 1, k > 1, false)", "if (k > 1) A > 1 else FALSE"),
+        (
+            "piecewise(A > 1, k > 1, false)",
+            "if (isTRUE(k > 1)) isTRUE(A > 1) else FALSE",
+        ),
     ],
 )
 def test_r_condition(formula: str, expected: str) -> None:
@@ -661,7 +685,8 @@ def test_julia_r_unsupported(printer: type[MathPrinter], formula: str) -> None:
 
 # --- evaluation ---------------------------------------------------------------------
 
-# formulas whose value depends on the semantics of the dialect beyond `FORMULAS`
+# formulas whose value depends on the semantics of the dialect beyond `FORMULAS`,
+# their reference is roadrunner
 EDGE_FORMULAS: list[str] = [
     "quotient(1, 0.1)",
     "quotient(-7, 2)",
@@ -670,18 +695,66 @@ EDGE_FORMULAS: list[str] = [
     "rem(7.5, -2)",
     "2^-3",
     "10^20",
+    "0^-1",
     "max(A)",
     "true + false",
     "(A > 1) * 2 + xor(A > 1, k > 1, A < 5)",
+    # outside the real domain: NaN, never an error or a complex number
+    "(-1e-15)^1.8",
+    "(-A)^k",
+    "root(3, -A)",
+    "sqrt(-1e-15)",
+    "sqrt(-A)",
+    "ln(-A)",
+    "log10(-A)",
+    "log(2, -A)",
+    "log(-2, A)",
+    "arccosh(k)",
+    "arcsin(A)",
+    "arccos(A)",
+    "arctanh(A)",
+    "arcsec(k)",
+    "arccsc(k)",
+    "arccoth(k)",
+    "arcsech(A)",
+    "sin(INF)",
+    "cos(INF)",
+    "tan(INF)",
+    "sec(INF)",
+    "csc(INF)",
+    "cot(INF)",
+    "rem(INF, 2)",
+    "rem(A, 0)",
+    # NaN, a relation with NaN in which roadrunner agrees with IEEE 754
+    "NaN + 1",
+    "piecewise(NaN, A > 1, 0)",
+    "NaN != 2",
+    "(NaN < 1) || (k < 1)",
+    "piecewise(1, sqrt(-A) != 2, 0)",
 ]
-EVALUATED: list[str] = [*FORMULAS, *EDGE_FORMULAS]
+
+# relations with NaN: roadrunner compares unordered, so that every relation with NaN
+# holds (`NaN > 1` and `NaN == 2` are true); the dialects follow IEEE 754 as python,
+# julia and C do, in which only `!=` holds; the value of IEEE 754 of each formula
+NAN_RELATIONS: dict[str, float] = {
+    "NaN > 1": 0.0,
+    "NaN == 2": 0.0,
+    "sqrt(-A) <= 1": 0.0,
+    "piecewise(1, NaN > 1, 2)": 2.0,
+    "piecewise(1, !(NaN > 1), 2)": 1.0,
+    "xor(NaN > 1, k > 1)": 0.0,
+}
+
+EVALUATED: list[str] = [*FORMULAS, *EDGE_FORMULAS, *NAN_RELATIONS]
 VALUES: dict[str, float] = {"A": 3.0, "k": 0.5, "t": 2.0}
+DIALECTS: list[str] = ["python", "julia", "r"]
 
 
 def _python_value(formula: str) -> float:
     """Value of a formula, by `eval` of its python."""
     code = PythonPrinter().print(parse(formula), SYMBOLS)
-    return float(eval(code, {"np": np, "math": math, **VALUES}))  # noqa: S307
+    with np.errstate(all="ignore"):
+        return float(eval(code, {"np": np, "math": math, **VALUES}))  # noqa: S307
 
 
 def _julia_script(codes: list[str]) -> str:
@@ -690,7 +763,7 @@ def _julia_script(codes: list[str]) -> str:
     Each expression is parsed and evaluated on its own, so that an error of one
     is printed in its line instead of ending the script.
     """
-    lines = ["using SpecialFunctions"]
+    lines = [f"using {', '.join(JULIA_PACKAGES)}"]
     lines += [f"{name} = {value!r}" for name, value in VALUES.items()]
     for code in codes:
         assert '"' not in code
@@ -734,11 +807,16 @@ TOOLCHAINS: dict[
 @pytest.fixture(scope="module")
 def evaluate(
     tmp_path_factory: pytest.TempPathFactory,
-) -> Callable[[str], dict[str, str]]:
-    """Output of the evaluation of `EVALUATED` by a dialect, one process each."""
+) -> Callable[[str, str], float]:
+    """Value of a formula of `EVALUATED` in a dialect.
+
+    The julia and the R of all formulas are evaluated in one process per dialect.
+    """
     outputs: dict[str, dict[str, str]] = {}
 
-    def output(dialect: str) -> dict[str, str]:
+    def value(dialect: str, formula: str) -> float:
+        if dialect == "python":
+            return _python_value(formula)
         command, printer, script, run = TOOLCHAINS[dialect]
         if command() is None:
             pytest.skip(f"The toolchain of {dialect} is not runnable.")
@@ -748,26 +826,76 @@ def evaluate(
             lines = stdout.splitlines()
             assert len(lines) == len(EVALUATED), stdout
             outputs[dialect] = dict(zip(EVALUATED, lines, strict=True))
-        return outputs[dialect]
+        line = outputs[dialect][formula]
+        assert not line.startswith("error"), line
+        assert line != "NA", f"{formula} is NA in {dialect}"
+        return float(line)
 
-    return output
+    return value
 
 
-@pytest.mark.parametrize("formula", EVALUATED)
+@pytest.fixture(scope="module")
+def roadrunner_value() -> Callable[[str], float]:
+    """Value of a formula as the rate of a reaction in roadrunner."""
+    roadrunner = pytest.importorskip("roadrunner")
+    values: dict[str, float] = {}
+
+    def value(formula: str) -> float:
+        assert "time" not in formula, "roadrunner evaluates the rates at time 0"
+        if formula not in values:
+            model = roadrunner.RoadRunner(sbml_with_rate(formula))
+            values[formula] = float(model.getReactionRates()[0])
+        return values[formula]
+
+    return value
+
+
+def _assert_value(actual: float, expected: float) -> None:
+    """Assert a value at the point tolerance, NaN equal to NaN."""
+    if math.isnan(expected):
+        assert math.isnan(actual), actual
+    else:
+        assert actual == pytest.approx(expected, rel=1e-8, abs=1e-12)
+
+
+@pytest.mark.parametrize("formula", FORMULAS)
 @pytest.mark.parametrize("dialect", TOOLCHAINS)
 def test_evaluation(
-    dialect: str, formula: str, evaluate: Callable[[str], dict[str, str]]
+    dialect: str, formula: str, evaluate: Callable[[str, str], float]
 ) -> None:
     """The julia and the R of a formula evaluate to the value of its python."""
-    line = evaluate(dialect)[formula]
-    assert not line.startswith("error"), line
-    assert float(line) == pytest.approx(_python_value(formula), rel=1e-12)
+    expected = evaluate("python", formula)
+    assert evaluate(dialect, formula) == pytest.approx(expected, rel=1e-12)
 
 
-def test_python_values() -> None:
-    """The python values of the edge formulas, the reference of the evaluation."""
-    values = {formula: _python_value(formula) for formula in EDGE_FORMULAS}
-    assert values["quotient(1, 0.1)"] == 10.0
-    assert values["rem(1, 0.1)"] == pytest.approx(0.1)
-    assert values["rem(-7.5, 2)"] == -1.5
-    assert values["rem(7.5, -2)"] == 1.5
+@pytest.mark.parametrize("formula", EDGE_FORMULAS)
+@pytest.mark.parametrize("dialect", DIALECTS)
+def test_evaluation_edge(
+    dialect: str,
+    formula: str,
+    evaluate: Callable[[str, str], float],
+    roadrunner_value: Callable[[str], float],
+) -> None:
+    """A formula at the edge of the semantics evaluates as in roadrunner."""
+    _assert_value(evaluate(dialect, formula), roadrunner_value(formula))
+
+
+@pytest.mark.parametrize("formula", NAN_RELATIONS)
+@pytest.mark.parametrize("dialect", DIALECTS)
+def test_evaluation_nan_relation(
+    dialect: str, formula: str, evaluate: Callable[[str, str], float]
+) -> None:
+    """A relation with NaN is false in every dialect, `!=` is true (IEEE 754)."""
+    _assert_value(evaluate(dialect, formula), NAN_RELATIONS[formula])
+
+
+@pytest.mark.parametrize("formula", NAN_RELATIONS)
+def test_roadrunner_nan_relation(
+    formula: str, roadrunner_value: Callable[[str], float]
+) -> None:
+    """Roadrunner differs from IEEE 754 for a relation with NaN.
+
+    If this fails, roadrunner follows IEEE 754 and the formula belongs to
+    `EDGE_FORMULAS`.
+    """
+    assert roadrunner_value(formula) != NAN_RELATIONS[formula]

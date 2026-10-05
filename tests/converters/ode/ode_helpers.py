@@ -106,36 +106,57 @@ def import_module(path: Path) -> ModuleType:
     return module
 
 
-def _command(variable: str, default: str) -> list[str] | None:
+def _command(variable: str, default: str, probe: list[str]) -> list[str] | None:
     """Command prefix of a toolchain from an environment variable, if it runs.
 
     Args:
         variable: the environment variable, e.g. `SBMLUTILS_JULIA`
         default: the command if the variable is not set
+        probe: arguments of a run which must succeed, e.g. loading the packages
+            the scripts use
 
     Returns:
-        the command split into its arguments, `None` if `--version` fails
+        the command split into its arguments, `None` if the probe fails
     """
     command = shlex.split(os.environ.get(variable) or default)
     try:
         subprocess.run(
-            [*command, "--version"], capture_output=True, check=True, timeout=600
+            [*command, *probe], capture_output=True, check=True, timeout=TIMEOUT
         )
     except (OSError, subprocess.SubprocessError):
         return None
     return command
 
 
+TIMEOUT = 600
+"""Seconds a run of a toolchain may take, a run with docker included."""
+
+JULIA_PACKAGES = ["NaNMath", "SpecialFunctions"]
+"""The packages of julia the math of the julia printer uses."""
+
+
 @functools.cache
 def julia_command() -> list[str] | None:
-    """Command of julia, `SBMLUTILS_JULIA` (default `julia`), `None` if it fails."""
-    return _command("SBMLUTILS_JULIA", "julia")
+    """Command of julia, `SBMLUTILS_JULIA` (default `julia`).
+
+    Returns:
+        the command, `None` if it fails to load `JULIA_PACKAGES`
+    """
+    return _command(
+        "SBMLUTILS_JULIA", "julia", ["-e", f"using {', '.join(JULIA_PACKAGES)}"]
+    )
 
 
 @functools.cache
 def rscript_command() -> list[str] | None:
-    """Command of Rscript, `SBMLUTILS_RSCRIPT` (default `Rscript`), `None` if it fails."""
-    return _command("SBMLUTILS_RSCRIPT", "Rscript")
+    """Command of Rscript, `SBMLUTILS_RSCRIPT` (default `Rscript`).
+
+    The math of the R printer uses base R only.
+
+    Returns:
+        the command, `None` if `--version` fails
+    """
+    return _command("SBMLUTILS_RSCRIPT", "Rscript", ["--version"])
 
 
 def _run(command: list[str] | None, script: Path, code: str) -> str:
@@ -151,12 +172,17 @@ def _run(command: list[str] | None, script: Path, code: str) -> str:
 
     Raises:
         RuntimeError: if the toolchain is not runnable or the script fails
+        subprocess.TimeoutExpired: if the script runs longer than `TIMEOUT`
     """
     if command is None:
         raise RuntimeError(f"No toolchain to run {script.name}.")
     script.write_text(code)
     result = subprocess.run(
-        [*command, str(script.absolute())], capture_output=True, text=True, check=False
+        [*command, str(script.absolute())],
+        capture_output=True,
+        text=True,
+        check=False,
+        timeout=TIMEOUT,
     )
     if result.returncode != 0:
         raise RuntimeError(

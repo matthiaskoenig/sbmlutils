@@ -1,8 +1,11 @@
 """The R dialect of the math printer.
 
 The expressions use base R only, the time is `t`. The numbers of R are doubles, so
-an integer of SBML is written as it is. A condition is a logical of length one,
-which is `as.numeric` where it is used as a number. A `piecewise` is an
+a number is written as plain as it reads, `2`, `0.5`. A condition is a logical of
+length one, which is `as.numeric` where it is used as a number. A relation with
+`NaN` is `NA` in R, which is neither a condition of `if` nor a number; a relation is
+therefore `isTRUE(a > b)`, which is `FALSE` for `NA` as in IEEE 754 (and python
+and julia), `a != b` is `!isTRUE(a == b)`, which holds for `NaN`. A `piecewise` is an
 `if (c) x else y` expression, which evaluates only the value of the piece which
 applies; it takes everything up to its end, so it is in parentheses as an operand.
 """
@@ -67,12 +70,12 @@ class RPrinter(MathPrinter):
     }
 
     def number(self, value: float) -> str:
-        """R literal of a double, `Inf` and `NaN` included."""
+        """R literal of a double, `2`, `0.5`, `1e-05`, `Inf` and `NaN` included."""
         if math.isnan(value):
             return "NaN"
         if math.isinf(value):
             return "Inf" if value > 0 else "-Inf"
-        return repr(float(value))
+        return repr(float(value)).removesuffix(".0")
 
     def power(self, base: Printed, exponent: Printed) -> Printed:
         """`a ^ b`, a negative exponent in parentheses, `a ^ (-b)`."""
@@ -119,7 +122,7 @@ class RPrinter(MathPrinter):
         return self.call("log", [value, base])
 
     def root(self, degree: Printed | None, value: Printed) -> Printed:
-        """`sqrt(x)` or `x ^ (1.0 / n)`."""
+        """`sqrt(x)` or `x ^ (1 / n)`."""
         if degree is None:
             return self.call("sqrt", [value])
         return self.power(value, self.divide(self._one(), degree))
@@ -130,6 +133,13 @@ class RPrinter(MathPrinter):
             "gamma",
             [self.infix([value, self._integer(1)], self.PLUS, Precedence.SUM)],
         )
+
+    def relation(self, relation: int, left: Printed, right: Printed) -> Printed:
+        """`isTRUE(a > b)`, `!isTRUE(a == b)` for `a != b`, never `NA`."""
+        if relation == libsbml.AST_RELATIONAL_NEQ:
+            equal = super().relation(libsbml.AST_RELATIONAL_EQ, left, right)
+            return self.logic_not(self.call("isTRUE", [equal]))
+        return self.call("isTRUE", [super().relation(relation, left, right)])
 
     def logic_and(self, operands: Sequence[Printed]) -> Printed:
         """`a && b`."""

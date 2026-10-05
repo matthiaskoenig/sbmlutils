@@ -1,11 +1,14 @@
 """The julia dialect of the math printer.
 
-The expressions use `Base` and `SpecialFunctions` (for `gamma`), the time is `t`.
-Every number is a `Float64` literal, an integer of SBML included: the integer
-arithmetic of julia overflows and a power of integers throws for a negative
-exponent, so `2^-1` is written as `2.0 ^ (-1.0)`. A condition is a `Bool`, which is
-a `Float64` where it is used as a number. A `piecewise` is a conditional expression
-`c ? x : y`, which evaluates only the value of the piece which applies.
+The expressions use `Base`, `NaNMath` and `SpecialFunctions` (for `gamma`), the
+time is `t`. A function of `Base` throws a `DomainError` outside its real domain,
+`sqrt(-1.0)`, `(-2.0)^0.5`, `log(-1.0)`, `acosh(0.5)`, `sin(Inf)`; there the
+expressions use the function of `NaNMath`, which is `NaN` as in SBML. Every number
+is a `Float64` literal, an integer of SBML included: the integer arithmetic of julia
+overflows, `10^20`, and a power of integers throws for a negative exponent. A
+condition is a `Bool`, which is a `Float64` where it is used as a number. A
+`piecewise` is a conditional expression `c ? x : y`, which evaluates only the value
+of the piece which applies.
 """
 
 import math
@@ -23,35 +26,23 @@ class JuliaPrinter(MathPrinter):
     name: ClassVar[str] = "julia"
     FUNCTIONS: ClassVar[Mapping[int, str]] = {
         libsbml.AST_FUNCTION_ABS: "abs",
-        libsbml.AST_FUNCTION_ARCCOS: "acos",
-        libsbml.AST_FUNCTION_ARCCOSH: "acosh",
-        libsbml.AST_FUNCTION_ARCCOT: "acot",
-        libsbml.AST_FUNCTION_ARCCOTH: "acoth",
-        libsbml.AST_FUNCTION_ARCCSC: "acsc",
-        libsbml.AST_FUNCTION_ARCCSCH: "acsch",
-        libsbml.AST_FUNCTION_ARCSEC: "asec",
-        libsbml.AST_FUNCTION_ARCSECH: "asech",
-        libsbml.AST_FUNCTION_ARCSIN: "asin",
+        libsbml.AST_FUNCTION_ARCCOS: "NaNMath.acos",
+        libsbml.AST_FUNCTION_ARCCOSH: "NaNMath.acosh",
+        libsbml.AST_FUNCTION_ARCSIN: "NaNMath.asin",
         libsbml.AST_FUNCTION_ARCSINH: "asinh",
         libsbml.AST_FUNCTION_ARCTAN: "atan",
-        libsbml.AST_FUNCTION_ARCTANH: "atanh",
+        libsbml.AST_FUNCTION_ARCTANH: "NaNMath.atanh",
         libsbml.AST_FUNCTION_CEILING: "ceil",
-        libsbml.AST_FUNCTION_COS: "cos",
+        libsbml.AST_FUNCTION_COS: "NaNMath.cos",
         libsbml.AST_FUNCTION_COSH: "cosh",
-        libsbml.AST_FUNCTION_COT: "cot",
-        libsbml.AST_FUNCTION_COTH: "coth",
-        libsbml.AST_FUNCTION_CSC: "csc",
-        libsbml.AST_FUNCTION_CSCH: "csch",
         libsbml.AST_FUNCTION_EXP: "exp",
         libsbml.AST_FUNCTION_FLOOR: "floor",
-        libsbml.AST_FUNCTION_LN: "log",
+        libsbml.AST_FUNCTION_LN: "NaNMath.log",
         libsbml.AST_FUNCTION_MAX: "max",
         libsbml.AST_FUNCTION_MIN: "min",
-        libsbml.AST_FUNCTION_SEC: "sec",
-        libsbml.AST_FUNCTION_SECH: "sech",
-        libsbml.AST_FUNCTION_SIN: "sin",
+        libsbml.AST_FUNCTION_SIN: "NaNMath.sin",
         libsbml.AST_FUNCTION_SINH: "sinh",
-        libsbml.AST_FUNCTION_TAN: "tan",
+        libsbml.AST_FUNCTION_TAN: "NaNMath.tan",
         libsbml.AST_FUNCTION_TANH: "tanh",
     }
     CONSTANTS: ClassVar[Mapping[int, str]] = {
@@ -60,6 +51,22 @@ class JuliaPrinter(MathPrinter):
         libsbml.AST_CONSTANT_TRUE: "true",
         libsbml.AST_CONSTANT_FALSE: "false",
         libsbml.AST_NAME_TIME: "t",
+    }
+    RECIPROCALS: ClassVar[Mapping[int, str]] = {
+        libsbml.AST_FUNCTION_SEC: "NaNMath.cos",
+        libsbml.AST_FUNCTION_CSC: "NaNMath.sin",
+        libsbml.AST_FUNCTION_COT: "NaNMath.tan",
+        libsbml.AST_FUNCTION_SECH: "cosh",
+        libsbml.AST_FUNCTION_CSCH: "sinh",
+        libsbml.AST_FUNCTION_COTH: "tanh",
+    }
+    OF_RECIPROCALS: ClassVar[Mapping[int, str]] = {
+        libsbml.AST_FUNCTION_ARCSEC: "NaNMath.acos",
+        libsbml.AST_FUNCTION_ARCCSC: "NaNMath.asin",
+        libsbml.AST_FUNCTION_ARCCOT: "atan",
+        libsbml.AST_FUNCTION_ARCSECH: "NaNMath.acosh",
+        libsbml.AST_FUNCTION_ARCCSCH: "asinh",
+        libsbml.AST_FUNCTION_ARCCOTH: "NaNMath.atanh",
     }
 
     def integer(self, value: int) -> str:
@@ -80,9 +87,8 @@ class JuliaPrinter(MathPrinter):
         return f"{mantissa}e{int(exponent)}"
 
     def power(self, base: Printed, exponent: Printed) -> Printed:
-        """`a ^ b`, a negative exponent in parentheses, `a ^ (-b)`."""
-        code = f"{self.wrap(base, Precedence.ATOM)} ^ {self.wrap(exponent, Precedence.POWER)}"
-        return Printed(code, Precedence.POWER)
+        """`NaNMath.pow(a, b)`, `NaN` for a negative base and a fractional exponent."""
+        return self.call("NaNMath.pow", [base, exponent])
 
     def piecewise(
         self, pieces: Sequence[tuple[Printed, Printed]], otherwise: Printed | None
@@ -112,15 +118,17 @@ class JuliaPrinter(MathPrinter):
         return self.call("trunc", [self.divide(dividend, divisor)])
 
     def log(self, base: Printed | None, value: Printed) -> Printed:
-        """`log10(x)` or `log(b, x)`."""
+        """`NaNMath.log10(x)` or `NaNMath.log(x) / NaNMath.log(b)`."""
         if base is None:
-            return self.call("log10", [value])
-        return self.call("log", [base, value])
+            return self.call("NaNMath.log10", [value])
+        return self.divide(
+            self.call("NaNMath.log", [value]), self.call("NaNMath.log", [base])
+        )
 
     def root(self, degree: Printed | None, value: Printed) -> Printed:
-        """`sqrt(x)` or `x ^ (1.0 / n)`."""
+        """`NaNMath.sqrt(x)` or `NaNMath.pow(x, 1.0 / n)`."""
         if degree is None:
-            return self.call("sqrt", [value])
+            return self.call("NaNMath.sqrt", [value])
         return self.power(value, self.divide(self._one(), degree))
 
     def factorial(self, value: Printed) -> Printed:
