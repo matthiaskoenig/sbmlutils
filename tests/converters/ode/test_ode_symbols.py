@@ -139,7 +139,13 @@ def test_python_keywords_and_builtins_are_reserved() -> None:
     import builtins
 
     assert set(keyword.kwlist) <= RESERVED["python"]
-    assert set(dir(builtins)) <= RESERVED["python"]
+    # an extension module may add a private name to the builtins at runtime, after
+    # `RESERVED` was built, e.g. `__pybind11_internals_v4_...__` once scipy is imported
+    public = {name for name in dir(builtins) if not name.startswith("_")}
+    assert public <= RESERVED["python"]
+    assert {"__import__", "__build_class__", "__debug__", "__name__"} <= RESERVED[
+        "python"
+    ]
 
 
 IDENTIFIER = re.compile(r"(?<![A-Za-z0-9_.])[A-Za-z_][A-Za-z0-9_.]*")
