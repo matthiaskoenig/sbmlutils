@@ -71,7 +71,7 @@ The three layers are independent: the analysis knows no format, a printer knows 
 - `InitialAssignment`, `Assignment` (assignment rule): variable, AST.
 - `Reaction`: id, reactants, products, modifiers with their stoichiometry (a number, or the AST of a stoichiometry given by a rule or an initial assignment of a species reference), reversible flag, rate AST, local parameters. Local parameters are renamed to `<reaction id>_<local id>` (made unique against all ids) and become constant parameters; the rate AST is rewritten accordingly.
 - `Ode`: state variable, right hand side AST, `origin` (`reactions` or `rate_rule`), and for species in concentration the volume term.
-- `Event`: id, trigger AST, `initialValue`, `persistent`, delay AST, priority AST, `useValuesFromTriggerTime`, assignments (variable, AST).
+- `Event`: id, trigger AST, `initialValue`, `persistent`, delay AST, priority AST, `useValuesFromTriggerTime`, assignments (variable, value AST, `scale` AST, `divisor` id): the new value is `value * scale / new(divisor)`, where the value is evaluated at trigger or execution time as `useValuesFromTriggerTime` says, while `scale` (the size conversion of a species in concentration or held as amount) is always evaluated at execution, and `divisor` is a compartment assigned by the same event, see the docstring of `EventAssignment`.
 - `unsupported`: list of `(construct, element id)`, e.g. `("algebraic rule", "rule3")`.
 
 The following SBML semantics are resolved once, here:
