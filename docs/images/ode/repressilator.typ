@@ -154,14 +154,14 @@ To the extent possible under law, all copyright and related or neighbouring righ
   table.hline(stroke: 0.8pt),
   table.header([*Symbol*], [*Id*], [*Name*], [*Value*], [*Constant*]),
   table.hline(stroke: 0.4pt),
-  [$upright("beta")$], [`beta`], [beta], [], [],
-  [$upright("alpha")_(0)$], [`alpha0`], [alpha0], [], [],
-  [$upright("alpha")$], [`alpha`], [alpha], [], [],
+  [$beta$], [`beta`], [beta], [], [],
+  [$alpha_(0)$], [`alpha0`], [alpha0], [], [],
+  [$alpha$], [`alpha`], [alpha], [], [],
   [$upright("eff")$], [`eff`], [translation efficiency], [$20$], [#sym.checkmark],
   [$n$], [`n`], [n], [$2$], [#sym.checkmark],
   [$upright("KM")$], [`KM`], [KM], [$40$], [#sym.checkmark],
-  [$upright("tau")_("mRNA")$], [`tau_mRNA`], [mRNA half life], [$2$], [#sym.checkmark],
-  [$upright("tau")_("prot")$], [`tau_prot`], [protein half life], [$10$], [#sym.checkmark],
+  [$tau_("mRNA")$], [`tau_mRNA`], [mRNA half life], [$2$], [#sym.checkmark],
+  [$tau_("prot")$], [`tau_prot`], [protein half life], [$10$], [#sym.checkmark],
   [$t_("ave")$], [`t_ave`], [average mRNA life time], [], [],
   [$upright("kd")_("mRNA")$], [`kd_mRNA`], [kd\_mRNA], [], [],
   [$upright("kd")_("prot")$], [`kd_prot`], [kd\_prot], [], [],
@@ -177,15 +177,15 @@ To the extent possible under law, all copyright and related or neighbouring righ
 
 The assignment rules hold at every time $t$:
 
-$ t_("ave") &= (upright("tau")_("mRNA"))/(ln(2)) \
-  upright("beta") &= (upright("tau")_("mRNA"))/(upright("tau")_("prot")) \
+$ t_("ave") &= (tau_("mRNA"))/(ln(2)) \
+  beta &= (tau_("mRNA"))/(tau_("prot")) \
   k_("tl") &= (upright("eff"))/(t_("ave")) \
   a_("tr") &= (upright("ps")_("a") - upright("ps")_(0)) dot 60 \
   upright("a0")_("tr") &= upright("ps")_(0) dot 60 \
-  upright("kd")_("prot") &= (ln(2))/(upright("tau")_("prot")) \
-  upright("kd")_("mRNA") &= (ln(2))/(upright("tau")_("mRNA")) \
-  upright("alpha") &= (a_("tr") dot upright("eff") dot upright("tau")_("prot"))/(ln(2) dot upright("KM")) \
-  upright("alpha")_(0) &= (upright("a0")_("tr") dot upright("eff") dot upright("tau")_("prot"))/(ln(2) dot upright("KM")) $
+  upright("kd")_("prot") &= (ln(2))/(tau_("prot")) \
+  upright("kd")_("mRNA") &= (ln(2))/(tau_("mRNA")) \
+  alpha &= (a_("tr") dot upright("eff") dot tau_("prot"))/(ln(2) dot upright("KM")) \
+  alpha_(0) &= (upright("a0")_("tr") dot upright("eff") dot tau_("prot"))/(ln(2) dot upright("KM")) $
 
 = Reactions
 

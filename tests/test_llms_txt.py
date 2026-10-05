@@ -37,13 +37,26 @@ def test_missing_snippet_fails(docs_dir: Path) -> None:
 
 
 def test_every_module_of_an_api_page(docs_dir: Path) -> None:
-    """An API page of several modules is the API of each of them."""
+    """An API page is its prose with the API of each module, as its filters say."""
     (docs_dir / "api").mkdir()
     (docs_dir / "api" / "ode.md").write_text(
-        "# ode\n\n::: sbmlutils.converters.ode\n\n## The ODE system\n\n"
-        "::: sbmlutils.converters.ode.system\n    options:\n      filters: []\n",
+        "# ode\n\nThe guide is elsewhere.\n\n::: sbmlutils.converters.ode\n\n"
+        "## The ODE system\n\n::: sbmlutils.converters.ode.system\n"
+        '    options:\n      filters: ["!^_", "!^OdeSystem$"]\n',
         encoding="utf-8",
     )
     markdown = page_markdown(Page("API", "ode", "api/ode.md"))
-    assert markdown.startswith("# sbmlutils.converters.ode\n")
-    assert "\n# sbmlutils.converters.ode.system\n" in markdown
+    assert markdown.startswith("# ode\n\nThe guide is elsewhere.\n\n")
+    assert "\n## sbmlutils.converters.ode\n" in markdown
+    assert "\n## The ODE system\n" in markdown
+    assert "\n## sbmlutils.converters.ode.system\n" in markdown
+    assert "filters:" not in markdown
+    # `OdeSystem` is filtered from the second module, so it is listed once
+    assert markdown.count("### class `OdeSystem") == 1
+    assert "### class `Quantity" in markdown
+
+
+def test_snippet_needs_a_space_on_its_line(docs_dir: Path) -> None:
+    """A snippet line is the marker, blanks and the path, never across lines."""
+    (docs_dir / "page.md").write_text('--8<--\n"missing.md"\n', encoding="utf-8")
+    assert page_markdown(Page("Guide", "Page", "page.md")) == '--8<--\n"missing.md"\n'

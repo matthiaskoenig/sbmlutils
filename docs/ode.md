@@ -223,7 +223,7 @@ The strings of the code are ASCII only, a character which is not ASCII is writte
 
 ### Events
 
-Events are supported in full by the three languages, with the semantics of SBML and libroadrunner, and are written whether or not the code is a simulator:
+Events are supported in full by the three languages, with the semantics of SBML and libroadrunner, and are written whether or not the code is a simulator. The functions of the events take the arguments of the right hand side, `(t, x, p)` in python and R and `(x, p, t)` in julia, and an assignment the values in addition, `(t, x, p, values)` in python and R and `(x, p, t, values)` in julia:
 
 - `event_triggers(t, x, p)` returns one continuous root function per event, whose sign is the truth value of its trigger: `a > b` is `a - b`, a conjunction the minimum and a disjunction the maximum of the root functions of its operands, a negation the negative. A solver ends its step where one of them changes its sign.
 - `event_conditions(t, x, p)` returns the exact truth value of every trigger, which tells a strict relation from a non-strict one at the root.
@@ -310,7 +310,7 @@ The fragment of `standalone=False` is included at the [end of this page](#elowit
 
 ## Symbols and names
 
-In the documents an id is typeset as a math symbol: the part before the first underscore is the base, the rest the subscript, so `k_cat_glc` is $k_{\mathrm{cat\_glc}}$. An id of letters followed by digits has the digits as subscript, `k1` is $k_{1}$. A base of one letter is italic, a base of more letters is upright, `Glc` is $\mathrm{Glc}$. Two ids are never typeset as the same symbol: of `k1` and `k_1` the first one is upright text, $\mathrm{k1}$. The rate of a reaction is $v$ with the id of the reaction as subscript, $v_{\mathrm{J0}}$, the amount of a species which is integrated as an amount is $n$ with the symbol of the species as subscript, $n_{S}$. With `symbols="name"` an element is typeset with its name if the name is a valid symbol (letters, digits and underscores, starting with a letter), else with its id.
+In the documents an id is typeset as a math symbol: the part before the first underscore is the base, the rest the subscript, so `k_cat_glc` is $k_{\mathrm{cat\_glc}}$. An id of letters followed by digits has the digits as subscript, `k1` is $k_{1}$. A base of one letter is italic, a base of more letters is upright, `Glc` is $\mathrm{Glc}$. A base which is the name of a Greek letter is the letter, `tau_mRNA` is $\tau_{\mathrm{mRNA}}$, `alpha0` is $\alpha_{0}$ and `Gamma` is $\Gamma$; omicron is the Latin $o$, and an upper case letter which is a Latin one (`Alpha`) stays its name. Two ids are never typeset as the same symbol: of `k1` and `k_1` the first one is upright text, $\mathrm{k1}$, and of `omicron` and `o` the first one is its name, $\mathrm{omicron}$. The rate of a reaction is $v$ with the id of the reaction as subscript, $v_{\mathrm{J0}}$, the amount of a species which is integrated as an amount is $n$ with the symbol of the species as subscript, $n_{S}$. With `symbols="name"` an element is typeset with its name if the name is a valid symbol (letters, digits and underscores, starting with a letter), else with its id.
 
 In the code every id is the name of its variable, except where the id is a keyword of the language, a builtin or a name the code uses itself (`t`, `x`, `p`, `np`, ...): such an id gets an underscore appended, so `lambda` is `lambda_` in python and `function` is `function_` in julia and R. Local parameters are named `<reaction id>_<parameter id>`.
 
@@ -370,7 +370,7 @@ The context of a document (`typst`, `latex`, `markdown`) holds `model`, `units`,
 | `SBML2ODE(doc)` | `OdeSystem.from_sbml(doc)` |
 | `to_python(path)` | `write(path)` or `render("python")` |
 | `to_R`, `to_julia`, `to_markdown`, `to_tex` | `render("r")`, `render("julia")`, `render("markdown")`, `render("latex")`, or `write` with the suffix |
-| `to_custom_template(path)` | `render_template(path)` |
+| `to_custom_template(template, output_file)` | `render_template(template)`, which returns the string, and `Path(output_file).write_text(...)` |
 
 The generated python code changes in the same way:
 
@@ -381,6 +381,8 @@ The generated python code changes in the same way:
 | `f_dxdt(x, t, p)`, the argument order of `odeint` | `f_dxdt(t, x, p)`, that of `solve_ivp` and the `OdeSolver` classes |
 | `f_y(x, t, p)` | `f_y(t, x, p)` |
 | `f_z(X, T, p)` | `simulate(t_end)`, which returns the time, the states and the assigned values |
+
+A custom template of `odefac` has to be rewritten for the new context, see [Custom templates](#custom-templates): the names of its keys, the math in the printer of the format and the order of the arguments differ.
 
 The new export supports initial assignments, local parameters, function definitions, `rateOf`, events and every construct of the [table above](#supported-sbml), which `odefac` did not, and `create_model(..., create_markdown=True)` writes the new markdown.
 

@@ -252,7 +252,7 @@ SYMBOLS = [
     ("k1", "k_{1}", "k_(1)"),
     ("S0", "S_{0}", "S_(0)"),
     ("Km2", r"\mathrm{Km}_{2}", 'upright("Km")_(2)'),
-    ("alpha12", r"\mathrm{alpha}_{12}", 'upright("alpha")_(12)'),
+    ("alpha12", r"\alpha_{12}", "alpha_(12)"),
     ("k1a", r"\mathrm{k1a}", 'upright("k1a")'),
     ("a0_tr", r"\mathrm{a0}_{\mathrm{tr}}", 'upright("a0")_("tr")'),
     ("v_r1", r"v_{\mathrm{r1}}", 'v_("r1")'),
@@ -265,6 +265,22 @@ SYMBOLS = [
     ("x_", r"\mathrm{x\_}", 'upright("x_")'),
     ("_", r"\mathrm{\_}", 'upright("_")'),
     ("_1", r"\mathrm{\_1}", 'upright("_1")'),
+    # a base which is the name of a Greek letter is the letter, the subscript is not
+    ("alpha", r"\alpha", "alpha"),
+    ("beta0", r"\beta_{0}", "beta_(0)"),
+    ("tau_mRNA", r"\tau_{\mathrm{mRNA}}", 'tau_("mRNA")'),
+    ("k_alpha", r"k_{\mathrm{alpha}}", 'k_("alpha")'),
+    ("pi", r"\pi", "pi"),
+    ("epsilon", r"\varepsilon", "epsilon"),
+    ("phi_x", r"\varphi_{\mathrm{x}}", 'phi_("x")'),
+    ("Gamma", r"\Gamma", "Gamma"),
+    ("Omega_1", r"\Omega_{1}", "Omega_(1)"),
+    # omicron is the Latin o, an upper case letter which is a Latin one stays text
+    ("omicron", "o", "o"),
+    ("Alpha", r"\mathrm{Alpha}", 'upright("Alpha")'),
+    ("Tau_x", r"\mathrm{Tau}_{\mathrm{x}}", 'upright("Tau")_("x")'),
+    # a name which only starts like a Greek letter is no Greek letter
+    ("alphas", r"\mathrm{alphas}", 'upright("alphas")'),
     # the underscores after the first are part of the subscript
     ("a__b", r"a_{\mathrm{\_b}}", 'a_("_b")'),
     ("a_b_", r"a_{\mathrm{b\_}}", 'a_("b_")'),
@@ -306,15 +322,29 @@ def test_typst_symbols_compile(tmp_path: Path) -> None:
 def test_typst_symbols_render_as_the_symbol(tmp_path: Path) -> None:
     """The typst symbols are not read as a function, a unit or a builtin."""
     typst = pytest.importorskip("typst")
-    for sid in ["pi", "sin", "cos", "alpha", "Glc", "e", "i", "inf", "k_pi", "oo_x"]:
+    for sid in [
+        "pi",
+        "sin",
+        "cos",
+        "alpha",
+        "Glc",
+        "e",
+        "i",
+        "inf",
+        "k_pi",
+        "oo_x",
+        "eta",
+    ]:
         source = f"$ {typeset_symbol(sid, 'typst')} $"
         path = tmp_path / "symbol.typ"
         path.write_text(source)
         _, warnings = typst.compile_with_warnings(str(path))
         assert not warnings, sid
-    # a multi letter base is a string, so that `pi` is not the number, `sin` no function
-    assert typeset_symbol("pi", "typst") == 'upright("pi")'
+    # a multi letter base is a string, so that `sin` is no function, `inf` no symbol;
+    # the name of a Greek letter is the letter
     assert typeset_symbol("sin_x", "typst") == 'upright("sin")_("x")'
+    assert typeset_symbol("inf", "typst") == 'upright("inf")'
+    assert typeset_symbol("pi", "typst") == "pi"
 
 
 # --- typeset names --------------------------------------------------------------------
@@ -388,6 +418,40 @@ def test_typeset_names_of_numbered_ids_are_unique(
         "typst": {"k1": 'upright("k1")', "k_1": "k_(1)", "S0": "S_(0)"},
     }
     assert result == expected[dialect]
+
+
+@pytest.mark.parametrize("dialect", ["latex", "typst"])
+def test_typeset_names_of_greek_ids_are_unique(
+    dialect: Literal["latex", "typst"],
+) -> None:
+    """A Greek letter typeset like another id is its name, numbered ids are text."""
+    result = typeset_names(["o", "omicron", "alpha0", "alpha_0", "tau"], dialect)
+    expected = {
+        "latex": {
+            "o": "o",
+            "omicron": r"\mathrm{omicron}",
+            "alpha0": r"\mathrm{alpha0}",
+            "alpha_0": r"\alpha_{0}",
+            "tau": r"\tau",
+        },
+        "typst": {
+            "o": "o",
+            "omicron": 'upright("omicron")',
+            "alpha0": 'upright("alpha0")',
+            "alpha_0": "alpha_(0)",
+            "tau": "tau",
+        },
+    }
+    assert result == expected[dialect]
+
+
+def test_typeset_names_of_greek_names() -> None:
+    """A name which is the name of a Greek letter is the letter."""
+    names = {"k1": "lambda", "k2": "Omega_max"}
+    assert typeset_names(["k1", "k2"], "latex", names) == {
+        "k1": r"\lambda",
+        "k2": r"\Omega_{\mathrm{max}}",
+    }
 
 
 def test_typeset_names_reject_ids_which_are_no_sid() -> None:

@@ -1,6 +1,6 @@
 # ode
 
-The guide to the export is [ODE export](../ode.md).
+The export of a model as its system of ordinary differential equations in python, julia, R, typst, LaTeX and markdown. The guide to it is [ODE export](../ode.md).
 
 ::: sbmlutils.converters.ode
 

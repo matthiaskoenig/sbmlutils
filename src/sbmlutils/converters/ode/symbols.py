@@ -7,8 +7,9 @@ digit. They are written in two ways:
   keyword, a builtin or a name the generated code uses itself must not be taken
   (`code_names`),
 - as a typeset math symbol in LaTeX and typst, where the id is split into a base and a
-  subscript, `k_cat_glc` is `k` with the subscript `cat_glc` (`typeset_symbol`,
-  `typeset_names`).
+  subscript, `k_cat_glc` is `k` with the subscript `cat_glc`, and a base which is the
+  name of a Greek letter is the letter, `tau_mRNA` is τ with the subscript `mRNA`
+  (`typeset_symbol`, `typeset_names`).
 """
 
 import builtins
@@ -355,8 +356,34 @@ def _text(value: str, dialect: Dialect) -> str:
     return f'upright("{value}")'
 
 
-def _typeset(sid: str, dialect: Dialect) -> str:
-    """The symbol of a valid id, see `typeset_symbol`."""
+# the Greek letters by their name, with their symbol in LaTeX and in typst. Epsilon and
+# phi are the letters of the text, ε and φ, in both. Omicron is the Latin o, as it is in
+# print (LaTeX has no `\omicron`); an upper case letter which is a Latin one (`Alpha`
+# is A) is no Greek letter here, it stays its name.
+# fmt: off
+_GREEK_NAMES: list[str] = [
+    "alpha", "beta", "gamma", "delta", "zeta", "eta", "theta", "iota", "kappa",
+    "lambda", "mu", "nu", "xi", "pi", "rho", "sigma", "tau", "upsilon", "chi", "psi",
+    "omega", "Gamma", "Delta", "Theta", "Lambda", "Xi", "Pi", "Sigma", "Upsilon", "Phi",
+    "Psi", "Omega",
+]
+# fmt: on
+_GREEK: dict[str, tuple[str, str]] = {
+    **{name: (f"\\{name}", name) for name in _GREEK_NAMES},
+    "epsilon": (r"\varepsilon", "epsilon"),
+    "phi": (r"\varphi", "phi"),
+    "omicron": ("o", "o"),
+}
+
+
+def _typeset(sid: str, dialect: Dialect, greek: bool = True) -> str:
+    """The symbol of a valid id, see `typeset_symbol`.
+
+    Args:
+        sid: the id
+        dialect: `"latex"` or `"typst"`
+        greek: whether a base which is the name of a Greek letter is the letter
+    """
     latex = dialect == "latex"
 
     def text(value: str) -> str:
@@ -371,7 +398,10 @@ def _typeset(sid: str, dialect: Dialect) -> str:
     if not base or (separator and not sub):
         # `_x` has no base, `x_` no subscript: the id is text, with its underscores
         return text(sid)
-    symbol = base if len(base) == 1 else text(base)
+    if greek and base in _GREEK:
+        symbol = _GREEK[base][0 if latex else 1]
+    else:
+        symbol = base if len(base) == 1 else text(base)
     if not separator:
         return symbol
     if sub.isdigit():
@@ -396,6 +426,11 @@ def typeset_symbol(sid: str, dialect: Dialect) -> str:
     (`k_("cat_glc")`), except a subscript of digits only, which is a number,
     `k_{1}` (`k_(1)`). An id without a base (`_x`) or without a subscript (`x_`) is
     upright text as a whole, `\mathrm{\_x}` (`upright("_x")`).
+
+    A base which is the name of a Greek letter is the letter: `tau_mRNA` is
+    `\tau_{\mathrm{mRNA}}` (`tau_("mRNA")`), `alpha` is `\alpha`, `beta0` is
+    `\beta_{0}`, `Gamma` is `\Gamma`. The upper case letters which are Latin ones
+    (`Alpha`) stay text, omicron is the Latin `o`.
 
     The id is an SId, so the text holds letters, digits and underscores only and needs no
     escaping but the underscore in LaTeX.
@@ -429,8 +464,10 @@ def typeset_names(
     letter and holds letters, digits and underscores only, else of its id. Two elements
     are never written with the same symbol, a reader could not tell them apart: an id
     of letters and digits whose symbol is that of another id (`k1` and `k_1` are both
-    `k_{1}`) is upright text, `\mathrm{k1}`, and an element whose name gives the
-    symbol of another element falls back to its id, until no two symbols are equal.
+    `k_{1}`) is upright text, `\mathrm{k1}`, then an id whose symbol is a Greek letter
+    and that of another id (`omicron` and `o` are both `o`) is typeset without the
+    letter, `\mathrm{omicron}`, and an element whose name gives the symbol of another
+    element falls back to its id, until no two symbols are equal.
 
     Args:
         ids: the ids of the elements
@@ -453,6 +490,15 @@ def typeset_names(
     for sid in sids:
         if count[by_id[sid]] > 1 and _NUMBERED.fullmatch(sid):
             by_id[sid] = _text(sid, dialect)
+    # `omicron` and `o` are both `o`: the Greek letter is its name
+    count = {}
+    for symbol in by_id.values():
+        count[symbol] = count.get(symbol, 0) + 1
+    for sid in sids:
+        if count[by_id[sid]] > 1 and by_id[sid] == typeset_symbol(sid, dialect):
+            plain = _typeset(sid, dialect, greek=False)
+            if plain != by_id[sid]:
+                by_id[sid] = plain
     chosen = dict(by_id)
     named: set[str] = set()
     for sid in sids:

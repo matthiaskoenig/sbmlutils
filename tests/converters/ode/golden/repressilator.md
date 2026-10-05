@@ -119,14 +119,14 @@ To the extent possible under law, all copyright and related or neighbouring righ
 
 | Symbol | Id | Name | Value | Constant |
 | --- | --- | --- | --- | :---: |
-| $\mathrm{beta}$ | `beta` | beta |  |  |
-| $\mathrm{alpha}_{0}$ | `alpha0` | alpha0 |  |  |
-| $\mathrm{alpha}$ | `alpha` | alpha |  |  |
+| $\beta$ | `beta` | beta |  |  |
+| $\alpha_{0}$ | `alpha0` | alpha0 |  |  |
+| $\alpha$ | `alpha` | alpha |  |  |
 | $\mathrm{eff}$ | `eff` | translation efficiency | $20$ | ✓ |
 | $n$ | `n` | n | $2$ | ✓ |
 | $\mathrm{KM}$ | `KM` | KM | $40$ | ✓ |
-| $\mathrm{tau}_{\mathrm{mRNA}}$ | `tau_mRNA` | mRNA half life | $2$ | ✓ |
-| $\mathrm{tau}_{\mathrm{prot}}$ | `tau_prot` | protein half life | $10$ | ✓ |
+| $\tau_{\mathrm{mRNA}}$ | `tau_mRNA` | mRNA half life | $2$ | ✓ |
+| $\tau_{\mathrm{prot}}$ | `tau_prot` | protein half life | $10$ | ✓ |
 | $t_{\mathrm{ave}}$ | `t_ave` | average mRNA life time |  |  |
 | $\mathrm{kd}_{\mathrm{mRNA}}$ | `kd_mRNA` | kd\_mRNA |  |  |
 | $\mathrm{kd}_{\mathrm{prot}}$ | `kd_prot` | kd\_prot |  |  |
@@ -142,15 +142,15 @@ The assignment rules hold at every time $t$:
 
 $$
 \begin{aligned}
-t_{\mathrm{ave}} &= \frac{\mathrm{tau}_{\mathrm{mRNA}}}{\ln\mathopen{}\left(2\right)} \\[1ex]
-\mathrm{beta} &= \frac{\mathrm{tau}_{\mathrm{mRNA}}}{\mathrm{tau}_{\mathrm{prot}}} \\[1ex]
+t_{\mathrm{ave}} &= \frac{\tau_{\mathrm{mRNA}}}{\ln\mathopen{}\left(2\right)} \\[1ex]
+\beta &= \frac{\tau_{\mathrm{mRNA}}}{\tau_{\mathrm{prot}}} \\[1ex]
 k_{\mathrm{tl}} &= \frac{\mathrm{eff}}{t_{\mathrm{ave}}} \\[1ex]
 a_{\mathrm{tr}} &= \mathopen{}\left(\mathrm{ps}_{\mathrm{a}} - \mathrm{ps}_{0}\right) \cdot 60 \\[1ex]
 \mathrm{a0}_{\mathrm{tr}} &= \mathrm{ps}_{0} \cdot 60 \\[1ex]
-\mathrm{kd}_{\mathrm{prot}} &= \frac{\ln\mathopen{}\left(2\right)}{\mathrm{tau}_{\mathrm{prot}}} \\[1ex]
-\mathrm{kd}_{\mathrm{mRNA}} &= \frac{\ln\mathopen{}\left(2\right)}{\mathrm{tau}_{\mathrm{mRNA}}} \\[1ex]
-\mathrm{alpha} &= \frac{a_{\mathrm{tr}} \cdot \mathrm{eff} \cdot \mathrm{tau}_{\mathrm{prot}}}{\ln\mathopen{}\left(2\right) \cdot \mathrm{KM}} \\[1ex]
-\mathrm{alpha}_{0} &= \frac{\mathrm{a0}_{\mathrm{tr}} \cdot \mathrm{eff} \cdot \mathrm{tau}_{\mathrm{prot}}}{\ln\mathopen{}\left(2\right) \cdot \mathrm{KM}}
+\mathrm{kd}_{\mathrm{prot}} &= \frac{\ln\mathopen{}\left(2\right)}{\tau_{\mathrm{prot}}} \\[1ex]
+\mathrm{kd}_{\mathrm{mRNA}} &= \frac{\ln\mathopen{}\left(2\right)}{\tau_{\mathrm{mRNA}}} \\[1ex]
+\alpha &= \frac{a_{\mathrm{tr}} \cdot \mathrm{eff} \cdot \tau_{\mathrm{prot}}}{\ln\mathopen{}\left(2\right) \cdot \mathrm{KM}} \\[1ex]
+\alpha_{0} &= \frac{\mathrm{a0}_{\mathrm{tr}} \cdot \mathrm{eff} \cdot \tau_{\mathrm{prot}}}{\ln\mathopen{}\left(2\right) \cdot \mathrm{KM}}
 \end{aligned}
 $$
 
