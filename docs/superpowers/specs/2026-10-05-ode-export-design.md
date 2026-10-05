@@ -115,7 +115,7 @@ from sbmlutils.converters.ode import OdeSystem
 
 system = OdeSystem.from_sbml("model.xml")
 code: str = system.render("python", simulator=True)
-system.write("model.py")                   # format from the suffix
+system.write("model.py")  # format from the suffix
 system.write("model.typ", standalone=False)
 system.render_template(Path("my_template.jinja"))
 ```

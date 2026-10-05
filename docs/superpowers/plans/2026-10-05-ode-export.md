@@ -227,6 +227,7 @@ Rules: LaTeX product `a \cdot b`, division `\frac{a}{b}` (no parentheses needed 
 ```python
 Kind = Literal["compartment", "species", "parameter", "reaction", "species_reference"]
 
+
 @dataclass(frozen=True)
 class Symbol:
     sid: str
@@ -235,16 +236,18 @@ class Symbol:
     sbo: str | None
     kind: Kind
 
+
 @dataclass(frozen=True)
-class Quantity:            # compartment, species, parameter, species reference
+class Quantity:  # compartment, species, parameter, species reference
     symbol: Symbol
     value: float | None
     constant: bool
     role: Literal["constant", "state", "assigned"]
-    compartment: str | None = None          # species only
-    amount: bool | None = None              # species: True if hasOnlySubstanceUnits
+    compartment: str | None = None  # species only
+    amount: bool | None = None  # species: True if hasOnlySubstanceUnits
     boundary: bool | None = None
     conversion_factor: str | None = None
+
 
 @dataclass(frozen=True)
 class FunctionDefinition:
@@ -252,16 +255,21 @@ class FunctionDefinition:
     arguments: tuple[str, ...]
     body: libsbml.ASTNode
 
+
 @dataclass(frozen=True)
-class Assignment:          # assignment rule, initial assignment, reaction rate
+class Assignment:  # assignment rule, initial assignment, reaction rate
     variable: str
     math: libsbml.ASTNode
-    origin: Literal["assignment_rule", "initial_assignment", "reaction", "initial_value"]
+    origin: Literal[
+        "assignment_rule", "initial_assignment", "reaction", "initial_value"
+    ]
+
 
 @dataclass(frozen=True)
 class Participant:
     species: str
-    stoichiometry: float | str              # number or species reference id
+    stoichiometry: float | str  # number or species reference id
+
 
 @dataclass(frozen=True)
 class Reaction:
@@ -270,28 +278,33 @@ class Reaction:
     products: tuple[Participant, ...]
     modifiers: tuple[str, ...]
     reversible: bool
-    rate: libsbml.ASTNode                   # local parameters already renamed
-    local_parameters: tuple[str, ...]       # renamed ids, also in OdeSystem.parameters
+    rate: libsbml.ASTNode  # local parameters already renamed
+    local_parameters: tuple[str, ...]  # renamed ids, also in OdeSystem.parameters
+
 
 @dataclass(frozen=True)
 class Ode:
     variable: str
-    rhs: libsbml.ASTNode                    # complete right hand side of the state
+    rhs: libsbml.ASTNode  # complete right hand side of the state
     origin: Literal["reactions", "rate_rule"]
-    reaction_terms: libsbml.ASTNode | None  # sum of stoichiometry * conversion factor * rate, before the volume
-    volume: str | None                      # compartment the terms are divided by
-    variable_volume: bool                   # the dV/dt correction is part of rhs
+    reaction_terms: (
+        libsbml.ASTNode | None
+    )  # sum of stoichiometry * conversion factor * rate, before the volume
+    volume: str | None  # compartment the terms are divided by
+    variable_volume: bool  # the dV/dt correction is part of rhs
+
 
 @dataclass(frozen=True)
 class EventAssignment:
     variable: str
     math: libsbml.ASTNode
 
+
 @dataclass(frozen=True)
 class Event:
     symbol: Symbol
     trigger: libsbml.ASTNode
-    root: libsbml.ASTNode                   # continuous root function, events.trigger_root
+    root: libsbml.ASTNode  # continuous root function, events.trigger_root
     initial_value: bool
     persistent: bool
     delay: libsbml.ASTNode | None
@@ -299,39 +312,53 @@ class Event:
     use_values_from_trigger_time: bool
     assignments: tuple[EventAssignment, ...]
 
+
 @dataclass(frozen=True)
 class ModelInfo:
     sid: str | None
     name: str | None
     level: int
     version: int
-    notes: str | None                       # plain text
-    units: Mapping[str, str | None]         # time, substance, extent, volume, area, length
-    source: str | None                      # file name if read from a path
+    notes: str | None  # plain text
+    units: Mapping[str, str | None]  # time, substance, extent, volume, area, length
+    source: str | None  # file name if read from a path
+
 
 @dataclass(frozen=True)
 class OdeSystem:
     info: ModelInfo
     compartments: tuple[Quantity, ...]
     species: tuple[Quantity, ...]
-    parameters: tuple[Quantity, ...]        # global and renamed local parameters
+    parameters: tuple[Quantity, ...]  # global and renamed local parameters
     species_references: tuple[Quantity, ...]
     functions: tuple[FunctionDefinition, ...]
-    assignments: tuple[Assignment, ...]     # assignment rules and reaction rates, dependency order
-    initial: tuple[Assignment, ...]         # t=0 evaluation order: values, initial assignments, rules
+    assignments: tuple[
+        Assignment, ...
+    ]  # assignment rules and reaction rates, dependency order
+    initial: tuple[
+        Assignment, ...
+    ]  # t=0 evaluation order: values, initial assignments, rules
     reactions: tuple[Reaction, ...]
-    odes: tuple[Ode, ...]                   # document order of the states
+    odes: tuple[Ode, ...]  # document order of the states
     events: tuple[Event, ...]
     unsupported: tuple[tuple[str, str], ...]
 
     @classmethod
     def from_sbml(cls, source: Path | str | libsbml.SBMLDocument) -> OdeSystem: ...
     @property
-    def states(self) -> tuple[str, ...]: ...      # ids of the odes, in order
+    def states(self) -> tuple[str, ...]: ...  # ids of the odes, in order
     @property
-    def constants(self) -> tuple[str, ...]: ...   # role == "constant", document order: compartments, species, parameters, species references
+    def constants(
+        self,
+    ) -> tuple[
+        str, ...
+    ]: ...  # role == "constant", document order: compartments, species, parameters, species references
     @property
-    def assigned(self) -> tuple[str, ...]: ...    # assignment rule variables then reaction ids, dependency order
+    def assigned(
+        self,
+    ) -> tuple[
+        str, ...
+    ]: ...  # assignment rule variables then reaction ids, dependency order
     def quantity(self, sid: str) -> Quantity: ...
     def symbol(self, sid: str) -> Symbol: ...
 ```
@@ -353,10 +380,12 @@ def formula(ast) -> str:
 
 
 def test_reaction_ode_in_concentration() -> None:
-    system = OdeSystem.from_sbml(model_sbml("""
+    system = OdeSystem.from_sbml(
+        model_sbml("""
         compartment c = 2; species S1 in c = 10; species S2 in c = 0
         J0: S1 -> 2 S2; k*S1; k = 0.1
-    """))
+    """)
+    )
     assert system.states == ("S1", "S2")
     ode = {o.variable: o for o in system.odes}
     assert formula(ode["S2"].rhs) == "2 * J0 / c"
@@ -364,27 +393,33 @@ def test_reaction_ode_in_concentration() -> None:
 
 
 def test_variable_compartment_ode() -> None:
-    system = OdeSystem.from_sbml(model_sbml("""
+    system = OdeSystem.from_sbml(
+        model_sbml("""
         compartment c = 2; c' = 0.1; species S in c = 10
         J0: S -> ; k*S; k = 0.1
-    """))
+    """)
+    )
     ode = {o.variable: o for o in system.odes}
     assert ode["S"].variable_volume
     assert formula(ode["S"].rhs) == "(-J0 - S * 0.1) / c"
 
 
-def test_local_parameter_is_renamed() -> None: ...       # J0_k, unique against a global J0_k
-def test_conversion_factor() -> None: ...                # species and model factor
-def test_stoichiometry_math() -> None: ...               # species reference with assignment rule
+def test_local_parameter_is_renamed() -> None: ...  # J0_k, unique against a global J0_k
+def test_conversion_factor() -> None: ...  # species and model factor
+def test_stoichiometry_math() -> None: ...  # species reference with assignment rule
 def test_rate_rule_on_parameter_and_species() -> None: ...
 def test_rateof_of_state_and_constant() -> None: ...
 def test_assignment_order_and_cycle() -> None: ...
-def test_initial_assignment_depends_on_rule() -> None: ...   # issue 438
+def test_initial_assignment_depends_on_rule() -> None: ...  # issue 438
 def test_initial_amount_with_compartment_from_initial_assignment() -> None: ...
-def test_unsupported_constructs_are_collected() -> None: ... # algebraic rule, delay, fast
+def test_unsupported_constructs_are_collected() -> (
+    None
+): ...  # algebraic rule, delay, fast
 def test_event_fields_and_root() -> None: ...
-def test_trigger_root() -> None: ...                     # events.trigger_root golden cases
-def test_comp_model_is_flattened() -> None: ...          # COMP_DEX_LIVER from sbmlutils.resources
+def test_trigger_root() -> None: ...  # events.trigger_root golden cases
+def test_comp_model_is_flattened() -> (
+    None
+): ...  # COMP_DEX_LIVER from sbmlutils.resources
 ```
 
 Write each test body fully; the expected formula strings come from `libsbml.formulaToL3String` of the built AST, so build the AST with `libsbml.parseL3Formula` and compare formula strings, not node identity.
