@@ -164,6 +164,10 @@ jobs:
     env:
       # the interpreter uv manages, see the `test` job
       UV_PYTHON_PREFERENCE: only-managed
+      # the julia environment of the generated code, its packages with the major
+      # versions it is tested with; only it is loaded, not the default environment
+      JULIA_PROJECT: ${{ github.workspace }}/tests/converters/ode/julia
+      JULIA_LOAD_PATH: "@:@stdlib"
 
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
@@ -194,12 +198,10 @@ jobs:
       if: ${{ !startsWith(github.ref, 'refs/tags/') }}
       uses: julia-actions/cache@e32267b41e0fa7df82a3d53e8c7273620d52c586  # v3.4.0
     - name: Install the julia packages
-      # the packages of the generated code: the integrators, the table of a
-      # simulation and the math
-      run: >-
-        julia -e 'using Pkg;
-        Pkg.add(["OrdinaryDiffEq", "DataFrames", "NaNMath", "SpecialFunctions"]);
-        Pkg.precompile()'
+      # the packages of the generated code (the integrators, the table of a
+      # simulation and the math) of the environment `JULIA_PROJECT`, resolved
+      # within the `[compat]` bounds of its Project.toml
+      run: julia -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'
     - name: Test with tox
       run: uvx --with "tox-uv==${TOX_UV_VERSION}" "tox@${TOX_VERSION}" -e julia
 

@@ -131,6 +131,7 @@ _GENERATED: dict[str, set[str]] = {
         "priority_value", "execution", "t_next", "t_stop", "max_step", "solver",
         "solver_type", "rows", "pt", "columns", "MAX_STEPS", "MAX_CASCADE",
         "max_steps", "steps", "step_size", "executions", "t_points",
+        "change_in_step", "t_change", "t_point", "TRIGGER_POINTS",
     },
     # the names of `resources/converters/ode/julia.jl.jinja`: the packages, the
     # names it imports, its functions, their arguments and locals
@@ -148,15 +149,17 @@ _GENERATED: dict[str, set[str]] = {
         # the events
         "event_conditions", "execute_events", "first_change", "extrapolation",
         "Execution", "MAX_STEPS", "MAX_CASCADE", "values", "interpolant", "t_old",
-        "t_new", "t_low", "t_high", "t_middle", "t_after", "x_after", "changed",
+        "t_new", "t_low", "t_high", "t_middle", "t_after", "changed",
         "turned", "holds", "holds_now", "event_index", "event", "delay_time",
         "pending", "due", "scheduled", "ranks", "priority_value", "execution",
         "executions", "t_next", "x_next", "t_stop", "triggers", "roots", "at_root",
         "beyond", "t_points",
-        # the functions and types of `Base` it calls
+        # the functions and types of `Base` it calls; the names with a `!`
+        # (`push!`, `filter!`, `popat!`, `step!`, `f!`) are no SIds and never the
+        # name of an id
         "Ref", "Union", "NamedTuple", "AbstractVector", "Real", "Integer",
         "enumerate", "eachindex", "findall", "isempty", "minimum", "something",
-        "argmax", "zip", "popat", "filter",
+        "argmax", "zip",
     },
     "r": {
         "t", "x", "p", "dx", "y", "x0", "p0",
@@ -191,7 +194,10 @@ _JULIA = {
     "elseif", "end", "export", "false", "finally", "for", "function", "global", "if",
     "import", "let", "local", "macro", "module", "quote", "return", "struct", "true",
     "try", "using", "while", "abstract", "mutable", "primitive", "type", "in", "isa",
-    "where",
+    "where", "public", "outer", "as",
+    # the special forms, which cannot be assigned (`ccall = 1` is invalid syntax), and
+    # the functions every module defines
+    "ccall", "cglobal", "eval", "include",
     # constants and types
     "Inf", "NaN", "pi", "e", "im", "nothing", "missing", "undef", "Inf64", "NaN64",
     "Float64", "Float32", "Int", "Int64", "Bool", "String", "Symbol", "Number", "Real",

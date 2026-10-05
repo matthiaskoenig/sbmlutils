@@ -159,8 +159,18 @@ class JuliaPrinter(MathPrinter):
         """`!a || b`."""
         return self.logic_or([self.logic_not(premise), conclusion])
 
-    def number_to_bool(self, value: Printed) -> Printed:
-        """`x != 0.0`, a julia condition is a `Bool`, `NaN` holds as in C."""
+    def number_to_bool(self, value: Printed, constant: float | None) -> Printed:
+        """`x != 0.0`, a julia condition is a `Bool`, `NaN` holds as in C.
+
+        A literal is the constant `true` or `false`.
+        """
+        if constant is not None:
+            truth = (
+                libsbml.AST_CONSTANT_FALSE
+                if constant == 0
+                else libsbml.AST_CONSTANT_TRUE
+            )
+            return Printed(self.CONSTANTS[truth], Precedence.ATOM)
         return self.relation(
             libsbml.AST_RELATIONAL_NEQ, value, self.literal(self.number(0.0))
         )

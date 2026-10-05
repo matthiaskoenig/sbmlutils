@@ -9,11 +9,13 @@ load OrdinaryDiffEq and DataFrames and compile the integrator once for all of th
 
 import functools
 import re
+import time
 from collections.abc import Callable
 from pathlib import Path
 
 import libsbml
 import numpy as np
+import ode_helpers
 import pandas as pd
 import pytest
 from ode_helpers import (
@@ -91,8 +93,9 @@ POINT_MODELS: dict[str, str | Path] = {
         compartment c = 1
         species begin in c = 2; species p in c = 1
         let = 0.5; t_ = 2; XIDS = 1; f_y = 3; initial_values = 0.1; _ = 2
+        ccall = 1; cglobal = 2; eval = 3; include = 4
         R1: begin -> p; let * begin * t_ * XIDS * _
-        R2: p -> ; initial_values * f_y * p
+        R2: p -> ; initial_values * f_y * p * ccall * cglobal * eval * include
     """),
     # math of the time out of its domain is inf, not an error (case 01488)
     "time_domain": model_sbml("""
@@ -212,7 +215,7 @@ SIMULATE_JOBS: dict[str, Callable[[], JuliaJob]] = {
         """
         emit(io, "MAX_STEPS", [m.MAX_STEPS])
         try
-            m.simulate(10.0; max_steps=5)
+            quietly(() -> m.simulate(10.0; max_steps=5))
         catch error
             emit(io, "error", [sprint(showerror, error)])
         end
@@ -241,7 +244,7 @@ SIMULATE_JOBS: dict[str, Callable[[], JuliaJob]] = {
         """
         emit(io, "MAX_CASCADE", [m.MAX_CASCADE])
         try
-            m.simulate(2.0)
+            quietly(() -> m.simulate(2.0))
         catch error
             emit(io, "error", [sprint(showerror, error)])
         end
@@ -255,7 +258,7 @@ SIMULATE_JOBS: dict[str, Callable[[], JuliaJob]] = {
                 ),
                 """
                 try
-                    m.simulate(2.0)
+                    quietly(() -> m.simulate(2.0))
                 catch error
                     emit(io, "error", [sprint(showerror, error)])
                 end
@@ -265,6 +268,37 @@ SIMULATE_JOBS: dict[str, Callable[[], JuliaJob]] = {
         )
         for k, event in enumerate(["", "; E1: at time > 5: x = 2"])
     },
+    **{
+        f"without_time_{name}": functools.partial(
+            lambda antimony: JuliaJob(
+                OdeSystem.from_sbml(model_sbml(antimony)).render("julia"),
+                """
+                x0, _ = m.initial_values()
+                emit(io, "x0", x0)
+                df = m.simulate(0.0)
+                emit(io, "rows", [size(df, 1)])
+                emit(io, "times", df[!, "time"])
+                emit(io, "states", vec(Matrix(df[!, m.XIDS])))
+                single = m.simulate(5.0; points=1)
+                emit(io, "single_times", single[!, "time"])
+                emit(io, "single_states", vec(Matrix(single[!, m.XIDS])))
+                """,
+            ),
+            antimony,
+        )
+        for name, antimony in [
+            ("events", EVENT_MODELS["rounding"]),
+            ("states", "S = 1; S' = -S"),
+        ]
+    },
+    # a constant rate and a first step which the end of the integration shortens,
+    # which OrdinaryDiffEq 7 interpolates with its full length
+    "first_step": lambda: JuliaJob(
+        OdeSystem.from_sbml(model_sbml("species S = 1; R1: -> S; k; k = 1")).render(
+            "julia"
+        ),
+        simulate_job(0.18, 3, "dtmax=1.0"),
+    ),
     "reserved_simulate": lambda: JuliaJob(
         OdeSystem.from_sbml(
             model_sbml("species A = 1; R1: A -> ; simulate * A; simulate = 1")
@@ -391,6 +425,7 @@ def test_julia_reserved_ids(julia: Callable[[str], JuliaOutput]) -> None:
     values = julia("reserved").point_values()
     assert values.xids == ["begin", "p"]
     assert {"let", "t_", "XIDS", "f_y", "initial_values", "_"} <= set(values.pids)
+    assert {"ccall", "cglobal", "eval", "include"} <= set(values.pids)
 
 
 def test_julia_time_out_of_its_domain(julia: Callable[[str], JuliaOutput]) -> None:
@@ -463,6 +498,31 @@ def test_julia_simulate_max_steps_scale_with_the_points(
     value, rows = julia("many_points").floats("S")
     assert rows == 100002
     assert value == pytest.approx(np.exp(-10.0), rel=1e-6)
+
+
+@pytest.mark.parametrize("name", ["events", "states"])
+def test_julia_simulate_without_time(
+    name: str, julia: Callable[[str], JuliaOutput]
+) -> None:
+    """`simulate(0)` is the initial state at each time point, one point is t = 0."""
+    output = julia(f"without_time_{name}")
+    x0 = output.floats("x0").tolist()
+    assert output.floats("rows").tolist() == [101]
+    assert output.floats("times").tolist() == [0.0] * 101
+    # the matrix of the states column by column
+    assert output.floats("states").tolist() == [v for v in x0 for _ in range(101)]
+    assert output.floats("single_times").tolist() == [0.0]
+    assert output.floats("single_states").tolist() == x0
+
+
+def test_julia_simulate_first_step(julia: Callable[[str], JuliaOutput]) -> None:
+    """A first step which the end of the integration shortens is interpolated right.
+
+    OrdinaryDiffEq 7 interpolates such a step with its full length, the largest step
+    is capped at the end of the integration.
+    """
+    df = julia("first_step").table()
+    assert df["S"].tolist() == pytest.approx([1.0, 1.09, 1.18], rel=1e-12)
 
 
 @pytest.mark.parametrize("name", ["pole0", "pole1"])
@@ -775,3 +835,20 @@ def test_julia_unsupported_raises() -> None:
     system = OdeSystem.from_sbml(model_sbml("x = 1; y = 2; 0 = x + y - 3"))
     with pytest.raises(NotImplementedError, match="julia code"):
         system.render("julia")
+
+
+def test_julia_jobs_stop_at_a_hung_job(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """A job which runs longer than `JOB_TIMEOUT` stops all julia processes."""
+    if julia_command() is None:
+        toolchain_missing("julia", "SBMLUTILS_JULIA")
+    monkeypatch.setattr(ode_helpers, "JOB_TIMEOUT", 30)
+    jobs = {
+        "hung": JuliaJob("module Hung end", "    sleep(3600)\n"),
+        "other": JuliaJob("module Other end", "    sleep(3600)\n"),
+    }
+    started = time.monotonic()
+    with pytest.raises(RuntimeError, match="took more than 30 seconds"):
+        run_julia_jobs(jobs, tmp_path, processes=2)
+    assert time.monotonic() - started < 120

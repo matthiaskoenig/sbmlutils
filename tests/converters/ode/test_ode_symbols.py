@@ -128,6 +128,16 @@ def test_r_has_no_name_which_starts_with_underscore() -> None:
     assert code_names(["_x"], "julia") == {"_x": "_x"}
 
 
+def test_julia_special_forms_are_reserved() -> None:
+    """The special forms and the functions of every module of julia are reserved.
+
+    `ccall` and `cglobal` cannot be assigned, `eval` and `include` are defined by
+    every module.
+    """
+    names = code_names(["ccall", "cglobal", "eval", "include"], "julia")
+    assert names == {n: f"{n}_" for n in ["ccall", "cglobal", "eval", "include"]}
+
+
 def test_julia_has_no_name_of_underscores_only() -> None:
     """`_` and `__` are valid SIds, but julia can assign them, never read them."""
     assert code_names(["_", "__", "_x"], "julia") == {

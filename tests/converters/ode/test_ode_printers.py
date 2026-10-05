@@ -551,7 +551,8 @@ def test_julia_math(formula: str, expected: str) -> None:
         # a number used as a condition holds unless it is 0
         ("k", "k != 0.0"),
         ("A && k > 1", "A != 0.0 && k > 1.0"),
-        ("piecewise(A, k > 1, 0)", "k > 1.0 ? A != 0.0 : 0.0 != 0.0"),
+        ("piecewise(A, k > 1, 0)", "k > 1.0 ? A != 0.0 : false"),
+        ("piecewise(A, 2.5, 1)", "true ? A != 0.0 : true"),
         ("!(A + k)", "!(A + k != 0.0)"),
     ],
 )

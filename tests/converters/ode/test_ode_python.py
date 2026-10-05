@@ -540,15 +540,43 @@ def test_simulate_max_steps_scale_with_the_points(tmp_path: Path) -> None:
 
 
 def test_simulate_max_step(tmp_path: Path) -> None:
-    """A trigger is evaluated after each step, of at most `max_step`.
+    """A trigger is evaluated at `TRIGGER_POINTS` points of each step, as in julia.
 
-    The trigger holds from t = 1 to 1.5; steps of 1 evaluate it at t = 1 and t = 2
-    only, where it does not hold.
+    The trigger of `window` holds from t = 1 to 1.5, which steps of 1 find at their
+    points 0.1 apart. A trigger which holds for a shorter time than the distance of
+    the points, from t = 1.01 to 1.06, is stepped over by steps of 1 (t = 1, 1.1) and
+    found by the steps of the default, the distance of the time points.
     """
     pytest.importorskip("scipy")
     module = _event_module(EVENT_MODELS["window"], tmp_path)
+    assert module.TRIGGER_POINTS == 10
     assert module.simulate(4.0, 21)["B"].iloc[-1] == 1.0
-    assert module.simulate(4.0, 21, max_step=1.0)["B"].iloc[-1] == 0.0
+    assert module.simulate(4.0, 21, max_step=1.0)["B"].iloc[-1] == 1.0
+    short = python_module(
+        OdeSystem.from_sbml(
+            model_sbml("B = 0; E1: at time > 1.01 && time < 1.06: B = B + 1")
+        ),
+        tmp_path / "short.py",
+    )
+    assert short.simulate(4.0, 21)["B"].iloc[-1] == 1.0
+    assert short.simulate(4.0, 21, max_step=1.0)["B"].iloc[-1] == 0.0
+
+
+@pytest.mark.filterwarnings("error")
+@pytest.mark.parametrize("antimony", [EVENT_MODELS["rounding"], "S = 1; S' = -S"])
+def test_simulate_without_time(antimony: str, tmp_path: Path) -> None:
+    """`simulate(0)` is the initial state at each time point, one point is t = 0."""
+    pytest.importorskip("scipy")
+    system = OdeSystem.from_sbml(model_sbml(antimony))
+    module = python_module(system, tmp_path / "m.py")
+    x0, _ = module.initial_values()
+    df = module.simulate(0.0)
+    assert len(df) == 101
+    assert (df["time"] == 0.0).all()
+    assert df[module.XIDS].to_numpy().tolist() == [x0.tolist()] * 101
+    single = module.simulate(5.0, 1)
+    assert single["time"].tolist() == [0.0]
+    assert single[module.XIDS].to_numpy().tolist() == [x0.tolist()]
 
 
 def test_events_without_simulator(tmp_path: Path) -> None:

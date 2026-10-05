@@ -349,6 +349,10 @@ EVENTS = []
 MAX_STEPS = 100000
 {% if events %}
 MAX_CASCADE = 10000
+
+# the points of a step of the integrator at which the triggers are evaluated, evenly
+# spaced to its end, as the root finding of julia's OrdinaryDiffEq does
+TRIGGER_POINTS = 10
 {% endif %}
 {% endif %}
 {% if options.simulator and events %}
@@ -397,6 +401,38 @@ def first_change(
     if np.any(event_triggers(t_low, interpolant(t_low), p)[turned] == 0):
         return min(t_new, t_low + 1e-13 * max(1.0, abs(t_low)))
     return t_high
+
+
+def change_in_step(
+    interpolant: DenseOutput,
+    t_old: float,
+    t_new: float,
+    p: np.ndarray,
+    holds: np.ndarray,
+) -> float | None:
+    """The first time in a step of the integration at which a trigger changes.
+
+    The triggers are evaluated at `TRIGGER_POINTS` points of the step, evenly spaced
+    from its start to its end, and the first change between two of them is located by
+    `first_change`. A trigger which holds for a shorter time than the distance of the
+    points, between two of them, is not seen.
+
+    Args:
+        interpolant: the solution of the step
+        t_old: the start of the step, where the triggers are `holds`
+        t_new: the end of the step
+        p: the constants
+        holds: whether each trigger holds at the start of the step
+
+    Returns:
+        the time of the first change, `None` if no trigger changes
+    """
+    t_low = t_old
+    for t_point in np.linspace(t_old, t_new, TRIGGER_POINTS + 1)[1:]:
+        if np.any(event_conditions(t_point, interpolant(t_point), p) != holds):
+            return first_change(interpolant, t_low, t_point, p, holds)
+        t_low = t_point
+    return None
 
 
 def execute_events(
@@ -498,9 +534,14 @@ def simulate(
     t = 0 and has the initial value false fires at t = 0. The integration stops
     where a trigger changes, at the execution of a delayed event and at `t_end`;
     there the events are executed, see `execute_events`, and the integration
-    restarts with the states and constants after them. A trigger is evaluated at
-    the end of every step of the integrator, which is at most `max_step`, so that
-    no trigger which holds for longer is stepped over.
+    restarts with the states and constants after them.
+
+    The triggers are evaluated at `TRIGGER_POINTS` points of every step of the
+    integrator, which is at most `max_step`, see `change_in_step`: a trigger which
+    holds for a shorter time than the distance of these points can be stepped over.
+    A time point at a delayed execution, to the rounding of the time (1e-14
+    relative), has the values after it: the rounding errors of the integration shift
+    the time of the trigger, not its integration error.
 {% else %}
     """Simulate the model from t = 0 to `t_end`.
 {% endif %}
@@ -539,7 +580,7 @@ def simulate(
     x = x_initial if x0 is None else np.array(x0, dtype=float)
     times = np.linspace(0.0, t_end, points)
     if max_step is None:
-        max_step = times[1] if points > 1 else np.inf
+        max_step = times[1] if points > 1 and t_end > 0 else np.inf
     if max_steps is None:
         max_steps = MAX_STEPS + 2 * int(np.ceil(t_end / max_step))
     solver_type = getattr(scipy.integrate, method)  # e.g. scipy.integrate.LSODA
@@ -585,12 +626,10 @@ def simulate(
                 )
             interpolant = solver.dense_output()
 {% if events %}
-            changed = np.any(event_conditions(solver.t, solver.y, p) != holds)
-            if changed:
-                # the integration stops at the change of a trigger
-                t_next = first_change(interpolant, solver.t_old, solver.t, p, holds)
-            else:
-                t_next = solver.t
+            # the integration stops at the change of a trigger
+            t_change = change_in_step(interpolant, solver.t_old, solver.t, p, holds)
+            changed = t_change is not None
+            t_next = solver.t if t_change is None else t_change
             # the time points of the step before t_next, at t_next after its events; a
             # time point at the end of the integration (a delayed execution) to the
             # rounding of the time is at it, the execution is shifted by the rounding

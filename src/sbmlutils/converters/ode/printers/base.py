@@ -208,6 +208,16 @@ def _is_number(ast: libsbml.ASTNode, value: float) -> bool:
     return False
 
 
+def _constant(ast: libsbml.ASTNode) -> float | None:
+    """The value of math which is an integer or a real number, else `None`."""
+    ast_type = ast.getType()
+    if ast_type == libsbml.AST_INTEGER:
+        return float(ast.getInteger())
+    if ast_type in {libsbml.AST_REAL, libsbml.AST_REAL_E}:
+        return float(ast.getReal())
+    return None
+
+
 def _is_negative_number(ast: libsbml.ASTNode) -> bool:
     """Check that the math is a negative integer or real number."""
     ast_type = ast.getType()
@@ -749,7 +759,11 @@ class MathPrinter:
         """
         return condition
 
-    def number_to_bool(self, value: Printed) -> Printed:
+    def number_to_bool(
+        self,
+        value: Printed,
+        constant: float | None,  # noqa: ARG002, a dialect folds a literal
+    ) -> Printed:
         """A number used as a condition, which holds unless the number is 0.
 
         The base class writes the number as it is, for a dialect whose conditions
@@ -757,6 +771,8 @@ class MathPrinter:
 
         Args:
             value: the printed number
+            constant: the value of the number if it is a literal, e.g. `0.0`, else
+                `None`
 
         Returns:
             the printed condition
@@ -793,7 +809,7 @@ class MathPrinter:
             raise UnsupportedMathError(message) from None
         if ctx.condition and ast.getType() not in _CONDITIONS:
             # a number used as a condition, e.g. an argument of a function definition
-            return self.number_to_bool(printed)
+            return self.number_to_bool(printed, _constant(ast))
         return printed
 
     def _dispatch(self, ast: libsbml.ASTNode, ctx: _Context) -> Printed:

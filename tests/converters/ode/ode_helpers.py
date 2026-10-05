@@ -7,10 +7,12 @@ of a test module on `sys.path` (prepend import mode, no `__init__.py`).
 import functools
 import importlib.util
 import os
+import re
 import shlex
 import shutil
 import subprocess
 import textwrap
+import time
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
@@ -313,6 +315,12 @@ def toolchain_missing(name: str, variable: str) -> NoReturn:
 def julia_command() -> list[str] | None:
     """Command of julia, `SBMLUTILS_JULIA` (default `julia`).
 
+    The packages are those of the environment `tests/converters/ode/julia`, which is
+    instantiated and made active with `JULIA_PROJECT`, or with `--project` in the
+    command, e.g. a docker run with the environment copied into its depot as
+    `@sbmlutils-ode`: `docker run --rm -v /tmp:/tmp -v $HOME/.julia-docker:/root/.julia
+    -e JULIA_LOAD_PATH=@:@stdlib julia:1.11 julia --project=@sbmlutils-ode`.
+
     Returns:
         the command, `None` if it fails to load `JULIA_PACKAGES` and
         `JULIA_SIMULATOR_PACKAGES`, which the generated code uses
@@ -394,6 +402,15 @@ class JuliaJob:
     run: str
 
 
+BENIGN_JULIA_WARNINGS: tuple[str, ...] = (
+    # a state of almost 0 at the start of an integration, e.g. `trig` of case 01531
+    # after an event, makes the estimate of the first step of OrdinaryDiffEq tiny,
+    # which then starts with the step 1e-6 and adapts it
+    "Initial timestep too small (near machine epsilon), using default",
+)
+"""The messages which OrdinaryDiffEq logs as a warning about what it handles itself."""
+
+
 @dataclass(frozen=True)
 class JuliaOutput:
     """The results of a `JuliaJob`.
@@ -401,17 +418,28 @@ class JuliaOutput:
     Attributes:
         lines: the values of each key the job emitted, as text
         error: the error the job threw, with its stack trace, `None` if it ran
+        log: the warnings and errors the job logged, e.g. of the integrator, which a
+            job that expects them suppresses with `quietly`
         seconds: the time the job took, its compilation included
     """
 
     lines: dict[str, list[str]]
     error: str | None
+    log: str
     seconds: float
 
+    def warnings(self) -> list[str]:
+        """The messages of the log, without those of `BENIGN_JULIA_WARNINGS`."""
+        messages = [m for m in re.split(r"(?m)^(?=┌)", self.log) if m.strip()]
+        return [m for m in messages if not any(b in m for b in BENIGN_JULIA_WARNINGS)]
+
     def check(self) -> None:
-        """Fail if the job threw an error."""
+        """Fail if the job threw an error or logged a warning."""
         if self.error is not None:
             pytest.fail(f"The julia code failed:\n{self.error}")
+        warnings = self.warnings()
+        if warnings:
+            pytest.fail("The julia code logged warnings:\n" + "".join(warnings))
 
     def strings(self, key: str) -> list[str]:
         """The values of a key as text."""
@@ -452,6 +480,8 @@ class JuliaOutput:
 # the function which runs a job, writing its results or its error into files next
 # to its code
 _JULIA_PRELUDE = r"""
+import Logging
+
 # a line of the key and the values, separated by tabs, a line break in a value a space
 emit(io, key, values) = println(
     io, key, "\t", join([replace(string(v), r"\R" => " ") for v in values], "\t")
@@ -464,23 +494,43 @@ function emit_table(io, df)
     end
 end
 
+# the code which logs warnings it expects, e.g. a job of an integration which fails
+quietly(f) = Logging.with_logger(f, Logging.NullLogger())
+
+# run a job: its results, its error and the warnings it logs into files next to it
 function run_job(path, job)
     started = time()
-    try
-        m = Base.include(Module(), path)
-        open(path * ".out", "w") do io
-            Base.invokelatest(job, m, io)
-        end
-    catch error
-        open(path * ".err", "w") do io
-            showerror(io, error, catch_backtrace())
+    open(path * ".log", "w") do log
+        Logging.with_logger(Logging.ConsoleLogger(log, Logging.Warn)) do
+            try
+                m = Base.include(Module(), path)
+                open(path * ".out", "w") do io
+                    Base.invokelatest(job, m, io)
+                end
+            catch error
+                open(path * ".err", "w") do io
+                    showerror(io, error, catch_backtrace())
+                end
+            end
         end
     end
     open(io -> print(io, time() - started), path * ".time", "w")
 end
 """
 
-POINT_VALUES_JOB = """
+OTHER_STATES: list[tuple[float, float, float]] = [
+    (0.0, 1.0, 0.0),
+    (0.0, 1.5, 0.1),
+    (1.5, 0.5, 0.2),
+]
+"""The time, the factor and the offset of each state at which the rates of change are
+compared: the initial states times the factor plus the offset, see `other_states`."""
+
+_JULIA_STATES = ", ".join(
+    f"({t!r}, x0 .* {factor!r} .+ {offset!r})" for t, factor, offset in OTHER_STATES
+)
+
+POINT_VALUES_JOB = f"""
     x0, p = m.initial_values()
     emit(io, "XIDS", m.XIDS)
     emit(io, "PIDS", m.PIDS)
@@ -488,7 +538,7 @@ POINT_VALUES_JOB = """
     emit(io, "x0", x0)
     emit(io, "p", p)
     emit(io, "y0", m.f_y(x0, p, 0.0))
-    for (k, (t, x)) in enumerate([(0.0, x0), (0.0, x0 .* 1.5 .+ 0.1), (1.5, x0 .* 0.5 .+ 0.2)])
+    for (k, (t, x)) in enumerate([{_JULIA_STATES}])
         dx = zeros(length(x))
         m.f!(dx, x, p, t)
         emit(io, "t$k", [t])
@@ -517,6 +567,82 @@ def simulate_job(t_end: float = 10.0, points: int = 51, arguments: str = "") -> 
         f"    df = m.simulate({t_end!r}; points={points}, reltol=1e-10, "
         f"abstol=1e-12{extra})\n    emit_table(io, df)\n"
     )
+
+
+JOB_TIMEOUT = 600
+"""Seconds a julia job may take, its compilation included."""
+
+
+def _run_processes(
+    command: list[str], scripts: list[Path], parts: list[list[str]], directory: Path
+) -> None:
+    """Run the scripts of julia jobs in parallel processes, see `run_julia_jobs`.
+
+    A process which has not finished a job for `JOB_TIMEOUT` seconds and a process
+    which fails stop all of them: a process is terminated (`docker run` passes the
+    signal on to its container), and killed if it does not end.
+
+    Args:
+        command: the command of julia
+        scripts: the script of each process
+        parts: the names of the jobs of each process, in their order
+        directory: the directory of the files of the jobs
+
+    Raises:
+        RuntimeError: if a process fails or a job takes longer than `JOB_TIMEOUT`
+    """
+    stderr_paths = [script.with_suffix(".stderr") for script in scripts]
+    running = []
+    for script, stderr_path in zip(scripts, stderr_paths, strict=True):
+        with stderr_path.open("w") as stderr:
+            running.append(
+                subprocess.Popen(
+                    [*command, str(script.absolute())],
+                    stdout=subprocess.DEVNULL,
+                    stderr=stderr,
+                )
+            )
+    done = [0] * len(running)
+    progress = [time.monotonic()] * len(running)
+    try:
+        while any(process.poll() is None for process in running):
+            for k, process in enumerate(running):
+                finished = sum(
+                    (directory / f"{name}.jl.time").exists() for name in parts[k]
+                )
+                if finished > done[k]:
+                    done[k], progress[k] = finished, time.monotonic()
+                if process.poll() is not None and process.returncode != 0:
+                    stderr = stderr_paths[k].read_text(encoding="utf-8")
+                    raise RuntimeError(
+                        f"{scripts[k].name} failed with exit code "
+                        f"{process.returncode}:\n{stderr[-5000:]}"
+                    )
+                if process.poll() is None and (
+                    time.monotonic() - progress[k] > JOB_TIMEOUT
+                ):
+                    raise RuntimeError(
+                        f"The julia job {parts[k][done[k]]} of {scripts[k].name} "
+                        f"took more than {JOB_TIMEOUT} seconds."
+                    )
+            time.sleep(0.2)
+        for k, process in enumerate(running):
+            if process.returncode != 0:
+                stderr = stderr_paths[k].read_text(encoding="utf-8")
+                raise RuntimeError(
+                    f"{scripts[k].name} failed with exit code {process.returncode}:"
+                    f"\n{stderr[-5000:]}"
+                )
+    finally:
+        for process in running:
+            if process.poll() is None:
+                process.terminate()
+        for process in running:
+            try:
+                process.wait(timeout=30)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait()
 
 
 def run_julia_jobs(
@@ -561,21 +687,8 @@ def run_julia_jobs(
         script = directory / f"jobs_{part}.jl"
         script.write_text("\n".join(lines) + "\n", encoding="utf-8")
         scripts.append(script)
-    running = [
-        subprocess.Popen(
-            [*command, str(script.absolute())],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-        )
-        for script in scripts
-    ]
-    for script, process in zip(scripts, running, strict=True):
-        _, stderr = process.communicate(timeout=TIMEOUT * len(names))
-        if process.returncode != 0:
-            raise RuntimeError(
-                f"{script.name} failed with exit code {process.returncode}:\n{stderr}"
-            )
+    parts = [names[part::processes] for part in range(processes)]
+    _run_processes(command, scripts, parts, directory)
     outputs = {}
     for name in names:
         path = directory / f"{name}.jl"
@@ -586,11 +699,13 @@ def run_julia_jobs(
             for line in output_path.read_text(encoding="utf-8").splitlines():
                 key, _, values = line.partition("\t")
                 lines[key] = values.split("\t") if values else []
+        log_path = path.with_name(f"{name}.jl.log")
         outputs[name] = JuliaOutput(
             lines=lines,
             error=error_path.read_text(encoding="utf-8")
             if error_path.exists()
             else None,
+            log=log_path.read_text(encoding="utf-8") if log_path.exists() else "",
             seconds=float(path.with_name(f"{name}.jl.time").read_text()),
         )
     return outputs
@@ -857,7 +972,7 @@ def other_states(x0: np.ndarray) -> list[tuple[float, np.ndarray]]:
     Returns:
         the time and the states of each point
     """
-    return [(0.0, x0), (0.0, x0 * 1.5 + 0.1), (1.5, x0 * 0.5 + 0.2)]
+    return [(t, x0 * factor + offset) for t, factor, offset in OTHER_STATES]
 
 
 def assert_values_as_roadrunner(sbml: str | Path, values: PointValues) -> None:

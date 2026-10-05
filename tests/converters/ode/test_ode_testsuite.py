@@ -85,13 +85,15 @@ CURATED: list[str] = [
 # fmt: on
 
 # the cases whose simulation in a format differs from roadrunner, with the reason
+_WINDOW_01511 = (
+    "the trigger holds for 0.025 time units, from t = 0.45 to 0.475, between two "
+    "steps of the integrator of roadrunner at the time points of the case, which "
+    "misses it (with 1001 time points it executes the event); the {} code evaluates "
+    "the triggers inside each step, finds the trigger and executes the event"
+)
 KNOWN_FAILURES: dict[tuple[str, str], str] = {
-    ("julia", "01511"): (
-        "the trigger holds for 0.025 time units, from t = 0.45 to 0.475, between two "
-        "steps of the integrator of roadrunner at the time points of the case, which "
-        "misses it (with 1001 time points it executes the event, as julia does); the "
-        "root finding of the julia integrator finds the trigger and executes the event"
-    ),
+    ("python", "01511"): _WINDOW_01511.format("python"),
+    ("julia", "01511"): _WINDOW_01511.format("julia"),
 }
 
 # the julia processes of the full sweep, which run in parallel

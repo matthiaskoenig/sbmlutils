@@ -523,9 +523,15 @@ The triggers before t = 0 have their initial values, a trigger which holds at t 
 and has the initial value false fires at t = 0. The integration stops where a trigger
 changes, at the execution of a delayed event and at `t_end`; there the events are
 executed, see `execute_events`, and the integration restarts with the states and
-constants after them. A trigger is evaluated at the end of every step of the
-integrator, which is at most `dtmax`, and the integrator ends a step at each root of
-`event_triggers` it finds, so that no trigger which holds for longer is stepped over.
+constants after them.
+
+The integrator ends a step at each root of `event_triggers` it finds, evaluating them
+at 10 points of each step (`interp_points` of `VectorContinuousCallback`), and the
+triggers are evaluated at the end of every step, which is at most `dtmax`: a trigger
+which holds for a shorter time than the distance of these points can be stepped over.
+A time point at a delayed execution, to the rounding of the time (1e-14 relative),
+has the values after it: the rounding errors of the integration shift the time of
+the trigger, not its integration error.
 {% else %}
 Simulate the model from t = 0 to `t_end`.
 {% endif %}
@@ -569,8 +575,9 @@ function simulate(
 )
     x_initial, p = initial_values(something(p, P0))
     x = x0 === nothing ? x_initial : collect(Float64, x0)
-    times = collect(range(0.0, Float64(t_end); length=points))
-    dtmax = something(dtmax, points > 1 ? times[2] : Inf)
+    # the time points, a single one at t = 0
+    times = points > 1 ? collect(range(0.0, Float64(t_end); length=points)) : zeros(points)
+    dtmax = something(dtmax, points > 1 && t_end > 0 ? times[2] : Inf)
     max_steps = something(max_steps, MAX_STEPS + 2 * ceil(Int, t_end / dtmax))
 {% if events %}
     rows = Tuple{Vector{Float64}, Vector{Float64}}[]  # the states and the constants
@@ -657,17 +664,25 @@ function simulate(
         push!(rows, (x, p))
     end
 {% elif states %}
-    problem = ODEProblem(f!, x, (0.0, Float64(t_end)), p)
-    solution = solve(problem, alg; saveat=times, reltol, abstol, dtmax, maxiters=max_steps)
-    if solution.retcode == ReturnCode.MaxIters
-        error(
-            "The integration took more than $max_steps steps, at t = " *
-            "$(solution.t[end]).",
+    rows = [(x, p) for _ in times]  # the states and the constants
+    if t_end > 0
+        problem = ODEProblem(f!, x, (0.0, Float64(t_end)), p)
+        # the first step is at most the integration: OrdinaryDiffEq 7 interpolates a
+        # first step which the end of the integration shortens with its full length
+        solution = solve(
+            problem, alg; saveat=times, reltol, abstol, dtmax=min(dtmax, t_end),
+            maxiters=max_steps,
         )
-    elseif solution.retcode != ReturnCode.Success
-        error("The integration failed at t = $(solution.t[end]): $(solution.retcode)")
+        if solution.retcode == ReturnCode.MaxIters
+            error(
+                "The integration took more than $max_steps steps, at t = " *
+                "$(solution.t[end]).",
+            )
+        elseif solution.retcode != ReturnCode.Success
+            error("The integration failed at t = $(solution.t[end]): $(solution.retcode)")
+        end
+        rows = [(x, p) for x in solution.u]
     end
-    rows = [(x, p) for x in solution.u]  # the states and the constants
 {% else %}
     # without states and events nothing changes in time but the time
     rows = [(x, p) for _ in times]  # the states and the constants
