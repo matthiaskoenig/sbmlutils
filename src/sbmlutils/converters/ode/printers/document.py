@@ -14,8 +14,8 @@ not as a program does:
 - a condition which is used as a number is an Iverson bracket, `[A > 1]`, which is
   1 if the condition holds and 0 otherwise;
 - the operands of a logical operator are in parentheses unless they are a relation
-  (except for ⊕), a negation or an atom, so that the reader needs no precedence of
-  the logical operators, `(a ∧ b) ∨ c`, `(a > 1) ⊕ b`.
+  (except for ⊕), a negation, an atom or a call, so that the reader needs no
+  precedence of the logical operators, `(a ∧ b) ∨ c`, `(a > 1) ⊕ b`.
 
 `print_lines` breaks a long sum into lines of a given number of terms, for an
 equation of several lines.
@@ -127,15 +127,22 @@ class DocumentPrinter(MathPrinter):
     def infix(
         self, operands: Sequence[Printed], operator: str, precedence: int
     ) -> Printed:
-        """Left associative operation, `a · (-b)`: a negative operand in parentheses."""
+        """Left associative operation, `a · (-b)`, a negative operand in parentheses.
+
+        A product whose first factor is negative is negative itself, `-2 · b`, so
+        that it is in parentheses where a negative operand is, `a + (-2 · b)`.
+        """
         first, *others = operands
         unsigned = [self._unsigned(operand) for operand in others]
-        return super().infix([first, *unsigned], operator, precedence)
+        printed = super().infix([first, *unsigned], operator, precedence)
+        if precedence == Precedence.PRODUCT and first.precedence == Precedence.UNARY:
+            return printed._replace(precedence=Precedence.UNARY)
+        return printed
 
     # --- literals -----------------------------------------------------------------
 
     def literal(self, code: str) -> Printed:
-        """Precedence of a literal of `number`, `10^-5` is a power, `2 × 10^-5` a product."""
+        """Precedence of a literal: `10^-5` is a power, `2 × 10^-5` a product."""
         if code.startswith("-"):
             return Printed(code, Precedence.UNARY)
         if self.SCIENTIFIC_TIMES in code:
@@ -150,7 +157,8 @@ class DocumentPrinter(MathPrinter):
             return self.NAN
         if math.isinf(value):
             return self.INFINITY if value > 0 else f"-{self.INFINITY}"
-        mantissa, _, exponent = repr(float(value)).partition("e")
+        # -0.0 is 0 (`+ 0.0` turns -0.0 into 0.0)
+        mantissa, _, exponent = repr(float(value) + 0.0).partition("e")
         mantissa = mantissa.removesuffix(".0")
         if not exponent:
             return mantissa
@@ -190,19 +198,28 @@ class DocumentPrinter(MathPrinter):
             relations: a relation is an operand without parentheses
 
         Returns:
-            the printed condition, an operand other than an atom, a negation or a
-            relation in parentheses
+            the printed condition, an operand other than a negation, a relation or
+            one at least as tight as a power in parentheses
         """
-        bare = {Precedence.ATOM, Precedence.NOT}
-        if relations:
-            bare.add(Precedence.COMPARISON)
         code = operator.join(
             operand.code
-            if operand.precedence in bare
+            if self._bare_condition(operand)
+            or (relations and operand.precedence == Precedence.COMPARISON)
             else self.parenthesize(operand.code)
             for operand in operands
         )
         return Printed(code, precedence)
+
+    @staticmethod
+    def _bare_condition(operand: Printed) -> bool:
+        """Check that a condition needs no parentheses as the operand of logic.
+
+        A negation and anything at least as tight as a power, i.e. an atom, a call,
+        a fraction or a power, need none.
+        """
+        return operand.precedence == Precedence.NOT or (
+            operand.precedence >= Precedence.POWER
+        )
 
     def logic_and(self, operands: Sequence[Printed]) -> Printed:
         """`a ∧ b`."""
@@ -225,9 +242,9 @@ class DocumentPrinter(MathPrinter):
         return self._logic([premise, conclusion], self.LOGIC_IMPLIES, Precedence.OR)
 
     def logic_not(self, operand: Printed) -> Printed:
-        """`¬¬a`, `¬(a > 1)`: an operand in parentheses unless an atom or a negation."""
+        """`¬¬a`, `¬f(a)`, `¬(a > 1)`: a relation or weaker operand in parentheses."""
         code = operand.code
-        if operand.precedence not in {Precedence.NOT, Precedence.ATOM}:
+        if not self._bare_condition(operand):
             code = self.parenthesize(code)
         return Printed(f"{self.LOGIC_NOT}{code}", Precedence.NOT)
 

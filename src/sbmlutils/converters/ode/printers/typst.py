@@ -4,9 +4,9 @@ The math is typeset for the math mode of typst, `$ ... $`: a product is `a dot b
 quotient the fraction `(a)/(b)`, whose parentheses typst removes, so that every
 numerator and denominator is in parentheses and a fraction never takes less than its
 operand. A function of SBML which typst has no operator for is an `op`, e.g.
-`op("arcsinh")(x)`. The logical operators are the symbols `and`, `or`, `xor`, `not`
-and `=>` (∧, ∨, ⊕, ¬, ⇒), as in LaTeX. See `document` for the notation the dialects
-of a document share.
+`op("arcsinh")(x)`. The logical operators are the symbols `and`, `or`, `xor`,
+`not` and `=>` (∧, ∨, ⊕, ¬, ⇒), as in LaTeX. See `document` for the notation the
+dialects of a document share.
 """
 
 import math

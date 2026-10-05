@@ -695,8 +695,8 @@ def test_julia_r_unsupported(printer: type[MathPrinter], formula: str) -> None:
 
 # --- documents: LaTeX and typst -----------------------------------------------------
 
-LATEX_SYMBOLS = {**SYMBOLS, "k_cat": r"k_{\mathrm{cat}}"}
-TYPST_SYMBOLS = {**SYMBOLS, "k_cat": 'k_("cat")'}
+LATEX_SYMBOLS = {**SYMBOLS, "x": "x", "y": "y", "k_cat": r"k_{\mathrm{cat}}"}
+TYPST_SYMBOLS = {**SYMBOLS, "x": "x", "y": "y", "k_cat": 'k_("cat")'}
 
 
 def tex(formula: str) -> str:
@@ -876,6 +876,19 @@ DOCUMENT_MATH: list[tuple[str, str, str]] = [
     ("root(k + 1, A)", r"\sqrt[k + 1]{A}", "root(k + 1, A)"),
     ("sqrt(A + k)", r"\sqrt{A + k}", "sqrt(A + k)"),
     ("root(2, A)", r"\sqrt{A}", "sqrt(A)"),
+    # an index with a bracket is in braces, which would end the optional argument
+    (
+        "root(A > 1, k)",
+        r"\sqrt[{\mathopen{}\left[A > 1\right]}]{k}",
+        "root([A > 1], k)",
+    ),
+    # a product with a negative first factor is negative
+    ("x + (-2)*y", r"x + \mathopen{}\left(-2 \cdot y\right)", "x + (-2 dot y)"),
+    ("x - -k*A", r"x - \mathopen{}\left(-k \cdot A\right)", "x - (-k dot A)"),
+    ("-(-2*y)", r"-\mathopen{}\left(-2 \cdot y\right)", "-(-2 dot y)"),
+    ("x + (-1)*y", r"x + \mathopen{}\left(-1 \cdot y\right)", "x + (-1 dot y)"),
+    ("x * (-2*y)", r"x \cdot \mathopen{}\left(-2 \cdot y\right)", "x dot (-2 dot y)"),
+    ("(-2*y)^2", r"\mathopen{}\left(-2 \cdot y\right)^{2}", "(-2 dot y)^(2)"),
     ("log(A)", r"\log_{10}\mathopen{}\left(A\right)", "log_(10) (A)"),
     ("log(k + 1, A)", r"\log_{k + 1}\mathopen{}\left(A\right)", "log_(k + 1) (A)"),
     (
@@ -953,6 +966,14 @@ DOCUMENT_MATH: list[tuple[str, str, str]] = [
 
 # math used as a condition, as LaTeX and as typst
 DOCUMENT_CONDITIONS: list[tuple[str, str, str]] = [
+    # a call is no operand which needs parentheses
+    ("f(A) && A > 1", r"f\mathopen{}\left(A\right) \land A > 1", "f(A) and A > 1"),
+    ("!f(A)", r"\lnot f\mathopen{}\left(A\right)", "not f(A)"),
+    (
+        "xor(f(A), k > 1)",
+        r"f\mathopen{}\left(A\right) \oplus \mathopen{}\left(k > 1\right)",
+        "f(A) xor (k > 1)",
+    ),
     (
         "xor(!(A > 1), k > 1)",
         r"\lnot \mathopen{}\left(A > 1\right) \oplus \mathopen{}\left(k > 1\right)",
@@ -1099,6 +1120,14 @@ def test_typst_condition(formula: str, expected: str) -> None:
         ),
         ("<apply><root/><ci>A</ci></apply>", r"\sqrt{A}", "sqrt(A)"),
         ("<apply><and/></apply>", r"\mathopen{}\left[\mathrm{true}\right]", '["true"]'),
+        # negative zero is zero
+        ("<cn>-0.0</cn>", "0", "0"),
+        (
+            "<apply><plus/><ci>A</ci><apply><times/><cn type='integer'>-1</cn>"
+            "<ci>k</ci></apply></apply>",
+            r"A + \mathopen{}\left(-1 \cdot k\right)",
+            "A + (-1 dot k)",
+        ),
         # a relation of conditions (which the infix syntax reads as a chain)
         (
             "<apply><eq/><apply><gt/><ci>A</ci><cn>1</cn></apply>"
@@ -1132,7 +1161,7 @@ def test_document_unmapped_identifier() -> None:
 
 # --- terms and lines ----------------------------------------------------------------
 
-LINE_SYMBOLS = {name: name for name in "abcdefAk"}
+LINE_SYMBOLS = {name: name for name in "abcdefAkxy"}
 
 
 def test_terms() -> None:
@@ -1181,6 +1210,39 @@ def test_terms_negative_literal() -> None:
     ]
 
 
+@pytest.mark.parametrize(
+    ("formula", "expected"),
+    [
+        ("a + (-2)*b", [(False, "a"), (True, "2 * b")]),
+        ("a - -c*b", [(False, "a"), (False, "c * b")]),
+        ("-(-2*b)", [(False, "2 * b")]),
+        ("a + (-1)*b", [(False, "a"), (True, "b")]),
+        ("a + (-1.0)*b*c", [(False, "a"), (True, "b * c")]),
+        ("a - (-1)*(-1)*b", [(False, "a"), (True, "b")]),
+        ("-1 * (a + b) + c", [(True, "a"), (True, "b"), (False, "c")]),
+        ("a + b*(-2)", [(False, "a"), (False, "b * -2")]),
+    ],
+)
+def test_terms_negative_factor(formula: str, expected: list[tuple[bool, str]]) -> None:
+    """The sign of a negative first factor is the sign of the term, `-1 * b` is `-b`."""
+    terms = PythonPrinter().terms(parse(formula), LINE_SYMBOLS)
+    assert [(term.negative, term.printed.code) for term in terms] == expected
+
+
+def test_terms_negative_factor_mathml() -> None:
+    """A negative number as the first factor is a term with a minus."""
+    content = (
+        "<apply><plus/><ci>a</ci><apply><times/><cn type='integer'>-1</cn><ci>b</ci>"
+        "</apply><apply><times/><cn>-2.5</cn><ci>b</ci></apply></apply>"
+    )
+    terms = PythonPrinter().terms(mathml(content), LINE_SYMBOLS)
+    assert [(term.negative, term.printed.code) for term in terms] == [
+        (False, "a"),
+        (True, "b"),
+        (True, "2.5 * b"),
+    ]
+
+
 def test_terms_unsupported() -> None:
     """A term which the printer cannot write raises as `print` does."""
     with pytest.raises(NotImplementedError, match=r"'rateOf\(a\)'.*python printer"):
@@ -1214,6 +1276,11 @@ def test_terms_unsupported() -> None:
         ),
         ("a", 4, ["a"], ["a"]),
         ("-a", 4, ["-a"], ["-a"]),
+        ("x + (-2)*y", 4, [r"x - 2 \cdot y"], ["x - 2 dot y"]),
+        ("x - -k*A", 4, [r"x + k \cdot A"], ["x + k dot A"]),
+        ("-(-2*y)", 4, [r"2 \cdot y"], ["2 dot y"]),
+        ("x + (-1)*y", 4, ["x - y"], ["x - y"]),
+        ("(-2)*y + x", 4, [r"-2 \cdot y + x"], ["-2 dot y + x"]),
         (
             "piecewise(a, b > 1, 0)",
             4,

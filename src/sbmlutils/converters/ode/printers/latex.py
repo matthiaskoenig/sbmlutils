@@ -2,9 +2,10 @@ r"""The LaTeX dialect of the math printer.
 
 The math is typeset for the math mode of LaTeX with `amsmath` (for `cases`, `\text`
 and `\operatorname`): a product is `a \cdot b`, a quotient `\frac{a}{b}`, the
-parentheses are `\mathopen{}\left( \right)`, which grow with their content. A function of SBML which LaTeX has no command for
-is an `\operatorname`, e.g. `\operatorname{arcsinh}`. See `document` for the
-notation the dialects of a document share.
+parentheses are `\mathopen{}\left( \right)`, which grow with their content. A
+function of SBML which LaTeX has no command for is an `\operatorname`, e.g.
+`\operatorname{arcsinh}`. See `document` for the notation the dialects of a
+document share.
 """
 
 import math

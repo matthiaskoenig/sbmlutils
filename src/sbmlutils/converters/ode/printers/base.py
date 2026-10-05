@@ -200,6 +200,21 @@ def _is_negative_number(ast: libsbml.ASTNode) -> bool:
     return False
 
 
+def _is_negation(ast: libsbml.ASTNode) -> bool:
+    """Check that the math is a unary minus."""
+    return ast.getType() == libsbml.AST_MINUS and ast.getNumChildren() == 1
+
+
+def _product(factors: Sequence[libsbml.ASTNode]) -> libsbml.ASTNode:
+    """The product of factors, the factor itself if it is the only one."""
+    if len(factors) == 1:
+        return factors[0]
+    product = libsbml.ASTNode(libsbml.AST_TIMES)
+    for factor in factors:
+        product.addChild(factor.deepCopy())
+    return product
+
+
 def _negated(ast: libsbml.ASTNode) -> libsbml.ASTNode:
     """The number with the opposite sign of a number of `_is_negative_number`."""
     number = libsbml.ASTNode(ast.getType())
@@ -296,7 +311,9 @@ class MathPrinter:
         The sums and the differences nested in the sum are flattened, each term with
         the sign it has in the sum: `a - (b - c) + -d` has the terms `a`, `-b`, `c`
         and `-d`. A negative number is a term with a minus, `a + (-2)` has the terms
-        `a` and `-2`. Math which is not a sum is a single term.
+        `a` and `-2`, and so is a product whose first factor is negative,
+        `a + (-2) * b` has the terms `a` and `-2 * b`, `a + (-1) * b` the terms `a`
+        and `-b`. Math which is not a sum is a single term.
 
         Args:
             ast: the math
@@ -901,6 +918,16 @@ class MathPrinter:
                     self._collect_terms(child, not negative, ctx, terms)
         elif _is_negative_number(ast):
             terms.append(Term(not negative, self._print(_negated(ast), ctx)))
+        elif (
+            ast_type == libsbml.AST_TIMES
+            and len(children) > 1
+            and (_is_negative_number(children[0]) or _is_negation(children[0]))
+        ):
+            # the sign of the first factor is the sign of the product, -1 * b is -b
+            first, *others = children
+            factor = first.getChild(0) if _is_negation(first) else _negated(first)
+            factors = others if _is_number(factor, 1) else [factor, *others]
+            self._collect_terms(_product(factors), not negative, ctx, terms)
         else:
             terms.append(Term(negative, self._print(ast, ctx.as_number())))
 
