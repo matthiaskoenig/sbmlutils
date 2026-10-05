@@ -4,14 +4,14 @@ Model `events_model`, SBML Level 3 Version 2, read from events.xml, written by s
 
 ## Compartments
 
-| Symbol | Id | Name | Size | Constant |
-| --- | --- | --- | --- | :---: |
-| $c$ | `c` |  | $1$ | ✓ |
-| $V$ | `V` |  | $2$ |  |
+| Symbol | Id | Size | Constant |
+| --- | --- | --- | :---: |
+| $c$ | `c` | $1$ | ✓ |
+| $V$ | `V` | $2$ |  |
 
 ## Species
 
-| Symbol | Id | Name | Compartment | Initial value | Properties |
+| Symbol | Id | Name | Compartment | Value | Properties |
 | --- | --- | --- | --- | --- | --- |
 | $S$ | `S` | substrate | $c$ |  | concentration |
 | $P$ | `P` |  | $c$ | $0$ | concentration |
@@ -20,14 +20,14 @@ Model `events_model`, SBML Level 3 Version 2, read from events.xml, written by s
 
 ## Parameters
 
-| Symbol | Id | Name | Value | Constant |
-| --- | --- | --- | --- | :---: |
-| $\mathrm{vmax}$ | `vmax` |  | $2$ | ✓ |
-| $\mathrm{km}$ | `km` |  | $0.5$ | ✓ |
-| $\mathrm{k1}$ | `k1` |  | $0.1$ | ✓ |
-| $\mathrm{k2}$ | `k2` |  |  |  |
-| $\mathrm{S0}$ | `S0` |  | $10$ | ✓ |
-| $\mathrm{total}$ | `total` |  | $0$ |  |
+| Symbol | Id | Value | Constant |
+| --- | --- | --- | :---: |
+| $\mathrm{vmax}$ | `vmax` | $2$ | ✓ |
+| $\mathrm{km}$ | `km` | $0.5$ | ✓ |
+| $k_{1}$ | `k1` | $0.1$ | ✓ |
+| $k_{2}$ | `k2` |  |  |
+| $S_{0}$ | `S0` | $10$ | ✓ |
+| $\mathrm{total}$ | `total` | $0$ |  |
 
 ## Function definitions
 
@@ -43,7 +43,7 @@ The initial assignments set the values at $t = 0$:
 
 $$
 \begin{aligned}
-S &= \mathrm{S0} \\
+S &= S_{0} \\
 n_{A} &= A \cdot V
 \end{aligned}
 $$
@@ -53,23 +53,23 @@ The assignment rules hold at every time $t$:
 $$
 \begin{aligned}
 A &= \frac{n_{A}}{V} \\
-\mathrm{k2} &= 2 \cdot \mathrm{k1}
+k_{2} &= 2 \cdot k_{1}
 \end{aligned}
 $$
 
 ## Reactions
 
-| Rate | Id | Name | Equation |
-| --- | --- | --- | --- |
-| $v_{\mathrm{J0}}$ | `J0` |  | $S \rightleftharpoons P$ |
-| $v_{\mathrm{J1}}$ | `J1` |  | $S + A \rightleftharpoons 2 \, P$ |
+| Rate | Id | Equation |
+| --- | --- | --- |
+| $v_{\mathrm{J0}}$ | `J0` | $S \rightleftharpoons P$ |
+| $v_{\mathrm{J1}}$ | `J1` | $S + A \rightleftharpoons 2 \, P$ |
 
 The rates of the reactions are:
 
 $$
 \begin{aligned}
 v_{\mathrm{J0}} &= \mathrm{vmax} \cdot \mathrm{mm}\mathopen{}\left(S, \mathrm{km}\right) \\
-v_{\mathrm{J1}} &= \mathrm{k1} \cdot S \cdot A
+v_{\mathrm{J1}} &= k_{1} \cdot S \cdot A
 \end{aligned}
 $$
 
@@ -99,9 +99,9 @@ The species $A$ in the compartment $V$ of variable size is integrated as its amo
 
 $$
 \begin{aligned}
-V &:= 2 \cdot V \\
-S &:= 10 \\
-B &:= \frac{B \cdot V}{V^{\mathrm{new}}}
+V &\mathrel{:=} 2 \cdot V \\
+S &\mathrel{:=} 10 \\
+B &\mathrel{:=} \frac{B \cdot V}{V^{\mathrm{new}}}
 \end{aligned}
 $$
 
@@ -115,8 +115,8 @@ $B$ is converted from the size of $V$ at the execution of the event to the size 
 
 $$
 \begin{aligned}
-n_{A} &:= 1 \cdot V \\
-\mathrm{total} &:= \mathrm{total} + 1
+n_{A} &\mathrel{:=} V \\
+\mathrm{total} &\mathrel{:=} \mathrm{total} + 1
 \end{aligned}
 $$
 

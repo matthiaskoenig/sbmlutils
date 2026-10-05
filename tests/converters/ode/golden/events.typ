@@ -14,25 +14,25 @@ Model `events_model`, SBML Level 3 Version 2, read from events.xml, written by s
 = Compartments
 
 #table(
-  columns: (auto, auto, 1fr, auto, auto),
+  columns: (auto, auto, auto, auto),
   stroke: none,
-  align: (left, left, left, left, center),
+  align: (left, left, left, center),
   table.hline(stroke: 0.8pt),
-  table.header([*Symbol*], [*Id*], [*Name*], [*Size*], [*Constant*]),
+  table.header([*Symbol*], [*Id*], [*Size*], [*Constant*]),
   table.hline(stroke: 0.4pt),
-  [$c$], [`c`], [], [$1$], [#sym.checkmark],
-  [$V$], [`V`], [], [$2$], [],
+  [$c$], [`c`], [$1$], [#sym.checkmark],
+  [$V$], [`V`], [$2$], [],
   table.hline(stroke: 0.8pt),
 )
 
 = Species
 
 #table(
-  columns: (auto, auto, 1fr, auto, auto, auto),
+  columns: (auto, auto, 1fr, auto, auto, 1fr),
   stroke: none,
   align: (left, left, left, left, left, left),
   table.hline(stroke: 0.8pt),
-  table.header([*Symbol*], [*Id*], [*Name*], [*Compartment*], [*Initial value*], [*Properties*]),
+  table.header([*Symbol*], [*Id*], [*Name*], [*Compartment*], [*Value*], [*Properties*]),
   table.hline(stroke: 0.4pt),
   [$S$], [`S`], [substrate], [$c$], [], [concentration],
   [$P$], [`P`], [], [$c$], [$0$], [concentration],
@@ -44,18 +44,18 @@ Model `events_model`, SBML Level 3 Version 2, read from events.xml, written by s
 = Parameters
 
 #table(
-  columns: (auto, auto, 1fr, auto, auto),
+  columns: (auto, auto, auto, auto),
   stroke: none,
-  align: (left, left, left, left, center),
+  align: (left, left, left, center),
   table.hline(stroke: 0.8pt),
-  table.header([*Symbol*], [*Id*], [*Name*], [*Value*], [*Constant*]),
+  table.header([*Symbol*], [*Id*], [*Value*], [*Constant*]),
   table.hline(stroke: 0.4pt),
-  [$upright("vmax")$], [`vmax`], [], [$2$], [#sym.checkmark],
-  [$upright("km")$], [`km`], [], [$0.5$], [#sym.checkmark],
-  [$upright("k1")$], [`k1`], [], [$0.1$], [#sym.checkmark],
-  [$upright("k2")$], [`k2`], [], [], [],
-  [$upright("S0")$], [`S0`], [], [$10$], [#sym.checkmark],
-  [$upright("total")$], [`total`], [], [$0$], [],
+  [$upright("vmax")$], [`vmax`], [$2$], [#sym.checkmark],
+  [$upright("km")$], [`km`], [$0.5$], [#sym.checkmark],
+  [$k_(1)$], [`k1`], [$0.1$], [#sym.checkmark],
+  [$k_(2)$], [`k2`], [], [],
+  [$S_(0)$], [`S0`], [$10$], [#sym.checkmark],
+  [$upright("total")$], [`total`], [$0$], [],
   table.hline(stroke: 0.8pt),
 )
 
@@ -67,32 +67,32 @@ $ upright("mm")(S, upright("km")) &= (S)/(upright("km") + S) $
 
 The initial assignments set the values at $t = 0$:
 
-$ S &= upright("S0") \
+$ S &= S_(0) \
   n_(A) &= A dot V $
 
 The assignment rules hold at every time $t$:
 
 $ A &= (n_(A))/(V) \
-  upright("k2") &= 2 dot upright("k1") $
+  k_(2) &= 2 dot k_(1) $
 
 = Reactions
 
 #table(
-  columns: (auto, auto, 1fr, 1fr),
+  columns: (auto, auto, 1fr),
   stroke: none,
-  align: (left, left, left, left),
+  align: (left, left, left),
   table.hline(stroke: 0.8pt),
-  table.header([*Rate*], [*Id*], [*Name*], [*Equation*]),
+  table.header([*Rate*], [*Id*], [*Equation*]),
   table.hline(stroke: 0.4pt),
-  [$v_("J0")$], [`J0`], [], [$S harpoons.rtlb P$],
-  [$v_("J1")$], [`J1`], [], [$S + A harpoons.rtlb 2 thin P$],
+  [$v_("J0")$], [`J0`], [$S harpoons.rtlb P$],
+  [$v_("J1")$], [`J1`], [$S + A harpoons.rtlb 2 thin P$],
   table.hline(stroke: 0.8pt),
 )
 
 The rates of the reactions are:
 
 $ v_("J0") &= upright("vmax") dot upright("mm")(S, upright("km")) \
-  v_("J1") &= upright("k1") dot S dot A $
+  v_("J1") &= k_(1) dot S dot A $
 
 = ODE system
 
@@ -114,9 +114,9 @@ The species $A$ in the compartment $V$ of variable size is integrated as its amo
 - Priority: $1$
 - `initialValue` true, `persistent` true, `useValuesFromTriggerTime` true
 
-$ V &:= 2 dot V \
-  S &:= 10 \
-  B &:= (B dot V)/(V^("new")) $
+$ V &colon.eq 2 dot V \
+  S &colon.eq 10 \
+  B &colon.eq (B dot V)/(V^("new")) $
 
 $B$ is converted from the size of $V$ at the execution of the event to the size $V^("new")$ the event assigns, so that its amount is kept.
 
@@ -126,7 +126,7 @@ $B$ is converted from the size of $V$ at the execution of the event to the size 
 - Delay: $1$
 - `initialValue` true, `persistent` true, `useValuesFromTriggerTime` true
 
-$ n_(A) &:= 1 dot V \
-  upright("total") &:= upright("total") + 1 $
+$ n_(A) &colon.eq V \
+  upright("total") &colon.eq upright("total") + 1 $
 
 $n_(A)$ is the amount of $A$, the assigned concentration times the size of $V$ at the execution of the event.

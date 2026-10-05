@@ -10,7 +10,10 @@ math of these as markup of its format, so that a template only lays them out:
   `text.typst_text`, `text.tex_text` or `text.markdown_text`, a unit additionally
   with its exponents as superscripts and its products as `·`, `mol·m³`, and
   without ligatures, `fl` is two letters;
-- an id is code, `` `k1` `` in typst and markdown, `\texttt{k1}` in LaTeX; an id
+- an id is code, `` `k1` `` in typst and markdown, `\texttt{k1}` in LaTeX, and is
+  checked to be an SId (`ValueError` otherwise, libsbml reads a document with any
+  id, which could end the code and write markup; an unsupported element without an
+  id is labelled by its metaid, an XML ID); an id
   of more than `LONG_ID` characters may break after an underscore in typst and
   LaTeX (`#sym.zws`, `\allowbreak`), which writes no character, so that a table
   with long ids fits the page;
@@ -25,7 +28,9 @@ math of these as markup of its format, so that a template only lays them out:
 
 The context holds:
 
-- `model`: `title` (the name, else the id), `id`, `level`, `version`, `source`,
+- `model`: `title` (the name, else the id), `plain_title` (the title without the
+  opportunities of line breaks, for the bookmarks of a PDF), `id`, `level`,
+  `version`, `source`,
   `sbmlutils` (the version which writes the document) and `notes`, the paragraphs
   of the notes;
 - `units`: the units of the model, each with `kind` and `unit`;
@@ -80,7 +85,12 @@ from sbmlutils.converters.ode.printers import (
     TypstPrinter,
 )
 from sbmlutils.converters.ode.symbols import typeset_names, typeset_symbol
-from sbmlutils.converters.ode.text import markdown_text, tex_text, typst_text
+from sbmlutils.converters.ode.text import (
+    check_sid,
+    markdown_text,
+    tex_text,
+    typst_text,
+)
 
 if TYPE_CHECKING:
     from sbmlutils.converters.ode.system import (
@@ -103,9 +113,14 @@ class Dialect:
         symbols: the dialect of the math symbols, see `symbols.typeset_symbol`
         text: the escaping of text
         code: an id as code, e.g. in a code span, or a part of a long id
-        wbr: the opportunity of a line break between two parts of a long id, which
-            writes no character, the empty string if the parts are not split
+        wbr: the opportunity of a line break between two parts of a long id as code,
+            which writes no character, the empty string if the parts are not split
+        text_wbr: the same between two parts of text, the empty string where it
+            would write a character (the zero width space of typst is text of the
+            PDF)
         superscript: an exponent of a unit as a superscript, from the exponent
+        minus: the minus sign of a negative exponent in text, `−` (U+2212), not the
+            hyphen
         derivative: the derivative of a symbol in time, `{symbol}` is replaced
         arrow: the arrow of an irreversible reaction
         reversible: the arrow of a reversible reaction
@@ -124,7 +139,9 @@ class Dialect:
     text: Callable[[object], str]
     code: Callable[[str], str]
     wbr: str
+    text_wbr: str
     superscript: Callable[[str], str]
+    minus: str
     derivative: str
     arrow: str
     reversible: str
@@ -159,6 +176,7 @@ def _latex(
     code: Callable[[str], str],
     wbr: str,
     superscript: Callable[[str], str],
+    minus: str,
     unit: Callable[[str], str] = lambda unit: unit,
 ) -> Dialect:
     """The markup of the math of LaTeX, with the markup of the text of a format."""
@@ -168,7 +186,9 @@ def _latex(
         text=text,
         code=code,
         wbr=wbr,
+        text_wbr=wbr,
         superscript=superscript,
+        minus=minus,
         derivative=r"\frac{\mathrm{d} {symbol}}{\mathrm{d} t}",
         arrow=r"\longrightarrow",
         reversible=r"\rightleftharpoons",
@@ -188,7 +208,9 @@ DIALECTS: dict[str, Dialect] = {
         text=typst_text,
         code=lambda sid: f"`{sid}`",
         wbr="#sym.zws;",
+        text_wbr="",
         superscript=lambda exponent: f"#super[{exponent}]",
+        minus="\u2212",
         derivative="(dif {symbol})/(dif t)",
         arrow="-->",
         reversible="harpoons.rtlb",
@@ -206,6 +228,7 @@ DIALECTS: dict[str, Dialect] = {
         lambda sid: rf"\texttt{{{tex_text(sid)}}}",
         r"\allowbreak{}",
         lambda exponent: rf"\textsuperscript{{{exponent}}}",
+        r"\textminus{}",
         lambda unit: _LIGATURE.sub(r"f\\kern0pt{}", unit),
     ),
     "markdown": _latex(
@@ -213,6 +236,7 @@ DIALECTS: dict[str, Dialect] = {
         lambda sid: f"`{sid}`",
         "",
         lambda exponent: f"<sup>{exponent}</sup>",
+        "\u2212",
     ),
 }
 """The markup of each document format, by the name of the format."""
@@ -319,10 +343,35 @@ class DocumentContext:
         return None if value is None or value == "" else self.dialect.text(value)
 
     def code(self, sid: str) -> str:
-        """An id as code, a long id with opportunities of line breaks after `_`."""
+        """An id as code, a long id with opportunities of line breaks after `_`.
+
+        Raises:
+            ValueError: if the id is not an SId, which could end the code and write
+                markup, libsbml reads a document with an invalid id
+        """
+        check_sid(sid)
+        return self._code(sid)
+
+    def label(self, element: str) -> str:
+        """The label of an element as code, an SId or a metaid (an XML ID).
+
+        Raises:
+            ValueError: if the label is neither an SId nor an XML ID
+        """
+        if not libsbml.SyntaxChecker.isValidXMLID(element):
+            check_sid(element)
+        return self._code(element)
+
+    def _code(self, sid: str) -> str:
+        """An id or a label which is checked as code."""
         if not self.dialect.wbr:
             return self.dialect.code(sid)
         return self.dialect.wbr.join(self.dialect.code(part) for part in _parts(sid))
+
+    def breakable(self, value: str) -> str:
+        """Escaped text which may break after an underscore if it is long, a file name."""
+        parts = _parts(value)
+        return self.dialect.text_wbr.join(self.dialect.text(part) for part in parts)
 
     def unit(self, unit: str | None) -> str | None:
         """A unit as escaped text, its exponents as superscripts, `m³`."""
@@ -332,7 +381,10 @@ class DocumentContext:
         written = []
         for k, part in enumerate(parts):
             if k % 2:
-                written.append(self.dialect.superscript(self.dialect.text(part)))
+                exponent = self.dialect.text(part.removeprefix("-"))
+                if part.startswith("-"):
+                    exponent = self.dialect.minus + exponent
+                written.append(self.dialect.superscript(exponent))
             elif part:
                 factors = (self.dialect.text(factor) for factor in part.split("*"))
                 written.append(self.dialect.times.join(factors))
@@ -344,19 +396,22 @@ class DocumentContext:
         """The context, see the module."""
         system = self.system
         info = system.info
+        if info.sid is not None:
+            check_sid(info.sid)
         if info.name:
-            title = self.dialect.text(info.name)
+            title = plain = self.dialect.text(info.name)
         else:
             # an id may break after an underscore
-            parts = _parts(info.sid or "Model")
-            title = self.dialect.wbr.join(self.dialect.text(part) for part in parts)
+            title = self.breakable(info.sid or "Model")
+            plain = self.dialect.text(info.sid or "Model")
         return {
             "model": {
                 "title": title,
+                "plain_title": plain,
                 "id": None if info.sid is None else self.code(info.sid),
                 "level": info.level,
                 "version": info.version,
-                "source": self.text(info.source),
+                "source": None if info.source is None else self.breakable(info.source),
                 "sbmlutils": sbmlutils.__version__,
                 "notes": [
                     self.dialect.text(paragraph)
@@ -406,7 +461,7 @@ class DocumentContext:
             "odes": [self.ode(ode) for ode in system.odes],
             "events": [self.event(k) for k in range(len(system.events))],
             "unsupported": [
-                {"construct": self.dialect.text(construct), "id": self.code(sid)}
+                {"construct": self.dialect.text(construct), "id": self.label(sid)}
                 for construct, sid in system.unsupported
             ],
             "options": dict(options),
@@ -561,7 +616,10 @@ class DocumentContext:
         `system.EventAssignment`.
         """
         factors = []
-        if assignment.math is not None:
+        # a concentration of 1 converted to an amount is the size, `n_A := V`
+        if assignment.math is not None and not (
+            assignment.scale is not None and is_number(assignment.math, 1.0)
+        ):
             factors.append(assignment.math.deepCopy())
         if assignment.scale is not None:
             factors.append(assignment.scale.deepCopy())

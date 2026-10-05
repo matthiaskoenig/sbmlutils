@@ -247,7 +247,13 @@ SYMBOLS = [
     ("k_12", "k_{12}", "k_(12)"),
     # digits and letters mixed are text
     ("k_1a", r"k_{\mathrm{1a}}", 'k_("1a")'),
-    ("k1", r"\mathrm{k1}", 'upright("k1")'),
+    # letters followed by digits only have the digits as subscript
+    ("k1", "k_{1}", "k_(1)"),
+    ("S0", "S_{0}", "S_(0)"),
+    ("Km2", r"\mathrm{Km}_{2}", 'upright("Km")_(2)'),
+    ("alpha12", r"\mathrm{alpha}_{12}", 'upright("alpha")_(12)'),
+    ("k1a", r"\mathrm{k1a}", 'upright("k1a")'),
+    ("a0_tr", r"\mathrm{a0}_{\mathrm{tr}}", 'upright("a0")_("tr")'),
     ("v_r1", r"v_{\mathrm{r1}}", 'v_("r1")'),
     # a subscript of one letter is text as well
     ("v_r", r"v_{\mathrm{r}}", 'v_("r")'),
@@ -335,21 +341,21 @@ def test_typeset_names_use_the_name() -> None:
     assert typeset_names(["s1", "s2", "s3", "s4", "s5", "s6"], "latex", names) == {
         "s1": r"\mathrm{Glc}",
         "s2": r"\mathrm{G6P}_{\mathrm{ext}}",
-        "s3": r"\mathrm{s3}",
-        "s4": r"\mathrm{s4}",
-        "s5": r"\mathrm{s5}",
-        "s6": r"\mathrm{s6}",
+        "s3": "s_{3}",
+        "s4": "s_{4}",
+        "s5": "s_{5}",
+        "s6": "s_{6}",
     }
     assert typeset_names(["s1", "s2", "s3"], "typst", names) == {
         "s1": 'upright("Glc")',
         "s2": 'upright("G6P")_("ext")',
-        "s3": 'upright("s3")',
+        "s3": "s_(3)",
     }
 
 
 def test_typeset_names_start_with_a_letter() -> None:
     """A name which starts with an underscore falls back to the id."""
-    assert typeset_names(["s1"], "latex", {"s1": "_x"}) == {"s1": r"\mathrm{s1}"}
+    assert typeset_names(["s1"], "latex", {"s1": "_x"}) == {"s1": "s_{1}"}
 
 
 def test_typeset_names_are_unique() -> None:
@@ -358,16 +364,27 @@ def test_typeset_names_are_unique() -> None:
     sids = ["s1", "s2", "s3", "s4", "s5", "k", "s6", "s7"]
     result = typeset_names(sids, "typst", names)
     # `s1` and `s2` share a name, `s3` is named like the id of `s4`, `s5` like `k`
-    assert result["s1"] == 'upright("s1")'
-    assert result["s2"] == 'upright("s2")'
-    assert result["s3"] == 'upright("s3")'
-    assert result["s4"] == 'upright("s4")'
-    assert result["s5"] == 'upright("s5")'
+    assert result["s1"] == "s_(1)"
+    assert result["s2"] == "s_(2)"
+    assert result["s3"] == "s_(3)"
+    assert result["s4"] == "s_(4)"
+    assert result["s5"] == "s_(5)"
     assert result["k"] == "k"
     # a swap of names is no clash
-    assert result["s6"] == 'upright("s7")'
-    assert result["s7"] == 'upright("s6")'
+    assert result["s6"] == "s_(7)"
+    assert result["s7"] == "s_(6)"
     assert len(set(result.values())) == len(result)
+
+
+@pytest.mark.parametrize("dialect", ["latex", "typst"])
+def test_typeset_names_of_numbered_ids_are_unique(dialect: str) -> None:
+    """`k1` and `k_1` are both `k_1`: the id of letters and digits is upright text."""
+    result = typeset_names(["k1", "k_1", "S0"], dialect)  # ty: ignore[invalid-argument-type]
+    expected = {
+        "latex": {"k1": r"\mathrm{k1}", "k_1": "k_{1}", "S0": "S_{0}"},
+        "typst": {"k1": 'upright("k1")', "k_1": "k_(1)", "S0": "S_(0)"},
+    }
+    assert result == expected[dialect]
 
 
 def test_typeset_names_reject_ids_which_are_no_sid() -> None:

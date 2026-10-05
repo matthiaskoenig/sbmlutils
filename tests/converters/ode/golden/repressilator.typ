@@ -85,11 +85,11 @@ transcription rate (repressed) (a0\_tr): tps\_repr\*60 = 0.03 transcripts/min
 
 translation rate (k\_tl): eff\*kd\_mRNA = 6.93 proteins/(mRNA\*min)
 
-α: a\_tr\*eff\*τ 1/2,prot /(ln(2)\*K M) = 216.4 proteins/(promotor\*cell\*Km)
+α : a\_tr\*eff\*τ 1/2,prot /(ln(2)\*K M) = 216.4 proteins/(promotor\*cell\*Km)
 
 α 0: a0\_tr\*eff\*τ 1/2,prot /(ln(2)\*K M) = 0.2164 proteins/(promotor\*cell\*Km)
 
-β: k\_dp/k\_dm = 0.2
+β : k\_dp/k\_dm = 0.2
 
 Annotation by the Kinetic Simulation Algorithm Ontology (KiSAO):
 
@@ -117,24 +117,24 @@ To the extent possible under law, all copyright and related or neighbouring righ
 = Compartments
 
 #table(
-  columns: (auto, auto, 1fr, auto, auto, auto),
+  columns: (auto, auto, auto, auto, auto),
   stroke: none,
-  align: (left, left, left, left, left, center),
+  align: (left, left, left, left, center),
   table.hline(stroke: 0.8pt),
-  table.header([*Symbol*], [*Id*], [*Name*], [*Size*], [*Unit*], [*Constant*]),
+  table.header([*Symbol*], [*Id*], [*Size*], [*Unit*], [*Constant*]),
   table.hline(stroke: 0.4pt),
-  [$upright("cell")$], [`cell`], [], [$1$], [#text(ligatures: false)[fl]], [#sym.checkmark],
+  [$upright("cell")$], [`cell`], [$1$], [#text(ligatures: false)[fl]], [#sym.checkmark],
   table.hline(stroke: 0.8pt),
 )
 
 = Species
 
 #table(
-  columns: (auto, auto, 1fr, auto, auto, auto, auto),
+  columns: (auto, auto, 1fr, auto, auto, auto, 1fr),
   stroke: none,
   align: (left, left, left, left, left, left, left),
   table.hline(stroke: 0.8pt),
-  table.header([*Symbol*], [*Id*], [*Name*], [*Compartment*], [*Initial value*], [*Unit*], [*Properties*]),
+  table.header([*Symbol*], [*Id*], [*Name*], [*Compartment*], [*Value*], [*Unit*], [*Properties*]),
   table.hline(stroke: 0.4pt),
   [$upright("PX")$], [`PX`], [LacI protein], [$upright("cell")$], [$0$], [item], [amount],
   [$upright("PY")$], [`PY`], [TetR protein], [$upright("cell")$], [$0$], [item], [amount],
@@ -155,7 +155,7 @@ To the extent possible under law, all copyright and related or neighbouring righ
   table.header([*Symbol*], [*Id*], [*Name*], [*Value*], [*Constant*]),
   table.hline(stroke: 0.4pt),
   [$upright("beta")$], [`beta`], [beta], [], [],
-  [$upright("alpha0")$], [`alpha0`], [alpha0], [], [],
+  [$upright("alpha")_(0)$], [`alpha0`], [alpha0], [], [],
   [$upright("alpha")$], [`alpha`], [alpha], [], [],
   [$upright("eff")$], [`eff`], [translation efficiency], [$20$], [#sym.checkmark],
   [$n$], [`n`], [n], [$2$], [#sym.checkmark],
@@ -185,7 +185,7 @@ $ t_("ave") &= (upright("tau")_("mRNA"))/(ln(2)) \
   upright("kd")_("prot") &= (ln(2))/(upright("tau")_("prot")) \
   upright("kd")_("mRNA") &= (ln(2))/(upright("tau")_("mRNA")) \
   upright("alpha") &= (a_("tr") dot upright("eff") dot upright("tau")_("prot"))/(ln(2) dot upright("KM")) \
-  upright("alpha0") &= (upright("a0")_("tr") dot upright("eff") dot upright("tau")_("prot"))/(ln(2) dot upright("KM")) $
+  upright("alpha")_(0) &= (upright("a0")_("tr") dot upright("eff") dot upright("tau")_("prot"))/(ln(2) dot upright("KM")) $
 
 = Reactions
 

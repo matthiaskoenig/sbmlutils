@@ -10,7 +10,6 @@ markdown-it-py.
 
 import os
 import re
-import shutil
 from pathlib import Path
 
 import libsbml
@@ -28,6 +27,7 @@ from test_ode_symbols import SYMBOLS
 
 import sbmlutils
 from sbmlutils.converters.ode import FORMATS, OdeSystem
+from sbmlutils.converters.ode.documents import DocumentContext
 from sbmlutils.resources import DEMO_SBML, REPRESSILATOR_SBML
 
 GOLDEN = Path(__file__).parent / "golden"
@@ -138,9 +138,11 @@ def test_fragments() -> None:
     typst = render("demo", "typst", standalone=False)
     assert "#set page" not in typst
     assert "#set document" not in typst
-    assert typst.startswith("// the equations")
-    # the id of the title may break after an underscore
-    assert "\n= Koenig\\_#sym.zws;demo\\_#sym.zws;v15\n" in typst
+    # the rules of the fragment apply within its content block only
+    assert typst.startswith("// The content of a typst document")
+    assert "\n#[\n// the equations of a section" in typst
+    assert typst.endswith("\n]\n")
+    assert "\n= Koenig\\_demo\\_v15\n" in typst
     assert "\n== Units\n" in typst
 
     latex = render("demo", "latex", standalone=False)
@@ -149,7 +151,11 @@ def test_fragments() -> None:
     assert r"\end{document}" not in latex
     assert latex.startswith("% The body of a LaTeX document")
     assert "amsmath, amssymb, booktabs\n% and xltabular" in latex
-    assert "\\section{Koenig\\_\\allowbreak{}demo\\_\\allowbreak{}v15}" in latex
+    # the title may break after an underscore, the bookmark is plain
+    assert (
+        "\\section{\\texorpdfstring{Koenig\\_\\allowbreak{}demo\\_\\allowbreak{}v15}"
+        "{Koenig\\_demo\\_v15}}"
+    ) in latex
     assert "\\subsection{Units}" in latex
 
     markdown = render("demo", "markdown", standalone=False)
@@ -192,7 +198,9 @@ def test_typst_compiles(name: str, tmp_path: Path) -> None:
 @pytest.mark.parametrize("name", sorted(MODELS))
 def test_typst_fragment_compiles(name: str, tmp_path: Path) -> None:
     """The typst fragment compiles, included into a document."""
-    (tmp_path / "fragment.typ").write_text(render(name, "typst", standalone=False))
+    (tmp_path / "fragment.typ").write_text(
+        render(name, "typst", standalone=False), encoding="utf-8"
+    )
     wrapper = (
         '#set page(paper: "a4", margin: 2cm)\n'
         '#set heading(numbering: "1.")\n\n'
@@ -209,23 +217,26 @@ def test_typst_fragment_compiles(name: str, tmp_path: Path) -> None:
 def test_latex_compiles(name: str, tmp_path: Path) -> None:
     """The LaTeX document compiles with tectonic."""
     require_tectonic()
-    assert compile_latex(render(name, "latex"), tmp_path).exists()
+    assert compile_latex(render(name, "latex"), tmp_path, strict=True).exists()
 
 
 def test_latex_fragment_compiles(tmp_path: Path) -> None:
     """The LaTeX fragment compiles with the packages it names, input into a document."""
     require_tectonic()
-    (tmp_path / "fragment.tex").write_text(render("events", "latex", standalone=False))
+    # a title which is an id with break opportunities, a bookmark of hyperref
+    (tmp_path / "fragment.tex").write_text(
+        render("demo", "latex", standalone=False), encoding="utf-8"
+    )
     wrapper = (
         "\\documentclass{article}\n"
         "\\usepackage{fontspec}\n"
-        "\\usepackage{amsmath, amssymb, booktabs, xltabular}\n"
+        "\\usepackage{amsmath, amssymb, booktabs, xltabular, hyperref}\n"
         "\\allowdisplaybreaks\n"
         "\\begin{document}\n"
         "\\input{fragment}\n"
         "\\end{document}\n"
     )
-    assert compile_latex(wrapper, tmp_path).exists()
+    assert compile_latex(wrapper, tmp_path, strict=True).exists()
 
 
 def test_latex_symbols_compile(tmp_path: Path) -> None:
@@ -240,7 +251,7 @@ def test_latex_symbols_compile(tmp_path: Path) -> None:
         "\\documentclass{article}\n\\usepackage{amsmath}\n\\begin{document}\n"
         f"{body}\n\\end{{document}}\n"
     )
-    assert compile_latex(document, tmp_path).exists()
+    assert compile_latex(document, tmp_path, strict=True).exists()
 
 
 # --- markdown -------------------------------------------------------------------------
@@ -321,13 +332,15 @@ def test_markup_in_names_is_text(fmt: str, tmp_path: Path) -> None:
     if fmt == "typst":
         assert r"a \$x\$ \#b \_c\_ | d \\ \<script\>" in document
         compile_typst(document, tmp_path)
+        fragment = system.render(fmt, standalone=False)
+        compile_typst(f"= Supplement\n\n{fragment}", tmp_path)
     elif fmt == "latex":
         assert (
             r"a \$x\$ \#b \_c\_ \textbar{} d \textbackslash{} "
             r"\textless{}script\textgreater{}"
         ) in document
-        if shutil.which("tectonic"):
-            compile_latex(document, tmp_path)
+        require_tectonic()
+        compile_latex(document, tmp_path, strict=True)
     else:
         escaped = r"a \$x\$ #b \_c\_ \| d \\ &lt;script&gt;"
         assert escaped in document
@@ -335,6 +348,38 @@ def test_markup_in_names_is_text(fmt: str, tmp_path: Path) -> None:
         # unescapes
         names = [row[2] for table in _tables(document)[1:] for row in table[1:]]
         assert names == [escaped.replace("\\|", "|")] * 3
+
+
+INVALID_ID = "E2` #strong[pwn] | x <script>"
+"""An id which is no SId and which would end the code it is written into."""
+
+
+@pytest.mark.parametrize("fmt", sorted(SUFFIXES))
+@pytest.mark.parametrize("element", ["event", "model"])
+def test_ids_which_are_no_sid_are_rejected(fmt: str, element: str) -> None:
+    """An id is written as code only if it is an SId, libsbml reads any id."""
+    sbml = (GOLDEN / "events.xml").read_text()
+    old = 'id="E2"' if element == "event" else 'id="events_model"'
+    assert old in sbml
+    escaped = INVALID_ID.replace("<", "&lt;").replace(">", "&gt;")
+    system = OdeSystem.from_sbml(sbml.replace(old, f'id="{escaped}"'))
+    with pytest.raises(ValueError, match="SId"):
+        system.render(fmt)
+
+
+@pytest.mark.parametrize("fmt", sorted(SUFFIXES))
+def test_unsupported_element_with_a_metaid(fmt: str) -> None:
+    """An unsupported element without an id is labelled with its metaid."""
+
+    def algebraic(model: libsbml.Model) -> None:
+        rule: libsbml.AlgebraicRule = model.createAlgebraicRule()
+        rule.setMetaId("meta-rule.1")
+        rule.setMath(libsbml.parseL3Formula("x + y - 3"))
+
+    sbml = edit_sbml(model_sbml("x = 1; y = 2"), algebraic)
+    document = OdeSystem.from_sbml(sbml).render(fmt)
+    code = {"typst": "`meta-rule.1`", "latex": r"\texttt{meta-rule.1}"}
+    assert f"algebraic rule {code.get(fmt, '`meta-rule.1`')}" in document
 
 
 @pytest.mark.parametrize("fmt", sorted(SUFFIXES))
@@ -377,7 +422,7 @@ def test_symbols_are_unique() -> None:
     document = OdeSystem.from_sbml(sbml).render("latex")
     # the parameter v_J0 is v_{J0}, the rate of J0 the symbol of its id
     assert r"$v_{\mathrm{J0}}$ & \texttt{v\_J0}" in document
-    assert r"$\mathrm{J0}$ & \texttt{J0}" in document
+    assert r"$J_{0}$ & \texttt{J0}" in document
 
 
 @pytest.mark.parametrize("fmt", sorted(SUFFIXES))
@@ -407,9 +452,10 @@ def test_events_section() -> None:
         r"\texttt{useValuesFromTriggerTime} true"
     ) in section
     # the assignments, with the conversions of the sizes
-    assert r"V &:= 2 \cdot V \\" in section
-    assert r"B &:= \frac{B \cdot V}{V^{\mathrm{new}}}" in section
-    assert r"n_{A} &:= 1 \cdot V \\" in section
+    assert r"V &\mathrel{:=} 2 \cdot V \\" in section
+    assert r"B &\mathrel{:=} \frac{B \cdot V}{V^{\mathrm{new}}}" in section
+    # the concentration 1 converted to the amount is the size
+    assert r"n_{A} &\mathrel{:=} V \\" in section
     assert r"$n_{A}$ is the amount of $A$" in section
     assert r"$B$ is converted from the size of $V$" in section
 
@@ -429,7 +475,7 @@ def test_events_section_without_delay_and_priority() -> None:
     assert (
         "`initialValue` false, `persistent` false, `useValuesFromTriggerTime` false"
     ) in section
-    assert "A &:= 0" in section
+    assert r"A &\mathrel{:=} 0" in section
 
 
 def test_amount_state() -> None:
@@ -540,3 +586,39 @@ def test_notes_are_paragraphs() -> None:
     document = render("demo", "markdown")
     assert "\n\nThis is a demonstration model in SBML format.\n\n" in document
     assert "koenigmx@hu-berlin.de" in document
+
+
+@pytest.mark.parametrize("fmt", sorted(SUFFIXES))
+def test_negative_exponent_of_a_unit(fmt: str) -> None:
+    """The minus of a negative exponent is the minus sign, not a hyphen."""
+    context = DocumentContext(OdeSystem.from_sbml(MODELS["events"]), fmt, "id")
+    expected = {
+        "typst": "s#super[\u22121]",
+        "latex": r"s\textsuperscript{\textminus{}1}",
+        "markdown": "s<sup>\u22121</sup>",
+    }
+    assert context.unit("s^-1") == expected[fmt]
+
+
+def test_tables_without_names_are_compact() -> None:
+    """A table whose rows have no name has no name column and its natural width."""
+    typst = render("events", "typst")
+    compartments = typst[typst.index("= Compartments") : typst.index("= Species")]
+    assert "columns: (auto, auto, auto, auto)" in compartments
+    assert "[*Name*]" not in compartments
+    latex = render("events", "latex")
+    compartments = latex[latex.index("{Compartments}") : latex.index("{Species}")]
+    assert r"\begin{longtable}[l]{@{}l l l c@{}}" in compartments
+    assert r"\textbf{Name}" not in compartments
+    markdown = render("events", "markdown")
+    assert "| Symbol | Id | Size | Constant |" in markdown
+    # a name wraps in the width the other columns leave
+    species = latex[latex.index("{Species}") : latex.index("{Parameters}")]
+    assert r"\begin{xltabular}{\linewidth}" in species
+    assert r"\textbf{Name}" in species
+
+
+def test_event_assignment_is_one_relation() -> None:
+    """`:=` is one relation in every format."""
+    assert "S &colon.eq 10" in render("events", "typst")
+    assert r"S &\mathrel{:=} 10" in render("events", "markdown")

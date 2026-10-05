@@ -127,8 +127,11 @@ _BLOCKS = frozenset(
     }
 )
 _CELLS = frozenset({"td", "th"})
-_AFTER_OPENING = re.compile(r"\(\s+")
-_BEFORE_PUNCTUATION = re.compile(r"\s+([).,;:!?])")
+# the edge of a text node, between which and an inline element the indentation of
+# the XML adds white space, `(<em> x</em>\n )`
+_EDGE = "\x00"
+_AFTER_OPENING = re.compile(r"\(\s*\x00[\s\x00]*")
+_BEFORE_PUNCTUATION = re.compile(r"[\s\x00]*\x00\s*([).,;:!?])")
 
 # a unit without a magnitude, a product or a quotient, `l` or `m^3`
 _SINGLE_UNIT = re.compile(r"[^\s*/()^]+(\^[0-9.]+)?")
@@ -139,24 +142,27 @@ def _plain_text(notes: libsbml.XMLNode) -> str:
 
     A block of XHTML (`_BLOCKS`, e.g. a paragraph, a heading, an item of a list, a
     row of a table, a line break) is a paragraph, the cells of a row are separated
-    by a space, and the white space of a paragraph is one space, none after an
-    opening parenthesis and before a closing one or a punctuation mark, so that the
-    line breaks and the indentation of the XML do not show in the text.
+    by a space, and the white space of a paragraph is one space; the white space at
+    the edge of an inline element after an opening parenthesis and before a closing
+    one or a punctuation mark is none, so that the line breaks and the indentation
+    of the XML do not show in the text.
     """
     paragraphs: list[str] = []
     texts: list[str] = []
 
     def flush() -> None:
-        paragraph = " ".join("".join(texts).split())
-        # the white space at the edge of an inline element, `( <i>x</i> )`
-        paragraph = _AFTER_OPENING.sub("(", _BEFORE_PUNCTUATION.sub(r"\1", paragraph))
+        joined = "".join(texts)
+        # the white space at the edge of an inline element, `( <i>x</i>\n )`, the
+        # white space within a text, `a : b`, is kept
+        joined = _AFTER_OPENING.sub("(", _BEFORE_PUNCTUATION.sub(r"\1", joined))
+        paragraph = " ".join(joined.replace(_EDGE, "").split())
         if paragraph:
             paragraphs.append(paragraph)
         texts.clear()
 
     def visit(node: libsbml.XMLNode) -> None:
         if node.isText():
-            texts.append(node.getCharacters())
+            texts.extend((_EDGE, node.getCharacters(), _EDGE))
             return
         block = node.getName() in _BLOCKS
         if block:

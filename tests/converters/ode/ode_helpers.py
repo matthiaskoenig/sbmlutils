@@ -967,7 +967,7 @@ def compile_typst(source: str, tmp_path: Path) -> bytes:
     except ImportError:
         toolchain_missing("typst", "pip install typst")
     path = tmp_path / "document.typ"
-    path.write_text(source)
+    path.write_text(source, encoding="utf-8")
     try:
         pdf, warnings = typst.compile_with_warnings(str(path))
     except typst.TypstError as error:
@@ -993,26 +993,37 @@ def require_tectonic() -> None:
         toolchain_missing("tectonic", "PATH")
 
 
-def compile_latex(source: str, tmp_path: Path) -> Path:
+LATEX_WARNINGS = re.compile(
+    r"^(?:(?:LaTeX|Package \S+|Class \S+) Warning|Overfull|Underfull|Missing character)"
+    r".*$",
+    re.MULTILINE,
+)
+"""The warnings in the log of LaTeX which `compile_latex` fails on if strict: of LaTeX
+and its packages, boxes which do not fit and characters which the font lacks."""
+
+
+def compile_latex(source: str, tmp_path: Path, strict: bool = False) -> Path:
     """Compile a LaTeX document with tectonic.
 
     Args:
         source: the LaTeX document
         tmp_path: directory of the document and of the PDF
+        strict: fail on a warning of `LATEX_WARNINGS` in the log
 
     Returns:
         the path of the PDF
 
     Raises:
-        RuntimeError: if tectonic is not on the path or the document fails
+        RuntimeError: if tectonic is not on the path, the document fails or, if
+            strict, compiles with a warning
     """
     command = tectonic_command()
     if command is None:
         raise RuntimeError("tectonic is not on the path.")
     path = tmp_path / "document.tex"
-    path.write_text(source)
+    path.write_text(source, encoding="utf-8")
     result = subprocess.run(
-        [*command, "--chatter", "minimal", str(path)],
+        [*command, "--chatter", "minimal", "--keep-logs", str(path)],
         capture_output=True,
         text=True,
         check=False,
@@ -1023,6 +1034,13 @@ def compile_latex(source: str, tmp_path: Path) -> Path:
             f"{path.name} failed with exit code {result.returncode}:\n"
             f"{result.stdout}\n{result.stderr}"
         )
+    if strict:
+        log = path.with_suffix(".log").read_text(encoding="utf-8", errors="replace")
+        warnings = LATEX_WARNINGS.findall(log)
+        if warnings:
+            raise RuntimeError(
+                f"{path.name} compiled with warnings:\n" + "\n".join(warnings)
+            )
     return path.with_suffix(".pdf")
 
 

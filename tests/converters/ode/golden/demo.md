@@ -38,7 +38,7 @@ This model is distributed in the hope that it will be useful, but WITHOUT ANY WA
 
 ## Species
 
-| Symbol | Id | Name | Compartment | Initial value | Unit | Properties |
+| Symbol | Id | Name | Compartment | Value | Unit | Properties |
 | --- | --- | --- | --- | --- | --- | --- |
 | $c_{\mathrm{\_A}}$ | `c__A` | A | $c$ | $0$ | mole/m<sup>3</sup> | concentration |
 | $c_{\mathrm{\_B}}$ | `c__B` | B | $c$ | $0$ | mole/m<sup>3</sup> | concentration |

@@ -76,11 +76,11 @@ transcription rate (repressed) (a0\_tr): tps\_repr\*60 = 0.03 transcripts/min
 
 translation rate (k\_tl): eff\*kd\_mRNA = 6.93 proteins/(mRNA\*min)
 
-α: a\_tr\*eff\*τ 1/2,prot /(ln(2)\*K M) = 216.4 proteins/(promotor\*cell\*Km)
+α : a\_tr\*eff\*τ 1/2,prot /(ln(2)\*K M) = 216.4 proteins/(promotor\*cell\*Km)
 
 α 0: a0\_tr\*eff\*τ 1/2,prot /(ln(2)\*K M) = 0.2164 proteins/(promotor\*cell\*Km)
 
-β: k\_dp/k\_dm = 0.2
+β : k\_dp/k\_dm = 0.2
 
 Annotation by the Kinetic Simulation Algorithm Ontology (KiSAO):
 
@@ -100,13 +100,13 @@ To the extent possible under law, all copyright and related or neighbouring righ
 
 ## Compartments
 
-| Symbol | Id | Name | Size | Unit | Constant |
-| --- | --- | --- | --- | --- | :---: |
-| $\mathrm{cell}$ | `cell` |  | $1$ | fl | ✓ |
+| Symbol | Id | Size | Unit | Constant |
+| --- | --- | --- | --- | :---: |
+| $\mathrm{cell}$ | `cell` | $1$ | fl | ✓ |
 
 ## Species
 
-| Symbol | Id | Name | Compartment | Initial value | Unit | Properties |
+| Symbol | Id | Name | Compartment | Value | Unit | Properties |
 | --- | --- | --- | --- | --- | --- | --- |
 | $\mathrm{PX}$ | `PX` | LacI protein | $\mathrm{cell}$ | $0$ | item | amount |
 | $\mathrm{PY}$ | `PY` | TetR protein | $\mathrm{cell}$ | $0$ | item | amount |
@@ -120,7 +120,7 @@ To the extent possible under law, all copyright and related or neighbouring righ
 | Symbol | Id | Name | Value | Constant |
 | --- | --- | --- | --- | :---: |
 | $\mathrm{beta}$ | `beta` | beta |  |  |
-| $\mathrm{alpha0}$ | `alpha0` | alpha0 |  |  |
+| $\mathrm{alpha}_{0}$ | `alpha0` | alpha0 |  |  |
 | $\mathrm{alpha}$ | `alpha` | alpha |  |  |
 | $\mathrm{eff}$ | `eff` | translation efficiency | $20$ | ✓ |
 | $n$ | `n` | n | $2$ | ✓ |
@@ -150,7 +150,7 @@ a_{\mathrm{tr}} &= \mathopen{}\left(\mathrm{ps}_{\mathrm{a}} - \mathrm{ps}_{0}\r
 \mathrm{kd}_{\mathrm{prot}} &= \frac{\ln\mathopen{}\left(2\right)}{\mathrm{tau}_{\mathrm{prot}}} \\
 \mathrm{kd}_{\mathrm{mRNA}} &= \frac{\ln\mathopen{}\left(2\right)}{\mathrm{tau}_{\mathrm{mRNA}}} \\
 \mathrm{alpha} &= \frac{a_{\mathrm{tr}} \cdot \mathrm{eff} \cdot \mathrm{tau}_{\mathrm{prot}}}{\ln\mathopen{}\left(2\right) \cdot \mathrm{KM}} \\
-\mathrm{alpha0} &= \frac{\mathrm{a0}_{\mathrm{tr}} \cdot \mathrm{eff} \cdot \mathrm{tau}_{\mathrm{prot}}}{\ln\mathopen{}\left(2\right) \cdot \mathrm{KM}}
+\mathrm{alpha}_{0} &= \frac{\mathrm{a0}_{\mathrm{tr}} \cdot \mathrm{eff} \cdot \mathrm{tau}_{\mathrm{prot}}}{\ln\mathopen{}\left(2\right) \cdot \mathrm{KM}}
 \end{aligned}
 $$
 

@@ -1,4 +1,4 @@
-#set document(title: [Koenig\_#sym.zws;demo\_#sym.zws;v15])
+#set document(title: [Koenig\_demo\_v15])
 #set page(margin: 2cm)
 #set text(size: 10pt)
 #set par(justify: true)
@@ -7,7 +7,7 @@
 #show math.equation.where(block: true): set block(breakable: true)
 #show math.equation.where(block: true): set par(leading: 0.9em)
 
-#align(center, text(size: 16pt, weight: "bold")[Koenig\_#sym.zws;demo\_#sym.zws;v15])
+#align(center, text(size: 16pt, weight: "bold")[Koenig\_demo\_v15])
 
 Model `Koenig_`#sym.zws;`demo_`#sym.zws;`v15`, SBML Level 3 Version 1, read from Koenig\_demo\_v15.xml, written by sbmlutils VERSION.
 
@@ -62,11 +62,11 @@ This model is distributed in the hope that it will be useful, but WITHOUT ANY WA
 = Species
 
 #table(
-  columns: (auto, auto, 1fr, auto, auto, auto, auto),
+  columns: (auto, auto, 1fr, auto, auto, auto, 1fr),
   stroke: none,
   align: (left, left, left, left, left, left, left),
   table.hline(stroke: 0.8pt),
-  table.header([*Symbol*], [*Id*], [*Name*], [*Compartment*], [*Initial value*], [*Unit*], [*Properties*]),
+  table.header([*Symbol*], [*Id*], [*Name*], [*Compartment*], [*Value*], [*Unit*], [*Properties*]),
   table.hline(stroke: 0.4pt),
   [$c_("_A")$], [`c__A`], [A], [$c$], [$0$], [mole/m#super[3]], [concentration],
   [$c_("_B")$], [`c__B`], [B], [$c$], [$0$], [mole/m#super[3]], [concentration],

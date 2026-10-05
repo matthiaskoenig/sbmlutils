@@ -962,14 +962,15 @@ def test_notes_are_paragraphs() -> None:
             "<body xmlns='http://www.w3.org/1999/xhtml'>"
             "<h1>Title</h1><div><p>The first\n   paragraph with <b>bold</b>"
             " and <i>italic</i>  text.</p><p>Second</p></div>"
-            "<ul><li>one (<i> x </i>) .</li><li>two</li></ul>line<br/>break"
+            "<ul><li>one (<i> x </i>\n  ).</li><li>two : 2, x .5</li></ul>"
+            "line<br/>break"
             "<table><tr><td>a</td><td>b</td></tr></table></body>"
         )
 
     info = OdeSystem.from_sbml(edit_sbml(model_sbml("k = 1"), describe)).info
     assert info.notes == (
         "Title\n\nThe first paragraph with bold and italic text.\n\nSecond\n\n"
-        "one (x).\n\ntwo\n\nline\n\nbreak\n\na b"
+        "one (x).\n\ntwo : 2, x .5\n\nline\n\nbreak\n\na b"
     )
 
 

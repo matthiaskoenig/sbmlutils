@@ -342,17 +342,30 @@ def code_names(ids: Iterable[str], language: str) -> dict[str, str]:
 # --- the symbols of the documents ---------------------------------------------------------
 
 
+# letters followed by digits only, `k1`, `Km2`: the digits are the subscript
+_NUMBERED = re.compile(r"([A-Za-z]+)([0-9]+)", re.ASCII)
+
+
+def _text(value: str, dialect: Dialect) -> str:
+    """Upright text, a string in typst and a mathrm in LaTeX."""
+    if dialect == "latex":
+        escaped = value.replace("_", r"\_")
+        return rf"\mathrm{{{escaped}}}"
+    return f'upright("{value}")'
+
+
 def _typeset(sid: str, dialect: Dialect) -> str:
     """The symbol of a valid id, see `typeset_symbol`."""
     latex = dialect == "latex"
 
     def text(value: str) -> str:
-        """Upright text, a string in typst and a mathrm in LaTeX."""
-        if latex:
-            escaped = value.replace("_", r"\_")
-            return rf"\mathrm{{{escaped}}}"
-        return f'upright("{value}")'
+        """Upright text in the dialect."""
+        return _text(value, dialect)
 
+    numbered = _NUMBERED.fullmatch(sid)
+    if numbered:
+        # `k1` is `k_1`, `Km2` is `Km_2`
+        sid = f"{numbered.group(1)}_{numbered.group(2)}"
     base, separator, sub = sid.partition("_")
     if not base or (separator and not sub):
         # `_x` has no base, `x_` no subscript: the id is text, with its underscores
@@ -374,7 +387,9 @@ def typeset_symbol(sid: str, dialect: Dialect) -> str:
     r"""The math symbol of an id.
 
     The part before the first underscore is the base, the rest is the subscript:
-    `k_cat_glc` is `k` with the subscript `cat_glc`. A base of one letter is italic, a
+    `k_cat_glc` is `k` with the subscript `cat_glc`. An id of letters followed by
+    digits only has the digits as subscript, `k1` is `k_{1}`, `Km2` is
+    `\mathrm{Km}_{2}`. A base of one letter is italic, a
     base of more letters is upright text, `Glc` is `\mathrm{Glc}` (`upright("Glc")` in
     typst). A subscript is upright text with its underscores, `k_{\mathrm{cat\_glc}}`
     (`k_("cat_glc")`), except a subscript of digits only, which is a number,
@@ -407,13 +422,14 @@ _NAME = re.compile(r"[A-Za-z][A-Za-z0-9_]*", re.ASCII)
 def typeset_names(
     ids: Iterable[str], dialect: Dialect, names: Mapping[str, str] | None = None
 ) -> dict[str, str]:
-    """The math symbol of every id, of its name if it has one which is a valid symbol.
+    r"""The math symbol of every id, of its name if it has one which is a valid symbol.
 
     With `names` the symbol of an element is made of its name if the name starts with a
     letter and holds letters, digits and underscores only, else of its id. Two elements
-    are never written with the same symbol, a reader could not tell them apart: an
-    element whose name gives the symbol of another element falls back to its id, until
-    no two symbols are equal.
+    are never written with the same symbol, a reader could not tell them apart: an id
+    of letters and digits whose symbol is that of another id (`k1` and `k_1` are both
+    `k_{1}`) is upright text, `\mathrm{k1}`, and an element whose name gives the
+    symbol of another element falls back to its id, until no two symbols are equal.
 
     Args:
         ids: the ids of the elements
@@ -429,6 +445,13 @@ def typeset_names(
     """
     sids = list(dict.fromkeys(ids))
     by_id = {sid: typeset_symbol(sid, dialect) for sid in sids}
+    # `k1` and `k_1` are both `k_{1}`: the id without an underscore is upright text
+    count: dict[str, int] = {}
+    for symbol in by_id.values():
+        count[symbol] = count.get(symbol, 0) + 1
+    for sid in sids:
+        if count[by_id[sid]] > 1 and _NUMBERED.fullmatch(sid):
+            by_id[sid] = _text(sid, dialect)
     chosen = dict(by_id)
     named: set[str] = set()
     for sid in sids:

@@ -13,6 +13,8 @@ $$
 {% macro cell(value, kind) %}{% if kind == "check" %}{{ "✓" if value }}{% elif value is none %}{% elif kind == "math" %}${{ value }}${% else %}{{ value }}{% endif %}{% endmacro %}
 {#- A table of rows in columns, each column a list of its header, the key of the cells and their kind: text, math or check. -#}
 {% macro table(rows, columns) %}
+{# a column of names without a name is left out #}
+{% set columns = columns if rows | selectattr("name") | list else columns | rejectattr(1, "equalto", "name") | list %}
 |{% for c in columns %} {{ c[0] }} |{% endfor +%}
 |{% for c in columns %} {{ ":---:" if c[2] == "check" else "---" }} |{% endfor +%}
 {% for row in rows %}
@@ -47,7 +49,7 @@ $$
 {{ section }} Species
 
 {% set units_ = [["Unit", "unit", "text"]] if species | selectattr("unit") | list else [] %}
-{{ table(species, [["Symbol", "symbol", "math"], ["Id", "id", "text"], ["Name", "name", "text"], ["Compartment", "compartment", "math"], ["Initial value", "value", "math"]] + units_ + [["Properties", "properties", "text"]]) -}}
+{{ table(species, [["Symbol", "symbol", "math"], ["Id", "id", "text"], ["Name", "name", "text"], ["Compartment", "compartment", "math"], ["Value", "value", "math"]] + units_ + [["Properties", "properties", "text"]]) -}}
 {% endif %}
 {% if parameters %}
 
@@ -134,7 +136,7 @@ The species ${{ a.species }}$ in the compartment ${{ a.compartment }}$ of variab
 $$
 \begin{aligned}
 {% for a in e.assignments %}
-{{ a.lhs }} &:= {{ a.rhs }}{{ " \\\\" if not loop.last }}
+{{ a.lhs }} &\mathrel{:=} {{ a.rhs }}{{ " \\\\" if not loop.last }}
 {% endfor %}
 \end{aligned}
 $$

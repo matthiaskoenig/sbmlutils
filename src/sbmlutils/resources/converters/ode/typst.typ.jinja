@@ -6,9 +6,11 @@ $ {% for row in rows %}{{ row.lhs }} &{{ relation }} {{ rhs(row.lines) }}{% if r
 {% endmacro %}
 {% macro cell(value, kind) %}[{% if kind == "check" %}{{ "#sym.checkmark" if value }}{% elif value is none %}{% elif kind == "math" %}${{ value }}${% else %}{{ value }}{% endif %}]{% endmacro %}
 {#- A table of rows in columns, each column a list of its header, the key of the cells and their kind: text, math or check. -#}
-{#- The name, the equation of a reaction and long ids wrap in the width the other columns leave. -#}
+{#- The names, the equation of a reaction, the properties of a species and long ids wrap in the width the other columns leave; a table without them has its natural width. -#}
 {% macro table(rows, columns) %}
-{% set wrapped = ["name", "equation"] + (["id"] if rows | selectattr("long_id") | list else []) %}
+{# a column of names without a name is left out #}
+{% set columns = columns if rows | selectattr("name") | list else columns | rejectattr(1, "equalto", "name") | list %}
+{% set wrapped = ["equation", "properties"] + (["name"] if rows | selectattr("name") | list else []) + (["id"] if rows | selectattr("long_id") | list else []) %}
 #table(
   columns: ({% for c in columns %}{{ "1fr" if c[1] in wrapped else "auto" }}{{ ", " if not loop.last }}{% endfor %}),
   stroke: none,
@@ -29,6 +31,9 @@ $ {% for row in rows %}{{ row.lhs }} &{{ relation }} {{ rhs(row.lines) }}{% if r
 #set text(size: 10pt)
 #set par(justify: true)
 #set heading(numbering: "1.")
+{% else %}
+// The content of a typst document, to include; its rules apply within it only.
+#[
 {% endif %}
 // the equations of a section are one block, which breaks across pages
 #show math.equation.where(block: true): set block(breakable: true)
@@ -72,7 +77,7 @@ $ {% for row in rows %}{{ row.lhs }} &{{ relation }} {{ rhs(row.lines) }}{% if r
 {{ section }} Species
 
 {% set units_ = [["Unit", "unit", "text"]] if species | selectattr("unit") | list else [] %}
-{{ table(species, [["Symbol", "symbol", "math"], ["Id", "id", "text"], ["Name", "name", "text"], ["Compartment", "compartment", "math"], ["Initial value", "value", "math"]] + units_ + [["Properties", "properties", "text"]]) -}}
+{{ table(species, [["Symbol", "symbol", "math"], ["Id", "id", "text"], ["Name", "name", "text"], ["Compartment", "compartment", "math"], ["Value", "value", "math"]] + units_ + [["Properties", "properties", "text"]]) -}}
 {% endif %}
 {% if parameters %}
 
@@ -144,7 +149,7 @@ The species ${{ a.species }}$ in the compartment ${{ a.compartment }}$ of variab
 - `initialValue` {{ e.initial_value | lower }}, `persistent` {{ e.persistent | lower }}, `useValuesFromTriggerTime` {{ e.use_trigger_values | lower }}
 {% if e.assignments %}
 
-$ {% for a in e.assignments %}{{ a.lhs }} &:= {{ a.rhs }}{{ " \\\n  " if not loop.last }}{% endfor %} $
+$ {% for a in e.assignments %}{{ a.lhs }} &colon.eq {{ a.rhs }}{{ " \\\n  " if not loop.last }}{% endfor %} $
 {% for a in e.assignments if a.conversion %}
 
 {% if a.conversion == "amount" %}
@@ -164,4 +169,7 @@ The model uses constructs which the ODE system does not express:
 {% for u in unsupported %}
 - {{ u.construct }} {{ u.id }}
 {% endfor %}
+{% endif %}
+{% if not options.standalone %}
+]
 {% endif %}

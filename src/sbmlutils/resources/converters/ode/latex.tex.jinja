@@ -10,10 +10,14 @@
 {% endmacro %}
 {% macro cell(value, kind) %}{% if kind == "check" %}{{ "$\\checkmark$" if value }}{% elif value is none %}{% elif kind == "math" %}${{ value }}${% else %}{{ value }}{% endif %}{% endmacro %}
 {#- A table of rows in columns, each column a list of its header, the key of the cells and their kind: text, math or check. -#}
-{#- The name, the equation of a reaction and long ids wrap in the width the other columns leave. -#}
+{#- The names, the equation of a reaction, the properties of a species and long ids wrap in the width the other columns leave; a table without them has its natural width. -#}
 {% macro table(rows, columns) %}
-{% set wrapped = ["name", "equation"] + (["id"] if rows | selectattr("long_id") | list else []) %}
-\begin{xltabular}{\linewidth}{@{}{% for c in columns %}{{ ">{\\raggedright\\arraybackslash}X" if c[1] in wrapped else ("c" if c[2] == "check" else "l") }}{{ " " if not loop.last }}{% endfor %}@{}}
+{# a column of names without a name is left out #}
+{% set columns = columns if rows | selectattr("name") | list else columns | rejectattr(1, "equalto", "name") | list %}
+{% set wrapped = ["equation", "properties"] + (["name"] if rows | selectattr("name") | list else []) + (["id"] if rows | selectattr("long_id") | list else []) %}
+{% set wide = columns | selectattr(1, "in", wrapped) | list %}
+{% set environment = "xltabular" if wide else "longtable" %}
+\begin{ {{- environment -}} }{{ "{\\linewidth}" if wide else "[l]" }}{@{}{% for c in columns %}{{ ">{\\raggedright\\arraybackslash\\hspace{0pt}}X" if c[1] in wrapped else ("c" if c[2] == "check" else "l") }}{{ " " if not loop.last }}{% endfor %}@{}}
   \toprule
   {%+ for c in columns %}\textbf{ {{- c[0] -}} }{{ " & " if not loop.last }}{% endfor %} \\
   \midrule
@@ -23,7 +27,7 @@
 {% for row in rows %}
   {%+ for c in columns %}{{ cell(row[c[1]], c[2]) }}{{ " & " if not loop.last }}{% endfor %} \\
 {% endfor %}
-\end{xltabular}
+\end{ {{- environment -}} }
 {% endmacro %}
 {% set section = "\\section" if options.standalone else "\\subsection" %}
 {% if options.standalone %}
@@ -50,7 +54,7 @@
 % The body of a LaTeX document, which needs the packages amsmath, amssymb, booktabs
 % and xltabular; \allowdisplaybreaks lets the alignments break across pages.
 
-\section{ {{- model.title -}} }
+\section{ {{- model.title if model.title == model.plain_title else "\\texorpdfstring{" ~ model.title ~ "}{" ~ model.plain_title ~ "}" -}} }
 {% endif %}
 
 {% if model.id %}Model {{ model.id }}, {% endif %}SBML Level {{ model.level }} Version {{ model.version }}{% if model.source %}, read from {{ model.source }}{% endif %}, written by sbmlutils {{ model.sbmlutils }}.
@@ -82,7 +86,7 @@
 {{ section }}{Species}
 
 {% set units_ = [["Unit", "unit", "text"]] if species | selectattr("unit") | list else [] %}
-{{ table(species, [["Symbol", "symbol", "math"], ["Id", "id", "text"], ["Name", "name", "text"], ["Compartment", "compartment", "math"], ["Initial value", "value", "math"]] + units_ + [["Properties", "properties", "text"]]) -}}
+{{ table(species, [["Symbol", "symbol", "math"], ["Id", "id", "text"], ["Name", "name", "text"], ["Compartment", "compartment", "math"], ["Value", "value", "math"]] + units_ + [["Properties", "properties", "text"]]) -}}
 {% endif %}
 {% if parameters %}
 
@@ -161,10 +165,11 @@ The species ${{ a.species }}$ in the compartment ${{ a.compartment }}$ of variab
 {% if e.assignments %}
 \begin{align*}
 {% for a in e.assignments %}
-  {{ a.lhs }} &:= {{ a.rhs }}{{ " \\\\" if not loop.last }}
+  {{ a.lhs }} &\mathrel{:=} {{ a.rhs }}{{ " \\\\" if not loop.last }}
 {% endfor %}
 \end{align*}
 {% for a in e.assignments if a.conversion %}
+
 {% if a.conversion == "amount" %}
 ${{ a.lhs }}$ is the amount of ${{ a.species }}$, the assigned concentration times the size of ${{ a.compartment }}$ at the execution of the event.
 {% else %}
