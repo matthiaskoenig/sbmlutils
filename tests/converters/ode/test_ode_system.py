@@ -1,14 +1,24 @@
 """Test the analysis of an SBML model into its ODE system."""
 
+import re
 from pathlib import Path
+from typing import Any
 
 import libsbml
+import numpy as np
 import pytest
 from ode_helpers import edit_sbml, model_sbml
 
 from sbmlutils.converters.ode.dependencies import names, order
 from sbmlutils.converters.ode.events import trigger_root
-from sbmlutils.converters.ode.system import Assignment, Ode, OdeSystem, Participant
+from sbmlutils.converters.ode.printers import PythonPrinter
+from sbmlutils.converters.ode.system import (
+    Assignment,
+    Event,
+    Ode,
+    OdeSystem,
+    Participant,
+)
 from sbmlutils.resources import COMP_ICG_BODY, DEMO_SBML, MODELS_DIR
 
 
@@ -74,9 +84,18 @@ def test_reaction_ode_in_amount() -> None:
         J0: -> S; 1; J1: S -> ; k*S; k = 0.1
     """)
     ode = odes(system)
-    assert formula(ode["S"].rhs) == "J0 + -J1"
+    assert formula(ode["S"].rhs) == "J0 - J1"
     assert ode["S"].volume is None
     assert system.quantity("S").amount
+
+
+def test_ode_is_written_with_signs() -> None:
+    """The first term has no sign if positive, the others are subtracted or added."""
+    system = system_of("""
+        compartment c = 2; species S in c = 1
+        J0: S -> ; 1; J1: -> 2 S; 1; J2: S -> ; 1
+    """)
+    assert formula(odes(system)["S"].rhs) == "(-J0 + 2 * J1 - J2) / c"
 
 
 def test_boundary_and_constant_species_are_not_states() -> None:
@@ -225,7 +244,7 @@ def test_conversion_factor() -> None:
     )
     system = OdeSystem.from_sbml(sbml)
     ode = odes(system)
-    assert formula(ode["S1"].rhs) == "-(f1 * J0) / c"
+    assert formula(ode["S1"].rhs) == "-f1 * J0 / c"
     assert formula(ode["S2"].rhs) == "2 * f2 * J0 / c"
     assert system.quantity("S1").conversion_factor == "f1"
     assert system.quantity("S2").conversion_factor == "f2"
@@ -278,7 +297,7 @@ def test_rateof_of_state_and_constant() -> None:
         J0: S -> ; k*S; k = 0.1
         y := rateOf(S) + rateOf(k)
     """)
-    assert math_of(system.assignments)["y"] == ("-J0 / c + 0", "assignment_rule")
+    assert math_of(system.assignments)["y"] == ("-J0 / c", "assignment_rule")
     assert [a.variable for a in system.assignments] == ["J0", "y"]
     assert system.unsupported == ()
 
@@ -450,18 +469,156 @@ def test_event_fields_and_root() -> None:
 
 
 def test_event_assigns_amount_of_species_in_variable_compartment() -> None:
-    """An event sets the amount with the size before the event (test case 01779)."""
+    """An event sets the amount with the size at the execution (test case 01779)."""
     system = system_of("""
         compartment C1 = 0.5; species $S1 in C1 = 2; species R in C1 = 1; R' = 0
         x := S1
         E0: at time >= 0.45: C1 = 0.2, S1 = 0.2
     """)
     (event,) = system.events
-    assert {a.variable: formula(a.math) for a in event.assignments} == {
-        "C1": "0.2",
-        "n_S1": "0.2 * C1",
-        "R": "R * C1 / 0.2",
+    assert event_fields(event) == {
+        "C1": ("0.2", None, None),
+        "n_S1": ("0.2", "C1", None),
+        "R": (None, "R * C1", "C1"),
     }
+
+
+def test_event_assigns_rescaled_concentration_and_size() -> None:
+    """A concentration with a rate rule assigned with its compartment is rescaled."""
+    system = system_of("""
+        compartment c = 1; c' = 1; species R in c = 1; R' = 0
+        E0: at time >= 1: c = 10, R = 3
+    """)
+    (event,) = system.events
+    assert event_fields(event) == {"c": ("10", None, None), "R": ("3", "c", "c")}
+
+
+def event_fields(event: Event) -> dict[str, tuple[str | None, str | None, str | None]]:
+    """The math, scale and divisor of each assignment of an event by its variable."""
+    return {
+        a.variable: (
+            None if a.math is None else formula(a.math),
+            None if a.scale is None else formula(a.scale),
+            a.divisor,
+        )
+        for a in event.assignments
+    }
+
+
+def _rr_values(r: Any, system: OdeSystem) -> dict[str, float]:
+    """The values of a roadrunner in the representation of the system."""
+    values: dict[str, float] = {"t": r.model.getTime()}
+    for q in system.quantities:
+        sid = q.symbol.sid
+        if q.amount_of is not None:
+            values[sid] = r[q.amount_of]
+        elif q.symbol.kind == "species" and not q.amount:
+            values[sid] = r[f"[{sid}]"]
+        else:
+            values[sid] = r[sid]
+    return values
+
+
+def _evaluate(ast: libsbml.ASTNode, values: dict[str, float]) -> float:
+    """The value of the math with the python printer."""
+    symbols = {sid: sid for sid in values}
+    # the code is printed by the printer from the math of a test model
+    code = PythonPrinter().print(ast, symbols)
+    return float(eval(code, {"np": np}, dict(values)))  # noqa: S307
+
+
+def _execute(
+    event: Event, at_trigger: dict[str, float], before: dict[str, float]
+) -> dict[str, float]:
+    """The new values of an event by the contract of `EventAssignment`."""
+    at_value = at_trigger if event.use_values_from_trigger_time else before
+    new: dict[str, float] = {}
+    for a in event.assignments:
+        value = 1.0 if a.math is None else _evaluate(a.math, at_value)
+        new[a.variable] = value * (
+            1.0 if a.scale is None else _evaluate(a.scale, before)
+        )
+    for a in event.assignments:
+        if a.divisor is not None:
+            new[a.variable] /= new[a.divisor]
+    return new
+
+
+EPSILON = 1e-7
+
+
+@pytest.mark.parametrize(
+    ("antimony", "trigger_time", "execution_time"),
+    [
+        # held as amount, the amount uses the size at the execution, 15 = 5 * c(2)
+        (
+            "compartment c = 1; c' = 1; species $S in c = 1; "
+            "E0: at 1 after time >= 1, fromTrigger=true: S = 5",
+            1.0,
+            2.0,
+        ),
+        # a rate rule rescaled with the size at the execution, 0.9 = 3 * c(2) / 10
+        (
+            "compartment c = 1; c' = 1; species R in c = 1; R' = 0; "
+            "E0: at 1 after time >= 1, fromTrigger=true: c = 10, R = 3",
+            1.0,
+            2.0,
+        ),
+        # a rate rule whose amount stays, with the value at the execution
+        (
+            "compartment c = 1; c' = 1; species R in c = 1; R' = 0.5; "
+            "E0: at 1 after time >= 1, fromTrigger=true: c = 10",
+            1.0,
+            2.0,
+        ),
+        # the values at the execution
+        (
+            "compartment c = 1; c' = 1; species $S in c = 1; k = 1; k' = 1; "
+            "E0: at 1 after time >= 1, fromTrigger=false: S = k",
+            1.0,
+            2.0,
+        ),
+    ],
+)
+def test_event_conversion_against_roadrunner(
+    antimony: str, trigger_time: float, execution_time: float
+) -> None:
+    """The conversions of an event reproduce roadrunner, delays included."""
+    roadrunner = pytest.importorskip("roadrunner")
+    sbml = model_sbml(antimony)
+    system = OdeSystem.from_sbml(sbml)
+    r = roadrunner.RoadRunner(sbml)
+    r.simulate(0, trigger_time - EPSILON, 2)
+    at_trigger = _rr_values(r, system)
+    r.simulate(trigger_time - EPSILON, execution_time - EPSILON, 2)
+    before = _rr_values(r, system)
+    expected = _execute(system.events[0], at_trigger, before)
+    r.simulate(execution_time - EPSILON, execution_time + EPSILON, 2)
+    after = _rr_values(r, system)
+    for variable, value in expected.items():
+        assert after[variable] == pytest.approx(value, rel=1e-6), variable
+
+
+def test_simultaneous_events_against_roadrunner() -> None:
+    """An event executed after another one scales with the size the first one set."""
+    roadrunner = pytest.importorskip("roadrunner")
+    sbml = model_sbml("""
+        compartment c = 1; c' = 1; species $S in c = 1
+        E1: at time >= 1, priority=2: c = 4
+        E2: at time >= 1, priority=1, fromTrigger=true: S = 5
+    """)
+    system = OdeSystem.from_sbml(sbml)
+    r = roadrunner.RoadRunner(sbml)
+    r.simulate(0, 1 - EPSILON, 2)
+    before = _rr_values(r, system)
+    first, second = system.events
+    state = before | _execute(first, before, before)
+    expected = _execute(second, before, state)
+    r.simulate(1 - EPSILON, 1 + EPSILON, 2)
+    after = _rr_values(r, system)
+    assert expected == {"n_S": pytest.approx(20.0)}
+    assert after["n_S"] == pytest.approx(expected["n_S"], rel=1e-6)
+    assert after["S"] == pytest.approx(5.0, rel=1e-6)
 
 
 def test_event_without_id_and_trigger() -> None:
@@ -534,13 +691,13 @@ def test_event_with_equality_trigger_is_unsupported() -> None:
         ("x <= 1", "1 - x"),
         ("a > 1 && b < 2", "min(a - 1, 2 - b)"),
         ("a > 1 || b < 2", "max(a - 1, 2 - b)"),
-        ("!(x > 1)", "-(x - 1)"),
+        ("!(x > 1)", "1 - x"),
         ("true", "1"),
         ("false", "-1"),
         ("1 < x < 3", "min(x - 1, 3 - x)"),
-        ("xor(a > 1, b > 1)", "max(min(a - 1, -(b - 1)), min(-(a - 1), b - 1))"),
-        ("implies(a > 1, b > 1)", "max(-(a - 1), b - 1)"),
-        ("(a > 1 && b > 1) || !(c < 1)", "max(min(a - 1, b - 1), -(1 - c))"),
+        ("xor(a > 1, b > 1)", "max(min(a - 1, 1 - b), min(1 - a, b - 1))"),
+        ("implies(a > 1, b > 1)", "max(1 - a, b - 1)"),
+        ("(a > 1 && b > 1) || !(c < 1)", "max(min(a - 1, b - 1), c - 1)"),
         ("3", "1"),
         ("0", "-1"),
         ("and()", "1"),
@@ -548,8 +705,8 @@ def test_event_with_equality_trigger_is_unsupported() -> None:
         ("xor()", "-1"),
         (
             "xor(a > 1, b > 1, c > 1)",
-            "max(min(max(min(a - 1, -(b - 1)), min(-(a - 1), b - 1)), -(c - 1)), "
-            "min(-max(min(a - 1, -(b - 1)), min(-(a - 1), b - 1)), c - 1))",
+            "max(min(max(min(a - 1, 1 - b), min(1 - a, b - 1)), 1 - c), "
+            "min(-max(min(a - 1, 1 - b), min(1 - a, b - 1)), c - 1))",
         ),
     ],
 )
@@ -565,6 +722,175 @@ def test_trigger_root_unsupported(trigger: str) -> None:
     """A trigger without a continuous root function raises."""
     with pytest.raises(NotImplementedError):
         trigger_root(parse(trigger))
+
+
+def _add_rule(
+    model: libsbml.Model, variable: str, text: str, rate: bool = False
+) -> None:
+    """Add a rule to a model, for a model antimony refuses to write."""
+    rule = model.createRateRule() if rate else model.createAssignmentRule()
+    rule.setVariable(variable)
+    rule.setMath(parse(text))
+
+
+def test_two_rules_for_one_variable_raise() -> None:
+    """A variable with two rules is not well defined."""
+    sbml = edit_sbml(model_sbml("x := time"), lambda m: _add_rule(m, "x", "2"))
+    with pytest.raises(ValueError, match="'x' has more than one rule"):
+        OdeSystem.from_sbml(sbml)
+
+
+def test_initial_assignment_and_assignment_rule_raise() -> None:
+    """A variable with an initial assignment and an assignment rule is not defined."""
+
+    def initial_assignment(model: libsbml.Model) -> None:
+        assignment: libsbml.InitialAssignment = model.createInitialAssignment()
+        assignment.setSymbol("x")
+        assignment.setMath(parse("1"))
+
+    sbml = edit_sbml(model_sbml("x := time"), initial_assignment)
+    with pytest.raises(ValueError, match="'x' has an initial assignment"):
+        OdeSystem.from_sbml(sbml)
+
+
+def test_rateof_cycle_raises() -> None:
+    """Rates which are the rates of each other are not defined."""
+
+    def rules(model: libsbml.Model) -> None:
+        _add_rule(model, "x", "rateOf(y)", rate=True)
+        _add_rule(model, "y", "rateOf(x)", rate=True)
+
+    sbml = edit_sbml(model_sbml("var x = 1; var y = 1"), rules)
+    with pytest.raises(ValueError, match="depend on each other in a cycle"):
+        OdeSystem.from_sbml(sbml)
+
+
+def test_rateof_of_an_unknown_id_raises() -> None:
+    """The rateOf of an id which the model does not have is an error."""
+    sbml = edit_sbml(model_sbml("var y"), lambda m: _add_rule(m, "y", "rateOf(zz)"))
+    with pytest.raises(ValueError, match="unknown id 'zz'"):
+        OdeSystem.from_sbml(sbml)
+
+
+def test_rateof_of_an_expression_is_unsupported() -> None:
+    """The rateOf of an expression, which SBML does not allow, is unsupported."""
+    sbml = edit_sbml(
+        model_sbml("x = 1; var y"), lambda m: _add_rule(m, "y", "rateOf(x)")
+    )
+    # libsbml builds no rateOf of an expression, it reads one
+    sbml, count = re.subn(
+        r"(rateOf </csymbol>\s*)<ci> x </ci>",
+        r"\1<apply><plus/><ci> x </ci><cn> 1 </cn></apply>",
+        sbml,
+    )
+    assert count == 1
+    assert OdeSystem.from_sbml(sbml).unsupported == (("rateOf of an expression", "y"),)
+
+
+def test_rateof_of_a_concentration_in_an_assigned_compartment_is_unsupported() -> None:
+    """d(n/V)/dt needs the derivative of an assignment rule of the compartment."""
+    sbml = edit_sbml(
+        model_sbml("compartment c; c := 1 + time; species S in c = 1; var y"),
+        lambda m: _add_rule(m, "y", "rateOf(S)"),
+    )
+    system = OdeSystem.from_sbml(sbml)
+    assert system.unsupported == (("rateOf of an assigned variable", "y"),)
+
+
+def test_distrib_function_is_unsupported() -> None:
+    """A function of the distrib package draws a random number."""
+    doc: libsbml.SBMLDocument = libsbml.readSBMLFromString(model_sbml("var y"))
+    doc.enablePackage(libsbml.DistribExtension.getXmlnsL3V1V1(), "distrib", True)
+    model = doc.getModel()
+    rule: libsbml.AssignmentRule = model.createAssignmentRule()
+    rule.setVariable("y")
+    rule.setMath(libsbml.parseL3FormulaWithModel("normal(0, 1)", model))
+    assert OdeSystem.from_sbml(doc).unsupported == (("distrib function", "y"),)
+
+
+def test_event_assignment_to_an_assigned_variable_is_unsupported() -> None:
+    """An event cannot change a variable an assignment rule sets."""
+
+    def event(model: libsbml.Model) -> None:
+        event: libsbml.Event = model.createEvent()
+        event.setId("E1")
+        event.setUseValuesFromTriggerTime(True)
+        trigger: libsbml.Trigger = event.createTrigger()
+        trigger.setMath(parse("time > 1"))
+        trigger.setInitialValue(True)
+        trigger.setPersistent(True)
+        assignment: libsbml.EventAssignment = event.createEventAssignment()
+        assignment.setVariable("x")
+        assignment.setMath(parse("2"))
+
+    sbml = edit_sbml(model_sbml("x := time"), event)
+    system = OdeSystem.from_sbml(sbml)
+    assert system.unsupported == (("event assignment to an assigned variable", "E1"),)
+
+
+def test_l2_stoichiometry_math_is_a_species_reference() -> None:
+    """An L2 stoichiometry math is read as a species reference with a rule."""
+    doc = libsbml.SBMLDocument(2, 4)
+    model: libsbml.Model = doc.createModel()
+    model.setId("m")
+    compartment: libsbml.Compartment = model.createCompartment()
+    compartment.setId("c")
+    compartment.setSize(1)
+    for sid in ("S", "P"):
+        species: libsbml.Species = model.createSpecies()
+        species.setId(sid)
+        species.setCompartment("c")
+        species.setInitialConcentration(1)
+    parameter: libsbml.Parameter = model.createParameter()
+    parameter.setId("k")
+    parameter.setValue(2)
+    reaction: libsbml.Reaction = model.createReaction()
+    reaction.setId("J0")
+    reaction.setReversible(False)
+    reaction.createReactant().setSpecies("S")
+    product: libsbml.SpeciesReference = reaction.createProduct()
+    product.setSpecies("P")
+    product.createStoichiometryMath().setMath(parse("k * 2"))
+    reaction.createKineticLaw().setMath(parse("S"))
+
+    system = OdeSystem.from_sbml(doc)
+    (participant,) = system.reactions[0].products
+    assert isinstance(participant.stoichiometry, str)
+    sid = participant.stoichiometry
+    assert system.quantity(sid).symbol.kind == "species_reference"
+    assert math_of(system.assignments)[sid] == ("k * 2", "assignment_rule")
+    assert formula(odes(system)["P"].rhs) == f"{sid} * J0 / c"
+    assert (system.info.level, system.info.version) == (2, 4)
+    assert doc.getLevel() == 2
+
+
+def test_compartment_without_size() -> None:
+    """A compartment without a size has no value, its initial value is 1."""
+    sbml = edit_sbml(
+        model_sbml("compartment c; species S in c = 1; J0: S -> ; 1"),
+        lambda model: model.getCompartment("c").unsetSize(),
+    )
+    system = OdeSystem.from_sbml(sbml)
+    assert system.quantity("c").value is None
+    assert math_of(system.initial)["c"] == ("1", "initial_value")
+
+
+def test_amount_state_takes_the_place_of_its_species() -> None:
+    """The amount of a species is a state at the position of the species."""
+    system = system_of("""
+        compartment c = 1; c' = 1; compartment d = 1
+        species A in c = 1; species B in d = 1; J0: A -> B; 1
+    """)
+    assert system.states == ("c", "n_A", "B")
+    assert [q.symbol.sid for q in system.quantities][:5] == ["c", "d", "A", "n_A", "B"]
+
+
+def test_assigned_follows_the_dependencies() -> None:
+    """A rule which refers to a reaction rate comes after the rate."""
+    system = system_of("""
+        compartment c = 1; species S in c = 1; J0: S -> ; k*S; k = 1; y := 2 * J0
+    """)
+    assert system.assigned == ("J0", "y")
 
 
 # --- dependencies ---------------------------------------------------------------------

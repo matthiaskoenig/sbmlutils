@@ -11,6 +11,8 @@ from graphlib import CycleError, TopologicalSorter
 
 import libsbml
 
+from sbmlutils.converters.ode.astutil import walk
+
 __all__ = ["names", "order"]
 
 
@@ -27,12 +29,10 @@ def names(ast: libsbml.ASTNode | None) -> set[str]:
         the ids
     """
     found: set[str] = set()
-    stack: list[libsbml.ASTNode] = [] if ast is None else [ast]
-    while stack:
-        node = stack.pop()
-        if node.getType() == libsbml.AST_NAME:
-            found.add(node.getName())
-        stack.extend(node.getChild(k) for k in range(node.getNumChildren()))
+    if ast is not None:
+        for node in walk(ast):
+            if node.getType() == libsbml.AST_NAME:
+                found.add(node.getName())
     return found
 
 

@@ -13,6 +13,8 @@ import itertools
 
 import libsbml
 
+from sbmlutils.converters.ode.astutil import negated, node, number
+
 __all__ = ["trigger_root"]
 
 # the relations which hold where the left operand minus the right one is positive,
@@ -24,29 +26,9 @@ _NUMBERS = frozenset(
 )
 
 
-def _node(ast_type: int, *children: libsbml.ASTNode) -> libsbml.ASTNode:
-    """A node of the math with the given children, which it takes ownership of."""
-    node = libsbml.ASTNode(ast_type)
-    for child in children:
-        node.addChild(child)
-    return node
-
-
-def _number(value: int) -> libsbml.ASTNode:
-    """An integer of the math."""
-    node = libsbml.ASTNode(libsbml.AST_INTEGER)
-    node.setValue(value)
-    return node
-
-
-def _negated(ast: libsbml.ASTNode) -> libsbml.ASTNode:
-    """The negation of the math, which it takes ownership of."""
-    return _node(libsbml.AST_MINUS, ast)
-
-
 def _extreme(ast_type: int, roots: list[libsbml.ASTNode]) -> libsbml.ASTNode:
     """The minimum or maximum of root functions, the root itself if it is the only one."""
-    return roots[0] if len(roots) == 1 else _node(ast_type, *roots)
+    return roots[0] if len(roots) == 1 else node(ast_type, *roots)
 
 
 def trigger_root(trigger: libsbml.ASTNode) -> libsbml.ASTNode:
@@ -81,44 +63,42 @@ def trigger_root(trigger: libsbml.ASTNode) -> libsbml.ASTNode:
         roots = []
         for left, right in itertools.pairwise(operands):
             larger, smaller = (left, right) if ast_type in _GREATER else (right, left)
-            difference = _node(libsbml.AST_MINUS, larger.deepCopy(), smaller.deepCopy())
+            difference = node(libsbml.AST_MINUS, larger.deepCopy(), smaller.deepCopy())
             roots.append(difference)
         return _extreme(libsbml.AST_FUNCTION_MIN, roots)
     if ast_type in _NUMBERS:
         # a number is true unless it is 0
-        return _number(-1 if trigger.getValue() == 0 else 1)
+        return number(-1.0 if trigger.getValue() == 0 else 1.0)
     if ast_type == libsbml.AST_CONSTANT_TRUE:
-        return _number(1)
+        return number(1.0)
     if ast_type == libsbml.AST_CONSTANT_FALSE:
-        return _number(-1)
+        return number(-1.0)
     if ast_type == libsbml.AST_LOGICAL_AND:
-        roots = [trigger_root(operand) for operand in operands] or [_number(1)]
+        roots = [trigger_root(operand) for operand in operands] or [number(1.0)]
         return _extreme(libsbml.AST_FUNCTION_MIN, roots)
     if ast_type == libsbml.AST_LOGICAL_OR:
-        roots = [trigger_root(operand) for operand in operands] or [_number(-1)]
+        roots = [trigger_root(operand) for operand in operands] or [number(-1.0)]
         return _extreme(libsbml.AST_FUNCTION_MAX, roots)
     if ast_type == libsbml.AST_LOGICAL_NOT and len(operands) == 1:
-        return _negated(trigger_root(operands[0]))
+        return negated(trigger_root(operands[0]))
     if ast_type == libsbml.AST_LOGICAL_XOR:
         # xor(x, y) holds where exactly one holds, xor(x, y, z) is xor(xor(x, y), z)
-        roots = [trigger_root(operand) for operand in operands] or [_number(-1)]
+        roots = [trigger_root(operand) for operand in operands] or [number(-1.0)]
         root = roots[0]
         for other in roots[1:]:
-            root = _node(
+            root = node(
                 libsbml.AST_FUNCTION_MAX,
-                _node(
+                node(
                     libsbml.AST_FUNCTION_MIN,
                     root.deepCopy(),
-                    _negated(other.deepCopy()),
+                    negated(other.deepCopy()),
                 ),
-                _node(libsbml.AST_FUNCTION_MIN, _negated(root), other),
+                node(libsbml.AST_FUNCTION_MIN, negated(root), other),
             )
         return root
     if ast_type == libsbml.AST_LOGICAL_IMPLIES and len(operands) == 2:
         x, y = operands
-        return _node(
-            libsbml.AST_FUNCTION_MAX, _negated(trigger_root(x)), trigger_root(y)
-        )
+        return node(libsbml.AST_FUNCTION_MAX, negated(trigger_root(x)), trigger_root(y))
     raise NotImplementedError(
         f"The trigger '{libsbml.formulaToL3String(trigger)}' has no continuous root "
         f"function."
