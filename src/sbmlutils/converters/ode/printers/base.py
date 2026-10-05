@@ -272,9 +272,12 @@ class MathPrinter:
         TIMES: operator of a product, with its spaces
         DIVIDE: operator of a quotient, with its spaces, used by `divide`
         ARGUMENT_SEPARATOR: separator of the arguments of a call
+        MODULES: the modules of the dialect whose members the printer writes as
+            `module.member`, e.g. `np` in python, which the code must import
     """
 
     name: ClassVar[str] = "math"
+    MODULES: ClassVar[frozenset[str]] = frozenset()
     FUNCTIONS: ClassVar[Mapping[int, str]] = {}
     DELIMITED: ClassVar[Mapping[int, tuple[str, str]]] = {}
     SIGNED_SUMS: ClassVar[bool] = False

@@ -45,9 +45,14 @@ implements them, so that a format only prints what the system holds:
   (`events.trigger_root`, of the trigger with its function definitions expanded);
   an event without an id is `event<index>`, one without a trigger never fires.
 - **Defaults** as roadrunner holds them: a compartment without a size has the size
-  1 (its `Quantity.value` is `None`, `OdeSystem.initial` sets it), a stoichiometry which is not set is 1, a reaction without a kinetic law has the
-  rate 0; a rule, initial assignment, event assignment or function definition
-  without math is ignored (L3V2).
+  1 (its `Quantity.value`), a stoichiometry which is not set is 1, a reaction
+  without a kinetic law has the rate 0; a rule, initial assignment, event
+  assignment or function definition without math is ignored (L3V2).
+- **Constants in `OdeSystem.initial`** are only those set by an initial assignment
+  and those whose value is a conversion with another quantity (a species in
+  concentration with an initial amount, divided by its compartment, and the
+  reverse); every other constant has its value in `Quantity.value`, so that a
+  value passed for it is kept.
 - **Unsupported** constructs are collected as `(construct, element id)`: algebraic
   rules, `delay`, fast reactions, distrib functions, an event assignment to a
   constant, a trigger without a continuous root function, the rate of an assigned
@@ -120,8 +125,9 @@ class Quantity:
 
     Attributes:
         symbol: the symbol
-        value: the value of the document in the representation of the quantity, `None`
-            if it is not set or needs a conversion, which `OdeSystem.initial` holds
+        value: the value of the document in the representation of the quantity, the
+            default 1 of a compartment without a size; `None` if it is not set or
+            needs a conversion, which `OdeSystem.initial` then holds
         constant: the constant flag of SBML
         role: the role in the system
         compartment: the compartment of a species or an amount
@@ -330,7 +336,7 @@ class OdeSystem:
         return formats.write(self, path, fmt, **options)
 
     def render_template(
-        self, template: Path, fmt: str = "python", **options: object
+        self, template: Path | str, fmt: str = "python", **options: object
     ) -> str:
         """Render the system with a template of its own, see `formats.render_template`.
 

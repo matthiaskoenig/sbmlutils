@@ -19,6 +19,7 @@ class PythonPrinter(MathPrinter):
     """Printer of SBML math as a python expression with numpy."""
 
     name: ClassVar[str] = "python"
+    MODULES: ClassVar[frozenset[str]] = frozenset({"np", "math"})
     FUNCTIONS: ClassVar[Mapping[int, str]] = {
         libsbml.AST_FUNCTION_ABS: "np.abs",
         libsbml.AST_FUNCTION_ARCCOS: "np.arccos",

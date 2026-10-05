@@ -6,11 +6,13 @@ import subprocess
 import sys
 from pathlib import Path
 
+import libsbml
 import numpy as np
 import pytest
 from ode_helpers import (
     FORMULAS,
     assert_python_as_roadrunner,
+    edit_sbml,
     import_module,
     model_sbml,
     python_module,
@@ -126,7 +128,7 @@ def test_python_model_without_states(tmp_path: Path) -> None:
     module = assert_python_as_roadrunner(sbml, tmp_path)
     assert module.XIDS == []
     simulator = python_module(OdeSystem.from_sbml(sbml), tmp_path / "s.py")
-    df = simulator.simulate(4.0, 5)
+    df = simulator.simulate(4.0, points=5)
     assert list(df.columns) == ["time", "y", "z"]
     assert df["z"].tolist() == pytest.approx([0.0, 4.0, 16.0, 36.0, 64.0])
 
@@ -216,6 +218,55 @@ def test_simulate_matches_roadrunner(tmp_path: Path) -> None:
         np.testing.assert_allclose(
             df[sid], result[:, k + 1], rtol=1e-6, atol=1e-9, err_msg=sid
         )
+
+
+def test_initial_values_keep_the_constants_passed(tmp_path: Path) -> None:
+    """A constant with a default is not recomputed, a scan of it simulates."""
+    roadrunner = pytest.importorskip("roadrunner")
+    pytest.importorskip("scipy")
+    sbml = model_sbml("compartment c; species A in c = 2; R1: A -> ; k*A; k = 1")
+    module = python_module(OdeSystem.from_sbml(sbml), tmp_path / "scan.py")
+    assert module.P0.tolist() == [1.0, 1.0]
+    p = module.P0.copy()
+    p[module.PIDS.index("c")] = 3.0
+    assert module.initial_values(p)[1].tolist() == [3.0, 1.0]
+    assert (
+        "Every constant keeps the value passed." in (tmp_path / "scan.py").read_text()
+    )
+    df = module.simulate(T_END, T_STEPS, p=p, rtol=1e-10, atol=1e-12)
+
+    r = roadrunner.RoadRunner(sbml)
+    r.integrator.relative_tolerance = 1e-10
+    r.integrator.absolute_tolerance = 1e-12
+    r["init(c)"] = 3.0
+    r.timeCourseSelections = ["time", "[A]"]
+    result = r.simulate(0.0, T_END, T_STEPS)
+    np.testing.assert_allclose(df["A"], result[:, 1], rtol=1e-6, atol=1e-9)
+    # the concentration decays with k / c
+    assert df["A"].iloc[-1] == pytest.approx(2.0 * np.exp(-T_END / 3.0), rel=1e-6)
+
+
+def test_initial_values_list_the_computed_constants() -> None:
+    """The docstring of `initial_values` names the constants it computes."""
+
+    def initial_amount(model: libsbml.Model) -> None:
+        species: libsbml.Species = model.getSpecies("B")
+        species.setInitialAmount(4.0)
+
+    sbml = edit_sbml(
+        model_sbml("""
+            compartment c = 2; species B in c = 1
+            k = 2 * c; q = 1
+        """),
+        initial_amount,
+    )
+    code = OdeSystem.from_sbml(sbml).render("python", simulator=False)
+    docstring = code.split("def initial_values")[1].split('"""')[1]
+    assert "a value passed for them is replaced" in docstring
+    lines = [line.split() for line in docstring.splitlines()]
+    assert ["p[1]", "B", "converted", "with", "its", "compartment"] in lines
+    assert ["p[2]", "k", "initial", "assignment"] in lines
+    assert not [line for line in lines if "q" in line]
 
 
 def test_simulate_from_x0_and_p(tmp_path: Path) -> None:

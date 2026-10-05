@@ -30,7 +30,7 @@ Dialect = Literal["latex", "typst"]
 # The modules of the dialect tables: `np.abs` reserves the module `np` and the member
 # `abs`, the member being a name which an id could shadow in a language where it is
 # called without the module.
-_MODULES = frozenset({"np", "math", "NaNMath"})
+_MODULES = PythonPrinter.MODULES | JuliaPrinter.MODULES | RPrinter.MODULES
 
 _IDENTIFIER = re.compile(r"[A-Za-z_][A-Za-z0-9_.]*")
 _NUMBER = re.compile(r"(?<![A-Za-z0-9_])\d+\.?\d*(?:[eE][+-]?\d+)?")
@@ -120,7 +120,7 @@ _GENERATED: dict[str, set[str]] = {
         "np", "pd", "math", "scipy", "solve_ivp",
         "XIDS", "PIDS", "YIDS", "NAMES", "UNITS", "P0", "EVENTS",
         "f_dxdt", "f_y", "initial_values", "simulate", "event_triggers",
-        "t_end", "steps", "rtol", "atol", "method", "x_initial", "times",
+        "t_end", "points", "rtol", "atol", "method", "x_initial", "times",
         "solution", "xt", "yt", "data",
         "xids", "pids", "yids",
     },
@@ -139,14 +139,21 @@ _GENERATED: dict[str, set[str]] = {
     },
 }  # fmt: skip
 
-# Python: the keywords, the soft keywords (`match`, `case`, `type`, `_`) and the builtins
-# of the interpreter, which includes the dunder names (`__name__`, `__import__`).
+# Python: the keywords, the soft keywords (`match`, `case`, `type`, `_`), the public
+# builtins and the dunder names of a module. The private names of the builtins are
+# not taken from the interpreter: an extension module may add one at runtime (pybind11
+# adds `__pybind11_internals_v4_...__`), which would make the names depend on what was
+# imported before this module.
 _PYTHON = (
     set(keyword.kwlist)
     | set(keyword.softkwlist)
-    | set(dir(builtins))
-    | {"__file__", "__main__", "__builtins__", "__spec__", "__loader__", "__package__"}
-)
+    | {name for name in dir(builtins) if not name.startswith("_")}
+    | {
+        "__import__", "__build_class__", "__debug__", "__name__", "__doc__",
+        "__file__", "__main__", "__builtins__", "__spec__", "__loader__",
+        "__package__", "__annotations__", "__dict__", "__all__",
+    }
+)  # fmt: skip
 
 # Julia: the keywords of the language (https://docs.julialang.org/en/v1/base/base/#Keywords)
 # and the names of `Base` which the generated code or a reader would call, the constants

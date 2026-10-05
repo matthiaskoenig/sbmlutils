@@ -24,6 +24,7 @@ class JuliaPrinter(MathPrinter):
     """Printer of SBML math as a julia expression."""
 
     name: ClassVar[str] = "julia"
+    MODULES: ClassVar[frozenset[str]] = frozenset({"NaNMath"})
     FUNCTIONS: ClassVar[Mapping[int, str]] = {
         libsbml.AST_FUNCTION_ABS: "abs",
         libsbml.AST_FUNCTION_ARCCOS: "NaNMath.acos",

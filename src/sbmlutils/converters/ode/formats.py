@@ -28,15 +28,17 @@ The context of a code format holds:
 - `events`: each event with `id`, `code`, `name`, `trigger` (a condition), `root`
   (its continuous root function), `initial_value`, `persistent`, `delay`,
   `priority`, `use_trigger_values` and `assignments`, each with `id`, `code`,
-  `kind` (`state` or `constant`), `index`, `expr`, `scale` and `divisor` (the
-  position of the assignment whose new value divides it, see
-  `system.EventAssignment`);
+  `kind` (`state` or `constant`), `index`, `expr`, `scale` and `divisor_position`
+  (the 0-based position in `assignments` of the assignment whose new value divides
+  it, independent of `Format.first_index`, see `system.EventAssignment`);
 - `scopes`: for each function of the code (`initial`, `dxdt`, `y`) what it uses:
   the `states` and `constants` it unpacks, the `assignments` it evaluates (a subset
   of `initial` or `assignments`, in their order) and whether its math uses the
   `time`; `initial` additionally holds the `computed` constants, which it writes
-  into p;
-- `modules`: the modules of the language the math uses, e.g. `math`;
+  into p, each with the `origin` of its initial value (`initial_assignment` or
+  `initial_value`, a conversion with another quantity);
+- `modules`: the modules of the language the printed math uses, of
+  `MathPrinter.MODULES`, e.g. `math`;
 - `options`: the options of the rendering.
 
 Every name and unit is a single line (`text.single_line`); a template which writes
@@ -369,7 +371,7 @@ class _CodeContext:
                     "index": variable["index"],
                     "expr": self.expr(a.math),
                     "scale": self.expr(a.scale),
-                    "divisor": None
+                    "divisor_position": None
                     if a.divisor is None
                     else variables.index(a.divisor),
                 }
@@ -403,22 +405,29 @@ class _CodeContext:
             used: set[str],
             evaluated: Sequence[dict[str, object]],
             time: bool,
-            computed: Iterable[str] = (),
+            computed: Mapping[str, str] | None = None,
         ) -> dict[str, object]:
+            computed = computed or {}
             computed_ids = {str(a["id"]) for a in evaluated}
             return {
                 "states": [x for x in states if x["id"] in used - computed_ids],
                 "constants": [c for c in constants if c["id"] in used - computed_ids],
                 "assignments": [a for a in evaluated if a["id"] in used],
                 "time": time,
-                "computed": [c for c in constants if c["id"] in set(computed)],
+                "computed": [
+                    {**c, "origin": computed[str(c["id"])]}
+                    for c in constants
+                    if c["id"] in computed
+                ],
             }
 
         # the initial values: the states and the constants they set, and what these use
         maths = {a.variable: a.math for a in system.initial}
-        computed = [
-            a.variable for a in system.initial if a.variable in system.constants
-        ]
+        computed = {
+            a.variable: a.origin
+            for a in system.initial
+            if a.variable in system.constants
+        }
         used = _needed([*system.states, *computed], maths)
         time = any(_uses_time(a.math) for a in system.initial if a.variable in used)
         initial_scope = scope(used, initial, time, computed)
@@ -439,11 +448,15 @@ class _CodeContext:
         return {"initial": initial_scope, "dxdt": dxdt, "y": y}
 
     def modules(self) -> list[str]:
-        """The modules the printed math uses, e.g. `np` and `math`."""
-        found: set[str] = set()
-        for code in self.printed:
-            found.update(re.findall(r"(?<![\w.])([A-Za-z_]\w*)\.[A-Za-z_]", code))
-        return sorted(found)
+        """The modules of the printer the printed math uses, e.g. `np` and `math`."""
+        return sorted(
+            module
+            for module in self.printer.MODULES
+            if any(
+                re.search(rf"(?<![\w.]){re.escape(module)}\.", code)
+                for code in self.printed
+            )
+        )
 
 
 def context(
@@ -678,13 +691,14 @@ def write(
 
 
 def render_template(
-    system: OdeSystem, template: Path, fmt: str = "python", **options: object
+    system: OdeSystem, template: Path | str, fmt: str = "python", **options: object
 ) -> str:
     """Render an ODE system with a template of its own and the context of a format.
 
     The template is a jinja2 template which can include the templates of
     `TEMPLATE_DIR`; it gets the context of `context` and the filters and functions
-    of the templates of the formats.
+    of the templates of the formats. Unlike `render`, it renders a model with events:
+    the events are in the context, a template of its own may handle them.
 
     Args:
         system: the ODE system
@@ -704,8 +718,6 @@ def render_template(
     format_ = _format(fmt)
     merged = _options(format_, options)
     _check_code(system, format_)
-    template = Path(template)
-    environment = _environment((template.parent.absolute(), TEMPLATE_DIR))
-    return environment.get_template(template.name).render(
-        context(system, format_, merged)
-    )
+    path = Path(template)
+    environment = _environment((path.parent.absolute(), TEMPLATE_DIR))
+    return environment.get_template(path.name).render(context(system, format_, merged))

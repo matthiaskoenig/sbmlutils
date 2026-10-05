@@ -481,9 +481,9 @@ def assert_python_as_roadrunner(sbml: str | Path, tmp_path: Path) -> ModuleType:
     """Assert that the generated python computes the values of roadrunner.
 
     The initial values (states, constants and assigned values at t=0) are compared,
-    then the rates of change and the assigned values at the initial state and at a
-    second state, in which every state is changed, so that no value is zero by
-    chance.
+    then the rates of change and the assigned values at the initial state and at two
+    other states, in which every state is changed, so that no value is zero by
+    chance, the last one at t=1.5, so that math of the time is covered.
 
     Args:
         sbml: the SBML of the model or the path of its file; a comp model is read
@@ -507,15 +507,15 @@ def assert_python_as_roadrunner(sbml: str | Path, tmp_path: Path) -> ModuleType:
     y0 = module.f_y(0.0, x0, p)
     assert_values(dict(zip(module.YIDS, y0, strict=True)), initial.assigned, "y0")
 
-    for x in [x0, x0 * 1.5 + 0.1]:
+    for t, x in [(0.0, x0), (0.0, x0 * 1.5 + 0.1), (1.5, x0 * 0.5 + 0.2)]:
+        r.model.setTime(t)
         reference = roadrunner_reference(
             r, system, dict(zip(module.XIDS, x, strict=True))
         )
-        dxdt = module.f_dxdt(0.0, x, p)
+        dxdt = module.f_dxdt(t, x, p)
         assert isinstance(dxdt, np.ndarray)
-        assert_values(
-            dict(zip(module.XIDS, dxdt, strict=True)), reference.rates, "dx/dt"
-        )
-        y = module.f_y(0.0, x, p)
-        assert_values(dict(zip(module.YIDS, y, strict=True)), reference.assigned, "y")
+        rates = dict(zip(module.XIDS, dxdt, strict=True))
+        assert_values(rates, reference.rates, f"dx/dt at t={t}")
+        y = dict(zip(module.YIDS, module.f_y(t, x, p), strict=True))
+        assert_values(y, reference.assigned, f"y at t={t}")
     return module

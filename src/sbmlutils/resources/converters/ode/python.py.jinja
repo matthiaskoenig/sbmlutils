@@ -120,10 +120,23 @@ def initial_values(p: np.ndarray | None = None) -> tuple[np.ndarray, np.ndarray]
 
     The initial values, initial assignments and the rules they need are evaluated
     in the order of their dependencies.
+{% if scopes.initial.computed %}
+
+    These constants are computed, a value passed for them is replaced:
+
+{% set computed = [] %}
+{% for c in scopes.initial.computed %}
+{% set origin = "initial assignment" if c.origin == "initial_assignment" else "converted with its compartment" %}
+{% set _ = computed.append(["p[%d]" % c.index, c.id, origin]) %}
+{% endfor %}
+{{ table(computed, 8, docstring) }}
+{% else %}
+
+    Every constant keeps the value passed.
+{% endif %}
 
     Args:
-        p: the constants, `P0` if not given; a constant which an initial assignment
-            sets is computed from the others
+        p: the constants, `P0` if not given
 
     Returns:
         the initial states x0 and the constants p, a new array
@@ -164,7 +177,7 @@ def f_dxdt(t: float, x: np.ndarray, p: np.ndarray) -> np.ndarray:
     # rates of change
     dx = np.zeros({{ odes | length }})
 {% for ode in odes %}
-    dx[{{ ode.index }}] = {{ ode.expr }}  # d{{ ode.code }}/dt
+    dx[{{ ode.index }}] = {{ ode.expr }}  # d{{ ode.id }}/dt
 {% endfor %}
     return dx
 
@@ -181,7 +194,7 @@ def f_y(t: float, x: np.ndarray, p: np.ndarray) -> np.ndarray:
 
 def simulate(
     t_end: float,
-    steps: int = 101,
+    points: int = 101,
     p: np.ndarray | None = None,
     x0: np.ndarray | None = None,
     rtol: float = 1e-8,
@@ -192,7 +205,7 @@ def simulate(
 
     Args:
         t_end: the end time
-        steps: the number of time points, 0 and `t_end` included
+        points: the number of time points, 0 and `t_end` included
         p: the constants, `P0` if not given
         x0: the initial states, those of `initial_values` if not given
         rtol: the relative tolerance of the integration
@@ -204,7 +217,7 @@ def simulate(
     """
     x_initial, p = initial_values(p)
     x0 = x_initial if x0 is None else np.array(x0, dtype=float)
-    times = np.linspace(0.0, t_end, steps)
+    times = np.linspace(0.0, t_end, points)
 {% if states %}
     solution = solve_ivp(
         f_dxdt,
@@ -221,10 +234,10 @@ def simulate(
     xt = solution.y.T
 {% else %}
     # the model has no states
-    xt = np.zeros((steps, 0))
+    xt = np.zeros((points, 0))
 {% endif %}
     yt = np.array([f_y(t, x, p) for t, x in zip(times, xt, strict=True)])
-    data = np.column_stack([times, xt, yt.reshape(steps, len(YIDS))])
+    data = np.column_stack([times, xt, yt.reshape(points, len(YIDS))])
     return pd.DataFrame(data, columns=["time", *XIDS, *YIDS])
 
 

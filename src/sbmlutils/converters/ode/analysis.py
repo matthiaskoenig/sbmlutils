@@ -311,7 +311,9 @@ class _Analysis:
                 c,
                 "compartment",
                 self._compartment_unit(c),
-                c.getSize() if c.isSetSize() else None,
+                # a compartment without a size has the size 1, as roadrunner holds
+                # it, e.g. a compartment of 0 dimensions
+                c.getSize() if c.isSetSize() else 1.0,
             )
             for c in self.model.getListOfCompartments()
         ]
@@ -747,10 +749,6 @@ class _Analysis:
                 value = number(species.getInitialConcentration())
                 math = node(libsbml.AST_TIMES, value, name(cid))
                 return Assignment(sid, math, "initial_value")
-        if quantity.symbol.kind == "compartment" and quantity.value is None:
-            # a compartment without a size has the size 1, as roadrunner holds it,
-            # e.g. a compartment of 0 dimensions
-            return Assignment(sid, number(1.0), "initial_value")
         if quantity.role == "state":
             return Assignment(sid, number(quantity.value), "initial_value")
         return None

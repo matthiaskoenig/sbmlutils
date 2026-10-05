@@ -865,14 +865,14 @@ def test_l2_stoichiometry_math_is_a_species_reference() -> None:
 
 
 def test_compartment_without_size() -> None:
-    """A compartment without a size has no value, its initial value is 1."""
+    """A compartment without a size has the value 1, which is not recomputed."""
     sbml = edit_sbml(
         model_sbml("compartment c; species S in c = 1; J0: S -> ; 1"),
         lambda model: model.getCompartment("c").unsetSize(),
     )
     system = OdeSystem.from_sbml(sbml)
-    assert system.quantity("c").value is None
-    assert math_of(system.initial)["c"] == ("1", "initial_value")
+    assert system.quantity("c").value == 1.0
+    assert "c" not in math_of(system.initial)
 
 
 def test_amount_state_takes_the_place_of_its_species() -> None:
