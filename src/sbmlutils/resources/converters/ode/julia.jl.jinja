@@ -1,0 +1,698 @@
+{#- The julia code of an ODE system, see `sbmlutils.converters.ode.formats` for the context. -#}
+{% macro comment(text) %}{% if text %}  # {{ text }}{% endif %}{% endmacro %}
+{% macro body(scope) %}
+{% if scope.states %}
+    # states
+{% for x in scope.states %}
+    {{ x.code }} = x[{{ x.index }}]{{ comment(x.comment) }}
+{% endfor %}
+{% endif %}
+{% if scope.constants %}
+    # constants
+{% for c in scope.constants %}
+    {{ c.code }} = p[{{ c.index }}]{{ comment(c.comment) }}
+{% endfor %}
+{% endif %}
+{% if scope.assignments %}
+    # assigned values and reaction rates
+{% for a in scope.assignments %}
+    {{ a.code }} = {{ a.expr }}{{ comment(a.comment) }}
+{% endfor %}
+{% endif %}
+{% endmacro %}
+"""
+The ODE system of the model {{ ("`" ~ model.id ~ "`") | julia_text if model.id else "without id" }}{% if model.name and model.name != model.id %}: {{ model.name | julia_text }}{% endif %}.
+
+Written by sbmlutils {{ model.sbmlutils }}{% if model.source %} from {{ model.source | julia_text }}{% endif %}, SBML L{{ model.level }}V{{ model.version }}.
+{% set units = [] %}
+{% for key, unit in model.units.items() if unit %}
+{% set _ = units.append([key, unit]) %}
+{% endfor %}
+{% if units %}
+
+Units of the model:
+
+{{ table(units, 4, julia_text) }}
+{% endif %}
+{% if states %}
+
+States x:
+
+{{ table([["", "id", "name", "unit"]] + rows(states, "index", "id", "name", "unit"), 4, julia_text) }}
+{% endif %}
+
+`initial_values(p)` returns the initial states x0 and the constants p at t = 0,
+`f!(dx, x, p, t)` the rates of change of the states and `f_y(x, p, t)` the assigned
+values y, the rules and the reaction rates.
+{% if events %}
+`EVENTS` lists the events with the functions of their delays, priorities and
+assignments, `event_triggers(x, p, t)` and `event_conditions(x, p, t)` their triggers.
+{% endif %}
+{% if options.simulator %}
+`simulate(t_end)` returns a `DataFrame` of a simulation with an integrator of
+OrdinaryDiffEq{% if events %}, which executes the events{% endif %}.
+{% endif %}
+"""
+module {{ model.module }}
+{% if "NaNMath" in modules or "SpecialFunctions" in modules or options.simulator %}
+
+{% endif %}
+{% if options.simulator %}
+using DataFrames: DataFrame
+{% endif %}
+{% if "NaNMath" in modules %}
+import NaNMath
+{% endif %}
+{% if options.simulator %}
+{% if events %}
+using OrdinaryDiffEq:
+    ODEProblem, ReturnCode, Rodas5P, VectorContinuousCallback, init, solve, step!
+{% else %}
+using OrdinaryDiffEq: ODEProblem, ReturnCode, Rodas5P, solve
+{% endif %}
+{% endif %}
+{% if "SpecialFunctions" in modules %}
+using SpecialFunctions: gamma
+{% endif %}
+
+export XIDS, PIDS, YIDS, NAMES, UNITS, P0, EVENTS, initial_values, f!, f_y{% if events %}, event_triggers,
+    event_conditions{% endif %}{% if options.simulator %}, simulate{% endif %}
+
+
+# the ids of the states x, the constants p and the assigned values y
+const XIDS = {% if states %}[
+{% for x in states %}
+    "{{ x.id }}",{{ comment(x.comment) }}
+{% endfor %}
+]{% else %}String[]{% endif %}
+
+const PIDS = {% if constants %}[
+{% for c in constants %}
+    "{{ c.id }}",{{ comment(c.comment) }}
+{% endfor %}
+]{% else %}String[]{% endif %}
+
+const YIDS = {% if assigned %}[
+{% for y in assigned %}
+    "{{ y.id }}",{{ comment(y.comment) }}
+{% endfor %}
+]{% else %}String[]{% endif %}
+
+
+# the names and the units of the ids
+const NAMES = Dict{String, Union{Nothing, String}}({% if states or constants or assigned %}
+
+{% for v in states + constants + assigned %}
+    "{{ v.id }}" => {{ v.name | julia_string }},
+{% endfor %}
+{% endif %})
+const UNITS = Dict{String, Union{Nothing, String}}({% if states or constants or assigned %}
+
+{% for v in states + constants + assigned %}
+    "{{ v.id }}" => {{ v.unit | julia_string }},
+{% endfor %}
+{% endif %})
+
+# the default values of the constants, `NaN` for one without a value, e.g. one which an
+# initial assignment sets and `initial_values` computes
+const P0 = {% if constants %}[
+{% for c in constants %}
+    {{ c.value if c.value is not none else "NaN" }},  # {{ c.id }}
+{% endfor %}
+]{% else %}Float64[]{% endif %}
+
+{% for f in functions %}
+
+{% if f.name %}
+"""{{ f.name | julia_text }}."""
+{% endif %}
+{{ f.code }}({{ f.arguments | join(", ") }}) = {{ f.body }}
+{% endfor %}
+
+"""
+    initial_values(p=P0)
+
+The initial states x0 and the constants p at t = 0.
+
+The initial values, initial assignments and the rules they need are evaluated in the
+order of their dependencies.
+{% if scopes.initial.computed %}
+
+These constants are computed, a value passed for them is replaced:
+
+{% set computed = [] %}
+{% for c in scopes.initial.computed %}
+{% set origin = "initial assignment" if c.origin == "initial_assignment" else "converted with its compartment" %}
+{% set _ = computed.append(["p[%d]" % c.index, c.id, origin]) %}
+{% endfor %}
+{{ table(computed, 4, julia_text) }}
+{% else %}
+
+Every constant keeps the value passed.
+{% endif %}
+
+Returns the initial states x0 and the constants p, a new vector.
+"""
+function initial_values(p::AbstractVector{<:Real}=P0)
+    p = collect(Float64, p)
+{% set scope = scopes.initial %}
+{% if scope.time %}
+    t = 0.0  # the initial time
+{% endif %}
+{% if scope.constants %}
+    # constants
+{% for c in scope.constants %}
+    {{ c.code }} = p[{{ c.index }}]{{ comment(c.comment) }}
+{% endfor %}
+{% endif %}
+{% if scope.assignments %}
+    # initial values
+{% for a in scope.assignments %}
+    {{ a.code }} = {{ a.expr }}{{ comment(a.comment) }}
+{% endfor %}
+{% endif %}
+{% if scope.computed %}
+    # the constants set by the initial values
+{% for c in scope.computed %}
+    p[{{ c.index }}] = {{ c.code }}
+{% endfor %}
+{% endif %}
+    x0 = Float64{{ wrapped(states | map(attribute="code") | list, 4, 16, 0, 92) }}
+    return x0, p
+end
+
+"""
+    f!(dx, x, p, t)
+
+The rates of change dx/dt of the states x at the time t, written into dx.
+"""
+function f!(dx, x, p, t)
+{% set lines = body(scopes.dxdt) | trim("\n") %}
+{% if lines %}
+{{ lines }}
+{% endif %}
+{% if odes %}
+    # rates of change
+{% for ode in odes %}
+    dx[{{ ode.index }}] = {{ ode.expr }}  # d{{ ode.id }}/dt
+{% endfor %}
+{% endif %}
+    return nothing
+end
+
+"""
+    f_y(x, p, t)
+
+The assigned values y at the time t, the rules and the reaction rates.
+"""
+function f_y(x, p, t)
+{% set lines = body(scopes.y) | trim("\n") %}
+{% if lines %}
+{{ lines }}
+{% endif %}
+    return Float64{{ wrapped(assigned | map(attribute="code") | list, 4, 18, 0, 92) }}
+end
+{% if events %}
+
+"""
+    event_triggers(x, p, t)
+
+The root function of the trigger of each event, positive where it holds.
+
+An integrator locates the time at which a trigger changes as a root of its function.
+At a root, where the function is 0, the trigger itself decides, see
+`event_conditions`: `a >= b` holds at `a == b`, `a > b` does not.
+"""
+function event_triggers(x, p, t)
+{% set lines = body(scopes.roots) | trim("\n") %}
+{% if lines %}
+{{ lines }}
+{% endif %}
+    return Float64[
+{% for e in events %}
+        {{ e.root }},  # {{ e.id }}{% if e.comment %} {{ e.comment }}{% endif %}
+
+{% endfor %}
+    ]
+end
+
+"""
+    event_conditions(x, p, t)
+
+Whether the trigger of each event holds.
+"""
+function event_conditions(x, p, t)
+{% set lines = body(scopes.triggers) | trim("\n") %}
+{% if lines %}
+{{ lines }}
+{% endif %}
+    return Bool[
+{% for e in events %}
+        {{ e.trigger }},  # {{ e.id }}{% if e.comment %} {{ e.comment }}{% endif %}
+
+{% endfor %}
+    ]
+end
+{% for e in events %}
+{% if e.delay is not none %}
+
+"""
+    {{ e.functions.delay }}(x, p, t)
+
+The delay of the event {{ e.id }}, evaluated when its trigger turns true.
+"""
+function {{ e.functions.delay }}(x, p, t)
+{% set lines = body(e.scopes.delay) | trim("\n") %}
+{% if lines %}
+{{ lines }}
+{% endif %}
+    return {{ e.delay }}
+end
+{% endif %}
+{% if e.priority is not none %}
+
+"""
+    {{ e.functions.priority }}(x, p, t)
+
+The priority of the event {{ e.id }}, evaluated before each execution.
+"""
+function {{ e.functions.priority }}(x, p, t)
+{% set lines = body(e.scopes.priority) | trim("\n") %}
+{% if lines %}
+{{ lines }}
+{% endif %}
+    return {{ e.priority }}
+end
+{% endif %}
+
+"""
+    {{ e.functions["values"] }}(x, p, t)
+
+The values the event {{ e.id }} assigns, evaluated {{ "when its trigger turns true" if e.use_trigger_values else "at its execution" }}.
+"""
+function {{ e.functions["values"] }}(x, p, t)
+{% set lines = body(e.scopes["values"]) | trim("\n") %}
+{% if lines %}
+{{ lines }}
+{% endif %}
+    return Float64[
+{% for a in e.assignments %}
+{% if a.expr is none %}
+        NaN,  # {{ a.id }}: not assigned, its amount is kept
+{% else %}
+        {{ a.expr }},  # {{ a.id }}{% if a.comment %} {{ a.comment }}{% endif %}
+
+{% endif %}
+{% endfor %}
+    ]
+end
+
+"""
+    {{ e.functions.assign }}(x, p, t, values)
+
+Execute the event {{ e.id }}: the states x and the constants p with the values, new vectors.
+{% if e.assignments | selectattr("scale") | list %}
+
+The size of a compartment which scales a value is the size before the event: a
+concentration held as its amount is assigned the amount of the new concentration, a
+concentration with a rate rule keeps its amount when the size of its compartment
+changes.
+{% endif %}
+"""
+function {{ e.functions.assign }}(x, p, t, values)
+{% set lines = body(e.scopes.assign) | trim("\n") %}
+{% if lines %}
+{{ lines }}
+{% endif %}
+    x = copy(x)
+    p = copy(p)
+{% for a in e.assignments %}
+{% set value = "values[%d]" % loop.index %}
+{% if a.expr is none %}
+{% set value = a.scale %}
+{% elif a.scale is not none %}
+{% set value = value ~ " * " ~ a.scale %}
+{% endif %}
+{% if a.divisor_position is not none %}
+{% set value = value ~ " / values[%d]" % (a.divisor_position + 1) %}
+{% endif %}
+    {{ "x" if a.kind == "state" else "p" }}[{{ a.index }}] = {{ value }}  # {{ a.id }}{% if a.comment %} {{ a.comment }}{% endif %}
+
+{% endfor %}
+    return x, p
+end
+{% endfor %}
+
+# the events in the order of the model: their flags and the functions of their delay,
+# priority and assignments; the trigger of EVENTS[k] is the entry k of `event_triggers`
+# and `event_conditions`
+const EVENTS = [
+{% for e in events %}
+    (
+        id = "{{ e.id }}",
+        initial_value = {{ "true" if e.initial_value else "false" }},
+        persistent = {{ "true" if e.persistent else "false" }},
+        use_trigger_values = {{ "true" if e.use_trigger_values else "false" }},
+        delay = {{ e.functions.delay or "nothing" }},
+        priority = {{ e.functions.priority or "nothing" }},
+        values = {{ e.functions["values"] }},
+        assign = {{ e.functions.assign }},
+    ),
+{% endfor %}
+]
+{% else %}
+
+# the model has no events
+const EVENTS = NamedTuple[]
+{% endif %}
+{% if options.simulator %}
+
+# the limits of a simulation: the steps of the integrator beyond those which the
+# largest step forces{% if events %}, and the executions of events at one time, beyond which an
+# infinite cascade is probable{% endif %}
+
+const MAX_STEPS = 100000
+{% if events %}
+const MAX_CASCADE = 10000
+{% endif %}
+{% endif %}
+{% if options.simulator and events %}
+
+"""
+An execution of an event which is scheduled: the index of the event in `EVENTS`, the
+time of the execution and the values of its assignments from the trigger time,
+`nothing` if they are evaluated at the execution.
+"""
+struct Execution
+    event::Int
+    time::Float64
+    values::Union{Nothing, Vector{Float64}}
+end
+
+"""
+    first_change(interpolant, t_old, t_new, p, holds)
+
+The first time in a step of the integration at which a trigger changes.
+
+Bisection on the solution of the step, between a time without and a time with a
+change, finds the first time with a change to the rounding error: `time >= 1` changes
+at t = 1. A trigger which keeps its value at its root and changes right after it,
+`time > 1` at t = 1, changes at a time clearly after the root, as an integrator
+locates it, so that the time stays after the root when a delay is added to it.
+
+# Arguments
+- `interpolant`: the solution of the step, the states at a time of the step
+- `t_old`: the start of the step, where the triggers are `holds`
+- `t_new`: the end of the step, where a trigger differs from `holds`
+- `p`: the constants
+- `holds`: whether each trigger holds at the start of the step
+"""
+function first_change(interpolant, t_old, t_new, p, holds)
+    changed(t) = event_conditions(interpolant(t), p, t) != holds
+    t_low, t_high = t_old, t_new
+    while true
+        t_middle = t_low + (t_high - t_low) / 2
+        if t_middle <= t_low || t_middle >= t_high
+            break
+        end
+        if changed(t_middle)
+            t_high = t_middle
+        else
+            t_low = t_middle
+        end
+    end
+    turned = event_conditions(interpolant(t_high), p, t_high) .!= holds
+    if any(event_triggers(interpolant(t_low), p, t_low)[turned] .== 0)
+        return min(t_new, t_low + 1e-13 * max(1.0, abs(t_low)))
+    end
+    return t_high
+end
+
+"""
+    extrapolation(t, x, p)
+
+The states right after the time t, extrapolated from the states x at t with their
+rates of change, a function of the time.
+
+The integrator ends a step right before a root of a trigger it finds; the change of
+the trigger, at its root or right after it, is located with `first_change` on the
+extrapolation.
+"""
+function extrapolation(t, x, p)
+    dx = similar(x)
+    f!(dx, x, p, t)
+    return t_after -> x .+ (t_after - t) .* dx
+end
+
+"""
+    execute_events(t, x, p, holds, pending)
+
+Execute the events due at the time t.
+
+1. A trigger which turned true schedules an execution of its event at t plus its
+   delay, with the values of its assignments if it uses the values from the trigger
+   time; a trigger which turned false drops the executions of its event unless it is
+   persistent.
+2. Of the executions due, the one of the highest priority is executed (an event
+   without a priority has the priority 0), ties in the order of `EVENTS`, which SBML
+   leaves to chance.
+3. The triggers are evaluated with the new states and constants, repeating from step
+   1 until no execution is due: an event can trigger another one or drop it. More
+   than `MAX_CASCADE` executions at one time throw an error.
+
+# Arguments
+- `t`: the time
+- `x`: the states
+- `p`: the constants
+- `holds`: whether each trigger held before t
+- `pending`: the scheduled executions, a vector of `Execution` which is changed
+
+Returns the states, the constants and whether each trigger holds, after the events.
+"""
+function execute_events(t, x, p, holds, pending)
+    executions = 0
+    while true
+        holds_now = event_conditions(x, p, t)
+        for (event_index, event) in enumerate(EVENTS)
+            if holds_now[event_index] && !holds[event_index]
+                delay_time = event.delay === nothing ? 0.0 : event.delay(x, p, t)
+                values = event.use_trigger_values ? event.values(x, p, t) : nothing
+                push!(pending, Execution(event_index, t + delay_time, values))
+            elseif holds[event_index] && !holds_now[event_index] && !event.persistent
+                # the trigger turned false, the executions of the event are dropped
+                filter!(scheduled -> scheduled.event != event_index, pending)
+            end
+        end
+        holds = holds_now
+
+        due = findall(scheduled -> scheduled.time <= t, pending)
+        if isempty(due)
+            return x, p, holds
+        end
+
+        # the priority of each execution due, ties in the order of `EVENTS`
+        ranks = map(due) do index
+            event = EVENTS[pending[index].event]
+            priority_value = event.priority === nothing ? 0.0 : event.priority(x, p, t)
+            (priority_value, -pending[index].event)
+        end
+        execution = popat!(pending, due[argmax(ranks)])
+        executions += 1
+        if executions > MAX_CASCADE
+            error(
+                "More than $MAX_CASCADE events were executed at t = $t, the events " *
+                "trigger each other in an infinite cascade.",
+            )
+        end
+        event = EVENTS[execution.event]
+        values = something(execution.values, event.values(x, p, t))
+        x, p = event.assign(x, p, t, values)
+    end
+end
+{% endif %}
+{% if options.simulator %}
+
+"""
+    simulate(t_end; points=101, p=nothing, x0=nothing, reltol=1e-8, abstol=1e-10,
+             alg=Rodas5P(), dtmax=nothing, max_steps=nothing)
+
+{% if events %}
+Simulate the model from t = 0 to `t_end`, with its events.
+
+The triggers before t = 0 have their initial values, a trigger which holds at t = 0
+and has the initial value false fires at t = 0. The integration stops where a trigger
+changes, at the execution of a delayed event and at `t_end`; there the events are
+executed, see `execute_events`, and the integration restarts with the states and
+constants after them. A trigger is evaluated at the end of every step of the
+integrator, which is at most `dtmax`, and the integrator ends a step at each root of
+`event_triggers` it finds, so that no trigger which holds for longer is stepped over.
+{% else %}
+Simulate the model from t = 0 to `t_end`.
+{% endif %}
+
+# Arguments
+- `t_end`: the end time
+- `points`: the number of time points, 0 and `t_end` included
+- `p`: the constants, `P0` if not given
+- `x0`: the initial states, those of `initial_values` if not given
+- `reltol`: the relative tolerance of the integration
+- `abstol`: the absolute tolerance of the integration
+- `alg`: the integrator, an algorithm of OrdinaryDiffEq, e.g. `FBDF()`
+- `dtmax`: the largest step of the integrator, by default the distance of the time
+  points
+- `max_steps`: the largest number of steps of the integrator, by default `MAX_STEPS`
+  plus twice the number of steps `dtmax` forces
+
+{% if event_constants %}
+Returns a `DataFrame` of the time, the states, the assigned values and the constants
+which events change at the time points, at the time of an event the values after it.
+{% elif events %}
+Returns a `DataFrame` of the time, the states and the assigned values at the time
+points, at the time of an event the values after it.
+{% else %}
+Returns a `DataFrame` of the time, the states and the assigned values at the time
+points.
+{% endif %}
+Throws an error if the integration fails or takes more than `max_steps` steps, e.g.
+when a state grows without bound{% if events %}, and for an infinite cascade of events{% endif %}.
+"""
+function simulate(
+    t_end::Real;
+    points::Integer=101,
+    p::Union{Nothing, AbstractVector{<:Real}}=nothing,
+    x0::Union{Nothing, AbstractVector{<:Real}}=nothing,
+    reltol::Real=1e-8,
+    abstol::Real=1e-10,
+    alg=Rodas5P(),
+    dtmax::Union{Nothing, Real}=nothing,
+    max_steps::Union{Nothing, Integer}=nothing,
+)
+    x_initial, p = initial_values(something(p, P0))
+    x = x0 === nothing ? x_initial : collect(Float64, x0)
+    times = collect(range(0.0, Float64(t_end); length=points))
+    dtmax = something(dtmax, points > 1 ? times[2] : Inf)
+    max_steps = something(max_steps, MAX_STEPS + 2 * ceil(Int, t_end / dtmax))
+{% if events %}
+    rows = Tuple{Vector{Float64}, Vector{Float64}}[]  # the states and the constants
+    steps = 0  # the steps of the integrator
+    # the root functions of the triggers: the integrator ends a step at a root it finds
+    at_root = Ref(false)  # whether the step ended at a root
+    triggers = VectorContinuousCallback(
+        (roots, x, t, integrator) -> (roots .= event_triggers(x, integrator.p, t)),
+        (integrator, event_index) -> (at_root[] = true),
+        length(EVENTS);
+        save_positions=(false, false),
+    )
+
+    t = 0.0
+    holds = Bool[event.initial_value for event in EVENTS]
+    pending = Execution[]  # the scheduled executions of the events
+    x, p, holds = execute_events(t, x, p, holds, pending)
+    while t < t_end
+        # integrate to the next execution of a delayed event, at most to t_end
+        t_stop = minimum(scheduled.time for scheduled in pending; init=Float64(t_end))
+        problem = ODEProblem(f!, x, (t, t_stop), p)
+        # the first step is at most the integration: OrdinaryDiffEq 7 interpolates a
+        # first step which the end of the integration shortens with its full length
+        integrator = init(
+            problem, alg; callback=triggers, reltol, abstol,
+            dtmax=min(dtmax, t_stop - t), maxiters=max_steps, save_everystep=false,
+        )
+        t_next, x_next = t, x  # where the integration stops
+        while true
+            at_root[] = false
+            step!(integrator)
+            steps += 1
+            if !(integrator.sol.retcode in (ReturnCode.Default, ReturnCode.Success))
+                error(
+                    "The integration failed at t = $(integrator.t): " *
+                    "$(integrator.sol.retcode)",
+                )
+            end
+            if steps > max_steps
+                error(
+                    "The integration took more than $max_steps steps, at t = " *
+                    "$(integrator.t).",
+                )
+            end
+            changed = event_conditions(integrator.u, p, integrator.t) != holds
+            if changed
+                # the integration stops at the change of a trigger
+                t_next = first_change(integrator, integrator.tprev, integrator.t, p, holds)
+                x_next = integrator(t_next)
+            else
+                t_next, x_next = integrator.t, copy(integrator.u)
+                if at_root[]
+                    # the step ended right before a root, where a trigger changes at
+                    # or right after it, `time > 1` at t = 1
+                    beyond = extrapolation(integrator.t, x_next, p)
+                    t_after = integrator.t + 1e-13 * max(1.0, abs(integrator.t))
+                    if event_conditions(beyond(t_after), p, t_after) != holds
+                        changed = true
+                        t_next = first_change(beyond, integrator.t, t_after, p, holds)
+                        x_next = beyond(t_next)
+                    end
+                end
+            end
+            # the time points of the step before t_next, at t_next after its events; a
+            # time point at the end of the integration (a delayed execution) to the
+            # rounding of the time is at it, the execution is shifted by the rounding
+            # errors of the integration of its trigger, e.g. by 1e-14 at t = 3.4
+            t_points = t_next
+            if !changed && integrator.t >= t_stop
+                t_points -= 1e-14 * max(1.0, abs(t_next))
+            end
+            while length(rows) < points && times[length(rows) + 1] < t_points
+                push!(rows, (integrator(times[length(rows) + 1]), p))
+            end
+            if changed || integrator.t >= t_stop
+                break
+            end
+        end
+        t, x = t_next, x_next
+        x, p, holds = execute_events(t, x, p, holds, pending)
+    end
+    # the time points at t_end, after its events
+    while length(rows) < points
+        push!(rows, (x, p))
+    end
+{% elif states %}
+    problem = ODEProblem(f!, x, (0.0, Float64(t_end)), p)
+    solution = solve(problem, alg; saveat=times, reltol, abstol, dtmax, maxiters=max_steps)
+    if solution.retcode == ReturnCode.MaxIters
+        error(
+            "The integration took more than $max_steps steps, at t = " *
+            "$(solution.t[end]).",
+        )
+    elseif solution.retcode != ReturnCode.Success
+        error("The integration failed at t = $(solution.t[end]): $(solution.retcode)")
+    end
+    rows = [(x, p) for x in solution.u]  # the states and the constants
+{% else %}
+    # without states and events nothing changes in time but the time
+    rows = [(x, p) for _ in times]  # the states and the constants
+{% endif %}
+
+    # the table: the time, the states{% if event_constants %}, the assigned values and the constants which events
+    # change{% else %} and the assigned values{% endif %}
+
+    ys = [f_y(x, p, t) for (t, (x, p)) in zip(times, rows)]
+    xt = Float64[x[index] for (x, _) in rows, index in eachindex(XIDS)]
+    yt = Float64[y[index] for y in ys, index in eachindex(YIDS)]
+{% if event_constants %}
+    pt = Float64[p[index] for (_, p) in rows, index in {{ wrapped(event_constants | map(attribute="index") | list, 4, 56, 1, 92) }}]
+    data = hcat(times, xt, yt, pt)
+{% set ids = [] %}
+{% for c in event_constants %}
+{% set _ = ids.append('"%s"' % c.id) %}
+{% endfor %}
+    columns = ["time"; XIDS; YIDS; {{ wrapped(ids, 4, 35, 1, 92) }}]
+{% else %}
+    data = hcat(times, xt, yt)
+    columns = ["time"; XIDS; YIDS]
+{% endif %}
+    return DataFrame(data, columns; makeunique=true)
+end
+{% endif %}
+
+end  # module {{ model.module }}

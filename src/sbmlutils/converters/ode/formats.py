@@ -10,7 +10,9 @@ template never touches libsbml.
 The context of a code format holds:
 
 - `model`: id, name, level, version, source (the file name), units (time, substance,
-  extent, volume, area, length) and `sbmlutils`, the version which writes the code;
+  extent, volume, area, length), `sbmlutils`, the version which writes the code, and
+  `module`, the name of a module of the model in the code (`module <name>` in
+  julia), see `_CodeContext.module_name`;
 - `states`, `constants`, `assigned`: the variables of the vectors x, p and y, each a
   dict with `id`, `name`, `unit`, `code` (the name in the code), `index` (from
   `Format.first_index`), `value` (a literal of the default value, `None` if it has
@@ -48,7 +50,7 @@ The context of a code format holds:
   writes into p, each with the `origin` of its initial value
   (`initial_assignment` or `initial_value`, a conversion with another quantity);
 - `modules`: the modules of the language the printed math uses, of
-  `MathPrinter.MODULES`, e.g. `math`;
+  `MathPrinter.MODULES` and `MathPrinter.IMPORTED`, e.g. `math`;
 - `options`: the options of the rendering.
 
 Every name and unit is a single line (`text.single_line`); a template which writes
@@ -125,6 +127,15 @@ FORMATS: dict[str, Format] = {
         suffixes=(".py",),
         printer="python",
         options={"simulator": True},
+    ),
+    "julia": Format(
+        name="julia",
+        kind="code",
+        template="julia.jl.jinja",
+        suffixes=(".jl",),
+        printer="julia",
+        options={"simulator": True},
+        first_index=1,
     ),
 }
 """The formats by their name."""
@@ -403,6 +414,7 @@ class _CodeContext:
                     for key, unit in info.units.items()
                 },
                 "sbmlutils": sbmlutils.__version__,
+                "module": self.module_name(),
             },
             "states": states,
             "constants": constants,
@@ -541,15 +553,45 @@ class _CodeContext:
         }
 
     def modules(self) -> list[str]:
-        """The modules of the printer the printed math uses, e.g. `np` and `math`."""
-        return sorted(
+        """The modules of the printer the printed math uses, e.g. `np` and `math`.
+
+        A module of `MathPrinter.MODULES` is used where a member is written with it,
+        `np.sin`, a module of `MathPrinter.IMPORTED` where its function is called,
+        `gamma(`.
+        """
+        used = {
             module
             for module in self.printer.MODULES
             if any(
                 re.search(rf"(?<![\w.]){re.escape(module)}\.", code)
                 for code in self.printed
             )
+        }
+        used.update(
+            module
+            for function, module in self.printer.IMPORTED.items()
+            if any(
+                re.search(rf"(?<![\w.]){re.escape(function)}\(", code)
+                for code in self.printed
+            )
         )
+        return sorted(used)
+
+    def module_name(self) -> str:
+        """The name of a module of the model in the code.
+
+        The id of the model with its first letter upper-cased, `Model` for a model
+        without an id, an id of underscores only (which julia cannot read) prefixed
+        with `Model`; unique against the names of the ids and the reserved names.
+        """
+        sid = self.system.info.sid
+        if not sid:
+            name = "Model"
+        elif not sid.strip("_"):
+            name = f"Model{sid}"
+        else:
+            name = sid[0].upper() + sid[1:]
+        return self.unique(name)
 
 
 def context(
@@ -603,6 +645,36 @@ def docstring(value: object) -> str:
         the escaped text
     """
     return single_line(value).replace("\\", "\\\\").replace('"', '\\"')
+
+
+def julia_text(value: object) -> str:
+    """Text on a single line which is safe inside a julia string or docstring.
+
+    The backslash, the double quote and the dollar sign are escaped, so that the text
+    can neither end the string, form an escape sequence nor interpolate code,
+    `$(...)`.
+
+    Args:
+        value: the text
+
+    Returns:
+        the escaped text
+    """
+    return (
+        single_line(value).replace("\\", "\\\\").replace('"', '\\"').replace("$", "\\$")
+    )
+
+
+def julia_string(value: object) -> str:
+    """A julia string literal of text on a single line, `nothing` for `None`.
+
+    Args:
+        value: the text
+
+    Returns:
+        the literal in double quotes
+    """
+    return "nothing" if value is None else f'"{julia_text(value)}"'
 
 
 def wrapped(
@@ -693,6 +765,8 @@ _FILTERS: dict[str, Callable[..., str]] = {
     "single_line": single_line,
     "python_string": python_string,
     "docstring": docstring,
+    "julia_text": julia_text,
+    "julia_string": julia_string,
 }
 
 # the functions the templates call; jinja2 types its globals narrower than a function
@@ -701,6 +775,7 @@ _GLOBALS: dict[str, Any] = {
     "table": table,
     "rows": rows,
     "docstring": docstring,
+    "julia_text": julia_text,
 }
 
 

@@ -182,6 +182,21 @@ _RELATIONS = frozenset(
     }
 )
 
+# the math whose value is a condition, if its pieces are: the relations, the logic and
+# the boolean constants, and a piecewise, whose pieces are printed in its context
+_CONDITIONS = (
+    _BOOLEANS
+    | _RELATIONS
+    | {
+        libsbml.AST_LOGICAL_AND,
+        libsbml.AST_LOGICAL_OR,
+        libsbml.AST_LOGICAL_XOR,
+        libsbml.AST_LOGICAL_NOT,
+        libsbml.AST_LOGICAL_IMPLIES,
+        libsbml.AST_FUNCTION_PIECEWISE,
+    }
+)
+
 
 def _is_number(ast: libsbml.ASTNode, value: float) -> bool:
     """Check that the math is the given number, written as an integer or a real."""
@@ -274,10 +289,14 @@ class MathPrinter:
         ARGUMENT_SEPARATOR: separator of the arguments of a call
         MODULES: the modules of the dialect whose members the printer writes as
             `module.member`, e.g. `np` in python, which the code must import
+        IMPORTED: the module of each function the printer writes without its
+            module, e.g. `gamma` of `SpecialFunctions` in julia, which the code
+            must import
     """
 
     name: ClassVar[str] = "math"
     MODULES: ClassVar[frozenset[str]] = frozenset()
+    IMPORTED: ClassVar[Mapping[str, str]] = {}
     FUNCTIONS: ClassVar[Mapping[int, str]] = {}
     DELIMITED: ClassVar[Mapping[int, tuple[str, str]]] = {}
     SIGNED_SUMS: ClassVar[bool] = False
@@ -730,6 +749,20 @@ class MathPrinter:
         """
         return condition
 
+    def number_to_bool(self, value: Printed) -> Printed:
+        """A number used as a condition, which holds unless the number is 0.
+
+        The base class writes the number as it is, for a dialect whose conditions
+        take numbers.
+
+        Args:
+            value: the printed number
+
+        Returns:
+            the printed condition
+        """
+        return value
+
     # --- traversal ----------------------------------------------------------------
 
     def _print(self, ast: libsbml.ASTNode, ctx: _Context) -> Printed:
@@ -747,7 +780,7 @@ class MathPrinter:
                 construct the dialect cannot express
         """
         try:
-            return self._dispatch(ast, ctx)
+            printed = self._dispatch(ast, ctx)
         except UnsupportedMathError:
             raise
         except NotImplementedError as error:
@@ -758,6 +791,10 @@ class MathPrinter:
             if str(error):
                 message = f"{message} {error}"
             raise UnsupportedMathError(message) from None
+        if ctx.condition and ast.getType() not in _CONDITIONS:
+            # a number used as a condition, e.g. an argument of a function definition
+            return self.number_to_bool(printed)
+        return printed
 
     def _dispatch(self, ast: libsbml.ASTNode, ctx: _Context) -> Printed:
         """Print math by the type of its node, see `_print`."""

@@ -25,6 +25,7 @@ class JuliaPrinter(MathPrinter):
 
     name: ClassVar[str] = "julia"
     MODULES: ClassVar[frozenset[str]] = frozenset({"NaNMath"})
+    IMPORTED: ClassVar[Mapping[str, str]] = {"gamma": "SpecialFunctions"}
     FUNCTIONS: ClassVar[Mapping[int, str]] = {
         libsbml.AST_FUNCTION_ABS: "abs",
         libsbml.AST_FUNCTION_ARCCOS: "NaNMath.acos",
@@ -157,6 +158,12 @@ class JuliaPrinter(MathPrinter):
     def logic_implies(self, premise: Printed, conclusion: Printed) -> Printed:
         """`!a || b`."""
         return self.logic_or([self.logic_not(premise), conclusion])
+
+    def number_to_bool(self, value: Printed) -> Printed:
+        """`x != 0.0`, a julia condition is a `Bool`, `NaN` holds as in C."""
+        return self.relation(
+            libsbml.AST_RELATIONAL_NEQ, value, self.literal(self.number(0.0))
+        )
 
     def bool_to_number(self, condition: Printed) -> Printed:
         """`Float64(c)`, so that a condition is a number in arithmetic."""

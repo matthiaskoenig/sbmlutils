@@ -342,8 +342,9 @@ EVENTS = []
 {% if options.simulator %}
 
 
-# the limits of a simulation: the steps of the integrator from 0 to t_end{% if events %}, and the
-# executions of events at one time, beyond which an infinite cascade is probable{% endif %}
+# the limits of a simulation: the steps of the integrator beyond those which the largest
+# step forces{% if events %}, and the executions of events at one time, beyond which an infinite
+# cascade is probable{% endif %}
 
 MAX_STEPS = 100000
 {% if events %}
@@ -488,7 +489,7 @@ def simulate(
     atol: float = 1e-10,
     method: str = "LSODA",
     max_step: float | None = None,
-    max_steps: int = MAX_STEPS,
+    max_steps: int | None = None,
 ) -> pd.DataFrame:
 {% if events %}
     """Simulate the model from t = 0 to `t_end`, with its events.
@@ -514,7 +515,8 @@ def simulate(
         method: the integrator, a class of `scipy.integrate`, e.g. `"BDF"`
         max_step: the largest step of the integrator, by default the distance of
             the time points
-        max_steps: the largest number of steps of the integrator
+        max_steps: the largest number of steps of the integrator, by default
+            `MAX_STEPS` plus twice the number of steps `max_step` forces
 
     Returns:
 {% if event_constants %}
@@ -538,6 +540,8 @@ def simulate(
     times = np.linspace(0.0, t_end, points)
     if max_step is None:
         max_step = times[1] if points > 1 else np.inf
+    if max_steps is None:
+        max_steps = MAX_STEPS + 2 * int(np.ceil(t_end / max_step))
     solver_type = getattr(scipy.integrate, method)  # e.g. scipy.integrate.LSODA
     rows = []  # the states and the constants at each time point
     steps = 0  # the steps of the integrator
@@ -587,8 +591,14 @@ def simulate(
                 t_next = first_change(interpolant, solver.t_old, solver.t, p, holds)
             else:
                 t_next = solver.t
-            # the time points of the step before t_next, at t after its events
-            while len(rows) < points and times[len(rows)] < t_next:
+            # the time points of the step before t_next, at t_next after its events; a
+            # time point at the end of the integration (a delayed execution) to the
+            # rounding of the time is at it, the execution is shifted by the rounding
+            # errors of the integration of its trigger, e.g. by 1e-14 at t = 3.4
+            t_points = t_next
+            if not changed and solver.status == "finished":
+                t_points -= 1e-14 * max(1.0, abs(t_next))
+            while len(rows) < points and times[len(rows)] < t_points:
                 rows.append((interpolant(times[len(rows)]), p))
             if changed or solver.status == "finished":
                 break

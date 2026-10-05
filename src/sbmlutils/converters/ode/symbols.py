@@ -130,14 +130,33 @@ _GENERATED: dict[str, set[str]] = {
         "event", "delay_time", "pending", "due", "scheduled", "ranks",
         "priority_value", "execution", "t_next", "t_stop", "max_step", "solver",
         "solver_type", "rows", "pt", "columns", "MAX_STEPS", "MAX_CASCADE",
-        "max_steps", "steps", "step_size", "executions",
+        "max_steps", "steps", "step_size", "executions", "t_points",
     },
+    # the names of `resources/converters/ode/julia.jl.jinja`: the packages, the
+    # names it imports, its functions, their arguments and locals
     "julia": {
         "t", "x", "p", "dx", "y", "x0", "p0",
-        "NaNMath", "SpecialFunctions", "DifferentialEquations", "DataFrames",
-        "solve", "ODEProblem", "Rodas5P", "VectorContinuousCallback",
-        "f_dxdt", "f_y", "initial_values", "simulate", "event_triggers",
+        "NaNMath", "SpecialFunctions", "OrdinaryDiffEq", "DifferentialEquations",
+        "DataFrames", "DataFrame", "solve", "init", "ODEProblem", "ReturnCode",
+        "Rodas5P", "VectorContinuousCallback",
+        "XIDS", "PIDS", "YIDS", "NAMES", "UNITS", "P0", "EVENTS",
+        "f_y", "initial_values", "simulate", "event_triggers",
         "xids", "pids", "yids",
+        "t_end", "points", "reltol", "abstol", "alg", "dtmax", "max_steps",
+        "x_initial", "times", "rows", "steps", "solution", "problem", "integrator",
+        "xt", "yt", "pt", "ys", "data", "columns", "index",
+        # the events
+        "event_conditions", "execute_events", "first_change", "extrapolation",
+        "Execution", "MAX_STEPS", "MAX_CASCADE", "values", "interpolant", "t_old",
+        "t_new", "t_low", "t_high", "t_middle", "t_after", "x_after", "changed",
+        "turned", "holds", "holds_now", "event_index", "event", "delay_time",
+        "pending", "due", "scheduled", "ranks", "priority_value", "execution",
+        "executions", "t_next", "x_next", "t_stop", "triggers", "roots", "at_root",
+        "beyond", "t_points",
+        # the functions and types of `Base` it calls
+        "Ref", "Union", "NamedTuple", "AbstractVector", "Real", "Integer",
+        "enumerate", "eachindex", "findall", "isempty", "minimum", "something",
+        "argmax", "zip", "popat", "filter",
     },
     "r": {
         "t", "x", "p", "dx", "y", "x0", "p0",
@@ -239,19 +258,24 @@ def _is_valid(name: str, language: str) -> bool:
         language: python, julia or r
 
     Returns:
-        `False` for the SId which starts with an underscore in R only
+        `False` for an SId which starts with an underscore in R and for an SId of
+        underscores only in julia, which julia can assign but never read
     """
-    return not (language == "r" and name.startswith("_"))
+    if language == "r":
+        return not name.startswith("_")
+    if language == "julia":
+        return bool(name.strip("_"))
+    return True
 
 
 def code_names(ids: Iterable[str], language: str) -> dict[str, str]:
     """The name of every id as a variable of the generated code of a language.
 
     An id is its own name, except for an id which is reserved in the language (a keyword,
-    a builtin, a name the code or the printer uses), and an id which R cannot write
-    (`_x` starts with an underscore): such an id gets underscores appended (and `x`
-    prepended in R for the leading underscore) until its name is neither reserved nor the
-    name of another id. The ids which are not renamed keep their name, the others are
+    a builtin, a name the code or the printer uses), and an id which the language cannot
+    write (`_x` starts with an underscore in R, `_` and `__` are write-only in julia):
+    such an id gets underscores appended (and `x` prepended to an id the language
+    cannot write) until its name is neither reserved nor the name of another id. The ids which are not renamed keep their name, the others are
     named in the order of the input, so that the result is deterministic.
 
     Args:

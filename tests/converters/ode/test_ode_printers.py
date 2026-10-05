@@ -19,6 +19,7 @@ from ode_helpers import (
     run_r,
     sbml_with_rate,
     tectonic_command,
+    toolchain_missing,
 )
 
 from sbmlutils.converters.ode.printers import PRINTERS
@@ -547,6 +548,11 @@ def test_julia_math(formula: str, expected: str) -> None:
         ("implies(A > 1 || k > 1, A < 5)", "!(A > 1.0 || k > 1.0) || A < 5.0"),
         ("true", "true"),
         ("piecewise(A > 1, k > 1, false)", "k > 1.0 ? A > 1.0 : false"),
+        # a number used as a condition holds unless it is 0
+        ("k", "k != 0.0"),
+        ("A && k > 1", "A != 0.0 && k > 1.0"),
+        ("piecewise(A, k > 1, 0)", "k > 1.0 ? A != 0.0 : 0.0 != 0.0"),
+        ("!(A + k)", "!(A + k != 0.0)"),
     ],
 )
 def test_julia_condition(formula: str, expected: str) -> None:
@@ -1566,7 +1572,8 @@ def evaluate(
             return _python_value(formula)
         command, printer, script, run = TOOLCHAINS[dialect]
         if command() is None:
-            pytest.skip(f"The toolchain of {dialect} is not runnable.")
+            variable = {"julia": "SBMLUTILS_JULIA", "r": "SBMLUTILS_RSCRIPT"}[dialect]
+            toolchain_missing(dialect, variable)
         if dialect not in outputs:
             codes = [printer().print(parse(f), SYMBOLS) for f in EVALUATED]
             stdout = run(script(codes), tmp_path_factory.mktemp(dialect))

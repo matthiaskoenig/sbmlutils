@@ -15,10 +15,11 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from types import ModuleType
-from typing import Any
+from typing import Any, NoReturn
 
 import libsbml
 import numpy as np
+import pandas as pd
 import pytest
 
 from sbmlutils.converters.ode import OdeSystem
@@ -45,6 +46,104 @@ FORMULAS: list[str] = [
     "arccoth(A)",
     "piecewise(k*time, true, 0) + 2^-1 + -A^2 + 1/2 + (-2)^2 + 2^3^2",
 ]
+
+
+# a model with two events, a delay and a priority, the example of the code
+TWO_EVENTS = """
+    compartment c = 1
+    species S in c = 10
+    R1: S -> ; k * S
+    k = 0.5; total = 0
+    E1: at 1 after S < 5, priority=2: S = S + 5, total = total + 1
+    E2: at time > 3, priority=1: k = 2 * k
+"""
+
+_AT_T0 = """
+    A = 0; A' = 1
+    B = 0; C = 0; D = 0
+    E1: at time {relation} 0, t0=false: B = B + 1
+    E2: at time {relation} 0, t0=true: C = C + 1
+    E3: at A > 3, t0=false: D = D + 1, A = 0
+"""
+
+EVENT_MODELS: dict[str, str] = {
+    "two_events": TWO_EVENTS,
+    # a trigger which holds at t = 0, with the initial values false and true
+    **{f"at_t0[{r}]": _AT_T0.format(relation=r) for r in (">=", ">")},
+    # an event at a time point of the output
+    **{
+        f"at_time_point[{r}]": f"A = 0; A' = 1; E1: at time {r} 2: A = 10"
+        for r in (">=", ">")
+    },
+    # priorities evaluated before each execution, values at the execution
+    "priority": """
+        B = 1
+        E1: at time > 1, priority=1, fromTrigger=false: B = 2 * B
+        E2: at time > 1, priority=2, fromTrigger=false: B = B + 1
+        E3: at time > 4, priority=5, fromTrigger=false: B = B + 10
+        E4: at time > 4, priority=B, fromTrigger=false: B = B - 1
+        E5: at time > 4, priority=7, fromTrigger=false: B = 2 * B
+    """,
+    # a delay which an event changes
+    "delay": """
+        compartment c = 1
+        species S in c = 10
+        R1: S -> ; k * S
+        k = 0.5; d = 1.5; n = 0
+        E1: at d after S < 5: S = 10, n = n + 1
+        E2: at time > 4: d = 0.5
+    """,
+    # the values of a delayed event from the trigger time and from the execution
+    "trigger_values": """
+        A = 0; A' = 1
+        B = 0; C = 0
+        E1: at 2 after time > 1, fromTrigger=true: B = A
+        E2: at 2 after time > 1, fromTrigger=false: C = A
+    """,
+    # events which are and are not persistent
+    "persistent": """
+        B = 0; C = 0; D = 0; F = 0
+        E1: at 1 after (time > 1 && time < 1.5), persistent=false: B = 1
+        E2: at 1 after (time > 1 && time < 1.5), persistent=true: C = 1
+        E3: at time > 3, priority=2: D = 1
+        E4: at time > 3, priority=1, persistent=false: F = 1
+    """,
+    # events which change the size of a compartment
+    "compartment": """
+        compartment V = 1
+        species S in V = 2; species T in V = 1
+        R1: S -> ; k * S * V
+        T' = 0.1
+        k = 0.1
+        E1: at time > 2: V = 2
+        E2: at time > 5: V = 0.5, S = 3
+    """,
+    # an execution which triggers another event
+    "cascade": """
+        k = 1; B = 0
+        E1: at time > 1: k = 5
+        E2: at k > 4: B = B + 1
+    """,
+    # events which set their trigger to its root, a triangle wave
+    "threshold": """
+        A = 1.5; A' = r; r = 1
+        E1: at A >= 2: A = 2, r = -1
+        E2: at A <= 1: A = 1, r = 1
+    """,
+    "turns_true_again": "B = 0; E1: at sin(time) > 0.5: B = B + 1",
+    "without_states": "B = 0; y := 2 * B + time; E1: at time > 2: B = 5",
+    # events which trigger each other without end
+    "infinite_cascade": (
+        "x = -1; E0: at time > 1: x = 1; E1: at x > 0: x = -1; E2: at x < 0: x = 1"
+    ),
+    # a trigger which holds from t = 1 to 1.5
+    "window": "B = 0; E1: at time > 1 && time < 1.5: B = B + 1",
+    # an event at the time point 3.4 to the rounding of the integration, which
+    # finds `A <= 1.88` an error of the time later than t = 2.4 (case 01675)
+    "rounding": "A = 2; A' = -0.05; B = 0; E1: at 1 after A <= 1.88: B = 1",
+}
+"""Models with events in antimony, by their name, which the tests of the numerical
+formats simulate."""
 
 
 def sbml_with_rate(formula: str, name: str = "species A", sid: str = "A") -> str:
@@ -183,17 +282,43 @@ TIMEOUT = 600
 JULIA_PACKAGES = ["NaNMath", "SpecialFunctions"]
 """The packages of julia the math of the julia printer uses."""
 
+JULIA_SIMULATOR_PACKAGES = ["OrdinaryDiffEq", "DataFrames"]
+"""The packages of julia `simulate` of the julia code uses besides `JULIA_PACKAGES`."""
+
+
+REQUIRE_TOOLCHAINS = "SBMLUTILS_REQUIRE_TOOLCHAINS"
+"""The environment variable which makes a test whose toolchain is missing fail
+instead of skip, set by the tox environments of the toolchains, so that their tests
+never pass without having run."""
+
+
+def toolchain_missing(name: str, variable: str) -> NoReturn:
+    """Skip a test whose toolchain is not runnable, fail it if `REQUIRE_TOOLCHAINS`.
+
+    Args:
+        name: the toolchain, e.g. `julia`
+        variable: the environment variable of its command, e.g. `SBMLUTILS_JULIA`
+
+    Raises:
+        pytest.skip.Exception: if the toolchains are not required
+        pytest.fail.Exception: if they are
+    """
+    message = f"{name} is not runnable, see `{variable}`."
+    if os.environ.get(REQUIRE_TOOLCHAINS):
+        pytest.fail(f"{message} {REQUIRE_TOOLCHAINS} requires it.")
+    pytest.skip(message)
+
 
 @functools.cache
 def julia_command() -> list[str] | None:
     """Command of julia, `SBMLUTILS_JULIA` (default `julia`).
 
     Returns:
-        the command, `None` if it fails to load `JULIA_PACKAGES`
+        the command, `None` if it fails to load `JULIA_PACKAGES` and
+        `JULIA_SIMULATOR_PACKAGES`, which the generated code uses
     """
-    return _command(
-        "SBMLUTILS_JULIA", "julia", ["-e", f"using {', '.join(JULIA_PACKAGES)}"]
-    )
+    packages = ", ".join([*JULIA_PACKAGES, *JULIA_SIMULATOR_PACKAGES])
+    return _command("SBMLUTILS_JULIA", "julia", ["-e", f"using {packages}"])
 
 
 @functools.cache
@@ -251,6 +376,224 @@ def run_julia(code: str, tmp_path: Path) -> str:
         the standard output
     """
     return _run(julia_command(), tmp_path / "script.jl", code)
+
+
+@dataclass(frozen=True)
+class JuliaJob:
+    """Generated julia code and the julia code which runs it.
+
+    Attributes:
+        code: the generated julia code, a module
+        run: the body of a julia function of the module `m` and the output stream
+            `io`, which writes its results with `emit(io, key, values)`, a line of
+            the key and the values, and `emit_table(io, df)`, a line of the names
+            of the columns and a line per column
+    """
+
+    code: str
+    run: str
+
+
+@dataclass(frozen=True)
+class JuliaOutput:
+    """The results of a `JuliaJob`.
+
+    Attributes:
+        lines: the values of each key the job emitted, as text
+        error: the error the job threw, with its stack trace, `None` if it ran
+        seconds: the time the job took, its compilation included
+    """
+
+    lines: dict[str, list[str]]
+    error: str | None
+    seconds: float
+
+    def check(self) -> None:
+        """Fail if the job threw an error."""
+        if self.error is not None:
+            pytest.fail(f"The julia code failed:\n{self.error}")
+
+    def strings(self, key: str) -> list[str]:
+        """The values of a key as text."""
+        self.check()
+        return self.lines[key]
+
+    def floats(self, key: str) -> np.ndarray:
+        """The values of a key as numbers."""
+        return np.array([float(v) for v in self.strings(key)], dtype=float)
+
+    def table(self) -> pd.DataFrame:
+        """The table which the job emitted with `emit_table`."""
+        columns = self.strings("columns")
+        return pd.DataFrame({c: self.floats(f"column {c}") for c in columns})
+
+    def point_values(self) -> "PointValues":
+        """The values which the job `POINT_VALUES_JOB` emitted."""
+        return PointValues(
+            xids=self.strings("XIDS"),
+            pids=self.strings("PIDS"),
+            yids=self.strings("YIDS"),
+            x0=self.floats("x0"),
+            p=self.floats("p"),
+            y0=self.floats("y0"),
+            points=[
+                (
+                    float(self.floats(f"t{k}")[0]),
+                    self.floats(f"x{k}"),
+                    self.floats(f"dx{k}"),
+                    self.floats(f"y{k}"),
+                )
+                for k in range(1, 4)
+            ],
+        )
+
+
+# the prelude of a script of julia jobs: the functions which write the results and
+# the function which runs a job, writing its results or its error into files next
+# to its code
+_JULIA_PRELUDE = r"""
+# a line of the key and the values, separated by tabs, a line break in a value a space
+emit(io, key, values) = println(
+    io, key, "\t", join([replace(string(v), r"\R" => " ") for v in values], "\t")
+)
+
+function emit_table(io, df)
+    emit(io, "columns", names(df))
+    for column in names(df)
+        emit(io, "column " * column, df[!, column])
+    end
+end
+
+function run_job(path, job)
+    started = time()
+    try
+        m = Base.include(Module(), path)
+        open(path * ".out", "w") do io
+            Base.invokelatest(job, m, io)
+        end
+    catch error
+        open(path * ".err", "w") do io
+            showerror(io, error, catch_backtrace())
+        end
+    end
+    open(io -> print(io, time() - started), path * ".time", "w")
+end
+"""
+
+POINT_VALUES_JOB = """
+    x0, p = m.initial_values()
+    emit(io, "XIDS", m.XIDS)
+    emit(io, "PIDS", m.PIDS)
+    emit(io, "YIDS", m.YIDS)
+    emit(io, "x0", x0)
+    emit(io, "p", p)
+    emit(io, "y0", m.f_y(x0, p, 0.0))
+    for (k, (t, x)) in enumerate([(0.0, x0), (0.0, x0 .* 1.5 .+ 0.1), (1.5, x0 .* 0.5 .+ 0.2)])
+        dx = zeros(length(x))
+        m.f!(dx, x, p, t)
+        emit(io, "t$k", [t])
+        emit(io, "x$k", x)
+        emit(io, "dx$k", dx)
+        emit(io, "y$k", m.f_y(x, p, t))
+    end
+"""
+"""The body of a `JuliaJob` which emits the values of `PointValues`, at the states of
+`other_states`, of julia code rendered with `simulator=False`."""
+
+
+def simulate_job(t_end: float = 10.0, points: int = 51, arguments: str = "") -> str:
+    """The body of a `JuliaJob` which emits the table of `simulate`.
+
+    Args:
+        t_end: the end time
+        points: the number of time points
+        arguments: further keyword arguments of `simulate`, e.g. `"dtmax=1.0"`
+
+    Returns:
+        the body, which integrates with the tolerances of `assert_table_as_roadrunner`
+    """
+    extra = f", {arguments}" if arguments else ""
+    return (
+        f"    df = m.simulate({t_end!r}; points={points}, reltol=1e-10, "
+        f"abstol=1e-12{extra})\n    emit_table(io, df)\n"
+    )
+
+
+def run_julia_jobs(
+    jobs: Mapping[str, JuliaJob], directory: Path, processes: int = 1
+) -> dict[str, JuliaOutput]:
+    """Run julia jobs with `julia_command`, many jobs in one julia process.
+
+    The code of each job is included into a module of its own, so that the modules of
+    two jobs never clash; a job which throws an error does not stop the others. A
+    julia process compiles the integrators once for all of its jobs, which makes
+    many jobs in one process fast.
+
+    Args:
+        jobs: the jobs by their name, a name is a file name
+        directory: directory of the files of the jobs, below `/tmp` for the docker
+            command
+        processes: the number of julia processes, which run in parallel, each with
+            a part of the jobs
+
+    Returns:
+        the output of each job
+
+    Raises:
+        RuntimeError: if julia is not runnable or a process fails
+    """
+    command = julia_command()
+    if command is None:
+        raise RuntimeError("julia is not runnable.")
+    names = list(jobs)
+    scripts = []
+    for part in range(processes):
+        lines = [_JULIA_PRELUDE]
+        for k, name in enumerate(names[part::processes]):
+            path = (directory / f"{name}.jl").absolute()
+            path.write_text(jobs[name].code, encoding="utf-8")
+            lines += [
+                f"function job_{k}(m, io)",
+                jobs[name].run.rstrip(),
+                "end",
+                f'run_job(raw"{path}", job_{k})',
+            ]
+        script = directory / f"jobs_{part}.jl"
+        script.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        scripts.append(script)
+    running = [
+        subprocess.Popen(
+            [*command, str(script.absolute())],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        for script in scripts
+    ]
+    for script, process in zip(scripts, running, strict=True):
+        _, stderr = process.communicate(timeout=TIMEOUT * len(names))
+        if process.returncode != 0:
+            raise RuntimeError(
+                f"{script.name} failed with exit code {process.returncode}:\n{stderr}"
+            )
+    outputs = {}
+    for name in names:
+        path = directory / f"{name}.jl"
+        error_path = path.with_name(f"{name}.jl.err")
+        lines: dict[str, list[str]] = {}
+        output_path = path.with_name(f"{name}.jl.out")
+        if output_path.exists():
+            for line in output_path.read_text(encoding="utf-8").splitlines():
+                key, _, values = line.partition("\t")
+                lines[key] = values.split("\t") if values else []
+        outputs[name] = JuliaOutput(
+            lines=lines,
+            error=error_path.read_text(encoding="utf-8")
+            if error_path.exists()
+            else None,
+            seconds=float(path.with_name(f"{name}.jl.time").read_text()),
+        )
+    return outputs
 
 
 def run_r(code: str, tmp_path: Path) -> str:
@@ -477,47 +820,111 @@ def python_module(system: OdeSystem, path: Path, **options: object) -> ModuleTyp
     return import_module(path)
 
 
-def assert_python_as_roadrunner(sbml: str | Path, tmp_path: Path) -> ModuleType:
-    """Assert that the generated python computes the values of roadrunner.
+@dataclass(frozen=True)
+class PointValues:
+    """The values of generated code at the initial state and at other states.
+
+    Attributes:
+        xids: the ids of the states
+        pids: the ids of the constants
+        yids: the ids of the assigned values
+        x0: the initial states, of `initial_values`
+        p: the constants, of `initial_values`
+        y0: the assigned values at t = 0 and x0
+        points: the time, the states, their rates of change and the assigned
+            values at each further state
+    """
+
+    xids: list[str]
+    pids: list[str]
+    yids: list[str]
+    x0: np.ndarray
+    p: np.ndarray
+    y0: np.ndarray
+    points: list[tuple[float, np.ndarray, np.ndarray, np.ndarray]]
+
+
+def other_states(x0: np.ndarray) -> list[tuple[float, np.ndarray]]:
+    """The states at which the rates of change are compared, with their time.
+
+    The initial state and two other states, in which every state is changed, so that
+    no value is zero by chance, the last one at t=1.5, so that math of the time is
+    covered.
+
+    Args:
+        x0: the initial states
+
+    Returns:
+        the time and the states of each point
+    """
+    return [(0.0, x0), (0.0, x0 * 1.5 + 0.1), (1.5, x0 * 0.5 + 0.2)]
+
+
+def assert_values_as_roadrunner(sbml: str | Path, values: PointValues) -> None:
+    """Assert that the values of generated code are those of roadrunner.
 
     The initial values (states, constants and assigned values at t=0) are compared,
-    then the rates of change and the assigned values at the initial state and at two
-    other states, in which every state is changed, so that no value is zero by
-    chance, the last one at t=1.5, so that math of the time is covered.
+    then the rates of change and the assigned values at each point.
 
     Args:
         sbml: the SBML of the model or the path of its file; a comp model is read
             from its file, roadrunner flattens a model only if it reads the file
+        values: the values of the generated code
+    """
+    roadrunner = pytest.importorskip("roadrunner")
+    system = OdeSystem.from_sbml(sbml)
+    assert values.xids == list(system.states)
+    assert values.yids == list(system.assigned)
+    r = roadrunner.RoadRunner(str(sbml))
+
+    initial = roadrunner_reference(r, system)
+    assert_values(dict(zip(values.xids, values.x0, strict=True)), initial.states, "x0")
+    assert_values(dict(zip(values.pids, values.p, strict=True)), initial.constants, "p")
+    assert_values(
+        dict(zip(values.yids, values.y0, strict=True)), initial.assigned, "y0"
+    )
+    for t, x, dxdt, y in values.points:
+        r.model.setTime(t)
+        reference = roadrunner_reference(
+            r, system, dict(zip(values.xids, x, strict=True))
+        )
+        rates = dict(zip(values.xids, dxdt, strict=True))
+        assert_values(rates, reference.rates, f"dx/dt at t={t}")
+        assigned = dict(zip(values.yids, y, strict=True))
+        assert_values(assigned, reference.assigned, f"y at t={t}")
+
+
+def assert_python_as_roadrunner(sbml: str | Path, tmp_path: Path) -> ModuleType:
+    """Assert that the generated python computes the values of roadrunner.
+
+    See `assert_values_as_roadrunner`, the points are those of `other_states`.
+
+    Args:
+        sbml: the SBML of the model or the path of its file
         tmp_path: directory of the python file
 
     Returns:
         the module of the generated python
     """
-    roadrunner = pytest.importorskip("roadrunner")
+    pytest.importorskip("roadrunner")
     system = OdeSystem.from_sbml(sbml)
     module = python_module(system, tmp_path / "model.py", simulator=False)
-    assert list(module.XIDS) == list(system.states)
-    assert list(module.YIDS) == list(system.assigned)
-    r = roadrunner.RoadRunner(str(sbml))
-
     x0, p = module.initial_values()
-    initial = roadrunner_reference(r, system)
-    assert_values(dict(zip(module.XIDS, x0, strict=True)), initial.states, "x0")
-    assert_values(dict(zip(module.PIDS, p, strict=True)), initial.constants, "p")
-    y0 = module.f_y(0.0, x0, p)
-    assert_values(dict(zip(module.YIDS, y0, strict=True)), initial.assigned, "y0")
-
-    for t, x in [(0.0, x0), (0.0, x0 * 1.5 + 0.1), (1.5, x0 * 0.5 + 0.2)]:
-        r.model.setTime(t)
-        reference = roadrunner_reference(
-            r, system, dict(zip(module.XIDS, x, strict=True))
-        )
+    points = []
+    for t, x in other_states(x0):
         dxdt = module.f_dxdt(t, x, p)
         assert isinstance(dxdt, np.ndarray)
-        rates = dict(zip(module.XIDS, dxdt, strict=True))
-        assert_values(rates, reference.rates, f"dx/dt at t={t}")
-        y = dict(zip(module.YIDS, module.f_y(t, x, p), strict=True))
-        assert_values(y, reference.assigned, f"y at t={t}")
+        points.append((t, x, dxdt, module.f_y(t, x, p)))
+    values = PointValues(
+        xids=list(module.XIDS),
+        pids=list(module.PIDS),
+        yids=list(module.YIDS),
+        x0=x0,
+        p=p,
+        y0=module.f_y(0.0, x0, p),
+        points=points,
+    )
+    assert_values_as_roadrunner(sbml, values)
     return module
 
 
@@ -528,33 +935,31 @@ T_STEPS = 51
 """The number of time points of a trajectory, 0 and `T_END` included."""
 
 
-def assert_trajectory_as_roadrunner(
+def assert_table_as_roadrunner(
     sbml: str | Path,
-    module: ModuleType,
+    df: pd.DataFrame,
     rtol: float = 1e-6,
     atol: float = 1e-9,
     t_end: float = T_END,
     points: int = T_STEPS,
 ) -> None:
-    """Assert that `simulate` of the generated python integrates as roadrunner.
+    """Assert that a simulation of generated code integrates as roadrunner.
 
-    Both integrate with the relative tolerance 1e-10 and the absolute tolerance
-    1e-12; every column of `simulate` (the states, the assigned values and the
-    constants which events change) is compared with its roadrunner selection, at
-    every time point.
+    The simulation integrated with the relative tolerance 1e-10 and the absolute
+    tolerance 1e-12, as roadrunner does here; every column of the table (the states,
+    the assigned values and the constants which events change) is compared with its
+    roadrunner selection, at every time point.
 
     Args:
         sbml: the SBML of the model or the path of its file
-        module: the module of the generated python, with `simulate`
+        df: the table of the simulation, the time and a column per id
         rtol: the relative tolerance of the comparison
         atol: the absolute tolerance of the comparison
         t_end: the end time
         points: the number of time points
     """
     roadrunner = pytest.importorskip("roadrunner")
-    pytest.importorskip("scipy")
     system = OdeSystem.from_sbml(sbml)
-    df = module.simulate(t_end, points, rtol=1e-10, atol=1e-12)
     r = roadrunner.RoadRunner(str(sbml))
     r.integrator.relative_tolerance = 1e-10
     r.integrator.absolute_tolerance = 1e-12
@@ -570,3 +975,29 @@ def assert_trajectory_as_roadrunner(
         np.testing.assert_allclose(
             df[sid], result[:, k + 1], rtol=rtol, atol=atol, err_msg=sid
         )
+
+
+def assert_trajectory_as_roadrunner(
+    sbml: str | Path,
+    module: ModuleType,
+    rtol: float = 1e-6,
+    atol: float = 1e-9,
+    t_end: float = T_END,
+    points: int = T_STEPS,
+) -> None:
+    """Assert that `simulate` of the generated python integrates as roadrunner.
+
+    See `assert_table_as_roadrunner`.
+
+    Args:
+        sbml: the SBML of the model or the path of its file
+        module: the module of the generated python, with `simulate`
+        rtol: the relative tolerance of the comparison
+        atol: the absolute tolerance of the comparison
+        t_end: the end time
+        points: the number of time points
+    """
+    pytest.importorskip("roadrunner")
+    pytest.importorskip("scipy")
+    df = module.simulate(t_end, points, rtol=1e-10, atol=1e-12)
+    assert_table_as_roadrunner(sbml, df, rtol, atol, t_end, points)

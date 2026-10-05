@@ -12,9 +12,11 @@ import numpy as np
 import pandas as pd
 import pytest
 from ode_helpers import (
+    EVENT_MODELS,
     FORMULAS,
     T_END,
     T_STEPS,
+    TWO_EVENTS,
     assert_python_as_roadrunner,
     assert_trajectory_as_roadrunner,
     edit_sbml,
@@ -303,16 +305,6 @@ def test_script_prints_the_simulation(tmp_path: Path) -> None:
 EVENT_RTOL = 1e-4
 EVENT_ATOL = 1e-6
 
-# a model with two events, a delay and a priority, the example of the code
-TWO_EVENTS = """
-    compartment c = 1
-    species S in c = 10
-    R1: S -> ; k * S
-    k = 0.5; total = 0
-    E1: at 1 after S < 5, priority=2: S = S + 5, total = total + 1
-    E2: at time > 3, priority=1: k = 2 * k
-"""
-
 
 def _event_module(antimony: str, tmp_path: Path, **options: object) -> ModuleType:
     """The module of the python code of a model with events, written in antimony."""
@@ -350,13 +342,7 @@ def test_event_at_t0(relation: str, tmp_path: Path) -> None:
     means the trigger held before t = 0.
     """
     df = _assert_events_as_roadrunner(
-        f"""
-        A = 0; A' = 1
-        B = 0; C = 0; D = 0
-        E1: at time {relation} 0, t0=false: B = B + 1
-        E2: at time {relation} 0, t0=true: C = C + 1
-        E3: at A > 3, t0=false: D = D + 1, A = 0
-        """,
+        EVENT_MODELS[f"at_t0[{relation}]"],
         tmp_path,
     )
     fired = 1.0 if relation == ">=" else 0.0
@@ -375,10 +361,20 @@ def test_event_at_a_time_point(relation: str, before: bool, tmp_path: Path) -> N
     t = 2 has the values before the event.
     """
     df = _assert_events_as_roadrunner(
-        f"A = 0; A' = 1; E1: at time {relation} 2: A = 10", tmp_path
+        EVENT_MODELS[f"at_time_point[{relation}]"], tmp_path
     )
     row = df[np.isclose(df["time"], 2.0)].iloc[0]
     assert row["A"] == pytest.approx(2.0 if before else 10.0)
+
+
+def test_event_at_a_time_point_to_the_rounding(tmp_path: Path) -> None:
+    """An event at a time point to the rounding of the integration is at it.
+
+    `A <= 1.88` holds from t = 2.4, which the integration finds up to its rounding
+    errors; the execution at 3.4 is at the time point 3.4.
+    """
+    df = _assert_events_as_roadrunner(EVENT_MODELS["rounding"], tmp_path)
+    assert df[np.isclose(df["time"], 3.4)]["B"].iloc[0] == 1.0
 
 
 def test_event_priority(tmp_path: Path) -> None:
@@ -388,14 +384,7 @@ def test_event_priority(tmp_path: Path) -> None:
     which E5 changes. The values are from the execution, so the order shows.
     """
     df = _assert_events_as_roadrunner(
-        """
-        B = 1
-        E1: at time > 1, priority=1, fromTrigger=false: B = 2 * B
-        E2: at time > 1, priority=2, fromTrigger=false: B = B + 1
-        E3: at time > 4, priority=5, fromTrigger=false: B = B + 10
-        E4: at time > 4, priority=B, fromTrigger=false: B = B - 1
-        E5: at time > 4, priority=7, fromTrigger=false: B = 2 * B
-        """,
+        EVENT_MODELS["priority"],
         tmp_path,
     )
     assert df[np.isclose(df["time"], 2.0)]["B"].iloc[0] == 4.0
@@ -406,14 +395,7 @@ def test_event_priority(tmp_path: Path) -> None:
 def test_event_delay(tmp_path: Path) -> None:
     """A delayed event executes after its delay, each time its trigger turns true."""
     df = _assert_events_as_roadrunner(
-        """
-        compartment c = 1
-        species S in c = 10
-        R1: S -> ; k * S
-        k = 0.5; d = 1.5; n = 0
-        E1: at d after S < 5: S = 10, n = n + 1
-        E2: at time > 4: d = 0.5
-        """,
+        EVENT_MODELS["delay"],
         tmp_path,
     )
     # S = 10 exp(-t / 2) falls below 5 at 2 ln 2 and is reset 1.5 later, from
@@ -427,12 +409,7 @@ def test_event_delay(tmp_path: Path) -> None:
 def test_event_use_values_from_trigger_time(tmp_path: Path) -> None:
     """The values of a delayed event are from the trigger time or the execution."""
     df = _assert_events_as_roadrunner(
-        """
-        A = 0; A' = 1
-        B = 0; C = 0
-        E1: at 2 after time > 1, fromTrigger=true: B = A
-        E2: at 2 after time > 1, fromTrigger=false: C = A
-        """,
+        EVENT_MODELS["trigger_values"],
         tmp_path,
     )
     assert df["B"].iloc[-1] == pytest.approx(1.0)
@@ -445,13 +422,7 @@ def test_event_persistent(tmp_path: Path) -> None:
     E4 is not dropped by the execution of E3 before it, its trigger still holds.
     """
     df = _assert_events_as_roadrunner(
-        """
-        B = 0; C = 0; D = 0; F = 0
-        E1: at 1 after (time > 1 && time < 1.5), persistent=false: B = 1
-        E2: at 1 after (time > 1 && time < 1.5), persistent=true: C = 1
-        E3: at time > 3, priority=2: D = 1
-        E4: at time > 3, priority=1, persistent=false: F = 1
-        """,
+        EVENT_MODELS["persistent"],
         tmp_path,
     )
     assert df["B"].iloc[-1] == 0.0
@@ -467,15 +438,7 @@ def test_event_changes_compartment(tmp_path: Path) -> None:
     the size before the event; a concentration with a rate rule is rescaled.
     """
     df = _assert_events_as_roadrunner(
-        """
-        compartment V = 1
-        species S in V = 2; species T in V = 1
-        R1: S -> ; k * S * V
-        T' = 0.1
-        k = 0.1
-        E1: at time > 2: V = 2
-        E2: at time > 5: V = 0.5, S = 3
-        """,
+        EVENT_MODELS["compartment"],
         tmp_path,
     )
     assert df["V"].iloc[-1] == 0.5
@@ -491,11 +454,7 @@ def test_event_changes_compartment(tmp_path: Path) -> None:
 def test_event_cascade(tmp_path: Path) -> None:
     """An execution which makes another trigger true fires it at the same time."""
     df = _assert_events_as_roadrunner(
-        """
-        k = 1; B = 0
-        E1: at time > 1: k = 5
-        E2: at k > 4: B = B + 1
-        """,
+        EVENT_MODELS["cascade"],
         tmp_path,
     )
     assert df["B"].iloc[-1] == 1.0
@@ -509,11 +468,7 @@ def test_event_assigns_its_threshold(tmp_path: Path) -> None:
     E2 sets it to 1: a triangle wave between 1 and 2.
     """
     df = _assert_events_as_roadrunner(
-        """
-        A = 1.5; A' = r; r = 1
-        E1: at A >= 2: A = 2, r = -1
-        E2: at A <= 1: A = 1, r = 1
-        """,
+        EVENT_MODELS["threshold"],
         tmp_path,
     )
     assert df["A"].between(1.0, 2.0).all()
@@ -523,17 +478,13 @@ def test_event_assigns_its_threshold(tmp_path: Path) -> None:
 
 def test_event_trigger_turns_true_again(tmp_path: Path) -> None:
     """A trigger fires each time it turns true, here twice."""
-    df = _assert_events_as_roadrunner(
-        "B = 0; E1: at sin(time) > 0.5: B = B + 1", tmp_path
-    )
+    df = _assert_events_as_roadrunner(EVENT_MODELS["turns_true_again"], tmp_path)
     assert df["B"].iloc[-1] == 2.0
 
 
 def test_event_model_without_states(tmp_path: Path) -> None:
     """A model of events and rules only integrates nothing but its events."""
-    df = _assert_events_as_roadrunner(
-        "B = 0; y := 2 * B + time; E1: at time > 2: B = 5", tmp_path
-    )
+    df = _assert_events_as_roadrunner(EVENT_MODELS["without_states"], tmp_path)
     assert list(df.columns) == ["time", "y", "B"]
     assert df["B"].iloc[-1] == 5.0
 
@@ -545,7 +496,7 @@ def test_event_infinite_cascade_raises(tmp_path: Path) -> None:
     """
     pytest.importorskip("scipy")
     module = _event_module(
-        "x = -1; E0: at time > 1: x = 1; E1: at x > 0: x = -1; E2: at x < 0: x = 1",
+        EVENT_MODELS["infinite_cascade"],
         tmp_path,
     )
     assert module.MAX_CASCADE == 10000
@@ -575,6 +526,19 @@ def test_simulate_max_steps(tmp_path: Path) -> None:
         module.simulate(10.0, max_steps=5)
 
 
+def test_simulate_max_steps_scale_with_the_points(tmp_path: Path) -> None:
+    """The default limit of the steps grows with the steps the time points force.
+
+    The largest step is the distance of the time points, so that `MAX_STEPS + 2`
+    time points take more than `MAX_STEPS` steps.
+    """
+    pytest.importorskip("scipy")
+    sbml = model_sbml("species S = 1; R1: S -> ; k * S; k = 1")
+    module = python_module(OdeSystem.from_sbml(sbml), tmp_path / "decay.py")
+    df = module.simulate(10.0, module.MAX_STEPS + 2)
+    assert df["S"].iloc[-1] == pytest.approx(np.exp(-10.0), rel=1e-6)
+
+
 def test_simulate_max_step(tmp_path: Path) -> None:
     """A trigger is evaluated after each step, of at most `max_step`.
 
@@ -582,7 +546,7 @@ def test_simulate_max_step(tmp_path: Path) -> None:
     only, where it does not hold.
     """
     pytest.importorskip("scipy")
-    module = _event_module("B = 0; E1: at time > 1 && time < 1.5: B = B + 1", tmp_path)
+    module = _event_module(EVENT_MODELS["window"], tmp_path)
     assert module.simulate(4.0, 21)["B"].iloc[-1] == 1.0
     assert module.simulate(4.0, 21, max_step=1.0)["B"].iloc[-1] == 0.0
 

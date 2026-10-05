@@ -128,6 +128,17 @@ def test_r_has_no_name_which_starts_with_underscore() -> None:
     assert code_names(["_x"], "julia") == {"_x": "_x"}
 
 
+def test_julia_has_no_name_of_underscores_only() -> None:
+    """`_` and `__` are valid SIds, but julia can assign them, never read them."""
+    assert code_names(["_", "__", "_x"], "julia") == {
+        "_": "x_",
+        "__": "x__",
+        "_x": "_x",
+    }
+    # the name is unique against the other ids
+    assert code_names(["_", "x_"], "julia") == {"_": "x__", "x_": "x_"}
+
+
 def test_unknown_language_raises() -> None:
     """Only python, julia and R have code names."""
     with pytest.raises(ValueError, match="matlab"):
