@@ -10,11 +10,15 @@ import os
 import shlex
 import shutil
 import subprocess
+import textwrap
+from collections.abc import Callable
 from pathlib import Path
 from types import ModuleType
 
 import libsbml
 import pytest
+
+from sbmlutils.parser import antimony_to_sbml
 
 # the rate laws of `tests/converters/test_odefac.py`, which cover every construct of
 # the math the ODE export writes
@@ -89,6 +93,44 @@ def sbml_with_rate(formula: str, name: str = "species A", sid: str = "A") -> str
     law.setMath(math)
     sbml = str(libsbml.writeSBMLToString(doc))
     return sbml.replace('name="NAME"', f'name="{name}"')
+
+
+def model_sbml(antimony: str) -> str:
+    """SBML of a model written in antimony.
+
+    Antimony writes SBML L3V2; a species is in concentration unless it is declared
+    `substanceOnly`, a compartment without a size has the size 1.
+
+    Args:
+        antimony: the body of the model, indented as it is in the test
+
+    Returns:
+        the SBML string
+    """
+    return antimony_to_sbml(textwrap.dedent(antimony))
+
+
+def edit_sbml(
+    sbml: str,
+    edit: Callable[[libsbml.Model], object],
+    level: tuple[int, int] = (3, 2),
+) -> str:
+    """SBML of a model changed with libsbml, for what antimony cannot write.
+
+    Args:
+        sbml: the SBML of the model
+        edit: function which changes the model, e.g. sets a conversion factor
+        level: the level and version the document is converted to before the edit,
+            e.g. `(3, 1)` for a fast reaction, which L3V2 has no attribute for
+
+    Returns:
+        the SBML string of the changed model
+    """
+    doc: libsbml.SBMLDocument = libsbml.readSBMLFromString(sbml)
+    if (doc.getLevel(), doc.getVersion()) != level:
+        assert doc.setLevelAndVersion(*level, False)
+    edit(doc.getModel())
+    return str(libsbml.writeSBMLToString(doc))
 
 
 def import_module(path: Path) -> ModuleType:
