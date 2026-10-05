@@ -129,7 +129,8 @@ _GENERATED: dict[str, set[str]] = {
         "t_middle", "changed", "turned", "holds", "holds_now", "event_index",
         "event", "delay_time", "pending", "due", "scheduled", "ranks",
         "priority_value", "execution", "t_next", "t_stop", "max_step", "solver",
-        "solver_type", "rows", "pt", "columns",
+        "solver_type", "rows", "pt", "columns", "MAX_STEPS", "MAX_CASCADE",
+        "max_steps", "steps", "step_size", "executions",
     },
     "julia": {
         "t", "x", "p", "dx", "y", "x0", "p0",

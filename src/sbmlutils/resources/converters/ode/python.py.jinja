@@ -52,33 +52,26 @@ assignments, `event_triggers(t, x, p)` and `event_conditions(t, x, p)` their
 triggers.
 {% endif %}
 {% if options.simulator %}
-{% if events %}
-`simulate(t_end)` integrates the model with an integrator of `scipy.integrate` and
-executes its events, the file run as a script prints the head of a simulation.
-{% else %}
-`simulate(t_end)` integrates the model with `scipy.integrate.solve_ivp`, the file
-run as a script prints the head of a simulation.
-{% endif %}
+`simulate(t_end)` integrates the model with an integrator of `scipy.integrate`{% if events %} and
+executes its events{% endif %}, the file run as a script prints the head of a simulation.
 {% endif %}
 """
 
 {% if "math" in modules %}
 import math
 {% endif %}
-{% if options.simulator and events %}
+{% if options.simulator %}
 from functools import partial
 {% endif %}
-{% if "math" in modules or (options.simulator and events) %}
+{% if "math" in modules or options.simulator %}
 
 {% endif %}
 import numpy as np
 {% if options.simulator %}
 import pandas as pd
-{% if events %}
 import scipy.integrate
+{% if events %}
 from scipy.integrate import DenseOutput
-{% else %}
-from scipy.integrate import solve_ivp
 {% endif %}
 {% endif %}
 
@@ -346,6 +339,17 @@ EVENTS = [
 # the model has no events
 EVENTS = []
 {% endif %}
+{% if options.simulator %}
+
+
+# the limits of a simulation: the steps of the integrator from 0 to t_end{% if events %}, and the
+# executions of events at one time, beyond which an infinite cascade is probable{% endif %}
+
+MAX_STEPS = 100000
+{% if events %}
+MAX_CASCADE = 10000
+{% endif %}
+{% endif %}
 {% if options.simulator and events %}
 
 
@@ -406,8 +410,9 @@ def execute_events(
     2. Of the executions due, the one of the highest priority is executed (an
        event without a priority has the priority 0), ties in the order of
        `EVENTS`, which SBML leaves to chance.
-    3. The triggers are evaluated with the new states and constants, from 1,
-       until no execution is due: an event can trigger another one or drop it.
+    3. The triggers are evaluated with the new states and constants, repeating
+       from step 1 until no execution is due: an event can trigger another one or
+       drop it. More than `MAX_CASCADE` executions at one time raise.
 
     Args:
         t: the time
@@ -418,7 +423,11 @@ def execute_events(
 
     Returns:
         the states, the constants and whether each trigger holds, after the events
+
+    Raises:
+        RuntimeError: for more than `MAX_CASCADE` executions, an infinite cascade
     """
+    executions = 0
     while True:
         holds_now = event_conditions(t, x, p)
         for event_index, event in enumerate(EVENTS):
@@ -453,6 +462,12 @@ def execute_events(
             priority_value = event["priority"](t, x, p) if event["priority"] else 0.0
             ranks.append((priority_value, -scheduled["event"]))
         execution = due[ranks.index(max(ranks))]
+        executions += 1
+        if executions > MAX_CASCADE:
+            raise RuntimeError(
+                f"More than {MAX_CASCADE} events were executed at t = {t}, the "
+                "events trigger each other in an infinite cascade."
+            )
         # by identity: the values of two executions do not compare as booleans
         pending[:] = [scheduled for scheduled in pending if scheduled is not execution]
         event = EVENTS[execution["event"]]
@@ -472,6 +487,8 @@ def simulate(
     rtol: float = 1e-8,
     atol: float = 1e-10,
     method: str = "LSODA",
+    max_step: float | None = None,
+    max_steps: int = MAX_STEPS,
 ) -> pd.DataFrame:
 {% if events %}
     """Simulate the model from t = 0 to `t_end`, with its events.
@@ -481,8 +498,11 @@ def simulate(
     where a trigger changes, at the execution of a delayed event and at `t_end`;
     there the events are executed, see `execute_events`, and the integration
     restarts with the states and constants after them. A trigger is evaluated at
-    the end of every step of the integrator, which is at most the distance of the
-    time points, so that no trigger which holds for longer is stepped over.
+    the end of every step of the integrator, which is at most `max_step`, so that
+    no trigger which holds for longer is stepped over.
+{% else %}
+    """Simulate the model from t = 0 to `t_end`.
+{% endif %}
 
     Args:
         t_end: the end time
@@ -492,30 +512,49 @@ def simulate(
         rtol: the relative tolerance of the integration
         atol: the absolute tolerance of the integration
         method: the integrator, a class of `scipy.integrate`, e.g. `"BDF"`
+        max_step: the largest step of the integrator, by default the distance of
+            the time points
+        max_steps: the largest number of steps of the integrator
 
     Returns:
 {% if event_constants %}
         the time, the states, the assigned values and the constants which events
         change at the time points, at the time of an event the values after it
-{% else %}
+{% elif events %}
         the time, the states and the assigned values at the time points, at the
         time of an event the values after it
+{% else %}
+        the time, the states and the assigned values at the time points
 {% endif %}
+
+    Raises:
+        RuntimeError: if the integration fails, takes more than `max_steps` steps
+            or its step is too small to advance the time, e.g. when a state grows
+            without bound{% if events %}, and for an infinite cascade of events{% endif %}
+
     """
     x_initial, p = initial_values(p)
     x = x_initial if x0 is None else np.array(x0, dtype=float)
     times = np.linspace(0.0, t_end, points)
-    max_step = times[1] if points > 1 else np.inf
+    if max_step is None:
+        max_step = times[1] if points > 1 else np.inf
     solver_type = getattr(scipy.integrate, method)  # e.g. scipy.integrate.LSODA
     rows = []  # the states and the constants at each time point
+    steps = 0  # the steps of the integrator
 
     t = 0.0
+{% if events %}
     holds = np.array([event["initial_value"] for event in EVENTS])
     pending = []  # the scheduled executions of the events
     x, p, holds = execute_events(t, x, p, holds, pending)
+{% endif %}
     while t < t_end:
+{% if events %}
         # integrate to the next execution of a delayed event, at most to t_end
         t_stop = min([t_end, *(scheduled["time"] for scheduled in pending)])
+{% else %}
+        t_stop = t_end
+{% endif %}
 {% if not states %}
         # without states the integrator takes a single step: the time is
         # integrated in the steps the integrator takes with states
@@ -526,9 +565,22 @@ def simulate(
         )
         while True:
             solver.step()
+            steps += 1
             if solver.status == "failed":
                 raise RuntimeError(f"The integration failed: {solver.message}")
+            if steps > max_steps:
+                raise RuntimeError(
+                    f"The integration took more than {max_steps} steps, at t = "
+                    f"{solver.t}."
+                )
+            step_size = solver.t - solver.t_old
+            if solver.status == "running" and step_size <= 4 * np.spacing(solver.t):
+                raise RuntimeError(
+                    f"The step of the integration is too small to advance the time "
+                    f"at t = {solver.t}, a state may grow without bound."
+                )
             interpolant = solver.dense_output()
+{% if events %}
             changed = np.any(event_conditions(solver.t, solver.y, p) != holds)
             if changed:
                 # the integration stops at the change of a trigger
@@ -543,6 +595,15 @@ def simulate(
         t, x = t_next, interpolant(t_next)
         x, p, holds = execute_events(t, x, p, holds, pending)
     # the time points at t_end, after its events
+{% else %}
+            # the time points of the step
+            while len(rows) < points and times[len(rows)] < solver.t:
+                rows.append((interpolant(times[len(rows)]), p))
+            if solver.status == "finished":
+                break
+        t, x = solver.t, solver.y
+    # the time points at t_end
+{% endif %}
     rows.extend((x, p) for _ in range(points - len(rows)))
 
     xt = np.array([x for x, _ in rows]).reshape(points, len(XIDS))
@@ -559,46 +620,6 @@ def simulate(
     ]
     return pd.DataFrame(data, columns=columns)
 {% else %}
-    data = np.column_stack([times, xt, yt.reshape(points, len(YIDS))])
-    return pd.DataFrame(data, columns=["time", *XIDS, *YIDS])
-{% endif %}
-{% else %}
-    """Simulate the model from t = 0 to `t_end`.
-
-    Args:
-        t_end: the end time
-        points: the number of time points, 0 and `t_end` included
-        p: the constants, `P0` if not given
-        x0: the initial states, those of `initial_values` if not given
-        rtol: the relative tolerance of the integration
-        atol: the absolute tolerance of the integration
-        method: the method of `scipy.integrate.solve_ivp`
-
-    Returns:
-        the time, the states and the assigned values at the time points
-    """
-    x_initial, p = initial_values(p)
-    x0 = x_initial if x0 is None else np.array(x0, dtype=float)
-    times = np.linspace(0.0, t_end, points)
-{% if states %}
-    solution = solve_ivp(
-        f_dxdt,
-        (0.0, t_end),
-        x0,
-        method=method,
-        t_eval=times,
-        args=(p,),
-        rtol=rtol,
-        atol=atol,
-    )
-    if not solution.success:
-        raise RuntimeError(f"The integration failed: {solution.message}")
-    xt = solution.y.T
-{% else %}
-    # the model has no states
-    xt = np.zeros((points, 0))
-{% endif %}
-    yt = np.array([f_y(t, x, p) for t, x in zip(times, xt, strict=True)])
     data = np.column_stack([times, xt, yt.reshape(points, len(YIDS))])
     return pd.DataFrame(data, columns=["time", *XIDS, *YIDS])
 {% endif %}

@@ -416,9 +416,12 @@ def test_event_delay(tmp_path: Path) -> None:
         """,
         tmp_path,
     )
-    # the species falls below 5 before it is reset to 10
-    assert df["S"].min() < 5.0
-    assert df["n"].iloc[-1] >= 3
+    # S = 10 exp(-t / 2) falls below 5 at 2 ln 2 and is reset 1.5 later, from
+    # t = 4 the delay is 0.5: resets at 2.886, 4.773, 6.659 and 8.545 (roadrunner)
+    assert df["n"].iloc[-1] == 4.0
+    assert df["d"].iloc[-1] == 0.5
+    assert df["S"].iloc[-1] == pytest.approx(4.831581402482879, rel=1e-6)
+    assert df["S"].iloc[10] == pytest.approx(10.0 * np.exp(-1.0), rel=1e-6)
 
 
 def test_event_use_values_from_trigger_time(tmp_path: Path) -> None:
@@ -476,6 +479,13 @@ def test_event_changes_compartment(tmp_path: Path) -> None:
         tmp_path,
     )
     assert df["V"].iloc[-1] == 0.5
+    # the values of roadrunner: at t = 2.2 the amounts of t = 2 in the size 2, at
+    # t = 10 the amount 3 * 2 of S and the rescaled T in the size 0.5
+    row = df[np.isclose(df["time"], 2.2)].iloc[0]
+    assert row["S"] == pytest.approx(0.8025187974297124, rel=1e-6)
+    assert row["T"] == pytest.approx(0.62, rel=1e-6)
+    assert df["S"].iloc[-1] == pytest.approx(7.278367917708202, rel=1e-6)
+    assert df["T"].iloc[-1] == pytest.approx(4.1, rel=1e-6)
 
 
 def test_event_cascade(tmp_path: Path) -> None:
@@ -526,6 +536,55 @@ def test_event_model_without_states(tmp_path: Path) -> None:
     )
     assert list(df.columns) == ["time", "y", "B"]
     assert df["B"].iloc[-1] == 5.0
+
+
+def test_event_infinite_cascade_raises(tmp_path: Path) -> None:
+    """Events which trigger each other at one time without end raise.
+
+    Roadrunner fails as well: "Max number of cascaded events surpassed".
+    """
+    pytest.importorskip("scipy")
+    module = _event_module(
+        "x = -1; E0: at time > 1: x = 1; E1: at x > 0: x = -1; E2: at x < 0: x = 1",
+        tmp_path,
+    )
+    assert module.MAX_CASCADE == 10000
+    with pytest.raises(RuntimeError, match="infinite cascade"):
+        module.simulate(2.0)
+
+
+@pytest.mark.parametrize("event", ["", "; E1: at time > 5: x = 2"])
+def test_simulate_raises_for_a_state_without_bound(event: str, tmp_path: Path) -> None:
+    """A state which grows without bound raises, it does not integrate for ever.
+
+    `x' = x^2` with `x(0) = 1` is `1 / (1 - t)`, which has a pole at t = 1.
+    """
+    pytest.importorskip("scipy")
+    sbml = model_sbml(f"x = 1; x' = x^2{event}")
+    module = python_module(OdeSystem.from_sbml(sbml), tmp_path / "pole.py")
+    with pytest.raises(RuntimeError, match="too small to advance the time"):
+        module.simulate(2.0)
+
+
+def test_simulate_max_steps(tmp_path: Path) -> None:
+    """More steps of the integrator than `max_steps` raise."""
+    pytest.importorskip("scipy")
+    module = python_module(OdeSystem.from_sbml(VDP_SBML), tmp_path / "vdp.py")
+    assert module.MAX_STEPS == 100000
+    with pytest.raises(RuntimeError, match="more than 5 steps"):
+        module.simulate(10.0, max_steps=5)
+
+
+def test_simulate_max_step(tmp_path: Path) -> None:
+    """A trigger is evaluated after each step, of at most `max_step`.
+
+    The trigger holds from t = 1 to 1.5; steps of 1 evaluate it at t = 1 and t = 2
+    only, where it does not hold.
+    """
+    pytest.importorskip("scipy")
+    module = _event_module("B = 0; E1: at time > 1 && time < 1.5: B = B + 1", tmp_path)
+    assert module.simulate(4.0, 21)["B"].iloc[-1] == 1.0
+    assert module.simulate(4.0, 21, max_step=1.0)["B"].iloc[-1] == 0.0
 
 
 def test_events_without_simulator(tmp_path: Path) -> None:
