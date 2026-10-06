@@ -12,6 +12,7 @@ through a comp model which leaves the original untouched
 from __future__ import annotations
 
 import logging
+from collections.abc import Mapping
 from enum import StrEnum
 from pathlib import Path
 
@@ -385,6 +386,42 @@ class Interpolation:
         :return: SBML str
         """
         return write_sbml(self._create_sbml(), filepath=None)
+
+    def drive(
+        self,
+        source: Path | str | libsbml.SBMLDocument,
+        targets: Mapping[str, str] | None = None,
+        filepath: Path | None = None,
+    ) -> libsbml.SBMLDocument:
+        """Drive quantities of a model with the data, in place.
+
+        Every driven element gets the assignment rule of its column. A
+        parameter or a compartment becomes non constant, a species a non
+        constant boundary species, so it stays a reactant or product; the
+        data of a species is its concentration, or its amount if it has only
+        substance units. The data is in the units of the element it drives.
+        An initial assignment of a driven element is removed. x is `time` or
+        the quantity of the model named like the first column.
+
+        Args:
+            source: the model, an SBML file, an SBML string or a document,
+                which is changed and returned
+            targets: the column which drives an element, to the id of the
+                element; `None` for every column driving the element of its
+                own id
+            filepath: the file to write the driven model into, if given
+
+        Returns:
+            The document of the driven model, SBML Level and Version unchanged.
+
+        Raises:
+            ValueError: for a column which is not in the data, two columns
+                driving one element, an element which is not in the model, is
+                not a parameter, species or compartment, or is determined by a
+                rule or an event assignment already, or an x which is not in
+                the model; the document is unchanged then.
+        """
+        return _driving.drive(source, self.interpolators, self.xid, targets, filepath)
 
     def _create_sbml(self) -> libsbml.SBMLDocument:
         """Create the document of the standalone model, SBML L3V2.
