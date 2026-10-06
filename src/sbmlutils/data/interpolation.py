@@ -16,6 +16,7 @@ from enum import StrEnum
 from pathlib import Path
 
 import libsbml
+import numpy as np
 import pandas as pd
 
 from sbmlutils.io.sbml import write_sbml
@@ -73,10 +74,59 @@ INTERPOLATION_LINEAR = InterpolationMethod.LINEAR
 INTERPOLATION_CUBIC_SPLINE = InterpolationMethod.CUBIC_SPLINE
 
 
-class Interpolator:
-    """Interpolator class handles the 2D interpolation of given data series.
+def _number(value: float) -> str:
+    """Write a number exactly, in parentheses when it is negative.
 
-    Two data series and the type of interpolation are provided.
+    `repr` of a float is the shortest text which reads back as the same float,
+    so the parsed formula holds the number of the data exactly.
+    """
+    text = repr(float(value))
+    return f"({text})" if text.startswith("-") else text
+
+
+def _piecewise(pieces: list[str], otherwise: float) -> str:
+    """Write a `piecewise` of `value, condition` pieces and the value otherwise."""
+    return f"piecewise({', '.join([*pieces, _number(otherwise)])})"
+
+
+def _check_series(x: pd.Series, y: pd.Series, method: InterpolationMethod) -> None:
+    """Check that `y` can be interpolated against `x` with the method.
+
+    Raises:
+        ValueError: if a series is not numeric, has a missing or an infinite
+            value, has fewer data points than the method needs, or if `x` is
+            not strictly increasing
+    """
+    min_points = 3 if method == InterpolationMethod.CUBIC_SPLINE else 2
+    if len(x) != len(y):
+        raise ValueError(
+            f"'{x.name}' has {len(x)} values and '{y.name}' has {len(y)}, "
+            f"both need one per data point."
+        )
+    if len(x) < min_points:
+        raise ValueError(
+            f"The {method} interpolation of '{y.name}' needs at least {min_points} "
+            f"data points, the data has {len(x)}."
+        )
+    for series in (x, y):
+        if not pd.api.types.is_numeric_dtype(series) or pd.api.types.is_bool_dtype(
+            series
+        ):
+            raise ValueError(f"Column '{series.name}' is not numeric.")
+        if not np.isfinite(series.to_numpy(dtype=float)).all():
+            raise ValueError(f"Column '{series.name}' has a missing or infinite value.")
+    if not (np.diff(x.to_numpy(dtype=float)) > 0).all():
+        raise ValueError(
+            f"The values of '{x.name}' have to be strictly increasing, a value of "
+            f"x must not repeat."
+        )
+
+
+class Interpolator:
+    """The interpolation of one data series `y` against `x`.
+
+    Outside the data the first value is held before it and the last value
+    after it, for every method.
     """
 
     def __init__(
@@ -88,16 +138,19 @@ class Interpolator:
         """Initialize Interpolator.
 
         Args:
-            x: The independent variable, in ascending order.
+            x: The independent variable, strictly increasing, named as x is
+                named in the model (`time` for the simulation time).
             y: The values interpolated against x.
             method: The interpolation method.
 
         Raises:
-            ValueError: If the method is not an interpolation method.
+            ValueError: If the method is not an interpolation method or the
+                series cannot be interpolated, see `_check_series`.
         """
         self.x: pd.Series = x.reset_index(drop=True)
         self.y: pd.Series = y.reset_index(drop=True)
         self.method: InterpolationMethod = InterpolationMethod(method)
+        _check_series(self.x, self.y, self.method)
 
     def __str__(self) -> str:
         """Convert to string."""
@@ -121,42 +174,76 @@ class Interpolator:
         return str(self.y.name)
 
     def formula(self) -> str:
-        """Get formula string."""
+        """Get the formula of the interpolation as an SBML L3 formula string.
+
+        Every number is written as the `repr` of its float, so `ast` holds it
+        exactly.
+        """
         match self.method:
             case InterpolationMethod.CONSTANT:
-                return Interpolator._formula_constant(self.x, self.y)
+                return self._formula_constant()
             case InterpolationMethod.LINEAR:
-                return Interpolator._formula_linear(self.x, self.y)
+                return self._formula_linear()
             case InterpolationMethod.CUBIC_SPLINE:
-                return Interpolator._formula_cubic_spline(self.x, self.y)
+                return self._formula_cubic_spline()
 
-    @staticmethod
-    def _formula_cubic_spline(x: pd.Series, y: pd.Series) -> str:
-        """Get formula for the cubic spline.
+    def ast(self) -> libsbml.ASTNode:
+        """Get the formula as the libsbml AST the writers use.
 
-        This is more complicated and requires the coefficients
-        from the spline interpolation.
+        Raises:
+            ValueError: If libsbml cannot parse the formula, which happens
+                only for a name of x which is not an SBML id.
         """
-        # calculate spline coefficients
-        coeffs = Interpolator._natural_spline_coeffs(x, y)
-
-        # create piecewise terms
-        items: list[str] = []
-        xid = x.name
-        for k in range(len(x) - 1):
-            x1 = x.iloc[k]
-            x2 = x.iloc[k + 1]
-            (a, b, c, d) = coeffs[k]
-            formula = (
-                f"{d}*({xid}-{x1})^3 + {c}*({xid}-{x1})^2 + {b}*({xid}-{x1}) + {a}"
+        # a negative number is a number, not the unary minus of a positive one
+        settings = libsbml.L3ParserSettings()
+        settings.setParseCollapseMinus(True)
+        ast: libsbml.ASTNode | None = libsbml.parseL3FormulaWithSettings(
+            self.formula(), settings
+        )
+        if ast is None:
+            raise ValueError(
+                f"The interpolation of '{self.yid}' over '{self.xid}' cannot be "
+                f"written: {libsbml.getLastParseL3Error()}"
             )
-            condition = f"{xid} >= {x1} && {xid} <= {x2}"
-            s = f"{formula}, {condition}"
-            items.append(s)
+        return ast
 
-        # otherwise
-        items.append("0.0")
-        return "piecewise({})".format(", ".join(items))
+    def _formula_constant(self) -> str:
+        """The value of the previous data point, the first one before the data."""
+        xid = self.xid
+        pieces = [
+            f"{_number(self.y.iloc[k])}, {xid} < {_number(self.x.iloc[k + 1])}"
+            for k in range(len(self.x) - 1)
+        ]
+        return _piecewise(pieces, otherwise=self.y.iloc[-1])
+
+    def _formula_linear(self) -> str:
+        """The straight line between two data points."""
+        xid = self.xid
+        x, y = self.x, self.y
+        pieces = [f"{_number(y.iloc[0])}, {xid} < {_number(x.iloc[0])}"]
+        for k in range(len(x) - 1):
+            x1, x2 = float(x.iloc[k]), float(x.iloc[k + 1])
+            y1, y2 = float(y.iloc[k]), float(y.iloc[k + 1])
+            slope = (y2 - y1) / (x2 - x1)
+            pieces.append(
+                f"{_number(y1)} + {_number(slope)} * ({xid} - {_number(x1)}), "
+                f"{xid} < {_number(x2)}"
+            )
+        return _piecewise(pieces, otherwise=y.iloc[-1])
+
+    def _formula_cubic_spline(self) -> str:
+        """The natural cubic spline through the data points."""
+        xid = self.xid
+        x, y = self.x, self.y
+        coeffs = Interpolator._natural_spline_coeffs(x, y)
+        pieces = [f"{_number(y.iloc[0])}, {xid} < {_number(x.iloc[0])}"]
+        for k, (a, b, c, d) in enumerate(coeffs):
+            dx = f"({xid} - {_number(x.iloc[k])})"
+            pieces.append(
+                f"{_number(d)} * {dx}^3 + {_number(c)} * {dx}^2 + "
+                f"{_number(b)} * {dx} + {_number(a)}, {xid} < {_number(x.iloc[k + 1])}"
+            )
+        return _piecewise(pieces, otherwise=y.iloc[-1])
 
     @staticmethod
     def _natural_spline_coeffs(
@@ -211,58 +298,6 @@ class Interpolator:
             (a[i], b[i], c[i], d[i]) for i in range(n)
         ]
         return coeffs
-
-    @staticmethod
-    def _formula_linear(col1: pd.Series, col2: pd.Series) -> str:
-        """Linear interpolation between data points."""
-        items = []
-        xid = col1.name
-        for k in range(len(col1) - 1):
-            x1 = col1.iloc[k]
-            x2 = col1.iloc[k + 1]
-            y1 = col2.iloc[k]
-            y2 = col2.iloc[k + 1]
-            m = (y2 - y1) / (x2 - x1)
-            formula = f"{y1} + {m}*({xid}-{x1})"
-            condition = f"{xid} >= {x1} && {xid} < {x2}"
-            s = f"{formula}, {condition}"
-            items.append(s)
-        # last value after last {xid}
-        s = f"{col2.iloc[len(col1) - 1]}, {xid} >= {col1.iloc[len(col1) - 1]}"
-        items.append(s)
-        # otherwise
-        items.append("0.0")
-        return "piecewise({})".format(", ".join(items))
-
-    @staticmethod
-    def _formula_constant(col1: pd.Series, col2: pd.Series) -> str:
-        """Define constant value between data points.
-
-        Returns the piecewise formula string for the constant interpolation.
-
-        piecewise x1, y1, [x2, y2, ][...][z]
-        A piecewise function: if (y1), x1.Otherwise, if (y2), x2, etc.Otherwise, z.
-        """
-        xid = col1.name
-        items = []
-        # first value before first time
-        s = f"{col2.iloc[0]}, {xid} < {col1.iloc[0]}"
-        items.append(s)
-
-        # intermediate vales
-        for k in range(len(col1) - 1):
-            condition = f"{xid} >= {col1.iloc[k]} && {xid} < {col1.iloc[k + 1]}"
-            formula = f"{col2.iloc[k]}"
-            s = f"{formula}, {condition}"
-            items.append(s)
-
-        # last value after last {xid
-        s = f"{col2.iloc[len(col1) - 1]}, {xid} >= {col1.iloc[len(col1) - 1]}"
-        items.append(s)
-
-        # otherwise
-        items.append("0.0")
-        return "piecewise({})".format(", ".join(items))
 
 
 class Interpolation:
