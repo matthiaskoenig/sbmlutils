@@ -7,21 +7,17 @@ from collections.abc import Callable, Iterable, Iterator
 from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass
-from typing import Generic, TypeVar
 from urllib.parse import quote
 
 import libsbml
 
 logger = logging.getLogger(__name__)
 
-#: the key a loss is grouped under; constrained rather than unbounded so that
-#: the groups of a scope can be sorted for a deterministic report
-K = TypeVar("K", str, tuple[str, ...])
-#: what is collected for one key, e.g. a count with an example
-V = TypeVar("V")
 
-
-class ScopedLossCollector(Generic[K, V]):
+# `K` is the key a loss is grouped under, constrained rather than unbounded so
+# that the groups of a scope can be sorted for a deterministic report; `V` is
+# what is collected for one key, e.g. a count with an example
+class ScopedLossCollector[K: (str, tuple[str, ...]), V]:
     """Collect the losses of one document and report them once per group.
 
     Writing a document can lose the same thing over and over: an annotation

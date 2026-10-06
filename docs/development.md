@@ -19,7 +19,7 @@ A pull request can only be merged once the four required checks are green:
 
 | check   | workflow      | content                                                              |
 | ------- | ------------- | -------------------------------------------------------------------- |
-| `tests` | `ci-cd.yml`   | the test matrix, linux with python 3.11 to 3.15, macos and windows with 3.14 |
+| `tests` | `ci-cd.yml`   | the test matrix, linux with python 3.12 to 3.15, macos and windows with 3.14 |
 | `ruff`  | `ruff.yml`    | `ruff check` and `ruff format --check`                                |
 | `ty`    | `ty.yml`      | `tox r -e ty`                                                         |
 | `docs`  | `docs.yml`    | the zensical build including the api reference and the agent files    |
@@ -71,7 +71,7 @@ uv sync --extra dev
 
 The environment is resolved from `uv.lock`, which is committed, so local development, including `uv run ty check`, and the documentation build use the same versions. The tox environments, i.e. the test matrix and the `ty` check of continuous integration, resolve from `pyproject.toml` and do not use the lock; the lower bounds in `pyproject.toml` are what a user of the library installs against. After changing a dependency in `pyproject.toml` run `uv lock`: the `documentation` workflow syncs with `uv sync --locked`, which fails when `pyproject.toml` and the lock disagree. `uv lock --upgrade` moves the lock to the newest releases.
 
-The `dev` extra contains everything used below, i.e., pytest, ruff, ty, tox, pre-commit, zensical and bump-my-version, so nothing has to be installed separately. The python version is taken from `.python-version` (currently 3.14); to work against the oldest supported version instead use `uv sync --extra dev --python 3.11`, which replaces the environment.
+The `dev` extra contains everything used below, i.e., pytest, ruff, ty, tox, pre-commit, zensical and bump-my-version, so nothing has to be installed separately. The python version is taken from `.python-version` (currently 3.14); to work against the oldest supported version instead use `uv sync --extra dev --python 3.12`, which replaces the environment.
 
 The tools are then run either with `uv run <command>`, which uses the environment without activating it, or from the activated environment:
 
@@ -95,7 +95,7 @@ From now on every commit is checked with ruff (lint and format) and ty, i.e., th
 
 The tests are written with pytest, tox runs them against every supported python version.
 
-The tox environments are named after the interpreter (`py3.11` to `py3.15`, see `envlist` in `tox.ini`), a single one is run with
+The tox environments are named after the interpreter (`py3.12` to `py3.15`, see `envlist` in `tox.ini`), a single one is run with
 
 ```bash
 tox r -e py3.14
@@ -107,7 +107,7 @@ and the complete matrix, including the `ty` environment, in parallel with
 tox run-parallel
 ```
 
-This needs the interpreters to be available, which uv installs with `uv python install 3.11 3.12 3.13 3.14 3.15`. Continuous integration runs the same environments as `uvx --with tox-uv tox -e py3.15`.
+This needs the interpreters to be available, which uv installs with `uv python install 3.12 3.13 3.14 3.15`. Continuous integration runs the same environments as `uvx --with tox-uv tox -e py3.15`.
 
 What follows `--` is passed on to pytest, so a single module or test can be run in the environment of a tox run rather than against the development environment, which is what continuous integration runs:
 
@@ -124,7 +124,7 @@ Two more markers run by default and in continuous integration but can be deselec
 pytest -m "not sbml_testsuite and not slow and not network"
 ```
 
-Python 3.15 tests the core package without the `examples` extra because libroadrunner does not yet publish CPython 3.15 wheels. Tests requiring simulation skip in that environment; Python 3.11 to 3.14 still install the extra and run them. Python 3.15 uses an Intel macOS runner because uv currently provides its macOS interpreter only for Intel.
+Python 3.15 tests the core package without the `examples` extra because libroadrunner does not yet publish CPython 3.15 wheels. Tests requiring simulation skip in that environment; Python 3.12 to 3.14 still install the extra and run them. Python 3.15 uses an Intel macOS runner because uv currently provides its macOS interpreter only for Intel.
 
 The `cobra` environment is the one which installs cobrapy, the optional `cobra` extra, and runs the tests which need it, i.e., the flux balance comparison of `tests/test_package_semantics.py` and `tests/fbc/test_cobra.py`; it is pinned to python 3.14 and has a job of its own in `ci-cd.yml`, which informs and is not part of the required `tests` check.
 
@@ -134,7 +134,7 @@ tox r -e cobra
 
 Here `--` replaces those two modules, so `tox r -e cobra -- tests/fbc/test_cobra.py` runs that one.
 
-The `lowest` environment installs the oldest version of every dependency which the lower bounds in `pyproject.toml` allow (`uv_resolution = lowest-direct`, their own dependencies stay at the newest) on python 3.11 and runs the suite against it, so a lower bound is only ever raised or lowered together with a run of it. `pymetadata` requires newer releases of `rich` and `requests` than sbmlutils does, which would lift them above the bounds; `lowest-overrides.txt` therefore overrides `rich`, `requests` and `markdown-it-py` to exactly their bounds (through `UV_OVERRIDE`), and has to be kept equal to them. It runs in the test matrix of `ci-cd.yml` and is part of the required `tests` check.
+The `lowest` environment installs the oldest version of every dependency which the lower bounds in `pyproject.toml` allow (`uv_resolution = lowest-direct`, their own dependencies stay at the newest) on python 3.12 and runs the suite against it, so a lower bound is only ever raised or lowered together with a run of it. `pymetadata` requires newer releases of `rich` and `requests` than sbmlutils does, which would lift them above the bounds; `lowest-overrides.txt` therefore overrides `rich`, `requests` and `markdown-it-py` to exactly their bounds (through `UV_OVERRIDE`), and has to be kept equal to them. It runs in the test matrix of `ci-cd.yml` and is part of the required `tests` check.
 
 ```bash
 tox r -e lowest

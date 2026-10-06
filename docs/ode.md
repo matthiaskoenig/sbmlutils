@@ -4,6 +4,8 @@ An SBML model describes a system of ordinary differential equations (ODEs), but 
 
 The ODE export is the package [sbmlode](https://matthiaskoenig.github.io/sbmlode/), a dependency of sbmlutils since 0.15.0. `sbmlutils.converters.ode` re-exports its public API (`OdeSystem`, `FORMATS`, `Format`, `render`, `write`, `render_template`), and its submodules are importable under it as well (`sbmlutils.converters.ode.system` is `sbmlode.system`), so code written against sbmlutils 0.14 keeps working. New code imports sbmlode directly.
 
+sbmlutils requires sbmlode 0.2.0 or later, which writes the system in the native quantities of the SBML state variables: a species is a state in amount or in concentration as the model declares it, also in a compartment whose size changes, where the ODE of a species in concentration carries the dilution by the rate of the size. The system is never rewritten in the amounts of the species, so the `amounts` of the system and of its documents, which sbmlode 0.1.0 wrote, are gone; see the [release notes of sbmlode 0.2.0](https://github.com/matthiaskoenig/sbmlode/blob/develop/release-notes/0.2.0.md).
+
 ## Quick start
 
 ```python

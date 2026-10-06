@@ -1,6 +1,6 @@
 # Installation
 
-`sbmlutils` requires python >= 3.11 and is available from [pypi](https://pypi.python.org/pypi/sbmlutils). It is tested on Linux, macOS and Windows.
+`sbmlutils` requires python >= 3.12 and is available from [pypi](https://pypi.python.org/pypi/sbmlutils). It is tested on Linux, macOS and Windows.
 
 ## With uv
 
