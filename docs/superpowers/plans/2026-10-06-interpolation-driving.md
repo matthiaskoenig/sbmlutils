@@ -650,54 +650,55 @@ through a comp model which leaves the original untouched
 Delete the module level `notes`, `_init_sbml_model`, `add_interpolator_to_model` and the attributes `self.doc`/`self.model`. New imports: `from sbmlutils.data import _driving`, `from sbmlutils.factory import AssignmentRule, Document, Model, Package, Parameter`. Replace `_create_sbml`:
 
 ```python
-    def _create_sbml(self) -> libsbml.SBMLDocument:
-        """Create the document of the standalone model, SBML L3V2.
+def _create_sbml(self) -> libsbml.SBMLDocument:
+    """Create the document of the standalone model, SBML L3V2.
 
-        Returns:
-            The validated document.
-        """
-        doc: libsbml.SBMLDocument = Document(
-            self._standalone_model(), sbml_level=3, sbml_version=2
-        ).create_sbml()
-        validate_doc(doc, options=ValidationOptions(units_consistency=False))
-        return doc
+    Returns:
+        The validated document.
+    """
+    doc: libsbml.SBMLDocument = Document(
+        self._standalone_model(), sbml_level=3, sbml_version=2
+    ).create_sbml()
+    validate_doc(doc, options=ValidationOptions(units_consistency=False))
+    return doc
 
-    def _standalone_model(self) -> Model:
-        """The standalone model: a parameter with a port and a rule per column.
 
-        x other than `time` is a parameter with a port as well, set to the
-        first value of x, so a parent model can replace it with its quantity.
+def _standalone_model(self) -> Model:
+    """The standalone model: a parameter with a port and a rule per column.
 
-        Raises:
-            ValueError: If a column name is not an SBML id.
-        """
-        interpolators = self.interpolators
-        parameters: list[Parameter] = []
-        if self.xid != "time":
-            parameters.append(
-                Parameter(
-                    self.xid,
-                    value=float(self.data[self.xid].iloc[0]),
-                    constant=False,
-                    port=True,
-                )
+    x other than `time` is a parameter with a port as well, set to the
+    first value of x, so a parent model can replace it with its quantity.
+
+    Raises:
+        ValueError: If a column name is not an SBML id.
+    """
+    interpolators = self.interpolators
+    parameters: list[Parameter] = []
+    if self.xid != "time":
+        parameters.append(
+            Parameter(
+                self.xid,
+                value=float(self.data[self.xid].iloc[0]),
+                constant=False,
+                port=True,
             )
-        for interpolator in interpolators:
-            _driving.check_sid(interpolator.yid, "Column")
-            parameters.append(Parameter(interpolator.yid, constant=False, port=True))
-        columns = ", ".join(f"`{i.yid}`" for i in interpolators)
-        return Model(
-            sid=f"Interpolation_{self.method}".replace(" ", "_"),
-            name=f"Interpolation {self.method}",
-            notes=(
-                f"# Interpolation of data\n\nThe {self.method} interpolation of "
-                f"{columns} over `{self.xid}`, written by sbmlutils. Outside the "
-                f"data the first and the last value are held."
-            ),
-            packages=[Package.COMP_V1],
-            parameters=parameters,
-            rules=[AssignmentRule(i.yid, i.formula()) for i in interpolators],
         )
+    for interpolator in interpolators:
+        _driving.check_sid(interpolator.yid, "Column")
+        parameters.append(Parameter(interpolator.yid, constant=False, port=True))
+    columns = ", ".join(f"`{i.yid}`" for i in interpolators)
+    return Model(
+        sid=f"Interpolation_{self.method}".replace(" ", "_"),
+        name=f"Interpolation {self.method}",
+        notes=(
+            f"# Interpolation of data\n\nThe {self.method} interpolation of "
+            f"{columns} over `{self.xid}`, written by sbmlutils. Outside the "
+            f"data the first and the last value are held."
+        ),
+        packages=[Package.COMP_V1],
+        parameters=parameters,
+        rules=[AssignmentRule(i.yid, i.formula()) for i in interpolators],
+    )
 ```
 
 If `Document(...).create_sbml()` validates or logs on its own, keep its behaviour; if the factory `AssignmentRule` writes a unit onto the existing parameter, pass `unit=None`.
@@ -955,7 +956,11 @@ def test_determined_target_raises(tmp_path: Path, change: object, match: str) ->
         (TIMECOURSE[["time", "f"]], {"time": "f"}, "is x"),
         (TIMECOURSE[["time", "f"]], {"f": "missing"}, "'missing' is not an element"),
         (TIMECOURSE[["time", "f"]], {"f": "UPTAKE"}, "is a reaction"),
-        (TIMECOURSE[["time", "f", "glc_ext"]], {"f": "k", "glc_ext": "k"}, "two columns"),
+        (
+            TIMECOURSE[["time", "f", "glc_ext"]],
+            {"f": "k", "glc_ext": "k"},
+            "two columns",
+        ),
         (TIMECOURSE.rename(columns={"time": "t"})[["t", "f"]], None, "'t'"),
     ],
 )
@@ -1020,7 +1025,9 @@ def resolve_targets(
     driven: dict[str, Interpolator] = {}
     for column, target in targets.items():
         if column == xid:
-            raise ValueError(f"'{column}' is x of the interpolation, it drives nothing.")
+            raise ValueError(
+                f"'{column}' is x of the interpolation, it drives nothing."
+            )
         if column not in by_column:
             raise ValueError(
                 f"The data has no column '{column}', its columns are "
@@ -1110,7 +1117,9 @@ def check_model(
     elements: dict[str, Target] = {}
     for target in driven:
         if target == xid:
-            raise ValueError(f"'{target}' is x of the interpolation, it cannot be driven.")
+            raise ValueError(
+                f"'{target}' is x of the interpolation, it cannot be driven."
+            )
         element = _find_target(model, target)
         determined = _determined_by(model, target)
         if determined is not None:
@@ -1433,9 +1442,7 @@ def test_comp_equals_in_place(tmp_path: Path, scenario: str, embed: bool) -> Non
     r_in_place = roadrunner.RoadRunner(str(in_place))
     r_flat = roadrunner.RoadRunner(str(flat))
     s_in_place = r_in_place.simulate(0, 6, 13, selections=["time", "glc", "glc_ext"])
-    s_flat = r_flat.simulate(
-        0, 6, 13, selections=["time", "uptake__glc", "glc_ext"]
-    )
+    s_flat = r_flat.simulate(0, 6, 13, selections=["time", "uptake__glc", "glc_ext"])
     np.testing.assert_allclose(s_flat, s_in_place, rtol=1e-6, atol=1e-9)
 ```
 
@@ -1687,7 +1694,9 @@ def drive_comp(
     check(submodel.setModelRef(mid), f"Set the modelRef '{mid}'")
     for metaid in deletions:
         deletion: libsbml.Deletion = submodel.createDeletion()
-        check(deletion.setMetaIdRef(metaid), f"Delete the initial assignment '{metaid}'")
+        check(
+            deletion.setMetaIdRef(metaid), f"Delete the initial assignment '{metaid}'"
+        )
 
     # the targets replace the elements of the original, compartments first,
     # so that a driven compartment is the compartment of a driven species
@@ -1701,9 +1710,9 @@ def drive_comp(
         _set_reference(replaced, mid, _reference(model, target))
         write_interpolation(top, target, driven[target])
     # the compartment of a driven species, and x, read the original
-    readers = [
-        s.getCompartment() for s in top.getListOfSpecies()
-    ] + ([xid] if xid != "time" else [])
+    readers = [s.getCompartment() for s in top.getListOfSpecies()] + (
+        [xid] if xid != "time" else []
+    )
     for sid in readers:
         if top.getElementBySId(sid) is not None:
             continue
@@ -1836,9 +1845,7 @@ def test_assignment_rules_in_model(tmp_path: Path) -> None:
     roadrunner = pytest.importorskip("roadrunner")
     model = uptake_model()
     model.parameters[1].constant = False
-    model.rules = Interpolation(DATA, method="linear").assignment_rules(
-        {"f_data": "f"}
-    )
+    model.rules = Interpolation(DATA, method="linear").assignment_rules({"f_data": "f"})
     path = write_model(model, tmp_path / "uptake.xml")
     r = roadrunner.RoadRunner(str(path))
     s = r.simulate(0, 4, 3, selections=["time", "f"])
