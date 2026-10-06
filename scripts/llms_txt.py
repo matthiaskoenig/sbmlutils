@@ -11,7 +11,7 @@ the [llms.txt convention](https://llmstxt.org/) into the built site:
 The pages of the API reference only contain mkdocstrings directives
 (`::: sbmlutils.factory`), their markdown is generated from the docstrings of the
 modules with `inspect`, i.e., the same source the html is rendered from. A snippet
-of `pymdownx.snippets` (`--8<-- "images/ode/repressilator.py"`) is replaced by the
+of `pymdownx.snippets` (`--8<-- "path/in/docs.md"`) is replaced by the
 file it includes, as in the html.
 
 Run it after `zensical build`:

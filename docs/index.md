@@ -25,7 +25,7 @@ Around this core the package collects the tasks which come with SBML models: val
 - **[COMBINE archives](omex.md)** - models packaged as OMEX archives through [pymetadata](https://github.com/matthiaskoenig/pymetadata).
 - **[Reports](reports.md)** - the complete content of a model as JSON, the basis of the reports on [sbml4humans.de](https://sbml4humans.de).
 - **[Converters](converters.md)** - XPP/XPPAUT `.ode` files to SBML, antimony in both directions, and the ids of a model written into its names for COPASI.
-- **[ODE export](ode.md)** - the system of ordinary differential equations of a model as code which simulates it (python, julia, R), verified against libroadrunner over the SBML test suite, and as a document which describes it (typst, LaTeX, markdown).
+- **[ODE export](ode.md)** - the system of ordinary differential equations of a model as code which simulates it (python, julia, R) and as a document which describes it (typst, LaTeX, markdown), by the package [sbmlode](https://matthiaskoenig.github.io/sbmlode/).
 - **[Interpolation](interpolation.md)** - a table of data points as an SBML model, with constant, linear and cubic spline interpolation.
 - **[Visualization](visualization.md)** - models rendered as a network in [Cytoscape](https://cytoscape.org).
 

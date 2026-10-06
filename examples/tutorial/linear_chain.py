@@ -7,8 +7,9 @@ with string patterns. In this example we create a kinetic model of a linear chai
 
 from pathlib import Path
 
+from sbmlode import OdeSystem
+
 from examples import templates
-from sbmlutils.converters.ode import OdeSystem
 from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.factory import *
 from sbmlutils.validation import ValidationOptions

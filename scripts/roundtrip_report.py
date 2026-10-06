@@ -29,7 +29,6 @@ import shutil
 import sys
 import time
 from collections import Counter, defaultdict
-from collections.abc import Sequence
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -50,39 +49,24 @@ from test_roundtrip import (  # noqa: E402
 TMP_DIR: Path = ROOT / ".roundtrip_tmp"
 
 
-#: the worker of `run_case_isolated`, which round trips a case
-WORKER: Path = ROOT / "tests" / "test_roundtrip.py"
-
-
-def run_case(
-    sbml_path: Path,
-    timeout: float,
-    tmp_dir: Path | None = None,
-    worker: Path = WORKER,
-    arguments: Sequence[str] = (),
-) -> tuple[str, CaseResult]:
+def run_case(sbml_path: Path, timeout: float) -> tuple[str, CaseResult]:
     """Run a single case in a process of its own.
 
     Args:
         sbml_path: path of the SBML file of the case
         timeout: seconds after which the case is killed
-        tmp_dir: the scratch directory, which the directory of the case is made
-            in, `TMP_DIR` if `None`
-        worker: the worker of `run_case_isolated`, e.g. that of the ODE export of
-            `scripts/ode_report.py`
-        arguments: further arguments of the worker
 
     Returns:
         the case id and its result
     """
     case = sbml_path.name[:5]
-    case_dir = (TMP_DIR if tmp_dir is None else tmp_dir) / case
+    case_dir = TMP_DIR / case
     shutil.rmtree(case_dir, ignore_errors=True)
     if case in NONDETERMINISTIC:
         return case, CaseResult(Outcome.NOT_DETERMINISTIC, "", NONDETERMINISTIC[case])
 
     case_dir.mkdir(parents=True)
-    return case, run_case_isolated(sbml_path, case_dir, timeout, worker, arguments)
+    return case, run_case_isolated(sbml_path, case_dir, timeout=timeout)
 
 
 def reason_of(detail: str) -> str:
