@@ -4,17 +4,17 @@ An SBML model is a description, not a program. The converters turn it into somet
 
 ## SBML to an ODE system
 
-`sbmlutils.converters.ode` writes the system of ordinary differential equations of a model as code which simulates it, in python, julia and R, and as a document which describes it, in typst, LaTeX and markdown:
+The package [sbmlode](https://matthiaskoenig.github.io/sbmlode/), which `sbmlutils.converters.ode` re-exports, writes the system of ordinary differential equations of a model as code which simulates it, in python, julia and R, and as a document which describes it, in typst, LaTeX and markdown:
 
 ```python
-from sbmlutils.converters.ode import OdeSystem
+from sbmlode import OdeSystem
 
 system = OdeSystem.from_sbml("model.xml")
 system.write("model.py")
 system.write("model.typ")
 ```
 
-The numerical code reproduces libroadrunner over the SBML test suite, events included. See [ODE export](ode.md) for the formats, their options, the supported SBML and how to run the code.
+The numerical code reproduces libroadrunner over the SBML test suite, events included. See [ODE export](ode.md) and the [documentation of sbmlode](https://matthiaskoenig.github.io/sbmlode/) for the formats, their options, the supported SBML and how to run the code.
 
 ## XPP to SBML
 

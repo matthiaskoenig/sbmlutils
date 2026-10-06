@@ -35,7 +35,7 @@ Conversion of a model into another representation, see [Converters](../converter
 
 | module | description |
 | --- | --- |
-| [converters.ode](converters.ode.md) | the ODE system as python, julia or R code and as a typst, LaTeX or markdown document |
+| [converters.ode](converters.ode.md) | the ODE export, a re-export of the package sbmlode |
 | [converters.xpp](converters.xpp.md) | XPP/XPPAUT ode files to SBML |
 | [converters.copasi](converters.copasi.md) | ids written into the names for COPASI |
 
