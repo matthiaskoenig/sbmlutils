@@ -1,58 +1,31 @@
-"""Create files for interpolation of datasets.
+"""Interpolation of data points, as a model of its own or driving a model.
 
-https://github.com/allyhume/SBMLDataTools
-https://github.com/allyhume/SBMLDataTools.git
-
-TODO: fix composition with existing models
-TODO: support coupling with existing models via comp
-The functionality is very useful, but only if this can be applied to existing
-models in a simple manner.
+A table of data points becomes assignment rules which evaluate a constant,
+linear or natural cubic spline interpolation of every column against the
+first. The rules make a standalone model (`Interpolation.write_sbml_to_file`),
+drive the quantities of an existing model in place (`Interpolation.drive`) or
+through a comp model which leaves the original untouched
+(`Interpolation.drive_comp`), or go into a model definition of the factory
+(`Interpolation.assignment_rules`). See the guide `docs/interpolation.md`.
 """
 
 from __future__ import annotations
 
 import logging
+from collections.abc import Mapping
 from enum import StrEnum
 from pathlib import Path
 
 import libsbml
+import numpy as np
 import pandas as pd
 
+from sbmlutils.data import _driving
+from sbmlutils.factory import AssignmentRule, Document, Model, Package, Parameter
 from sbmlutils.io.sbml import write_sbml
-from sbmlutils.validation import ValidationOptions, check, validate_doc
+from sbmlutils.validation import ValidationOptions, validate_doc
 
 logger = logging.getLogger(__name__)
-
-
-notes = libsbml.XMLNode.convertStringToXMLNode(
-    """
-    <body xmlns='http://www.w3.org/1999/xhtml'>
-    <h1>Data interpolator</h1>
-    <h2>Description</h2>
-    <p>This is a SBML submodel for interpolation of spreadsheet data.</p>
-
-    <div class="dc:publisher">This file has been produced by
-      <a href="https://livermetabolism.com/contact.html" title="Matthias Koenig" target="_blank">Matthias Koenig</a>.
-      </div>
-
-    <h2>Terms of use</h2>
-      <div class="dc:rightsHolder">Copyright © 2016-2020 sbmlutils.</div>
-      <div class="dc:license">
-      <p>Redistribution and use of any part of this model, with or without modification, are permitted provided that
-      the following conditions are met:
-        <ol>
-          <li>Redistributions of this SBML file must retain the above copyright notice, this list of conditions
-              and the following disclaimer.</li>
-          <li>Redistributions in a different form must reproduce the above copyright notice, this list of
-              conditions and the following disclaimer in the documentation and/or other materials provided
-          with the distribution.</li>
-        </ol>
-        This model is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
-             the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>
-      </div>
-    </body>
-"""
-)
 
 
 class InterpolationMethod(StrEnum):
@@ -73,10 +46,67 @@ INTERPOLATION_LINEAR = InterpolationMethod.LINEAR
 INTERPOLATION_CUBIC_SPLINE = InterpolationMethod.CUBIC_SPLINE
 
 
-class Interpolator:
-    """Interpolator class handles the 2D interpolation of given data series.
+def _number(value: float) -> str:
+    """Write a number exactly, in parentheses when it is negative.
 
-    Two data series and the type of interpolation are provided.
+    `repr` of a float is the shortest text which reads back as the same float,
+    so the parsed formula holds the number of the data exactly.
+    """
+    text = repr(float(value))
+    return f"({text})" if text.startswith("-") else text
+
+
+def _piecewise(pieces: list[str], otherwise: float) -> str:
+    """Write a `piecewise` of `value, condition` pieces and the value otherwise."""
+    return f"piecewise({', '.join([*pieces, _number(otherwise)])})"
+
+
+def _check_numbers(series: pd.Series) -> None:
+    """Check that a column holds numbers, all of them finite.
+
+    Raises:
+        ValueError: if the column is not numeric or has a missing or an
+            infinite value
+    """
+    if not pd.api.types.is_numeric_dtype(series) or pd.api.types.is_bool_dtype(series):
+        raise ValueError(f"Column '{series.name}' is not numeric.")
+    if not np.isfinite(series.to_numpy(dtype=float)).all():
+        raise ValueError(f"Column '{series.name}' has a missing or infinite value.")
+
+
+def _check_series(x: pd.Series, y: pd.Series, method: InterpolationMethod) -> None:
+    """Check that `y` can be interpolated against `x` with the method.
+
+    Raises:
+        ValueError: if a series is not numeric, has a missing or an infinite
+            value, has fewer data points than the method needs, or if `x` is
+            not strictly increasing
+    """
+    min_points = 3 if method == InterpolationMethod.CUBIC_SPLINE else 2
+    if len(x) != len(y):
+        raise ValueError(
+            f"'{x.name}' has {len(x)} values and '{y.name}' has {len(y)}, "
+            f"both need one per data point."
+        )
+    if len(x) < min_points:
+        raise ValueError(
+            f"The {method} interpolation of '{y.name}' needs at least {min_points} "
+            f"data points, the data has {len(x)}."
+        )
+    for series in (x, y):
+        _check_numbers(series)
+    if not (np.diff(x.to_numpy(dtype=float)) > 0).all():
+        raise ValueError(
+            f"The values of '{x.name}' have to be strictly increasing, a value of "
+            f"x must not repeat."
+        )
+
+
+class Interpolator:
+    """The interpolation of one data series `y` against `x`.
+
+    Outside the data the first value is held before it and the last value
+    after it, for every method.
     """
 
     def __init__(
@@ -88,16 +118,19 @@ class Interpolator:
         """Initialize Interpolator.
 
         Args:
-            x: The independent variable, in ascending order.
+            x: The independent variable, strictly increasing, named as x is
+                named in the model (`time` for the simulation time).
             y: The values interpolated against x.
             method: The interpolation method.
 
         Raises:
-            ValueError: If the method is not an interpolation method.
+            ValueError: If the method is not an interpolation method or the
+                series cannot be interpolated, see `_check_series`.
         """
         self.x: pd.Series = x.reset_index(drop=True)
         self.y: pd.Series = y.reset_index(drop=True)
         self.method: InterpolationMethod = InterpolationMethod(method)
+        _check_series(self.x, self.y, self.method)
 
     def __str__(self) -> str:
         """Convert to string."""
@@ -121,42 +154,76 @@ class Interpolator:
         return str(self.y.name)
 
     def formula(self) -> str:
-        """Get formula string."""
+        """Get the formula of the interpolation as an SBML L3 formula string.
+
+        Every number is written as the `repr` of its float, so `ast` holds it
+        exactly.
+        """
         match self.method:
             case InterpolationMethod.CONSTANT:
-                return Interpolator._formula_constant(self.x, self.y)
+                return self._formula_constant()
             case InterpolationMethod.LINEAR:
-                return Interpolator._formula_linear(self.x, self.y)
+                return self._formula_linear()
             case InterpolationMethod.CUBIC_SPLINE:
-                return Interpolator._formula_cubic_spline(self.x, self.y)
+                return self._formula_cubic_spline()
 
-    @staticmethod
-    def _formula_cubic_spline(x: pd.Series, y: pd.Series) -> str:
-        """Get formula for the cubic spline.
+    def ast(self) -> libsbml.ASTNode:
+        """Get the formula as the libsbml AST the writers use.
 
-        This is more complicated and requires the coefficients
-        from the spline interpolation.
+        Raises:
+            ValueError: If libsbml cannot parse the formula, which happens
+                only for a name of x which is not an SBML id.
         """
-        # calculate spline coefficients
-        coeffs = Interpolator._natural_spline_coeffs(x, y)
-
-        # create piecewise terms
-        items: list[str] = []
-        xid = x.name
-        for k in range(len(x) - 1):
-            x1 = x.iloc[k]
-            x2 = x.iloc[k + 1]
-            (a, b, c, d) = coeffs[k]
-            formula = (
-                f"{d}*({xid}-{x1})^3 + {c}*({xid}-{x1})^2 + {b}*({xid}-{x1}) + {a}"
+        # a negative number is a number, not the unary minus of a positive one
+        settings = libsbml.L3ParserSettings()
+        settings.setParseCollapseMinus(True)
+        ast: libsbml.ASTNode | None = libsbml.parseL3FormulaWithSettings(
+            self.formula(), settings
+        )
+        if ast is None:
+            raise ValueError(
+                f"The interpolation of '{self.yid}' over '{self.xid}' cannot be "
+                f"written: {libsbml.getLastParseL3Error()}"
             )
-            condition = f"{xid} >= {x1} && {xid} <= {x2}"
-            s = f"{formula}, {condition}"
-            items.append(s)
+        return ast
 
-        # otherwise
-        items.append("0.0")
-        return "piecewise({})".format(", ".join(items))
+    def _formula_constant(self) -> str:
+        """The value of the previous data point, the first one before the data."""
+        xid = self.xid
+        pieces = [
+            f"{_number(self.y.iloc[k])}, {xid} < {_number(self.x.iloc[k + 1])}"
+            for k in range(len(self.x) - 1)
+        ]
+        return _piecewise(pieces, otherwise=self.y.iloc[-1])
+
+    def _formula_linear(self) -> str:
+        """The straight line between two data points."""
+        xid = self.xid
+        x, y = self.x, self.y
+        pieces = [f"{_number(y.iloc[0])}, {xid} < {_number(x.iloc[0])}"]
+        for k in range(len(x) - 1):
+            x1, x2 = float(x.iloc[k]), float(x.iloc[k + 1])
+            y1, y2 = float(y.iloc[k]), float(y.iloc[k + 1])
+            slope = (y2 - y1) / (x2 - x1)
+            pieces.append(
+                f"{_number(y1)} + {_number(slope)} * ({xid} - {_number(x1)}), "
+                f"{xid} < {_number(x2)}"
+            )
+        return _piecewise(pieces, otherwise=y.iloc[-1])
+
+    def _formula_cubic_spline(self) -> str:
+        """The natural cubic spline through the data points."""
+        xid = self.xid
+        x, y = self.x, self.y
+        coeffs = Interpolator._natural_spline_coeffs(x, y)
+        pieces = [f"{_number(y.iloc[0])}, {xid} < {_number(x.iloc[0])}"]
+        for k, (a, b, c, d) in enumerate(coeffs):
+            dx = f"({xid} - {_number(x.iloc[k])})"
+            pieces.append(
+                f"{_number(d)} * {dx}^3 + {_number(c)} * {dx}^2 + "
+                f"{_number(b)} * {dx} + {_number(a)}, {xid} < {_number(x.iloc[k + 1])}"
+            )
+        return _piecewise(pieces, otherwise=y.iloc[-1])
 
     @staticmethod
     def _natural_spline_coeffs(
@@ -212,63 +279,13 @@ class Interpolator:
         ]
         return coeffs
 
-    @staticmethod
-    def _formula_linear(col1: pd.Series, col2: pd.Series) -> str:
-        """Linear interpolation between data points."""
-        items = []
-        xid = col1.name
-        for k in range(len(col1) - 1):
-            x1 = col1.iloc[k]
-            x2 = col1.iloc[k + 1]
-            y1 = col2.iloc[k]
-            y2 = col2.iloc[k + 1]
-            m = (y2 - y1) / (x2 - x1)
-            formula = f"{y1} + {m}*({xid}-{x1})"
-            condition = f"{xid} >= {x1} && {xid} < {x2}"
-            s = f"{formula}, {condition}"
-            items.append(s)
-        # last value after last {xid}
-        s = f"{col2.iloc[len(col1) - 1]}, {xid} >= {col1.iloc[len(col1) - 1]}"
-        items.append(s)
-        # otherwise
-        items.append("0.0")
-        return "piecewise({})".format(", ".join(items))
-
-    @staticmethod
-    def _formula_constant(col1: pd.Series, col2: pd.Series) -> str:
-        """Define constant value between data points.
-
-        Returns the piecewise formula string for the constant interpolation.
-
-        piecewise x1, y1, [x2, y2, ][...][z]
-        A piecewise function: if (y1), x1.Otherwise, if (y2), x2, etc.Otherwise, z.
-        """
-        xid = col1.name
-        items = []
-        # first value before first time
-        s = f"{col2.iloc[0]}, {xid} < {col1.iloc[0]}"
-        items.append(s)
-
-        # intermediate vales
-        for k in range(len(col1) - 1):
-            condition = f"{xid} >= {col1.iloc[k]} && {xid} < {col1.iloc[k + 1]}"
-            formula = f"{col2.iloc[k]}"
-            s = f"{formula}, {condition}"
-            items.append(s)
-
-        # last value after last {xid
-        s = f"{col2.iloc[len(col1) - 1]}, {xid} >= {col1.iloc[len(col1) - 1]}"
-        items.append(s)
-
-        # otherwise
-        items.append("0.0")
-        return "piecewise({})".format(", ".join(items))
-
 
 class Interpolation:
-    """Create SBML model which interpolates the given data.
+    """The interpolation of a table of data points.
 
-    The second to last components are interpolated against the first component.
+    The first column is x, every other column is interpolated against it.
+    `time` as x is the simulation time, any other name the quantity of the
+    model of that id.
     """
 
     def __init__(
@@ -278,58 +295,89 @@ class Interpolation:
     ):
         """Initialize Interpolation.
 
+        Args:
+            data: The data points, x in the first column.
+            method: The interpolation method of every column.
+
         Raises:
-            ValueError: If the method is not an interpolation method.
+            ValueError: If the method is not an interpolation method or the
+                data cannot be interpolated, see `validate_data`.
         """
-        self.doc: libsbml.SBMLDocument | None = None
-        self.model: libsbml.Model | None = None
         self.data: pd.DataFrame = data
         self.method: InterpolationMethod = InterpolationMethod(method)
-        self.interpolators: list[Interpolator] = []
-
         self.validate_data()
 
     def validate_data(self) -> None:
-        """Validate the input data.
+        """Validate the data, and sort it by x if it is not ascending.
 
-        * The data is expected to have at least 2 columns.
-        * The data is expected to have at least three data rows.
-        * The first column should be in ascending order.
-
-        :return:
-        :rtype:
+        Raises:
+            ValueError: If the data has fewer than 2 columns, a column name
+                which is not a string or which repeats, a first column whose
+                name is not an SBML id, or a column which cannot be
+                interpolated (see `Interpolator`).
         """
-        # more than 1 column required
-        if len(self.data.columns) < 2:
+        columns = list(self.data.columns)
+        if len(columns) < 2:
+            raise ValueError(
+                f"The data needs at least 2 columns, x and a column to "
+                f"interpolate, it has {len(columns)}."
+            )
+        not_str = [c for c in columns if not isinstance(c, str)]
+        if not_str:
+            raise ValueError(
+                f"The column names have to be strings, {not_str!r} are not; "
+                f"read the data with its header."
+            )
+        repeated = sorted({c for c in columns if columns.count(c) > 1})
+        if repeated:
+            raise ValueError(f"The columns {repeated!r} are in the data twice.")
+        if not libsbml.SyntaxChecker.isValidSBMLSId(self.xid):
+            raise ValueError(
+                f"The first column is x and names it in the model, '{self.xid}' "
+                f"is not an SBML id."
+            )
+        x = self.data[self.xid]
+        # numbers first, text in x cannot be sorted
+        _check_numbers(x)
+        if not pd.Index(x).is_monotonic_increasing:
             logger.warning(
-                "Interpolation data has <2 columns. At least 2 columns required."
+                "The data is sorted by its first column '%s', which is not ascending.",
+                self.xid,
             )
+            self.data = self.data.sort_values(by=self.xid).reset_index(drop=True)
+        # the interpolators check every column
+        self.interpolators  # noqa: B018
 
-        # at least 3 rows required
-        if len(self.data) < 3:
-            logger.warning("Interpolation data <3 rows. At least 3 rows required.")
+    @property
+    def xid(self) -> str:
+        """The name of x, the first column."""
+        return str(self.data.columns[0])
 
-        # first column has to be ascending (times)
-        def is_sorted(df: pd.DataFrame, colname: str) -> bool:
-            return bool(pd.Index(df[colname]).is_monotonic_increasing)
-
-        if not is_sorted(self.data, colname=self.data.columns[0]):
-            logger.warning("First column should contain ascending values.")
-            self.data = self.data.sort_values(by=self.data.columns[0]).reset_index(
-                drop=True
-            )
+    @property
+    def interpolators(self) -> list[Interpolator]:
+        """The interpolators of the columns after the first, in column order."""
+        x = self.data[self.xid]
+        return [
+            Interpolator(x=x, y=self.data[column], method=self.method)
+            for column in self.data.columns[1:]
+        ]
 
     @staticmethod
     def from_csv(
-        csv_file: Path | str, method: str = "linear", sep: str = ","
+        csv_file: Path | str,
+        method: InterpolationMethod | str = InterpolationMethod.LINEAR,
+        sep: str = ",",
     ) -> Interpolation:
-        """Interpolation object from csv file."""
+        """Interpolation of the data of a csv file, x in the first column."""
         data: pd.DataFrame = pd.read_csv(csv_file, sep=sep)
         return Interpolation(data=data, method=method)
 
     @staticmethod
-    def from_tsv(tsv_file: Path | str, method: str = "linear") -> Interpolation:
-        """Interpolate object from tsv file."""
+    def from_tsv(
+        tsv_file: Path | str,
+        method: InterpolationMethod | str = InterpolationMethod.LINEAR,
+    ) -> Interpolation:
+        """Interpolation of the data of a tsv file, x in the first column."""
         return Interpolation.from_csv(csv_file=tsv_file, method=method, sep="\t")
 
     # --- SBML & Interpolation --------------------
@@ -349,112 +397,162 @@ class Interpolation:
         """
         return write_sbml(self._create_sbml(), filepath=None)
 
-    def _create_sbml(self) -> libsbml.SBMLDocument:
-        """Create the SBMLDocument.
+    def drive(
+        self,
+        source: Path | str | libsbml.SBMLDocument,
+        targets: Mapping[str, str] | None = None,
+        filepath: Path | None = None,
+    ) -> libsbml.SBMLDocument:
+        """Drive quantities of a model with the data, in place.
+
+        Every driven element gets the assignment rule of its column. A
+        parameter or a compartment becomes non constant, a species a non
+        constant boundary species, so it stays a reactant or product; the
+        data of a species is its concentration, or its amount if it has only
+        substance units. The data is in the units of the element it drives.
+        An initial assignment of a driven element is removed. x is `time` or
+        the quantity of the model named like the first column.
+
+        Args:
+            source: the model, an SBML file, an SBML string or a document,
+                which is changed and returned
+            targets: the column which drives an element, to the id of the
+                element; `None` for every column driving the element of its
+                own id
+            filepath: the file to write the driven model into, if given
 
         Returns:
-            The document with the interpolation model.
-        """
-        doc, model = self._init_sbml_model()
-        self.interpolators = Interpolation.create_interpolators(self.data, self.method)
-        for interpolator in self.interpolators:
-            Interpolation.add_interpolator_to_model(interpolator, model)
+            The document of the driven model, SBML Level and Version unchanged.
 
-        # validation of SBML document
+        Raises:
+            ValueError: for a column which is not in the data, two columns
+                driving one element, an element which is not in the model, is
+                not a parameter, species or compartment, or is determined by a
+                rule or an event assignment already, or an x which is not in
+                the model; the document is unchanged then.
+        """
+        return _driving.drive(source, self.interpolators, self.xid, targets, filepath)
+
+    def drive_comp(
+        self,
+        source: Path | str | libsbml.SBMLDocument,
+        targets: Mapping[str, str] | None = None,
+        filepath: Path | None = None,
+        embed: bool = False,
+    ) -> libsbml.SBMLDocument:
+        """Drive quantities of a model with the data through a comp model.
+
+        The comp document has the original as the submodel `<model id>` of
+        the top model `<model id>_driven`, which holds the interpolation. A
+        driven element is replaced by an element of its class in the top
+        model, which the assignment rule of its column determines; a species
+        keeps its compartment, which reads the compartment of the original,
+        and x other than `time` reads the quantity of the original. After
+        flattening the elements of the original are named `<model id>__<id>`,
+        the driven elements and x keep their ids, and the model simulates as
+        the one of `drive`. An original without an id is named `model`, or
+        `model_1`, ... if one of its elements is `model`. The data is in the
+        units of the element it drives, the top model takes over the units of
+        the original. With `embed=True` a model with fbc content is copied
+        without its `fbc:strict`, which libsbml cannot write on a model
+        definition.
+
+        Args:
+            source: the model, an SBML Level 3 file, or with `embed=True` also
+                an SBML string or a document; it is never changed
+            targets: the column which drives an element, to the id of the
+                element; `None` for every column driving the element of its
+                own id
+            filepath: the file to write the comp model into, if given; the
+                reference to the original is relative to its directory
+            embed: copy the original into the comp document as a model
+                definition instead of referencing its file
+
+        Returns:
+            The comp document.
+
+        Raises:
+            ValueError: as `drive`, and for an original which is not SBML
+                Level 3, a string or a document without `embed=True`, a
+                hierarchical original with `embed=True`, or an initial
+                assignment of a driven element without a metaid.
+        """
+        return _driving.drive_comp(
+            source, self.interpolators, self.xid, targets, filepath, embed
+        )
+
+    def assignment_rules(
+        self, targets: Mapping[str, str] | None = None
+    ) -> list[AssignmentRule]:
+        """The interpolation as assignment rules of a model definition.
+
+        A model definition of `sbmlutils.factory` takes them with
+        `model.rules += interpolation.assignment_rules(...)`; it declares the
+        driven elements itself, non constant and with their units.
+
+        Args:
+            targets: the column which drives an element, to the id of the
+                element; `None` for every column driving the element of its
+                own id
+
+        Returns:
+            One `AssignmentRule` per driven element.
+
+        Raises:
+            ValueError: for a column which is not in the data, two columns
+                driving one element or a target which is not an SBML id.
+        """
+        driven = _driving.resolve_targets(self.interpolators, self.xid, targets)
+        return [
+            AssignmentRule(target, interpolator.formula())
+            for target, interpolator in driven.items()
+        ]
+
+    def _create_sbml(self) -> libsbml.SBMLDocument:
+        """Create the document of the standalone model, SBML L3V2.
+
+        Returns:
+            The validated document.
+        """
+        doc: libsbml.SBMLDocument = Document(
+            self._standalone_model(), sbml_level=3, sbml_version=2
+        ).create_sbml()
         validate_doc(doc, options=ValidationOptions(units_consistency=False))
         return doc
 
-    def _init_sbml_model(self) -> tuple[libsbml.SBMLDocument, libsbml.Model]:
-        """Create and initialize the SBML model.
+    def _standalone_model(self) -> Model:
+        """The standalone model: a parameter with a port and a rule per column.
 
-        Returns:
-            The document and its model.
+        x other than `time` is a parameter with a port as well, set to the
+        first value of x, so a parent model can replace it with its quantity.
+
+        Raises:
+            ValueError: If a column name is not an SBML id.
         """
-        # FIXME: support arbitrary levels and versions
-        sbmlns = libsbml.SBMLNamespaces(3, 1)
-        sbmlns.addPackageNamespace("comp", 1)
-        doc: libsbml.SBMLDocument = libsbml.SBMLDocument(sbmlns)
-        doc.setPackageRequired("comp", True)
-        self.doc = doc
-        model: libsbml.Model = doc.createModel()
-
-        model.setNotes(notes)
-        # the method can contain spaces ("cubic spline"), which an SId does not allow
-        model_id = f"Interpolation_{self.method}".replace(" ", "_")
-        check(model.setId(model_id), f"set model id '{model_id}'")
-        model.setName(f"Interpolation_{self.method}")
-        self.model = model
-        return doc, model
-
-    @staticmethod
-    def create_interpolators(
-        data: pd.DataFrame, method: InterpolationMethod | str
-    ) -> list[Interpolator]:
-        """Create all interpolators for the given data set.
-
-        The columns 1, ... (Ncol-1) are interpolated against
-        column 0.
-        """
-        interpolators: list[Interpolator] = []
-        columns = data.columns
-        x = data[columns[0]]
-        for k in range(1, len(columns)):
-            interpolator = Interpolator(x=x, y=data[columns[k]], method=method)
-            interpolators.append(interpolator)
-        return interpolators
-
-    @staticmethod
-    def add_interpolator_to_model(
-        interpolator: Interpolator, model: libsbml.Model
-    ) -> None:
-        """Add interpolator to model.
-
-        The parameters, formulas and rules have to be added to the SBML model.
-
-        :param interpolator:
-        :param model: Model
-        :return:
-        """
-        # FIXME: use the sbmlutils structure for addition
-
-        # add xid if needed
-        xid = interpolator.xid
-        xobj = model.getElementBySId(xid)
-        # the time of the simulation is the csymbol, it must not be shadowed by a parameter
-        if not xobj and xid != "time":
-            px: libsbml.Parameter = model.createParameter()
-            px.setId(xid)
-            px.setName(xid)
-            px.setConstant(True)
-            px.setValue(interpolator.x.values[0])
-
-        # create parameter
-        pid = interpolator.yid
-
-        # if parameter exists remove it
-        if model.getParameter(pid):
-            logger.warning("Model contains parameter: %s. Parameter is removed.", pid)
-            model.removeParameter(pid)
-
-        # if assignment rule exists remove it
-        for rule in model.getListOfRules():
-            if rule.isAssignment() and rule.getVariable() == pid:
-                model.removeRule(rule)
-                break
-
-        p = model.createParameter()
-        p.setId(pid)
-        p.setName(pid)
-        p.setConstant(False)
-
-        # create rule
-        rule = model.createAssignmentRule()
-        rule.setVariable(pid)
-        formula = interpolator.formula()
-        ast_node = libsbml.parseL3FormulaWithModel(formula, model)
-        if ast_node is None:
-            logger.warning(libsbml.getLastParseL3Error())
-        else:
-            rule.setMath(ast_node)
-
-            # TODO: add ports for connection with other model
+        interpolators = self.interpolators
+        parameters: list[Parameter] = []
+        if self.xid != "time":
+            parameters.append(
+                Parameter(
+                    self.xid,
+                    value=float(self.data[self.xid].iloc[0]),
+                    constant=False,
+                    port=True,
+                )
+            )
+        for interpolator in interpolators:
+            _driving.check_sid(interpolator.yid, "Column")
+            parameters.append(Parameter(interpolator.yid, constant=False, port=True))
+        columns = ", ".join(f"`{i.yid}`" for i in interpolators)
+        return Model(
+            sid=f"Interpolation_{self.method}".replace(" ", "_"),
+            name=f"Interpolation {self.method}",
+            notes=(
+                f"# Interpolation of data\n\nThe {self.method} interpolation of "
+                f"{columns} over `{self.xid}`, written by sbmlutils. Outside the "
+                f"data the first and the last value are held."
+            ),
+            packages=[Package.COMP_V1],
+            parameters=parameters,
+            rules=[AssignmentRule(i.yid, i.formula()) for i in interpolators],
+        )

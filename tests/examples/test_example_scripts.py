@@ -24,6 +24,7 @@ SCRIPTS = [
     "examples.converters.xpp",
     "examples.distrib.distrib_packages_examples",
     "examples.distrib.distrib_uncertainty",
+    "examples.interpolation.driving",
     "examples.interpolation.interpolation",
     "examples.interpolation.pancreas",
     "examples.merge_models.merge_models",
@@ -36,6 +37,7 @@ def test_example_script(module: str, tmp_path: Path) -> None:
     """Every example runs without an error and writes into the working directory."""
     if module in {
         "examples.converters.xpp",
+        "examples.interpolation.driving",
         "examples.interpolation.interpolation",
         "examples.interpolation.pancreas",
         "examples.tiny.simulation",
