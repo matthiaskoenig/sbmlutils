@@ -245,3 +245,60 @@ def test_unsorted_data_is_sorted_with_warning(caplog: pytest.LogCaptureFixture) 
     interpolation = ip.Interpolation(data=data, method="linear")
     assert list(interpolation.data["time"]) == x
     assert "ascending" in caplog.text
+
+
+def _standalone(method: str, data: pd.DataFrame = data1) -> libsbml.Model:
+    """The model of the standalone SBML of an interpolation."""
+    sbml = ip.Interpolation(data=data, method=method).write_sbml_to_string()
+    assert sbml is not None
+    doc = libsbml.readSBMLFromString(sbml)
+    assert doc.getNumErrors(libsbml.LIBSBML_SEV_ERROR) == 0
+    return doc.getModel()
+
+
+@pytest.mark.parametrize("method", METHODS)
+def test_standalone_model(method: str) -> None:
+    """L3V2, a non constant parameter with a port per column, a rule each."""
+    model = _standalone(method)
+    assert (model.getLevel(), model.getVersion()) == (3, 2)
+    ports = {p.getIdRef() for p in model.getPlugin("comp").getListOfPorts()}
+    assert ports == {"y", "z"}
+    for sid in ("y", "z"):
+        assert not model.getParameter(sid).getConstant()
+        assert model.getAssignmentRuleByVariable(sid) is not None
+    assert "sbmlutils" in model.getNotesString()
+    assert "Copyright" not in model.getNotesString()
+
+
+def test_standalone_model_with_x_quantity() -> None:
+    """A quantity as x is a parameter with a port, which a parent replaces."""
+    data = data1.rename(columns={"time": "glc"})
+    model = _standalone("linear", data)
+    x_parameter = model.getParameter("glc")
+    assert x_parameter.getValue() == 0.0
+    ports = {p.getIdRef() for p in model.getPlugin("comp").getListOfPorts()}
+    assert ports == {"glc", "y", "z"}
+
+
+def test_standalone_column_not_sid_raises() -> None:
+    """A column whose name is used as an id has to be an SBML id."""
+    data = data1.rename(columns={"y": "y [mM]"})
+    with pytest.raises(ValueError, match="'y \\[mM\\]' is not an SBML id"):
+        ip.Interpolation(data=data).write_sbml_to_string()
+
+
+@pytest.mark.parametrize("method", METHODS)
+def test_standalone_holds_end_values(method: str) -> None:
+    """Simulated beyond the data, the last value is held."""
+    roadrunner = pytest.importorskip("roadrunner")
+    sbml = ip.Interpolation(data=data1, method=method).write_sbml_to_string()
+    r = roadrunner.RoadRunner(sbml)
+    s = r.simulate(0, 10, 11, selections=["time", "y", "z"])
+    assert s["y"][-1] == pytest.approx(3.5)
+    assert s["z"][-1] == pytest.approx(0.3)
+
+
+def test_add_interpolator_to_model_is_removed() -> None:
+    """The function which deleted a parameter of the same id is gone."""
+    assert not hasattr(ip.Interpolation, "add_interpolator_to_model")
+    assert not hasattr(ip.Interpolation, "create_interpolators")

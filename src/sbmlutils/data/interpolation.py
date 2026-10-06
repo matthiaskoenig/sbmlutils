@@ -1,12 +1,12 @@
-"""Create files for interpolation of datasets.
+"""Interpolation of data points, as a model of its own or driving a model.
 
-https://github.com/allyhume/SBMLDataTools
-https://github.com/allyhume/SBMLDataTools.git
-
-TODO: fix composition with existing models
-TODO: support coupling with existing models via comp
-The functionality is very useful, but only if this can be applied to existing
-models in a simple manner.
+A table of data points becomes assignment rules which evaluate a constant,
+linear or natural cubic spline interpolation of every column against the
+first. The rules make a standalone model (`Interpolation.write_sbml_to_file`),
+drive the quantities of an existing model in place (`Interpolation.drive`) or
+through a comp model which leaves the original untouched
+(`Interpolation.drive_comp`), or go into a model definition of the factory
+(`Interpolation.assignment_rules`). See the guide `docs/interpolation.md`.
 """
 
 from __future__ import annotations
@@ -19,41 +19,12 @@ import libsbml
 import numpy as np
 import pandas as pd
 
+from sbmlutils.data import _driving
+from sbmlutils.factory import AssignmentRule, Document, Model, Package, Parameter
 from sbmlutils.io.sbml import write_sbml
-from sbmlutils.validation import ValidationOptions, check, validate_doc
+from sbmlutils.validation import ValidationOptions, validate_doc
 
 logger = logging.getLogger(__name__)
-
-
-notes = libsbml.XMLNode.convertStringToXMLNode(
-    """
-    <body xmlns='http://www.w3.org/1999/xhtml'>
-    <h1>Data interpolator</h1>
-    <h2>Description</h2>
-    <p>This is a SBML submodel for interpolation of spreadsheet data.</p>
-
-    <div class="dc:publisher">This file has been produced by
-      <a href="https://livermetabolism.com/contact.html" title="Matthias Koenig" target="_blank">Matthias Koenig</a>.
-      </div>
-
-    <h2>Terms of use</h2>
-      <div class="dc:rightsHolder">Copyright © 2016-2020 sbmlutils.</div>
-      <div class="dc:license">
-      <p>Redistribution and use of any part of this model, with or without modification, are permitted provided that
-      the following conditions are met:
-        <ol>
-          <li>Redistributions of this SBML file must retain the above copyright notice, this list of conditions
-              and the following disclaimer.</li>
-          <li>Redistributions in a different form must reproduce the above copyright notice, this list of
-              conditions and the following disclaimer in the documentation and/or other materials provided
-          with the distribution.</li>
-        </ol>
-        This model is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
-             the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>
-      </div>
-    </body>
-"""
-)
 
 
 class InterpolationMethod(StrEnum):
@@ -323,8 +294,6 @@ class Interpolation:
             ValueError: If the method is not an interpolation method or the
                 data cannot be interpolated, see `validate_data`.
         """
-        self.doc: libsbml.SBMLDocument | None = None
-        self.model: libsbml.Model | None = None
         self.data: pd.DataFrame = data
         self.method: InterpolationMethod = InterpolationMethod(method)
         self.validate_data()
@@ -418,93 +387,50 @@ class Interpolation:
         return write_sbml(self._create_sbml(), filepath=None)
 
     def _create_sbml(self) -> libsbml.SBMLDocument:
-        """Create the SBMLDocument.
+        """Create the document of the standalone model, SBML L3V2.
 
         Returns:
-            The document with the interpolation model.
+            The validated document.
         """
-        doc, model = self._init_sbml_model()
-        for interpolator in self.interpolators:
-            Interpolation.add_interpolator_to_model(interpolator, model)
-
-        # validation of SBML document
+        doc: libsbml.SBMLDocument = Document(
+            self._standalone_model(), sbml_level=3, sbml_version=2
+        ).create_sbml()
         validate_doc(doc, options=ValidationOptions(units_consistency=False))
         return doc
 
-    def _init_sbml_model(self) -> tuple[libsbml.SBMLDocument, libsbml.Model]:
-        """Create and initialize the SBML model.
+    def _standalone_model(self) -> Model:
+        """The standalone model: a parameter with a port and a rule per column.
 
-        Returns:
-            The document and its model.
+        x other than `time` is a parameter with a port as well, set to the
+        first value of x, so a parent model can replace it with its quantity.
+
+        Raises:
+            ValueError: If a column name is not an SBML id.
         """
-        # FIXME: support arbitrary levels and versions
-        sbmlns = libsbml.SBMLNamespaces(3, 1)
-        sbmlns.addPackageNamespace("comp", 1)
-        doc: libsbml.SBMLDocument = libsbml.SBMLDocument(sbmlns)
-        doc.setPackageRequired("comp", True)
-        self.doc = doc
-        model: libsbml.Model = doc.createModel()
-
-        model.setNotes(notes)
-        # the method can contain spaces ("cubic spline"), which an SId does not allow
-        model_id = f"Interpolation_{self.method}".replace(" ", "_")
-        check(model.setId(model_id), f"set model id '{model_id}'")
-        model.setName(f"Interpolation_{self.method}")
-        self.model = model
-        return doc, model
-
-    @staticmethod
-    def add_interpolator_to_model(
-        interpolator: Interpolator, model: libsbml.Model
-    ) -> None:
-        """Add interpolator to model.
-
-        The parameters, formulas and rules have to be added to the SBML model.
-
-        :param interpolator:
-        :param model: Model
-        :return:
-        """
-        # FIXME: use the sbmlutils structure for addition
-
-        # add xid if needed
-        xid = interpolator.xid
-        xobj = model.getElementBySId(xid)
-        # the time of the simulation is the csymbol, it must not be shadowed by a parameter
-        if not xobj and xid != "time":
-            px: libsbml.Parameter = model.createParameter()
-            px.setId(xid)
-            px.setName(xid)
-            px.setConstant(True)
-            px.setValue(interpolator.x.values[0])
-
-        # create parameter
-        pid = interpolator.yid
-
-        # if parameter exists remove it
-        if model.getParameter(pid):
-            logger.warning("Model contains parameter: %s. Parameter is removed.", pid)
-            model.removeParameter(pid)
-
-        # if assignment rule exists remove it
-        for rule in model.getListOfRules():
-            if rule.isAssignment() and rule.getVariable() == pid:
-                model.removeRule(rule)
-                break
-
-        p = model.createParameter()
-        p.setId(pid)
-        p.setName(pid)
-        p.setConstant(False)
-
-        # create rule
-        rule = model.createAssignmentRule()
-        rule.setVariable(pid)
-        formula = interpolator.formula()
-        ast_node = libsbml.parseL3FormulaWithModel(formula, model)
-        if ast_node is None:
-            logger.warning(libsbml.getLastParseL3Error())
-        else:
-            rule.setMath(ast_node)
-
-            # TODO: add ports for connection with other model
+        interpolators = self.interpolators
+        parameters: list[Parameter] = []
+        if self.xid != "time":
+            parameters.append(
+                Parameter(
+                    self.xid,
+                    value=float(self.data[self.xid].iloc[0]),
+                    constant=False,
+                    port=True,
+                )
+            )
+        for interpolator in interpolators:
+            _driving.check_sid(interpolator.yid, "Column")
+            parameters.append(Parameter(interpolator.yid, constant=False, port=True))
+        columns = ", ".join(f"`{i.yid}`" for i in interpolators)
+        return Model(
+            sid=f"Interpolation_{self.method}".replace(" ", "_"),
+            name=f"Interpolation {self.method}",
+            notes=(
+                f"# Interpolation of data\n\nThe {self.method} interpolation of "
+                f"{columns} over `{self.xid}`, written by sbmlutils. Outside the "
+                f"data the first and the last value are held."
+            ),
+            packages=[Package.COMP_V1],
+            parameters=parameters,
+            rules=[AssignmentRule(i.yid, i.formula()) for i in interpolators],
+        )
