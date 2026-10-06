@@ -1,5 +1,6 @@
 """Driving a model through a comp model with interpolated data."""
 
+import os
 from pathlib import Path
 
 import libsbml
@@ -10,7 +11,8 @@ from interpolation_models import uptake_model, write_model
 
 from sbmlutils.comp import flatten_sbml
 from sbmlutils.data.interpolation import Interpolation
-from sbmlutils.factory import InitialAssignment
+from sbmlutils.factory import InitialAssignment, Objective, Package, Parameter
+from sbmlutils.io import read_sbml
 
 TIMECOURSE = pd.DataFrame(
     {
@@ -196,3 +198,78 @@ def test_comp_equals_in_place(tmp_path: Path, scenario: str, embed: bool) -> Non
         0, 6, 13, selections=["time", *[_flat_id(flat_model, sid) for sid in ids]]
     )
     np.testing.assert_allclose(s_flat, s_in_place, rtol=1e-6, atol=1e-9)
+
+
+def test_embed_fbc_model_is_readable(tmp_path: Path) -> None:
+    """An embedded model with fbc is written once per attribute and flattens."""
+    model = uptake_model()
+    model.packages = [Package.FBC_V2]
+    model.objectives = [
+        Objective("obj", objectiveType="maximize", fluxObjectives={"UPTAKE": 1.0})
+    ]
+    path = write_model(model, tmp_path / "uptake.xml")
+    comp = tmp_path / "driven.xml"
+    _interpolation("f").drive_comp(path, filepath=comp, embed=True)
+    doc = read_sbml(comp)
+    # libsbml cannot write `fbc:strict` on a model definition, see `_embed`
+    doc.checkConsistency()
+    errors = {
+        doc.getError(k).getErrorId()
+        for k in range(doc.getNumErrors())
+        if doc.getError(k).getSeverity() >= libsbml.LIBSBML_SEV_ERROR
+    }
+    assert errors <= {2020209}
+    definition = doc.getPlugin("comp").getModelDefinition("uptake")
+    assert definition.getPlugin("fbc").getNumObjectives() == 1
+    assert definition.getNumReactions() == 2
+
+
+def test_embed_keeps_ports(tmp_path: Path) -> None:
+    """An embedded model keeps its ports, the references go through them."""
+    model = uptake_model()
+    model.parameters[1].port = True
+    path = write_model(model, tmp_path / "uptake.xml")
+    comp = tmp_path / "driven.xml"
+    doc = _interpolation("f").drive_comp(path, filepath=comp, embed=True)
+    definition = doc.getPlugin("comp").getModelDefinition("uptake")
+    assert definition.getPlugin("comp").getPort("f_port") is not None
+    assert _errors(read_sbml(comp)) == []
+    assert flatten_sbml(comp, tmp_path / "flat.xml").getModel() is not None
+
+
+@pytest.mark.parametrize("embed", [False, True])
+def test_submodel_id_equal_to_element_id(tmp_path: Path, embed: bool) -> None:
+    """A model without an id is named by an id none of its elements has.
+
+    The submodel and the model definition are named after the model, and the
+    placeholders of the top model take the ids of its elements.
+    """
+    model = uptake_model()
+    model.parameters.append(Parameter("model", 1.0))
+    path = write_model(model, tmp_path / "uptake.xml")
+    doc = libsbml.readSBMLFromFile(str(path))
+    doc.getModel().unsetId()
+    libsbml.writeSBMLToFile(doc, str(path))
+    data = pd.DataFrame({"time": [0.0, 1.0], "model": [1.0, 2.0]})
+    comp = tmp_path / "driven.xml"
+    driven = Interpolation(data).drive_comp(path, filepath=comp, embed=embed)
+    assert _errors(driven) == []
+    submodel = driven.getModel().getPlugin("comp").getSubmodel(0)
+    assert submodel.getId() == "model_1"
+    assert driven.getModel().getId() == "model_1_driven"
+    assert flatten_sbml(comp, tmp_path / "flat.xml").getModel() is not None
+
+
+def test_reference_on_other_drive_is_absolute(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """On Windows a file on another drive has no relative path, it is absolute."""
+
+    def relpath(path: str, start: str) -> str:
+        raise ValueError(f"path is on mount 'C:', start on mount 'D:': {path} {start}")
+
+    monkeypatch.setattr(os.path, "relpath", relpath)
+    path = write_model(uptake_model(), tmp_path / "uptake.xml")
+    doc = _interpolation("f").drive_comp(path, filepath=tmp_path / "driven.xml")
+    emd = doc.getPlugin("comp").getExternalModelDefinition("uptake")
+    assert Path(emd.getSource()) == path.resolve()

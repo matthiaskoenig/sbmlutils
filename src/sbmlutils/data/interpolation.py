@@ -61,6 +61,19 @@ def _piecewise(pieces: list[str], otherwise: float) -> str:
     return f"piecewise({', '.join([*pieces, _number(otherwise)])})"
 
 
+def _check_numbers(series: pd.Series) -> None:
+    """Check that a column holds numbers, all of them finite.
+
+    Raises:
+        ValueError: if the column is not numeric or has a missing or an
+            infinite value
+    """
+    if not pd.api.types.is_numeric_dtype(series) or pd.api.types.is_bool_dtype(series):
+        raise ValueError(f"Column '{series.name}' is not numeric.")
+    if not np.isfinite(series.to_numpy(dtype=float)).all():
+        raise ValueError(f"Column '{series.name}' has a missing or infinite value.")
+
+
 def _check_series(x: pd.Series, y: pd.Series, method: InterpolationMethod) -> None:
     """Check that `y` can be interpolated against `x` with the method.
 
@@ -81,12 +94,7 @@ def _check_series(x: pd.Series, y: pd.Series, method: InterpolationMethod) -> No
             f"data points, the data has {len(x)}."
         )
     for series in (x, y):
-        if not pd.api.types.is_numeric_dtype(series) or pd.api.types.is_bool_dtype(
-            series
-        ):
-            raise ValueError(f"Column '{series.name}' is not numeric.")
-        if not np.isfinite(series.to_numpy(dtype=float)).all():
-            raise ValueError(f"Column '{series.name}' has a missing or infinite value.")
+        _check_numbers(series)
     if not (np.diff(x.to_numpy(dtype=float)) > 0).all():
         raise ValueError(
             f"The values of '{x.name}' have to be strictly increasing, a value of "
@@ -329,6 +337,8 @@ class Interpolation:
                 f"is not an SBML id."
             )
         x = self.data[self.xid]
+        # numbers first, text in x cannot be sorted
+        _check_numbers(x)
         if not pd.Index(x).is_monotonic_increasing:
             logger.warning(
                 "The data is sorted by its first column '%s', which is not ascending.",
@@ -440,8 +450,12 @@ class Interpolation:
         and x other than `time` reads the quantity of the original. After
         flattening the elements of the original are named `<model id>__<id>`,
         the driven elements and x keep their ids, and the model simulates as
-        the one of `drive`. The data is in the units of the element it
-        drives, the top model takes over the units of the original.
+        the one of `drive`. An original without an id is named `model`, or
+        `model_1`, ... if one of its elements is `model`. The data is in the
+        units of the element it drives, the top model takes over the units of
+        the original. With `embed=True` a model with fbc content is copied
+        without its `fbc:strict`, which libsbml cannot write on a model
+        definition.
 
         Args:
             source: the model, an SBML Level 3 file, or with `embed=True` also

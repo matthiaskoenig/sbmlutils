@@ -399,6 +399,52 @@ def _copy_units(top: libsbml.Model, model: libsbml.Model) -> None:
             check(top.addUnitDefinition(definition), f"Copy the unit '{uid}'")
 
 
+def _free_id(sid: str, taken: set[str]) -> str:
+    """`sid`, or `sid_1`, `sid_2`, ... if it is taken."""
+    candidate = sid
+    k = 0
+    while candidate in taken:
+        k += 1
+        candidate = f"{sid}_{k}"
+    return candidate
+
+
+def _embed(
+    doc_plugin: libsbml.CompSBMLDocumentPlugin, model: libsbml.Model, mid: str
+) -> None:
+    """Copy the original into the comp document as the model definition `mid`.
+
+    The model definition is created empty, with the plugins of the packages
+    of the document, and filled by `Model.appendFrom`, which copies the
+    content of the model and of its packages; its attributes and its ports
+    are copied here. The copy constructor `libsbml.ModelDefinition(model)`
+    crashes the validation for a model without the comp plugin.
+
+    `fbc:strict` is not copied, `appendFrom` does not copy it either:
+    libsbml 5.21.2 writes it twice on a `<comp:modelDefinition>`, into a file
+    which cannot be read back, see `ModelDefinition` of `sbmlutils.factory`.
+    A model definition with fbc content therefore carries the libsbml error
+    2020209, as one written by the factory does.
+    """
+    definition: libsbml.ModelDefinition = doc_plugin.createModelDefinition()
+    check(definition.setId(mid), f"Set the id of the model definition '{mid}'")
+    check(definition.appendFrom(model), "Copy the original into the definition")
+    for name in ("Name", "MetaId", "SBOTerm", "ConversionFactor", *_MODEL_UNITS):
+        if getattr(model, f"isSet{name}")():
+            value = getattr(model, f"get{name}")()
+            check(getattr(definition, f"set{name}")(value), f"Copy the model {name}")
+    if model.isSetNotes():
+        check(definition.setNotes(model.getNotes()), "Copy the notes")
+    if model.isSetAnnotation():
+        check(definition.setAnnotation(model.getAnnotation()), "Copy the annotation")
+    source_comp: libsbml.CompModelPlugin | None = model.getPlugin("comp")
+    if source_comp is not None:
+        target_comp: libsbml.CompModelPlugin = definition.getPlugin("comp")
+        port: libsbml.Port
+        for port in source_comp.getListOfPorts():
+            check(target_comp.addPort(port), f"Copy the port '{port.getId()}'")
+
+
 def drive_comp(
     source: Path | str | libsbml.SBMLDocument,
     interpolators: Sequence[Interpolator],
@@ -433,21 +479,17 @@ def drive_comp(
     elements = check_model(model, driven, xid)
     deletions = _deletions(model, driven)
 
-    mid = model.getId() or "model"
+    # the placeholders of the top model take the ids of the original, the
+    # submodel and the model definition are named after the original, so a
+    # name for an original without an id must be none of its ids
+    taken: set[str] = {
+        element.getId() for element in model.getListOfAllElements() if element.isSetId()
+    }
+    mid = model.getId() or _free_id("model", taken)
     doc = _comp_document(original, embed)
     doc_plugin: libsbml.CompSBMLDocumentPlugin = doc.getPlugin("comp")
     if embed:
-        # a model definition copied from a model without the comp plugin
-        # crashes libsbml when the document is validated, so the original is
-        # copied with comp enabled
-        copy: libsbml.SBMLDocument = original.clone()
-        check(
-            copy.enablePackage(libsbml.CompExtension.getXmlnsL3V1V1(), "comp", True),
-            "Enable comp on the copy of the original",
-        )
-        definition = libsbml.ModelDefinition(copy.getModel())
-        check(definition.setId(mid), f"Set the id of the model definition '{mid}'")
-        check(doc_plugin.addModelDefinition(definition), "Embed the original")
+        _embed(doc_plugin, model, mid)
     else:
         if source_path is None:
             raise RuntimeError("A referenced original has a file.")
@@ -456,7 +498,11 @@ def drive_comp(
         )
         if filepath is not None:
             out = Path(filepath).resolve()
-            reference = Path(os.path.relpath(source_path, out.parent)).as_posix()
+            try:
+                reference = Path(os.path.relpath(source_path, out.parent)).as_posix()
+            except ValueError:
+                # on Windows a file on another drive has no relative path
+                reference = source_path.as_posix()
             # libsbml resolves `comp:source` against the location of the document
             doc.setLocationURI(f"file:{out}")
         else:
@@ -467,7 +513,8 @@ def drive_comp(
             check(emd.setModelRef(model.getId()), "Set the modelRef")
 
     top: libsbml.Model = doc.createModel()
-    check(top.setId(f"{mid}_driven"), "Set the id of the top model")
+    top_id = _free_id(f"{mid}_driven", taken)
+    check(top.setId(top_id), f"Set the id of the top model '{top_id}'")
     top_plugin: libsbml.CompModelPlugin = top.getPlugin("comp")
     submodel: libsbml.Submodel = top_plugin.createSubmodel()
     check(submodel.setId(mid), f"Set the submodel '{mid}'")

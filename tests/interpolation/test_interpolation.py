@@ -302,3 +302,12 @@ def test_add_interpolator_to_model_is_removed() -> None:
     """The function which deleted a parameter of the same id is gone."""
     assert not hasattr(ip.Interpolation, "add_interpolator_to_model")
     assert not hasattr(ip.Interpolation, "create_interpolators")
+
+
+def test_mixed_type_x_raises(caplog: pytest.LogCaptureFixture) -> None:
+    """A first column with text is refused as not numeric, before it is sorted."""
+    for x_values in (["min", 0.0, 1.0], ["min", "0.0", "1.0"]):
+        data = pd.DataFrame({"time": x_values, "y": [0.0, 1.0, 2.0]})
+        with pytest.raises(ValueError, match="'time' is not numeric"):
+            ip.Interpolation(data=data, method="linear")
+    assert "sorted" not in caplog.text
