@@ -811,11 +811,14 @@ class InitialAssignment(Value):
         return obj
 
 
-#: the libsbml rule a `RuleWithVariable` creates
+#: the libsbml rule a `RuleWithVariable` creates; a `TypeVar` of the module rather
+#: than a type parameter of the class, because this module postpones its
+#: annotations and `typing.get_type_hints` resolves the annotation of a method in
+#: the namespace of the module, where a type parameter does not exist
 _VariableRuleT = TypeVar("_VariableRuleT", libsbml.AssignmentRule, libsbml.RateRule)
 
 
-class RuleWithVariable(ValueWithUnit, Generic[_VariableRuleT]):
+class RuleWithVariable(ValueWithUnit, Generic[_VariableRuleT]):  # noqa: UP046
     """Base of the rules which determine a variable, `AssignmentRule` and `RateRule`.
 
     The unit attribute is only for the case where a parameter must be created

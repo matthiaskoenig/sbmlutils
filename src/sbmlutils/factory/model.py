@@ -22,6 +22,7 @@ from typing import (
     TYPE_CHECKING,
     Any,
     ClassVar,
+    TypeAliasType,
     TypedDict,
     Union,
     get_args,
@@ -1309,9 +1310,9 @@ def _model_field_kind(annotation: object) -> type | None:
 
     `merge_models` concatenates a `list`-valued field of the merged models
     and overwrites every other field with the value of the last model that
-    sets it. An annotation is list-valued when it is, once `| None` /
-    `Optional[...]` is stripped, the bare `list`, a
-    subscripted `list[X]`, or a subscripted `Sequence[X]`. `Model.annotations`
+    sets it. An annotation is list-valued when it is, once a `type` alias is
+    resolved to its value and `| None` / `Optional[...]` is stripped, the bare
+    `list`, a subscripted `list[X]`, or a subscripted `Sequence[X]`. `Model.annotations`
     is declared `AnnotationsType` (`Sequence[AnnotationType]`, see its
     definition in `sbmlutils.factory._core`), not `list[...]`, because it accepts any
     sequence but `Sbase.__init__` always stores it as a list, so `Sequence` is
@@ -1332,6 +1333,10 @@ def _model_field_kind(annotation: object) -> type | None:
             annotation shape nobody has taught this function about fails
             loudly at import instead of silently being classified as scalar
     """
+    if isinstance(annotation, TypeAliasType):
+        # `typing.get_type_hints` leaves a `type` alias unresolved, and its
+        # origin is `None`, which would classify every alias as a scalar
+        return _model_field_kind(annotation.__value__)
     origin = get_origin(annotation)
     if origin is Union or origin is UnionType:
         members = [arg for arg in get_args(annotation) if arg is not type(None)]
@@ -1363,9 +1368,10 @@ def _derive_model_keys() -> dict[str, Any]:
     elements at its top. One of those forward references is
     `ModelDefinition`, which subclasses `Model` and is therefore defined
     between the class body and this call, so they cannot be resolved while
-    `Model`'s own class body is still executing. A type alias the fields use
-    is resolved in the same namespace, which is why the aliases of
-    `sbmlutils.factory._core` are values rather than strings.
+    `Model`'s own class body is still executing. A `type` alias the fields
+    use is left unresolved by `typing.get_type_hints`, `_model_field_kind`
+    evaluates its value, lazily and in the namespace of the module which
+    defines it.
 
     Every field `Model` declares in its own class body (not one inherited
     from `Sbase` or `FrozenClass`) is classified by `_model_field_kind`;

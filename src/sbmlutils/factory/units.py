@@ -10,7 +10,7 @@ from __future__ import annotations
 import inspect
 import logging
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Any, ClassVar, Literal, TypeAlias
+from typing import TYPE_CHECKING, Any, ClassVar, Literal
 
 import libsbml
 import numpy as np
@@ -36,7 +36,7 @@ Q_ = ureg.Quantity
 ureg.define("item = 1 dimensionless")
 
 
-UnitType: TypeAlias = "UnitDefinition | str | None"
+type UnitType = UnitDefinition | str | None
 
 
 class ModelUnits:

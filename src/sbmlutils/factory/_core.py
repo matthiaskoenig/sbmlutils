@@ -13,7 +13,7 @@ from collections.abc import Iterator, Sequence
 from contextlib import AbstractContextManager, contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, ClassVar, Literal, TypeAlias
+from typing import TYPE_CHECKING, Any, ClassVar, Literal
 
 import libsbml
 
@@ -694,16 +694,16 @@ def _set_math(sbase: Any, math: str | None, model: libsbml.Model) -> None:
         check(sbase.setMath(ast_node), f"Set math '{math}' on {sbase.getElementName()}")
 
 
-# The aliases are evaluated rather than written as strings: `typing.get_type_hints`
-# resolves a string alias in the namespace of the module which uses it, and
-# `_derive_model_keys` resolves the fields of `Model` in `sbmlutils.factory.model`.
+# The aliases are `type` statements: their values are evaluated lazily and in the
+# namespace of this module, wherever an alias is used, so `typing.get_type_hints`
+# never resolves them in the namespace of another module.
 
 #: an annotation is either a full RDF annotation or a `(qualifier, resource)` tuple
-AnnotationType: TypeAlias = Annotation | tuple[BQB | BQM, str]
+type AnnotationType = Annotation | tuple[BQB | BQM, str]
 #: annotations are accepted as any sequence, an `Sbase` stores them as a list, so
 #: that annotations can be appended after the object was created
-AnnotationsType: TypeAlias = Sequence[AnnotationType]
-OptionalAnnotationsType: TypeAlias = Sequence[AnnotationType] | None
+type AnnotationsType = Sequence[AnnotationType]
+type OptionalAnnotationsType = Sequence[AnnotationType] | None
 
 
 def set_notes(
