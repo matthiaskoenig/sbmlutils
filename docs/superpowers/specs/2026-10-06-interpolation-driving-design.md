@@ -24,7 +24,7 @@ Success: an existing SBML model (any file, e.g. from BioModels) is driven by a t
 
 `_write_interpolation(model, target, interpolator)` writes one data column as an assignment rule on the element `target` of a `libsbml.Model`. Standalone, in place and comp all go through it; it never creates or removes the target, its caller prepares it.
 
-`Interpolator.formula()` keeps its name and returns the formula as an L3 string; the formula is built as a libsbml AST (`Interpolator.ast()`), not by formatting strings, so the parsing of a formatted string cannot fail and every number is written exactly (`repr` of the float).
+`Interpolator.formula()` keeps its name and returns the formula as an L3 string, every number written as the `repr` of its float, and `Interpolator.ast()` parses it once into the libsbml AST which the writers use; parsing cannot fail, x and the numbers are the only tokens and x is checked to be an SId. The AST holds every number exactly, the MathML libsbml writes keeps 15 significant digits of it (a limit of libsbml, not of the interpolation).
 
 - constant: `piecewise(y0, x < x1, y1, x < x2, ..., yn)`, the value of the previous data point, `y0` before the data
 - linear: `piecewise(y0, x < x0, y0 + m0*(x - x0), x < x1, ..., yn)`, `yn` after the data
@@ -89,7 +89,8 @@ def drive_comp(
 
 A new comp document (L3V1, or L3V2 when the original is L3V2) whose top model `<model id>_driven` has the original as the submodel `<model id>` and holds the assignment rules of the interpolation. After flattening the elements of the original are named `<model id>__<id>`, the replaced targets and x keep their ids.
 
-- The original is referenced by an `ExternalModelDefinition`, so it is never touched. Its `source` is relative to the directory of `filepath`, so the two files can be moved together, and absolute when nothing is written. A string or a document has no file to reference and raises a `ValueError` unless `embed=True`.
+- The original has to be SBML Level 3, comp is a Level 3 package; a Level 2 original raises a `ValueError` which names the conversion to Level 3 (`drive` in place supports Level 2).
+- The original is referenced by an `ExternalModelDefinition`, so it is never touched. Its `source` is relative to the directory of `filepath`, so the two files can be moved together, and absolute when nothing is written; the location of the document is set to `filepath`, so the reference resolves for the document in memory as well. A string or a document has no file to reference and raises a `ValueError` unless `embed=True`.
 - `embed=True` copies the model of the original into the document as a `ModelDefinition` and enables the packages the original document declares. A model which itself has comp content (submodels or model definitions) cannot be embedded and raises a `ValueError`; it is referenced externally.
 - comp requires a replacement to have the SBML class of the element it replaces, except that anything with mathematical meaning may replace a parameter (rule comp-21201). The top model therefore holds a placeholder of the class of every target, which replaces the target of the original (`comp:replacedElement`):
   - parameter target: a parameter
