@@ -423,6 +423,50 @@ class Interpolation:
         """
         return _driving.drive(source, self.interpolators, self.xid, targets, filepath)
 
+    def drive_comp(
+        self,
+        source: Path | str | libsbml.SBMLDocument,
+        targets: Mapping[str, str] | None = None,
+        filepath: Path | None = None,
+        embed: bool = False,
+    ) -> libsbml.SBMLDocument:
+        """Drive quantities of a model with the data through a comp model.
+
+        The comp document has the original as the submodel `<model id>` of
+        the top model `<model id>_driven`, which holds the interpolation. A
+        driven element is replaced by an element of its class in the top
+        model, which the assignment rule of its column determines; a species
+        keeps its compartment, which reads the compartment of the original,
+        and x other than `time` reads the quantity of the original. After
+        flattening the elements of the original are named `<model id>__<id>`,
+        the driven elements and x keep their ids, and the model simulates as
+        the one of `drive`. The data is in the units of the element it
+        drives, the top model takes over the units of the original.
+
+        Args:
+            source: the model, an SBML Level 3 file, or with `embed=True` also
+                an SBML string or a document; it is never changed
+            targets: the column which drives an element, to the id of the
+                element; `None` for every column driving the element of its
+                own id
+            filepath: the file to write the comp model into, if given; the
+                reference to the original is relative to its directory
+            embed: copy the original into the comp document as a model
+                definition instead of referencing its file
+
+        Returns:
+            The comp document.
+
+        Raises:
+            ValueError: as `drive`, and for an original which is not SBML
+                Level 3, a string or a document without `embed=True`, a
+                hierarchical original with `embed=True`, or an initial
+                assignment of a driven element without a metaid.
+        """
+        return _driving.drive_comp(
+            source, self.interpolators, self.xid, targets, filepath, embed
+        )
+
     def _create_sbml(self) -> libsbml.SBMLDocument:
         """Create the document of the standalone model, SBML L3V2.
 
