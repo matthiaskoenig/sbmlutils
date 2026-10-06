@@ -3,9 +3,10 @@
 import runpy
 from pathlib import Path
 
+from sbmlode import OdeSystem
+
 from examples import templates
 from sbmlutils.console import console
-from sbmlutils.converters.ode import OdeSystem
 from sbmlutils.factory import *
 
 

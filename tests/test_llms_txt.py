@@ -39,21 +39,21 @@ def test_missing_snippet_fails(docs_dir: Path) -> None:
 def test_every_module_of_an_api_page(docs_dir: Path) -> None:
     """An API page is its prose with the API of each module, as its filters say."""
     (docs_dir / "api").mkdir()
-    (docs_dir / "api" / "ode.md").write_text(
-        "# ode\n\nThe guide is elsewhere.\n\n::: sbmlutils.converters.ode\n\n"
-        "## The ODE system\n\n::: sbmlutils.converters.ode.system\n"
-        '    options:\n      filters: ["!^_", "!^OdeSystem$"]\n',
+    (docs_dir / "api" / "factory.md").write_text(
+        "# factory\n\nThe guide is elsewhere.\n\n::: sbmlutils.factory\n\n"
+        "## The units\n\n::: sbmlutils.factory.units\n"
+        '    options:\n      filters: ["!^_", "!^Units$"]\n',
         encoding="utf-8",
     )
-    markdown = page_markdown(Page("API", "ode", "api/ode.md"))
-    assert markdown.startswith("# ode\n\nThe guide is elsewhere.\n\n")
-    assert "\n## sbmlutils.converters.ode\n" in markdown
-    assert "\n## The ODE system\n" in markdown
-    assert "\n## sbmlutils.converters.ode.system\n" in markdown
+    markdown = page_markdown(Page("API", "factory", "api/factory.md"))
+    assert markdown.startswith("# factory\n\nThe guide is elsewhere.\n\n")
+    assert "\n## sbmlutils.factory\n" in markdown
+    assert "\n## The units\n" in markdown
+    assert "\n## sbmlutils.factory.units\n" in markdown
     assert "filters:" not in markdown
-    # `OdeSystem` is filtered from the second module, so it is listed once
-    assert markdown.count("### class `OdeSystem") == 1
-    assert "### class `Quantity" in markdown
+    # `Units` is filtered from the second module, so it is listed once
+    assert markdown.count("### class `Units(") == 1
+    assert markdown.count("### class `UnitDefinition(") == 2
 
 
 def test_snippet_needs_a_space_on_its_line(docs_dir: Path) -> None:

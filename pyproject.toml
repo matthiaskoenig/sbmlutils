@@ -53,6 +53,8 @@ dependencies = [
 	# annotation spreadsheets, visualization
 	"openpyxl>=3.1.5",
 	"requests>=2.32.4",
+	# the ODE export, re-exported as `sbmlutils.converters.ode`
+	"sbmlode>=0.1.0",
 ]
 
 [project.optional-dependencies]
@@ -60,9 +62,8 @@ dependencies = [
 cobra = ["cobra>=0.32.1"]
 # visualization of a model in a running Cytoscape, see `sbmlutils.cytoscape`
 cytoscape = ["py4cytoscape>=1.13.0"]
-# simulation and plotting; the package itself does neither, the examples and the
-# python simulator written by `sbmlutils.converters.ode` (scipy) do
-examples = ["libroadrunner>=2.10.0", "matplotlib>=3.11.1", "scipy>=1.15.0"]
+# simulation and plotting; the package itself does neither, the examples do
+examples = ["libroadrunner>=2.10.0", "matplotlib>=3.11.1"]
 dev = [
 	"sbmlutils[cytoscape,examples]",
 	"bump-my-version>=1.5.1",
@@ -74,8 +75,11 @@ dev = [
 	"pytest-cov>=7.1.0",
 	"zensical>=0.0.60",
 	"mkdocstrings-python>=2.0.8",
-	"typst>=0.15.0",
 ]
+
+# TEMPORARY until sbmlode 0.1.0 is on PyPI: remove and run `uv lock`
+[tool.uv.sources]
+sbmlode = { path = "../sbmlode", editable = true }
 
 [project.urls]
 Homepage = "https://matthiaskoenig.github.io/sbmlutils"

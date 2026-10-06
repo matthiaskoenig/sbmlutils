@@ -24,7 +24,7 @@ An example writes the model it creates into the current working directory, and a
 | `examples/distrib/` | distributions and uncertainties (distrib) |
 | `examples/combine_archive/` | COMBINE archives (OMEX) built from a model |
 | `examples/merge_models/` | merging models into a comp model |
-| `examples/converters/` | conversion of an ode file to SBML, and the ODE export of a model in all six formats (`python -m examples.converters.ode`) |
+| `examples/converters/` | conversion of an ode file to SBML |
 | `examples/interpolation/` | interpolation of data points as an SBML model |
 | `examples/demo/`, `examples/tiny/`, `examples/dallaman/`, `examples/icg/` | complete models, from a small demo to a whole body physiological model |
 
