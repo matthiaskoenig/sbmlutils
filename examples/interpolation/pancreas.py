@@ -88,10 +88,7 @@ def interpolate_data(
 
             interpolation = ip.Interpolation(data=data1, method=method)
             console.rule(f"{method}: {yid_model} ~ {xid_model}", style="white")
-            interpolators = interpolation.create_interpolators(
-                data=data1, method=method
-            )
-            for interpolator in interpolators:
+            for interpolator in interpolation.interpolators:
                 console.print(interpolator.formula())
 
             interpolation.write_sbml_to_file(tmp_f)

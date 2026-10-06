@@ -205,3 +205,43 @@ def test_invalid_series_raise(
             y=pd.Series(y_values, name="y"),
             method=method,
         )
+
+
+@pytest.mark.parametrize(
+    ("data", "match"),
+    [
+        (pd.DataFrame({"time": [0.0, 1.0, 2.0]}), "at least 2 columns"),
+        (pd.DataFrame({"t [h]": [0.0, 1.0], "y": [1.0, 2.0]}), "SBML id"),
+        (pd.DataFrame({0: [0.0, 1.0], 1: [1.0, 2.0]}), "column names"),
+        (
+            pd.DataFrame([[0.0, 1.0], [1.0, 2.0]], columns=pd.Index(["time", "time"])),
+            "twice",
+        ),
+        (pd.DataFrame({"time": [0.0, 1.0, 1.0], "y": [1.0, 2.0, 3.0]}), "strictly"),
+        (pd.DataFrame({"time": [0.0, 1.0, 2.0], "y": [1.0, None, 3.0]}), "missing"),
+        (
+            pd.DataFrame({"time": ["h", "0.0", "1.0"], "y": ["mM", "1.0", "2.0"]}),
+            "not numeric",
+        ),
+    ],
+)
+def test_invalid_data_raises(data: pd.DataFrame, match: str) -> None:
+    """Data which cannot be interpolated is refused when it is given."""
+    with pytest.raises(ValueError, match=match):
+        ip.Interpolation(data=data, method="linear")
+
+
+def test_interpolators_property() -> None:
+    """One interpolator per column after the first, in column order."""
+    interpolation = ip.Interpolation(data=data1, method="linear")
+    assert interpolation.xid == "time"
+    assert [i.yid for i in interpolation.interpolators] == ["y", "z"]
+    assert all(i.xid == "time" for i in interpolation.interpolators)
+
+
+def test_unsorted_data_is_sorted_with_warning(caplog: pytest.LogCaptureFixture) -> None:
+    """Data which is not ascending in x is sorted, with a warning."""
+    data = data1.iloc[::-1]
+    interpolation = ip.Interpolation(data=data, method="linear")
+    assert list(interpolation.data["time"]) == x
+    assert "ascending" in caplog.text

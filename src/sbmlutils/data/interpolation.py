@@ -301,9 +301,11 @@ class Interpolator:
 
 
 class Interpolation:
-    """Create SBML model which interpolates the given data.
+    """The interpolation of a table of data points.
 
-    The second to last components are interpolated against the first component.
+    The first column is x, every other column is interpolated against it.
+    `time` as x is the simulation time, any other name the quantity of the
+    model of that id.
     """
 
     def __init__(
@@ -313,58 +315,89 @@ class Interpolation:
     ):
         """Initialize Interpolation.
 
+        Args:
+            data: The data points, x in the first column.
+            method: The interpolation method of every column.
+
         Raises:
-            ValueError: If the method is not an interpolation method.
+            ValueError: If the method is not an interpolation method or the
+                data cannot be interpolated, see `validate_data`.
         """
         self.doc: libsbml.SBMLDocument | None = None
         self.model: libsbml.Model | None = None
         self.data: pd.DataFrame = data
         self.method: InterpolationMethod = InterpolationMethod(method)
-        self.interpolators: list[Interpolator] = []
-
         self.validate_data()
 
     def validate_data(self) -> None:
-        """Validate the input data.
+        """Validate the data, and sort it by x if it is not ascending.
 
-        * The data is expected to have at least 2 columns.
-        * The data is expected to have at least three data rows.
-        * The first column should be in ascending order.
-
-        :return:
-        :rtype:
+        Raises:
+            ValueError: If the data has fewer than 2 columns, a column name
+                which is not a string or which repeats, a first column whose
+                name is not an SBML id, or a column which cannot be
+                interpolated (see `Interpolator`).
         """
-        # more than 1 column required
-        if len(self.data.columns) < 2:
+        columns = list(self.data.columns)
+        if len(columns) < 2:
+            raise ValueError(
+                f"The data needs at least 2 columns, x and a column to "
+                f"interpolate, it has {len(columns)}."
+            )
+        not_str = [c for c in columns if not isinstance(c, str)]
+        if not_str:
+            raise ValueError(
+                f"The column names have to be strings, {not_str!r} are not; "
+                f"read the data with its header."
+            )
+        repeated = sorted({c for c in columns if columns.count(c) > 1})
+        if repeated:
+            raise ValueError(f"The columns {repeated!r} are in the data twice.")
+        if not libsbml.SyntaxChecker.isValidSBMLSId(self.xid):
+            raise ValueError(
+                f"The first column is x and names it in the model, '{self.xid}' "
+                f"is not an SBML id."
+            )
+        x = self.data[self.xid]
+        if not pd.Index(x).is_monotonic_increasing:
             logger.warning(
-                "Interpolation data has <2 columns. At least 2 columns required."
+                "The data is sorted by its first column '%s', which is not ascending.",
+                self.xid,
             )
+            self.data = self.data.sort_values(by=self.xid).reset_index(drop=True)
+        # the interpolators check every column
+        self.interpolators  # noqa: B018
 
-        # at least 3 rows required
-        if len(self.data) < 3:
-            logger.warning("Interpolation data <3 rows. At least 3 rows required.")
+    @property
+    def xid(self) -> str:
+        """The name of x, the first column."""
+        return str(self.data.columns[0])
 
-        # first column has to be ascending (times)
-        def is_sorted(df: pd.DataFrame, colname: str) -> bool:
-            return bool(pd.Index(df[colname]).is_monotonic_increasing)
-
-        if not is_sorted(self.data, colname=self.data.columns[0]):
-            logger.warning("First column should contain ascending values.")
-            self.data = self.data.sort_values(by=self.data.columns[0]).reset_index(
-                drop=True
-            )
+    @property
+    def interpolators(self) -> list[Interpolator]:
+        """The interpolators of the columns after the first, in column order."""
+        x = self.data[self.xid]
+        return [
+            Interpolator(x=x, y=self.data[column], method=self.method)
+            for column in self.data.columns[1:]
+        ]
 
     @staticmethod
     def from_csv(
-        csv_file: Path | str, method: str = "linear", sep: str = ","
+        csv_file: Path | str,
+        method: InterpolationMethod | str = InterpolationMethod.LINEAR,
+        sep: str = ",",
     ) -> Interpolation:
-        """Interpolation object from csv file."""
+        """Interpolation of the data of a csv file, x in the first column."""
         data: pd.DataFrame = pd.read_csv(csv_file, sep=sep)
         return Interpolation(data=data, method=method)
 
     @staticmethod
-    def from_tsv(tsv_file: Path | str, method: str = "linear") -> Interpolation:
-        """Interpolate object from tsv file."""
+    def from_tsv(
+        tsv_file: Path | str,
+        method: InterpolationMethod | str = InterpolationMethod.LINEAR,
+    ) -> Interpolation:
+        """Interpolation of the data of a tsv file, x in the first column."""
         return Interpolation.from_csv(csv_file=tsv_file, method=method, sep="\t")
 
     # --- SBML & Interpolation --------------------
@@ -391,7 +424,6 @@ class Interpolation:
             The document with the interpolation model.
         """
         doc, model = self._init_sbml_model()
-        self.interpolators = Interpolation.create_interpolators(self.data, self.method)
         for interpolator in self.interpolators:
             Interpolation.add_interpolator_to_model(interpolator, model)
 
@@ -420,23 +452,6 @@ class Interpolation:
         model.setName(f"Interpolation_{self.method}")
         self.model = model
         return doc, model
-
-    @staticmethod
-    def create_interpolators(
-        data: pd.DataFrame, method: InterpolationMethod | str
-    ) -> list[Interpolator]:
-        """Create all interpolators for the given data set.
-
-        The columns 1, ... (Ncol-1) are interpolated against
-        column 0.
-        """
-        interpolators: list[Interpolator] = []
-        columns = data.columns
-        x = data[columns[0]]
-        for k in range(1, len(columns)):
-            interpolator = Interpolator(x=x, y=data[columns[k]], method=method)
-            interpolators.append(interpolator)
-        return interpolators
 
     @staticmethod
     def add_interpolator_to_model(
