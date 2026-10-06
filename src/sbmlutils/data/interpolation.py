@@ -467,6 +467,33 @@ class Interpolation:
             source, self.interpolators, self.xid, targets, filepath, embed
         )
 
+    def assignment_rules(
+        self, targets: Mapping[str, str] | None = None
+    ) -> list[AssignmentRule]:
+        """The interpolation as assignment rules of a model definition.
+
+        A model definition of `sbmlutils.factory` takes them with
+        `model.rules += interpolation.assignment_rules(...)`; it declares the
+        driven elements itself, non constant and with their units.
+
+        Args:
+            targets: the column which drives an element, to the id of the
+                element; `None` for every column driving the element of its
+                own id
+
+        Returns:
+            One `AssignmentRule` per driven element.
+
+        Raises:
+            ValueError: for a column which is not in the data, two columns
+                driving one element or a target which is not an SBML id.
+        """
+        driven = _driving.resolve_targets(self.interpolators, self.xid, targets)
+        return [
+            AssignmentRule(target, interpolator.formula())
+            for target, interpolator in driven.items()
+        ]
+
     def _create_sbml(self) -> libsbml.SBMLDocument:
         """Create the document of the standalone model, SBML L3V2.
 
