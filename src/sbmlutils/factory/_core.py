@@ -9,7 +9,7 @@ elements share.
 from __future__ import annotations
 
 import logging
-from collections.abc import Iterator, Sequence
+from collections.abc import Generator, Sequence
 from contextlib import AbstractContextManager, contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass
@@ -305,7 +305,7 @@ _unwritten_attributes: ScopedLossCollector[tuple[str, ...], _UnwrittenAttribute]
 
 
 @contextmanager
-def collect_attribute_losses() -> Iterator[None]:
+def collect_attribute_losses() -> Generator[None]:
     """Report the attributes a document does not carry once per kind.
 
     An attribute is lost for the same reason on every element which carries
@@ -968,7 +968,7 @@ class Sbase:
 
     @staticmethod
     @contextmanager
-    def no_authoring_hints() -> Iterator[None]:
+    def no_authoring_hints() -> Generator[None]:
         """Suppress the hints about a hand written element inside the context.
 
         The `name` and `sboTerm` hints of `_set_fields` help somebody writing

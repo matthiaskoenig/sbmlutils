@@ -3,7 +3,7 @@
 import logging
 import re
 import time
-from collections.abc import Callable, Iterable, Iterator
+from collections.abc import Callable, Generator, Iterable
 from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass
@@ -52,7 +52,7 @@ class ScopedLossCollector[K: (str, tuple[str, ...]), V]:
         self._report = report
 
     @contextmanager
-    def scope(self) -> Iterator[None]:
+    def scope(self) -> Generator[None]:
         """Collect the losses recorded inside and report them when it ends.
 
         A scope inside an active one collects into it and reports nothing of
