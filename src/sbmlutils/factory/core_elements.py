@@ -10,7 +10,7 @@ from __future__ import annotations
 import logging
 import numbers
 import re
-from collections.abc import Iterator
+from collections.abc import Generator
 from contextlib import contextmanager
 from contextvars import ContextVar
 from typing import Any, ClassVar, Generic, Literal, NamedTuple, TypeVar
@@ -601,7 +601,7 @@ class _ModelSymbols:
 
     @classmethod
     @contextmanager
-    def indexed(cls, model: libsbml.Model) -> Iterator[None]:
+    def indexed(cls, model: libsbml.Model) -> Generator[None]:
         """Index the ids of the model for the writers inside the context.
 
         Only the rules, initial assignments and the parameters they create
