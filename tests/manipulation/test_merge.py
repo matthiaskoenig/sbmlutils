@@ -19,6 +19,39 @@ from sbmlutils.validation import ValidationOptions
 OUT_DIRS = ["out", SPACE_DIR, NON_ASCII_DIR_WITH_EXTERNALS]
 
 
+@pytest.mark.parametrize("identifier", ["../escaped", "/absolute", "bad/id", "bad id"])
+@pytest.mark.parametrize("field", ["model_id", "merged_id"])
+def test_merge_rejects_invalid_ids_before_writing(
+    tmp_path: Path, identifier: str, field: str
+) -> None:
+    """Identifiers cannot escape the directory or leave partially written inputs."""
+    out = tmp_path / "out"
+    out.mkdir()
+    path = MERGE_DIR / "BIOMD0000000001.xml"
+    models = {identifier if field == "model_id" else "m": path}
+    with pytest.raises(ValueError, match="Invalid SBML model identifier"):
+        merge.merge_models(
+            models, out, merged_id=identifier if field == "merged_id" else "merged"
+        )
+    assert list(out.iterdir()) == []
+    assert not (tmp_path / "escaped_L3.xml").exists()
+
+
+def test_merge_rejects_output_symlink_escape(tmp_path: Path) -> None:
+    """A preexisting output symlink cannot redirect a merge write elsewhere."""
+    out = tmp_path / "out"
+    out.mkdir()
+    target = tmp_path / "protected.xml"
+    target.write_text("keep me", encoding="utf-8")
+    try:
+        (out / "m_L3.xml").symlink_to(target)
+    except OSError:
+        pytest.skip("This platform cannot create symlinks")
+    with pytest.raises(ValueError, match="outside of the output directory"):
+        merge.merge_models({"m": MERGE_DIR / "BIOMD0000000001.xml"}, out)
+    assert target.read_text(encoding="utf-8") == "keep me"
+
+
 def test_merge_models_example(tmp_path: Path) -> None:
     """Test that the example writes a valid merged and a valid flattened model."""
     merge_models_example(output_dir=tmp_path)

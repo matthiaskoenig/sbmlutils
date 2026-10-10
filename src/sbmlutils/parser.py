@@ -51,12 +51,13 @@ apart from the constant, so such an id does not round trip.
 """
 
 import logging
+from itertools import chain
 from pathlib import Path
 from typing import Any
 
-import antimony
 import libsbml
 
+from sbmlutils._antimony import antimony_session
 from sbmlutils.factory import (
     AlgebraicRule,
     AssignmentRule,
@@ -106,7 +107,12 @@ from sbmlutils.metadata import BQB, BQM
 from sbmlutils.reaction_equation import EquationPart
 from sbmlutils.report.sbmlinfo import SBMLDocumentInfo
 from sbmlutils.utils import all_elements
-from sbmlutils.validation import ValidationOptions
+from sbmlutils.validation import (
+    PreservationError,
+    ValidationOptions,
+    collect_construction_diagnostics,
+    record_construction_diagnostic,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -144,26 +150,25 @@ def antimony_to_sbml(
             suffix) and names no existing file.
         ValueError: if antimony cannot parse the source, with the antimony error.
     """
-    if isinstance(source, Path) or is_file(source):
-        path = Path(source)
-        if not path.is_file():
-            raise FileNotFoundError(f"Antimony file does not exist: {path}")
-        status: int = antimony.loadAntimonyFile(str(path))
-    else:
-        if _looks_like_file_name(source):
-            raise FileNotFoundError(
-                f"Antimony file does not exist: {source} (a single line without "
-                "';' and with a suffix is taken as a file name, not as antimony)"
-            )
-        status = antimony.loadAntimonyString(source)
+    with antimony_session() as antimony:
+        if isinstance(source, Path) or is_file(source):
+            path = Path(source)
+            if not path.is_file():
+                raise FileNotFoundError(f"Antimony file does not exist: {path}")
+            status: int = antimony.loadAntimonyFile(str(path))
+        else:
+            if _looks_like_file_name(source):
+                raise FileNotFoundError(
+                    f"Antimony file does not exist: {source} (a single line without "
+                    "';' and with a suffix is taken as a file name, not as antimony)"
+                )
+            status = antimony.loadAntimonyString(source)
 
-    # antimony returns -1 on failure, otherwise the index of the loaded module
-    if status == -1:
-        raise ValueError(f"Antimony error: {antimony.getLastError()}")
+        # antimony returns -1 on failure, otherwise the index of the loaded module
+        if status == -1:
+            raise ValueError(f"Antimony error: {antimony.getLastError()}")
 
-    sbml_str: str = antimony.getSBMLString()
-
-    return sbml_str
+        return str(antimony.getSBMLString())
 
 
 def antimony_to_model(
@@ -241,7 +246,7 @@ def _parse_sbase_kwargs(sbase: libsbml.SBase) -> dict[str, Any]:
     # CVTerm must not be synthesized for it, or a round trip would turn the
     # sboTerm attribute into a duplicated annotation, see
     # https://github.com/matthiaskoenig/sbmlutils/issues/469
-    d = SBMLDocumentInfo.sbase_dict(sbase, include_sbo_cvterm=False)
+    d = SBMLDocumentInfo.sbase_dict(sbase, include_sbo_cvterm=False, include_xml=False)
     kwargs = {
         "sid": d["id"],
         "name": d["name"],
@@ -324,6 +329,12 @@ def _drop_uncertainties(kwargs: dict[str, Any], sbase: libsbml.SBase) -> dict[st
     """
     uncertainties: list[Uncertainty] = kwargs.pop("uncertainties", [])
     if uncertainties:
+        _record_preservation_loss(
+            "unsupported_uncertainties",
+            "The factory cannot carry uncertainties on this element.",
+            sbase,
+            count=len(uncertainties),
+        )
         logger.error(
             "The %s uncertainties of the %s '%s' are lost: the element of "
             "sbmlutils cannot carry them.",
@@ -372,6 +383,12 @@ def _drop_replaced_by(kwargs: dict[str, Any], sbase: libsbml.SBase) -> dict[str,
     """
     replaced_by: ReplacedBy | None = kwargs.pop("replacedBy", None)
     if replaced_by is not None:
+        _record_preservation_loss(
+            "unsupported_replaced_by",
+            "The factory cannot carry replacedBy on this element.",
+            sbase,
+            count=1,
+        )
         logger.error(
             "The replacedBy of the %s '%s' is lost: the element of sbmlutils "
             "cannot carry one.",
@@ -496,6 +513,12 @@ def _replaced_element_ref(
     """
     element_ref: str = _element_ref(element)
     if not element_ref:
+        _record_preservation_loss(
+            "unnamed_replacement",
+            "A replacedElement owner has neither an id nor a metaid.",
+            element,
+            count=count,
+        )
         logger.error(
             "The %s replacedElement(s) of a %s are lost: sbmlutils names the "
             "element of a replacedElement by its id or its metaid, and this "
@@ -510,6 +533,12 @@ def _replaced_element_ref(
         element_ref
     ) or model.getUnitDefinition(element_ref)
     if shadowing is not None:
+        _record_preservation_loss(
+            "ambiguous_replacement",
+            "A replacement owner metaid shadows an existing symbol.",
+            element,
+            count=count,
+        )
         logger.error(
             "The %s replacedElement(s) of the %s with the metaid '%s' are "
             "lost: sbmlutils names an element without an id by its metaid, "
@@ -799,6 +828,11 @@ def _objective_type(objective: libsbml.Objective) -> str:
     if objective.isSetType():
         objective_type: str = objective.getType()
         return objective_type
+    _record_preservation_loss(
+        "defaulted_objective_type",
+        "An absent objective type is replaced with maximize.",
+        objective,
+    )
     logger.error(
         "Objective '%s' has no 'fbc:type', which fbc requires of every "
         "objective; it is read as 'maximize'.",
@@ -1462,11 +1496,111 @@ def _convert_fbc_v1(doc: libsbml.SBMLDocument) -> None:
             element_fbc.unsetStrict()
 
 
+def _record_preservation_loss(
+    code: str, message: str, sbase: Any, *, count: int = 1
+) -> None:
+    """Record a known parser loss without retaining the native element."""
+    record_construction_diagnostic(
+        code,
+        message,
+        severity="warning",
+        count=count,
+        example=f"{sbase.getElementName()}({sbase.getIdAttribute() or sbase.getMetaId()})",
+    )
+
+
+def _scan_preservation_losses(doc: libsbml.SBMLDocument) -> None:
+    """Inspect known unsupported constructs in one linear native traversal."""
+    for native_element in chain((doc,), all_elements(doc)):
+        element: Any = native_element
+        package = element.getPackageName()
+        if package not in {"core", "comp", "fbc", "distrib"}:
+            if not isinstance(element, libsbml.ListOf):
+                _record_preservation_loss(
+                    "unsupported_package_content",
+                    f"Content of package {package!r} is not parsed.",
+                    element,
+                )
+            continue
+        if element.isSetModelHistory():
+            _record_preservation_loss(
+                "model_history", "Model history is not parsed.", element
+            )
+        if element is doc and (
+            element.isSetNotes()
+            or element.isSetAnnotation()
+            or element.isSetMetaId()
+            or element.isSetSBOTerm()
+        ):
+            _record_preservation_loss(
+                "document_metadata", "Document-level metadata is not parsed.", element
+            )
+        annotation = element.getAnnotation()
+        if annotation is not None:
+            for index in range(annotation.getNumChildren()):
+                child = annotation.getChild(index)
+                if (
+                    child.isElement()
+                    and child.getURI() != "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+                ):
+                    _record_preservation_loss(
+                        "custom_annotation",
+                        "Non-RDF annotation content is not parsed.",
+                        element,
+                    )
+        if (
+            package == "fbc"
+            and element.getElementName()
+            in {"geneProductAssociation", "and", "or", "geneProductRef"}
+            and (
+                element.isSetIdAttribute()
+                or element.isSetName()
+                or element.isSetMetaId()
+                or element.isSetSBOTerm()
+                or element.isSetNotes()
+                or element.isSetAnnotation()
+            )
+        ):
+            _record_preservation_loss(
+                "association_metadata",
+                "FBC association metadata is lost in infix conversion.",
+                element,
+            )
+        for attribute in ("Reaction2", "Variable2", "SubstanceConversionFactor"):
+            is_set = getattr(element, f"isSet{attribute}", None)
+            if is_set is not None and is_set():
+                _record_preservation_loss(
+                    "unsupported_parser_attribute",
+                    f"Attribute {attribute[0].lower() + attribute[1:]!r} is not parsed.",
+                    element,
+                )
+        math_is_set = getattr(element, "isSetMath", None)
+        if math_is_set is not None and math_is_set():
+            nodes = [element.getMath()]
+            while nodes:
+                node = nodes.pop()
+                if node.getType() == libsbml.AST_NAME and node.getName() in {
+                    "pi",
+                    "INF",
+                    "NaN",
+                    "time",
+                    "avogadro",
+                }:
+                    _record_preservation_loss(
+                        "ambiguous_math_symbol",
+                        "A reserved math symbol cannot be distinguished from a constant in infix conversion.",
+                        element,
+                    )
+                nodes.extend(node.getChild(i) for i in range(node.getNumChildren()))
+
+
 def sbml_to_model(
     source: Path | str,
     validate: bool = False,
     promote: bool = False,
     validation_options: ValidationOptions | None = None,
+    *,
+    strict_preservation: bool = False,
 ) -> Model:
     """Parse an SBML document into the `Model` of `sbmlutils.factory`, see the module docstring.
 
@@ -1475,6 +1609,7 @@ def sbml_to_model(
             `sbmlutils.io.sbml.read_sbml`
         validate: whether to validate the document while reading it
         promote: whether to promote local parameters to global parameters
+        strict_preservation: reject reported source content losses
         validation_options: which validation checks to run, only used when
             `validate` is `True`
 
@@ -1483,6 +1618,7 @@ def sbml_to_model(
         written back out without the authoring hints of a model definition
 
     Raises:
+        PreservationError: if strict preservation rejects reported content losses
         ValueError: if `source` cannot be read, see
             `sbmlutils.io.sbml.read_sbml`, or holds no model
         ValueError: if the document declares fbc version 1 and libsbml cannot
@@ -1511,7 +1647,8 @@ def sbml_to_model(
     # validating it, here and on the document written from it. `Model.parsed`
     # is the same suppression for the writing of the model, which happens
     # outside this context, see `Model.create_sbml`.
-    with Sbase.no_authoring_hints():
+    with collect_construction_diagnostics() as preservation, Sbase.no_authoring_hints():
+        _scan_preservation_losses(doc)
         m = Model(**_drop_unwritable(_parse_sbase_kwargs(model), model))
         # the packages are declared on the `<sbml>` element, so they belong to
         # the document rather than to one of its models; everything which is
@@ -1526,5 +1663,9 @@ def sbml_to_model(
         doc_comp: libsbml.CompSBMLDocumentPlugin | None = doc.getPlugin("comp")
         if doc_comp is not None:
             _parse_comp_document(doc_comp, m)
+
+    m._preservation_diagnostics = preservation.diagnostics
+    if strict_preservation and m.preservation_diagnostics:
+        raise PreservationError(m.preservation_diagnostics)
 
     return m

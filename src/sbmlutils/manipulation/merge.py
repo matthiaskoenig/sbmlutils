@@ -12,6 +12,7 @@ import libsbml
 
 from sbmlutils.comp import comp, flatten_sbml
 from sbmlutils.io import read_sbml, validate_sbml, write_sbml
+from sbmlutils.utils import contained_path
 from sbmlutils.validation import ValidationOptions, log_sbml_errors_for_doc
 
 logger = logging.getLogger(__name__)
@@ -75,6 +76,16 @@ def merge_models(
     if not output_dir.exists():
         raise OSError(f"'output_dir' does not exist: {output_dir}")
 
+    # Validate every filename-producing id before writing any input model.
+    for sid in [merged_id, *model_paths]:
+        if not isinstance(sid, str) or not libsbml.SyntaxChecker.isValidSBMLSId(sid):
+            raise ValueError(f"Invalid SBML model identifier: {sid!r}")
+    converted_paths = {
+        sid: contained_path(output_dir, f"{sid}_L3.xml") for sid in model_paths
+    }
+    merged_path = contained_path(output_dir, f"{merged_id}.xml")
+    flat_path = contained_path(output_dir, f"{merged_id}_flat.xml") if flatten else None
+
     # the source of an external model definition is resolved relative to the
     # merged document, which is written into the same directory
     sources: dict[str, str] = {}
@@ -92,7 +103,7 @@ def merge_models(
                 f"SBML file cannot be converted to SBML "
                 f"L{sbml_level}V{sbml_version}: {path}"
             )
-        path_converted: Path = output_dir / f"{model_id}_L3.xml"
+        path_converted = converted_paths[model_id]
         write_sbml(doc, path_converted)
         sources[model_id] = path_converted.name
 
@@ -104,7 +115,6 @@ def merge_models(
             )
 
     # create comp model
-    merged_path = output_dir / f"{merged_id}.xml"
     merged_doc: libsbml.SBMLDocument = _create_merged_doc(
         sources,
         merged_path=merged_path,
@@ -126,8 +136,7 @@ def merge_models(
             title=str(merged_path),
         )
 
-    if flatten:
-        flat_path = output_dir / f"{merged_id}_flat.xml"
+    if flat_path is not None:
         flatten_sbml(sbml_path=merged_path, sbml_flat_path=flat_path)
         if validate:
             validate_sbml(

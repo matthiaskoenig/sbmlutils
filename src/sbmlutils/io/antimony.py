@@ -7,7 +7,7 @@ builds on `sbmlutils.factory` and can therefore not be imported here.
 import logging
 from pathlib import Path
 
-import antimony
+from sbmlutils._antimony import antimony_session
 
 logger = logging.getLogger(__name__)
 
@@ -24,18 +24,18 @@ def sbml_to_antimony(source: Path | str) -> str:
     Raises:
         ValueError: If antimony cannot load the SBML.
     """
-    antimony.clearPreviousLoads()
-    status: int
-    if isinstance(source, Path):
-        status = antimony.loadSBMLFile(str(source))
-    elif source.strip().startswith("<"):
-        status = antimony.loadSBMLString(source)
-    else:
-        status = antimony.loadSBMLFile(source)
+    with antimony_session() as antimony:
+        status: int
+        if isinstance(source, Path):
+            status = antimony.loadSBMLFile(str(source))
+        elif source.lstrip("\ufeff \t\r\n").startswith("<"):
+            status = antimony.loadSBMLString(source)
+        else:
+            status = antimony.loadSBMLFile(source)
 
-    if status == -1:
-        error: str = antimony.getLastError()
-        logger.error("Antimony could not load the SBML: %s", error)
-        raise ValueError(f"Antimony could not load the SBML: {error}")
+        if status == -1:
+            error: str = antimony.getLastError()
+            logger.error("Antimony could not load the SBML: %s", error)
+            raise ValueError(f"Antimony could not load the SBML: {error}")
 
-    return str(antimony.getAntimonyString(None))
+        return str(antimony.getAntimonyString(None))

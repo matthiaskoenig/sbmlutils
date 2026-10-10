@@ -6,7 +6,8 @@ import time
 from collections.abc import Callable, Generator, Iterable
 from contextlib import contextmanager
 from contextvars import ContextVar
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+from typing import Literal
 from urllib.parse import quote
 
 import libsbml
@@ -102,6 +103,115 @@ class ScopedLossCollector[K: (str, tuple[str, ...]), V]:
         return group
 
 
+@dataclass(frozen=True)
+class ConstructionDiagnostic:
+    """One grouped construction finding, without references to native objects."""
+
+    code: str
+    severity: Literal["info", "warning", "error"]
+    message: str
+    count: int = 1
+    example: str | None = None
+
+
+class ConstructionError(ValueError):
+    """Strict construction rejected reported losses or undeclared targets."""
+
+    def __init__(self, diagnostics: tuple[ConstructionDiagnostic, ...]) -> None:
+        """Retain an immutable snapshot of all construction findings."""
+        self.diagnostics = diagnostics
+        super().__init__(
+            "Strict construction failed: "
+            + "; ".join(
+                f"{d.message} (count={d.count}, example={d.example!r})"
+                for d in diagnostics
+                if d.severity != "info"
+            )
+        )
+
+
+class PreservationError(ValueError):
+    """A parse or write would discard reported source content."""
+
+    def __init__(self, diagnostics: tuple[ConstructionDiagnostic, ...]) -> None:
+        """Retain an immutable snapshot of the known preservation losses."""
+        self.diagnostics = diagnostics
+        super().__init__(
+            "Round-trip preservation failed: "
+            + "; ".join(
+                f"{d.message} (count={d.count}, example={d.example!r})"
+                for d in diagnostics
+            )
+        )
+
+
+@dataclass
+class _ConstructionScope:
+    strict: bool
+    groups: dict[tuple[str, str], ConstructionDiagnostic]
+
+    @property
+    def diagnostics(self) -> tuple[ConstructionDiagnostic, ...]:
+        return tuple(self.groups.values())
+
+
+_construction_scope: ContextVar[_ConstructionScope | None] = ContextVar(
+    "sbmlutils_construction_scope", default=None
+)
+
+
+@contextmanager
+def collect_construction_diagnostics(
+    *, strict: bool = False
+) -> Generator[_ConstructionScope]:
+    """Collect grouped findings in an isolated context, including nested calls.
+
+    The yielded scope exposes a ``diagnostics`` snapshot. Strictness controls
+    implicit parameter creation; callers decide when to raise ConstructionError.
+    """
+    scope = _ConstructionScope(strict=strict, groups={})
+    token = _construction_scope.set(scope)
+    try:
+        yield scope
+    finally:
+        _construction_scope.reset(token)
+
+
+def record_construction_diagnostic(
+    code: str,
+    message: str,
+    *,
+    severity: Literal["info", "warning", "error"] = "warning",
+    example: str | None = None,
+    count: int = 1,
+) -> None:
+    """Record a finding if collection is active, grouping by code and cause."""
+    scope = _construction_scope.get()
+    if scope is None:
+        return
+    key = (code, message)
+    previous = scope.groups.get(key)
+    if previous is None:
+        scope.groups[key] = ConstructionDiagnostic(
+            code, severity, message, count, example
+        )
+    else:
+        scope.groups[key] = replace(previous, count=previous.count + count)
+
+
+def allow_implicit_parameter(symbol: str, element: str) -> bool:
+    """Record an undeclared assignment target and apply the authoring policy."""
+    scope = _construction_scope.get()
+    strict = scope is not None and scope.strict
+    record_construction_diagnostic(
+        "implicit_parameter",
+        f"{element} targets an undeclared symbol; declare its parameter explicitly.",
+        severity="error" if strict else "warning",
+        example=symbol,
+    )
+    return not strict
+
+
 def check(value: int | None, message: str) -> bool:
     """Check the libsbml return value and log an error if something happened.
 
@@ -130,6 +240,13 @@ def check(value: int | None, message: str) -> bool:
             )
             valid = False
 
+    if not valid:
+        record_construction_diagnostic(
+            "libsbml_operation_failed",
+            f"libSBML operation failed (status {value}).",
+            severity="error",
+            example=message,
+        )
     return valid
 
 
@@ -208,6 +325,15 @@ class ValidationOptions:
     sbo_consistency: bool = True
     overdetermined_model: bool = True
     modeling_practice: bool = True
+
+    @classmethod
+    def fast(cls, *, log_errors: bool = True) -> "ValidationOptions":
+        """Check structure and identifiers without expensive unit analysis.
+
+        Use the default options for comprehensive validation before sharing
+        or simulating a model. This preset leaves all other checks enabled.
+        """
+        return cls(units_consistency=False, log_errors=log_errors)
 
 
 @dataclass(frozen=True)
@@ -370,6 +496,15 @@ class ValidationResult:
         return self.error_count == 0 and self.warning_count == 0
 
 
+class SBMLValidationError(ValueError):
+    """Validation failed, with the immutable result available to the caller."""
+
+    def __init__(self, result: ValidationResult, message: str):
+        """Keep the findings available without requiring another validation."""
+        super().__init__(message)
+        self.result = result
+
+
 def log_sbml_errors_for_doc(doc: libsbml.SBMLDocument) -> None:
     """Log errors of current SBMLDocument."""
     for k in range(doc.getNumErrors()):
@@ -482,6 +617,9 @@ def validate_doc(
     )
     doc.setConsistencyChecks(
         libsbml.LIBSBML_CAT_UNITS_CONSISTENCY, options.units_consistency
+    )
+    doc.setConsistencyChecks(
+        libsbml.LIBSBML_CAT_MODELING_PRACTICE, options.modeling_practice
     )
 
     # time

@@ -36,6 +36,23 @@ BIOMODEL_ID = "BIOMD0000000001"
 BIOMODEL_ID_INVALID = "BIOMDXYZ"
 
 
+@pytest.mark.parametrize("identifier", ["../escaped", "/absolute", "bad/id", "x?y"])
+def test_biomodel_identifier_is_checked_before_downloading(
+    tmp_path: Path, identifier: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Invalid IDs cannot produce paths or requests, even with mocked downloads."""
+
+    def forbidden(*_args: object, **_kwargs: object) -> None:
+        raise AssertionError("Download was attempted")
+
+    monkeypatch.setattr("sbmlutils.biomodels.get_session", forbidden)
+    with pytest.raises(ValueError, match="Invalid BioModels identifier"):
+        download_biomodel_omex(identifier, tmp_path / "model.omex")
+    with pytest.raises(ValueError, match="Invalid BioModels identifier"):
+        download_biomodel_sbml(identifier, tmp_path)
+    assert list(tmp_path.iterdir()) == []
+
+
 @pytest.fixture(scope="module")
 def biomodels_available() -> None:
     """Skip the test when the BioModels download service does not answer.

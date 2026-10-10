@@ -33,7 +33,6 @@ from typing import (
 import libsbml
 import xmltodict
 from pymetadata.core.creator import Creator
-from sbmlode import OdeSystem
 
 from sbmlutils.factory._core import (
     SBML_LEVEL,
@@ -81,7 +80,16 @@ from sbmlutils.io import sbml_to_antimony, write_sbml
 from sbmlutils.metadata import annotator
 from sbmlutils.notes import Notes
 from sbmlutils.utils import FrozenClass, create_metaid
-from sbmlutils.validation import ValidationOptions, check
+from sbmlutils.validation import (
+    ConstructionDiagnostic,
+    ConstructionError,
+    PreservationError,
+    SBMLValidationError,
+    ValidationOptions,
+    ValidationResult,
+    check,
+    collect_construction_diagnostics,
+)
 
 if TYPE_CHECKING:
     # the layout package builds on this module, see `Model.__init__`
@@ -655,12 +663,22 @@ class Model(Sbase, FrozenClass):
         #: `True` when the model was created by `sbmlutils.parser`, which
         #: suppresses the authoring hints when it is written back out
         self.parsed = False
+        self._preservation_diagnostics: tuple[ConstructionDiagnostic, ...] = ()
 
         if objects:
             self._sort_objects(objects)
 
         self._check_fields()
         self._freeze()  # no new attributes after this point
+
+    @property
+    def preservation_diagnostics(self) -> tuple[ConstructionDiagnostic, ...]:
+        """Known source content losses reported by the parser, if any."""
+        return self._preservation_diagnostics + tuple(
+            finding
+            for definition in self.model_definitions
+            for finding in definition.preservation_diagnostics
+        )
 
     def _sort_objects(self, objects: list[Sbase]) -> None:
         """Append each of the `objects` to the field of `Model` for its type.
@@ -1179,6 +1197,9 @@ class Model(Sbase, FrozenClass):
         creators: dict[Creator, Any] = {}  # using a dict to keep order of insertion
         for m2 in models:
             for key, value in m2.__dict__.items():
+                if key == "_preservation_diagnostics":
+                    model._preservation_diagnostics += value
+                    continue
                 kind = m2._keys.get(key, None)
                 # lists of higher modules are extended
                 if kind in [list, tuple]:
@@ -1637,12 +1658,19 @@ class Document(Sbase):
 
 @dataclass
 class FactoryResult:
-    """Data structure for model creation."""
+    """Model creation output, with construction findings and final validation.
+
+    ``diagnostics`` describes reported losses and implicit parameter creation,
+    even when serialized-document validation was skipped.
+    """
 
     model: Model
     sbml_path: Path
     antimony_path: Path | None = None
     markdown_path: Path | None = None
+    validation: ValidationResult | None = None
+    diagnostics: tuple[ConstructionDiagnostic, ...] = ()
+    preservation_diagnostics: tuple[ConstructionDiagnostic, ...] = ()
 
 
 def create_model(
@@ -1656,6 +1684,9 @@ def create_model(
     annotations: Path | None = None,
     create_antimony: bool = False,
     create_markdown: bool = False,
+    raise_on_error: bool = False,
+    strict: bool = False,
+    strict_preservation: bool = False,
 ) -> FactoryResult:
     """Create SBML model from models.
 
@@ -1680,14 +1711,28 @@ def create_model(
     :param annotations: Path to annotations file
     :param create_antimony: write the antimony serialization to `*.ant`
     :param create_markdown: write the markdown overview of the ODE system to `*.md`
+    :param raise_on_error: validate the final file and raise if it has errors,
+        even when `validate=False`; the file remains available for diagnosis
+
+    :param strict: reject reported construction losses and undeclared assignment
+        targets before writing; independent of final SBML validation
+
+    :param strict_preservation: reject known parser losses before writing
 
     :return: FactoryResult
 
-    :raises ValueError: if `model` is neither a `Model` nor an iterable of them
+    :raises ValueError: if `model` is neither a `Model` nor an iterable of them,
+        or `raise_on_error=True` and validation fails (`SBMLValidationError`,
+        whose `result` contains the findings)
+    :raises PreservationError: if strict preservation rejects known parser losses
+        before output is constructed or written
+    :raises ConstructionError: if `strict=True` and construction reports losses
+        or undeclared assignment targets; no output is written by this call
     :raises OSError: if the SBML could not be written to `filepath`, see
         `write_sbml`. The parent directory is created if it does not exist.
-        Validation does not raise: a document which does not validate is
-        written and returned all the same.
+        Validation only raises when `raise_on_error=True`. Otherwise the final
+        validation result is returned in `FactoryResult.validation`, or `None`
+        when validation was skipped.
     """
     filepath = Path(filepath)
     if validation_options is None:
@@ -1702,6 +1747,9 @@ def create_model(
     else:
         raise ValueError(f"Unsupported `model` type: {type(model)}")
 
+    if strict_preservation and m.preservation_diagnostics:
+        raise PreservationError(m.preservation_diagnostics)
+
     # create and write SBML; creating the document and annotating it from a
     # file both write annotation resources, and one call writes one document,
     # so both report into one collector, see `collect_resource_losses`. The
@@ -1709,6 +1757,7 @@ def create_model(
     # version cannot carry are collected the same way, see
     # `collect_attribute_losses` and `collect_content_losses`
     with (
+        collect_construction_diagnostics(strict=strict) as construction,
         annotator.collect_resource_losses(),
         collect_attribute_losses(),
         collect_content_losses(),
@@ -1719,17 +1768,29 @@ def create_model(
             sbml_version=sbml_version,
         ).create_sbml()
 
-        write_sbml(
-            doc=doc,
-            filepath=filepath,
-            validate=validate,
-            validation_options=validation_options,
-        )
-
-        # annotation of model (overwrites file)
+        # Annotate the in-memory document before writing and validating it.
         if annotations is not None:
-            annotator.annotate_sbml(
-                source=filepath, annotations_path=annotations, filepath=filepath
+            doc = annotator.annotate_sbml_doc(
+                doc, annotator.ModelAnnotator.read_annotations(annotations)
+            )
+
+        if strict and any(d.severity != "info" for d in construction.diagnostics):
+            raise ConstructionError(construction.diagnostics)
+
+        write_sbml(doc=doc, filepath=filepath)
+
+    # Check the serialized final file: libsbml checks constructed documents
+    # differently, especially when external comp models are involved.
+    validation: ValidationResult | None = None
+    if validate or raise_on_error:
+        from sbmlutils.io.sbml import validate_sbml
+
+        validation = validate_sbml(filepath, validation_options=validation_options)
+        if raise_on_error and not validation.is_valid():
+            raise SBMLValidationError(
+                validation,
+                f"SBML written to '{filepath}' failed validation with "
+                f"{validation.error_count} error(s).",
             )
 
     # additional serializations (from the final file, including the annotations)
@@ -1741,6 +1802,8 @@ def create_model(
 
     markdown_path: Path | None = None
     if create_markdown:
+        from sbmlode import OdeSystem
+
         markdown_path = filepath.with_suffix(".md")
         OdeSystem.from_sbml(filepath).write(markdown_path)
         logger.info("Markdown written to '%s'", markdown_path)
@@ -1754,4 +1817,7 @@ def create_model(
         model=m,
         antimony_path=antimony_path,
         markdown_path=markdown_path,
+        validation=validation,
+        diagnostics=construction.diagnostics,
+        preservation_diagnostics=m.preservation_diagnostics,
     )

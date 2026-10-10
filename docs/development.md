@@ -19,14 +19,14 @@ A pull request can only be merged once the four required checks are green:
 
 | check   | workflow      | content                                                              |
 | ------- | ------------- | -------------------------------------------------------------------- |
-| `tests` | `ci-cd.yml`   | the test matrix, python 3.14 on linux, macos and windows              |
+| `tests` | `ci-cd.yml`   | Python 3.14 on Linux, macOS and Windows; Python 3.12 with minimum dependencies |
 | `ruff`  | `ruff.yml`    | `ruff check` and `ruff format --check`                                |
 | `ty`    | `ty.yml`      | `tox r -e ty`                                                         |
 | `docs`  | `docs.yml`    | the zensical build including the api reference and the agent files    |
 
 `tests` aggregates the test matrix into a single job, so the name of the required check stays the same when the matrix changes.
 
-Continuous integration is kept small: every workflow cancels its running build when a newer commit of the same branch or pull request arrives, uv caches the packages and the interpreters between runs, dependabot proposes its updates once a month, and the matrix tests only the newest python. The other python versions, `lowest` and `cobra` are tested locally, see [Testing](#testing), before a pull request is opened.
+Continuous integration is kept small: every workflow cancels its running build when a newer commit of the same branch or pull request arrives, uv caches the packages and the interpreters between runs, and dependabot proposes its updates once a month. The matrix tests the newest stable Python on every platform and the minimum Python with the lowest direct dependencies on Linux. The remaining Python versions and `cobra` are tested locally, see [Testing](#testing), before a pull request is opened.
 
 Further rules of a pull request:
 
@@ -57,6 +57,18 @@ Changing a policy means changing the json and applying it:
 The script is idempotent: it updates the rulesets which exist and creates the missing ones. It also sets the merge settings of the repository, i.e., auto-merge, delete branch on merge, and squash and rebase as the only merge methods. It needs the [github cli](https://cli.github.com) authenticated as a user with admin permission on the repository.
 
 ## Setup development environment
+
+The CI test matrix covers Python 3.14 on Linux, Windows and macOS, plus Python
+3.12 with the minimum direct dependency versions through the `lowest` tox
+environment. The remaining Python versions and optional workflows can also be
+tested locally with tox.
+
+From an installed checkout, `python scripts/performance_report.py --size 10000`
+reports import time, full and fast validation, full and lightweight reports,
+and reporting unnamed elements. Each workflow runs in a fresh process. On Unix,
+peak RSS includes libsbml and other native allocations. Compare results on the
+same machine and dependency versions; normal regression tests also verify
+linear list indexing and that lightweight reports skip expensive calculations.
 
 Development needs [uv](https://docs.astral.sh/uv/) and a checkout of the repository:
 
@@ -280,3 +292,10 @@ A release is made from `develop`. Since `develop` only accepts pull requests, th
     ```
 
 9. once Zenodo has archived the release, update the citation information, i.e., `date-released` in `CITATION.cff` and the version, date and version DOI of the release in the citation of `README.md` and `docs/index.md`. `bump-my-version` only updates the version, not the date and the DOI, which are only known after the release. These changes go in through a pull request like everything else
+
+The [construction diagnostics specification](specifications/construction-diagnostics.md)
+and [implementation plan](specifications/construction-diagnostics-plan.md)
+describe the opt-in strict authoring contract and its validation.
+
+The [round-trip preservation specification and plan](specifications/roundtrip-preservation.md)
+describe known-loss detection and strict parsing/writing.

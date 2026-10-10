@@ -8,6 +8,7 @@ BioModels service does not fail a download.
 """
 
 import logging
+import re
 import shutil
 import tempfile
 from collections.abc import Sequence
@@ -18,6 +19,7 @@ from pymetadata.webservices.webservice import get_session
 from requests.exceptions import HTTPError
 
 from sbmlutils.console import console
+from sbmlutils.utils import contained_path
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +27,13 @@ logger = logging.getLogger(__name__)
 BIOMODELS_URL: str = "https://biomodels.org"
 
 #: size of the chunks a download is streamed in
-CHUNK_SIZE: int = 1024
+CHUNK_SIZE: int = 64 * 1024
+
+
+def _check_biomodel_id(biomodel_id: str) -> None:
+    """Accept a single identifier, never a URL or filesystem path."""
+    if not re.fullmatch(r"[A-Za-z0-9_-]+", biomodel_id):
+        raise ValueError(f"Invalid BioModels identifier: {biomodel_id!r}")
 
 
 def download_file(url: str, path: Path) -> Path:
@@ -62,6 +70,7 @@ def download_biomodel_omex(biomodel_id: str, omex_path: Path) -> Path:
     :returns: path to omex
     Raises :class:`HTTPError`, if one occurred, i.e. if the model does not exist.
     """
+    _check_biomodel_id(biomodel_id)
     url = f"{BIOMODELS_URL}/model/download/{biomodel_id}"
     logger.info("Download '%s' -> '%s'", url, omex_path)
     download_file(url, omex_path)
@@ -85,14 +94,7 @@ def _contained_path(output_dir: Path, location: str) -> Path:
     Raises:
         ValueError: if the location leaves the output directory
     """
-    root = output_dir.resolve()
-    path = (root / location).resolve()
-    if not path.is_relative_to(root) or path == root:
-        raise ValueError(
-            f"The location '{location}' of the archive entry is outside of "
-            f"the output directory '{output_dir}'."
-        )
-    return path
+    return contained_path(output_dir, location)
 
 
 def download_biomodel_sbml(
@@ -111,6 +113,11 @@ def download_biomodel_sbml(
     Raises :class:`ValueError`, if invalid format string is provided or if the
     location of an entry in the archive is outside of `output_dir`.
     """
+    _check_biomodel_id(biomodel_id)
+    if output_format not in {"sbml", "omex"}:
+        raise ValueError(f"Unsupported format: '{output_format}'.")
+    output_dir = Path(output_dir)
+    omex_out_path = contained_path(output_dir, f"{biomodel_id}.omex")
     with tempfile.TemporaryDirectory() as f_tmp:
         tmp_path = Path(f_tmp)
 
@@ -125,7 +132,6 @@ def download_biomodel_sbml(
             return []
 
         if output_format == "omex":
-            omex_out_path = output_dir / f"{biomodel_id}.omex"
             omex_out = Omex()
             for sbml_entry in sbml_entries:
                 entry_path = omex.get_path(sbml_entry.location)

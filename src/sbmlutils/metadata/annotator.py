@@ -28,7 +28,7 @@ from sbmlutils import utils
 from sbmlutils.io.files import is_file
 from sbmlutils.io.sbml import read_sbml, write_sbml
 
-from ..validation import ScopedLossCollector, check
+from ..validation import ScopedLossCollector, check, record_construction_diagnostic
 
 logger = logging.getLogger(__name__)
 
@@ -120,6 +120,12 @@ def _record_loss(annotation: Annotation, normalized: str | None, reason: str) ->
         normalized: the canonical resource which is not written
         reason: why the canonical resource cannot be written
     """
+    record_construction_diagnostic(
+        "annotation_resource_fallback",
+        reason,
+        severity="info",
+        example=annotation.resource,
+    )
     collection: str = annotation.collection or _UNKNOWN_COLLECTION
     loss = _resource_losses.group(
         collection, lambda: _CollectionLoss(example=annotation.resource)

@@ -1,13 +1,56 @@
 """Test the SBML to antimony conversion."""
 
 import logging
+import time
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+import antimony
+import libsbml
 import pytest
 
 from sbmlutils.io.antimony import sbml_to_antimony
 from sbmlutils.parser import antimony_to_sbml
 from sbmlutils.resources import REPRESSILATOR_SBML
+
+
+def test_antimony_conversions_release_loaded_models() -> None:
+    """Successful and failed conversions leave no retained native models."""
+    for k in range(5):
+        xml = antimony_to_sbml(f"model model_{k}()\n S=1;\nend")
+        assert antimony.getNumFiles() == 0
+        assert "model" in sbml_to_antimony(xml)
+        assert antimony.getNumFiles() == 0
+    with pytest.raises(ValueError, match="Antimony error"):
+        antimony_to_sbml("model m\n S -> -> ;;\nend")
+    assert antimony.getNumFiles() == 0
+
+
+def test_antimony_conversions_are_isolated_between_threads(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Concurrent conversions return the requested model in both directions."""
+    original = antimony.loadAntimonyString
+
+    def interleaved_load(source: str) -> int:
+        status = original(source)
+        # Yield between loading and serialization, where an unprotected load
+        # in another thread would replace this conversion's active model.
+        time.sleep(0.005)
+        return status
+
+    monkeypatch.setattr(antimony, "loadAntimonyString", interleaved_load)
+
+    def convert(k: int) -> str:
+        name = f"model_{k}"
+        xml = antimony_to_sbml(f"model {name}()\n S=1;\nend")
+        assert f"model *{name}()" in sbml_to_antimony(xml)
+        doc = libsbml.readSBMLFromString(xml)
+        return doc.getModel().getId()
+
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        assert list(pool.map(convert, range(20))) == [f"model_{k}" for k in range(20)]
+    assert antimony.getNumFiles() == 0
 
 
 def test_sbml_to_antimony_from_file() -> None:

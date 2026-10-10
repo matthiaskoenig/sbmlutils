@@ -9,8 +9,12 @@ from __future__ import annotations
 import hashlib
 import json
 import pprint
+from collections.abc import Generator
+from contextlib import contextmanager
+from contextvars import ContextVar
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, TextIO
 
 import libsbml
 import numpy as np
@@ -35,10 +39,50 @@ def clean_empty(d: dict | list | str) -> dict | list | str:
     Reducing to core information.
     """
     if isinstance(d, dict):
-        return {k: v for k, v in ((k, clean_empty(v)) for k, v in d.items()) if v}
+        return {
+            k: v
+            for k, v in ((k, clean_empty(v)) for k, v in d.items())
+            if not _is_empty(v)
+        }
     if isinstance(d, list):
-        return [v for v in map(clean_empty, d) if v]
+        return [v for v in map(clean_empty, d) if not _is_empty(v)]
     return d
+
+
+def _is_empty(value: Any) -> bool:
+    """Empty containers and unset values exclude numeric zero and False."""
+    return value is None or (isinstance(value, (str, dict, list)) and len(value) == 0)
+
+
+@dataclass(frozen=True)
+class _ReportOptions:
+    include_derived_units: bool = True
+    include_xml: bool = True
+    include_math: bool = True
+
+
+_DEFAULT_OPTIONS = _ReportOptions()
+_report_options: ContextVar[_ReportOptions] = ContextVar(
+    "sbmlutils_report_options", default=_DEFAULT_OPTIONS
+)
+_list_positions: ContextVar[dict[int, dict[int, int]] | None] = ContextVar(
+    "sbmlutils_report_list_positions", default=None
+)
+_parameter_units: ContextVar[dict[tuple[int, str], str | None] | None] = ContextVar(
+    "sbmlutils_report_parameter_units", default=None
+)
+
+
+def _math_to_latex(ast: libsbml.ASTNode | None) -> str | None:
+    """Only render math which is present and requested."""
+    if ast is None or not _report_options.get().include_math:
+        return None
+    return astnode_to_latex(ast)
+
+
+def _object_address(sbase: Any) -> int:
+    """Identify the native object behind a SWIG proxy during its lifetime."""
+    return int(sbase.this)
 
 
 class SBMLDocumentInfo:
@@ -51,16 +95,36 @@ class SBMLDocumentInfo:
     def __init__(
         self,
         doc: libsbml.SBMLDocument,
+        *,
+        include_derived_units: bool = True,
+        include_xml: bool = True,
+        include_math: bool = True,
     ):
-        """Initialize SBMLDocumentInfo."""
+        """Collect a report, optionally skipping expensive derived representations.
+
+        Defaults preserve the complete report. Disable derived units to avoid
+        libsbml's unit-analysis allocations; XML and LaTeX can be skipped too.
+        """
         self.doc: libsbml.SBMLDocument = doc
+        self._options = _ReportOptions(include_derived_units, include_xml, include_math)
         self.info = self.create_info()
 
     @staticmethod
-    def from_sbml(source: Path | str) -> SBMLDocumentInfo:
+    def from_sbml(
+        source: Path | str,
+        *,
+        include_derived_units: bool = True,
+        include_xml: bool = True,
+        include_math: bool = True,
+    ) -> SBMLDocumentInfo:
         """Read model info from SBML."""
         doc: libsbml.SBMLDocument = read_sbml(source)
-        return SBMLDocumentInfo(doc=doc)
+        return SBMLDocumentInfo(
+            doc=doc,
+            include_derived_units=include_derived_units,
+            include_xml=include_xml,
+            include_math=include_math,
+        )
 
     def __repr__(self) -> str:
         """Get string representation."""
@@ -77,8 +141,83 @@ class SBMLDocumentInfo:
             d = clean_empty(d)
         return json.dumps(d, indent=indent)
 
+    def write_json(
+        self, destination: Path | TextIO, strip: bool = True, indent: int = 2
+    ) -> None:
+        """Write JSON incrementally without allocating the complete JSON string."""
+        data = clean_empty(self.info) if strip else self.info
+        if isinstance(destination, Path):
+            with destination.open("w", encoding="utf-8") as stream:
+                json.dump(data, stream, indent=indent)
+        else:
+            json.dump(data, destination, indent=indent)
+
+    @contextmanager
+    def _report_scope(self) -> Generator[None]:
+        """Keep options and list indexes local to one immutable traversal."""
+        options_token = _report_options.set(self._options)
+        positions_token = _list_positions.set({})
+        units_token = _parameter_units.set({})
+        try:
+            yield
+        finally:
+            _parameter_units.reset(units_token)
+            _list_positions.reset(positions_token)
+            _report_options.reset(options_token)
+
+    def _derived_units(
+        self, element: Any, model: libsbml.Model | None = None
+    ) -> str | None:
+        """Avoid invoking libsbml's unit analysis unless requested."""
+        if not self._options.include_derived_units:
+            return None
+        if (
+            isinstance(element, (libsbml.Parameter, libsbml.LocalParameter))
+            and element.getLevel() == 3
+        ):
+            # L3 parameter units are exactly their declared units. Asking
+            # libsbml to derive them populates formula-unit data for the whole
+            # model, even when no formula is involved. Resolve the declaration
+            # directly; L2 keeps libsbml's handling of its predefined unit ids.
+            # Use the model being reported: SBase.getModel() can return the
+            # main document model even for a child of a comp ModelDefinition.
+            if model is None:
+                model = element.getModel()
+            if model is None:
+                return None
+            if not element.isSetUnits():
+                return "-"
+            unit_id = element.getUnits()
+            key = (_object_address(model), unit_id)
+            cache = _parameter_units.get()
+            if cache is not None and key in cache:
+                return cache[key]
+            definition = model.getUnitDefinition(unit_id)
+            if definition is None:
+                kind = libsbml.UnitKind_forName(unit_id)
+                if kind == libsbml.UNIT_KIND_INVALID:
+                    return "-"
+                definition = libsbml.UnitDefinition(
+                    element.getLevel(), element.getVersion()
+                )
+                unit = definition.createUnit()
+                unit.setKind(kind)
+                unit.setExponent(1)
+                unit.setScale(0)
+                unit.setMultiplier(1)
+            rendered = udef_to_string(definition)
+            if cache is not None:
+                cache[key] = rendered
+            return rendered
+        return udef_to_string(element.getDerivedUnitDefinition())
+
     def create_info(self) -> dict[str, Any]:
         """Create information dictionary for report rendering."""
+        with self._report_scope():
+            return self._create_info()
+
+    def _create_info(self) -> dict[str, Any]:
+        """Traverse the document with one set of options and indexes."""
         model: dict[str, Any] | None
         model = self.model_dict(self.doc.getModel()) if self.doc.isSetModel() else None
 
@@ -249,7 +388,10 @@ class SBMLDocumentInfo:
                 }
                 math_str = (
                     symbol_to_latex(pk_symbol) + "(0) = "
-                    f"{astnode_to_latex(initial_assignment.getMath())}"
+                    f"{_math_to_latex(initial_assignment.getMath())}"
+                    if initial_assignment.isSetMath()
+                    and _report_options.get().include_math
+                    else None
                 )
                 assignments[pk_symbol]["math"] = math_str
 
@@ -267,13 +409,17 @@ class SBMLDocumentInfo:
                 if assignments[pk_symbol]["sbmlType"] == "AssignmentRule":
                     math_str = (
                         symbol_to_latex(pk_symbol) + " = "
-                        f"{astnode_to_latex(rule.getMath()) if rule.isSetMath() else None}"
+                        f"{_math_to_latex(rule.getMath()) if rule.isSetMath() else None}"
                     )
                 elif assignments[pk_symbol]["sbmlType"] == "RateRule":
                     derivative = "\\frac{d" + symbol_to_latex(pk_symbol) + "}{{dt}}"
-                    math_str = f"{derivative} = {astnode_to_latex(rule.getMath()) if rule.isSetMath() else None}"
+                    math_str = f"{derivative} = {_math_to_latex(rule.getMath()) if rule.isSetMath() else None}"
 
-                assignments[pk_symbol]["math"] = math_str
+                assignments[pk_symbol]["math"] = (
+                    math_str
+                    if rule.isSetMath() and _report_options.get().include_math
+                    else None
+                )
 
         return assignments
 
@@ -315,12 +461,9 @@ class SBMLDocumentInfo:
         an element which belongs to no document is keyed by the digest of
         its xml.
 
-        The place in a list is found by walking the list, so a list of n
-        elements without id costs n^2 comparisons (1.6 s for 2000
-        constraints). A cached index would have to live outside the
-        instance, since `sbase_dict` is also called without one by
-        `sbmlutils.parser`, keyed by the addresses of libsbml objects whose
-        lifetime this function does not see.
+        During a report, each parent list is indexed once. The index is
+        scoped to that traversal, while its document is alive, and discarded
+        afterwards. Standalone calls find the position by walking the list.
 
         Args:
             sbase: the element
@@ -333,12 +476,29 @@ class SBMLDocumentInfo:
         if sbase.isSetMetaId():
             return str(sbase.getMetaId())
 
+        if (
+            isinstance(sbase, libsbml.SBMLDocument)
+            and not _report_options.get().include_xml
+        ):
+            # A lightweight report must not serialize the whole document just
+            # to hash its key. There is only one document within a report.
+            return "document"
+
         parent: libsbml.SBase | None = sbase.getParentSBMLObject()
         if parent is None:
             return SBMLDocumentInfo._uuid(sbase.toSBML())
 
         if isinstance(parent, libsbml.ListOf):
-            index = next(k for k, item in enumerate(parent) if item == sbase)
+            positions = _list_positions.get()
+            if positions is None:
+                index = next(k for k, item in enumerate(parent) if item == sbase)
+            else:
+                parent_address = _object_address(parent)
+                if parent_address not in positions:
+                    positions[parent_address] = {
+                        _object_address(item): k for k, item in enumerate(parent)
+                    }
+                index = positions[parent_address][_object_address(sbase)]
             key = f"{parent.getElementName()}/{index}"
             parent = parent.getParentSBMLObject()
         else:
@@ -362,7 +522,11 @@ class SBMLDocumentInfo:
 
     @classmethod
     def sbase_dict(
-        cls, sbase: libsbml.SBase, include_sbo_cvterm: bool = True
+        cls,
+        sbase: libsbml.SBase,
+        include_sbo_cvterm: bool = True,
+        *,
+        include_xml: bool = True,
     ) -> dict[str, Any]:
         """Info dictionary for SBase.
 
@@ -373,6 +537,7 @@ class SBMLDocumentInfo:
             report. `sbmlutils.parser` reads the real CVTerms only, since it
             builds a `Model` which is written back out, and the sboTerm is
             already carried by the `sboTerm` attribute.
+        :param include_xml: whether to serialize the element as a source snippet
         :return info dictionary for item
         """
         pk = cls._get_pk(sbase)
@@ -390,7 +555,15 @@ class SBMLDocumentInfo:
 
         # TODO: add the ports information
 
-        if sbase.getTypeCode() in {libsbml.SBML_DOCUMENT, libsbml.SBML_MODEL}:
+        if (
+            not include_xml
+            or not _report_options.get().include_xml
+            or sbase.getTypeCode()
+            in {
+                libsbml.SBML_DOCUMENT,
+                libsbml.SBML_MODEL,
+            }
+        ):
             d["xml"] = None
         else:
             d["xml"] = sbase.toSBML()
@@ -431,7 +604,9 @@ class SBMLDocumentInfo:
             uncertainties: list[dict] = []
             for uncertainty in sbml_distrib.getListOfUncertainties():
                 u_dict = SBMLDocumentInfo.sbase_dict(
-                    uncertainty, include_sbo_cvterm=include_sbo_cvterm
+                    uncertainty,
+                    include_sbo_cvterm=include_sbo_cvterm,
+                    include_xml=include_xml,
                 )
 
                 u_dict["uncertaintyParameters"] = []
@@ -448,9 +623,7 @@ class SBMLDocumentInfo:
                             else None
                         ),
                         "math": (
-                            astnode_to_latex(upar.getMath())
-                            if upar.isSetMath()
-                            else None
+                            _math_to_latex(upar.getMath()) if upar.isSetMath() else None
                         ),
                     }
 
@@ -640,7 +813,7 @@ class SBMLDocumentInfo:
         fd: libsbml.FunctionDefinition
         for fd in model.getListOfFunctionDefinitions():
             d = self.sbase_dict(fd)
-            d["math"] = astnode_to_latex(fd.getMath()) if fd.isSetMath() else None
+            d["math"] = _math_to_latex(fd.getMath()) if fd.isSetMath() else None
 
             func_defs.append(d)
 
@@ -684,7 +857,7 @@ class SBMLDocumentInfo:
 
             d["units_sid"] = c.getUnits() if c.isSetUnits() else None
             d["units"] = udef_to_string(d["units_sid"], model)
-            d["derivedUnits"] = udef_to_string(c.getDerivedUnitDefinition())
+            d["derivedUnits"] = self._derived_units(c)
 
             key = c.getId()
             if key in self.maps["assignments"]:
@@ -724,7 +897,7 @@ class SBMLDocumentInfo:
 
             d["units_sid"] = s.getUnits() if s.isSetUnits() else None
             d["units"] = udef_to_string(d["units_sid"], model)
-            d["derivedUnits"] = udef_to_string(s.getDerivedUnitDefinition())
+            d["derivedUnits"] = self._derived_units(s)
 
             # lookup in maps (PKs are in the form <SBMLType>:<id/metaID/name/etc).
             key = s.getId()
@@ -756,11 +929,7 @@ class SBMLDocumentInfo:
                         if sfbc.isSetChemicalFormula()
                         else None
                     ),
-                    "charge": (
-                        sfbc.getCharge()
-                        if (sfbc.isSetCharge() and sfbc.getCharge() != 0)
-                        else None
-                    ),
+                    "charge": (sfbc.getCharge() if sfbc.isSetCharge() else None),
                 }
                 if sfbc
                 else None
@@ -795,7 +964,7 @@ class SBMLDocumentInfo:
             d["constant"] = p.getConstant() if p.isSetConstant() else None
             d["units_sid"] = p.getUnits() if p.isSetUnits() else None
             d["units"] = udef_to_string(d["units_sid"], model)
-            d["derivedUnits"] = udef_to_string(p.getDerivedUnitDefinition())
+            d["derivedUnits"] = self._derived_units(p, model)
 
             key = p.getId()
             if key in self.maps["assignments"]:
@@ -817,8 +986,8 @@ class SBMLDocumentInfo:
         for assignment in model.getListOfInitialAssignments():
             d = self.sbase_dict(assignment)
             d["symbol"] = assignment.getSymbol() if assignment.isSetSymbol() else None
-            d["math"] = astnode_to_latex(assignment.getMath())
-            d["derivedUnits"] = udef_to_string(assignment.getDerivedUnitDefinition())
+            d["math"] = _math_to_latex(assignment.getMath())
+            d["derivedUnits"] = self._derived_units(assignment)
             assignments.append(d)
 
         return assignments
@@ -837,8 +1006,8 @@ class SBMLDocumentInfo:
         for rule in model.getListOfRules():
             d = self.sbase_dict(rule)
             d["variable"] = self._rule_variable_to_string(rule)
-            d["math"] = astnode_to_latex(rule.getMath()) if rule.isSetMath() else None
-            d["derivedUnits"] = udef_to_string(rule.getDerivedUnitDefinition())
+            d["math"] = _math_to_latex(rule.getMath()) if rule.isSetMath() else None
+            d["derivedUnits"] = self._derived_units(rule)
 
             type = d["sbmlType"]
             key = f"{type[0].lower()}{type[1:]}s"
@@ -872,9 +1041,7 @@ class SBMLDocumentInfo:
         for constraint in model.getListOfConstraints():
             d = self.sbase_dict(constraint)
             d["math"] = (
-                astnode_to_latex(constraint.getMath())
-                if constraint.isSetMath()
-                else None
+                _math_to_latex(constraint.getMath()) if constraint.isSetMath() else None
             )
             d["message"] = (
                 constraint.getMessage() if constraint.isSetMessage() else None
@@ -912,9 +1079,9 @@ class SBMLDocumentInfo:
             if klaw:
                 d_law: dict[str, Any] = {}
                 d_law["math"] = (
-                    astnode_to_latex(klaw.getMath()) if klaw.isSetMath() else None
+                    _math_to_latex(klaw.getMath()) if klaw.isSetMath() else None
                 )
-                d_law["derivedUnits"] = udef_to_string(klaw.getDerivedUnitDefinition())
+                d_law["derivedUnits"] = self._derived_units(klaw)
 
                 d_law["localParameters"] = []
                 for i in range(len(klaw.getListOfLocalParameters())):
@@ -923,7 +1090,7 @@ class SBMLDocumentInfo:
                         "id": lp.getId() if lp.isSetId() else None,
                         "value": lp.getValue() if lp.isSetValue() else None,
                         "units_sid": lp.getUnits() if lp.isSetUnits() else None,
-                        "derivedUnits": udef_to_string(lp.getDerivedUnitDefinition()),
+                        "derivedUnits": self._derived_units(lp, model),
                     }
                     lpar_info["units"] = udef_to_string(lpar_info["units_sid"], model)
                     d_law["localParameters"].append(lpar_info)
@@ -1109,7 +1276,7 @@ class SBMLDocumentInfo:
             if trigger:
                 d["trigger"] = {
                     "math": (
-                        astnode_to_latex(trigger.getMath())
+                        _math_to_latex(trigger.getMath())
                         if trigger.isSetMath()
                         else None
                     ),
@@ -1124,23 +1291,21 @@ class SBMLDocumentInfo:
             )
             if priority:
                 d["priority"] = (
-                    astnode_to_latex(priority.getMath())
-                    if priority.isSetMath()
-                    else None
+                    _math_to_latex(priority.getMath()) if priority.isSetMath() else None
                 )
             delay: libsbml.Delay | None = (
                 event.getDelay() if event.isSetDelay() else None
             )
             if delay:
                 d["delay"] = (
-                    astnode_to_latex(delay.getMath()) if delay.isSetMath() else None
+                    _math_to_latex(delay.getMath()) if delay.isSetMath() else None
                 )
 
             d["listOfEventAssignments"] = [
                 {
                     "variable": eva.getVariable() if eva.isSetVariable() else None,
                     "math": (
-                        astnode_to_latex(eva.getMath()) if eva.isSetMath() else None
+                        _math_to_latex(eva.getMath()) if eva.isSetMath() else None
                     ),
                 }
                 for eva in event.getListOfEventAssignments()

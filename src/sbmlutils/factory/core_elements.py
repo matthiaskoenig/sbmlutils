@@ -38,7 +38,7 @@ from sbmlutils.factory.units import (
 )
 from sbmlutils.notes import Notes
 from sbmlutils.reaction_equation import EquationPart, ReactionEquation
-from sbmlutils.validation import check
+from sbmlutils.validation import allow_implicit_parameter, check
 
 logger = logging.getLogger(__name__)
 
@@ -789,7 +789,9 @@ class InitialAssignment(Value):
             )
 
         # Create parameter if not existing
-        if not symbols.has_symbol(self.symbol):
+        if not symbols.has_symbol(self.symbol) and allow_implicit_parameter(
+            self.symbol, "InitialAssignment"
+        ):
             symbols.add_parameter(
                 Parameter(
                     sid=self.symbol,
@@ -897,7 +899,9 @@ class RuleWithVariable(ValueWithUnit, Generic[_VariableRuleT]):  # noqa: UP046
             )
 
         # Create parameter if not existing
-        if not symbols.has_symbol(self.variable):
+        if not symbols.has_symbol(self.variable) and allow_implicit_parameter(
+            self.variable, type(self).__name__
+        ):
             symbols.add_parameter(
                 Parameter(
                     sid=self.variable,

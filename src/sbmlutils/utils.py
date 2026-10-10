@@ -2,9 +2,26 @@
 
 import hashlib
 from collections.abc import Iterator
+from pathlib import Path
 from typing import Any
 
 import libsbml
+
+
+def contained_path(output_dir: Path, location: str) -> Path:
+    """Resolve an output filename below its directory, rejecting escapes.
+
+    Existing symlinks are resolved too, so they cannot redirect a write out
+    of the output directory.
+    """
+    root = output_dir.resolve()
+    path = (root / location).resolve()
+    if not path.is_relative_to(root) or path == root:
+        raise ValueError(
+            f"The location '{location}' is outside of the output directory "
+            f"'{output_dir}'."
+        )
+    return path
 
 
 class FrozenClass:
