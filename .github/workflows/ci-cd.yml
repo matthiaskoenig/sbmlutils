@@ -15,8 +15,9 @@ permissions:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  # superseded branch runs are cancelled, release runs are never cancelled
-  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+  # a newer run supersedes the running one of the same branch or pull request;
+  # a release is never superseded, every tag is a group of its own
+  cancel-in-progress: true
 
 env:
   # the tools run with uvx are pinned, dependabot does not update them
@@ -36,32 +37,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # continuous integration tests the newest python on every platform, the
+        # older and newer versions, `lowest` and `cobra` are tested locally with
+        # `tox run-parallel`, see docs/development.md
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ["3.12", "3.13", "3.14"]
-        # `py` (or none, as in the entries below) runs the environment of the
-        # python version, e.g. `py3.14`; another value runs that environment
-        tox-env: [py]
-        # Linux covers the full range with simulation support; Windows and
-        # macOS cover only its newest version, 3.14. A core-only 3.15 job on
-        # Linux is added below.
-        exclude:
-          - os: windows-latest
-            python-version: "3.12"
-          - os: windows-latest
-            python-version: "3.13"
-          - os: macos-latest
-            python-version: "3.12"
-          - os: macos-latest
-            python-version: "3.13"
-        # Keep the full suite on 3.14 while libroadrunner lacks 3.15 wheels.
-        include:
-          - os: ubuntu-latest
-            python-version: "3.15"
-          # the suite against the lower bounds of the dependencies, see the
-          # `lowest` environment of tox.ini, which is pinned to python 3.12
-          - os: ubuntu-latest
-            python-version: "3.12"
-            tox-env: lowest
+        python-version: ["3.14"]
 
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
@@ -75,6 +55,8 @@ jobs:
         # a release run restores no cache, which zizmor cannot tell from the
         # expression; the distributions are built without one, see `build`
         enable-cache: ${{ !startsWith(github.ref, 'refs/tags/') }}  # zizmor: ignore[cache-poisoning]
+        # the interpreter is cached with the packages instead of downloaded by every run
+        cache-python: ${{ !startsWith(github.ref, 'refs/tags/') }}  # zizmor: ignore[cache-poisoning]
     - name: Put libpython on the library search path (linux only)
       # the extension of libroadrunner links against libpython3.X.so.1.0. The
       # standalone interpreters of uv ship it in their `lib` directory but are
@@ -90,7 +72,7 @@ jobs:
       shell: bash
     - name: Test with tox
       env:
-        TOX_ENV: ${{ matrix.tox-env != 'py' && matrix.tox-env || format('py{0}', matrix.python-version) }}
+        TOX_ENV: py${{ matrix.python-version }}
       run: uvx --with "tox-uv==${TOX_UV_VERSION}" "tox@${TOX_VERSION}" -e "${TOX_ENV}"
       shell: bash
 
@@ -109,41 +91,6 @@ jobs:
       run: |
         echo "test matrix: $RESULT"
         test "$RESULT" = "success"
-
-  cobra:
-    # the tests which need cobrapy, the optional `cobra` extra, see the `cobra`
-    # environment of tox.ini. They skip in every other environment, so this job
-    # is the only place they run. It informs and does not gate: it is
-    # deliberately not part of the `tests` job the branch protection requires,
-    # since the package itself works without cobrapy.
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    env:
-      # the interpreter uv manages, see the `test` job
-      UV_PYTHON_PREFERENCE: only-managed
-
-    steps:
-    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
-      with:
-        persist-credentials: false
-    - name: Install uv and set the python version
-      # the `cobra` environment is pinned to python 3.14, see tox.ini
-      uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7  # v10.2.0
-      with:
-        version: "0.12.21"
-        python-version: "3.14"
-        # a release run restores no cache, which zizmor cannot tell from the
-        # expression; the distributions are built without one, see `build`
-        enable-cache: ${{ !startsWith(github.ref, 'refs/tags/') }}  # zizmor: ignore[cache-poisoning]
-    - name: Put libpython on the library search path
-      # the extension of libroadrunner links against libpython, see the `test` job
-      run: |
-        uv python install 3.14
-        prefix="$("$(uv python find --no-project 3.14)" -c 'import sys; print(sys.base_prefix)')"
-        echo "LD_LIBRARY_PATH=${prefix}/lib" >> "$GITHUB_ENV"
-      shell: bash
-    - name: Test with tox
-      run: uvx --with "tox-uv==${TOX_UV_VERSION}" "tox@${TOX_VERSION}" -e cobra
 
   build:
     # builds the distributions of a release without any write permission; the

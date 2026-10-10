@@ -19,12 +19,14 @@ A pull request can only be merged once the four required checks are green:
 
 | check   | workflow      | content                                                              |
 | ------- | ------------- | -------------------------------------------------------------------- |
-| `tests` | `ci-cd.yml`   | the test matrix, linux with python 3.12 to 3.15, macos and windows with 3.14 |
+| `tests` | `ci-cd.yml`   | the test matrix, python 3.14 on linux, macos and windows              |
 | `ruff`  | `ruff.yml`    | `ruff check` and `ruff format --check`                                |
 | `ty`    | `ty.yml`      | `tox r -e ty`                                                         |
 | `docs`  | `docs.yml`    | the zensical build including the api reference and the agent files    |
 
 `tests` aggregates the test matrix into a single job, so the name of the required check stays the same when the matrix changes.
+
+Continuous integration is kept small: every workflow cancels its running build when a newer commit of the same branch or pull request arrives, uv caches the packages and the interpreters between runs, dependabot proposes its updates once a month, and the matrix tests only the newest python. The other python versions, `lowest` and `cobra` are tested locally, see [Testing](#testing), before a pull request is opened.
 
 Further rules of a pull request:
 
@@ -107,7 +109,7 @@ and the complete matrix, including the `ty` environment, in parallel with
 tox run-parallel
 ```
 
-This needs the interpreters to be available, which uv installs with `uv python install 3.12 3.13 3.14 3.15`. Continuous integration runs the same environments as `uvx --with tox-uv tox -e py3.15`.
+This needs the interpreters to be available, which uv installs with `uv python install 3.12 3.13 3.14 3.15`. It is the complete test and is run before a pull request is opened: continuous integration runs only `py3.14`, on linux, macos and windows, as `uvx --with tox-uv tox -e py3.14`.
 
 What follows `--` is passed on to pytest, so a single module or test can be run in the environment of a tox run rather than against the development environment, which is what continuous integration runs:
 
@@ -124,9 +126,9 @@ Two more markers run by default and in continuous integration but can be deselec
 pytest -m "not sbml_testsuite and not slow and not network"
 ```
 
-Python 3.15 tests the core package without the `examples` extra because libroadrunner does not yet publish CPython 3.15 wheels. Tests requiring simulation skip in that environment; Python 3.12 to 3.14 still install the extra and run them. Python 3.15 uses an Intel macOS runner because uv currently provides its macOS interpreter only for Intel.
+Python 3.15 tests the core package without the `examples` extra because libroadrunner does not yet publish CPython 3.15 wheels. Tests requiring simulation skip in that environment; Python 3.12 to 3.14 still install the extra and run them.
 
-The `cobra` environment is the one which installs cobrapy, the optional `cobra` extra, and runs the tests which need it, i.e., the flux balance comparison of `tests/test_package_semantics.py` and `tests/fbc/test_cobra.py`; it is pinned to python 3.14 and has a job of its own in `ci-cd.yml`, which informs and is not part of the required `tests` check.
+The `cobra` environment is the one which installs cobrapy, the optional `cobra` extra, and runs the tests which need it, i.e., the flux balance comparison of `tests/test_package_semantics.py` and `tests/fbc/test_cobra.py`; it is pinned to python 3.14 and runs locally only, continuous integration does not install cobrapy.
 
 ```bash
 tox r -e cobra
@@ -134,7 +136,7 @@ tox r -e cobra
 
 Here `--` replaces those two modules, so `tox r -e cobra -- tests/fbc/test_cobra.py` runs that one.
 
-The `lowest` environment installs the oldest version of every dependency which the lower bounds in `pyproject.toml` allow (`uv_resolution = lowest-direct`, their own dependencies stay at the newest) on python 3.12 and runs the suite against it, so a lower bound is only ever raised or lowered together with a run of it. `pymetadata` requires newer releases of `rich` and `requests` than sbmlutils does, which would lift them above the bounds; `lowest-overrides.txt` therefore overrides `rich`, `requests` and `markdown-it-py` to exactly their bounds (through `UV_OVERRIDE`), and has to be kept equal to them. It runs in the test matrix of `ci-cd.yml` and is part of the required `tests` check.
+The `lowest` environment installs the oldest version of every dependency which the lower bounds in `pyproject.toml` allow (`uv_resolution = lowest-direct`, their own dependencies stay at the newest) on python 3.12 and runs the suite against it, so a lower bound is only ever raised or lowered together with a run of it. `pymetadata` requires newer releases of `rich` and `requests` than sbmlutils does, which would lift them above the bounds; `lowest-overrides.txt` therefore overrides `rich`, `requests` and `markdown-it-py` to exactly their bounds (through `UV_OVERRIDE`), and has to be kept equal to them. It runs locally only, as part of `tox run-parallel`.
 
 ```bash
 tox r -e lowest
@@ -234,7 +236,7 @@ Docstrings are therefore the place to document functions and classes, the markdo
 
 ### Included files
 
-`pymdownx.snippets` includes a file of `docs/` into a page, `--8<-- "path/in/docs.md"`, and fails the build for a file which does not exist. The `exclude` plugin in `zensical.toml` keeps `docs/superpowers/` with the internal design documents from becoming pages.
+`pymdownx.snippets` includes a file of `docs/` into a page, `--8<-- "path/in/docs.md"`, and fails the build for a file which does not exist. The `exclude` plugin in `zensical.toml` keeps `docs/superpowers/`, where coding agents write their design documents and plans, from becoming pages of a local build; the directory is gitignored, such documents are not part of the repository.
 
 ### Files for agents { #files-for-agents }
 

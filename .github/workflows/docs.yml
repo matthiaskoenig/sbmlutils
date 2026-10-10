@@ -13,9 +13,9 @@ permissions:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  # a superseded pull request build is cancelled; a push is never cancelled,
-  # the deployment it starts would be left half published
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  # a newer run supersedes the running one; a cancelled deployment leaves the
+  # published site as it was, the newer run deploys
+  cancel-in-progress: true
 
 jobs:
   docs:
@@ -37,6 +37,7 @@ jobs:
           version: "0.12.21"
           python-version: "3.14"
           enable-cache: true
+          cache-python: true
       - name: Install the locked dependencies (fails if uv.lock is out of date with pyproject.toml, run `uv lock`)
         # `--locked` refuses to update the lock: a change of the dependencies
         # in pyproject.toml has to come with the `uv lock` which records it
