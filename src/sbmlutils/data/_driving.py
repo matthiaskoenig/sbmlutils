@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING
 import libsbml
 
 from sbmlutils.io.sbml import read_sbml, write_sbml
+from sbmlutils.utils import all_elements
 from sbmlutils.validation import ValidationOptions, check, validate_doc
 
 if TYPE_CHECKING:
@@ -483,7 +484,7 @@ def drive_comp(
     # submodel and the model definition are named after the original, so a
     # name for an original without an id must be none of its ids
     taken: set[str] = {
-        element.getId() for element in model.getListOfAllElements() if element.isSetId()
+        element.getId() for element in all_elements(model) if element.isSetId()
     }
     mid = model.getId() or _free_id("model", taken)
     doc = _comp_document(original, embed)

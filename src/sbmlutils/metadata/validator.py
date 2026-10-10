@@ -9,6 +9,7 @@ from pymetadata.core.annotation import RDFAnnotation
 from pymetadata.core.miriam import BQB
 
 from sbmlutils.io.sbml import read_sbml
+from sbmlutils.utils import all_elements
 
 logger = logging.getLogger(__name__)
 
@@ -22,10 +23,9 @@ def validate_sbml_annotations(source: Path | str) -> pd.DataFrame:
     doc: libsbml.SBMLDocument = read_sbml(source=source)
     logger.info("Validate annotations: %s", source)
 
-    elements = doc.getListOfAllElements()
     element: libsbml.SBase
     invalid_annotations: list = []
-    for element in elements:
+    for element in all_elements(doc):
         if element.isSetAnnotation():
             cvterm: libsbml.CVTerm
             cvterms = element.getCVTerms()
@@ -41,14 +41,14 @@ def validate_sbml_annotations(source: Path | str) -> pd.DataFrame:
                     if not valid:
                         logger.warning(
                             "id='%s' | %s | '%s' | %s",
-                            element.id,
+                            element.getId(),
                             type(element).__name__,
-                            element.name,
+                            element.getName(),
                             resource_uri,
                         )
                         invalid_annotations.append(
                             {
-                                "id": element.id,
+                                "id": element.getId(),
                                 "object": type(element).__name__,
                                 "resource": resource_uri,
                             }

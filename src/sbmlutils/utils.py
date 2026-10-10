@@ -1,6 +1,7 @@
 """Utility functions."""
 
 import hashlib
+from collections.abc import Iterator
 from typing import Any
 
 import libsbml
@@ -46,3 +47,24 @@ def create_hash_id(sbase: libsbml.SBase) -> str:
         xml_str = xml_node.toString().encode("utf-8")
         hash_key = hashlib.md5(xml_str, usedforsecurity=False).hexdigest()
     return hash_key
+
+
+def all_elements(sbase: libsbml.SBase) -> Iterator[libsbml.SBase]:
+    """Yield every element below an element, in the order of `getListOfAllElements`.
+
+    `getListOfAllElements` returns a linked list, and libsbml answers the
+    python iteration over it with `get(i)`, which walks the list from its head
+    every time: iterating the 115925 elements of Recon3D that way takes 13 s
+    instead of 0.2 s. The list is therefore consumed from its head with
+    `remove(0)`, which takes constant time. The list owns none of its elements,
+    removing one from it leaves the document unchanged.
+
+    Args:
+        sbase: the element, e.g. a document or a model, whose elements are walked
+
+    Yields:
+        every element below `sbase`, not `sbase` itself
+    """
+    elements: libsbml.SBaseList = sbase.getListOfAllElements()
+    while elements.getSize():
+        yield elements.remove(0)
