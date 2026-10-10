@@ -120,7 +120,9 @@ tox r -e py3.14 -- tests/test_factory.py::test_model_units -x
 
 Without it the whole suite runs, with the `sbml_testsuite` sweep deselected, which is what the environments do in continuous integration.
 
-Two more markers run by default and in continuous integration but can be deselected for a quick local run: `slow` marks the tests which take many seconds (the fbc round trip of `Recon3D`), `network` the tests which query the live BioModels service and skip when it does not answer.
+Two more markers run by default but can be deselected for a quick local run: `slow` marks the tests which take many seconds (the fbc round trip of `Recon3D`) and runs locally only, continuous integration deselects it; `network` marks the tests which query the live BioModels service and skip when it does not answer.
+
+The suite is safe to run in parallel with pytest-xdist, which every tox environment installs: `tox r -e py3.14 -- -n auto` spreads it over all cores. Continuous integration runs it so, with `--durations=15`, so that a new slow test shows up in the log; a test which takes seconds gets the `slow` marker or is made faster.
 
 ```bash
 pytest -m "not sbml_testsuite and not slow and not network"

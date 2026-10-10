@@ -17,6 +17,7 @@ from sbmlutils.factory import PortType, SbaseRef, create_objects
 from sbmlutils.io import read_sbml
 from sbmlutils.layout import Layout, SpeciesGlyph
 from sbmlutils.metadata import SBO
+from sbmlutils.utils import all_elements
 from sbmlutils.validation import ValidationOptions, validate_doc
 
 
@@ -1012,7 +1013,7 @@ def test_submodel_instantiates_a_model_definition(tmp_path: Path) -> None:
 
     doc_flat = read_sbml(flat_path)
     model_flat: libsbml.Model = doc_flat.getModel()
-    ids = {element.getId() for element in model_flat.getListOfAllElements()}
+    ids = {element.getId() for element in all_elements(model_flat)}
     assert "sub1__S1" in ids
     assert "sub1__S2" in ids
     assert "sub1__k" in ids
@@ -1624,7 +1625,7 @@ def test_a_model_definition_can_instantiate_another_one(tmp_path: Path) -> None:
 
     doc_flat = read_sbml(flat_path)
     model_flat: libsbml.Model = doc_flat.getModel()
-    ids = {element.getId() for element in model_flat.getListOfAllElements()}
+    ids = {element.getId() for element in all_elements(model_flat)}
     assert "outer__k_outer" in ids
     assert "outer__inner__k_inner" in ids
 

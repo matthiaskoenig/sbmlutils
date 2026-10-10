@@ -23,6 +23,7 @@ from sbmlutils.resources import (
     GALACTOSE_ANNOTATIONS,
     GALACTOSE_SINGLECELL_SBML_NO_ANNOTATIONS,
 )
+from sbmlutils.utils import all_elements
 
 
 def test_create_annotation(tmp_path: Path) -> None:
@@ -201,10 +202,9 @@ def _annotated_elements(doc: libsbml.SBMLDocument) -> list[str]:
     Returns:
         the ids of the annotated elements
     """
-    elements: libsbml.SBaseList = doc.getListOfAllElements()
     return [
         element.getId()
-        for element in elements
+        for element in all_elements(doc)
         if isinstance(element, libsbml.SBase) and element.getNumCVTerms() > 0
     ]
 

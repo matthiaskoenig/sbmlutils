@@ -72,6 +72,7 @@ from sbmlutils.resources import (
     FBC_ECOLI_CORE_SBML,
     FBC_RECON3D_SBML,
 )
+from sbmlutils.utils import all_elements
 from sbmlutils.validation import ValidationOptions, validate_doc
 
 #: the uncertainties of distrib, with parameters, spans and math
@@ -154,7 +155,7 @@ def _first(doc: libsbml.SBMLDocument, accept: Callable[[Any], bool]) -> Any:
     Returns:
         the first accepted element of the document, in document order
     """
-    for element in doc.getListOfAllElements():
+    for element in all_elements(doc):
         if accept(element):
             return element
     raise AssertionError("the fixture has no such element")
@@ -750,7 +751,7 @@ def _expected_constructs(doc: libsbml.SBMLDocument) -> Counter[str]:
         if doc.getPlugin(package) is not None:
             counts[f"{package}.package"] += 1
     # the elements of a document include its model
-    for element in doc.getListOfAllElements():
+    for element in all_elements(doc):
         construct = _construct_of(element)
         if construct is not None:
             counts[construct] += 1
@@ -820,7 +821,7 @@ def test_snapshot_compares_every_attribute(sbml_path: Path) -> None:
         compared.setdefault(construct, set()).update(attributes)
         compared.setdefault(construct.split(".")[0], set()).update(attributes)
 
-    for element in doc.getListOfAllElements():
+    for element in all_elements(doc):
         written = _written_attributes(element)
         construct = _construct_of(element)
         if construct is not None:
@@ -860,7 +861,7 @@ def _package_content(doc: libsbml.SBMLDocument) -> Counter[str]:
         how often the SBML of every element of fbc, distrib or comp occurs, and every package attribute of a core element with its value
     """
     content: Counter[str] = Counter()
-    for element in doc.getListOfAllElements():
+    for element in all_elements(doc):
         if element.getPackageName() in PACKAGES:
             content[_CORE_NAMESPACE.sub("core", element.toSBML())] += 1
             continue
@@ -3185,7 +3186,7 @@ def test_parser_reports_a_replaced_by_it_cannot_write(
     doc: libsbml.SBMLDocument = _read(sbml_path)
     carried = [
         element.getElementName()
-        for element in doc.getModel().getListOfAllElements()
+        for element in all_elements(doc.getModel())
         if isinstance(element.getPlugin("comp"), libsbml.CompSBasePlugin)
         and element.getPlugin("comp").isSetReplacedBy()
     ]

@@ -5,6 +5,7 @@ from pathlib import Path
 import libsbml
 
 from sbmlutils.io import read_sbml, write_sbml
+from sbmlutils.utils import all_elements
 
 
 def write_ids_to_names(input_path: Path, output_path: Path) -> None:
@@ -19,8 +20,7 @@ def write_ids_to_names(input_path: Path, output_path: Path) -> None:
         OSError: if the output file cannot be written, see `write_sbml`
     """
     doc: libsbml.SBMLDocument = read_sbml(input_path)
-    elements = doc.getListOfAllElements()
-    for element in elements:
+    for element in all_elements(doc):
         if element.isSetId():
             element.setName(element.getId())
 

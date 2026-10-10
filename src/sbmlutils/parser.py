@@ -105,6 +105,7 @@ from sbmlutils.io.sbml import read_sbml
 from sbmlutils.metadata import BQB, BQM
 from sbmlutils.reaction_equation import EquationPart
 from sbmlutils.report.sbmlinfo import SBMLDocumentInfo
+from sbmlutils.utils import all_elements
 from sbmlutils.validation import ValidationOptions
 
 logger = logging.getLogger(__name__)
@@ -543,7 +544,7 @@ def _parse_replaced_elements(model: libsbml.Model, m: Model) -> None:
         m: the `Model` to populate
     """
     element: libsbml.SBase
-    for element in model.getListOfAllElements():
+    for element in all_elements(model):
         comp: libsbml.SBasePlugin | None = element.getPlugin("comp")
         if not isinstance(comp, libsbml.CompSBasePlugin):
             continue
@@ -1455,7 +1456,7 @@ def _convert_fbc_v1(doc: libsbml.SBMLDocument) -> None:
     # every model of the document, which is the model and every comp model
     # definition; `getListOfAllElements` yields both
     element: libsbml.SBase
-    for element in doc.getListOfAllElements():
+    for element in all_elements(doc):
         element_fbc: libsbml.SBasePlugin | None = element.getPlugin("fbc")
         if isinstance(element_fbc, libsbml.FbcModelPlugin):
             element_fbc.unsetStrict()

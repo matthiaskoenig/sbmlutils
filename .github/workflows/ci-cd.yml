@@ -73,7 +73,12 @@ jobs:
     - name: Test with tox
       env:
         TOX_ENV: py${{ matrix.python-version }}
-      run: uvx --with "tox-uv==${TOX_UV_VERSION}" "tox@${TOX_VERSION}" -e "${TOX_ENV}"
+      # the tests run in parallel on every core of the runner; the `slow` tests
+      # (many seconds each) run locally only, the later `-m` replaces the one of
+      # tox.ini. The slowest tests are listed, so that new ones are noticed.
+      run: >-
+        uvx --with "tox-uv==${TOX_UV_VERSION}" "tox@${TOX_VERSION}" -e "${TOX_ENV}" --
+        -n auto --durations=15 -m "not sbml_testsuite and not slow"
       shell: bash
 
   tests:
