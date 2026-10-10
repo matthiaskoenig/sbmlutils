@@ -21,6 +21,9 @@ def read_sbml(
     promote: bool = False,
     validate: bool = False,
     validation_options: ValidationOptions | None = None,
+    *,
+    max_bytes: int | None = None,
+    allow_external_models: bool = True,
 ) -> libsbml.SBMLDocument:
     """Read SBMLDocument from given source.
 
@@ -34,6 +37,9 @@ def read_sbml(
     :param validate: validate file; the read errors are then logged by the
         validation, according to `ValidationOptions.log_errors`
     :param validation_options: options for validation
+    :param max_bytes: optional limit on UTF-8 string or decompressed file bytes
+    :param allow_external_models: reject comp external model definitions when
+        False, before validation can resolve them
 
     :return: libsbml.SBMLDocument
 
@@ -42,7 +48,7 @@ def read_sbml(
         is returned as it is, SBML allows it; the errors of a document which
         was read are logged (or validated with `validate`), not raised.
     """
-    doc, label = _read_document(source)
+    doc, label = _read_document(source, max_bytes=max_bytes)
     unreadable: list[libsbml.SBMLError] = _read_failures(doc)
     if unreadable:
         raise ValueError(
@@ -53,6 +59,8 @@ def read_sbml(
                 for error in unreadable
             )
         )
+
+    _check_external_models(doc, allow_external_models)
 
     # promote local parameters
     if promote:
@@ -89,8 +97,22 @@ def _shorten(source: Path | str, limit: int = 200) -> str:
     return text if len(text) <= limit else text[:limit] + "..."
 
 
-def _read_document(source: Path | str) -> tuple[libsbml.SBMLDocument, str]:
-    """Read an SBMLDocument from a path or an SBML string without raising.
+def _is_xml_source(source: Path | str) -> bool:
+    """Recognize XML content, including namespace-prefixed or malformed SBML.
+
+    An existing string filename takes precedence; a Path always names a file.
+    """
+    return (
+        isinstance(source, str)
+        and source.lstrip("\ufeff \t\r\n").startswith("<")
+        and not files.is_file(source)
+    )
+
+
+def _read_document(
+    source: Path | str, *, max_bytes: int | None = None
+) -> tuple[libsbml.SBMLDocument, str]:
+    """Read a document, enforcing an optional decompressed input limit.
 
     A file is read by libsbml, a path libsbml cannot open on Windows, one
     with a non-ASCII character, by python, see `sbmlutils.io.files`. The
@@ -104,21 +126,23 @@ def _read_document(source: Path | str) -> tuple[libsbml.SBMLDocument, str]:
 
     Args:
         source: SBML path or SBML string
+        max_bytes: optional limit on UTF-8 string or decompressed file bytes
 
     Returns:
         the document with the errors libsbml reported while parsing it, and
         a label of the source for messages, which does not repeat an SBML
         string
     """
-    if isinstance(source, str) and "<sbml" in source:
+    if max_bytes is not None and max_bytes < 0:
+        raise ValueError("max_bytes must be nonnegative")
+    if _is_xml_source(source):
+        if max_bytes is not None and (
+            len(str(source)) > max_bytes or len(str(source).encode("utf-8")) > max_bytes
+        ):
+            raise files.InputSizeLimitError(f"SBML input exceeds max_bytes={max_bytes}")
         return libsbml.readSBMLFromString(source), "SBML string"
 
     if not isinstance(source, Path):
-        logger.error(
-            "All SBML paths should be of type 'Path', but '%s' found for: %s",
-            type(source),
-            _shorten(source),
-        )
         source = Path(source)
 
     label = f"SBML file '{_shorten(source)}'"
@@ -127,12 +151,18 @@ def _read_document(source: Path | str) -> tuple[libsbml.SBMLDocument, str]:
     # a relative location is resolved wrongly, and a location set as a
     # percent-encoded URI (`Path.as_uri`) is not decoded
     path: Path = source.resolve()
-    if files.libsbml_can_open(path):
+    if max_bytes is None and files.libsbml_can_open(path):
         return libsbml.readSBMLFromFile(str(path)), label
 
     doc: libsbml.SBMLDocument
     try:
-        doc = libsbml.readSBMLFromString(files.read_text(path))
+        doc = libsbml.readSBMLFromString(
+            files.read_text(path)
+            if max_bytes is None
+            else files.read_text(path, max_bytes=max_bytes)
+        )
+    except files.InputSizeLimitError:
+        raise
     except (OSError, ValueError) as err:
         # the error libsbml's own reader reports for the file, so that the
         # failure is part of the document as every other read error
@@ -150,6 +180,13 @@ def _read_document(source: Path | str) -> tuple[libsbml.SBMLDocument, str]:
     # the location `libsbml.readSBMLFromFile` records for an absolute path
     doc.setLocationURI(f"file:{path}")
     return doc, label
+
+
+def _check_external_models(doc: libsbml.SBMLDocument, allowed: bool) -> None:
+    """Reject external references before any consistency check resolves them."""
+    plugin: libsbml.CompSBMLDocumentPlugin | None = doc.getPlugin("comp")
+    if not allowed and plugin is not None and plugin.getNumExternalModelDefinitions():
+        raise ValueError("External comp model references are disabled")
 
 
 def _read_failures(doc: libsbml.SBMLDocument) -> list[libsbml.SBMLError]:
@@ -273,6 +310,9 @@ def validate_sbml(
     source: str | Path,
     validation_options: ValidationOptions | None = None,
     title: str | None = None,
+    *,
+    max_bytes: int | None = None,
+    allow_external_models: bool = True,
 ) -> ValidationResult:
     """Check given SBML source.
 
@@ -283,19 +323,24 @@ def validate_sbml(
     :param source: SBML path or string
     :param validation_options: options for validation
     :param title: title for validation report (should be filname or model name)
+    :param max_bytes: optional limit on UTF-8 string or decompressed file bytes
+    :param allow_external_models: reject comp external model definitions when
+        False, before validation can resolve them
     :return: ValidationResult
 
     :raises IsADirectoryError: if `source` is a directory
     :raises FileNotFoundError: if `source` is no SBML string and no existing file
+    :raises ValueError: if an optional input restriction is exceeded
     """
-    if not (isinstance(source, str) and "<sbml" in source):
+    if not _is_xml_source(source):
         if files.is_dir(source):
             raise IsADirectoryError(
                 f"SBML source is a directory, not an SBML file: '{source}'"
             )
         if not files.is_file(source):
             raise FileNotFoundError(f"SBML file does not exist: '{_shorten(source)}'")
-    doc, _ = _read_document(source)
+    doc, _ = _read_document(source, max_bytes=max_bytes)
+    _check_external_models(doc, allow_external_models)
     return validate_doc(
         doc=doc,
         options=validation_options,

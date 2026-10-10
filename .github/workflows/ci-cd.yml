@@ -37,11 +37,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # continuous integration tests the newest python on every platform, the
-        # older and newer versions, `lowest` and `cobra` are tested locally with
-        # `tox run-parallel`, see docs/development.md
+        # Test the newest stable Python on every platform and the minimum
+        # supported Python with the lowest direct dependency versions.
         os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ["3.14"]
+        include:
+          - os: ubuntu-latest
+            python-version: "3.12"
+            tox-env: lowest
 
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
@@ -72,7 +75,7 @@ jobs:
       shell: bash
     - name: Test with tox
       env:
-        TOX_ENV: py${{ matrix.python-version }}
+        TOX_ENV: ${{ matrix.tox-env || format('py{0}', matrix.python-version) }}
       # the tests run in parallel on every core of the runner; the `slow` tests
       # (many seconds each) run locally only, the later `-m` replaces the one of
       # tox.ini. The slowest tests are listed, so that new ones are noticed.

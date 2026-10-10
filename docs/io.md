@@ -25,6 +25,28 @@ doc = read_sbml(
 
 Compressed files are read as they are: a `.gz`, `.bz2` or `.zip` path is decompressed transparently, as libsbml does it.
 
+Strings containing XML are recognized by their first non-whitespace character,
+including namespace-prefixed SBML. Existing string filenames take precedence;
+a `Path` always names a file.
+
+For uploaded or otherwise untrusted documents, reading and validation accept
+optional input restrictions:
+
+```python
+doc = read_sbml(
+    "uploaded.xml.gz",
+    max_bytes=50 * 1024 * 1024,
+    allow_external_models=False,
+)
+```
+
+`max_bytes` limits decompressed bytes before parsing, including for compressed
+files and UTF-8 strings. With a limit, files are read through Python's bounded
+stream reader. `allow_external_models=False` rejects comp external model
+definitions before validation can resolve their sources. Exceeding either
+restriction raises `ValueError`. Both options are also accepted by
+`validate_sbml`; defaults retain unrestricted reading and composition support.
+
 Files are read and written by libsbml. libsbml cannot open a path with a non-ASCII character on Windows, so such a path is read and written by python and libsbml only parses and serializes the SBML; any path works on every platform. The python fallback reads UTF-8, the encoding SBML requires. The one file libsbml still opens itself is the file of a comp external model definition, see [comp](comp.md#flattening).
 
 ## Writing
@@ -195,3 +217,35 @@ paths = download_biomodel_sbml("BIOMD0000000012", Path("models"))
 # the ids of all curated models
 biomodel_ids = query_curated_biomodels()
 ```
+
+## Checking round-trip preservation
+
+A valid written SBML file can omit content from its source. `sbml_to_model`
+reports known parser losses in the read-only `Model.preservation_diagnostics`
+tuple. `create_model` carries these into
+`FactoryResult.preservation_diagnostics`, separately from construction findings
+and serialized validation. Merging model definitions retains source findings.
+
+```python
+from sbmlutils.parser import sbml_to_model
+from sbmlutils.factory import create_model
+from sbmlutils.validation import PreservationError
+
+model = sbml_to_model(source, strict_preservation=True)
+result = create_model(model, destination, strict_preservation=True)
+```
+
+The parser's strict flag rejects a parse with reported losses. The factory's
+strict flag rejects a model carrying these findings before constructing or
+writing output, preserving an existing destination. In permissive mode, inspect
+`preservation_diagnostics` for grouped codes, messages, counts, and examples.
+`PreservationError.diagnostics` contains the same immutable findings.
+
+Known losses include history, groups/layout and other unsupported package
+content, document-level metadata, custom non-RDF annotations, dropped
+uncertainties/replacements, FBC association metadata and secondary variables,
+and reserved math symbol ambiguity. An empty unsupported package declaration
+alone does not report a content loss. This check covers known parser omissions;
+it does not prove structural equivalence or detect XML discarded by libSBML or
+arbitrary RDF outside the parsed CVTerms. Strict construction (`strict=True`)
+and final SBML validation (`raise_on_error=True`) remain separate options.

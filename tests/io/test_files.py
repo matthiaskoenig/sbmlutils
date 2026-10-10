@@ -7,6 +7,18 @@ import pytest
 from sbmlutils.io.files import is_file, read_text, write_text
 
 
+@pytest.mark.parametrize("suffix", [".xml", ".xml.gz", ".xml.bz2", ".xml.zip"])
+def test_decompressed_input_limit(tmp_path: Path, suffix: str) -> None:
+    """The limit applies to decompressed bytes, including multibyte UTF-8."""
+    path = tmp_path / f"model{suffix}"
+    text = "<sbml>über</sbml>" * 100
+    write_text(path, text)
+    size = len(text.encode("utf-8"))
+    assert read_text(path, max_bytes=size) == text
+    with pytest.raises(ValueError, match="exceeds max_bytes"):
+        read_text(path, max_bytes=size - 1)
+
+
 def test_is_file(tmp_path: Path) -> None:
     """An existing file is a file, a directory and a missing path are not."""
     path = tmp_path / "model.xml"

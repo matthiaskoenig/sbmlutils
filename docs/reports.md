@@ -39,6 +39,38 @@ Every element carries what it means, not only what it says: the equation of a re
 
 `to_json(strip=True)`, the default, removes the empty entries, which is what makes the result readable.
 
+Empty means `None`, an empty string, or an empty list or dictionary. Numeric zero
+and `False` are preserved because they describe model values and flags.
+
+For large models, skip representations which your application does not need:
+
+```python
+from pathlib import Path
+
+info = SBMLDocumentInfo.from_sbml(
+    "model.xml",
+    include_derived_units=False,
+    include_xml=False,
+    include_math=False,
+)
+info.write_json(Path("report.json"))
+```
+
+All three flags default to `True`. Disabling derived units avoids libsbml's unit
+analysis, which can dominate memory usage. Disabling XML omits element source
+snippets and uses `SBMLDocument:document` as the document's primary key instead of
+hashing its complete XML. Disabling math skips LaTeX rendering; the source model
+is unchanged. Missing math is represented by `None` in a complete report too.
+
+For Level 3 parameters and local parameters, a complete report resolves their
+declared units directly and reuses the rendered unit within each model. This
+avoids whole-model unit analysis just to report a parameter's declared unit.
+
+`write_json` accepts a `Path` or a text stream and writes JSON incrementally,
+without allocating the complete JSON string. `strip=False` also avoids building
+a cleaned copy of the report dictionary. The document and report dictionary
+still remain in memory.
+
 ## Math as latex
 
 The math of a model is rendered as latex, which is what the report displays:

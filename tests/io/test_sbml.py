@@ -1,6 +1,9 @@
 """Test SBML reading and writing."""
 
+import logging
 import re
+import subprocess
+import sys
 import zipfile
 from pathlib import Path
 
@@ -8,8 +11,54 @@ import libsbml
 import pytest
 from paths import NON_ASCII_DIR, SPACE_DIR
 
-from sbmlutils.io.sbml import read_sbml, write_sbml
+from sbmlutils.io.sbml import read_sbml, validate_sbml, write_sbml
 from sbmlutils.resources import BASIC_SBML, GZ_SBML
+
+
+@pytest.mark.parametrize("source", [BASIC_SBML, GZ_SBML])
+def test_sbml_input_limit(source: Path) -> None:
+    """Both reading and validation enforce a caller's decompressed byte limit."""
+    assert read_sbml(source, max_bytes=10_000_000).getModel()
+    with pytest.raises(ValueError, match="exceeds max_bytes"):
+        read_sbml(source, max_bytes=1)
+    with pytest.raises(ValueError, match="exceeds max_bytes"):
+        validate_sbml(source, max_bytes=1)
+
+
+def test_xml_string_input_limit() -> None:
+    """XML strings obey the same byte limit as files."""
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<sbml xmlns="http://www.sbml.org/sbml/level3/version2/core" '
+        'level="3" version="2"><model id="m"/></sbml>'
+    )
+    assert read_sbml(xml, max_bytes=len(xml)).getModel().getId() == "m"
+    with pytest.raises(ValueError, match="exceeds max_bytes"):
+        read_sbml(xml, max_bytes=len(xml) - 1)
+
+
+def test_external_models_can_be_refused_before_validation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """An untrusted comp document is rejected before resolving external models."""
+    ns = libsbml.SBMLNamespaces(3, 2)
+    ns.addPackageNamespace("comp", 1)
+    doc = libsbml.SBMLDocument(ns)
+    doc.setPackageRequired("comp", True)
+    doc.createModel().setId("m")
+    external = doc.getPlugin("comp").createExternalModelDefinition()
+    external.setId("external")
+    external.setSource("file:///untrusted/model.xml")
+    xml = libsbml.writeSBMLToString(doc)
+
+    def forbidden(*_args: object, **_kwargs: object) -> None:
+        raise AssertionError("Validation was attempted")
+
+    monkeypatch.setattr("sbmlutils.io.sbml.validate_doc", forbidden)
+    with pytest.raises(ValueError, match="External comp model references are disabled"):
+        read_sbml(xml, validate=True, allow_external_models=False)
+    with pytest.raises(ValueError, match="External comp model references are disabled"):
+        validate_sbml(xml, allow_external_models=False)
 
 
 def test_read_sbml_from_path() -> None:
@@ -24,6 +73,45 @@ def test_read_sbml_from_strpath() -> None:
     doc = read_sbml(str(BASIC_SBML))
     assert doc
     assert doc.getModel()
+
+
+def test_string_path_does_not_log_an_error(caplog: pytest.LogCaptureFixture) -> None:
+    """A documented string filename is an ordinary successful read."""
+    with caplog.at_level(logging.ERROR, logger="sbmlutils.io.sbml"):
+        assert read_sbml(str(BASIC_SBML)).getModel()
+    assert not caplog.records
+
+
+@pytest.mark.parametrize(
+    "module", ["sbmlutils.io.sbml", "sbmlutils.factory", "sbmlutils.parser"]
+)
+def test_converters_are_imported_only_when_used(module: str) -> None:
+    """Ordinary IO, factory and parser imports do not load optional workflows."""
+    subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            f"import {module}; import sys; "
+            "assert 'antimony' not in sys.modules; assert 'sbmlode' not in sys.modules",
+        ],
+        check=True,
+    )
+
+
+def test_prefixed_sbml_string() -> None:
+    """XML namespace prefixes do not turn SBML content into a filename."""
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<s:sbml xmlns:s="http://www.sbml.org/sbml/level3/version2/core" '
+        'level="3" version="2"><s:model id="prefixed"/></s:sbml>'
+    )
+    assert read_sbml(xml).getModel().getId() == "prefixed"
+    assert validate_sbml(xml).is_valid()
+
+
+def test_malformed_xml_string_is_validated_as_content() -> None:
+    """Malformed XML produces validation errors, rather than a missing file."""
+    assert not validate_sbml("<s:sbml broken").is_valid()
 
 
 def test_read_sbml_from_str() -> None:

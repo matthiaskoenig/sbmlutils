@@ -21,6 +21,7 @@ import gzip
 import zipfile
 import zlib
 from pathlib import Path
+from typing import Protocol
 
 
 def is_file(source: Path | str) -> bool:
@@ -88,11 +89,34 @@ def _zip_entry_name(path: Path) -> str:
     return name if name.endswith((".xml", ".sbml")) else f"{name}.xml"
 
 
-def read_text(path: Path) -> str:
+class InputSizeLimitError(ValueError):
+    """The decompressed input exceeds the caller's byte limit."""
+
+
+class _ByteReader(Protocol):
+    """The read operation shared by plain and compressed binary streams."""
+
+    def read(self, size: int = -1, /) -> bytes:
+        """Read up to size bytes, or all remaining bytes for a negative size."""
+        ...
+
+
+def _read_limited(stream: _ByteReader, max_bytes: int | None) -> bytes:
+    """Read at most one byte beyond a caller's decompressed input limit."""
+    if max_bytes is not None and max_bytes < 0:
+        raise ValueError("max_bytes must be nonnegative")
+    content = stream.read() if max_bytes is None else stream.read(max_bytes + 1)
+    if max_bytes is not None and len(content) > max_bytes:
+        raise InputSizeLimitError(f"SBML input exceeds max_bytes={max_bytes}")
+    return content
+
+
+def read_text(path: Path, *, max_bytes: int | None = None) -> str:
     """Read the SBML of a file, decompressing it by its suffix.
 
     Args:
         path: path of the file, `.gz`, `.bz2` and `.zip` are decompressed
+        max_bytes: optional limit on decompressed bytes, before UTF-8 decoding
 
     Returns:
         the content of the file, without a UTF-8 byte order mark
@@ -101,17 +125,21 @@ def read_text(path: Path) -> str:
         OSError: if the file cannot be read or decompressed
         UnicodeDecodeError: if the content is not UTF-8, the encoding SBML
             requires
+        ValueError: if the decompressed content exceeds `max_bytes`
     """
     content: bytes
     try:
         if path.suffix == ".gz":
-            content = gzip.decompress(path.read_bytes())
+            with gzip.open(path, "rb") as stream:
+                content = _read_limited(stream, max_bytes)
         elif path.suffix == ".bz2":
-            content = bz2.decompress(path.read_bytes())
+            with bz2.open(path, "rb") as stream:
+                content = _read_limited(stream, max_bytes)
         elif path.suffix == ".zip":
-            content = _read_zip_entry(path)
+            content = _read_zip_entry(path, max_bytes=max_bytes)
         else:
-            content = path.read_bytes()
+            with path.open("rb") as stream:
+                content = _read_limited(stream, max_bytes)
     except (EOFError, zlib.error, zipfile.BadZipFile) as err:
         # a truncated or corrupt stream, which is no `OSError` of its own
         raise OSError(f"'{path}' could not be decompressed: {err}") from err
@@ -119,7 +147,7 @@ def read_text(path: Path) -> str:
     return content.decode("utf-8-sig")
 
 
-def _read_zip_entry(path: Path) -> bytes:
+def _read_zip_entry(path: Path, *, max_bytes: int | None = None) -> bytes:
     """Read the first entry of a zip archive, the one libsbml reads.
 
     Raises:
@@ -133,7 +161,8 @@ def _read_zip_entry(path: Path) -> bytes:
         names = archive.namelist()
         if not names:
             raise OSError(f"zip archive has no entry: '{path}'")
-        return archive.read(names[0])
+        with archive.open(names[0]) as stream:
+            return _read_limited(stream, max_bytes)
 
 
 def write_text(path: Path, text: str) -> None:

@@ -20,7 +20,11 @@ import libsbml
 from sbmlutils.metadata import BQB, BQM, SBO, annotator
 from sbmlutils.metadata.annotator import Annotation
 from sbmlutils.notes import Notes, NotesFormat, detect_format
-from sbmlutils.validation import ScopedLossCollector, check
+from sbmlutils.validation import (
+    ScopedLossCollector,
+    check,
+    record_construction_diagnostic,
+)
 
 if TYPE_CHECKING:
     from sbmlutils.factory.distrib import Uncertainty
@@ -347,6 +351,11 @@ def _record_unwritten_attribute(
         element: the model element the attribute belongs to
     """
     element_name: str = _sbml_element_name(sbase)
+    record_construction_diagnostic(
+        "unwritten_attribute",
+        f"<{element_name}> attribute {attribute!r} is not serialized by libSBML.",
+        example=str(element),
+    )
     loss = _unwritten_attributes.group(
         (element_name, attribute), lambda: _UnwrittenAttribute(example=str(element))
     )
@@ -382,6 +391,11 @@ def _record_attribute_loss(
         element: the model element the attribute belongs to
     """
     element_name: str = _sbml_element_name(sbase)
+    record_construction_diagnostic(
+        "unsupported_attribute",
+        f"{_sbml_flavour(sbase)} cannot carry <{element_name}> attribute {attribute!r}.",
+        example=str(element),
+    )
     loss = _attribute_losses.group(
         (element_name, attribute),
         lambda: _AttributeLoss(
@@ -529,6 +543,13 @@ def _record_content_loss(
         count: how many pieces of the content are lost
         element: the model element the content belongs to
     """
+    record_construction_diagnostic(
+        "unsupported_content",
+        f"{what} not written: {reason}; requires fbc {needed}.",
+        severity="error",
+        example=str(element),
+        count=count,
+    )
     loss = _content_losses.group(
         (what, reason), lambda: _ContentLoss(example=str(element), needed=needed)
     )

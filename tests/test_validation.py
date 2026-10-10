@@ -22,6 +22,37 @@ from sbmlutils.resources import (
 from sbmlutils.validation import ScopedLossCollector, _file_uri, validate_doc
 
 
+def test_modeling_practice_can_be_disabled() -> None:
+    """The modeling-practice flag disables that category of warnings."""
+    doc = libsbml.SBMLDocument(3, 2)
+    model = doc.createModel()
+    model.setId("m")
+    parameter = model.createParameter()
+    parameter.setId("p")
+    parameter.setConstant(True)
+    enabled = validate_doc(doc, ValidationOptions(log_errors=False))
+    disabled = validate_doc(
+        doc, ValidationOptions(log_errors=False, modeling_practice=False)
+    )
+    assert any(
+        w.category == libsbml.LIBSBML_CAT_MODELING_PRACTICE for w in enabled.warnings
+    )
+    assert not any(
+        w.category == libsbml.LIBSBML_CAT_MODELING_PRACTICE for w in disabled.warnings
+    )
+
+
+def test_fast_validation_preserves_non_unit_checks() -> None:
+    """The fast preset only disables units, rather than structural validation."""
+    options = ValidationOptions.fast(log_errors=False)
+    assert not options.units_consistency
+    assert options.general_consistency
+    assert options.identifier_consistency
+    assert options.internal_consistency
+    assert options.mathml_consistency
+    assert not options.log_errors
+
+
 @pytest.mark.parametrize(
     ("sbml_path", "ucheck", "n_all"),
     [

@@ -1,12 +1,203 @@
 """Test the SBML report information."""
 
+import io
+import json
+from pathlib import Path
+
 import libsbml
 import pytest
 
-from sbmlutils.report.sbmlinfo import SBMLDocumentInfo
+from sbmlutils.report.sbmlinfo import SBMLDocumentInfo, clean_empty
 from sbmlutils.resources import EXAMPLES_DIR, REPRESSILATOR_SBML
 
 REACTION_SBML = EXAMPLES_DIR / "reaction.xml"
+
+
+def test_json_preserves_zero_and_false() -> None:
+    """Removing empty entries must preserve model values and boolean flags."""
+    assert clean_empty(
+        {"value": 0.0, "constant": False, "empty": None, "values": [0, False, ""]}
+    ) == {"value": 0.0, "constant": False, "values": [0, False]}
+    doc = libsbml.SBMLDocument(3, 2)
+    parameter = doc.createModel().createParameter()
+    parameter.setId("p")
+    parameter.setValue(0.0)
+    parameter.setConstant(False)
+    info = SBMLDocumentInfo(doc)
+    serialized = json.loads(info.to_json())["model"]["parameters"][0]
+    assert serialized["value"] == 0.0
+    assert serialized["constant"] is False
+
+
+def test_report_without_initial_assignment_math() -> None:
+    """L3V2 allows an initial assignment without math; it is still reportable."""
+    doc = libsbml.SBMLDocument(3, 2)
+    model = doc.createModel()
+    parameter = model.createParameter()
+    parameter.setId("p")
+    parameter.setConstant(True)
+    parameter.setUnits("dimensionless")
+    model.createInitialAssignment().setSymbol("p")
+    info = SBMLDocumentInfo(doc)
+    assert info.info["model"]["initialAssignments"][0]["math"] is None
+    assert info.info["model"]["parameters"][0]["assignment"]["math"] is None
+
+
+def test_report_preserves_neutral_species_charge() -> None:
+    """A charge of zero means neutral, rather than an unset FBC attribute."""
+    namespaces = libsbml.SBMLNamespaces(3, 2)
+    namespaces.addPackageNamespace("fbc", 2)
+    doc = libsbml.SBMLDocument(namespaces)
+    model = doc.createModel()
+    model.createCompartment().setId("c")
+    species = model.createSpecies()
+    species.setId("S")
+    species.setCompartment("c")
+    species.getPlugin("fbc").setCharge(0)
+    data = json.loads(SBMLDocumentInfo(doc).to_json())
+    assert data["model"]["species"][0]["fbc"]["charge"] == 0
+
+
+@pytest.mark.parametrize(
+    "unit_id",
+    [
+        "mole",
+        "dimensionless",
+        "second",
+        "litre",
+        "metre",
+        "gram",
+        "avogadro",
+        "custom",
+        "unset",
+        "invalid",
+    ],
+)
+@pytest.mark.parametrize("local", [False, True])
+@pytest.mark.parametrize("version", [1, 2])
+def test_parameter_units_match_libsbml_without_model_analysis(
+    unit_id: str, local: bool, version: int, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Direct L3 unit resolution matches native analysis for both parameter types."""
+    from sbmlutils.report.units import udef_to_string
+
+    doc = libsbml.SBMLDocument(3, version)
+    model = doc.createModel()
+    definition = model.createUnitDefinition()
+    definition.setId("custom")
+    unit = definition.createUnit()
+    unit.setKind(libsbml.UNIT_KIND_MOLE)
+    unit.setScale(-3)
+    unit.setMultiplier(2)
+    unit.setExponent(2)
+    reaction = model.createReaction()
+    reaction.setId("R")
+    law = reaction.createKineticLaw()
+    parameter = law.createLocalParameter() if local else model.createParameter()
+    parameter.setId("p")
+    if unit_id != "unset":
+        parameter.setUnits(unit_id)
+    expected = udef_to_string(parameter.getDerivedUnitDefinition())
+
+    def forbidden(*_args: object) -> None:
+        raise AssertionError("Parameter requested whole-model unit analysis")
+
+    monkeypatch.setattr(type(parameter), "getDerivedUnitDefinition", forbidden)
+    info = SBMLDocumentInfo(doc)
+    actual = (
+        info.info["model"]["reactions"][0]["kineticLaw"]["localParameters"][0]
+        if local
+        else info.info["model"]["parameters"][0]
+    )
+    assert actual["derivedUnits"] == expected
+
+
+def test_parameter_unit_cache_is_scoped_to_model_and_traversal() -> None:
+    """Same-named units in different models or changed definitions stay distinct."""
+    namespaces = libsbml.SBMLNamespaces(3, 2)
+    namespaces.addPackageNamespace("comp", 1)
+    doc = libsbml.SBMLDocument(namespaces)
+    main = doc.createModel()
+    main.setId("main")
+    nested = doc.getPlugin("comp").createModelDefinition()
+    nested.setId("nested")
+    for model, multiplier in [(main, 1), (nested, 2)]:
+        definition = model.createUnitDefinition()
+        definition.setId("custom")
+        unit = definition.createUnit()
+        unit.setKind(libsbml.UNIT_KIND_MOLE)
+        unit.setExponent(1)
+        unit.setScale(0)
+        unit.setMultiplier(multiplier)
+        parameter = model.createParameter()
+        parameter.setId("p")
+        parameter.setUnits("custom")
+    info = SBMLDocumentInfo(doc)
+    assert info.info["model"]["parameters"][0]["derivedUnits"] == "mol"
+    assert info.info["modelDefinitions"][0]["parameters"][0]["derivedUnits"] == "2 mol"
+    main.getUnitDefinition("custom").getUnit(0).setMultiplier(3)
+    assert info.create_info()["model"]["parameters"][0]["derivedUnits"] == "3 mol"
+
+
+def test_report_can_skip_expensive_representations(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A lightweight report never invokes unit analysis, XML or LaTeX rendering."""
+    doc = _anonymous_events_doc()
+
+    def forbidden(*_args: object) -> None:
+        raise AssertionError("An expensive representation was requested")
+
+    monkeypatch.setattr(libsbml.Parameter, "getDerivedUnitDefinition", forbidden)
+    monkeypatch.setattr(libsbml.SBase, "toSBML", forbidden)
+    monkeypatch.setattr("sbmlutils.report.sbmlinfo.astnode_to_latex", forbidden)
+    info = SBMLDocumentInfo(
+        doc, include_derived_units=False, include_xml=False, include_math=False
+    )
+    parameter = info.info["model"]["parameters"][0]
+    assert parameter["value"] == 0.0
+    assert parameter["derivedUnits"] is None
+    assert parameter["xml"] is None
+    assert info.info["model"]["events"][0]["trigger"]["math"] is None
+
+
+def test_json_file_and_stream_match_string(tmp_path: Path) -> None:
+    """Streaming JSON preserves the same report as the string API."""
+    info = SBMLDocumentInfo(_anonymous_events_doc())
+    stream = io.StringIO()
+    info.write_json(stream)
+    path = tmp_path / "report.json"
+    info.write_json(path)
+    assert stream.getvalue() == info.to_json()
+    assert path.read_text(encoding="utf-8") == info.to_json()
+
+
+def test_unnamed_element_index_scales_linearly(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A report scans a parent list once to index all its unnamed elements."""
+    doc = libsbml.SBMLDocument(3, 2)
+    model = doc.createModel()
+    for _ in range(100):
+        model.createConstraint().setMath(libsbml.parseL3Formula("true"))
+    scanned = 0
+    original = libsbml.ListOfConstraints.__iter__
+
+    def count_items(self: libsbml.ListOfConstraints):
+        nonlocal scanned
+        for item in original(self):
+            scanned += 1
+            yield item
+
+    monkeypatch.setattr(libsbml.ListOfConstraints, "__iter__", count_items)
+    info = SBMLDocumentInfo(doc)
+    assert scanned == 200  # one report traversal and one indexing traversal
+    assert [c["pk"] for c in info.info["model"]["constraints"]] == [
+        f"Constraint:listOfConstraints/{k}" for k in range(100)
+    ]
+    # An index must not survive a traversal when the document can be edited.
+    model.removeConstraint(0)
+    assert len(info.create_info()["model"]["constraints"]) == 99
 
 
 def test_info_for_repressilator() -> None:

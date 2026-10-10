@@ -36,6 +36,11 @@ options = ValidationOptions(
 
 Every check is on by default. The unit check is the expensive and the interesting one: it recomputes the units of every formula and reports where they do not add up. A model which is still being written is validated faster with `ValidationOptions(units_consistency=False)`.
 
+`ValidationOptions.fast()` disables only unit analysis and keeps the structural,
+identifier and other checks enabled. Use the default options for comprehensive
+validation before sharing or simulating a model. Unit analysis can allocate much
+more memory than reading the model itself.
+
 `modeling_practice` reports style recommendations (an unset unit, a parameter which is never used) rather than errors, so it is the first one to turn off when the report gets noisy.
 
 ## While the model is created
@@ -45,7 +50,7 @@ Every check is on by default. The unit check is the expensive and the interestin
 ```python
 from sbmlutils.factory import ValidationOptions, create_model
 
-create_model(
+result = create_model(
     model=model,
     filepath="model.xml",
     validate=True,
@@ -53,7 +58,17 @@ create_model(
 )
 ```
 
-Validation reports, it does not block: the file is written either way, and the result tells you what to fix. `validate=False` skips the check.
+The final file is validated after any spreadsheet annotations are applied.
+Validation reports, it does not block by default: the file is written either way,
+and `result.validation` contains the errors and warnings. `validate=False` skips
+the check and leaves `result.validation` as `None`.
+
+Pass `raise_on_error=True` to `create_model` to raise `SBMLValidationError` (a
+`ValueError` subclass from `sbmlutils.validation`) when the final file has errors.
+The exception's `result` contains the findings without another validation.
+This also enables validation if `validate=False` was
+passed. The written file remains available for diagnosis; optional Antimony and
+Markdown exports are not created on validation failure.
 
 ## The report
 
@@ -105,3 +120,35 @@ check(species.setId("glc"), "set id on species")
 ```
 
 It returns `True` when the call succeeded and logs what failed otherwise.
+
+## Structured construction diagnostics
+
+`create_model` returns construction findings in `FactoryResult.diagnostics`,
+including when `validate=False`. These immutable, grouped findings have `code`,
+`severity`, `message`, `count`, and one `example`. They describe reported input
+losses and implicit parameter creation separately from final SBML validation.
+
+```python
+result = create_model(model, filepath, validate=False)
+for finding in result.diagnostics:
+    print(finding.code, finding.count, finding.message, finding.example)
+```
+
+Use `strict=True` to reject reported construction losses, failed checked libSBML
+operations, and unknown initial-assignment or assignment/rate-rule targets before
+writing. Declare the target parameter explicitly in strict mode. The default
+still creates it automatically. `ConstructionError`, imported from
+`sbmlutils.validation`, carries a `diagnostics` tuple. A construction rejection
+preserves any existing destination and skips optional exports.
+
+`strict=True` and `raise_on_error=True` serve independent purposes: combine them
+to reject construction findings and validate the serialized final model.
+Validation failures can still leave the written file for diagnosis. Informational
+annotation canonicalization fallback retains the original resource and does not
+cause strict rejection. Diagnostics cover existing instrumented writers, rather
+than all possible parser round-trip losses or arbitrary native calls.
+
+The stable codes are `unsupported_attribute`, `unwritten_attribute`,
+`unsupported_content`, `libsbml_operation_failed`, `implicit_parameter`, and
+`annotation_resource_fallback`. Missing optional authoring metadata and existing
+constant-parameter advice remain log messages, without rejecting strict creation.
