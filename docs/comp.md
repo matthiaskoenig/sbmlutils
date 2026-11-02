@@ -165,6 +165,8 @@ flatten_sbml(sbml_path="model_comp.xml", sbml_flat_path="model_flat.xml")
 
 `leave_ports=False` removes the ports from the flat model as well. `flatten_sbml_doc` does the same for a document which is already read.
 
+The comp model is not validated before the flattening, since the full consistency check takes most of the time of it and a model is validated when `create_model` writes it. `validate=True` validates it first and refuses an invalid model. Validate a comp model which was not validated, otherwise an invalid one can be flattened into a wrong flat model which is itself valid, e.g. a replacement of a species by a parameter drops the species. A model which cannot be flattened, e.g. with a submodel or a replaced element which cannot be resolved, raises a `ValueError` either way.
+
 External model definitions are resolved relative to the file they are referenced from, so the comp model and the models it includes stay together.
 
 libsbml opens the file of an external model definition itself, and on Windows it does so with the narrow (ANSI) file API, which cannot open a path with a non-ASCII character. On Windows a comp model with external model definitions, and the output directory of `merge_models`, must therefore be in a directory without non-ASCII characters; a comp model whose definitions are all in the document is flattened in any directory.

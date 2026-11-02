@@ -10,7 +10,7 @@ from paths import NON_ASCII_DIR, NON_ASCII_DIR_WITH_EXTERNALS, SPACE_DIR
 
 from sbmlutils.comp import flatten_sbml, flatten_sbml_doc
 from sbmlutils.io import read_sbml
-from sbmlutils.resources import COMP_ICG_BODY, COMP_ICG_LIVER
+from sbmlutils.resources import COMP_DEX_BODY, COMP_ICG_BODY, COMP_ICG_LIVER
 
 
 def write_icg_body(model_dir: Path, liver_dir: str = "") -> Path:
@@ -186,3 +186,99 @@ def test_flatten_sbml_doc_reports_errors_of_the_document(
 
     assert "SBML errors in doc, see SBMLDocument error log." in caplog.messages
     assert any("unknown" in message for message in caplog.messages)
+    assert doc.isPackageEnabled("comp")
+
+
+#: the opening `<sbml>` of a comp document, L3V2
+_SBML_COMP_HEADER = (
+    '<?xml version="1.0" encoding="UTF-8"?>'
+    '<sbml xmlns="http://www.sbml.org/sbml/level3/version2/core" '
+    'xmlns:comp="http://www.sbml.org/sbml/level3/version1/comp/version1" '
+    'level="3" version="2" comp:required="true">'
+)
+
+#: a comp model whose flattening is well defined, but whose math names an id
+#: which is not defined, so the model is invalid
+_SBML_COMP_UNDEFINED_ID = (
+    _SBML_COMP_HEADER + '<model id="top"><listOfParameters>'
+    '<parameter id="p" constant="false"/>'
+    "</listOfParameters><listOfRules>"
+    '<assignmentRule variable="p">'
+    '<math xmlns="http://www.w3.org/1998/Math/MathML"><ci>undefined</ci></math>'
+    "</assignmentRule></listOfRules>"
+    '<comp:listOfSubmodels><comp:submodel comp:id="sub" comp:modelRef="md"/>'
+    "</comp:listOfSubmodels></model>"
+    "<comp:listOfModelDefinitions>"
+    '<comp:modelDefinition id="md"><listOfParameters>'
+    '<parameter id="k" value="1" constant="true"/>'
+    "</listOfParameters></comp:modelDefinition>"
+    "</comp:listOfModelDefinitions></sbml>"
+)
+
+
+@pytest.mark.parametrize("model", [COMP_ICG_BODY, COMP_DEX_BODY])
+def test_flatten_sbml_validate_does_not_change_the_flat_model(
+    tmp_path: Path, model: Path
+) -> None:
+    """The validation of the comp model only checks, the flat model is the same."""
+    flat_paths = {}
+    for validate in (False, True):
+        flat_paths[validate] = tmp_path / f"flat_{validate}.xml"
+        flatten_sbml(model, flat_paths[validate], validate=validate)
+
+    assert flat_paths[False].read_bytes() == flat_paths[True].read_bytes()
+
+
+def test_flatten_sbml_doc_does_not_validate_by_default() -> None:
+    """An invalid model which can be flattened is flattened without validation."""
+    doc: libsbml.SBMLDocument = libsbml.readSBMLFromString(_SBML_COMP_UNDEFINED_ID)
+
+    model: libsbml.Model = flatten_sbml_doc(doc).getModel()
+
+    assert model.getParameter("sub__k") is not None
+
+
+def test_flatten_sbml_doc_validate(caplog: pytest.LogCaptureFixture) -> None:
+    """With `validate=True` an invalid model is not flattened."""
+    doc: libsbml.SBMLDocument = libsbml.readSBMLFromString(_SBML_COMP_UNDEFINED_ID)
+
+    with (
+        caplog.at_level(logging.ERROR),
+        pytest.raises(ValueError, match="could not be flattend"),
+    ):
+        flatten_sbml_doc(doc, validate=True)
+
+    assert any("undefined" in message for message in caplog.messages)
+    assert doc.getPlugin("comp").getNumModelDefinitions() == 1
+
+
+def test_flatten_sbml_doc_raises_for_an_unresolved_replacement(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """A replacement of an element which does not exist fails the flattening.
+
+    libsbml's converter logs the error and reports success, and without the
+    check of its error log the replacement would be dropped in silence.
+    """
+    doc: libsbml.SBMLDocument = libsbml.readSBMLFromString(
+        _SBML_COMP_HEADER + '<model id="top"><listOfParameters>'
+        '<parameter id="p" value="1" constant="true">'
+        "<comp:listOfReplacedElements>"
+        '<comp:replacedElement comp:submodelRef="sub" comp:idRef="missing"/>'
+        "</comp:listOfReplacedElements></parameter></listOfParameters>"
+        '<comp:listOfSubmodels><comp:submodel comp:id="sub" comp:modelRef="md"/>'
+        "</comp:listOfSubmodels></model>"
+        "<comp:listOfModelDefinitions>"
+        '<comp:modelDefinition id="md"><listOfParameters>'
+        '<parameter id="k" value="1" constant="true"/>'
+        "</listOfParameters></comp:modelDefinition>"
+        "</comp:listOfModelDefinitions></sbml>"
+    )
+
+    with (
+        caplog.at_level(logging.ERROR),
+        pytest.raises(ValueError, match="could not be flattend"),
+    ):
+        flatten_sbml_doc(doc)
+
+    assert any("comp:idRef" in message for message in caplog.messages)
