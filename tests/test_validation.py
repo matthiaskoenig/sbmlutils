@@ -271,3 +271,78 @@ def test_validate_doc_logs_report_and_does_not_print(
         for r in caplog.records
     ), caplog.text
     assert capsys.readouterr().out == ""
+
+
+#: a comp model which is valid, but whose flat model sets the parameter `p`
+#: with an assignment rule and the rate rule of the submodel parameter it
+#: replaces, which only the check of the flat model reports; it declares no
+#: units, so it is checked without the units
+_SBML_COMP_INVALID_FLAT_MODEL = (
+    '<?xml version="1.0" encoding="UTF-8"?>'
+    '<sbml xmlns="http://www.sbml.org/sbml/level3/version2/core" '
+    'xmlns:comp="http://www.sbml.org/sbml/level3/version1/comp/version1" '
+    'level="3" version="2" comp:required="true">'
+    '<model id="top"><listOfParameters><parameter id="p" constant="false">'
+    "<comp:listOfReplacedElements>"
+    '<comp:replacedElement comp:submodelRef="sub" comp:idRef="k"/>'
+    "</comp:listOfReplacedElements></parameter></listOfParameters>"
+    '<listOfRules><assignmentRule variable="p">'
+    '<math xmlns="http://www.w3.org/1998/Math/MathML"><cn>1</cn></math>'
+    "</assignmentRule></listOfRules>"
+    '<comp:listOfSubmodels><comp:submodel comp:id="sub" comp:modelRef="md"/>'
+    "</comp:listOfSubmodels></model>"
+    '<comp:listOfModelDefinitions><comp:modelDefinition id="md">'
+    '<listOfParameters><parameter id="k" constant="false"/></listOfParameters>'
+    '<listOfRules><rateRule variable="k">'
+    '<math xmlns="http://www.w3.org/1998/Math/MathML"><cn>2</cn></math>'
+    "</rateRule></listOfRules>"
+    "</comp:modelDefinition></comp:listOfModelDefinitions></sbml>"
+)
+
+
+def test_validate_doc_checks_the_flat_model_of_a_comp_document() -> None:
+    """The flat model of a comp document is checked by default."""
+    doc: libsbml.SBMLDocument = libsbml.readSBMLFromString(
+        _SBML_COMP_INVALID_FLAT_MODEL
+    )
+
+    result = validate_doc(
+        doc, ValidationOptions(log_errors=False, units_consistency=False)
+    )
+
+    assert {error.getErrorId() for error in result.errors} == {
+        libsbml.CompFlatModelNotValid,
+        libsbml.MultipleAssignmentOrRateRules,
+    }
+
+
+def test_validate_doc_without_the_flat_model_of_a_comp_document() -> None:
+    """`comp_flat_model=False` skips the check of the flat model."""
+    doc: libsbml.SBMLDocument = libsbml.readSBMLFromString(
+        _SBML_COMP_INVALID_FLAT_MODEL
+    )
+
+    result = validate_doc(
+        doc,
+        ValidationOptions(
+            log_errors=False, units_consistency=False, comp_flat_model=False
+        ),
+    )
+
+    assert result.errors == []
+    # the option holds for the validation only, the document is left as it was
+    assert not doc.getPlugin("comp").getOverrideCompFlattening()
+    result = validate_doc(
+        doc, ValidationOptions(log_errors=False, units_consistency=False)
+    )
+    assert result.error_count == 2
+
+
+def test_validate_doc_without_the_flat_model_of_a_core_document() -> None:
+    """`comp_flat_model=False` is accepted for a document without comp."""
+    result = validate_doc(
+        read_sbml(BASIC_SBML),
+        ValidationOptions(log_errors=False, comp_flat_model=False),
+    )
+
+    assert result.is_valid()

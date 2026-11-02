@@ -30,6 +30,7 @@ options = ValidationOptions(
     overdetermined_model=True,  # whether the model is overdetermined
     modeling_practice=True,  # style recommendations
     internal_consistency=True,  # the model as consistent XML
+    comp_flat_model=True,  # the flat model of a comp document
     log_errors=True,  # log what was found
 )
 ```
@@ -42,6 +43,8 @@ validation before sharing or simulating a model. Unit analysis can allocate much
 more memory than reading the model itself.
 
 `modeling_practice` reports style recommendations (an unset unit, a parameter which is never used) rather than errors, so it is the first one to turn off when the report gets noisy.
+
+libsbml validates a comp document by checking every model definition and then flattening a copy of the document and checking the flat model, which it reports as `CompFlatModelNotValid` followed by the errors of the flat model. A workflow which flattens the model with `flatten_sbml` and validates the flat model anyway skips the second check of it with `ValidationOptions(comp_flat_model=False)`, which takes about a sixth off the validation of a comp model with many model definitions.
 
 ## While the model is created
 

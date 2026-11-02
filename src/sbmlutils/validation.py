@@ -312,6 +312,13 @@ class ValidationOptions:
 
     * `internal_consistency`: Additional checks that model is consistent XML.
 
+    * `comp_flat_model`: Flatten a comp document and check the flat model as
+    well, as libsbml's validation of the comp package does by default. A
+    flat model which is not valid is reported as `CompFlatModelNotValid`
+    followed by its errors. Turn it off when the flat model is validated
+    separately, e.g. after `flatten_sbml`; it has no effect on a document
+    without comp.
+
     * `log_errors` Boolean flag to log errors.
     """
 
@@ -325,6 +332,7 @@ class ValidationOptions:
     sbo_consistency: bool = True
     overdetermined_model: bool = True
     modeling_practice: bool = True
+    comp_flat_model: bool = True
 
     @classmethod
     def fast(cls, *, log_errors: bool = True) -> "ValidationOptions":
@@ -622,6 +630,14 @@ def validate_doc(
         libsbml.LIBSBML_CAT_MODELING_PRACTICE, options.modeling_practice
     )
 
+    # libsbml copies the setting into the documents it validates on the way,
+    # the copies of the model definitions and the flat model
+    comp_doc: libsbml.CompSBMLDocumentPlugin | None = doc.getPlugin("comp")
+    override_flattening = None
+    if comp_doc is not None:
+        override_flattening = comp_doc.getOverrideCompFlattening()
+        comp_doc.setOverrideCompFlattening(not options.comp_flat_model)
+
     # time
     current = time.perf_counter()
 
@@ -642,6 +658,8 @@ def validate_doc(
         doc.getErrorLog().clearLog()
         for i in range(saved_log.getNumErrors()):
             doc.getErrorLog().add(saved_log.getError(i))
+        if comp_doc is not None:
+            comp_doc.setOverrideCompFlattening(override_flattening)
 
     # sum up
     vresults = ValidationResult.from_results(
@@ -662,6 +680,8 @@ def validate_doc(
             f"{'    sbo':<25}: {options.sbo_consistency}",
             f"{'    units':<25}: {options.units_consistency}",
         ]
+        if comp_doc is not None:
+            lines.append(f"{'    comp flat model':<25}: {options.comp_flat_model}")
     lines += [
         f"{'check time (s)':<25}: {time.perf_counter() - current:.3f}",
     ]
