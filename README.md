@@ -30,7 +30,7 @@ If you have any questions or issues please [open an issue](https://github.com/ma
 
 If you use `sbmlutils` please cite the archived software on [Zenodo](https://doi.org/10.5281/zenodo.597149):
 
-> König, M. (2026). *sbmlutils: Python utilities for SBML* (Version 0.17.1) [Computer software]. Zenodo. https://doi.org/10.5281/zenodo.23870568
+> König, M. (2026). *sbmlutils: Python utilities for SBML* (Version 0.17.2) [Computer software]. Zenodo. https://doi.org/10.5281/zenodo.23889529
 
 ```bibtex
 @software{konig_sbmlutils,
@@ -38,10 +38,10 @@ If you use `sbmlutils` please cite the archived software on [Zenodo](https://doi
   title     = {sbmlutils: Python utilities for SBML},
   year      = {2026},
   month     = oct,
-  version   = {0.17.1},
+  version   = {0.17.2},
   publisher = {Zenodo},
-  doi       = {10.5281/zenodo.23870568},
-  url       = {https://doi.org/10.5281/zenodo.23870568},
+  doi       = {10.5281/zenodo.23889529},
+  url       = {https://doi.org/10.5281/zenodo.23889529},
 }
 ```
 
