@@ -34,7 +34,10 @@ keywords = [
 ]
 dependencies = [
 	# SBML
-	"pymetadata>=0.8.0",
+	# 0.9.0 reads and writes the COMBINE archives of `sbmlutils.biomodels`
+	# through the rust `pymetadata-core`, lazily and without inflating a member
+	# which nobody touched; its `Omex` API is the one of 0.8
+	"pymetadata>=0.9.0",
 	"python-libsbml>=5.21.2",
 	"antimony>=3.1.3",
 	# the win_amd64 wheel of antimony 3.2.0 raises a C++ exception in loadAntimonyString
@@ -55,8 +58,10 @@ dependencies = [
 	"requests>=2.33.0",
 	# the CA bundle of requests, without the distrusted emSign root (GHSA-6q48-6c7w-9gw2)
 	"certifi>=2026.10.19",
-	# the ODE export, re-exported as `sbmlutils.converters.ode`
-	"sbmlode>=0.2.0",
+	# the ODE export, re-exported as `sbmlutils.converters.ode`; 0.3.3 walks the
+	# wide math of a model without recursion, so the documents of a model whose
+	# rule sums a thousand parameters are written instead of failing
+	"sbmlode>=0.3.3",
 ]
 
 [project.optional-dependencies]
@@ -76,7 +81,7 @@ dev = [
 	"bump-my-version>=1.5.1",
 	"ruff>=0.16.6",
 	"pre-commit>=4.6.2",
-	"ty>=0.0.79",
+	"ty>=0.0.109",
 	# 4.67.5 refuses its package staging directory when it was created under
 	# umask 002, tox-dev/tox#4357
 	"tox>=4.61.2,!=4.67.5",
