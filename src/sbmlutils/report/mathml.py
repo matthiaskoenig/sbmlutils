@@ -13,7 +13,7 @@ import re
 from functools import lru_cache
 
 import libsbml
-import lxml.etree as ET  # ty: ignore[unresolved-import]
+import lxml.etree as ET  # ty: ignore[import-not-found]
 
 from sbmlutils import RESOURCES_DIR
 

@@ -45,7 +45,7 @@ def test_from_import_of_a_submodule() -> None:
     The submodules exist at runtime only, a type checker does not see them.
     """
     # registered in `sys.modules` by `sbmlutils.converters.ode`
-    from sbmlutils.converters.ode.system import (  # ty: ignore[unresolved-import]
+    from sbmlutils.converters.ode.system import (  # ty: ignore[import-not-found]
         OdeSystem,
     )
 

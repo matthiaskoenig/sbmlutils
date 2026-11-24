@@ -14,7 +14,7 @@ import pandas as pd
 # cobrapy is the optional `cobra` extra, so it is not installed in the
 # environment the type check runs in
 if TYPE_CHECKING:
-    import cobra  # ty: ignore[unresolved-import]
+    import cobra  # ty: ignore[import-not-found]
 else:
     try:
         import cobra
