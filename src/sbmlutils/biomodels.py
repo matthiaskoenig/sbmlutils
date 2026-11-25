@@ -15,7 +15,9 @@ from pathlib import Path
 
 from pymetadata.omex import EntryFormat, ManifestEntry, Omex
 from pymetadata.webservices.webservice import get_session
+from rich.text import Text
 
+from sbmlutils.console import console, path_text
 from sbmlutils.utils import contained_path
 
 logger = logging.getLogger(__name__)
@@ -78,7 +80,9 @@ def download_biomodel_omex(biomodel_id: str, omex_path: Path) -> Path:
     """
     _check_biomodel_id(biomodel_id)
     url = f"{BIOMODELS_URL}/model/download/{biomodel_id}"
-    logger.info("Download '%s' -> '%s'", url, omex_path)
+    console.print(
+        Text.assemble(("Download", "bold"), f" {url} to ", path_text(omex_path))
+    )
     download_file(url, omex_path)
     return omex_path
 
@@ -149,7 +153,11 @@ def download_biomodel_sbml(
                     ),
                 )
             omex_out.to_omex(omex_out_path)
-            logger.info("Save '%s'", omex_out_path)
+            console.print(
+                Text.assemble(
+                    ("OMEX", "bold"), " written to ", path_text(omex_out_path)
+                )
+            )
 
         elif output_format == "sbml":
             for sbml_entry in sbml_entries:
@@ -157,7 +165,11 @@ def download_biomodel_sbml(
                 sbml_path = _contained_path(Path(output_dir), sbml_entry.location)
                 sbml_path.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(src=entry_path, dst=sbml_path)
-                logger.info("Save '%s'", sbml_path)
+                console.print(
+                    Text.assemble(
+                        ("SBML", "bold"), " written to ", path_text(sbml_path)
+                    )
+                )
         else:
             raise ValueError(f"Unsupported format: '{output_format}'.")
 

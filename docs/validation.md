@@ -1,6 +1,6 @@
 # Validation
 
-libsbml validates a document against the SBML specification and reports what it finds as a list of errors. `sbmlutils` runs those checks, groups the results and logs a report which says what is wrong and where.
+libsbml validates a document against the SBML specification and reports what it finds as a list of errors. `sbmlutils` runs those checks, groups the results and prints a report which says what is wrong and where.
 
 ## Validating a file
 
@@ -31,8 +31,8 @@ options = ValidationOptions(
     modeling_practice=True,  # style recommendations
     internal_consistency=True,  # the model as consistent XML
     comp_flat_model=True,  # the flat model of a comp document
-    log_errors=True,  # log what was found
-    max_logged_per_error=10,  # findings logged per error id, None for all
+    log_errors=True,  # print every finding, not only the table
+    max_findings_per_error=10,  # findings printed per error id, None for all
 )
 ```
 
@@ -76,55 +76,62 @@ Markdown exports are not created on validation failure.
 
 ## The report
 
-The report of a validation names what was validated (a file by its absolute path, which a terminal shows as a link), whether it is valid and the counts of errors and warnings. Where findings repeat an error id, it lists the findings by error id, so that the one fix for two thousand identical warnings is visible at a glance. Then every finding follows with its index, severity, error id, category, package and position, the short message and the explanation from the specification. It is logged on the `sbmlutils` loggers and nothing is shown unless logging is configured, see [Installation](installation.md#logging). With `log.enable_rich_logging()` a report looks like this:
+The report is output: it is printed on the rich console of the package, see [Installation](installation.md#output-and-logging), and nothing about it is logged. A model without findings is one line, with the file which was validated and the time the checks took:
 
 ```
-ERROR    Validate SBML
-         file:///home/user/models/model.xml
-         valid                    : FALSE
-         validation error(s)      : 62
-         validation warning(s)    : 0
-             general              : True
-             identifier           : True
-             mathml               : True
-             overdetermined       : True
-             sbo                  : True
-             units                : True
-         findings by error id:
-               99508 error    x31     Unable to verify consistency of units: encountered a model entity with no declared units
-               20702 error    x30     No units defined for the parameter
-               20518 error    x1      No units defined for Compartment object
-         check time (s)           : 0.001
-ERROR    E3 [Error] 20702 SBML unit consistency (core, line 8, column 6)
-         No units defined for the parameter
-         If the attribute 'units' on a given Parameter object has not been set,
-         then the unit of measurement associated with that parameter's value is
-         undefined.
-         Reference: L3V2 Section 4.7.3
-          The <parameter> with id 'p0' does not have a 'units' attribute.
-...
-ERROR    20 further finding(s) 20702 (No units defined for the parameter) are not
-         logged, they are in the ValidationResult.
+valid /home/user/models/model.xml  0.004 s
 ```
 
-The messages are plain text, so they read the same with any logging handler; a rich handler colors them by their level. A large model easily repeats one finding on every element, so at most `ValidationOptions.max_logged_per_error` findings with the same error id are logged one by one (10 by default, `None` logs all of them), and the rest of each id is summarized in one line. The `ValidationResult` always holds every finding.
+A model with findings gets a full report: a rule, the file, the status with the counts and the checks which were disabled, then every finding with its index, severity, error id, category, package and position, the short message in the color of its severity and the explanation of the specification below it. Where the findings repeat an error id, the table of the findings grouped by error id closes the report, so that the one fix for two thousand identical warnings is visible at a glance:
 
-For an overview in a script or a notebook, print the result on a rich console. It renders the findings grouped by error id, with their severity, count, message and the first lines they are on:
+```
+────────────────────────────────── Validate SBML ──────────────────────────────────
+/home/user/models/model.xml
+invalid: 62 error(s), 0 warning(s), checked in 0.001 s
+E0 Error 99508 SBML unit consistency (core, line 5, column 6)
+    Unable to verify consistency of units: encountered a model entity with no declared units
+    In situations where a mathematical expression refers to a compartment, species or
+    parameter, it is necessary to know the units of the object to establish unit consistency.
+    ...
+E3 Error 20702 SBML unit consistency (core, line 8, column 6)
+    No units defined for the parameter
+    If the attribute 'units' on a given Parameter object has not been set, then the unit of
+    measurement associated with that parameter's value is undefined.
+    Reference: L3V2 Section 4.7.3
+    The <parameter> with id 'p0' does not have a 'units' attribute.
+30 further finding(s) 99508 (Unable to verify consistency of units: ...) are not shown, they are in the ValidationResult.
+29 further finding(s) 20702 (No units defined for the parameter) are not shown, they are in the ValidationResult.
+┏━━━━━━━━━━┳━━━━━━━┳━━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ severity ┃    id ┃ package ┃ count ┃ message                             ┃ lines                 ┃
+┡━━━━━━━━━━╇━━━━━━━╇━━━━━━━━━╇━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━┩
+│ Error    │ 99508 │ core    │    31 │ Unable to verify consistency of     │ 5, 8, 9, 10, 11, ...  │
+│          │       │         │       │ units: encountered a model entity   │                       │
+│          │       │         │       │ with no declared units              │                       │
+│ Error    │ 20702 │ core    │    30 │ No units defined for the parameter  │ 8, 9, 10, 11, 12, ... │
+│ Error    │ 20518 │ core    │     1 │ No units defined for Compartment    │ 5                     │
+│          │       │         │       │ object                              │                       │
+└──────────┴───────┴─────────┴───────┴─────────────────────────────────────┴───────────────────────┘
+```
+
+A large model easily repeats one finding on every element, so at most `ValidationOptions.max_findings_per_error` findings with the same error id are printed one by one (10 by default, `None` prints all of them), and the rest of each id is summarized in one line. `log_errors=False` prints only the status and the table. The `ValidationResult` always holds every finding, and prints them again on demand:
 
 ```python
-from sbmlutils.console import console
+from sbmlutils.console import console, quiet
 
-result = validate_sbml("model.xml", ValidationOptions(log_errors=False))
-console.print(result)
+with quiet():  # validate without printing
+    result = validate_sbml("model.xml")
+
+console.print(result)  # the table of the findings grouped by error id
+result.show(max_per_error=3)  # the findings, colored by their severity
 for group in result.groups():
-    print(group.error_id, group.count, group.short_message)
+    console.print(group.error_id, group.count, group.short_message)
 ```
 
-The messages go through the logging of the package, so an application decides where they end up, see [Installation](installation.md#logging).
+`finding_text` renders a single finding the same way, e.g. one of the error log of a document read with libsbml.
 
 ## What writing a model reports
 
-Validation judges the document which was written. Writing it reports what libsbml would not take, which no validation of the result can show, because what is not in the file cannot be found in it:
+Validation judges the document which was written. Writing it reports what libsbml would not take, which no validation of the result can show, because what is not in the file cannot be found in it. These are problems, so they are logged as warnings and errors on the `sbmlutils` loggers rather than printed, see [Installation](installation.md#output-and-logging):
 
 - **A value libsbml refuses** is an error naming the element, the attribute and the value, e.g. a charge which is not a whole number in an fbc version 2 document.
 - **A formula which does not parse** is an error naming the formula, the element it belongs to (e.g. `<kineticLaw> of 'R1'`) and the reason of the libsbml parser. The element is written without math and the finding is recorded as the diagnostic `math_parse_failed`, so `strict=True` rejects the model before anything is written.

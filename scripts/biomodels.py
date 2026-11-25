@@ -2,12 +2,12 @@
 
 import argparse
 import logging
-import sys
 from collections.abc import Sequence
 from pathlib import Path
 
 from pymetadata.webservices.webservice import get_session
 from requests.exceptions import RequestException
+from rich.console import Console
 
 from sbmlutils import RESOURCES_DIR
 from sbmlutils.biomodels import (
@@ -15,6 +15,7 @@ from sbmlutils.biomodels import (
     _check_biomodel_id,
     download_biomodel_sbml,
 )
+from sbmlutils.console import console
 from sbmlutils.resources import BIOMODELS_CURATED_PATH
 from sbmlutils.utils import contained_path
 
@@ -98,7 +99,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         biomodel_ids = query_curated_biomodels()
         if args.command == "search":
             for biomodel_id in biomodel_ids:
-                print(biomodel_id)
+                console.print(biomodel_id, highlight=False)
         else:
             output_dir = args.output_dir
             if output_dir is None:
@@ -109,7 +110,9 @@ def main(argv: Sequence[str] | None = None) -> int:
                 biomodel_ids, output_dir, caching=not args.no_cache
             )
     except (OSError, RequestException, ValueError) as err:
-        print(f"BioModels {args.command} failed. {err}", file=sys.stderr)
+        Console(stderr=True).print(
+            f"BioModels {args.command} failed. {err}", style="red", markup=False
+        )
         return 1
 
     return 0

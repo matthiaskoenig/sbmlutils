@@ -11,7 +11,7 @@ doc = read_sbml("model.xml")  # a path
 doc = read_sbml(sbml_str)  # an SBML string
 ```
 
-`read_sbml` returns a libsbml `SBMLDocument`. A source which cannot be read, a file which cannot be opened or content which is not well-formed XML, raises a `ValueError` with the errors libsbml reported. A document without a model is returned as it is, and the errors of a document which was read are logged. It validates on request:
+`read_sbml` returns a libsbml `SBMLDocument`. A source which cannot be read, a file which cannot be opened or content which is not well-formed XML, raises a `ValueError` with the errors libsbml reported. A document without a model is returned as it is, and the errors of a document which was read are logged, as the problems of a read. It validates on request, and then the read errors are part of the printed validation report instead, see [Validation](validation.md#the-report):
 
 ```python
 from sbmlutils.validation import ValidationOptions

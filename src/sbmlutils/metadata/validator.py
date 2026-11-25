@@ -7,7 +7,10 @@ from typing import TYPE_CHECKING
 import libsbml
 from pymetadata.core.annotation import RDFAnnotation
 from pymetadata.core.miriam import BQB
+from rich.table import Table
+from rich.text import Text
 
+from sbmlutils.console import console, path_text
 from sbmlutils.io.sbml import read_sbml
 from sbmlutils.utils import all_elements
 
@@ -21,10 +24,10 @@ def validate_sbml_annotations(source: Path | str) -> "pd.DataFrame":
     """Validate annotations in a given SBML file.
 
     :param source: SBML to check
-    :return: DataFrame of invalid annotations
+    :return: DataFrame of invalid annotations, which is printed as a table on
+        the console of the package, see `sbmlutils.console`
     """
     doc: libsbml.SBMLDocument = read_sbml(source=source)
-    logger.info("Validate annotations: %s", source)
 
     element: libsbml.SBase
     invalid_annotations: list = []
@@ -42,25 +45,51 @@ def validate_sbml_annotations(source: Path | str) -> "pd.DataFrame":
                     )
                     valid: bool = annotation.validate()
                     if not valid:
-                        logger.warning(
-                            "id='%s' | %s | '%s' | %s",
-                            element.getId(),
-                            type(element).__name__,
-                            element.getName(),
-                            resource_uri,
-                        )
                         invalid_annotations.append(
                             {
                                 "id": element.getId(),
                                 "object": type(element).__name__,
+                                "name": element.getName(),
                                 "resource": resource_uri,
                             }
                         )
     import pandas as pd
 
     df = pd.DataFrame(invalid_annotations)
-    if len(invalid_annotations) == 0:
-        logger.info("All annotations valid")
-    else:
-        logger.error("Invalid annotations\n%s", df.to_string())
+    _print_invalid_annotations(source, invalid_annotations)
     return df
+
+
+def _print_invalid_annotations(
+    source: Path | str, invalid_annotations: list[dict[str, str]]
+) -> None:
+    """Print the result of an annotation validation as a table.
+
+    Args:
+        source: the validated SBML, a path is printed as a link
+        invalid_annotations: one row per invalid annotation
+    """
+    location = (
+        path_text(source)
+        if isinstance(source, Path) or not str(source).lstrip().startswith("<")
+        else Text("SBML string")
+    )
+    if not invalid_annotations:
+        console.print(Text.assemble(("annotations valid", "bold green"), " ", location))
+        return
+
+    table = Table(
+        title=Text.assemble(
+            (f"{len(invalid_annotations)} invalid annotation(s)", "bold red"),
+            " in ",
+            location,
+        ),
+        title_justify="left",
+    )
+    for column in ("id", "object", "name", "resource"):
+        table.add_column(column, overflow="fold")
+    for row in invalid_annotations:
+        table.add_row(
+            *(Text(row[column]) for column in ("id", "object", "name", "resource"))
+        )
+    console.print(table)

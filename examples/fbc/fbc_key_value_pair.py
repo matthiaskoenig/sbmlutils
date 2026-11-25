@@ -70,8 +70,8 @@ if __name__ == "__main__":
     console.print(str(model2))
 
     # console.log(model.parameters[0])
-    print(model.parameters[0].keyValuePairs)
-    print(model2.parameters[0].keyValuePairs)
+    console.print(model.parameters[0].keyValuePairs)
+    console.print(model2.parameters[0].keyValuePairs)
 
     fac_results = create_model(
         model=model2,

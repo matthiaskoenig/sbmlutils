@@ -69,6 +69,21 @@ def test_flatten_sbml_absolute_paths(tmp_path: Path, model_dir: str) -> None:
     assert (tmp_path / model_dir / "icg_body_flat.xml").exists()
 
 
+def test_flatten_sbml_prints_the_flat_file(
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """The flat file is output: it is printed, and a success logs nothing."""
+    body_path = write_icg_body(tmp_path / "models", liver_dir="liver")
+    with caplog.at_level(logging.INFO, logger="sbmlutils"):
+        flatten_sbml(body_path, tmp_path / "flat.xml")
+    out = capsys.readouterr().out
+    assert "Flat SBML written to" in out
+    assert "flat.xml" in out
+    assert not [r for r in caplog.records if r.levelno == logging.INFO]
+
+
 #: a comp model whose submodel instantiates a model definition of the same
 #: document, so flattening it opens no other file
 _SBML_COMP_INTERNAL = (

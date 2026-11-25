@@ -31,6 +31,8 @@ from pathlib import Path
 from types import ModuleType
 from typing import Any, NamedTuple
 
+from sbmlutils.console import console
+
 REPO_DIR: Path = Path(__file__).parent.parent
 DOCS_DIR: Path = REPO_DIR / "docs"
 SITE_DIR: Path = REPO_DIR / "site"
@@ -357,7 +359,10 @@ def main() -> None:
     write_markdown(pages)
     write_llms_txt(pages, config)
     write_llms_full_txt(pages, config)
-    print(f"llms.txt, llms-full.txt and {len(pages)} markdown pages in '{SITE_DIR}'")
+    console.print(
+        f"llms.txt, llms-full.txt and {len(pages)} markdown pages in '{SITE_DIR}'",
+        markup=False,
+    )
 
 
 if __name__ == "__main__":

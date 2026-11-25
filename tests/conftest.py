@@ -28,3 +28,19 @@ def forbid_chdir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
 
     monkeypatch.setattr(os, "chdir", chdir)
     return tmp_path
+
+
+@pytest.fixture(autouse=True)
+def wide_console(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Print the output of the package on one line per line in every test.
+
+    The console of the package wraps at 80 columns when it does not print to a
+    terminal, which splits a long path or message which a test looks for in
+    the captured output. The width is restored after the test.
+
+    Args:
+        monkeypatch: the fixture which restores the width
+    """
+    from sbmlutils.console import console
+
+    monkeypatch.setattr(console, "width", 1000)

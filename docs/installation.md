@@ -49,26 +49,29 @@ To work on the repository itself, with the test and documentation tooling, see [
 
 Install the development environment and runnable example dependencies together with `uv sync --extra dev`. See [Development](development.md).
 
-## Logging
+## Output and logging
 
-`sbmlutils` does not configure logging. It logs to loggers below the `sbmlutils` logger and leaves handlers, levels and formatting to the application, so the messages of the package stay under your control:
+`sbmlutils` keeps what you asked to see apart from what helps to trace a problem.
 
-```python
-import logging
+**Output is printed.** The files `create_model` writes, the report of a validation with its findings, the summary of a flattening or a download are printed on the rich console of the package, `sbmlutils.console.console`, with colors, tables and links to the files. Writing a model prints, e.g.:
 
-logging.basicConfig(level=logging.INFO)
-logging.getLogger("sbmlutils").setLevel(logging.WARNING)
+```
+SBML written to glucose_uptake.xml  model 'glucose_uptake', 0.03 s
+valid /home/user/models/glucose_uptake.xml  0.004 s
 ```
 
-For scripts and interactive work the rich output of the package can be turned on explicitly:
+Silence the output for a block of code with `quiet`, or for the whole program with `console.quiet`:
 
 ```python
-from sbmlutils import log
+from sbmlutils.console import console, quiet
 
-log.enable_rich_logging()
+with quiet():
+    create_model(model, filepath="model.xml")
+
+console.quiet = True  # nothing is printed from here on
 ```
 
-The rich handler colors every message by its level and shows the stages of `create_model` with their timings. Findings which repeat on many elements are reported once per kind with a count, so even the output of a model with thousands of elements stays readable, see [How it works](architecture.md#reporting). Results have a rich representation of their own: `console.print(result.validation)` shows the findings of a validation as a table.
+Results have a rich representation of their own, which prints them on any rich console: `console.print(result.validation)` shows the findings of a validation as a table grouped by error id.
 
 ```python
 from sbmlutils.console import console
@@ -76,3 +79,22 @@ from sbmlutils.console import console
 result = create_model(model, filepath="model.xml")
 console.print(result.validation)
 ```
+
+**Logging is for problems.** Warnings about content which is lost or a definition which should be fixed, such as a missing `name` or a unit which has no place in the document, and the errors of libsbml calls which failed, go to the standard `logging` module, below the `sbmlutils` logger; debug detail goes there too, and the package logs nothing at `INFO`. `sbmlutils` does not configure logging, it leaves handlers, levels and formatting to the application:
+
+```python
+import logging
+
+logging.basicConfig(level=logging.WARNING)
+logging.getLogger("sbmlutils").setLevel(logging.ERROR)  # hide the warnings
+```
+
+For scripts and interactive work the warnings can be shown on the rich console, next to the output, colored by their level:
+
+```python
+from sbmlutils import log
+
+log.enable_rich_logging()
+```
+
+Warnings which repeat on many elements are logged once per kind with a count, so even a model with thousands of elements gives a few readable lines, see [How it works](architecture.md#output-and-reporting).

@@ -23,8 +23,10 @@ from typing import TYPE_CHECKING, Any
 import libsbml
 from pymetadata.core.annotation import RDFAnnotation as Annotation
 from pymetadata.core.miriam import BQB, BQM
+from rich.text import Text
 
 from sbmlutils import utils
+from sbmlutils.console import console, path_text
 from sbmlutils.io.files import is_file
 from sbmlutils.io.sbml import read_sbml, write_sbml
 
@@ -282,7 +284,9 @@ def annotate_sbml(
     # write annotated sbml
     write_sbml(doc, filepath=filepath)
 
-    logger.info("Model annotated: file://%s", filepath)
+    console.print(
+        Text.assemble(("Annotated SBML", "bold"), " written to ", path_text(filepath))
+    )
     return doc
 
 

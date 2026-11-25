@@ -106,11 +106,13 @@ class ModelUnits:
             for key in ("time", "extent", "substance", "length", "area", "volume"):
                 if getattr(model_units, key) is None:
                     if Sbase._authoring_hints.get():
-                        # strongly recommended fields warn, optional ones inform
+                        # strongly recommended fields warn, optional ones are
+                        # debug detail: logging is for problems, see
+                        # `sbmlutils.console`
                         logger.log(
                             logging.WARNING
                             if key in ["time", "extent", "substance", "volume"]
-                            else logging.INFO,
+                            else logging.DEBUG,
                             "'%s' should be set in 'model_units'.",
                             key,
                         )

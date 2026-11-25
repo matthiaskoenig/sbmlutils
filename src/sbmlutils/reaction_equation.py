@@ -50,6 +50,11 @@ from collections.abc import Iterable
 from dataclasses import dataclass, field
 from typing import Any, Final
 
+from rich.table import Table
+from rich.text import Text
+
+from sbmlutils.console import console
+
 logger = logging.getLogger(__name__)
 
 
@@ -261,20 +266,23 @@ class ReactionEquation:
         return " ".join([left, sep, right])
 
     def info(self) -> None:
-        """Log overview of parsed equation.
+        """Print an overview of the parsed equation.
 
-        The overview is logged at INFO level on the `sbmlutils.reaction_equation`
-        logger, nothing is shown unless logging is enabled, see
-        `sbmlutils.log.enable_rich_logging`.
+        The overview is printed on the console of the package, see
+        `sbmlutils.console`.
         """
-        lines = [
-            f"{'equation':<10s}: {self.to_string(modifiers=True)}",
-            f"{'reversible':<10s}: {self.reversible}",
-            f"{'reactants':<10s}: {self.reactants}",
-            f"{'products':<10s}: {self.products}",
-            f"{'modifiers':<10s}: {self.modifiers}",
-        ]
-        logger.info("%s", "\n".join(lines))
+        grid = Table.grid(padding=(0, 2))
+        grid.add_column(style="bold")
+        grid.add_column()
+        for key, value in (
+            ("equation", self.to_string(modifiers=True)),
+            ("reversible", self.reversible),
+            ("reactants", self.reactants),
+            ("products", self.products),
+            ("modifiers", self.modifiers),
+        ):
+            grid.add_row(key, Text(str(value)))
+        console.print(grid)
 
     @staticmethod
     def help() -> str:
@@ -310,8 +318,6 @@ if __name__ == "__main__":
     ]
 
     for equation_str in examples:
-        print("-" * 40)
-        print(equation_str)
-        print("-" * 40)
+        console.rule(Text(equation_str), style="white")
         eq = ReactionEquation.from_str(equation_str)
         eq.info()

@@ -185,11 +185,13 @@ def test_minus_rejected(equation: str) -> None:
         ReactionEquation.from_str(equation)
 
 
-def test_info_logs_instead_of_printing(
+def test_info_prints_instead_of_logging(
     caplog: pytest.LogCaptureFixture, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    """`info` logs the overview of the equation."""
-    with caplog.at_level("INFO", logger="sbmlutils.reaction_equation"):
-        ReactionEquation.from_str("A => B").info()
-    assert "reactants" in caplog.text
-    assert capsys.readouterr().out == ""
+    """`info` prints the overview of the equation, it is output."""
+    with caplog.at_level("DEBUG", logger="sbmlutils.reaction_equation"):
+        ReactionEquation.from_str("A => B [C]").info()
+    out = capsys.readouterr().out
+    assert "reactants" in out
+    assert "A => B [C]" in out
+    assert caplog.text == ""

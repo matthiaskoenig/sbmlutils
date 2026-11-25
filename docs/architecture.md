@@ -47,7 +47,7 @@ flowchart TB
     build --> check
 ```
 
-The findings of steps 1 to 4 are collected while the document is built and written, and reported once per kind when the file is written, see [Reporting](#reporting); `strict_preservation=True` rejects the known losses of a parsed model before step 1.
+The findings of steps 1 to 4 are collected while the document is built and written, and reported once per kind when the file is written, see [Output and reporting](#output-and-reporting); `strict_preservation=True` rejects the known losses of a parsed model before step 1.
 
 Two details explain much of the design:
 
@@ -77,9 +77,14 @@ sequenceDiagram
     E-->>M: libsbml.Reaction
 ```
 
-## Reporting
+## Output and reporting
 
-The package reports through the standard `logging` module and never configures it, see [Installation](installation.md#logging). What it reports falls into three groups, which reach the caller on different paths:
+The package separates **output** from **logging**, see [Installation](installation.md#output-and-logging):
+
+- **Output** is what you asked to see: the files `create_model` writes, the report of a validation with its findings, the summary of a flattening or a download. It is printed on the rich console of the package, `sbmlutils.console.console`, with colors, tables and links to the files, and silenced with `sbmlutils.console.quiet()`.
+- **Logging** is for tracing problems and debugging: the warnings about a definition which should be fixed or content which is lost, the errors of libsbml calls which failed, and debug detail. It goes to the standard `logging` module, which the package never configures.
+
+What writing and checking a model finds reaches the caller on different paths:
 
 ```mermaid
 flowchart LR
@@ -92,9 +97,9 @@ flowchart LR
     d["FactoryResult.diagnostics"]
     r["ValidationResult"]
     log(["logging"])
+    out(["console<br/>report, findings, table"])
     ce(["ConstructionError"])
     ve(["SBMLValidationError"])
-    t(["rich table"])
 
     h --> g
     l --> g
@@ -104,31 +109,29 @@ flowchart LR
     e --> log
     d -. "strict=True" .-> ce
     v --> r
-    r --> log
+    r --> out
     r -. "raise_on_error=True" .-> ve
-    r -. "console.print" .-> t
 ```
 
-**Findings are grouped.** A large model repeats the same finding on thousands of elements: a missing `name` on every species, an attribute the SBML level has no place for, a unit warning on every reaction. Logging each of them buries the one decision which fixes all of them, and rendering ten thousand log lines on a rich console took longer than writing the model. So inside one document every finding is collected under a key and one line per key is logged when the document is done, with the count and the first elements:
+A session with a small model prints the file it wrote and the validation, and the hints of the definition show up as warnings once logging is shown on the console with `log.enable_rich_logging()`:
+
+```
+WARNING  'name' should be set on 2 Species elements: 'S1', 'S2'
+SBML written to minimal_model.xml  model 'minimal_model', 0.01 s
+valid /home/user/models/minimal_model.xml  0.001 s
+```
+
+A model with findings gets a full report instead of the last line: a rule, the file, the status with the counts, every finding colored by its severity, and the table of the findings grouped by error id, see [Validation](validation.md#the-report).
+
+**Findings are grouped.** A large model repeats the same finding on thousands of elements: a missing `name` on every species, an attribute the SBML level has no place for, a unit warning on every reaction. Reporting each of them buries the one decision which fixes all of them, and rendering ten thousand lines on a rich console took longer than writing the model. So inside one document every hint and loss is collected under a key and one warning per key is logged when the document is done, with the count and the first elements:
 
 ```
 WARNING  'name' should be set on 2000 Species elements: 'S0', 'S1', 'S2', 'S3', 'S4' and 1995 more
 ```
 
-Validation does the same for the findings of libsbml: the report lists the findings by error id, and `ValidationOptions.max_logged_per_error` (10 by default) caps how many findings with the same id are logged one by one. The `ValidationResult` always holds every finding, and `console.print(result)` renders them as a table grouped by error id, see [Validation](validation.md#the-report).
+Validation does the same for the findings of libsbml: `ValidationOptions.max_findings_per_error` (10 by default) caps how many findings with the same id are printed one by one, and the table lists every error id with its count. The `ValidationResult` always holds every finding, and `console.print(result)` renders the table again at any time.
 
 **Construction findings are data.** Every loss and every construction error is also recorded as a `ConstructionDiagnostic` on `FactoryResult.diagnostics`, also when validation is skipped. `strict=True` turns them into a `ConstructionError` before anything is written, which is what a pipeline wants: a formula with a typo then stops the build instead of producing a reaction without a rate law.
-
-For interactive work, `log.enable_rich_logging()` shows all of it on a colored console, with the stages of `create_model` and their timings at `INFO`:
-
-```python
-from sbmlutils import log
-from sbmlutils.console import console
-
-log.enable_rich_logging()
-result = create_model(model, filepath="model.xml")
-console.print(result.validation)
-```
 
 ## Performance
 
@@ -143,7 +146,7 @@ Writing a model is fast; the time goes into libsbml. For a generated model with 
 What helps when a model gets large:
 
 - **Skip or reduce the validation while iterating.** `validate=False` writes the model without checking it, `validation_options=ValidationOptions.fast()` skips only the unit analysis, which is the expensive check and allocates much more memory than the model itself. Validate with the default options before a model is shared or simulated.
-- **Keep the log quiet.** Rendering log output is not free. The grouped reporting keeps the output of a large model to a few lines; set the level of the `sbmlutils` logger to `WARNING` in batch runs to drop the stage messages as well.
+- **Keep the console quiet in batch runs.** Rendering output is not free. The grouped reporting keeps the output of a large model to a few lines; `with quiet():` from `sbmlutils.console` drops the printed output of a batch of models, and the level of the `sbmlutils` logger decides about the warnings.
 - **Write the model once.** `create_model` accepts a list of models and merges them before writing, which is cheaper than writing and merging several files.
 - **Import once.** Importing `sbmlutils.factory` takes about half a second, most of it libsbml and pint; pandas is imported only when an annotation spreadsheet is read.
 

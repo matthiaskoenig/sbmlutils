@@ -435,7 +435,8 @@ def test_model_units_hint_names_the_missing_unit_lazily(
 ) -> None:
     """Test the hint for a model unit which is not set.
 
-    A strongly recommended unit warns, an optional one informs, and the key
+    A strongly recommended unit warns, an optional one is debug detail (the
+    package logs nothing at INFO, output is printed), and the key
     is a log argument rather than part of the message, so that every hint
     reaches a handler under one message template. `set_model_units` built the
     message with an f-string, which loses the template.
@@ -446,7 +447,7 @@ def test_model_units_hint_names_the_missing_unit_lazily(
             substance=Units.mole, extent=Units.mole, volume=Units.litre
         ),
     )
-    with caplog.at_level(logging.INFO, logger="sbmlutils.factory"):
+    with caplog.at_level(logging.DEBUG, logger="sbmlutils.factory"):
         create_model(
             model=model,
             filepath=tmp_path / "model.xml",
@@ -461,8 +462,8 @@ def test_model_units_hint_names_the_missing_unit_lazily(
     }
     assert hints == {
         "time": ("WARNING", "'%s' should be set in 'model_units'."),
-        "length": ("INFO", "'%s' should be set in 'model_units'."),
-        "area": ("INFO", "'%s' should be set in 'model_units'."),
+        "length": ("DEBUG", "'%s' should be set in 'model_units'."),
+        "area": ("DEBUG", "'%s' should be set in 'model_units'."),
     }, caplog.text
 
 
@@ -3753,39 +3754,63 @@ def test_the_objects_of_a_model_do_not_change_the_lists_passed_to_it() -> None:
     assert len(units) == 1
 
 
-def test_create_model_show_sbml_logs_the_sbml(
+def test_create_model_show_sbml_prints_the_sbml(
     tmp_path: Path,
     caplog: pytest.LogCaptureFixture,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """`show_sbml` logs the created SBML once, and nothing is printed."""
+    """`show_sbml` prints the created SBML once, and logs nothing about it."""
     model = Model("show_sbml", compartments=[Compartment("C", value=1.0)])
-    with caplog.at_level(logging.INFO, logger="sbmlutils.factory"):
+    with caplog.at_level(logging.DEBUG, logger="sbmlutils.factory"):
         create_model(model, tmp_path / "m.xml", show_sbml=True)
-    shown = [r for r in caplog.records if r.getMessage().startswith("Created SBML")]
-    assert len(shown) == 1
-    assert "<sbml" in shown[0].getMessage()
-    assert capsys.readouterr().out == ""
+    out = capsys.readouterr().out
+    assert out.count("<sbml ") == 1
+    assert "<sbml" not in caplog.text
 
-    caplog.clear()
-    with caplog.at_level(logging.INFO, logger="sbmlutils.factory"):
-        create_model(model, tmp_path / "m.xml")
-    assert "Created SBML" not in caplog.text
+    create_model(model, tmp_path / "m.xml")
+    assert "<sbml" not in capsys.readouterr().out
 
 
 def test_create_model_str_filepath_show_sbml(
-    tmp_path: Path, caplog: pytest.LogCaptureFixture
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
     """A filepath given as str is accepted, also with `show_sbml`."""
     filepath = str(tmp_path / "model.xml")
-    with caplog.at_level(logging.INFO, logger="sbmlutils.factory"):
-        result = create_model(
-            model=Model(sid="str_path"),
-            filepath=filepath,  # ty: ignore[invalid-argument-type]
-            show_sbml=True,
-        )
+    result = create_model(
+        model=Model(sid="str_path"),
+        filepath=filepath,  # ty: ignore[invalid-argument-type]
+        show_sbml=True,
+    )
     assert result.sbml_path == Path(filepath)
-    assert "Created SBML" in caplog.text
+    assert "<sbml" in capsys.readouterr().out
+
+
+def test_create_model_prints_what_it_writes(
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """The files written and the validation are output, printed and not logged."""
+    model = Model("printed", compartments=[Compartment("C", value=1.0, name="C")])
+    with caplog.at_level(logging.INFO, logger="sbmlutils"):
+        create_model(model, tmp_path / "printed.xml", create_antimony=True)
+    out = capsys.readouterr().out
+    assert "SBML written to" in out
+    assert "printed.xml" in out
+    assert "Antimony written to" in out
+    assert not [r for r in caplog.records if r.levelno == logging.INFO]
+
+
+def test_quiet_suppresses_the_output(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """`quiet` silences the console of the package and restores it afterwards."""
+    from sbmlutils.console import console, quiet
+
+    with quiet():
+        create_model(Model("quiet"), tmp_path / "quiet.xml")
+    assert capsys.readouterr().out == ""
+    assert not console.quiet
 
 
 def test_authoring_hints_are_grouped_per_document(

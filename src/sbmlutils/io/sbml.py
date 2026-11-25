@@ -367,7 +367,7 @@ def promote_local_variables(
     model: libsbml.Model | None = doc.getModel()
     if model is None:
         # local parameters live in the kinetic laws of a model
-        logger.info("No model in SBMLDocument, no local parameters to promote.")
+        logger.debug("No model in SBMLDocument, no local parameters to promote.")
         return doc
     if model.isSetId():
         model.setId(f"{model.getId()}{suffix}")
@@ -378,7 +378,7 @@ def promote_local_variables(
         "promoteLocalParameters", True, "Promotes all Local Parameters to Global ones"
     )
     if doc.convert(props) == libsbml.LIBSBML_OPERATION_SUCCESS:
-        logger.info("Promotion of local parameters successful: %s", doc)
+        logger.debug("Promotion of local parameters successful: %s", doc)
     else:
         logger.error("Promotion of local parameters failed: %s", doc)
     return doc

@@ -8,6 +8,11 @@ import webbrowser
 from pathlib import Path
 from typing import Any
 
+from rich.style import Style
+from rich.text import Text
+
+from sbmlutils.console import console, path_text
+
 logger = logging.getLogger(__name__)
 
 
@@ -135,7 +140,15 @@ def create_online_report(
         # post file via url to sbml4humans server
         url = f"http://127.0.0.1:{httpd.server_address[1]}/{urllib.parse.quote(sbml_path.name)}"
         sbml4humans_url = f"{server}/report?url={urllib.parse.quote(url, safe='')}"
-        logger.info("Create report: `%s`", sbml4humans_url)
+        console.print(
+            Text.assemble(
+                ("Report", "bold"),
+                " of ",
+                path_text(sbml_path),
+                ": ",
+                (sbml4humans_url, Style(link=sbml4humans_url)),
+            )
+        )
 
         # open in browser
         webbrowser.open(sbml4humans_url, new=0)
