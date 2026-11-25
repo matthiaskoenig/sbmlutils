@@ -22,7 +22,7 @@ from sbmlutils.io import read_sbml
 from sbmlutils.metadata import BQB
 from sbmlutils.parser import sbml_to_model
 from sbmlutils.reaction_equation import EquationPart, ReactionEquation
-from sbmlutils.validation import ValidationOptions
+from sbmlutils.validation import ConstructionError, ValidationOptions
 
 compartment_value_data = [
     (
@@ -435,7 +435,8 @@ def test_model_units_hint_names_the_missing_unit_lazily(
 ) -> None:
     """Test the hint for a model unit which is not set.
 
-    A strongly recommended unit warns, an optional one informs, and the key
+    A strongly recommended unit warns, an optional one is debug detail (the
+    package logs nothing at INFO, output is printed), and the key
     is a log argument rather than part of the message, so that every hint
     reaches a handler under one message template. `set_model_units` built the
     message with an f-string, which loses the template.
@@ -446,7 +447,7 @@ def test_model_units_hint_names_the_missing_unit_lazily(
             substance=Units.mole, extent=Units.mole, volume=Units.litre
         ),
     )
-    with caplog.at_level(logging.INFO, logger="sbmlutils.factory"):
+    with caplog.at_level(logging.DEBUG, logger="sbmlutils.factory"):
         create_model(
             model=model,
             filepath=tmp_path / "model.xml",
@@ -461,8 +462,8 @@ def test_model_units_hint_names_the_missing_unit_lazily(
     }
     assert hints == {
         "time": ("WARNING", "'%s' should be set in 'model_units'."),
-        "length": ("INFO", "'%s' should be set in 'model_units'."),
-        "area": ("INFO", "'%s' should be set in 'model_units'."),
+        "length": ("DEBUG", "'%s' should be set in 'model_units'."),
+        "area": ("DEBUG", "'%s' should be set in 'model_units'."),
     }, caplog.text
 
 
@@ -3753,36 +3754,130 @@ def test_the_objects_of_a_model_do_not_change_the_lists_passed_to_it() -> None:
     assert len(units) == 1
 
 
-def test_create_model_show_sbml_logs_the_sbml(
+def test_create_model_show_sbml_prints_the_sbml(
     tmp_path: Path,
     caplog: pytest.LogCaptureFixture,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """`show_sbml` logs the created SBML once, and nothing is printed."""
+    """`show_sbml` prints the created SBML once, and logs nothing about it."""
     model = Model("show_sbml", compartments=[Compartment("C", value=1.0)])
-    with caplog.at_level(logging.INFO, logger="sbmlutils.factory"):
+    with caplog.at_level(logging.DEBUG, logger="sbmlutils.factory"):
         create_model(model, tmp_path / "m.xml", show_sbml=True)
-    shown = [r for r in caplog.records if r.getMessage().startswith("Created SBML")]
-    assert len(shown) == 1
-    assert "<sbml" in shown[0].getMessage()
-    assert capsys.readouterr().out == ""
+    out = capsys.readouterr().out
+    assert out.count("<sbml ") == 1
+    assert "<sbml" not in caplog.text
 
-    caplog.clear()
-    with caplog.at_level(logging.INFO, logger="sbmlutils.factory"):
-        create_model(model, tmp_path / "m.xml")
-    assert "Created SBML" not in caplog.text
+    create_model(model, tmp_path / "m.xml")
+    assert "<sbml" not in capsys.readouterr().out
 
 
 def test_create_model_str_filepath_show_sbml(
-    tmp_path: Path, caplog: pytest.LogCaptureFixture
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
     """A filepath given as str is accepted, also with `show_sbml`."""
     filepath = str(tmp_path / "model.xml")
-    with caplog.at_level(logging.INFO, logger="sbmlutils.factory"):
-        result = create_model(
-            model=Model(sid="str_path"),
-            filepath=filepath,  # ty: ignore[invalid-argument-type]
-            show_sbml=True,
-        )
+    result = create_model(
+        model=Model(sid="str_path"),
+        filepath=filepath,  # ty: ignore[invalid-argument-type]
+        show_sbml=True,
+    )
     assert result.sbml_path == Path(filepath)
-    assert "Created SBML" in caplog.text
+    assert "<sbml" in capsys.readouterr().out
+
+
+def test_create_model_prints_what_it_writes(
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """The files written and the validation are output, printed and not logged."""
+    model = Model("printed", compartments=[Compartment("C", value=1.0, name="C")])
+    with caplog.at_level(logging.INFO, logger="sbmlutils"):
+        create_model(model, tmp_path / "printed.xml", create_antimony=True)
+    out = capsys.readouterr().out
+    assert "SBML written to" in out
+    assert "printed.xml" in out
+    assert "Antimony written to" in out
+    assert not [r for r in caplog.records if r.levelno == logging.INFO]
+
+
+def test_quiet_suppresses_the_output(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """`quiet` silences the console of the package and restores it afterwards."""
+    from sbmlutils.console import console, quiet
+
+    with quiet():
+        create_model(Model("quiet"), tmp_path / "quiet.xml")
+    assert capsys.readouterr().out == ""
+    assert not console.quiet
+
+
+def test_authoring_hints_are_grouped_per_document(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that a missing name is hinted at once per element class.
+
+    A hint per element flooded the log of a large model with thousands of
+    identical lines; inside a document they are grouped with the count and the
+    first ids, and a single element keeps the hint which names it in full.
+    """
+    model = Model(
+        "hints",
+        compartments=[Compartment("c", 1.0)],
+        species=[
+            Species(f"S{k}", initialConcentration=1.0, compartment="c")
+            for k in range(8)
+        ],
+    )
+    with caplog.at_level(logging.WARNING, logger="sbmlutils.factory"):
+        create_model(model, tmp_path / "hints.xml", validate=False)
+
+    hints = [r.getMessage() for r in caplog.records if "should be set" in r.message]
+    assert (
+        "'name' should be set on 8 Species elements: "
+        "'S0', 'S1', 'S2', 'S3', 'S4' and 3 more"
+    ) in hints
+    assert "'name' should be set on 'Compartment(c)'" in hints
+    # the model, the compartment and the species
+    assert len([h for h in hints if h.startswith("'name'")]) == 3
+
+
+def test_formula_which_does_not_parse_names_its_element_and_is_strict(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that a formula which does not parse is a construction error.
+
+    The error names the element the formula belongs to, so that the one of many
+    reactions with a typo is found, and `strict=True` rejects the model instead
+    of writing a reaction without its kinetic law math.
+    """
+    model = Model(
+        "broken_math",
+        compartments=[Compartment("c", 1.0)],
+        species=[
+            Species("A", initialConcentration=1.0, compartment="c"),
+            Species("B", initialConcentration=1.0, compartment="c"),
+        ],
+        parameters=[Parameter("k", 1.0)],
+        reactions=[Reaction("R1", equation="A -> B", formula="k * A +* 2")],
+    )
+    with caplog.at_level(logging.ERROR, logger="sbmlutils"):
+        result = create_model(model, tmp_path / "broken.xml", validate=False)
+    assert "in <kineticLaw> of 'R1'" in caplog.text
+    assert [d.code for d in result.diagnostics if d.severity == "error"] == [
+        "math_parse_failed"
+    ]
+
+    with pytest.raises(ConstructionError, match="could not be parsed"):
+        create_model(model, tmp_path / "strict.xml", validate=False, strict=True)
+    assert not (tmp_path / "strict.xml").exists()
+
+
+def test_importing_the_factory_does_not_import_pandas() -> None:
+    """Test that pandas, a tenth of a second to import, is imported on use only."""
+    code = "import sys, sbmlutils.factory; print('pandas' in sys.modules)"
+    out = subprocess.run(
+        [sys.executable, "-c", code], capture_output=True, text=True, check=True
+    )
+    assert out.stdout.strip() == "False"

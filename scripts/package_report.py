@@ -33,6 +33,10 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 import libsbml
+from rich.console import Console
+from rich.progress import track
+from rich.table import Table
+from rich.text import Text
 
 ROOT: Path = Path(__file__).parent.parent
 
@@ -44,6 +48,8 @@ from structural import (  # noqa: E402
     roundtrip_document,
     snapshots,
 )
+
+from sbmlutils.console import console  # noqa: E402
 
 #: the scratch directory, one directory per case
 TMP_DIR: Path = ROOT / ".package_tmp"
@@ -337,28 +343,50 @@ def print_report(results: list[CaseResult], seconds: float) -> None:
     outcomes: dict[str, list[CaseResult]] = defaultdict(list)
     for result in results:
         outcomes[result.outcome].append(result)
-    print(f"cases          : {len(results)} in {seconds:.0f} s")
-    for outcome, listed in outcomes.items():
-        print(f"  {len(listed):>5}  {outcome}")
-
-    header = (
-        f"\n{'construct':<46} {'cases':>6} {'preserved':>10}"
-        f" {'elements':>9} {'preserved':>10} {'added in':>9}"
+    summary = Table(
+        title=f"{len(results)} cases in {seconds:.0f} s", title_justify="left"
     )
-    print(header)
-    print("-" * (len(header) - 1))
-    for construct, row in construct_table(results).items():
-        print(
-            f"{construct:<46} {row.cases:>6} {row.cases_preserved:>10}"
-            f" {row.elements:>9} {row.elements_preserved:>10} {row.cases_added:>9}"
+    summary.add_column("outcome")
+    summary.add_column("cases", justify="right")
+    for outcome, listed in outcomes.items():
+        style = "green" if outcome == "compared" else "red"
+        summary.add_row(Text(outcome, style=style), str(len(listed)))
+    console.print(summary)
+
+    rows = construct_table(results)
+    table = Table(title="constructs", title_justify="left")
+    # the full name of a construct is what a reader looks up
+    table.add_column(
+        "construct", no_wrap=True, min_width=max(map(len, rows), default=9)
+    )
+    # cases and elements with the construct, how many of them are preserved,
+    # and in how many cases the round trip added it
+    for column in ("cases", "kept", "elements", "kept", "added"):
+        table.add_column(column, justify="right", no_wrap=True)
+    for construct, row in rows.items():
+        complete = (
+            row.cases == row.cases_preserved and row.elements == row.elements_preserved
         )
+        table.add_row(
+            Text(construct, style="" if complete else "orange3"),
+            str(row.cases),
+            str(row.cases_preserved),
+            str(row.elements),
+            str(row.elements_preserved),
+            str(row.cases_added),
+        )
+    console.print(table)
 
     for outcome, listed in outcomes.items():
         if outcome == "compared":
             continue
-        print(f"\n{outcome}:")
+        console.print(f"\n{outcome}:", style="bold red", markup=False)
         for result in listed:
-            print(f"  {result.name}  [{result.stage}]  {result.detail}")
+            console.print(
+                f"  {result.name}  [{result.stage}]  {result.detail}",
+                markup=False,
+                highlight=False,
+            )
 
 
 def main() -> None:
@@ -410,7 +438,15 @@ def main() -> None:
     start = time.perf_counter()
     with ThreadPoolExecutor(max_workers=args.jobs) as executor:
         results = list(
-            executor.map(lambda case: run_case(*case, args.timeout, _crash), corpus)
+            track(
+                executor.map(
+                    lambda case: run_case(*case, args.timeout, _crash), corpus
+                ),
+                total=len(corpus),
+                description="package round trip",
+                console=Console(stderr=True),
+                transient=True,
+            )
         )
     print_report(results, time.perf_counter() - start)
 

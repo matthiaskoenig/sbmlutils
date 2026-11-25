@@ -2,10 +2,12 @@
 
 import gc
 import logging
+import re
 from pathlib import Path
 
 import libsbml
 import pytest
+from rich.console import Console
 
 from sbmlutils.io.sbml import (
     ValidationOptions,
@@ -19,7 +21,14 @@ from sbmlutils.resources import (
     GALACTOSE_SINGLECELL_SBML,
     VDP_SBML,
 )
-from sbmlutils.validation import ScopedLossCollector, _file_uri, validate_doc
+from sbmlutils.validation import (
+    SBMLErrorInfo,
+    ScopedLossCollector,
+    _file_uri,
+    error_string,
+    finding_text,
+    validate_doc,
+)
 
 
 def test_modeling_practice_can_be_disabled() -> None:
@@ -206,12 +215,25 @@ def test_validation_result_outlives_the_document() -> None:
     assert result.errors[0].getSeverity() == libsbml.LIBSBML_SEV_ERROR
 
 
-def test_read_errors_are_logged_once(caplog: pytest.LogCaptureFixture) -> None:
-    """With `validate` the read errors are logged by the validation only."""
+def test_read_errors_are_reported_once(
+    caplog: pytest.LogCaptureFixture, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """With `validate` the read errors are printed by the validation only.
+
+    Without it they are logged, as the errors of a read which went wrong.
+    """
     sbml = _SBML_TEMPLATE.format(model_id="m", attributes=' foo="1"')
+    message = "Invalid attribute found on the Model object"
     with caplog.at_level(logging.ERROR, logger="sbmlutils"):
         read_sbml(sbml, promote=False, validate=True)
-    assert caplog.text.count("Invalid attribute found on the Model object") == 1
+    assert capsys.readouterr().out.count(message) == 1
+    assert message not in caplog.text
+
+    caplog.clear()
+    with caplog.at_level(logging.ERROR, logger="sbmlutils"):
+        read_sbml(sbml, promote=False, validate=False)
+    assert caplog.text.count(message) == 1
+    assert message not in capsys.readouterr().out
 
 
 def test_validate_doc_twice_gives_equal_results() -> None:
@@ -258,19 +280,19 @@ def test_sbml_error_info_severity_predicates() -> None:
         assert info.isFatal() == err.isFatal()
 
 
-def test_validate_doc_logs_report_and_does_not_print(
+def test_validate_doc_prints_one_line_for_a_perfect_model(
     caplog: pytest.LogCaptureFixture, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    """The validation report is logged and nothing is written to stdout."""
+    """A model without findings is reported in one printed line, nothing logged."""
     doc = libsbml.SBMLDocument(3, 2)
     doc.createModel()
-    with caplog.at_level(logging.INFO, logger="sbmlutils.validation"):
-        validate_doc(doc)
-    assert any(
-        r.levelno == logging.INFO and "Validate SBML" in r.getMessage()
-        for r in caplog.records
-    ), caplog.text
-    assert capsys.readouterr().out == ""
+    with caplog.at_level(logging.DEBUG, logger="sbmlutils.validation"):
+        result = validate_doc(doc)
+    assert result.is_perfect()
+    lines = capsys.readouterr().out.strip().splitlines()
+    assert len(lines) == 1
+    assert lines[0].startswith("valid ")
+    assert caplog.records == []
 
 
 #: a comp model which is valid, but whose flat model sets the parameter `p`
@@ -346,3 +368,118 @@ def test_validate_doc_without_the_flat_model_of_a_core_document() -> None:
     )
 
     assert result.is_valid()
+
+
+def _repeated_finding_doc(n: int) -> libsbml.SBMLDocument:
+    """Create a document with `n` parameters which all lack a unit."""
+    doc = libsbml.SBMLDocument(3, 2)
+    model = doc.createModel()
+    model.setId("m")
+    for k in range(n):
+        parameter = model.createParameter()
+        parameter.setId(f"p{k}")
+        parameter.setValue(1.0)
+        parameter.setConstant(True)
+    return doc
+
+
+def test_repeated_findings_are_printed_up_to_a_limit(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A finding repeated on every element is printed a few times and summarized.
+
+    The result keeps every finding; the output names the rest in one line, and
+    the report ends with the table of the findings by error id.
+    """
+    doc = _repeated_finding_doc(30)
+    result = validate_doc(doc, ValidationOptions(max_findings_per_error=3))
+    out = capsys.readouterr().out
+
+    groups = result.groups()
+    assert sum(g.count for g in groups) == result.all_count
+    group = next(g for g in groups if g.count == 30)
+    assert out.count(f"{group.severity_string} {group.error_id} ") == 3
+    assert f"27 further finding(s) {group.error_id}" in out
+    # the header of the table, whose box characters differ between platforms
+    assert re.search(r"severity\W+id\W+package\W+count\W+message", out), out
+
+
+def test_all_findings_are_printed_without_a_limit(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """`max_findings_per_error=None` prints every finding one by one."""
+    doc = _repeated_finding_doc(12)
+    result = validate_doc(doc, ValidationOptions(max_findings_per_error=None))
+    out = capsys.readouterr().out
+    group = next(g for g in result.groups() if g.count == 12)
+    assert out.count(f"{group.severity_string} {group.error_id} ") == 12
+    assert "further finding(s)" not in out
+
+
+def test_validation_prints_and_does_not_log(
+    caplog: pytest.LogCaptureFixture, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """The report and the findings are output: printed, nothing is logged."""
+    doc = _repeated_finding_doc(2)
+    with caplog.at_level(logging.DEBUG, logger="sbmlutils"):
+        validate_doc(doc)
+    assert "Validate SBML" in capsys.readouterr().out
+    assert caplog.records == []
+
+
+def test_findings_with_brackets_are_printed_as_they_are() -> None:
+    """A message is text, not markup: square brackets survive the printing."""
+    finding = SBMLErrorInfo(
+        error_id=1,
+        severity=libsbml.LIBSBML_SEV_ERROR,
+        severity_string="Error",
+        category=0,
+        category_string="General",
+        line=3,
+        column=0,
+        message="detail [x] and [/red] stay",
+        short_message="short [bold]",
+        package="",
+    )
+    console = Console(record=True, width=200)
+    console.print(finding_text(finding, index=0))
+    text = console.export_text()
+    assert "short [bold]" in text
+    assert "detail [x] and [/red] stay" in text
+
+
+def test_error_message_is_plain_text_with_the_error_id() -> None:
+    """A logged finding names its error id and carries no rich markup."""
+    doc = _repeated_finding_doc(1)
+    result = validate_doc(doc, ValidationOptions(log_errors=False))
+    finding = [*result.errors, *result.warnings][0]
+    message, severity = error_string(finding, index=0)
+    assert message.startswith(f"E0 [{finding.getSeverityAsString()}] ")
+    assert f" {finding.getErrorId()} " in message
+    assert "[/" not in message
+    assert severity == finding.getSeverity()
+
+
+def test_validation_result_renders_as_rich_table() -> None:
+    """`console.print(result)` gives the findings grouped by error id."""
+    doc = _repeated_finding_doc(5)
+    result = validate_doc(doc, ValidationOptions(log_errors=False))
+    console = Console(record=True, width=200)
+    console.print(result)
+    text = console.export_text()
+    assert f"{result.warning_count} warning(s)" in text
+    for group in result.groups():
+        assert str(group.error_id) in text
+    assert repr(result).startswith("ValidationResult(errors=")
+
+
+def test_validate_sbml_names_the_file_in_the_report(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """The report of a validated file names its path, not the document object."""
+    path = tmp_path / "model.xml"
+    path.write_text(DEMO_SBML.read_text(encoding="utf-8"), encoding="utf-8")
+    validate_sbml(path, ValidationOptions(log_errors=False))
+    out = capsys.readouterr().out
+    assert str(path.resolve()) in out
+    assert "<SBMLDocument>" not in out

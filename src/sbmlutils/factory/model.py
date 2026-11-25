@@ -12,6 +12,7 @@ import datetime
 import inspect
 import json
 import logging
+import time
 from collections.abc import Iterable, Iterator, Sequence
 from copy import deepcopy
 from dataclasses import dataclass
@@ -33,7 +34,10 @@ from typing import (
 import libsbml
 import xmltodict
 from pymetadata.core.creator import Creator
+from rich.syntax import Syntax
+from rich.text import Text
 
+from sbmlutils.console import console, path_text
 from sbmlutils.factory._core import (
     SBML_LEVEL,
     SBML_VERSION,
@@ -48,6 +52,7 @@ from sbmlutils.factory._core import (
     _create_object,
     _xhtml_body_content,
     collect_attribute_losses,
+    collect_authoring_hints,
     collect_content_losses,
     create_objects,
 )
@@ -165,8 +170,8 @@ def date_now() -> libsbml.Date:
 
     :return: current libsbml Date
     """
-    time = datetime.datetime.now()
-    timestr = time.strftime("%Y-%m-%dT%H:%M:%S")
+    now = datetime.datetime.now()
+    timestr = now.strftime("%Y-%m-%dT%H:%M:%S")
     return libsbml.Date(timestr)
 
 
@@ -1538,7 +1543,9 @@ class Document(Sbase):
         an annotation resource which cannot be canonicalized, see
         `annotator.collect_resource_losses`, an attribute the document has no
         place for, see `collect_attribute_losses`, and content its fbc version
-        cannot carry, see `collect_content_losses`.
+        cannot carry, see `collect_content_losses`. The authoring hints, a
+        `name` or `sboTerm` which a hand written element should set, are
+        grouped the same way, see `collect_authoring_hints`.
 
         Returns:
             the created libsbml.SBMLDocument
@@ -1547,6 +1554,7 @@ class Document(Sbase):
             annotator.collect_resource_losses(),
             collect_attribute_losses(),
             collect_content_losses(),
+            collect_authoring_hints(),
         ):
             return self._create_sbml()
 
@@ -1556,7 +1564,7 @@ class Document(Sbase):
         Returns:
             the created libsbml.SBMLDocument
         """
-        logger.info("Create SBML for model '%s'", self.model.sid)
+        logger.debug("Create SBML for model '%s'", self.model.sid)
 
         # the packages actually needed to write this model: whatever the
         # content of the model engages without the definition asking for it,
@@ -1707,7 +1715,7 @@ def create_model(
     :param sbml_version: set SBML version for model generation
     :param validate: boolean flag to validate the SBML file
     :param validation_options: options for model validation
-    :param show_sbml: boolean flag to log the created SBML at INFO level on the `sbmlutils.factory.model` logger, nothing is shown unless logging is enabled, see `sbmlutils.log.enable_rich_logging`
+    :param show_sbml: print the created SBML with syntax highlighting on the console of the package, see `sbmlutils.console`
     :param annotations: Path to annotations file
     :param create_antimony: write the antimony serialization to `*.ant`
     :param create_markdown: write the markdown overview of the ODE system to `*.md`
@@ -1737,6 +1745,7 @@ def create_model(
     filepath = Path(filepath)
     if validation_options is None:
         validation_options = ValidationOptions()
+    start = time.perf_counter()
 
     # merge models (a Model is iterable itself, so it is checked first)
     m: Model
@@ -1761,6 +1770,7 @@ def create_model(
         annotator.collect_resource_losses(),
         collect_attribute_losses(),
         collect_content_losses(),
+        collect_authoring_hints(),
     ):
         doc: libsbml.SBMLDocument = Document(
             model=m,
@@ -1778,6 +1788,17 @@ def create_model(
             raise ConstructionError(construction.diagnostics)
 
         write_sbml(doc=doc, filepath=filepath)
+
+    # printed after the scopes reported their findings, which belong to the
+    # writing; the validation of the file follows
+    console.print(
+        Text.assemble(
+            ("SBML", "bold"),
+            " written to ",
+            path_text(filepath),
+            (f"  model '{m.sid}', {time.perf_counter() - start:.2f} s", "dim"),
+        )
+    )
 
     # Check the serialized final file: libsbml checks constructed documents
     # differently, especially when external comp models are involved.
@@ -1798,7 +1819,11 @@ def create_model(
     if create_antimony:
         antimony_path = filepath.with_suffix(".ant")
         antimony_path.write_text(sbml_to_antimony(filepath), encoding="utf-8")
-        logger.info("Antimony written to '%s'", antimony_path)
+        console.print(
+            Text.assemble(
+                ("Antimony", "bold"), " written to ", path_text(antimony_path)
+            )
+        )
 
     markdown_path: Path | None = None
     if create_markdown:
@@ -1806,11 +1831,19 @@ def create_model(
 
         markdown_path = filepath.with_suffix(".md")
         OdeSystem.from_sbml(filepath).write(markdown_path)
-        logger.info("Markdown written to '%s'", markdown_path)
+        console.print(
+            Text.assemble(
+                ("Markdown", "bold"), " written to ", path_text(markdown_path)
+            )
+        )
 
-    # log created sbml
+    # print created sbml
     if show_sbml:
-        logger.info("Created SBML:\n%s", filepath.read_text(encoding="utf-8"))
+        console.print(
+            Syntax(filepath.read_text(encoding="utf-8"), "xml", word_wrap=True)
+        )
+
+    logger.debug("Model '%s' created in %.2f s", m.sid, time.perf_counter() - start)
 
     return FactoryResult(
         sbml_path=filepath,

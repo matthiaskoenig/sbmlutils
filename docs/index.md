@@ -26,7 +26,7 @@ Around this core the package collects the tasks which come with SBML models: val
 - **[Reports](reports.md)** - the complete content of a model as JSON, the basis of the reports on [sbml4humans.de](https://sbml4humans.de).
 - **[ODE export](ode.md)** - the system of ordinary differential equations of a model as code which simulates it (python, julia, R) and as a document which describes it (typst, LaTeX, markdown), by the package [sbmlode](https://matthiaskoenig.github.io/sbmlode/).
 
-The specifications behind the language and its packages are cited in [References](references.md).
+[How it works](architecture.md) explains with diagrams what happens between a model definition and a validated file, how findings are reported, what makes a large model fast and how untrusted files are handled. The specifications behind the language and its packages are cited in [References](references.md).
 
 ## Quickstart
 

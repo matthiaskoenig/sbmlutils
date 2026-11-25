@@ -32,6 +32,11 @@ from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+from rich.console import Console
+from rich.progress import track
+from rich.table import Table
+from rich.text import Text
+
 ROOT: Path = Path(__file__).parent.parent
 
 sys.path.insert(0, str(ROOT / "tests"))
@@ -45,8 +50,27 @@ from test_roundtrip import (  # noqa: E402
     run_case_isolated,
 )
 
+from sbmlutils.console import console  # noqa: E402
+
 #: the scratch directory, one directory per case
 TMP_DIR: Path = ROOT / ".roundtrip_tmp"
+
+#: the color of an outcome in the report
+_OUTCOME_STYLES: dict[Outcome, str] = {
+    Outcome.PASSED: "green",
+    Outcome.FAILED: "red",
+    Outcome.CRASHED: "red",
+    Outcome.TIMED_OUT: "orange3",
+}
+
+
+def out(line: str) -> None:
+    """Print a line of the report as it is, a `[stage]` is no markup.
+
+    Args:
+        line: the line
+    """
+    console.print(line, markup=False, highlight=False)
 
 
 def run_case(sbml_path: Path, timeout: float) -> tuple[str, CaseResult]:
@@ -92,15 +116,27 @@ def print_report(results: list[tuple[str, CaseResult]], seconds: float) -> None:
         seconds: the wall time of the sweep
     """
     counts = Counter(result.outcome for _, result in results)
-    print(f"cases          : {len(results)} in {seconds:.0f} s")
+    table = Table(
+        title=f"{len(results)} cases in {seconds:.0f} s", title_justify="left"
+    )
+    table.add_column("outcome")
+    table.add_column("cases", justify="right")
     for outcome in Outcome:
         if counts[outcome]:
-            print(f"  {counts[outcome]:>5}  {outcome}")
+            style = _OUTCOME_STYLES.get(outcome, "")
+            table.add_row(Text(str(outcome), style=style), str(counts[outcome]))
+    console.print(table)
 
     comparable = counts[Outcome.PASSED] + counts[Outcome.FAILED]
     if comparable:
         rate = 100.0 * counts[Outcome.PASSED] / comparable
-        print(f"\npass rate      : {counts[Outcome.PASSED]}/{comparable} = {rate:.1f}%")
+        console.print(
+            Text.assemble(
+                ("pass rate ", "bold"),
+                f"{counts[Outcome.PASSED]}/{comparable} = ",
+                (f"{rate:.1f}%", "bold green" if rate == 100.0 else "bold"),
+            )
+        )
 
     # the failures grouped by their known reason
     reasons: dict[str, list[str]] = defaultdict(list)
@@ -108,17 +144,17 @@ def print_report(results: list[tuple[str, CaseResult]], seconds: float) -> None:
         if result.outcome == Outcome.FAILED:
             reasons[KNOWN_FAILURES.get(case, "UNEXPECTED")].append(case)
     if reasons:
-        print(f"\n{Outcome.FAILED}:")
+        out(f"\n{Outcome.FAILED}:")
         for reason, cases in sorted(reasons.items(), key=lambda item: -len(item[1])):
-            print(f"  {len(cases):>5}  {reason}")
-            print(f"         {' '.join(cases)}")
+            out(f"  {len(cases):>5}  {reason}")
+            out(f"         {' '.join(cases)}")
     unexpected = [
         (case, result)
         for case, result in results
         if result.outcome == Outcome.FAILED and case not in KNOWN_FAILURES
     ]
     for case, result in unexpected:
-        print(f"  {case}  [{result.stage}]  {result.detail}")
+        out(f"  {case}  [{result.stage}]  {result.detail}")
 
     # a known failure which passes fails the strict xfail of the sweep
     fixed = [
@@ -127,16 +163,16 @@ def print_report(results: list[tuple[str, CaseResult]], seconds: float) -> None:
         if result.outcome == Outcome.PASSED and case in KNOWN_FAILURES
     ]
     if fixed:
-        print(f"\nknown failures which pass, remove them: {' '.join(fixed)}")
+        out(f"\nknown failures which pass, remove them: {' '.join(fixed)}")
 
     for outcome in [Outcome.CRASHED, Outcome.TIMED_OUT, Outcome.WORKER_ERROR]:
         listed = [
             (case, result) for case, result in results if result.outcome == outcome
         ]
         if listed:
-            print(f"\n{outcome}:")
+            out(f"\n{outcome}:")
             for case, result in listed:
-                print(f"  {case}  [{result.stage}]  {result.detail}")
+                out(f"  {case}  [{result.stage}]  {result.detail}")
 
     # there are many of these, so they are summarized by their reason, without
     # the formula or id it quotes and the C++ function it names
@@ -145,10 +181,10 @@ def print_report(results: list[tuple[str, CaseResult]], seconds: float) -> None:
         if result.outcome in (Outcome.NOT_SIMULATABLE, Outcome.NOT_DETERMINISTIC):
             reasons[f"{result.outcome}: {reason_of(result.detail)}"].append(case)
     if reasons:
-        print()
+        out("")
         for reason, cases in sorted(reasons.items(), key=lambda item: -len(item[1])):
-            print(f"  {len(cases):>5}  {reason}")
-            print(f"         {' '.join(cases)}")
+            out(f"  {len(cases):>5}  {reason}")
+            out(f"         {' '.join(cases)}")
 
 
 def main() -> None:
@@ -179,7 +215,15 @@ def main() -> None:
 
     start = time.perf_counter()
     with ThreadPoolExecutor(max_workers=args.jobs) as executor:
-        results = list(executor.map(lambda path: run_case(path, args.timeout), cases))
+        results = list(
+            track(
+                executor.map(lambda path: run_case(path, args.timeout), cases),
+                total=len(cases),
+                description="round trip",
+                console=Console(stderr=True),
+                transient=True,
+            )
+        )
     print_report(results, time.perf_counter() - start)
 
 

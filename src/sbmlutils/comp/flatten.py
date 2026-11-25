@@ -5,7 +5,9 @@ import time
 from pathlib import Path
 
 import libsbml
+from rich.text import Text
 
+from sbmlutils.console import console, path_text
 from sbmlutils.io import read_sbml, write_sbml
 from sbmlutils.validation import log_sbml_errors_for_doc
 
@@ -118,23 +120,28 @@ def flatten_sbml_doc(
         result == libsbml.LIBSBML_OPERATION_SUCCESS and _num_errors(doc) == 0
     )
 
-    lines = [
-        str(doc),
-        f"{'flattend':<25}: {str(flattened_status).upper()}",
-        f"{'flatten time (ms)':<25}: {time.perf_counter() - current:.3f}",
-    ]
-    info = "\n".join(lines)
-
-    if flattened_status:
-        logger.info("Flatten SBML\n%s", info)
-    else:
-        logger.error("Flatten SBML\n%s", info)
+    seconds = time.perf_counter() - current
+    if not flattened_status:
+        logger.error("Flattening of %s failed after %.3f s.", doc, seconds)
         log_sbml_errors_for_doc(doc)
         raise ValueError("SBML could not be flattend due to errors.")
 
     if sbml_flat_path is not None:
         write_sbml(doc, filepath=sbml_flat_path)
-        logger.info("Flattened model created: '%s'", sbml_flat_path)
+        console.print(
+            Text.assemble(
+                ("Flat SBML", "bold"),
+                " written to ",
+                path_text(sbml_flat_path),
+                (f"  {seconds:.3f} s", "dim"),
+            )
+        )
+    else:
+        console.print(
+            Text.assemble(
+                ("Flattened", "bold"), " ", str(doc), (f"  {seconds:.3f} s", "dim")
+            )
+        )
 
     return doc
 

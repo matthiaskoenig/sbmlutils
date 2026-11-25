@@ -67,7 +67,7 @@ model = Model(
 result = create_model(model=model, filepath=Path("glycolysis.xml"))
 ```
 
-`create_model` returns a `FactoryResult` with the `sbml_path` it wrote and the created `Model`. It validates the model by default, see [Validation](validation.md).
+`create_model` returns a `FactoryResult` with the `sbml_path` it wrote and the created `Model`. It validates the model by default, see [Validation](validation.md). The steps it runs, and what to tune for a large model, are drawn in [How it works](architecture.md#creating-a-model).
 
 The created model can be serialized to additional formats next to the SBML file, which makes the result easy to inspect: `create_antimony=True` writes the [Antimony](io/antimony.md) notation of the model to `glycolysis.ant`, and `create_markdown=True` writes the [ODE system](ode.md) as markdown to `glycolysis.md`. Both are off by default; the paths of the written files are on the result as `antimony_path` and `markdown_path`.
 

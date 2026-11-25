@@ -1,5 +1,7 @@
 """Test MathML functionality."""
 
+from pathlib import Path
+
 import libsbml
 import pytest
 
@@ -110,3 +112,18 @@ def test_astnode_to_latex(formula: str) -> None:
     latex = mathml.astnode_to_latex(astnode)
     assert latex
     assert isinstance(latex, str)
+
+
+def test_mathml_entities_are_not_resolved(tmp_path: Path) -> None:
+    """A document type declaration cannot read a local file into the latex.
+
+    `cmathml_to_latex` is public and may get MathML from a file, so an external
+    entity must neither be resolved (XXE) nor fetched.
+    """
+    secret = tmp_path / "secret.txt"
+    secret.write_text("SECRET_TOKEN", encoding="utf-8")
+    cmathml = (
+        f'<!DOCTYPE math [<!ENTITY xxe SYSTEM "{secret.as_uri()}">]>'
+        '<math xmlns="http://www.w3.org/1998/Math/MathML"><ci>&xxe;</ci></math>'
+    )
+    assert "SECRET_TOKEN" not in mathml.cmathml_to_latex(cmathml)

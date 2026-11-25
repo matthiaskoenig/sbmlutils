@@ -9,7 +9,7 @@ from pymetadata.omex import EntryFormat, ManifestEntry, Omex
 from examples.icg.model_body import model_body
 from examples.icg.model_liver import model as model_liver
 from sbmlutils.comp import flatten_sbml
-from sbmlutils.console import console
+from sbmlutils.console import console, path_text
 from sbmlutils.factory import create_model
 
 logger = logging.getLogger(__name__)
@@ -78,4 +78,4 @@ if __name__ == "__main__":
     results = create_models(Path.cwd(), create_tissues=True)
     for result in results.values():
         sbml_path = result["path"]
-        print(sbml_path)
+        console.print(path_text(sbml_path))

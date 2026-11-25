@@ -15,6 +15,8 @@ import sys
 import time
 from pathlib import Path
 
+from sbmlutils.console import console
+
 CASES = (
     "import_io",
     "import_factory",
@@ -108,7 +110,8 @@ def main() -> None:
     if args.size < 1:
         parser.error("--size must be positive")
     if args.case is not None:
-        print(json.dumps(measure(args.case, args.size)))
+        # machine readable for the parent process, which parses the line
+        sys.stdout.write(json.dumps(measure(args.case, args.size)) + "\n")
         return
     measurements = []
     for case in CASES:
@@ -126,7 +129,7 @@ def main() -> None:
             text=True,
         )
         measurements.append(json.loads(result.stdout))
-    print(json.dumps(measurements, indent=2))
+    console.print_json(data=measurements)
 
 
 if __name__ == "__main__":

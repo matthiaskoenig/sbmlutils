@@ -36,13 +36,21 @@ def test_example_script(module: str, tmp_path: Path) -> None:
         "examples.tiny.simulation",
     }:
         pytest.importorskip("roadrunner")
-    env = dict(os.environ, PYTHONPATH=str(REPO_DIR), MPLBACKEND="Agg")
+    # the examples print rich output; the child writes it as UTF-8 and it is
+    # read as UTF-8, on Windows a pipe would otherwise use the ANSI code page
+    env = dict(
+        os.environ,
+        PYTHONPATH=str(REPO_DIR),
+        MPLBACKEND="Agg",
+        PYTHONIOENCODING="utf-8",
+    )
     result = subprocess.run(
         [sys.executable, "-m", module],
         cwd=tmp_path,
         env=env,
         capture_output=True,
-        text=True,
+        encoding="utf-8",
+        errors="replace",
         check=False,
     )
     assert result.returncode == 0, result.stderr

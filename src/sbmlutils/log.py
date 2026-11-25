@@ -1,4 +1,11 @@
-"""Logging of the package.
+"""Logging of the package, for tracing problems and debugging.
+
+`sbmlutils` separates output from logging, see `sbmlutils.console`. What a
+user asked to see, e.g. the files `create_model` writes or the report of a
+validation, is printed on the rich console of the package. The loggers carry
+what is needed to trace a problem: warnings about content which is lost or a
+definition which should be fixed, errors of libsbml calls which failed, and
+debug detail. The package logs nothing at INFO.
 
 `sbmlutils` follows the convention for libraries: it only gets loggers and logs
 to them, it does not configure logging. Handlers, levels and formatting are left
@@ -19,11 +26,12 @@ configures them in one place:
 ```python
 import logging
 
-logging.getLogger("sbmlutils").setLevel(logging.WARNING)
+logging.getLogger("sbmlutils").setLevel(logging.ERROR)
 ```
 
-For scripts and interactive work the rich formatting of the package can be
-enabled explicitly, which is what the examples do:
+For scripts and interactive work the warnings and errors can be shown on the
+rich console of the package, next to its output, which is what the examples
+do:
 
 ```python
 from sbmlutils import log
@@ -46,7 +54,7 @@ PACKAGE_LOGGER = "sbmlutils"
 def enable_rich_logging(
     level: int = logging.INFO, console: Console | None = None
 ) -> logging.Logger:
-    """Log the messages of the package on a rich console.
+    """Show the warnings and errors of the package on a rich console.
 
     This configures logging and is meant for scripts, examples and interactive
     work. Applications should configure logging themselves instead of calling

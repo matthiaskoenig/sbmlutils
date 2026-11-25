@@ -839,15 +839,17 @@ def test_distrib_examples_log_no_authoring_hint(
         Document(model=distrib_uncertainties.model).create_sbml()
         Document(model=distrib_comp.model).create_sbml()
 
-    # the element a hint is about is the one named after `should be set on`.
-    # An element which carries an uncertainty prints it, and an uncertainty
+    # the element a hint is about is the one named after `should be set on`,
+    # in full for a single element and by its class for a group of them. An
+    # element which carries an uncertainty prints it, and an uncertainty
     # prints its children, so a hint about that element names an
     # `UncertParameter` as well without being about one
     hints = [
         record.getMessage()
         for record in caplog.records
         if re.search(
-            r"should be set on '(UncertParameter|UncertSpan)\(", record.getMessage()
+            r"should be set on ('|\d+ )(UncertParameter|UncertSpan)\b",
+            record.getMessage(),
         )
     ]
     assert not hints, hints

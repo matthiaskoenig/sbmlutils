@@ -49,8 +49,10 @@ from pprint import pformat
 from typing import Any
 
 import libsbml
+from rich.text import Text
 
 from sbmlutils import factory as fac
+from sbmlutils.console import console, path_text
 from sbmlutils.converters import xpp_helpers
 from sbmlutils.factory import Event
 from sbmlutils.io import sbml
@@ -187,7 +189,11 @@ def xpp2sbml(
     :param validate: perform validation on the generated SBML file
     :return:
     """
-    logger.info("xpp2sbml: '%s' -> '%s'", xpp_file, sbml_file)
+    console.print(
+        Text.assemble(
+            ("XPP", "bold"), " ", path_text(xpp_file), " to SBML ", path_text(sbml_file)
+        )
+    )
     doc = libsbml.SBMLDocument(3, 1)
     model = doc.createModel()
 

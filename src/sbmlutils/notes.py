@@ -92,6 +92,8 @@ class Notes:
 
 
 if __name__ == "__main__":
+    from sbmlutils.console import console
+
     notes = Notes("** Test")
-    print(notes)
-    print(notes.xml)
+    console.print(notes, markup=False)
+    console.print(notes.xml, markup=False)

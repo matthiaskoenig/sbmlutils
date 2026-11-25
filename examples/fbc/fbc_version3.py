@@ -7,8 +7,11 @@ https://github.com/bgoli/sbml-fbc-spec/blob/main/sf_svn/spec/main.pdf
 from logging import getLogger
 
 import libsbml
+from rich.syntax import Syntax
 
-# from sbmlutils.console import console
+from sbmlutils.console import console
+from sbmlutils.validation import finding_text
+
 logger = getLogger(__name__)
 
 
@@ -99,6 +102,13 @@ s2.setBoundaryCondition(False)
 # p2.setValue(100)
 # p2.setConstant(True)
 
+# the flux bounds of the reaction and the bounds of the constraint
+for sid, value in (("lb", -100.0), ("ub", 100.0)):
+    bound: libsbml.Parameter = model.createParameter()
+    bound.setId(sid)
+    bound.setValue(value)
+    bound.setConstant(True)
+
 # Support exists for user constraints
 reaction: libsbml.Reaction = model.createReaction()
 reaction.setId("r1")
@@ -127,15 +137,17 @@ constraint.setUpperBound("ub")
 component: libsbml.UserDefinedConstraintComponent = (
     constraint.createUserDefinedConstraintComponent()
 )
-component.setCoefficient(10.0)
+# in fbc version 3 the coefficient is the id of a parameter
+coefficient: libsbml.Parameter = model.createParameter()
+coefficient.setId("coef")
+coefficient.setValue(10.0)
+coefficient.setConstant(True)
+component.setCoefficient("coef")
 component.setVariable("r1")
 component.setVariableType(libsbml.FBC_VARIABLE_TYPE_LINEAR)
 
 sbml_str: str = libsbml.writeSBMLToString(doc)
-print("-" * 80)
-# console.log(sbml_str)
-print(sbml_str)
-print("-" * 80)
+console.print(Syntax(sbml_str, "xml", word_wrap=True))
 
 
 # checking that SBML string can be read again
@@ -152,8 +164,7 @@ if doc2.getNumErrors() > 0:
     logger.error("`read_sbml` error `%s`", err_message)
     for k in range(doc2.getNumErrors()):
         error: libsbml.SBMLError = doc2.getError(k)
-        print(f"Error {k}")
-        print(error.getMessage())
+        console.print(finding_text(error, index=k))
 
 
 # from sbmlutils.io import validate_sbml

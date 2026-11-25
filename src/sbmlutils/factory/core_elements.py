@@ -1147,17 +1147,7 @@ class KineticLaw(Sbase):
         for local_parameter in self.local_parameters:
             local_parameter.create_sbml(klaw, model)
 
-        if self.math is None:
-            return klaw
-        ast_node = libsbml.parseL3FormulaWithModel(self.math, model)
-        if ast_node is None:
-            logger.error(
-                "Kinetic law math could not be parsed: '%s', %s",
-                self.math,
-                libsbml.getLastParseL3Error(),
-            )
-        else:
-            check(klaw.setMath(ast_node), f"Set math on kinetic law '{self.math}'")
+        _set_math(klaw, self.math, model)
         return klaw
 
 
@@ -1623,17 +1613,8 @@ class EventAssignment(Value):
         self._set_fields(ea, model)
         self.create_port(model)
         check(ea.setVariable(self.variable), f"Set variable '{self.variable}'")
-        if self.value is None:
-            return ea
-        ast_node = libsbml.parseL3FormulaWithModel(str(self.value), model)
-        if ast_node is None:
-            logger.error(
-                "Event assignment math could not be parsed: '%s', %s",
-                self.value,
-                libsbml.getLastParseL3Error(),
-            )
-        else:
-            check(ea.setMath(ast_node), f"Set math on '{self.variable}'")
+        if self.value is not None:
+            _set_math(ea, str(self.value), model)
         return ea
 
 

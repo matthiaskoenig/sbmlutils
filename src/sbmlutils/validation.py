@@ -3,14 +3,26 @@
 import logging
 import re
 import time
+from collections import Counter
 from collections.abc import Callable, Generator, Iterable
 from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass, replace
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 from urllib.parse import quote
 
 import libsbml
+from rich.console import Group
+from rich.markup import escape
+from rich.padding import Padding
+from rich.style import Style
+from rich.text import Text
+
+from sbmlutils.console import console as package_console
+
+if TYPE_CHECKING:
+    from rich.console import Console
+    from rich.table import Table
 
 logger = logging.getLogger(__name__)
 
@@ -319,10 +331,19 @@ class ValidationOptions:
     separately, e.g. after `flatten_sbml`; it has no effect on a document
     without comp.
 
-    * `log_errors` Boolean flag to log errors.
+    * `log_errors`: print every finding on the console of the package, see
+    `sbmlutils.console`; the name is kept from the time the report was
+    logged. The report itself is printed either way.
+
+    * `max_findings_per_error`: how many findings with the same error id are
+    printed one by one, `None` prints all of them. A large model easily
+    repeats one finding thousands of times, e.g. a unit warning on every
+    reaction; the remaining ones are summarized in one line. The
+    `ValidationResult` always holds every finding.
     """
 
     log_errors: bool = True
+    max_findings_per_error: int | None = 10
     internal_consistency: bool = True
 
     general_consistency: bool = True
@@ -442,6 +463,48 @@ class SBMLErrorInfo:
         return self.severity == libsbml.LIBSBML_SEV_FATAL
 
 
+@dataclass
+class ValidationGroup:
+    """The findings of a validation which share one error id.
+
+    Attributes:
+        error_id: the libsbml error id
+        severity: the libsbml severity code
+        severity_string: the severity as string
+        package: the SBML package, `core` for SBML core
+        category: the category of the finding
+        short_message: the short message of the finding
+        count: how many findings have the error id
+        lines: the line of every finding, 0 if libsbml has none
+    """
+
+    error_id: int
+    severity: int
+    severity_string: str
+    package: str
+    category: str
+    short_message: str
+    count: int
+    lines: list[int]
+
+
+#: the log level of a libsbml severity
+_LOG_LEVELS: dict[int, int] = {
+    libsbml.LIBSBML_SEV_INFO: logging.INFO,
+    libsbml.LIBSBML_SEV_WARNING: logging.WARNING,
+    libsbml.LIBSBML_SEV_ERROR: logging.ERROR,
+    libsbml.LIBSBML_SEV_FATAL: logging.ERROR,
+}
+
+#: the rich style of a libsbml severity, see `sbmlutils.console`
+_SEVERITY_STYLES: dict[int, str] = {
+    libsbml.LIBSBML_SEV_INFO: "blue",
+    libsbml.LIBSBML_SEV_WARNING: "orange3",
+    libsbml.LIBSBML_SEV_ERROR: "red",
+    libsbml.LIBSBML_SEV_FATAL: "bold red",
+}
+
+
 class ValidationResult:
     """Results of an SBMLDocument validation.
 
@@ -488,12 +551,152 @@ class ValidationResult:
             warnings.extend(vres.warnings)
         return ValidationResult(errors=errors, warnings=warnings)
 
-    def log(self) -> None:
-        """Log errors and warnings."""
-        for k, error in enumerate(self.errors):
-            log_sbml_error(error, index=k)
-        for k, warning in enumerate(self.warnings):
-            log_sbml_error(warning, index=k)
+    def show(
+        self, max_per_error: int | None = None, console: "Console | None" = None
+    ) -> None:
+        """Print the errors and warnings, colored by their severity.
+
+        Args:
+            max_per_error: how many findings with the same error id are printed
+                one by one, `None` prints all of them; the rest of every error
+                id is summarized in one line
+            console: the console to print on, the console of the package by
+                default, see `sbmlutils.console`
+        """
+        if console is None:
+            console = package_console
+        shown: Counter[int] = Counter()
+        for findings in (self.errors, self.warnings):
+            for k, error in enumerate(findings):
+                error_id = error.getErrorId()
+                shown[error_id] += 1
+                if max_per_error is None or shown[error_id] <= max_per_error:
+                    console.print(finding_text(error, index=k))
+
+        if max_per_error is None:
+            return
+        for group in self.groups():
+            skipped = group.count - max_per_error
+            if skipped > 0:
+                console.print(
+                    Text.assemble(
+                        (
+                            f"{skipped} further finding(s) {group.error_id}",
+                            _SEVERITY_STYLES.get(group.severity, ""),
+                        ),
+                        f" ({group.short_message}) are not shown, "
+                        "they are in the ValidationResult.",
+                    )
+                )
+
+    def log(self, max_per_error: int | None = None) -> None:
+        """Print the errors and warnings, see `show`.
+
+        The name is kept from the time the findings were logged.
+
+        Args:
+            max_per_error: see `show`
+        """
+        self.show(max_per_error=max_per_error)
+
+    def groups(self) -> list["ValidationGroup"]:
+        """Group the findings by error id, the most severe and frequent first.
+
+        Returns:
+            one group per error id, errors before warnings, then by count
+        """
+        groups: dict[int, ValidationGroup] = {}
+        for error in [*self.errors, *self.warnings]:
+            error_id = error.getErrorId()
+            group = groups.get(error_id)
+            if group is None:
+                groups[error_id] = ValidationGroup(
+                    error_id=error_id,
+                    severity=error.getSeverity(),
+                    severity_string=error.getSeverityAsString(),
+                    package=error.getPackage() or "core",
+                    category=error.getCategoryAsString(),
+                    short_message=error.getShortMessage(),
+                    count=1,
+                    lines=[error.getLine()],
+                )
+            else:
+                group.count += 1
+                group.lines.append(error.getLine())
+        # ranked by the log level of the severity: libsbml numbers its
+        # severities, but not in the order of how severe they are
+        return sorted(
+            groups.values(),
+            key=lambda g: (
+                -_LOG_LEVELS.get(g.severity, logging.INFO),
+                -g.count,
+                g.error_id,
+            ),
+        )
+
+    def __repr__(self) -> str:
+        """Get the counts of the result."""
+        return (
+            f"ValidationResult(errors={self.error_count}, "
+            f"warnings={self.warning_count})"
+        )
+
+    def __rich__(self) -> "Table":
+        """Render the findings grouped by error id as a rich table.
+
+        `console.print(result)` gives an overview of a validation, also of a
+        large model which repeats one finding thousands of times.
+
+        Returns:
+            the table, see `table`
+        """
+        return self.table()
+
+    def table(self, title: bool = True) -> "Table":
+        """Get the findings grouped by error id as a rich table.
+
+        Args:
+            title: whether the table is titled with the status and the counts
+
+        Returns:
+            the table, with a row per error id, see `groups`
+        """
+        from rich.table import Table
+
+        if self.is_perfect():
+            title_text = "[green]valid[/green], no errors or warnings"
+        else:
+            status = "[green]valid[/green]" if self.is_valid() else "[red]invalid[/red]"
+            title_text = (
+                f"{status}, {self.error_count} error(s), "
+                f"{self.warning_count} warning(s)"
+            )
+        table = Table(
+            title=title_text if title else None, title_justify="left", show_lines=False
+        )
+        table.add_column("severity", no_wrap=True)
+        table.add_column("id", justify="right", no_wrap=True)
+        table.add_column("package", no_wrap=True)
+        table.add_column("count", justify="right", no_wrap=True)
+        table.add_column("message", ratio=3)
+        table.add_column("lines", ratio=1)
+        for group in self.groups():
+            style = _SEVERITY_STYLES.get(group.severity, "")
+            lines = sorted({line for line in group.lines if line > 0})
+            lines_str = ", ".join(str(line) for line in lines[:5])
+            if len(lines) > 5:
+                lines_str += ", ..."
+            table.add_row(
+                f"[{style}]{group.severity_string}[/{style}]"
+                if style
+                else group.severity_string,
+                str(group.error_id),
+                group.package,
+                str(group.count),
+                escape(group.short_message),
+                lines_str,
+            )
+        return table
 
     def is_valid(self) -> bool:
         """Get valid status (valid model), i.e., no errors."""
@@ -514,7 +717,12 @@ class SBMLValidationError(ValueError):
 
 
 def log_sbml_errors_for_doc(doc: libsbml.SBMLDocument) -> None:
-    """Log errors of current SBMLDocument."""
+    """Log the errors of a document, for tracing an operation which failed.
+
+    Reading or flattening a document which has errors is a failure which is
+    logged; the findings of a validation are its result and are printed
+    instead, see `ValidationResult.show`.
+    """
     for k in range(doc.getNumErrors()):
         log_sbml_error(error=doc.getError(k))
 
@@ -522,36 +730,147 @@ def log_sbml_errors_for_doc(doc: libsbml.SBMLDocument) -> None:
 def log_sbml_error(
     error: libsbml.SBMLError | SBMLErrorInfo, index: int | None = None
 ) -> None:
-    """Log SBMLError."""
+    """Log SBMLError at the level of its severity, see `log_sbml_errors_for_doc`.
+
+    The message is plain text, so that it reads the same on every handler; a
+    rich handler colors it by its level.
+    """
     msg, severity = error_string(error=error, index=index)
-    if severity == libsbml.LIBSBML_SEV_WARNING:
-        logger.warning(msg, extra={"markup": True})
-    elif severity in [libsbml.LIBSBML_SEV_ERROR, libsbml.LIBSBML_SEV_FATAL]:
-        logger.error(msg, extra={"markup": True})
-    else:
-        logger.info(msg, extra={"markup": True})
+    logger.log(_LOG_LEVELS.get(severity, logging.INFO), "%s", msg)
 
 
 def error_string(
     error: libsbml.SBMLError | SBMLErrorInfo, index: int | None = None
-) -> tuple:
-    """Get string representation and severity of SBMLError."""
-    package: str = error.getPackage()
-    if package == "":
-        package = "core"
+) -> tuple[str, int]:
+    """Get string representation and severity of SBMLError.
 
-    severity = error.getSeverity()
+    The first line names the finding: its index in the result, the severity,
+    the error id, the category, the package and the position in the file.
+    The short message and the explanation of the specification follow.
+
+    Returns:
+        the message and the libsbml severity code
+    """
+    package: str = error.getPackage() or "core"
+    severity: int = error.getSeverity()
+    position = f"line {error.getLine()}"
+    if error.getColumn():
+        position += f", column {error.getColumn()}"
+    prefix = f"E{index} " if index is not None else ""
     lines = [
-        "[black on white]"
-        + "E{}: {} ({}, L{}, {})".format(
-            index, error.getCategoryAsString(), package, error.getLine(), "code"
-        )
-        + "[/black on white]",
-        f"[{error.getSeverityAsString().lower()}][on black][{error.getSeverityAsString()}] {error.getShortMessage()}[/on black][/{error.getSeverityAsString().lower()}]",
-        f"{error.getMessage()}",
+        f"{prefix}[{error.getSeverityAsString()}] {error.getErrorId()} "
+        f"{error.getCategoryAsString()} ({package}, {position})",
+        error.getShortMessage().strip(),
+        error.getMessage().strip(),
     ]
-    error_str = "\n".join(lines)
-    return error_str, severity
+    return "\n".join(line for line in lines if line), severity
+
+
+def finding_text(
+    error: libsbml.SBMLError | SBMLErrorInfo, index: int | None = None
+) -> Group:
+    """Render a finding for the console, colored by its severity.
+
+    The heading names the finding, the short message and the explanation of
+    the specification are indented below it. The text is assembled rather
+    than parsed as markup, so a message with square brackets is printed as it
+    is.
+
+    Args:
+        error: the finding
+        index: its index in the result, printed in front of it
+
+    Returns:
+        the renderable of the finding
+    """
+    style = _SEVERITY_STYLES.get(error.getSeverity(), "")
+    package: str = error.getPackage() or "core"
+    position = f"line {error.getLine()}"
+    if error.getColumn():
+        position += f", column {error.getColumn()}"
+    heading = Text()
+    if index is not None:
+        heading.append(f"E{index} ", style="bold")
+    heading.append(
+        f"{error.getSeverityAsString()} {error.getErrorId()}", style=f"bold {style}"
+    )
+    heading.append(f" {error.getCategoryAsString()} ({package}, {position})")
+    body = Text()
+    if short := error.getShortMessage().strip():
+        body.append(short, style=style)
+    # libsbml separates the explanation, the reference and the detail by
+    # newlines and indents the detail, the indentation is dropped
+    lines = (line.strip() for line in error.getMessage().splitlines())
+    if message := "\n".join(line for line in lines if line):
+        body.append(f"\n{message}" if body else message, style="dim")
+    return Group(heading, Padding(body, (0, 0, 0, 4)))
+
+
+def _print_report(
+    title: str,
+    link: str,
+    result: ValidationResult,
+    options: ValidationOptions,
+    comp: bool,
+    seconds: float,
+) -> None:
+    """Print the report of a validation on the console of the package.
+
+    A model without findings gets one line. Otherwise a rule opens the
+    report, followed by what was validated, its status, the checks which
+    were disabled, the findings and, where they repeat an error id, the table
+    of the findings grouped by error id.
+
+    Args:
+        title: what was validated, e.g. the path of a file
+        link: the URI the title links to, used when it is a URI
+        result: the result of the validation
+        options: the options of the validation
+        comp: whether the document uses comp, which adds a check
+        seconds: how long the checks took
+    """
+    console = package_console
+    location = Text(title, style=Style(link=link) if "://" in link else "")
+    if result.is_perfect():
+        console.print(
+            Text.assemble(
+                ("valid", "bold green"), " ", location, (f"  {seconds:.3f} s", "dim")
+            )
+        )
+        return
+
+    style = "orange3" if result.is_valid() else "red"
+    console.rule(Text("Validate SBML", style=f"bold {style}"), style=style)
+    console.print(location)
+    console.print(
+        Text.assemble(
+            ("valid" if result.is_valid() else "invalid", f"bold {style}"),
+            f": {result.error_count} error(s), {result.warning_count} warning(s), "
+            f"checked in {seconds:.3f} s",
+        )
+    )
+    checks = {
+        "general": options.general_consistency,
+        "identifier": options.identifier_consistency,
+        "mathml": options.mathml_consistency,
+        "overdetermined": options.overdetermined_model,
+        "sbo": options.sbo_consistency,
+        "units": options.units_consistency,
+        "modeling practice": options.modeling_practice,
+        "internal": options.internal_consistency,
+    }
+    if comp:
+        checks["comp flat model"] = options.comp_flat_model
+    disabled = [name for name, enabled in checks.items() if not enabled]
+    if disabled:
+        console.print(f"disabled checks: {', '.join(disabled)}", style="dim")
+
+    if options.log_errors:
+        result.show(max_per_error=options.max_findings_per_error, console=console)
+    # the table pays off where the findings are not all printed one by one or
+    # repeat an error id, which is what buries the one fix in a large model
+    if not options.log_errors or result.all_count > len(result.groups()):
+        console.print(result.table(title=False))
 
 
 _WINDOWS_PATH = re.compile(r"^[A-Za-z]:[\\/]")
@@ -599,7 +918,8 @@ def validate_doc(
 
     if not title:
         title = str(doc)
-    title = _file_uri(str(title))
+    title = str(title)
+    uri = _file_uri(title)
 
     # the checks append to the error log of the document, validating leaves the
     # log as it found it: the entries are copied here and restored below (a
@@ -666,38 +986,14 @@ def validate_doc(
         [results_read, results_internal, results_not_internal]
     )
 
-    lines = [str(title), f"{'valid':<25}: {str(vresults.is_valid()).upper()}"]
-    if not vresults.is_perfect():
-        lines += [
-            f"{'validation error(s)':<25}: {vresults.error_count}",
-            f"{'validation warnings(s)':<25}: {vresults.warning_count}",
-        ]
-        lines += [
-            f"{'    general':<25}: {options.general_consistency}",
-            f"{'    identifier':<25}: {options.identifier_consistency}",
-            f"{'    mathml':<25}: {options.mathml_consistency}",
-            f"{'    overdetermined':<25}: {options.overdetermined_model}",
-            f"{'    sbo':<25}: {options.sbo_consistency}",
-            f"{'    units':<25}: {options.units_consistency}",
-        ]
-        if comp_doc is not None:
-            lines.append(f"{'    comp flat model':<25}: {options.comp_flat_model}")
-    lines += [
-        f"{'check time (s)':<25}: {time.perf_counter() - current:.3f}",
-    ]
-    info = "\n".join(lines)
-
-    if vresults.is_perfect():
-        level = logging.INFO
-    else:
-        level = logging.WARNING if vresults.is_valid() else logging.ERROR
-
-    # validation report
-    logger.log(level, "Validate SBML\n%s", info)
-
-    # individual error and warning report
-    if options.log_errors:
-        vresults.log()
+    _print_report(
+        title=title,
+        link=uri,
+        result=vresults,
+        options=options,
+        comp=comp_doc is not None,
+        seconds=time.perf_counter() - current,
+    )
 
     return vresults
 
