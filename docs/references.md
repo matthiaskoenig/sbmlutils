@@ -36,4 +36,4 @@
 
 ## Specifications
 
-The current specifications of the language and of every package are published at [sbml.org/documents/specifications](https://sbml.org/documents/specifications/), including the packages `sbmlutils` supports beyond the ones above: [comp](https://sbml.org/documents/specifications/level-3/version-1/comp/) for [model composition](comp.md) and [layout](https://sbml.org/documents/specifications/level-3/version-1/layout/) for the [layout information](packages/layout.md#the-sbml-layout-package) of a model.
+The current specifications of the language and of every package are published at [sbml.org/documents/specifications](https://sbml.org/documents/specifications/), including the packages `sbmlutils` supports beyond the ones above: [comp](https://sbml.org/documents/specifications/level-3/version-1/comp/) for [model composition](comp.md) and [layout](https://sbml.org/documents/specifications/level-3/version-1/layout/) for the [layout information](packages/layout.md) of a model.
