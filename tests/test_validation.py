@@ -2,6 +2,7 @@
 
 import gc
 import logging
+import re
 from pathlib import Path
 
 import libsbml
@@ -399,7 +400,8 @@ def test_repeated_findings_are_printed_up_to_a_limit(
     group = next(g for g in groups if g.count == 30)
     assert out.count(f"{group.severity_string} {group.error_id} ") == 3
     assert f"27 further finding(s) {group.error_id}" in out
-    assert "┃ count ┃" in out
+    # the header of the table, whose box characters differ between platforms
+    assert re.search(r"severity\W+id\W+package\W+count\W+message", out), out
 
 
 def test_all_findings_are_printed_without_a_limit(
