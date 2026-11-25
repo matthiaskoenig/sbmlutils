@@ -2,19 +2,22 @@
 
 import logging
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import libsbml
-import pandas as pd
 from pymetadata.core.annotation import RDFAnnotation
 from pymetadata.core.miriam import BQB
 
 from sbmlutils.io.sbml import read_sbml
 from sbmlutils.utils import all_elements
 
+if TYPE_CHECKING:
+    import pandas as pd
+
 logger = logging.getLogger(__name__)
 
 
-def validate_sbml_annotations(source: Path | str) -> pd.DataFrame:
+def validate_sbml_annotations(source: Path | str) -> "pd.DataFrame":
     """Validate annotations in a given SBML file.
 
     :param source: SBML to check
@@ -53,6 +56,8 @@ def validate_sbml_annotations(source: Path | str) -> pd.DataFrame:
                                 "resource": resource_uri,
                             }
                         )
+    import pandas as pd
+
     df = pd.DataFrame(invalid_annotations)
     if len(invalid_annotations) == 0:
         logger.info("All annotations valid")

@@ -22,7 +22,7 @@ from sbmlutils.io import read_sbml
 from sbmlutils.metadata import BQB
 from sbmlutils.parser import sbml_to_model
 from sbmlutils.reaction_equation import EquationPart, ReactionEquation
-from sbmlutils.validation import ValidationOptions
+from sbmlutils.validation import ConstructionError, ValidationOptions
 
 compartment_value_data = [
     (
@@ -3786,3 +3786,73 @@ def test_create_model_str_filepath_show_sbml(
         )
     assert result.sbml_path == Path(filepath)
     assert "Created SBML" in caplog.text
+
+
+def test_authoring_hints_are_grouped_per_document(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that a missing name is hinted at once per element class.
+
+    A hint per element flooded the log of a large model with thousands of
+    identical lines; inside a document they are grouped with the count and the
+    first ids, and a single element keeps the hint which names it in full.
+    """
+    model = Model(
+        "hints",
+        compartments=[Compartment("c", 1.0)],
+        species=[
+            Species(f"S{k}", initialConcentration=1.0, compartment="c")
+            for k in range(8)
+        ],
+    )
+    with caplog.at_level(logging.WARNING, logger="sbmlutils.factory"):
+        create_model(model, tmp_path / "hints.xml", validate=False)
+
+    hints = [r.getMessage() for r in caplog.records if "should be set" in r.message]
+    assert (
+        "'name' should be set on 8 Species elements: "
+        "'S0', 'S1', 'S2', 'S3', 'S4' and 3 more"
+    ) in hints
+    assert "'name' should be set on 'Compartment(c)'" in hints
+    # the model, the compartment and the species
+    assert len([h for h in hints if h.startswith("'name'")]) == 3
+
+
+def test_formula_which_does_not_parse_names_its_element_and_is_strict(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that a formula which does not parse is a construction error.
+
+    The error names the element the formula belongs to, so that the one of many
+    reactions with a typo is found, and `strict=True` rejects the model instead
+    of writing a reaction without its kinetic law math.
+    """
+    model = Model(
+        "broken_math",
+        compartments=[Compartment("c", 1.0)],
+        species=[
+            Species("A", initialConcentration=1.0, compartment="c"),
+            Species("B", initialConcentration=1.0, compartment="c"),
+        ],
+        parameters=[Parameter("k", 1.0)],
+        reactions=[Reaction("R1", equation="A -> B", formula="k * A +* 2")],
+    )
+    with caplog.at_level(logging.ERROR, logger="sbmlutils"):
+        result = create_model(model, tmp_path / "broken.xml", validate=False)
+    assert "in <kineticLaw> of 'R1'" in caplog.text
+    assert [d.code for d in result.diagnostics if d.severity == "error"] == [
+        "math_parse_failed"
+    ]
+
+    with pytest.raises(ConstructionError, match="could not be parsed"):
+        create_model(model, tmp_path / "strict.xml", validate=False, strict=True)
+    assert not (tmp_path / "strict.xml").exists()
+
+
+def test_importing_the_factory_does_not_import_pandas() -> None:
+    """Test that pandas, a tenth of a second to import, is imported on use only."""
+    code = "import sys, sbmlutils.factory; print('pandas' in sys.modules)"
+    out = subprocess.run(
+        [sys.executable, "-c", code], capture_output=True, text=True, check=True
+    )
+    assert out.stdout.strip() == "False"

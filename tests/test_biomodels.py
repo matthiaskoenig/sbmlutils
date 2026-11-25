@@ -286,3 +286,42 @@ def test_download_biomodel_sbml_subdirectory_location(
     locations = download_biomodel_sbml("BIOMD0000000001", output_dir=out_dir)
     assert locations == ["./sub/model.xml"]
     assert (out_dir / "sub" / "model.xml").read_text() == "<sbml/>"
+
+
+def test_interrupted_download_keeps_the_previous_file(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A download which breaks off leaves neither a truncated nor a damaged file.
+
+    The content is streamed into a partial file which replaces the target only
+    when the download is complete, so the file of an earlier download stays as
+    it was and no partial file is left behind.
+    """
+
+    class _BrokenResponse:
+        def __enter__(self) -> "_BrokenResponse":
+            return self
+
+        def __exit__(self, *_args: object) -> None:
+            return None
+
+        def raise_for_status(self) -> None:
+            return None
+
+        def iter_content(self, chunk_size: int) -> Iterator[bytes]:  # noqa: ARG002
+            yield b"partial content"
+            raise RequestException("connection reset")
+
+    class _Session:
+        def get(self, *_args: object, **_kwargs: object) -> _BrokenResponse:
+            return _BrokenResponse()
+
+    monkeypatch.setattr("sbmlutils.biomodels.get_session", _Session)
+    target = tmp_path / "model.omex"
+    target.write_bytes(b"previous download")
+
+    with pytest.raises(RequestException, match="connection reset"):
+        download_file("https://biomodels.org/model/download/X", target)
+
+    assert target.read_bytes() == b"previous download"
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["model.omex"]

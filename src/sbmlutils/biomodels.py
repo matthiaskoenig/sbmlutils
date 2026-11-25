@@ -49,11 +49,20 @@ def download_file(url: str, path: Path) -> Path:
         HTTPError: if the server answered with an error status
         RequestException: if the server could not be reached
     """
-    with get_session().get(url, stream=True) as response:
-        response.raise_for_status()
-        with Path(path).open("wb") as f_out:
-            for chunk in response.iter_content(chunk_size=CHUNK_SIZE):
-                f_out.write(chunk)
+    path = Path(path)
+    # the content goes into a file next to the target, which replaces the
+    # target only once the download is complete: an interrupted download
+    # leaves neither a truncated file nor the previous one damaged
+    partial = path.with_name(f".{path.name}.part")
+    try:
+        with get_session().get(url, stream=True) as response:
+            response.raise_for_status()
+            with partial.open("wb") as f_out:
+                for chunk in response.iter_content(chunk_size=CHUNK_SIZE):
+                    f_out.write(chunk)
+        partial.replace(path)
+    finally:
+        partial.unlink(missing_ok=True)
 
     return path
 

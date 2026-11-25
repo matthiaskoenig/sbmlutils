@@ -19,11 +19,30 @@ from sbmlutils import RESOURCES_DIR
 
 logger = logging.getLogger(__name__)
 
-#: compiled once, an XSLT object is reusable
-XSLT_CMML2PMML = ET.XSLT(ET.parse(str(RESOURCES_DIR / "xslt" / "ctopff.xsl")))
+#: the parser of the MathML handed to `cmathml_to_latex`, which is a public
+#: function and may get MathML from a file: no entity is resolved and nothing
+#: is fetched from the network, so a document type declaration can neither
+#: read a local file into the latex (XXE) nor make a request
+_MATHML_PARSER = ET.XMLParser(
+    resolve_entities=False, no_network=True, load_dtd=False, huge_tree=False
+)
+
+#: the stylesheets are packaged and include each other from the package; at
+#: transformation time they may neither touch the network nor write a file
+_XSLT_ACCESS = ET.XSLTAccessControl(
+    read_network=False, write_network=False, write_file=False, create_dir=False
+)
 
 #: compiled once, an XSLT object is reusable
-XSLT_PMML2TEX = ET.XSLT(ET.parse(str(RESOURCES_DIR / "xslt" / "xsltml" / "mmltex.xsl")))
+XSLT_CMML2PMML = ET.XSLT(
+    ET.parse(str(RESOURCES_DIR / "xslt" / "ctopff.xsl")), access_control=_XSLT_ACCESS
+)
+
+#: compiled once, an XSLT object is reusable
+XSLT_PMML2TEX = ET.XSLT(
+    ET.parse(str(RESOURCES_DIR / "xslt" / "xsltml" / "mmltex.xsl")),
+    access_control=_XSLT_ACCESS,
+)
 
 
 def formula_to_astnode(
@@ -76,7 +95,7 @@ def astnode_to_latex(astnode: libsbml.ASTNode) -> str:
 def cmathml_to_latex(cmml_str: str) -> str:
     """Content MathML to latex conversion using XSLT transformation."""
     # content MathML -> presentation MathML
-    cmml_dom = ET.fromstring(cmml_str)
+    cmml_dom = ET.fromstring(cmml_str, parser=_MATHML_PARSER)
     pmml_dom = XSLT_CMML2PMML(cmml_dom)
 
     # content MathML -> latex

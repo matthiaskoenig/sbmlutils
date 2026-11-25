@@ -12,7 +12,7 @@ import logging
 from collections.abc import Generator, Sequence
 from contextlib import AbstractContextManager, contextmanager
 from contextvars import ContextVar
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, ClassVar, Literal
 
 import libsbml
@@ -127,12 +127,19 @@ def create_objects(
     return sbml_objects
 
 
-def ast_node_from_formula(model: libsbml.Model, formula: str) -> libsbml.ASTNode:
+def ast_node_from_formula(
+    model: libsbml.Model, formula: str, element: str | None = None
+) -> libsbml.ASTNode:
     """Parse the ASTNode from given formula string with model.
+
+    A formula which does not parse is logged as an error, naming the element
+    it belongs to, and recorded as the construction diagnostic
+    `math_parse_failed`, which `create_model(strict=True)` rejects.
 
     :param model: SBMLModel instance
     :param formula: formula str
-    :return: astnode
+    :param element: the element the formula belongs to, named in the error
+    :return: astnode, `None` if the formula does not parse
     """
     # sanitize formula (allow double and int assignments)
     if not isinstance(formula, str):
@@ -142,8 +149,38 @@ def ast_node_from_formula(model: libsbml.Model, formula: str) -> libsbml.ASTNode
     if not ast_node:
         # the libsbml parser gives no reason for an empty formula
         reason: str = libsbml.getLastParseL3Error().strip() or "empty formula"
-        logger.error("Formula could not be parsed: '%s', %s", formula, reason)
+        where = f" in {element}" if element else ""
+        logger.error("Formula could not be parsed: '%s'%s, %s", formula, where, reason)
+        record_construction_diagnostic(
+            "math_parse_failed",
+            "Formula could not be parsed, the element is written without math.",
+            severity="error",
+            example=f"{element}: {formula}" if element else formula,
+        )
     return ast_node
+
+
+def _describe_sbase(sbase: Any) -> str:
+    """Name a libsbml object for a message, by its id or that of its parent.
+
+    Args:
+        sbase: the libsbml object
+
+    Returns:
+        e.g. `<kineticLaw> of 'R1'` or `<assignmentRule> 'x'`
+    """
+    name: str = sbase.getElementName()
+    sid: str = sbase.getIdAttribute() if sbase.isSetIdAttribute() else ""
+    if not sid and hasattr(sbase, "getVariable"):
+        sid = sbase.getVariable() or ""
+    if sid:
+        return f"<{name}> '{sid}'"
+    parent = sbase.getParentSBMLObject()
+    while parent is not None and not parent.isSetIdAttribute():
+        parent = parent.getParentSBMLObject()
+    if parent is not None:
+        return f"<{name}> of '{parent.getIdAttribute()}'"
+    return f"<{name}>"
 
 
 def _sbml_element_name(sbase: Any) -> str:
@@ -531,6 +568,94 @@ def collect_content_losses() -> AbstractContextManager[None]:
     return _content_losses.scope()
 
 
+#: how many elements a grouped authoring hint names
+_HINT_EXAMPLES: int = 5
+
+
+@dataclass
+class _AuthoringHint:
+    """The elements of one class which lack the same recommended attribute.
+
+    Attributes:
+        count: how many elements of the class lack the attribute
+        first: the first of them in full, named when it stays the only one
+        examples: the ids of the first of them, named in the grouped report
+    """
+
+    count: int = 0
+    first: str = ""
+    examples: list[str] = field(default_factory=list)
+
+
+def _report_authoring_hint(key: tuple[str, ...], hint: _AuthoringHint) -> None:
+    """Report the elements of one class which lack a recommended attribute.
+
+    Args:
+        key: the attribute and the class name of the elements, as collected
+        hint: the count and the examples
+    """
+    attribute, class_name = key
+    if hint.count == 1:
+        logger.warning("'%s' should be set on '%s'", attribute, hint.first)
+        return
+    more = hint.count - len(hint.examples)
+    logger.warning(
+        "'%s' should be set on %s %s elements: %s%s",
+        attribute,
+        hint.count,
+        class_name,
+        ", ".join(f"'{example}'" for example in hint.examples),
+        f" and {more} more" if more > 0 else "",
+    )
+
+
+#: the recommended attributes which a hand written model definition leaves
+#: out, collected per document: a hint per element floods the log of a large
+#: model with thousands of identical lines, and rendering them on a rich
+#: console took longer than writing the model
+_authoring_hint_groups: ScopedLossCollector[tuple[str, ...], _AuthoringHint] = (
+    ScopedLossCollector("sbmlutils_authoring_hints", _report_authoring_hint)
+)
+
+
+def collect_authoring_hints() -> AbstractContextManager[None]:
+    """Report the authoring hints of a document once per attribute and class.
+
+    Inside this context the `name` and `sboTerm` hints of `Sbase._set_fields`
+    are collected, and one warning per attribute and element class is emitted
+    when the context ends, naming the count and the first elements. Outside
+    it, every element is hinted at on its own.
+
+    The context is entered by the code which writes a whole document,
+    `Document.create_sbml` and `create_model`; a context inside an active one
+    collects into it and reports nothing of its own.
+
+    Returns:
+        the context manager
+    """
+    return _authoring_hint_groups.scope()
+
+
+def _record_authoring_hint(attribute: str, element: Sbase) -> None:
+    """Record that a recommended attribute is not set on an element.
+
+    Args:
+        attribute: the attribute which should be set, `name` or `sboTerm`
+        element: the model element which lacks it
+    """
+    hint = _authoring_hint_groups.group(
+        (attribute, element.__class__.__name__), _AuthoringHint
+    )
+    if hint is None:
+        logger.warning("'%s' should be set on '%s'", attribute, element)
+        return
+    hint.count += 1
+    if hint.count == 1:
+        hint.first = str(element)
+    if len(hint.examples) < _HINT_EXAMPLES:
+        hint.examples.append(element.sid or element.metaId or str(element))
+
+
 def _record_content_loss(
     what: str, reason: str, needed: int, count: int, element: Any
 ) -> None:
@@ -710,7 +835,9 @@ def _set_math(sbase: Any, math: str | None, model: libsbml.Model) -> None:
     """
     if math is None:
         return
-    ast_node: libsbml.ASTNode | None = ast_node_from_formula(model, math)
+    ast_node: libsbml.ASTNode | None = ast_node_from_formula(
+        model, math, element=_describe_sbase(sbase)
+    )
     if ast_node is not None:
         check(sbase.setMath(ast_node), f"Set math '{math}' on {sbase.getElementName()}")
 
@@ -1109,12 +1236,12 @@ class Sbase:
         if self.name is not None:
             self._set_name(sbase, self.name)
         elif Sbase._authoring_hints.get() and self._hint_name:
-            logger.warning("'name' should be set on '%s'", self)
+            _record_authoring_hint("name", self)
         if self.sboTerm is not None:
             sbo = _sbo_term(self.sboTerm)
             _check_attribute(sbase.setSBOTerm(sbo), sbase, "sboTerm", sbo, self)
         elif Sbase._authoring_hints.get() and self._hint_sbo_term:
-            logger.warning("'sboTerm' should be set on '%s'", self)
+            _record_authoring_hint("sboTerm", self)
         if self.metaId is not None:
             _check_attribute(
                 sbase.setMetaId(self.metaId), sbase, "metaid", self.metaId, self

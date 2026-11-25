@@ -6,6 +6,7 @@ from pathlib import Path
 
 import libsbml
 import pytest
+from rich.console import Console
 
 from sbmlutils.io.sbml import (
     ValidationOptions,
@@ -19,7 +20,12 @@ from sbmlutils.resources import (
     GALACTOSE_SINGLECELL_SBML,
     VDP_SBML,
 )
-from sbmlutils.validation import ScopedLossCollector, _file_uri, validate_doc
+from sbmlutils.validation import (
+    ScopedLossCollector,
+    _file_uri,
+    error_string,
+    validate_doc,
+)
 
 
 def test_modeling_practice_can_be_disabled() -> None:
@@ -346,3 +352,87 @@ def test_validate_doc_without_the_flat_model_of_a_core_document() -> None:
     )
 
     assert result.is_valid()
+
+
+def _repeated_finding_doc(n: int) -> libsbml.SBMLDocument:
+    """Create a document with `n` parameters which all lack a unit."""
+    doc = libsbml.SBMLDocument(3, 2)
+    model = doc.createModel()
+    model.setId("m")
+    for k in range(n):
+        parameter = model.createParameter()
+        parameter.setId(f"p{k}")
+        parameter.setValue(1.0)
+        parameter.setConstant(True)
+    return doc
+
+
+def test_repeated_findings_are_logged_up_to_a_limit(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """A finding repeated on every element is logged a few times and summarized.
+
+    The result keeps every finding; the log names the rest in one line, and
+    the report lists the findings by error id.
+    """
+    doc = _repeated_finding_doc(30)
+    with caplog.at_level(logging.INFO, logger="sbmlutils"):
+        result = validate_doc(doc, ValidationOptions(max_logged_per_error=3))
+
+    groups = result.groups()
+    assert sum(g.count for g in groups) == result.all_count
+    group = next(g for g in groups if g.count == 30)
+    logged = [r for r in caplog.records if f"] {group.error_id} " in r.getMessage()]
+    assert len(logged) == 3
+    assert f"27 further finding(s) {group.error_id}" in caplog.text
+    assert "findings by error id:" in caplog.text
+
+
+def test_all_findings_are_logged_without_a_limit(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """`max_logged_per_error=None` logs every finding one by one."""
+    doc = _repeated_finding_doc(12)
+    with caplog.at_level(logging.INFO, logger="sbmlutils"):
+        result = validate_doc(doc, ValidationOptions(max_logged_per_error=None))
+    group = next(g for g in result.groups() if g.count == 12)
+    logged = [r for r in caplog.records if f"] {group.error_id} " in r.getMessage()]
+    assert len(logged) == 12
+    assert "further finding(s)" not in caplog.text
+
+
+def test_error_message_is_plain_text_with_the_error_id() -> None:
+    """A logged finding names its error id and carries no rich markup."""
+    doc = _repeated_finding_doc(1)
+    result = validate_doc(doc, ValidationOptions(log_errors=False))
+    finding = [*result.errors, *result.warnings][0]
+    message, severity = error_string(finding, index=0)
+    assert message.startswith(f"E0 [{finding.getSeverityAsString()}] ")
+    assert f" {finding.getErrorId()} " in message
+    assert "[/" not in message
+    assert severity == finding.getSeverity()
+
+
+def test_validation_result_renders_as_rich_table() -> None:
+    """`console.print(result)` gives the findings grouped by error id."""
+    doc = _repeated_finding_doc(5)
+    result = validate_doc(doc, ValidationOptions(log_errors=False))
+    console = Console(record=True, width=200)
+    console.print(result)
+    text = console.export_text()
+    assert f"{result.warning_count} warning(s)" in text
+    for group in result.groups():
+        assert str(group.error_id) in text
+    assert repr(result).startswith("ValidationResult(errors=")
+
+
+def test_validate_sbml_names_the_file_in_the_report(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """The report of a validated file names its path, not the document object."""
+    path = tmp_path / "model.xml"
+    path.write_text(DEMO_SBML.read_text(encoding="utf-8"), encoding="utf-8")
+    with caplog.at_level(logging.INFO, logger="sbmlutils"):
+        validate_sbml(path, ValidationOptions(log_errors=False))
+    assert path.resolve().as_uri() in caplog.text
+    assert "<SBMLDocument>" not in caplog.text

@@ -33,6 +33,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 import libsbml
+from rich.console import Console
+from rich.progress import track
 
 ROOT: Path = Path(__file__).parent.parent
 
@@ -410,7 +412,15 @@ def main() -> None:
     start = time.perf_counter()
     with ThreadPoolExecutor(max_workers=args.jobs) as executor:
         results = list(
-            executor.map(lambda case: run_case(*case, args.timeout, _crash), corpus)
+            track(
+                executor.map(
+                    lambda case: run_case(*case, args.timeout, _crash), corpus
+                ),
+                total=len(corpus),
+                description="package round trip",
+                console=Console(stderr=True),
+                transient=True,
+            )
         )
     print_report(results, time.perf_counter() - start)
 

@@ -32,6 +32,9 @@ from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+from rich.console import Console
+from rich.progress import track
+
 ROOT: Path = Path(__file__).parent.parent
 
 sys.path.insert(0, str(ROOT / "tests"))
@@ -179,7 +182,15 @@ def main() -> None:
 
     start = time.perf_counter()
     with ThreadPoolExecutor(max_workers=args.jobs) as executor:
-        results = list(executor.map(lambda path: run_case(path, args.timeout), cases))
+        results = list(
+            track(
+                executor.map(lambda path: run_case(path, args.timeout), cases),
+                total=len(cases),
+                description="round trip",
+                console=Console(stderr=True),
+                transient=True,
+            )
+        )
     print_report(results, time.perf_counter() - start)
 
 

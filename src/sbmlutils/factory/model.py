@@ -12,6 +12,7 @@ import datetime
 import inspect
 import json
 import logging
+import time
 from collections.abc import Iterable, Iterator, Sequence
 from copy import deepcopy
 from dataclasses import dataclass
@@ -48,6 +49,7 @@ from sbmlutils.factory._core import (
     _create_object,
     _xhtml_body_content,
     collect_attribute_losses,
+    collect_authoring_hints,
     collect_content_losses,
     create_objects,
 )
@@ -165,8 +167,8 @@ def date_now() -> libsbml.Date:
 
     :return: current libsbml Date
     """
-    time = datetime.datetime.now()
-    timestr = time.strftime("%Y-%m-%dT%H:%M:%S")
+    now = datetime.datetime.now()
+    timestr = now.strftime("%Y-%m-%dT%H:%M:%S")
     return libsbml.Date(timestr)
 
 
@@ -1538,7 +1540,9 @@ class Document(Sbase):
         an annotation resource which cannot be canonicalized, see
         `annotator.collect_resource_losses`, an attribute the document has no
         place for, see `collect_attribute_losses`, and content its fbc version
-        cannot carry, see `collect_content_losses`.
+        cannot carry, see `collect_content_losses`. The authoring hints, a
+        `name` or `sboTerm` which a hand written element should set, are
+        grouped the same way, see `collect_authoring_hints`.
 
         Returns:
             the created libsbml.SBMLDocument
@@ -1547,6 +1551,7 @@ class Document(Sbase):
             annotator.collect_resource_losses(),
             collect_attribute_losses(),
             collect_content_losses(),
+            collect_authoring_hints(),
         ):
             return self._create_sbml()
 
@@ -1737,6 +1742,7 @@ def create_model(
     filepath = Path(filepath)
     if validation_options is None:
         validation_options = ValidationOptions()
+    start = time.perf_counter()
 
     # merge models (a Model is iterable itself, so it is checked first)
     m: Model
@@ -1761,6 +1767,7 @@ def create_model(
         annotator.collect_resource_losses(),
         collect_attribute_losses(),
         collect_content_losses(),
+        collect_authoring_hints(),
     ):
         doc: libsbml.SBMLDocument = Document(
             model=m,
@@ -1778,6 +1785,9 @@ def create_model(
             raise ConstructionError(construction.diagnostics)
 
         write_sbml(doc=doc, filepath=filepath)
+        logger.info(
+            "SBML written to '%s' in %.2f s", filepath, time.perf_counter() - start
+        )
 
     # Check the serialized final file: libsbml checks constructed documents
     # differently, especially when external comp models are involved.
@@ -1811,6 +1821,8 @@ def create_model(
     # log created sbml
     if show_sbml:
         logger.info("Created SBML:\n%s", filepath.read_text(encoding="utf-8"))
+
+    logger.debug("Model '%s' created in %.2f s", m.sid, time.perf_counter() - start)
 
     return FactoryResult(
         sbml_path=filepath,

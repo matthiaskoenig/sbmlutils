@@ -67,3 +67,12 @@ from sbmlutils import log
 
 log.enable_rich_logging()
 ```
+
+The rich handler colors every message by its level and shows the stages of `create_model` with their timings. Findings which repeat on many elements are reported once per kind with a count, so even the output of a model with thousands of elements stays readable, see [How it works](architecture.md#reporting). Results have a rich representation of their own: `console.print(result.validation)` shows the findings of a validation as a table.
+
+```python
+from sbmlutils.console import console
+
+result = create_model(model, filepath="model.xml")
+console.print(result.validation)
+```

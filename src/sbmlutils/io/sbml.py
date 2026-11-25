@@ -78,7 +78,8 @@ def read_sbml(
         validate_doc(
             doc=doc,
             options=validation_options,
-            title=str(source),
+            # an SBML string is named, not repeated in the report
+            title=label if _is_xml_source(source) else str(Path(source).resolve()),
         )
 
     return doc
@@ -299,7 +300,6 @@ def write_sbml(
     if validate:
         validate_sbml(
             source=source,
-            title=str(source),
             validation_options=validation_options,
         )
 
@@ -322,7 +322,8 @@ def validate_sbml(
 
     :param source: SBML path or string
     :param validation_options: options for validation
-    :param title: title for validation report (should be filname or model name)
+    :param title: title for validation report, the absolute path of a file
+        or `SBML string` by default
     :param max_bytes: optional limit on UTF-8 string or decompressed file bytes
     :param allow_external_models: reject comp external model definitions when
         False, before validation can resolve them
@@ -339,8 +340,12 @@ def validate_sbml(
             )
         if not files.is_file(source):
             raise FileNotFoundError(f"SBML file does not exist: '{_shorten(source)}'")
-    doc, _ = _read_document(source, max_bytes=max_bytes)
+    doc, label = _read_document(source, max_bytes=max_bytes)
     _check_external_models(doc, allow_external_models)
+    if title is None:
+        # the report names what was validated, a file by its absolute path,
+        # which `validate_doc` turns into a link a terminal can open
+        title = label if _is_xml_source(source) else str(Path(source).resolve())
     return validate_doc(
         doc=doc,
         options=validation_options,

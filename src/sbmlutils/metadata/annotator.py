@@ -16,17 +16,20 @@ import re
 from collections.abc import Iterable
 from contextlib import AbstractContextManager
 from dataclasses import dataclass, field
+from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import libsbml
-import pandas as pd
 from pymetadata.core.annotation import RDFAnnotation as Annotation
 from pymetadata.core.miriam import BQB, BQM
 
 from sbmlutils import utils
 from sbmlutils.io.files import is_file
 from sbmlutils.io.sbml import read_sbml, write_sbml
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 from ..validation import ScopedLossCollector, check, record_construction_diagnostic
 
@@ -224,16 +227,36 @@ def _reparse_loss(annotation: Annotation, normalized: str) -> str | None:
         why the canonical resource cannot be written, `None` if it loses
         nothing
     """
-    try:
-        reparsed = Annotation(
-            qualifier=annotation.qualifier, resource=normalized, validate=False
-        )
-    except ValueError:
+    reparsed = _parse_collection_term(annotation.qualifier, normalized)
+    if reparsed is None:
         return _NOT_PARSED_AGAIN
-
-    if (reparsed.collection, reparsed.term) == (annotation.collection, annotation.term):
+    if reparsed == (annotation.collection, annotation.term):
         return None
     return _DROPPED_COLLECTION
+
+
+@lru_cache(maxsize=4096)
+def _parse_collection_term(
+    qualifier: BQB | BQM, resource: str
+) -> tuple[str | None, str | None] | None:
+    """Parse the collection and the term of a resource, without validating it.
+
+    A model annotates thousands of elements with the resources of a handful
+    of collections, often with the same term, and parsing is the expensive
+    part of writing an annotation, so the parse of a resource is cached.
+
+    Args:
+        qualifier: the qualifier of the annotation
+        resource: the resource to parse
+
+    Returns:
+        the collection and the term, `None` if pymetadata refuses the resource
+    """
+    try:
+        parsed = Annotation(qualifier=qualifier, resource=resource, validate=False)
+    except ValueError:
+        return None
+    return parsed.collection, parsed.term
 
 
 def annotate_sbml(
@@ -647,7 +670,7 @@ class ModelAnnotator:
     # --- File IO ---
 
     @staticmethod
-    def read_annotations_df(file_path: Path, file_format: str = "*") -> pd.DataFrame:
+    def read_annotations_df(file_path: Path, file_format: str = "*") -> "pd.DataFrame":
         """Read annotations from given file into DataFrame.
 
         Supports "xlsx", "tsv", "csv", "json", "*"
@@ -674,6 +697,9 @@ class ModelAnnotator:
                 file_extension,
                 file_path,
             )
+
+        # pandas takes a tenth of a second to import, only reading a file needs it
+        import pandas as pd
 
         if file_format == "tsv":
             df = pd.read_csv(file_path, sep="\t", comment="#", skip_blank_lines=True)

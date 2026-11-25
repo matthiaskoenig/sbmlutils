@@ -32,6 +32,7 @@ options = ValidationOptions(
     internal_consistency=True,  # the model as consistent XML
     comp_flat_model=True,  # the flat model of a comp document
     log_errors=True,  # log what was found
+    max_logged_per_error=10,  # findings logged per error id, None for all
 )
 ```
 
@@ -75,26 +76,48 @@ Markdown exports are not created on validation failure.
 
 ## The report
 
-The report of a validation lists the counts per category and then every message with its severity, its category, the line it is on and the explanation from the specification. It is logged on the `sbmlutils` loggers and nothing is shown unless logging is configured, see [Installation](installation.md#logging). With `log.enable_rich_logging()` a report looks like this:
+The report of a validation names what was validated (a file by its absolute path, which a terminal shows as a link), whether it is valid and the counts of errors and warnings. Where findings repeat an error id, it lists the findings by error id, so that the one fix for two thousand identical warnings is visible at a glance. Then every finding follows with its index, severity, error id, category, package and position, the short message and the explanation from the specification. It is logged on the `sbmlutils` loggers and nothing is shown unless logging is configured, see [Installation](installation.md#logging). With `log.enable_rich_logging()` a report looks like this:
 
 ```
-ERROR    Validate SBML                                         validation.py:542
-         <SBMLDocument>
+ERROR    Validate SBML
+         file:///home/user/models/model.xml
          valid                    : FALSE
-         validation error(s)      : 2
-         validation warnings(s)   : 0
+         validation error(s)      : 62
+         validation warning(s)    : 0
              general              : True
              identifier           : True
              mathml               : True
              overdetermined       : True
              sbo                  : True
              units                : True
-         check time (s)           : 0.000
-ERROR    E0: SBML component consistency (core, L2, code)       validation.py:391
-         [Error] The presence of a species requires a compartment
-         If a model defines any species, then the model must also define at least
-         one compartment.
-         Reference: L3V2 Section 4.6.3
+         findings by error id:
+               99508 error    x31     Unable to verify consistency of units: encountered a model entity with no declared units
+               20702 error    x30     No units defined for the parameter
+               20518 error    x1      No units defined for Compartment object
+         check time (s)           : 0.001
+ERROR    E3 [Error] 20702 SBML unit consistency (core, line 8, column 6)
+         No units defined for the parameter
+         If the attribute 'units' on a given Parameter object has not been set,
+         then the unit of measurement associated with that parameter's value is
+         undefined.
+         Reference: L3V2 Section 4.7.3
+          The <parameter> with id 'p0' does not have a 'units' attribute.
+...
+ERROR    20 further finding(s) 20702 (No units defined for the parameter) are not
+         logged, they are in the ValidationResult.
+```
+
+The messages are plain text, so they read the same with any logging handler; a rich handler colors them by their level. A large model easily repeats one finding on every element, so at most `ValidationOptions.max_logged_per_error` findings with the same error id are logged one by one (10 by default, `None` logs all of them), and the rest of each id is summarized in one line. The `ValidationResult` always holds every finding.
+
+For an overview in a script or a notebook, print the result on a rich console. It renders the findings grouped by error id, with their severity, count, message and the first lines they are on:
+
+```python
+from sbmlutils.console import console
+
+result = validate_sbml("model.xml", ValidationOptions(log_errors=False))
+console.print(result)
+for group in result.groups():
+    print(group.error_id, group.count, group.short_message)
 ```
 
 The messages go through the logging of the package, so an application decides where they end up, see [Installation](installation.md#logging).
@@ -104,12 +127,14 @@ The messages go through the logging of the package, so an application decides wh
 Validation judges the document which was written. Writing it reports what libsbml would not take, which no validation of the result can show, because what is not in the file cannot be found in it:
 
 - **A value libsbml refuses** is an error naming the element, the attribute and the value, e.g. a charge which is not a whole number in an fbc version 2 document.
+- **A formula which does not parse** is an error naming the formula, the element it belongs to (e.g. `<kineticLaw> of 'R1'`) and the reason of the libsbml parser. The element is written without math and the finding is recorded as the diagnostic `math_parse_failed`, so `strict=True` rejects the model before anything is written.
 - **An attribute the document has no place for** - one which the SBML level and version, or the version of the package, does not have at all - is one warning per kind of element and attribute, with the count, an example and what to write instead, see [Reading and writing](io.md#round-tripping). One decision fixes all of them, so it is reported once rather than per element; the detail of each element is logged at debug. An attribute libsbml writes into no document, the core `id` and `name` of a comp reference, is reported the same way and without advice, see [Model composition](comp.md#what-round-trips).
 - **Content the document cannot carry** - the key value pairs and the user defined constraints of fbc version 3 in an fbc version 2 document, or in one which declares no fbc - is one error per kind of content, with how many pieces on how many elements, an example and the version to declare. Declaring fbc version 3 keeps all of them at once, so this too is reported once rather than per element.
 - **An annotation resource which is written as given** is one warning per collection, see [Annotations](annotations.md#resources-which-are-written-as-given).
 
 Writing a model definition also gives advice on the definition itself, which is not repeated for a model which was parsed from a file:
 
+- **An element without a `name` or an `sboTerm`** is hinted at once per element class, with the count and the first ids, e.g. `'name' should be set on 2000 Species elements: 'S0', 'S1', 'S2', 'S3', 'S4' and 1995 more`. A single element is named in full.
 - **A parameter or compartment which is `constant=False` and never changed** is one warning per kind of element, with every id. Changing a value takes an assignment rule, a rate rule, an algebraic rule, an event assignment or, for a parameter, a user defined constraint of fbc which names it as a variable; an initial assignment does not count. An element of the comp interface - one with a port, or one which replaces an element of a submodel or is replaced by one - is left out, because what changes it can live in another model. The usual cause is a rule which was forgotten or a target which was misspelled.
 
 ## Checking a libsbml call
