@@ -17,12 +17,10 @@ Features include
 - **annotations** - MIRIAM annotations and SBO terms, in the model definition or from an annotation spreadsheet
 - **notes** written as markdown
 - **model composition** - hierarchical models, merging and flattening
-- **converters** - XPP to SBML, antimony in both directions
+- **reading and writing** - SBML files and strings, XPP to SBML, Antimony in both directions
 - **ODE export** - the system of ordinary differential equations of a model as code which simulates it (python, julia, R) and as a document (typst, LaTeX, markdown), by the package [sbmlode](https://github.com/matthiaskoenig/sbmlode)
 
 The documentation is available at [https://matthiaskoenig.github.io/sbmlutils](https://matthiaskoenig.github.io/sbmlutils).
-
-The development branch removes the COBRApy, interpolation and Cytoscape functionality. See the [migration guide](https://matthiaskoenig.github.io/sbmlutils/migration/) before updating code that uses those APIs.
 
 If you have any questions or issues please [open an issue](https://github.com/matthiaskoenig/sbmlutils/issues).
 

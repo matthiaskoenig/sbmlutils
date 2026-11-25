@@ -133,7 +133,7 @@ Simulation and validation cannot check this: roadrunner refuses to simulate fbc,
 
 **By simulating the flattened model.** For comp, the original and the round trip are flattened with `flatten_sbml` and simulated. All 113 of the 123 comp test-suite cases which roadrunner can simulate at all agree, as does `icg_body` with its external model definition; the other ten have an algebraic rule, a delay or a system the solver does not integrate, before the round trip as well as after.
 
-**FBC analysis is separate.** The structural comparison checks that flux bounds, objectives, gene product associations and the other fbc constructs survive the round trip. The tests do not run a flux optimization solver. Applications that need to compare optimization results can read both documents directly with COBRApy; see [Migration](migration.md#cobra-integration).
+**FBC analysis is separate.** The structural comparison checks that flux bounds, objectives, gene product associations and the other fbc constructs survive the round trip. The tests do not run a flux optimization solver. Applications that need to compare optimization results can read both documents directly with [COBRApy](https://cobrapy.readthedocs.io/).
 
 The SBML test suite has no distrib case at all, so distrib is verified only on the files of this repository, which were written to show what `sbmlutils` can express and therefore test what their authors already believed. The fbc test-suite cases are uniform and carry no gene products, associations, user defined constraints or key value pairs; those come from `e_coli_core`, `Recon3D` and two example files. A nested `sBaseRef` occurs in three cases.
 
@@ -158,32 +158,9 @@ The 'name' of 2 <assignmentRule> element(s) is not written: SBML L3V1 has no suc
 
 The same is done for the version of a package, which decides whether a key value pair or a user defined constraint can be written at all. An attribute whose *value* libsbml refuses is a different matter and is reported for the element it is on.
 
-## Antimony
+## Other model formats
 
-[Antimony](https://tellurium.readthedocs.io/en/latest/antimony.html) is a compact text notation for models. `sbmlutils.parser` converts it to SBML, and to a model definition:
-
-```python
-from sbmlutils.parser import antimony_to_model, antimony_to_sbml
-
-sbml_str = antimony_to_sbml("""
-model example
-    J0: S1 -> S2; k1*S1
-    S1 = 10; S2 = 0; k1 = 0.1
-end
-""")
-
-model = antimony_to_model("model.ant")
-```
-
-Both accept the antimony as a string or as a path to an `.ant` file.
-
-The other direction, SBML to antimony, is `sbml_to_antimony` in `sbmlutils.io`, which accepts an SBML string or the path to an SBML file. `create_model` writes it next to the SBML file with `create_antimony=True`, see [Model creation](creation.md).
-
-```python
-from sbmlutils.io import sbml_to_antimony
-
-ant_str = sbml_to_antimony(Path("model.xml"))
-```
+[Antimony](io/antimony.md) is a compact text notation which can be read as SBML or a Python model definition, and written from SBML. [XPP/XPPAUT](io/xpp.md) `.ode` files can be imported as SBML.
 
 ## Promoting local parameters
 

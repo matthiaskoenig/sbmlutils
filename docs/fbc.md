@@ -214,6 +214,6 @@ The verification uses the 34 fbc cases of the [SBML test suite](https://github.c
 
 ## Analysis
 
-sbmlutils creates, reads, writes and validates fbc models. Flux optimization and mass balance analysis belong to a separate analysis tool. The COBRApy bridge and `cobra` extra have been removed; see [Migration](migration.md#cobra-integration) for direct COBRApy usage.
+sbmlutils creates, reads, writes and validates fbc models. Flux optimization and mass balance analysis belong to a separate analysis tool such as [COBRApy](https://cobrapy.readthedocs.io/).
 
 The complete examples are in `examples/fbc/`: `fbc_v2.py`, `fbc_v3.py`, `fbc_mass_charge.py` and `fbc_userdefinedconstraints.py`.

@@ -30,7 +30,7 @@ Hierarchical models with the comp package, see [Model composition](../comp.md).
 
 ## sbmlutils.converters
 
-Conversion of a model into another representation, see [Converters](../converters.md).
+Import XPP/XPPAUT models under [Reading and writing](../io/xpp.md), or derive differential equations with [ODE export](../ode.md).
 
 | module | description |
 | --- | --- |
@@ -49,7 +49,7 @@ Constraint based models, see [Flux balance constraints](../fbc.md).
 
 | module | description |
 | --- | --- |
-| [layout.layout](layout.layout.md) | layout information in the model, see [Visualization](../visualization.md) |
+| [layout.layout](layout.layout.md) | layout information in the model, see [layout](../packages/layout.md) |
 
 ## sbmlutils.manipulation
 

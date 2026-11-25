@@ -49,8 +49,6 @@ To work on the repository itself, with the test and documentation tooling, see [
 
 Install the development environment and runnable example dependencies together with `uv sync --extra dev`. See [Development](development.md).
 
-The `cobra` and `cytoscape` extras and the interpolation API have been removed. See [Migration](migration.md) for the affected imports and alternatives.
-
 ## Logging
 
 `sbmlutils` does not configure logging. It logs to loggers below the `sbmlutils` logger and leaves handlers, levels and formatting to the application, so the messages of the package stay under your control:

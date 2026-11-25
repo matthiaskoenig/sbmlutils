@@ -1,6 +1,6 @@
-# SBML Core
+# core
 
-SBML Level 3 Core defines the structure of a model, including compartments, species, reactions, parameters, rules and events. Packages extend this structure. A kinetic model with well-mixed compartments can usually be represented using Core alone.
+SBML Level 3 core defines the structure of a model, including compartments, species, reactions, parameters, rules and events. Packages extend this structure. A kinetic model with well-mixed compartments can usually be represented using core alone.
 
 ## Create a first-order conversion
 

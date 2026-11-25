@@ -4,7 +4,7 @@ Use the groups package to capture relationships among existing SBML elements. A 
 
 ## Mark the reactions in a pathway
 
-Create a Core model with two reactions, then use libSBML to add a `collection` group. Each member's `idRef` identifies an existing reaction.
+Create a core model with two reactions, then use libSBML to add a `collection` group. Each member's `idRef` identifies an existing reaction.
 
 ```python
 from pathlib import Path
