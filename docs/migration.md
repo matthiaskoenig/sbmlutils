@@ -30,7 +30,7 @@ Creating and validating fbc models does not require COBRApy. Continue using the 
 
 The `sbmlutils.data` package, including `sbmlutils.data.interpolation.Interpolation`, `Interpolator`, the interpolation methods and the driving helpers, has been removed. The interpolation examples and their packaged data and generated models have also been removed.
 
-Interpolating measured data to drive a simulation now lives in [`sbmlsim.interpolation`](https://matthiaskoenig.github.io/sbmlsim/interpolation/). Install a version of sbmlsim that includes the migration, then update the imports:
+Interpolating measured data to drive a simulation moves to `sbmlsim.interpolation`, tracked in [sbmlsim PR #662](https://github.com/matthiaskoenig/sbmlsim/pull/662). Install a version of sbmlsim that includes that migration, then update the imports:
 
 ```python
 # Before
@@ -40,7 +40,7 @@ from sbmlutils.data.interpolation import Interpolation, InterpolationMethod
 from sbmlsim.interpolation import Interpolation, InterpolationMethod
 ```
 
-`Interpolator` and the `INTERPOLATION_CONSTANT`, `INTERPOLATION_LINEAR` and `INTERPOLATION_CUBIC_SPLINE` aliases are also available from `sbmlsim.interpolation`. The `drive`, `drive_comp`, `assignment_rules` and standalone interpolation model writers retain their behavior. See the [sbmlsim guide](https://matthiaskoenig.github.io/sbmlsim/interpolation/) for complete examples.
+The migration also provides `Interpolator` and the `INTERPOLATION_CONSTANT`, `INTERPOLATION_LINEAR` and `INTERPOLATION_CUBIC_SPLINE` aliases in `sbmlsim.interpolation`. The `drive`, `drive_comp`, `assignment_rules` and standalone interpolation model writers retain their behavior. The [migration guide in sbmlsim](https://github.com/matthiaskoenig/sbmlsim/blob/586f93f9/docs/interpolation.md) contains complete examples.
 
 Existing SBML files containing interpolated assignment rules remain ordinary SBML. They can still be [read, written](io.md) and [validated](validation.md) without the interpolation API.
 
