@@ -684,8 +684,7 @@ class ModelAnnotator:
         elif file_format == "xlsx":
             df = pd.read_excel(file_path, comment="#", engine="openpyxl")
 
-        df.dropna(axis="index", inplace=True, how="all")
-        return df
+        return df.dropna(axis="index", how="all")
 
     @staticmethod
     def read_annotations(
