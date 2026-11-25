@@ -78,20 +78,21 @@ class SpeciesGlyph(factory.Sbase):
         )
         obj.setBoundingBox(bb)
         # text glyph
-        t_glyph = layout.createTextGlyph()
-        t_glyph.setId(f"tglyph_{self.sid}")
-        t_glyph.setGraphicalObjectId(self.sid)
-        t_glyph.setText(self.text)
+        if self.text is not None:
+            t_glyph = layout.createTextGlyph()
+            t_glyph.setId(f"tglyph_{self.sid}")
+            t_glyph.setGraphicalObjectId(self.sid)
+            t_glyph.setText(self.text)
 
-        bb = _create_bounding_box(
-            x=self.x,
-            y=self.y,
-            z=self.z,
-            width=self.width,
-            height=self.height,
-            depth=self.depth,
-        )
-        t_glyph.setBoundingBox(bb)
+            bb = _create_bounding_box(
+                x=self.x,
+                y=self.y,
+                z=self.z,
+                width=self.width,
+                height=self.height,
+                depth=self.depth,
+            )
+            t_glyph.setBoundingBox(bb)
 
 
 class CompartmentGlyph(factory.Sbase):
@@ -142,19 +143,20 @@ class CompartmentGlyph(factory.Sbase):
         )
         obj.setBoundingBox(bb)
         # text glyph
-        t_glyph = layout.createTextGlyph()
-        t_glyph.setId(f"tglyph_{self.sid}")
-        t_glyph.setGraphicalObjectId(self.sid)
-        t_glyph.setText(self.text)
-        bb = _create_bounding_box(
-            x=self.x,
-            y=self.y,
-            z=self.z,
-            width=self.width,
-            height=self.height,
-            depth=self.depth,
-        )
-        t_glyph.setBoundingBox(bb)
+        if self.text is not None:
+            t_glyph = layout.createTextGlyph()
+            t_glyph.setId(f"tglyph_{self.sid}")
+            t_glyph.setGraphicalObjectId(self.sid)
+            t_glyph.setText(self.text)
+            bb = _create_bounding_box(
+                x=self.x,
+                y=self.y,
+                z=self.z,
+                width=self.width,
+                height=self.height,
+                depth=self.depth,
+            )
+            t_glyph.setBoundingBox(bb)
 
 
 class ReactionGlyph(factory.Sbase):
@@ -208,14 +210,15 @@ class ReactionGlyph(factory.Sbase):
         obj.setBoundingBox(bb)
 
         # text glyph
-        t_glyph = layout.createTextGlyph()
-        t_glyph.setId(f"tglyph_{self.sid}")
-        t_glyph.setGraphicalObjectId(self.sid)
-        t_glyph.setText(self.text)
-        bb = _create_bounding_box(
-            x=self.x, y=self.y, z=self.z, width=0, height=0, depth=0
-        )
-        t_glyph.setBoundingBox(bb)
+        if self.text is not None:
+            t_glyph = layout.createTextGlyph()
+            t_glyph.setId(f"tglyph_{self.sid}")
+            t_glyph.setGraphicalObjectId(self.sid)
+            t_glyph.setText(self.text)
+            bb = _create_bounding_box(
+                x=self.x, y=self.y, z=self.z, width=0, height=0, depth=0
+            )
+            t_glyph.setBoundingBox(bb)
 
         # get direction of reaction
         eps = 1e-6
@@ -246,7 +249,7 @@ class ReactionGlyph(factory.Sbase):
             elif abs(x_tot) < abs(y_tot):
                 if y_tot >= 0:
                     direction = "down"
-                elif x_tot > 0:
+                elif y_tot < 0:
                     direction = "up"
 
         # create speciesReferenceGlyphs
@@ -267,18 +270,7 @@ class ReactionGlyph(factory.Sbase):
         role: str,
         direction: str,
     ) -> None:
-        """Heuristic for creating the curves.
-
-        :param layout:
-        :param srg:
-        :param r_glyph_id:
-        :param s_glyph_id:
-        :param role:
-        :return:
-        """
-        # 1. Find the direction of the reaction (via location of substrates and
-        # 2. Orient the curves accordingly (at the bounding box, with all ingoing connecting
-        # at same point and all outgoing connecting at same point.
+        """Connect a species and reaction along their bounding box edges."""
         r_glyph: libsbml.ReactionGlyph = layout.getReactionGlyph(r_glyph_id)
         s_glyph: libsbml.SpeciesGlyph = layout.getSpeciesGlyph(s_glyph_id)
 
@@ -291,44 +283,50 @@ class ReactionGlyph(factory.Sbase):
 
         x, y, h, w = r_bb.getX(), r_bb.getY(), r_bb.getHeight(), r_bb.getWidth()
         xs, ys, hs, ws = s_bb.getX(), s_bb.getY(), s_bb.getHeight(), s_bb.getWidth()
+
+        if role in [LAYOUT_ROLE_ACTIVATOR, LAYOUT_ROLE_INHIBITOR, LAYOUT_ROLE_MODIFIER]:
+            # Modifiers connect from the species to the reaction on the
+            # facing edges perpendicular to the reaction direction.
+            species_x, species_y = xs + 0.5 * ws, ys + 0.5 * hs
+            reaction_x, reaction_y = x + 0.5 * w, y + 0.5 * h
+            if direction in ("right", "left"):
+                species_above = species_y <= reaction_y
+                species_y = ys + hs if species_above else ys
+                reaction_y = y if species_above else y + h
+            else:
+                species_left = species_x < reaction_x
+                species_x = xs + ws if species_left else xs
+                reaction_x = x if species_left else x + w
+            line_segment.setStart(species_x, species_y, 0)
+            line_segment.setEnd(reaction_x, reaction_y, 0)
+            return
+
         if direction == "right":
             s_point_substrate = (xs + ws, ys + 0.5 * hs)
             s_point_product = (xs, ys + 0.5 * hs)
-            s_point_modifier = (xs + 0.5 * ws, y + hs)
 
             r_point_substrate = (x, y + 0.5 * h)
             r_point_product = (x + w, y + 0.5 * h)
-            r_point_modifier = (x + 0.5 * w, y)
         elif direction == "left":
             s_point_substrate = (xs, ys + 0.5 * hs)
             s_point_product = (xs + ws, ys + 0.5 * hs)
-            s_point_modifier = (xs + 0.5 * ws, y + hs)
 
             r_point_substrate = (x + w, y + 0.5 * h)
             r_point_product = (x, y + 0.5 * h)
-            r_point_modifier = (x + 0.5 * w, y)
         elif direction == "down":
             s_point_substrate = (xs + 0.5 * ws, ys + hs)
             s_point_product = (xs + 0.5 * ws, ys)
-            s_point_modifier = (xs, ys + 0.5 * hs)
 
             r_point_substrate = (x + 0.5 * w, y)
             r_point_product = (x + 0.5 * w, y + h)
-            r_point_modifier = (x + w, y + 0.5 * h)
         elif direction == "up":
             s_point_substrate = (xs + 0.5 * ws, ys)
             s_point_product = (xs + 0.5 * ws, ys + hs)
-            s_point_modifier = (xs, ys + 0.5 * hs)
 
             r_point_substrate = (x + 0.5 * w, y + h)
             r_point_product = (x + 0.5 * w, y)
-            r_point_modifier = (x + w, y + 0.5 * h)
 
-        if role in [LAYOUT_ROLE_ACTIVATOR, LAYOUT_ROLE_INHIBITOR, LAYOUT_ROLE_MODIFIER]:
-            # segment from species -> reaction
-            line_segment.setStart(s_point_modifier[0], s_point_modifier[1], 0)
-            line_segment.setEnd(r_point_modifier[0], r_point_modifier[1], 0)
-        elif role in [
+        if role in [
             LAYOUT_ROLE_SUBSTRATE,
             LAYOUT_ROLE_SIDESUBSTRATE,
             LAYOUT_ROLE_UNDEFINED,
@@ -396,6 +394,10 @@ class Layout(factory.Sbase):
         dim.setHeight(self.height)
         dim.setDepth(self.depth)
         sbase.setDimensions(dim)
+
+        for c_item in self.compartment_glyphs:
+            c_glyph: libsbml.CompartmentGlyph = sbase.createCompartmentGlyph()
+            c_item._set_glyph_fields(c_glyph, sbase, model)
 
         for s_item in self.species_glyphs:
             s_glyph: libsbml.SpeciesGlyph = sbase.createSpeciesGlyph()
