@@ -30,7 +30,7 @@ Around this core the package collects the tasks which come with SBML models: val
 
 The specifications behind the language and its packages are cited in [References](references.md).
 
-Code using the removed COBRApy integration or interpolation API should follow [Migration](migration.md).
+Code using the removed COBRApy, interpolation or Cytoscape API should follow [Migration](migration.md).
 
 ## Quickstart
 

@@ -49,7 +49,7 @@ To work on the repository itself, with the test and documentation tooling, see [
 
 Install the development environment and runnable example dependencies together with `uv sync --extra dev`. See [Development](development.md).
 
-The COBRApy integration and interpolation API have been removed. See [Migration](migration.md) for the affected imports and alternatives.
+The `cobra` and `cytoscape` extras and the interpolation API have been removed. See [Migration](migration.md) for the affected imports and alternatives.
 
 ## Logging
 

@@ -22,7 +22,7 @@ Features include
 
 The documentation is available at [https://matthiaskoenig.github.io/sbmlutils](https://matthiaskoenig.github.io/sbmlutils).
 
-The development branch removes the COBRApy integration and interpolation functionality. See the [migration guide](https://matthiaskoenig.github.io/sbmlutils/migration/) before updating code that uses those APIs.
+The development branch removes the COBRApy, interpolation and Cytoscape functionality. See the [migration guide](https://matthiaskoenig.github.io/sbmlutils/migration/) before updating code that uses those APIs.
 
 If you have any questions or issues please [open an issue](https://github.com/matthiaskoenig/sbmlutils/issues).
 
