@@ -7,7 +7,6 @@ from typing import Any
 import numpy as np
 
 from examples.icg import annotations, templates
-from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.factory import *
 from sbmlutils.metadata import BQB, SBO
 
@@ -1392,8 +1391,7 @@ if __name__ == "__main__":
 
     log.enable_rich_logging()
 
-    results = create_model(
+    create_model(
         model=model_body,
         filepath=Path.cwd() / f"{model_body.sid}.xml",
     )
-    visualize_sbml(results.sbml_path)

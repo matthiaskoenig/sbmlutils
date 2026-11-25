@@ -15,21 +15,22 @@ Around this core the package collects the tasks which come with SBML models: val
 
 ## Features
 
-- **[Model creation](creation.md)** - define a model as python objects and write it as SBML with `create_model`, with support for the `comp`, `fbc`, `distrib` and `layout` packages.
-- **[Units](units.md)** - units are written as strings (`mmole/min/l`), parsed with [pint](https://pint.readthedocs.io) and converted into SBML unit definitions; the model is checked for unit consistency.
+- **[Model creation](creation.md)** - define a model as python objects and write it as SBML with `create_model`.
+- **[Reading and writing](io.md)** - read and write SBML files and strings, or recover a Python model definition from SBML and Antimony.
+- **[Validation](validation.md)** - the libsbml checks with a readable report and configurable consistency options.
 - **[Annotations](annotations.md)** - MIRIAM annotations and SBO terms on every element, either in the model definition or applied to an existing model from an annotation spreadsheet.
 - **[Notes](notes.md)** - element documentation written as markdown, converted to the XHTML notes SBML requires.
-- **[Validation](validation.md)** - the libsbml checks with a readable report and configurable consistency options.
-- **[Model composition](comp.md)** - hierarchical models with the `comp` package: submodels, ports, replacements, and flattening into a single model.
-- **[Flux balance constraints](fbc.md)** - `fbc` models with flux bounds, objectives, gene products and user defined constraints, and a bridge to [cobrapy](https://cobrapy.readthedocs.io).
+- **[Units](units.md)** - units are written as strings (`mmole/min/l`), parsed with [pint](https://pint.readthedocs.io) and converted into SBML unit definitions; the model is checked for unit consistency.
 - **[COMBINE archives](omex.md)** - models packaged as OMEX archives through [pymetadata](https://github.com/matthiaskoenig/pymetadata).
 - **[Reports](reports.md)** - the complete content of a model as JSON, the basis of the reports on [sbml4humans.de](https://sbml4humans.de).
-- **[Converters](converters.md)** - XPP/XPPAUT `.ode` files to SBML, antimony in both directions, and the ids of a model written into its names for COPASI.
+- **[Converters](converters.md)** - XPP/XPPAUT `.ode` files to SBML and Antimony conversion in both directions.
 - **[ODE export](ode.md)** - the system of ordinary differential equations of a model as code which simulates it (python, julia, R) and as a document which describes it (typst, LaTeX, markdown), by the package [sbmlode](https://matthiaskoenig.github.io/sbmlode/).
-- **[Interpolation](interpolation.md)** - a table of data points as an SBML model, with constant, linear and cubic spline interpolation.
-- **[Visualization](visualization.md)** - models rendered as a network in [Cytoscape](https://cytoscape.org).
+- **[Visualization](visualization.md)** - network diagram geometry stored in SBML with the layout package.
+- **Packages** - examples for [Core](packages/core.md), hierarchical composition ([comp](packages/comp.md)), distributions and uncertainties ([distrib](packages/distrib.md)), flux balance constraints ([fbc](packages/fbc.md)), and collections of model elements ([groups](packages/groups.md)).
 
 The specifications behind the language and its packages are cited in [References](references.md).
+
+Code using the removed COBRApy integration or interpolation API should follow [Migration](migration.md).
 
 ## Quickstart
 

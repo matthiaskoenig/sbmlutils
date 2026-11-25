@@ -1,4 +1,4 @@
-"""Helper functions for working with FBC and cobrapy models."""
+"""Helper functions for working with SBML FBC models."""
 
 import logging
 

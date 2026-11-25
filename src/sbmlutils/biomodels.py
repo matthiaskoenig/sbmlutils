@@ -11,14 +11,11 @@ import logging
 import re
 import shutil
 import tempfile
-from collections.abc import Sequence
 from pathlib import Path
 
 from pymetadata.omex import EntryFormat, ManifestEntry, Omex
 from pymetadata.webservices.webservice import get_session
-from requests.exceptions import HTTPError
 
-from sbmlutils.console import console
 from sbmlutils.utils import contained_path
 
 logger = logging.getLogger(__name__)
@@ -156,98 +153,3 @@ def download_biomodel_sbml(
             raise ValueError(f"Unsupported format: '{output_format}'.")
 
         return [e.location for e in sbml_entries]
-
-
-def query_curated_biomodels() -> list[str]:
-    """Query the identifiers of the curated biomodels.
-
-    A transient error response is retried, see the module documentation.
-
-    Returns:
-        The sorted identifiers of the manually curated models.
-
-    Raises:
-        HTTPError: if the server answered with an error status
-        RequestException: if the server could not be reached
-    """
-    session = get_session()
-    url = f"{BIOMODELS_URL}/search?query=curationstatus%3A%22Manually%20curated%22&numResults=1&format=json"
-    response = session.get(url)
-    response.raise_for_status()
-    json = response.json()
-    logger.debug("Query: %s", url)
-
-    matches: int = json["matches"]
-    logger.info("Curated biomodels: %s", matches)
-    offset: int = 0
-    num_results: int = 100
-    biomodel_ids = []
-    while offset < matches:
-        url = f"{BIOMODELS_URL}/search?query=curationstatus%3A%22Manually%20curated%22&numResults={num_results}&offset={offset}&format=json"
-        response = session.get(url)
-        response.raise_for_status()
-        json = response.json()
-        ids = [model["id"] for model in json["models"]]
-        logger.debug("n=%s ids, %s", len(ids), url)
-        biomodel_ids.extend(ids)
-        offset += num_results
-
-    logger.info("Retrieved '%s' identifiers", len(biomodel_ids))
-    return sorted(biomodel_ids)
-
-
-def _create_biomodels_testfiles(
-    biomodel_ids: Sequence[str], output_dir: Path, caching: bool = True
-) -> None:
-    """Download all curated biomodels and create omex files."""
-    logger.info("Number of models: %s", len(biomodel_ids))
-    for biomodel_id in biomodel_ids:
-        if caching and (output_dir / f"{biomodel_id}.omex").exists():
-            logger.info("Skip cached biomodel '%s'", biomodel_id)
-            continue
-
-        # download SBML model as omex
-        try:
-            logger.info("Download biomodel '%s'", biomodel_id)
-            download_biomodel_sbml(biomodel_id, output_dir, output_format="omex")
-        except HTTPError as err:
-            logger.error("Could not retrieve OMEX for biomodel: '%s'", biomodel_id)
-            logger.error(err)
-
-
-if __name__ == "__main__":
-    """Download curated biomodels
-
-    This script provides support for downloading models from biomodels.
-
-    """
-
-    biomodel_id: str = "BIOMD0000000001"
-    with tempfile.TemporaryDirectory() as f_tmp:
-        output_dir = Path(f_tmp)
-        # output_dir = Path(__name__).parent / "tmp"
-
-        download_biomodel_omex(
-            biomodel_id=biomodel_id,
-            omex_path=output_dir / f"{biomodel_id}_1.omex",
-        )
-        download_biomodel_sbml(
-            biomodel_id=biomodel_id,
-            output_dir=output_dir,
-            output_format="sbml",
-        )
-        download_biomodel_sbml(
-            biomodel_id=biomodel_id,
-            output_dir=Path(output_dir),
-            output_format="omex",
-        )
-        omex_path = output_dir / f"{biomodel_id}.omex"
-        omex = Omex.from_omex(omex_path)
-        console.log(omex)
-
-    # from sbmlutils.resources import BIOMODELS_CURATED_PATH
-    #
-    # biomodel_ids = query_curated_biomodels()
-    # _create_biomodels_testfiles(
-    #     biomodel_ids=biomodel_ids, output_dir=BIOMODELS_CURATED_PATH, caching=False
-    # )

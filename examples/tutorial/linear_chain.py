@@ -10,7 +10,6 @@ from pathlib import Path
 from sbmlode import OdeSystem
 
 from examples import templates
-from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.factory import *
 from sbmlutils.validation import ValidationOptions
 
@@ -64,5 +63,3 @@ if __name__ == "__main__":
     system = OdeSystem.from_sbml(results.sbml_path)
     for suffix in (".md", ".py", ".R"):
         system.write(Path.cwd() / f"{model.sid}{suffix}")
-
-    visualize_sbml(sbml_path=results.sbml_path)

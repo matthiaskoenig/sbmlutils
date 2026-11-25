@@ -3,7 +3,6 @@
 from pathlib import Path
 
 from examples import templates
-from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.factory import *
 
 
@@ -344,5 +343,4 @@ if __name__ == "__main__":
 
     log.enable_rich_logging()
 
-    result: FactoryResult = create(output_dir=Path.cwd())
-    visualize_sbml(result.sbml_path)
+    create(output_dir=Path.cwd())

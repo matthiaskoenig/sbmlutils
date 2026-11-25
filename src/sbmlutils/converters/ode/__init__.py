@@ -1,11 +1,11 @@
 """Export of an SBML model as its system of ordinary differential equations.
 
-The ODE export is the package [sbmlode](https://matthiaskoenig.github.io/sbmlode/),
-which this module re-exports, so code written against `sbmlutils.converters.ode`
-keeps working:
+This compatibility namespace is deprecated and emits a `DeprecationWarning`
+when imported. Import the ODE export from
+[sbmlode](https://matthiaskoenig.github.io/sbmlode/) directly:
 
 ```python
-from sbmlutils.converters.ode import OdeSystem
+from sbmlode import OdeSystem
 
 system = OdeSystem.from_sbml("model.xml")
 code = system.render("python", simulator=True)
@@ -23,9 +23,16 @@ in the documentation of sbmlode, https://matthiaskoenig.github.io/sbmlode/.
 import importlib
 import pkgutil
 import sys
+import warnings
 
 import sbmlode
 from sbmlode import FORMATS, Format, OdeSystem, render, render_template, write
+
+warnings.warn(
+    "sbmlutils.converters.ode is deprecated; import from sbmlode instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 __all__: list[str] = [
     "FORMATS",

@@ -2,7 +2,6 @@
 
 from pathlib import Path
 
-from sbmlutils.cytoscape import visualize_antimony, visualize_sbml
 from sbmlutils.factory import *
 from sbmlutils.metadata import BQB
 from sbmlutils.parser import antimony_to_model
@@ -65,9 +64,6 @@ if __name__ == "__main__":
 
     log.enable_rich_logging()
 
-    # visualize the model
-    visualize_antimony(source=model_antimony, delete_session=True)
-
     # load model and manipulate
     model: Model = antimony_to_model(source=model_antimony)
     model.species.append(Species(sid="PA", initialAmount=0, compartment="cell"))
@@ -75,9 +71,8 @@ if __name__ == "__main__":
         if s.sid in ["X", "Y", "Z"]:
             s.annotations.append((BQB.IS, "chebi/CHEBI:33699"))  # messenger RNA
 
-    result = create_model(
+    create_model(
         model=model,
         filepath=Path.cwd() / f"{model.sid}.xml",
         validation_options=ValidationOptions(units_consistency=False),
     )
-    visualize_sbml(sbml_path=result.sbml_path)

@@ -48,7 +48,6 @@ REPRESSILATOR_SBML = MODELS_DIR / "repressilator" / "BIOMD0000000012_urn.xml"
 
 # fbc
 FBC_ECOLI_CORE_SBML = MODELS_DIR / "fbc" / "e_coli_core.xml.gz"
-FBC_DIAUXIC_GROWTH_SBML = MODELS_DIR / "fbc" / "diauxic_fba.xml"
 FBC_RECON3D_SBML = MODELS_DIR / "fbc" / "Recon3D.xml.gz"
 
 # comp
@@ -117,12 +116,6 @@ dfba_paths = [
     MODELS_DIR / "dfba" / f"diauxic_{t}.xml" for t in ["bounds", "fba", "top", "update"]
 ]
 
-# interpolation
-interpolation_paths = [
-    MODELS_DIR / "interpolation" / f"data1_{type}.xml"
-    for t in ["constant", "cubic", "linear"]
-]
-
 example_ids = [
     "algebraic_rule",
     "annotation",
@@ -184,7 +177,6 @@ ALL_SBML_PATHS = [
     VDP_SBML,
     *distrib_paths,
     *dfba_paths,
-    *interpolation_paths,
 ]
 
 BIOMODELS_CURATED_PATH = MODELS_DIR / "biomodels"

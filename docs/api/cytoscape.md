@@ -1,3 +1,0 @@
-# cytoscape
-
-::: sbmlutils.cytoscape

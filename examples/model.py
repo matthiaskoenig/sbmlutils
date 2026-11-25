@@ -8,7 +8,6 @@ from pathlib import Path
 import libsbml
 
 from examples import templates
-from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.factory import *
 from sbmlutils.metadata import BQB, SBO
 
@@ -167,7 +166,4 @@ if __name__ == "__main__":
 
     log.enable_rich_logging()
 
-    fac_result: FactoryResult = create_model(
-        model=model, filepath=Path.cwd() / f"{model.sid}.xml"
-    )
-    visualize_sbml(sbml_path=fac_result.sbml_path)
+    create_model(model=model, filepath=Path.cwd() / f"{model.sid}.xml")

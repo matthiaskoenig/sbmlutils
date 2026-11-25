@@ -1,12 +1,11 @@
 """Run the examples which are scripts.
 
 The model definitions are checked by `test_examples.py`, this runs the examples
-which do something with a model: interpolate data, convert a model, merge
+which do something with a model: convert a model, merge
 models or simulate one. Every example is run as a module in a temporary working
 directory, so the files it writes do not end up in the repository.
 
-The examples which need Cytoscape (`visualize_sbml`) or network access are not
-run here.
+The examples which need network access are not run here.
 """
 
 import os
@@ -19,14 +18,11 @@ import pytest
 #: the root of the repository, `python -m examples.<module>` is run from here
 REPO_DIR = Path(__file__).parent.parent.parent
 
-#: examples which run without Cytoscape and without network access
+#: examples which run without network access
 SCRIPTS = [
     "examples.converters.xpp",
     "examples.distrib.distrib_packages_examples",
     "examples.distrib.distrib_uncertainty",
-    "examples.interpolation.driving",
-    "examples.interpolation.interpolation",
-    "examples.interpolation.pancreas",
     "examples.merge_models.merge_models",
     "examples.tiny.simulation",
 ]
@@ -37,9 +33,6 @@ def test_example_script(module: str, tmp_path: Path) -> None:
     """Every example runs without an error and writes into the working directory."""
     if module in {
         "examples.converters.xpp",
-        "examples.interpolation.driving",
-        "examples.interpolation.interpolation",
-        "examples.interpolation.pancreas",
         "examples.tiny.simulation",
     }:
         pytest.importorskip("roadrunner")

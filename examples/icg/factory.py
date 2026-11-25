@@ -10,7 +10,6 @@ from examples.icg.model_body import model_body
 from examples.icg.model_liver import model as model_liver
 from sbmlutils.comp import flatten_sbml
 from sbmlutils.console import console
-from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.factory import create_model
 
 logger = logging.getLogger(__name__)
@@ -77,8 +76,6 @@ if __name__ == "__main__":
     log.enable_rich_logging()
 
     results = create_models(Path.cwd(), create_tissues=True)
-    for k, key in enumerate(results):
-        delete_session = k == 0
-        sbml_path = results[key]["path"]
+    for result in results.values():
+        sbml_path = result["path"]
         print(sbml_path)
-        visualize_sbml(sbml_path=sbml_path, delete_session=delete_session)

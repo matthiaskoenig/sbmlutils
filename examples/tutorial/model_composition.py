@@ -3,7 +3,6 @@
 from pathlib import Path
 
 from examples.tutorial.minimal_model import model as minimal_model
-from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.factory import *
 from sbmlutils.metadata import BQB
 from sbmlutils.validation import ValidationOptions
@@ -35,5 +34,4 @@ if __name__ == "__main__":
 
     log.enable_rich_logging()
 
-    fac_result = create(output_dir=Path.cwd())
-    visualize_sbml(sbml_path=fac_result.sbml_path)
+    create(output_dir=Path.cwd())

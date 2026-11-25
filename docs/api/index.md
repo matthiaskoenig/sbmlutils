@@ -14,8 +14,7 @@ The top level modules: the model definition, reading and writing, validation and
 | [parser](parser.md) | SBML and antimony into a model definition |
 | [notes](notes.md) | element documentation written as markdown |
 | [reaction_equation](reaction_equation.md) | the stoichiometry of a reaction as a string |
-| [biomodels](biomodels.md) | models from the BioModels database |
-| [cytoscape](cytoscape.md) | models rendered as a network in Cytoscape |
+| [biomodels](biomodels.md) | download SBML and COMBINE archives by BioModels ID |
 | [console](console.md) | shared rich console |
 | [log](log.md) | logging of the package |
 | [utils](utils.md) | meta ids and the frozen base class |
@@ -35,15 +34,8 @@ Conversion of a model into another representation, see [Converters](../converter
 
 | module | description |
 | --- | --- |
-| [converters.ode](converters.ode.md) | the ODE export, a re-export of the package sbmlode |
+| [converters.ode](converters.ode.md) | deprecated compatibility imports for sbmlode |
 | [converters.xpp](converters.xpp.md) | XPP/XPPAUT ode files to SBML |
-| [converters.copasi](converters.copasi.md) | ids written into the names for COPASI |
-
-## sbmlutils.data
-
-| module | description |
-| --- | --- |
-| [data.interpolation](data.interpolation.md) | data points as an SBML model, see [Interpolation](../interpolation.md) |
 
 ## sbmlutils.fbc
 
@@ -52,7 +44,6 @@ Constraint based models, see [Flux balance constraints](../fbc.md).
 | module | description |
 | --- | --- |
 | [fbc.fbc](fbc.fbc.md) | flux bounds and boundary conditions |
-| [fbc.cobra](fbc.cobra.md) | the bridge to cobrapy, the optional `cobra` extra |
 
 ## sbmlutils.layout
 
