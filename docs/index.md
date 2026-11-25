@@ -16,21 +16,17 @@ Around this core the package collects the tasks which come with SBML models: val
 ## Features
 
 - **[Model creation](creation.md)** - define a model as python objects and write it as SBML with `create_model`.
-- **[Reading and writing](io.md)** - read and write SBML files and strings, or recover a Python model definition from SBML and Antimony.
+- **Packages** - examples for [core](packages/core.md), hierarchical composition ([comp](packages/comp.md)), distributions and uncertainties ([distrib](packages/distrib.md)), flux balance constraints ([fbc](packages/fbc.md)), collections of model elements ([groups](packages/groups.md)), and diagram geometry ([layout](packages/layout.md)).
+- **[Reading and writing](io.md)** - read and write SBML files and strings, import [Antimony](io/antimony.md) and [XPP](io/xpp.md), or recover a Python model definition.
 - **[Validation](validation.md)** - the libsbml checks with a readable report and configurable consistency options.
 - **[Annotations](annotations.md)** - MIRIAM annotations and SBO terms on every element, either in the model definition or applied to an existing model from an annotation spreadsheet.
 - **[Notes](notes.md)** - element documentation written as markdown, converted to the XHTML notes SBML requires.
 - **[Units](units.md)** - units are written as strings (`mmole/min/l`), parsed with [pint](https://pint.readthedocs.io) and converted into SBML unit definitions; the model is checked for unit consistency.
 - **[COMBINE archives](omex.md)** - models packaged as OMEX archives through [pymetadata](https://github.com/matthiaskoenig/pymetadata).
 - **[Reports](reports.md)** - the complete content of a model as JSON, the basis of the reports on [sbml4humans.de](https://sbml4humans.de).
-- **[Converters](converters.md)** - XPP/XPPAUT `.ode` files to SBML and Antimony conversion in both directions.
 - **[ODE export](ode.md)** - the system of ordinary differential equations of a model as code which simulates it (python, julia, R) and as a document which describes it (typst, LaTeX, markdown), by the package [sbmlode](https://matthiaskoenig.github.io/sbmlode/).
-- **[Visualization](visualization.md)** - network diagram geometry stored in SBML with the layout package.
-- **Packages** - examples for [Core](packages/core.md), hierarchical composition ([comp](packages/comp.md)), distributions and uncertainties ([distrib](packages/distrib.md)), flux balance constraints ([fbc](packages/fbc.md)), and collections of model elements ([groups](packages/groups.md)).
 
 The specifications behind the language and its packages are cited in [References](references.md).
-
-Code using the removed COBRApy, interpolation or Cytoscape API should follow [Migration](migration.md).
 
 ## Quickstart
 

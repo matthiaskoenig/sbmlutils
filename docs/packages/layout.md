@@ -1,4 +1,4 @@
-# Visualization
+# layout
 
 The SBML layout package stores a diagram alongside the model. A layout defines a canvas and glyphs that refer to compartments, species, and reactions. Compatible viewers can use those positions and connections to draw the network.
 
@@ -68,4 +68,4 @@ assert stored_layout.getReactionGlyph(0).getNumSpeciesReferenceGlyphs() == 2
 
 The layout describes geometry. The reaction equation still defines the model's stoichiometry. The layout is carried by `read_sbml` and `write_sbml` through libSBML. To edit an existing document while preserving its layout, use those functions together with the libSBML layout plugin. The factory parser `sbml_to_model` omits layouts.
 
-See the [layout API](api/layout.layout.md) for the glyph classes and `python -m examples.tiny.tiny` for a larger pathway diagram.
+See the [layout API](../api/layout.layout.md) for the glyph classes and `python -m examples.tiny.tiny` for a larger pathway diagram.
