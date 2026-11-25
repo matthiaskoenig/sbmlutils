@@ -1699,7 +1699,7 @@ def create_model(
     The created SBML can be serialized to additional formats for inspection, which
     are written next to the SBML file: the antimony serialization of the model
     (`create_antimony`, `*.ant`) and the markdown overview of the ODE system
-    (`create_markdown`, `*.md`, written by sbmlode, see `sbmlutils.converters.ode`).
+    (`create_markdown`, `*.md`, written by `sbmlode.OdeSystem`).
 
     :param model: Model or iterable of Model instances which are merged in single model
     :param filepath: Path to write the SBML model to

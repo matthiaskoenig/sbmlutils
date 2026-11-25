@@ -127,13 +127,13 @@ So 1465 of the 1482 cases which can be compared round trip. Of those which use n
 
 `sbml_to_model` reads the content of the fbc, distrib and comp packages, so it round trips with the rest of the model: flux bounds, objectives, gene products and their associations, charges and chemical formulas, key value pairs and user defined constraints; uncertainties with their parameters and spans, in the order of the document; submodels, ports, replaced elements, deletions, the whole nested `sBaseRef` chain of a reference, model definitions with everything inside them and external model definitions. What each package keeps and what it does not is on its own page: [Flux balance constraints](fbc.md#what-round-trips), [Distributions and uncertainties](distrib.md#what-round-trips) and [Model composition](comp.md#what-round-trips).
 
-Simulation and validation cannot check this: roadrunner refuses to simulate fbc, ignores distrib and flattens comp away, and a document stripped of all three packages validates without an error. The round trip of the packages is therefore measured in three ways.
+Simulation and validation cannot check this: roadrunner refuses to simulate fbc, ignores distrib and flattens comp away, and a document stripped of all three packages validates without an error. The round trip of the packages is therefore checked structurally, with additional simulation checks for comp.
 
 **Attribute by attribute.** The package content of the document read is compared with the package content of the document written, element by element and attribute by attribute, over 265 documents: the 157 SBML L3V2 test-suite cases which declare a package and 108 package files of `sbmlutils.resources`, among them `e_coli_core`, `Recon3D` and the whole-body model `icg_body`. Every construct of every package is preserved in every document which has it, with a single exception: the SBO terms of the `and` and `or` nodes of a gene product association, in two of the files, which the association string has no place for. The comparison reads both documents through libsbml, so what libsbml itself does not read back cannot show up in it, i.e. the key value pairs of a reactant or a product, see [Flux balance constraints](fbc.md#what-round-trips). The only differences accepted as equal are three normalizations which preserve the meaning: a nested group of the same operator in an association written back without the inner parentheses, a `<cn>` of integral value gaining `type="integer"`, and an annotation resource canonicalized to its compact identifiers.org URL.
 
 **By simulating the flattened model.** For comp, the original and the round trip are flattened with `flatten_sbml` and simulated. All 113 of the 123 comp test-suite cases which roadrunner can simulate at all agree, as does `icg_body` with its external model definition; the other ten have an algebraic rule, a delay or a system the solver does not integrate, before the round trip as well as after.
 
-**By solving the model.** For fbc, both documents are read as constraint based models with [cobrapy](https://cobrapy.readthedocs.io) and compared: the stoichiometric matrix, the flux bounds, the objective, the gene reaction rules, the genes and the metabolites, and the flux balance solution. `e_coli_core` and `Recon3D` agree in all of them and solve to the same objective value. Of the 34 fbc test-suite cases cobrapy loads 29, and all 29 agree; it refuses the other five as models, before and after the round trip.
+**FBC analysis is separate.** The structural comparison checks that flux bounds, objectives, gene product associations and the other fbc constructs survive the round trip. The tests do not run a flux optimization solver. Applications that need to compare optimization results can read both documents directly with COBRApy; see [Migration](migration.md#cobra-integration).
 
 The SBML test suite has no distrib case at all, so distrib is verified only on the files of this repository, which were written to show what `sbmlutils` can express and therefore test what their authors already believed. The fbc test-suite cases are uniform and carry no gene products, associations, user defined constraints or key value pairs; those come from `e_coli_core`, `Recon3D` and two example files. A nested `sBaseRef` occurs in three cases.
 
@@ -205,7 +205,6 @@ from pathlib import Path
 from sbmlutils.biomodels import (
     download_biomodel_omex,
     download_biomodel_sbml,
-    query_curated_biomodels,
 )
 
 # the OMEX archive of a model
@@ -213,9 +212,6 @@ download_biomodel_omex("BIOMD0000000012", Path("BIOMD0000000012.omex"))
 
 # the SBML files inside it, written into a directory
 paths = download_biomodel_sbml("BIOMD0000000012", Path("models"))
-
-# the ids of all curated models
-biomodel_ids = query_curated_biomodels()
 ```
 
 ## Checking round-trip preservation

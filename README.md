@@ -12,7 +12,7 @@
 
 Features include
 
-- **model creation** - a model is a python object, `create_model` writes it as validated SBML, with support for the `comp`, `fbc`, `distrib` and `layout` packages
+- **model creation** - a model is a python object, `create_model` writes it as validated SBML, with support for the `comp`, `fbc`, `distrib` and `layout` packages; the [package guides](https://matthiaskoenig.github.io/sbmlutils/packages/core/) also show how to use `groups` with libSBML
 - **units** written as strings (`mmole/min/l`) and checked for consistency
 - **annotations** - MIRIAM annotations and SBO terms, in the model definition or from an annotation spreadsheet
 - **notes** written as markdown
@@ -21,6 +21,8 @@ Features include
 - **ODE export** - the system of ordinary differential equations of a model as code which simulates it (python, julia, R) and as a document (typst, LaTeX, markdown), by the package [sbmlode](https://github.com/matthiaskoenig/sbmlode)
 
 The documentation is available at [https://matthiaskoenig.github.io/sbmlutils](https://matthiaskoenig.github.io/sbmlutils).
+
+The development branch removes the COBRApy, interpolation and Cytoscape functionality. See the [migration guide](https://matthiaskoenig.github.io/sbmlutils/migration/) before updating code that uses those APIs.
 
 If you have any questions or issues please [open an issue](https://github.com/matthiaskoenig/sbmlutils/issues).
 

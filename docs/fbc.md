@@ -42,7 +42,7 @@ model.reactions = [
 ]
 ```
 
-`add_default_flux_bounds` adds the bounds to a model which has none, which is what a model needs before cobrapy will read it:
+`add_default_flux_bounds` supplies missing bounds on the reactions of an SBML document:
 
 ```python
 from sbmlutils.fbc.fbc import add_default_flux_bounds
@@ -141,8 +141,6 @@ Species(
 
 The charge is written as the fbc version of the document spells it: an integer in fbc version 2, a double in fbc version 3. A charge which is not a whole number therefore needs `Package.FBC_V3`; in an fbc version 2 document it is reported and left unset rather than rounded to a charge the model never stated.
 
-`sbmlutils.fbc.cobra.check_mass_balance` reports the reactions which are not balanced.
-
 ## Key value pairs (fbc v3)
 
 fbc version 3 lets every element carry a list of key-value pairs, a structured annotation of keys, values and the URI which defines the meaning of a key:
@@ -214,22 +212,8 @@ What the round trip does not keep:
 
 The verification uses the 34 fbc cases of the [SBML test suite](https://github.com/sbmlteam/sbml-test-suite) and the fbc files of the repository. The test-suite cases are uniform and contain no gene products, associations, user defined constraints or key value pairs; those come from `e_coli_core`, `Recon3D` and the example files under `resources/examples/`.
 
-## cobrapy
+## Analysis
 
-[cobrapy](https://cobrapy.readthedocs.io) does the flux balance analysis. It is not a dependency of `sbmlutils`; install it with the `cobra` extra:
-
-```bash
-pip install sbmlutils[cobra]
-```
-
-```python
-from sbmlutils.fbc.cobra import cobra_reaction_info, read_cobra_model
-
-model = read_cobra_model("fbc_model.xml")
-solution = model.optimize()
-print(solution.objective_value)
-
-df = cobra_reaction_info(model)  # bounds and objective coefficients as a DataFrame
-```
+sbmlutils creates, reads, writes and validates fbc models. Flux optimization and mass balance analysis belong to a separate analysis tool. The COBRApy bridge and `cobra` extra have been removed; see [Migration](migration.md#cobra-integration) for direct COBRApy usage.
 
 The complete examples are in `examples/fbc/`: `fbc_v2.py`, `fbc_v3.py`, `fbc_mass_charge.py` and `fbc_userdefinedconstraints.py`.

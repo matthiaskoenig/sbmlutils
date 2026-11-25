@@ -3,7 +3,6 @@
 from pathlib import Path
 
 from sbmlutils.comp import flatten_sbml
-from sbmlutils.cytoscape import visualize_sbml
 from sbmlutils.factory import *
 
 n_cells = 5
@@ -102,16 +101,6 @@ def create(output_dir: Path) -> None:
 
     # flatten model
     flatten_sbml(sbml_path, sbml_flat_path=sbml_path_flat)
-
-    # visualize all files
-    for k, path in enumerate(
-        [
-            sbml_minimal_path,
-            sbml_path,
-            sbml_path_flat,
-        ]
-    ):
-        visualize_sbml(sbml_path=path, delete_session=(k == 0))
 
 
 if __name__ == "__main__":

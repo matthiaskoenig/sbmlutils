@@ -26,7 +26,7 @@ A pull request can only be merged once the four required checks are green:
 
 `tests` aggregates the test matrix into a single job, so the name of the required check stays the same when the matrix changes.
 
-Continuous integration is kept small: every workflow cancels its running build when a newer commit of the same branch or pull request arrives, uv caches the packages and the interpreters between runs, and dependabot proposes its updates once a month. The matrix tests the newest stable Python on every platform and the minimum Python with the lowest direct dependencies on Linux. The remaining Python versions and `cobra` are tested locally, see [Testing](#testing), before a pull request is opened.
+Continuous integration is kept small: every workflow cancels its running build when a newer commit of the same branch or pull request arrives, uv caches the packages and the interpreters between runs, and dependabot proposes its updates once a month. The matrix tests the newest stable Python on every platform and the minimum Python with the lowest direct dependencies on Linux. The remaining Python versions are tested locally, see [Testing](#testing), before a pull request is opened.
 
 Further rules of a pull request:
 
@@ -142,14 +142,6 @@ pytest -m "not sbml_testsuite and not slow and not network"
 
 Python 3.15 tests the core package without the `examples` extra because libroadrunner does not yet publish CPython 3.15 wheels. Tests requiring simulation skip in that environment; Python 3.12 to 3.14 still install the extra and run them.
 
-The `cobra` environment is the one which installs cobrapy, the optional `cobra` extra, and runs the tests which need it, i.e., the flux balance comparison of `tests/test_package_semantics.py` and `tests/fbc/test_cobra.py`; it is pinned to python 3.14 and runs locally only, continuous integration does not install cobrapy.
-
-```bash
-tox r -e cobra
-```
-
-Here `--` replaces those two modules, so `tox r -e cobra -- tests/fbc/test_cobra.py` runs that one.
-
 The `lowest` environment installs the oldest version of every dependency which the lower bounds in `pyproject.toml` allow (`uv_resolution = lowest-direct`, their own dependencies stay at the newest) on python 3.12 and runs the suite against it, so a lower bound is only ever raised or lowered together with a run of it. `pymetadata` requires newer releases of `rich` and `requests` than sbmlutils does, which would lift them above the bounds; `lowest-overrides.txt` therefore overrides `rich`, `requests` and `markdown-it-py` to exactly their bounds (through `UV_OVERRIDE`), and has to be kept equal to them. It runs locally only, as part of `tox run-parallel`.
 
 ```bash
@@ -172,13 +164,24 @@ pytest tests/test_factory.py::test_model_units  # a single test
 
 The `conftest.py` at the root of the repository selects the non-interactive matplotlib backend for the session and puts the repository on `sys.path`, so that `tests/examples/` can import the examples.
 
-Some tests are skipped unless what they need is there: the models of the [SBML test suite](https://github.com/sbmlteam/sbml-test-suite) and the biomodels archives are only present in a checkout, `tests/fbc/test_cobra.py` and the flux balance comparison of `tests/test_package_semantics.py` need cobrapy (the `cobra` extra, which the tox `cobra` environment installs), and `tests/test_biomodels.py` queries the live BioModels service.
+Some tests are skipped unless what they need is there: the models of the [SBML test suite](https://github.com/sbmlteam/sbml-test-suite) and the biomodels archives are only present in a checkout, simulation tests need the `examples` extra, and the network tests in `tests/test_biomodels.py` query the live BioModels service.
 
 The downloads of `sbmlutils.biomodels` go through the retrying session of pymetadata, which retries the transient error responses (429, 500, 502, 503, 504) with an exponential backoff and times out after 30 seconds; `test_download_file_retries_transient_error` covers this against a local server and needs no network. What retrying cannot fix is a service which is unreachable or which refuses the request - BioModels answers the GitHub runners with `403 Forbidden` - so those tests probe the service first and are skipped rather than failed.
 
+### BioModels fixtures
+
+The repository script lists curated BioModels IDs or refreshes the SBML-only archives used as test fixtures.
+
+```bash
+uv run python scripts/biomodels.py search
+uv run python scripts/biomodels.py refresh
+```
+
+Search prints sorted IDs, one per line. Refresh writes to the repository fixture directory by default and reuses existing archives. Pass `--output-dir PATH` to write elsewhere or `--no-cache` to rebuild existing archives. Refresh exits with a nonzero status if any model fails. For downloading a known model by ID in Python, see [Reading and writing](io.md#downloading-from-biomodels).
+
 ### The ODE export
 
-The [ODE export](ode.md) is the package [sbmlode](https://github.com/matthiaskoenig/sbmlode), a dependency which `sbmlutils.converters.ode` re-exports. Its tests, with the julia, R and LaTeX toolchains and the verification against libroadrunner over the SBML test suite, live in that repository; sbmlutils only tests the re-export and `create_model(create_markdown=True)` (`tests/converters/test_ode_reexport.py`).
+The [ODE export](ode.md) is the package [sbmlode](https://github.com/matthiaskoenig/sbmlode), a dependency used directly by the factory. The deprecated `sbmlutils.converters.ode` import path remains as a compatibility re-export. The export tests, with the julia, R and LaTeX toolchains and the verification against libroadrunner over the SBML test suite, live in that repository; sbmlutils only tests the re-export and `create_model(create_markdown=True)` (`tests/converters/test_ode_reexport.py`).
 
 ## Linting and formatting
 

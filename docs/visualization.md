@@ -1,111 +1,71 @@
 # Visualization
 
-A reaction network is easier to check as a picture than as XML. `sbmlutils.cytoscape` sends a model to a running [Cytoscape](https://cytoscape.org) instance and renders it as a network.
+The SBML layout package stores a diagram alongside the model. A layout defines a canvas and glyphs that refer to compartments, species, and reactions. Compatible viewers can use those positions and connections to draw the network.
 
-## Requirements
+## The SBML layout package
 
-The visualization needs two things which do not come with `sbmlutils`:
-
-```bash
-pip install sbmlutils[cytoscape]
-```
-
-installs [py4cytoscape](https://py4cytoscape.readthedocs.io), which talks to the CyREST interface, and Cytoscape itself has to be **running** on the machine - download it from [cytoscape.org](https://cytoscape.org). The [cy3sbml](https://github.com/matthiaskoenig/cy3sbml) app reads the SBML, install it from the Cytoscape app store.
-
-If py4cytoscape is not installed, or Cytoscape is not reachable, the functions log a warning and return `None`; they do not raise, so a model creation script which visualizes at the end still finishes.
-
-## Visualizing a model
+The factory writes the entries in `Model.layouts` into the SBML document. Each compartment and species glyph refers to its model element by ID. A reaction glyph refers to a reaction ID and connects to **glyph** IDs, which lets a layout show the same species in more than one place.
 
 ```python
 from pathlib import Path
 
-from sbmlutils.cytoscape import visualize_sbml
-
-visualize_sbml(sbml_path=Path("model.xml"))
-```
-
-`delete_session=True` closes what is open in Cytoscape before the model is loaded, which keeps a script from piling up networks:
-
-```python
-visualize_sbml(sbml_path=Path("model.xml"), delete_session=True)
-```
-
-Antimony is visualized without writing an SBML file first:
-
-```python
-from sbmlutils.cytoscape import visualize_antimony
-
-visualize_antimony("J0: S1 -> S2; k1*S1; S1 = 10; S2 = 0; k1 = 0.1")
-```
-
-Most model examples end with a call to `visualize_sbml`, so running one shows the network it just built.
-
-## Layout
-
-The positions of the nodes are read from and applied to a network:
-
-```python
-from sbmlutils.cytoscape import apply_layout, read_layout_xml
-
-layout = read_layout_xml(xml_path=Path("layout.xml"))
-apply_layout(layout)
-```
-
-`read_layout_xml` returns the positions as a `DataFrame`, so a layout is edited, generated or stored like any other table.
-
-## Annotations on the canvas
-
-Shapes and text are drawn on the canvas of the network, e.g. to group a pathway or to label a compartment:
-
-```python
-from sbmlutils.cytoscape import (
-    AnnotationShape,
-    AnnotationShapeType,
-    AnnotationText,
-    add_annotations,
+from sbmlutils import layout
+from sbmlutils.factory import (
+    Compartment,
+    Model,
+    ModelUnits,
+    Reaction,
+    Species,
+    Units,
+    create_model,
 )
+from sbmlutils.io import read_sbml
 
-add_annotations(
-    [
-        AnnotationShape(
-            type=AnnotationShapeType.ROUND_RECTANGLE,
-            x_pos=100,
-            y_pos=100,
-            width=400,
-            height=300,
-            fill_color="#EEEEEE",
-        ),
-        AnnotationText(text="cytosol", x_pos=120, y_pos=110, font_size=24),
-    ]
+model = Model(
+    sid="pathway",
+    model_units=ModelUnits(substance=Units.mole, volume=Units.litre),
+    compartments=[Compartment("cell", value=1.0, unit=Units.litre)],
+    species=[
+        Species("A", compartment="cell", initialAmount=1.0),
+        Species("B", compartment="cell", initialAmount=0.0),
+    ],
+    reactions=[Reaction("step", equation="A -> B")],
+    layouts=[
+        layout.Layout(
+            sid="pathway_layout",
+            width=300,
+            height=120,
+            compartment_glyphs=[
+                layout.CompartmentGlyph("glyph_cell", "cell", x=5, y=5, w=290, h=110)
+            ],
+            species_glyphs=[
+                layout.SpeciesGlyph("glyph_A", "A", x=35, y=50, text="A"),
+                layout.SpeciesGlyph("glyph_B", "B", x=215, y=50, text="B"),
+            ],
+            reaction_glyphs=[
+                layout.ReactionGlyph(
+                    "glyph_step",
+                    "step",
+                    x=140,
+                    y=50,
+                    text="Step",
+                    species_glyphs={
+                        "glyph_A": layout.LAYOUT_ROLE_SUBSTRATE,
+                        "glyph_B": layout.LAYOUT_ROLE_PRODUCT,
+                    },
+                )
+            ],
+        )
+    ],
 )
+result = create_model(model, Path("pathway_layout.xml"), raise_on_error=True)
+
+doc = read_sbml(result.sbml_path)
+stored_layout = doc.getModel().getPlugin("layout").getLayout(0)
+assert stored_layout.getNumSpeciesGlyphs() == 2
+assert stored_layout.getReactionGlyph(0).getNumSpeciesReferenceGlyphs() == 2
 ```
 
-## Exporting an image
+The layout describes geometry. The reaction equation still defines the model's stoichiometry. The layout is carried by `read_sbml` and `write_sbml` through libSBML. To edit an existing document while preserving its layout, use those functions together with the libSBML layout plugin. The factory parser `sbml_to_model` omits layouts.
 
-```python
-from sbmlutils.cytoscape import export_image
-
-export_image(image_path=Path("network.png"), format="PNG")
-```
-
-## The SBML layout package
-
-The positions of a model can also be stored *in* the model, with the SBML layout package. `sbmlutils.layout` provides the objects for it - `Layout`, `SpeciesGlyph`, `ReactionGlyph`, `CompartmentGlyph` - which are assigned to `model.layouts`:
-
-```python
-import sbmlutils.layout as layout
-
-model.layouts = [
-    layout.Layout(
-        sid="layout_1",
-        name="Layout 1",
-        width=700,
-        height=700,
-        compartment_glyphs=[
-            layout.CompartmentGlyph("glyph_c", compartment="c", x=5, y=5, w=690, h=690)
-        ],
-    )
-]
-```
-
-`examples/tiny/tiny.py` builds a complete layout this way.
+See the [layout API](api/layout.layout.md) for the glyph classes and `python -m examples.tiny.tiny` for a larger pathway diagram.

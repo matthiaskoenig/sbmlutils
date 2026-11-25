@@ -1,12 +1,14 @@
 """The ODE export of sbmlutils is the package sbmlode, which it re-exports."""
 
 import importlib
+import subprocess
+import sys
+import warnings
 from pathlib import Path
 
 import pytest
 import sbmlode
 
-from sbmlutils.converters import ode
 from sbmlutils.factory import (
     Compartment,
     Model,
@@ -17,6 +19,46 @@ from sbmlutils.factory import (
 )
 from sbmlutils.resources import REPRESSILATOR_SBML
 from sbmlutils.validation import ValidationOptions
+
+with warnings.catch_warnings():
+    warnings.filterwarnings(
+        "ignore",
+        message=r"sbmlutils\.converters\.ode is deprecated",
+        category=DeprecationWarning,
+    )
+    ode = importlib.import_module("sbmlutils.converters.ode")
+
+
+@pytest.mark.parametrize(
+    "statement",
+    [
+        "from sbmlutils.converters import ode",
+        "from sbmlutils.converters.ode import OdeSystem",
+        "from sbmlutils.converters.ode.system import OdeSystem",
+    ],
+)
+def test_deprecated_import_warns_at_the_call_site(statement: str) -> None:
+    """Every legacy import path warns once in a fresh application process."""
+    code = (
+        "import warnings\n"
+        "with warnings.catch_warnings(record=True) as caught:\n"
+        "    warnings.simplefilter('always', DeprecationWarning)\n"
+        f"    {statement}\n"
+        "assert len(caught) == 1, caught\n"
+        "warning = caught[0]\n"
+        "assert warning.category is DeprecationWarning\n"
+        "assert str(warning.message) == "
+        "'sbmlutils.converters.ode is deprecated; import from sbmlode instead.'\n"
+        "assert warning.filename == '<string>', warning.filename\n"
+    )
+    result = subprocess.run(
+        [sys.executable, "-c", code],
+        capture_output=True,
+        text=True,
+        check=False,
+        timeout=60,
+    )
+    assert result.returncode == 0, result.stderr
 
 
 def test_reexport() -> None:

@@ -25,11 +25,10 @@ An example writes the model it creates into the current working directory, and a
 | `examples/combine_archive/` | COMBINE archives (OMEX) built from a model |
 | `examples/merge_models/` | merging models into a comp model |
 | `examples/converters/` | conversion of an ode file to SBML |
-| `examples/interpolation/` | interpolation of data points as an SBML model |
 | `examples/demo/`, `examples/tiny/`, `examples/dallaman/`, `examples/icg/` | complete models, from a small demo to a whole body physiological model |
 
 `examples/templates.py` holds the creators and the terms of use shared by the models.
 
 ## Tests
 
-`tests/examples/test_examples.py` builds every model of `examples_models` in `examples/registry.py` and runs every script of `examples_create`, and `tests/examples/test_example_scripts.py` runs the examples which convert, merge, interpolate or simulate as `python -m examples.<module>` in a temporary working directory. An example which breaks fails the test suite.
+`tests/examples/test_examples.py` builds every model of `examples_models` in `examples/registry.py` and runs every script of `examples_create`, and `tests/examples/test_example_scripts.py` runs the examples which convert, merge or simulate as `python -m examples.<module>` in a temporary working directory. An example which breaks fails the test suite.

@@ -1747,13 +1747,10 @@ class Trigger(Sbase):
                 sbase.getVersion(),
             )
         else:
-            # initialValue False is not supported by Copasi, a condition on
-            # time is the workaround
             check(
                 sbase.setInitialValue(self.initialValue),
                 f"Set initialValue on trigger '{self.math}'",
             )
-            # persistent True is not supported by Copasi, careful with its usage
             check(
                 sbase.setPersistent(self.persistent),
                 f"Set persistent on trigger '{self.math}'",

@@ -1,3 +1,0 @@
-# interpolation
-
-::: sbmlutils.data.interpolation

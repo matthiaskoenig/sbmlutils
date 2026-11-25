@@ -1,3 +1,0 @@
-# cobra
-
-::: sbmlutils.fbc.cobra

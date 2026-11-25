@@ -1,20 +1,6 @@
 # Converters
 
-An SBML model is a description, not a program. The converters turn it into something else: the ODE system as code or as a document, a model from another format, or a file another tool understands.
-
-## SBML to an ODE system
-
-The package [sbmlode](https://matthiaskoenig.github.io/sbmlode/), which `sbmlutils.converters.ode` re-exports, writes the system of ordinary differential equations of a model as code which simulates it, in python, julia and R, and as a document which describes it, in typst, LaTeX and markdown:
-
-```python
-from sbmlode import OdeSystem
-
-system = OdeSystem.from_sbml("model.xml")
-system.write("model.py")
-system.write("model.typ")
-```
-
-The numerical code reproduces libroadrunner over the SBML test suite, events included. See [ODE export](ode.md) and the [documentation of sbmlode](https://matthiaskoenig.github.io/sbmlode/) for the formats, their options, the supported SBML and how to run the code.
+The converters import models from other formats and recover a Python model definition from SBML. Deriving differential equations and exporting simulation code or equation documents is covered in [ODE export](ode.md).
 
 ## XPP to SBML
 
@@ -50,18 +36,6 @@ model = antimony_to_model("model.ant")
 ```
 
 `sbml_to_antimony` in `sbmlutils.io` converts an SBML file or string back to antimony. `create_model` writes the antimony and the markdown of the ODE system next to the SBML file with `create_antimony=True` and `create_markdown=True`, see [Model creation](creation.md).
-
-## COPASI
-
-COPASI displays the name of an element, not its id, which makes a model whose elements have no names unreadable in it. `write_ids_to_names` copies the ids into the names:
-
-```python
-from pathlib import Path
-
-from sbmlutils.converters.copasi import write_ids_to_names
-
-write_ids_to_names(input_path=Path("model.xml"), output_path=Path("model_copasi.xml"))
-```
 
 ## Model definition from SBML
 

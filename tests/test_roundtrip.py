@@ -19,7 +19,7 @@ attribute.
 
 roadrunner is the optional `examples` extra, which `dev` and the tox test
 environment pull in. It is `None` when it is not installed, which is what
-these tests skip on, following the `cobra` pattern of `sbmlutils.fbc.cobra`.
+these tests skip on.
 
 The full sweep runs every case in a python process of its own, see
 `run_case_isolated`. libroadrunner has crashed in native code, at varying

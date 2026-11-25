@@ -41,17 +41,15 @@ To work on the repository itself, with the test and documentation tooling, see [
 
 ## Extras
 
-`sbmlutils` reads, writes, annotates and validates models; it neither simulates nor plots, so the packages for that are not installed with it. Three extras add what a specific feature needs:
+`sbmlutils` reads, writes, annotates and validates models; it neither simulates nor plots, so the packages for that are not installed with it. The `examples` extra adds what the runnable examples need.
 
 | extra | install | what it adds |
 | --- | --- | --- |
-| `cytoscape` | `pip install sbmlutils[cytoscape]` | `py4cytoscape` for the [visualization](visualization.md) in a running [Cytoscape](https://cytoscape.org) |
-| `cobra` | `pip install sbmlutils[cobra]` | `cobra` for the [flux balance analysis](fbc.md#cobrapy) of `sbmlutils.fbc.cobra` |
 | `examples` | `pip install sbmlutils[examples]` | `libroadrunner` and `matplotlib`, which the [examples](https://github.com/matthiaskoenig/sbmlutils/tree/develop/examples) simulate and plot with |
 
-Several are combined as usual: `pip install sbmlutils[cytoscape,examples]`. The development environment installs `cytoscape` and `examples` with `uv sync --extra dev`, see [Development](development.md).
+Install the development environment and runnable example dependencies together with `uv sync --extra dev`. See [Development](development.md).
 
-Without the `cytoscape` extra `sbmlutils.cytoscape` still imports; its functions log a warning and do nothing, just as they do when Cytoscape is not running.
+The `cobra` and `cytoscape` extras and the interpolation API have been removed. See [Migration](migration.md) for the affected imports and alternatives.
 
 ## Logging
 

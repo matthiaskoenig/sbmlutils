@@ -1,7 +1,6 @@
-"""ODE and FBA simulation of the tiny model.
+"""Simulate the tiny model with roadrunner.
 
-The model is created with `examples.tiny.tiny`, simulated with roadrunner and,
-if cobrapy is installed, optimized as a flux balance model.
+The model is created with `examples.tiny.tiny`.
 
 Run it from the root of the repository:
 
@@ -26,8 +25,6 @@ from matplotlib import pyplot as plt
 from matplotlib.pyplot import Figure
 
 from examples.tiny import tiny
-from sbmlutils.console import console
-from sbmlutils.fbc.cobra import cobra, read_cobra_model
 
 logger = logging.getLogger(__name__)
 
@@ -75,44 +72,7 @@ def tiny_simulation(output_dir: Path) -> Figure:
         ax.legend()
         ax.set_xlabel("time [s]")
 
-    if cobra is not None:
-        fba_simulation(sbml_path)
-    else:
-        logger.warning("cobrapy is not installed, the fba simulation is skipped")
-
     return f
-
-
-def fba_simulation(sbml_path: Path) -> None:
-    """Optimize the model as a flux balance model with cobrapy.
-
-    Args:
-        sbml_path: the SBML model to optimize
-    """
-    model = read_cobra_model(sbml_path)
-    console.print(model)
-
-    console.rule("Reactions", style="white")
-    for reaction in model.reactions:
-        console.print(
-            f"{reaction.id} : {reaction.reaction} "
-            f"[{reaction.lower_bound}<->{reaction.upper_bound}]"
-        )
-
-    console.rule("Metabolites", style="white")
-    for metabolite in model.metabolites:
-        console.print(
-            f"{metabolite.id:>9} ({metabolite.compartment}) : "
-            f"{metabolite.formula}, {metabolite.charge}, {metabolite.annotation}"
-        )
-
-    console.rule("Genes", style="white")
-    for gene in model.genes:
-        associated_ids = ", ".join(reaction.id for reaction in gene.reactions)
-        console.print(f"{gene.id} is associated with reactions: {{{associated_ids}}}")
-
-    console.rule(style="white")
-    console.print(model.optimize())
 
 
 if __name__ == "__main__":
