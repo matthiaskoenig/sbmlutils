@@ -181,7 +181,7 @@ Search prints sorted IDs, one per line. Refresh writes to the repository fixture
 
 ### The ODE export
 
-The [ODE export](ode.md) is the package [sbmlode](https://github.com/matthiaskoenig/sbmlode), a dependency used directly by the factory. The deprecated `sbmlutils.converters.ode` import path remains as a compatibility re-export. The export tests, with the julia, R and LaTeX toolchains and the verification against libroadrunner over the SBML test suite, live in that repository; sbmlutils only tests the re-export and `create_model(create_markdown=True)` (`tests/converters/test_ode_reexport.py`).
+The [ODE export](ode.md) is the package [sbmlsim-core](https://github.com/matthiaskoenig/sbmlsim-core), a dependency used directly by the factory. The deprecated `sbmlutils.converters.ode` import path remains as a compatibility re-export. The export tests, with the julia, R and LaTeX toolchains and the verification against libroadrunner over the SBML test suite, live in that repository; sbmlutils only tests the re-export and `create_model(create_markdown=True)` (`tests/converters/test_ode_reexport.py`).
 
 ## Linting and formatting
 

@@ -22,7 +22,7 @@ Everything else works on the libsbml document or the file in between:
 | --- | --- | --- |
 | check a model | `validate_sbml`, `validate_doc` | [Validation](validation.md) |
 | import other formats | `antimony_to_sbml`, `xpp2sbml` | [Antimony](io/antimony.md), [XPP](io/xpp.md) |
-| export other formats | `sbml_to_antimony`, sbmlode | [Antimony](io/antimony.md), [ODE export](ode.md) |
+| export other formats | `sbml_to_antimony`, sbmlsim-core | [Antimony](io/antimony.md), [ODE export](ode.md) |
 | hierarchical models | `flatten_sbml`, `merge_models` | [comp](packages/comp.md) |
 | describe a model | `SBMLDocumentInfo` | [Reports](reports.md) |
 | download a model | `sbmlutils.biomodels` | [COMBINE archives](omex.md) |

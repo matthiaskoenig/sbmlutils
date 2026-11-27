@@ -1,4 +1,4 @@
-"""The ODE export of sbmlutils is the package sbmlode, which it re-exports."""
+"""The ODE export of sbmlutils is the shared Rust generator, which it re-exports."""
 
 import importlib
 import subprocess
@@ -7,7 +7,7 @@ import warnings
 from pathlib import Path
 
 import pytest
-import sbmlode
+from sbmlsim_core import ode as core_ode
 
 from sbmlutils.factory import (
     Compartment,
@@ -48,7 +48,7 @@ def test_deprecated_import_warns_at_the_call_site(statement: str) -> None:
         "warning = caught[0]\n"
         "assert warning.category is DeprecationWarning\n"
         "assert str(warning.message) == "
-        "'sbmlutils.converters.ode is deprecated; import from sbmlode instead.'\n"
+        "'sbmlutils.converters.ode is deprecated; import from sbmlsim_core instead.'\n"
         "assert warning.filename == '<string>', warning.filename\n"
     )
     result = subprocess.run(
@@ -62,23 +62,23 @@ def test_deprecated_import_warns_at_the_call_site(statement: str) -> None:
 
 
 def test_reexport() -> None:
-    """The public API of `sbmlutils.converters.ode` is that of sbmlode."""
-    assert ode.OdeSystem is sbmlode.OdeSystem
-    assert ode.FORMATS is sbmlode.FORMATS
-    assert ode.Format is sbmlode.Format
-    assert ode.render is sbmlode.render
-    assert ode.render_template is sbmlode.render_template
-    assert ode.write is sbmlode.write
+    """The public API of `sbmlutils.converters.ode` is that of core_ode."""
+    assert ode.OdeSystem is core_ode.OdeSystem
+    assert ode.FORMATS is core_ode.FORMATS
+    assert ode.Format is core_ode.Format
+    assert ode.render is core_ode.render
+    assert ode.render_template is core_ode.render_template
+    assert ode.write is core_ode.write
 
 
 @pytest.mark.parametrize(
     "submodule",
-    ["system", "formats", "documents", "symbols", "text", "printers", "printers.latex"],
+    ["system", "formats"],
 )
-def test_submodules_are_those_of_sbmlode(submodule: str) -> None:
-    """`import sbmlutils.converters.ode.<submodule>` gives the module of sbmlode."""
+def test_submodules_are_the_shared_core(submodule: str) -> None:
+    """`import sbmlutils.converters.ode.<submodule>` gives the module of core_ode."""
     module = importlib.import_module(f"sbmlutils.converters.ode.{submodule}")
-    assert module is importlib.import_module(f"sbmlode.{submodule}")
+    assert module is core_ode
 
 
 def test_from_import_of_a_submodule() -> None:
@@ -91,7 +91,7 @@ def test_from_import_of_a_submodule() -> None:
         OdeSystem,
     )
 
-    assert OdeSystem is sbmlode.OdeSystem
+    assert OdeSystem is core_ode.OdeSystem
 
 
 def test_render_markdown() -> None:
@@ -102,7 +102,7 @@ def test_render_markdown() -> None:
 
 
 def test_create_model_markdown(tmp_path: Path) -> None:
-    """`create_model(create_markdown=True)` writes the markdown of sbmlode."""
+    """`create_model(create_markdown=True)` writes the markdown of core_ode."""
     model = Model(
         sid="markdown",
         compartments=[Compartment(sid="c", value=1.0)],
@@ -119,4 +119,4 @@ def test_create_model_markdown(tmp_path: Path) -> None:
     assert result.markdown_path == tmp_path / "model.md"
     markdown = result.markdown_path.read_text(encoding="utf-8")
     assert r"\frac{\mathrm{d}" in markdown
-    assert "sbmlode" in markdown
+    assert "sbmlsim-core" in markdown

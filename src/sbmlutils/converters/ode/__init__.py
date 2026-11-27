@@ -1,63 +1,32 @@
-"""Export of an SBML model as its system of ordinary differential equations.
+"""Deprecated import aliases for the shared Rust equation generator.
 
-This compatibility namespace is deprecated and emits a `DeprecationWarning`
-when imported. Import the ODE export from
-[sbmlode](https://matthiaskoenig.github.io/sbmlode/) directly:
-
-```python
-from sbmlode import OdeSystem
-
-system = OdeSystem.from_sbml("model.xml")
-code = system.render("python", simulator=True)
-system.write("model.md")
-```
-
-The submodules of sbmlode are importable under this module as well:
-`sbmlutils.converters.ode.system` is the module `sbmlode.system`, the same object,
-and so on for every module of sbmlode, e.g. `sbmlutils.converters.ode.printers.latex`.
-They exist at runtime only, a type checker does not see them: new code imports
-sbmlode directly. The guide, the formats and the API reference are
-in the documentation of sbmlode, https://matthiaskoenig.github.io/sbmlode/.
+Use ``from sbmlsim_core import OdeSystem``. The former ``system`` and ``formats``
+import paths remain aliases of ``sbmlsim_core.ode``; mathematical analysis,
+printers and templates have one implementation in the shared core.
 """
 
-import importlib
-import pkgutil
 import sys
 import warnings
 
-import sbmlode
-from sbmlode import FORMATS, Format, OdeSystem, render, render_template, write
+from sbmlsim_core import ode as _ode
+from sbmlsim_core.ode import (
+    FORMATS,
+    Format,
+    OdeSystem,
+    render,
+    render_template,
+    write,
+)
 
 warnings.warn(
-    "sbmlutils.converters.ode is deprecated; import from sbmlode instead.",
+    "sbmlutils.converters.ode is deprecated; import from sbmlsim_core instead.",
     DeprecationWarning,
     stacklevel=2,
 )
 
-__all__: list[str] = [
-    "FORMATS",
-    "Format",
-    "OdeSystem",
-    "render",
-    "render_template",
-    "write",
-]
+__all__ = ["FORMATS", "Format", "OdeSystem", "render", "render_template", "write"]
 
-
-def _alias_submodules() -> None:
-    """Make every module of sbmlode importable under the name of this module.
-
-    `sbmlutils.converters.ode.<name>` is registered in `sys.modules` as the module
-    `sbmlode.<name>`, so `import sbmlutils.converters.ode.system` and
-    `from sbmlutils.converters.ode.system import OdeSystem` give the objects of
-    sbmlode, not copies of them.
-    """
-    for info in pkgutil.walk_packages(sbmlode.__path__, prefix="sbmlode."):
-        module = importlib.import_module(info.name)
-        alias = __name__ + info.name.removeprefix("sbmlode")
-        sys.modules[alias] = module
-        parent, _, child = alias.rpartition(".")
-        setattr(sys.modules[parent], child, module)
-
-
-_alias_submodules()
+sys.modules[__name__ + ".system"] = _ode
+sys.modules[__name__ + ".formats"] = _ode
+system = _ode
+formats = _ode
