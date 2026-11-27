@@ -18,7 +18,7 @@ Features include
 - **notes** written as markdown
 - **model composition** - hierarchical models, merging and flattening
 - **reading and writing** - SBML files and strings, XPP to SBML, Antimony in both directions
-- **ODE export** - the system of ordinary differential equations of a model as code which simulates it (python, julia, R) and as a document (typst, LaTeX, markdown), by the package [sbmlode](https://github.com/matthiaskoenig/sbmlode)
+- **ODE export** - the system of ordinary differential equations of a model as code which simulates it (python, Diffrax/JAX, julia, R) and as a document (typst, LaTeX, markdown), through the shared Rust generator of [sbmlsim-core](https://matthiaskoenig.github.io/sbmlsim-core/odes/)
 
 The documentation is available at [https://matthiaskoenig.github.io/sbmlutils](https://matthiaskoenig.github.io/sbmlutils).
 

@@ -34,7 +34,7 @@ Import XPP/XPPAUT models under [Reading and writing](../io/xpp.md), or derive di
 
 | module | description |
 | --- | --- |
-| [converters.ode](converters.ode.md) | deprecated compatibility imports for sbmlode |
+| [converters.ode](converters.ode.md) | deprecated compatibility imports for sbmlsim-core |
 | [converters.xpp](converters.xpp.md) | XPP/XPPAUT ode files to SBML |
 
 ## sbmlutils.fbc

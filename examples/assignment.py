@@ -3,7 +3,7 @@
 import runpy
 from pathlib import Path
 
-from sbmlode import OdeSystem
+from sbmlsim_core import OdeSystem
 
 from examples import templates
 from sbmlutils.console import console
